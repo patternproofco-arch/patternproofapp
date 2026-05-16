@@ -1,0 +1,24 @@
+{
+  "name": "Daily Planner",
+  "short_name": "Planner",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#C99878",
+  "theme_color": "#4E3B31",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Record",
+      "short_name": "Record",
+      "description": "Start a new recording immediately",
+      "url": "/live-recording?auto=1",
+      "icons": [
+        { "src": "/icons/mic.svg", "sizes": "any", "type": "image/svg+xml" }
+      ]
+    }
+  ]
+}
