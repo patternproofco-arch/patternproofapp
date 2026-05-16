@@ -17,6 +17,8 @@ import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
+import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -57,10 +59,24 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedCourtPacketRoute =
+  AuthenticatedCourtPacketRouteImport.update({
+    id: '/court-packet',
+    path: '/court-packet',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCaseBuilderRoute =
+  AuthenticatedCaseBuilderRouteImport.update({
+    id: '/case-builder',
+    path: '/case-builder',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/case-builder': typeof AuthenticatedCaseBuilderRoute
+  '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/journal': typeof AuthenticatedJournalRoute
@@ -70,6 +86,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/case-builder': typeof AuthenticatedCaseBuilderRoute
+  '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/journal': typeof AuthenticatedJournalRoute
@@ -81,6 +99,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
+  '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
@@ -92,6 +112,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/case-builder'
+    | '/court-packet'
     | '/dashboard'
     | '/evidence'
     | '/journal'
@@ -101,6 +123,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/case-builder'
+    | '/court-packet'
     | '/dashboard'
     | '/evidence'
     | '/journal'
@@ -111,6 +135,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/login'
+    | '/_authenticated/case-builder'
+    | '/_authenticated/court-packet'
     | '/_authenticated/dashboard'
     | '/_authenticated/evidence'
     | '/_authenticated/journal'
@@ -182,10 +208,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/court-packet': {
+      id: '/_authenticated/court-packet'
+      path: '/court-packet'
+      fullPath: '/court-packet'
+      preLoaderRoute: typeof AuthenticatedCourtPacketRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/case-builder': {
+      id: '/_authenticated/case-builder'
+      path: '/case-builder'
+      fullPath: '/case-builder'
+      preLoaderRoute: typeof AuthenticatedCaseBuilderRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
+  AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
@@ -194,6 +236,8 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
+  AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
