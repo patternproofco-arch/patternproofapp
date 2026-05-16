@@ -19,7 +19,7 @@ interface CaseRow {
   attached_evidence_ids: string[];
 }
 interface Inc { id: string; date: string; description: string; abuse_types: string[] }
-interface Ev { id: string; title: string; date: string; file_type: string; linked_incident_id: string | null }
+interface Ev { id: string; title: string; date: string; file_type: string; linked_incident_id: string | null; file_url: string }
 
 function CourtPacket() {
   const { user } = useAuth();
@@ -27,6 +27,7 @@ function CourtPacket() {
   const [caseRow, setCaseRow] = useState<CaseRow | null>(null);
   const [incidents, setIncidents] = useState<Inc[]>([]);
   const [evidence, setEvidence] = useState<Ev[]>([]);
+  const [evUrls, setEvUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!user) return;
@@ -40,11 +41,18 @@ function CourtPacket() {
           ? supabase.from("incidents").select("id,date,description,abuse_types").eq("user_id", user.id).in("id", row.highlighted_incident_ids).order("date", { ascending: true })
           : Promise.resolve({ data: [] as Inc[] }),
         row.attached_evidence_ids.length
-          ? supabase.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", user.id).in("id", row.attached_evidence_ids)
+          ? supabase.from("evidence").select("id,title,date,file_type,linked_incident_id,file_url").eq("user_id", user.id).in("id", row.attached_evidence_ids)
           : Promise.resolve({ data: [] as Ev[] }),
       ]);
       setIncidents((inc.data as Inc[] | null) ?? []);
-      setEvidence((ev.data as Ev[] | null) ?? []);
+      const evRows = (ev.data as Ev[] | null) ?? [];
+      setEvidence(evRows);
+      const urls: Record<string, string> = {};
+      await Promise.all(evRows.filter((e) => e.file_type === "image").map(async (e) => {
+        const { data: s } = await supabase.storage.from("evidence-files").createSignedUrl(e.file_url, 3600);
+        if (s?.signedUrl) urls[e.id] = s.signedUrl;
+      }));
+      setEvUrls(urls);
     })();
   }, [user]);
 
@@ -129,6 +137,16 @@ function CourtPacket() {
                 );
               })}
             </ol>
+          )}
+          {evidence.filter((e) => e.file_type === "image" && evUrls[e.id]).length > 0 && (
+            <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+              {evidence.filter((e) => e.file_type === "image" && evUrls[e.id]).map((e) => (
+                <figure key={e.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 6 }}>
+                  <img src={evUrls[e.id]} alt={e.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 4 }} />
+                  <figcaption style={{ marginTop: 4, fontSize: 11 }}>{e.title} · {new Date(e.date).toLocaleDateString()}</figcaption>
+                </figure>
+              ))}
+            </div>
           )}
         </Section>
       </div>
