@@ -25,6 +25,7 @@ import { Route as AuthenticatedEscalationDetectorRouteImport } from './routes/_a
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
+import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -109,10 +110,17 @@ const AuthenticatedCaseBuilderRoute =
     path: '/case-builder',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAttorneyPortalRoute =
+  AuthenticatedAttorneyPortalRouteImport.update({
+    id: '/attorney-portal',
+    path: '/attorney-portal',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -130,6 +138,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -149,6 +158,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/attorney-portal'
     | '/case-builder'
     | '/court-packet'
     | '/dashboard'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/attorney-portal'
     | '/case-builder'
     | '/court-packet'
     | '/dashboard'
@@ -203,6 +215,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/login'
+    | '/_authenticated/attorney-portal'
     | '/_authenticated/case-builder'
     | '/_authenticated/court-packet'
     | '/_authenticated/dashboard'
@@ -338,10 +351,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCaseBuilderRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/attorney-portal': {
+      id: '/_authenticated/attorney-portal'
+      path: '/attorney-portal'
+      fullPath: '/attorney-portal'
+      preLoaderRoute: typeof AuthenticatedAttorneyPortalRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAttorneyPortalRoute: typeof AuthenticatedAttorneyPortalRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
   AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -358,6 +379,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAttorneyPortalRoute: AuthenticatedAttorneyPortalRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
   AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
