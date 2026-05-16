@@ -9,38 +9,163 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
+import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
+import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
+import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
+import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedVoiceNotesRoute = AuthenticatedVoiceNotesRouteImport.update({
+  id: '/voice-notes',
+  path: '/voice-notes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedTimelineRoute = AuthenticatedTimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedJournalRoute = AuthenticatedJournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedEvidenceRoute = AuthenticatedEvidenceRouteImport.update({
+  id: '/evidence',
+  path: '/evidence',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCourtPacketRoute =
+  AuthenticatedCourtPacketRouteImport.update({
+    id: '/court-packet',
+    path: '/court-packet',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCaseBuilderRoute =
+  AuthenticatedCaseBuilderRouteImport.update({
+    id: '/case-builder',
+    path: '/case-builder',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/case-builder': typeof AuthenticatedCaseBuilderRoute
+  '/court-packet': typeof AuthenticatedCourtPacketRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/evidence': typeof AuthenticatedEvidenceRoute
+  '/journal': typeof AuthenticatedJournalRoute
+  '/timeline': typeof AuthenticatedTimelineRoute
+  '/voice-notes': typeof AuthenticatedVoiceNotesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/case-builder': typeof AuthenticatedCaseBuilderRoute
+  '/court-packet': typeof AuthenticatedCourtPacketRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/evidence': typeof AuthenticatedEvidenceRoute
+  '/journal': typeof AuthenticatedJournalRoute
+  '/timeline': typeof AuthenticatedTimelineRoute
+  '/voice-notes': typeof AuthenticatedVoiceNotesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
+  '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
+  '/_authenticated/journal': typeof AuthenticatedJournalRoute
+  '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
+  '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/case-builder'
+    | '/court-packet'
+    | '/dashboard'
+    | '/evidence'
+    | '/journal'
+    | '/timeline'
+    | '/voice-notes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/case-builder'
+    | '/court-packet'
+    | '/dashboard'
+    | '/evidence'
+    | '/journal'
+    | '/timeline'
+    | '/voice-notes'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/case-builder'
+    | '/_authenticated/court-packet'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/evidence'
+    | '/_authenticated/journal'
+    | '/_authenticated/timeline'
+    | '/_authenticated/voice-notes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +173,87 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/voice-notes': {
+      id: '/_authenticated/voice-notes'
+      path: '/voice-notes'
+      fullPath: '/voice-notes'
+      preLoaderRoute: typeof AuthenticatedVoiceNotesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/timeline': {
+      id: '/_authenticated/timeline'
+      path: '/timeline'
+      fullPath: '/timeline'
+      preLoaderRoute: typeof AuthenticatedTimelineRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/journal': {
+      id: '/_authenticated/journal'
+      path: '/journal'
+      fullPath: '/journal'
+      preLoaderRoute: typeof AuthenticatedJournalRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/evidence': {
+      id: '/_authenticated/evidence'
+      path: '/evidence'
+      fullPath: '/evidence'
+      preLoaderRoute: typeof AuthenticatedEvidenceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/court-packet': {
+      id: '/_authenticated/court-packet'
+      path: '/court-packet'
+      fullPath: '/court-packet'
+      preLoaderRoute: typeof AuthenticatedCourtPacketRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/case-builder': {
+      id: '/_authenticated/case-builder'
+      path: '/case-builder'
+      fullPath: '/case-builder'
+      preLoaderRoute: typeof AuthenticatedCaseBuilderRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
+  AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
+  AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
+  AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
+  AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
+  AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
+  AuthenticatedJournalRoute: AuthenticatedJournalRoute,
+  AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
+  AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

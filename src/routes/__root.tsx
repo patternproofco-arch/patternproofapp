@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { AuthProvider } from "@/lib/auth-context";
+import { Toaster } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -72,14 +74,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "PatternProof — Private documentation for your case" },
+      { name: "description", content: "PatternProof helps survivors privately document incidents, organize evidence, and build court-ready records." },
+      { property: "og:title", content: "PatternProof" },
+      { property: "og:description", content: "Private documentation for your case." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -113,7 +113,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <AuthProvider>
+        <Outlet />
+        <Toaster position="top-center" toastOptions={{ style: { background: "#DEB896", color: "#2A1A10", border: "1px solid rgba(78,59,49,0.2)", borderRadius: "14px", fontFamily: "system-ui" } }} />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
