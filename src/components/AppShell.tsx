@@ -14,12 +14,12 @@ import {
   FileSearch,
   HeartHandshake,
   Settings as SettingsIcon,
-  Radio,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { AiSidekick } from "@/components/AiSidekick";
+import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { useSettings } from "@/lib/settings-context";
 
 const NAV = [
@@ -30,7 +30,6 @@ const NAV = [
   { to: "/voice-notes", label: "Voice Notes", icon: Mic },
   { to: "/case-builder", label: "Case Builder", icon: Hammer },
   { to: "/court-packet", label: "Court Packet", icon: FileText },
-  { to: "/live-recording", label: "Live Recording", icon: Radio },
   { to: "/escalation-detector", label: "Escalation Detector", icon: ShieldAlert },
   { to: "/attorney-portal", label: "Attorney Portal", icon: Briefcase },
   { to: "/opra-helper", label: "OPRA Helper", icon: FileSearch },
@@ -132,6 +131,7 @@ export function AppShell() {
         </div>
       </main>
       <AiSidekick />
+      <FloatingRecordButton />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { SettingsProvider, useSettings } from "@/lib/settings-context";
 import { PinLockProvider, usePinLock } from "@/lib/pin-lock";
 import { PinScreen } from "@/components/PinScreen";
+import { RecordingProvider } from "@/lib/recording-context";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -14,7 +15,9 @@ function AuthLayout() {
   return (
     <SettingsProvider>
       <PinLockProvider>
-        <Gate />
+        <RecordingProvider>
+          <Gate />
+        </RecordingProvider>
       </PinLockProvider>
     </SettingsProvider>
   );

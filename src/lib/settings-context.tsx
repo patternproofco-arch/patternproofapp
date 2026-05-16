@@ -8,6 +8,8 @@ export interface PpSettings {
   notificationsEnabled: boolean;
   iconStyle: string;
   onboarded: boolean;
+  quickRecordVisible: boolean;
+  quickRecordFrozen: boolean;
 }
 
 const DEFAULTS: PpSettings = {
@@ -18,6 +20,8 @@ const DEFAULTS: PpSettings = {
   notificationsEnabled: false,
   iconStyle: "Calendar",
   onboarded: false,
+  quickRecordVisible: true,
+  quickRecordFrozen: false,
 };
 
 const KEY = "pp_settings_v1";

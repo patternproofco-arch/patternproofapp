@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ShieldCheck, KeyRound, Clock3, ScrollText, Lock, AlertTriangle } from "lucide-react";
+import { ShieldCheck, KeyRound, Clock3, ScrollText, Lock, AlertTriangle, Mic } from "lucide-react";
 import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,6 +75,29 @@ function SettingsPage() {
       </h1>
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
+        <div className="card-pp md:col-span-2">
+          <div className="flex items-center gap-2"><Mic size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">Quick Record Button</h2></div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>The record button floats on every screen so you can start recording instantly.</p>
+          <div className="mt-4 space-y-3">
+            <label className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: "var(--input)" }}>
+              <span className="text-[14px]">Show quick record button</span>
+              <input
+                type="checkbox"
+                checked={settings.quickRecordVisible}
+                onChange={(e) => update({ quickRecordVisible: e.target.checked })}
+              />
+            </label>
+            <label className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: "var(--input)" }}>
+              <span className="text-[14px]">Freeze button <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>(prevents accidental taps)</span></span>
+              <input
+                type="checkbox"
+                checked={settings.quickRecordFrozen}
+                onChange={(e) => update({ quickRecordFrozen: e.target.checked })}
+              />
+            </label>
+          </div>
+        </div>
+
         <div className="card-pp">
           <div className="flex items-center gap-2"><ShieldCheck size={18} style={{ color: "var(--safe)" }} /><h2 className="font-serif text-[19px]">Disguise this app</h2></div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>The browser tab and sidebar will use this name. Pick something that fits your day.</p>
