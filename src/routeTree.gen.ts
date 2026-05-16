@@ -20,6 +20,7 @@ import { Route as AuthenticatedResourcesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authenticated/live-recording'
+import { Route as AuthenticatedLegalDocumentsRouteImport } from './routes/_authenticated/legal-documents'
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
 import { Route as AuthenticatedEscalationDetectorRouteImport } from './routes/_authenticated/escalation-detector'
@@ -83,6 +84,12 @@ const AuthenticatedLiveRecordingRoute =
     path: '/live-recording',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedLegalDocumentsRoute =
+  AuthenticatedLegalDocumentsRouteImport.update({
+    id: '/legal-documents',
+    path: '/legal-documents',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedJournalRoute = AuthenticatedJournalRouteImport.update({
   id: '/journal',
   path: '/journal',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/journal': typeof AuthenticatedJournalRoute
+  '/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
@@ -152,6 +160,7 @@ export interface FileRoutesByTo {
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/journal': typeof AuthenticatedJournalRoute
+  '/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
@@ -173,6 +182,7 @@ export interface FileRoutesById {
   '/_authenticated/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
+  '/_authenticated/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/_authenticated/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/escalation-detector'
     | '/evidence'
     | '/journal'
+    | '/legal-documents'
     | '/live-recording'
     | '/onboarding'
     | '/opra-helper'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/escalation-detector'
     | '/evidence'
     | '/journal'
+    | '/legal-documents'
     | '/live-recording'
     | '/onboarding'
     | '/opra-helper'
@@ -233,6 +245,7 @@ export interface FileRouteTypes {
     | '/_authenticated/escalation-detector'
     | '/_authenticated/evidence'
     | '/_authenticated/journal'
+    | '/_authenticated/legal-documents'
     | '/_authenticated/live-recording'
     | '/_authenticated/onboarding'
     | '/_authenticated/opra-helper'
@@ -329,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLiveRecordingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/legal-documents': {
+      id: '/_authenticated/legal-documents'
+      path: '/legal-documents'
+      fullPath: '/legal-documents'
+      preLoaderRoute: typeof AuthenticatedLegalDocumentsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/journal': {
       id: '/_authenticated/journal'
       path: '/journal'
@@ -389,6 +409,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedEscalationDetectorRoute: typeof AuthenticatedEscalationDetectorRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
+  AuthenticatedLegalDocumentsRoute: typeof AuthenticatedLegalDocumentsRoute
   AuthenticatedLiveRecordingRoute: typeof AuthenticatedLiveRecordingRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
@@ -406,6 +427,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedEscalationDetectorRoute: AuthenticatedEscalationDetectorRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
+  AuthenticatedLegalDocumentsRoute: AuthenticatedLegalDocumentsRoute,
   AuthenticatedLiveRecordingRoute: AuthenticatedLiveRecordingRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
