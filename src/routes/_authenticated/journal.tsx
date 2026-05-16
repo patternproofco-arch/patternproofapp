@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { IncidentCard, type IncidentLite } from "@/components/IncidentCard";
+import { useServerFn } from "@tanstack/react-start";
+import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -21,8 +23,11 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 function JournalPage() {
   const { user } = useAuth();
+  const extractIncident = useServerFn(extractIncidentFromImage);
   const [list, setList] = useState<FullIncident[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiFilled, setAiFilled] = useState(false);
   const [form, setForm] = useState({
     date: today(),
     time: "",
@@ -49,6 +54,7 @@ function JournalPage() {
   const reset = () => {
     setForm({ date: today(), time: "", location: "", description: "", abuse_types: [], witnesses: "", emotional_impact: "" });
     setEditingId(null);
+    setAiFilled(false);
   };
 
   const toggleType = (t: string) => {
@@ -106,6 +112,32 @@ function JournalPage() {
     load();
   };
 
+  const autofillFromImage = async (f: File | null) => {
+    if (!user || !f) return;
+    setAiBusy(true);
+    const ext = f.name.split(".").pop() ?? "bin";
+    const key = `${user.id}/journal-ai/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const up = await supabase.storage.from("evidence-files").upload(key, f);
+    if (up.error) { setAiBusy(false); toast("We couldn't read that image. Try another."); return; }
+    const signed = await supabase.storage.from("evidence-files").createSignedUrl(key, 600);
+    if (!signed.data?.signedUrl) { setAiBusy(false); toast("We couldn't read that image."); return; }
+    const r = await extractIncident({ data: { signedUrl: signed.data.signedUrl, mimeType: f.type || "image/png" } });
+    setAiBusy(false);
+    if (!r.ok) { toast("We couldn't pull details from that image. You can still type it out."); return; }
+    const e = r.extracted as Partial<typeof form> & { abuse_types?: string[] };
+    setForm((prev) => ({
+      date: e.date || prev.date,
+      time: e.time || prev.time,
+      location: e.location || prev.location,
+      description: e.description || prev.description,
+      abuse_types: Array.isArray(e.abuse_types) && e.abuse_types.length ? e.abuse_types : prev.abuse_types,
+      witnesses: e.witnesses || prev.witnesses,
+      emotional_impact: e.emotional_impact || prev.emotional_impact,
+    }));
+    setAiFilled(true);
+    toast("Filled in what I could. Please review every field before saving.");
+  };
+
   return (
     <div>
       <div className="label-eyebrow">Your journal</div>
@@ -118,6 +150,21 @@ function JournalPage() {
       <div className="mt-8 grid gap-6 lg:grid-cols-5">
         <form onSubmit={submit} className="card-pp space-y-3 lg:col-span-2">
           <h2 className="font-serif text-[20px]">{editingId ? "Edit incident" : "Log an incident"}</h2>
+
+          <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed p-3 text-[12px]" style={{ borderColor: "var(--border)" }}>
+            <Sparkles size={14} style={{ color: "var(--accent)" }} />
+            <span className="flex-1">
+              {aiBusy ? "Reading your image…" : "Upload a screenshot (text, email, photo) and I'll draft the fields for you to review."}
+            </span>
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,application/pdf" className="hidden"
+              disabled={aiBusy}
+              onChange={(e) => { const f = e.target.files?.[0] ?? null; e.currentTarget.value = ""; autofillFromImage(f); }} />
+          </label>
+          {aiFilled && (
+            <div className="rounded-xl p-2 text-[11px]" style={{ background: "rgba(106,146,214,0.15)", color: "var(--foreground)" }}>
+              AI-drafted — please edit anything that isn't quite right.
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
