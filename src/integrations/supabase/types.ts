@@ -280,6 +280,78 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_documents: {
+        Row: {
+          ai_extracted: boolean
+          ai_extraction_confirmed: boolean
+          case_number: string | null
+          court_name: string | null
+          created_at: string
+          document_type: Database["public"]["Enums"]["legal_document_type"]
+          effective_date: string | null
+          expiration_date: string | null
+          file_type: string
+          file_url: string
+          id: string
+          incident_date: string | null
+          issuing_officer: string | null
+          judge_name: string | null
+          key_terms: string | null
+          linked_incident_ids: string[] | null
+          notes: string | null
+          protected_party: string | null
+          restrained_party: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          ai_extracted?: boolean
+          ai_extraction_confirmed?: boolean
+          case_number?: string | null
+          court_name?: string | null
+          created_at?: string
+          document_type: Database["public"]["Enums"]["legal_document_type"]
+          effective_date?: string | null
+          expiration_date?: string | null
+          file_type: string
+          file_url: string
+          id?: string
+          incident_date?: string | null
+          issuing_officer?: string | null
+          judge_name?: string | null
+          key_terms?: string | null
+          linked_incident_ids?: string[] | null
+          notes?: string | null
+          protected_party?: string | null
+          restrained_party?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          ai_extracted?: boolean
+          ai_extraction_confirmed?: boolean
+          case_number?: string | null
+          court_name?: string | null
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["legal_document_type"]
+          effective_date?: string | null
+          expiration_date?: string | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          incident_date?: string | null
+          issuing_officer?: string | null
+          judge_name?: string | null
+          key_terms?: string | null
+          linked_incident_ids?: string[] | null
+          notes?: string | null
+          protected_party?: string | null
+          restrained_party?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       opra_requests: {
         Row: {
           additional_details: string | null
@@ -422,6 +494,16 @@ export type Database = {
         | "incidents_only"
         | "evidence_only"
       attorney_type: "attorney" | "advocate"
+      legal_document_type:
+        | "tro"
+        | "fro"
+        | "police_report"
+        | "911_log"
+        | "cps_report"
+        | "custody_order"
+        | "court_order"
+        | "hearing_transcript"
+        | "other"
       opra_status: "draft" | "sent" | "response_received"
     }
     CompositeTypes: {
@@ -557,6 +639,17 @@ export const Constants = {
         "evidence_only",
       ],
       attorney_type: ["attorney", "advocate"],
+      legal_document_type: [
+        "tro",
+        "fro",
+        "police_report",
+        "911_log",
+        "cps_report",
+        "custody_order",
+        "court_order",
+        "hearing_transcript",
+        "other",
+      ],
       opra_status: ["draft", "sent", "response_received"],
     },
   },
