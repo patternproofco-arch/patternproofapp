@@ -28,6 +28,7 @@ function LiveRecording() {
   const [list, setList] = useState<Rec[]>([]);
   const [accidental, setAccidental] = useState<{ accidental: boolean; confidence: string } | null>(null);
   const checkedRef = useRef(false);
+  const autoStarted = useRef(false);
 
   const load = async () => {
     if (!user) return;
@@ -35,6 +36,27 @@ function LiveRecording() {
     setList((data as Rec[] | null) ?? []);
   };
   useEffect(() => { load(); }, [user]);
+
+  // Remember the user accepted the legal warning across sessions.
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("pp_record_warned") === "1") {
+      setWarned(true);
+    }
+  }, []);
+  useEffect(() => {
+    if (warned && typeof window !== "undefined") localStorage.setItem("pp_record_warned", "1");
+  }, [warned]);
+
+  // PWA shortcut: /live-recording?auto=1 → start immediately if already warned.
+  useEffect(() => {
+    if (autoStarted.current) return;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("auto") === "1" && warned && !isRecording && !item && !pending) {
+      autoStarted.current = true;
+      start();
+    }
+  }, [warned, isRecording, item, pending, start]);
 
   // Consume globally pending recording from the floating button
   useEffect(() => {
