@@ -14,7 +14,161 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cases: {
+        Row: {
+          attached_evidence_ids: string[]
+          case_types: string[]
+          created_at: string
+          highlighted_incident_ids: string[]
+          id: string
+          jurisdiction: string | null
+          other_party: string | null
+          pattern_summary: string | null
+          relationship_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attached_evidence_ids?: string[]
+          case_types?: string[]
+          created_at?: string
+          highlighted_incident_ids?: string[]
+          id?: string
+          jurisdiction?: string | null
+          other_party?: string | null
+          pattern_summary?: string | null
+          relationship_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attached_evidence_ids?: string[]
+          case_types?: string[]
+          created_at?: string
+          highlighted_incident_ids?: string[]
+          id?: string
+          jurisdiction?: string | null
+          other_party?: string | null
+          pattern_summary?: string | null
+          relationship_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      evidence: {
+        Row: {
+          created_at: string
+          date: string
+          description: string | null
+          file_type: string
+          file_url: string
+          id: string
+          linked_incident_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description?: string | null
+          file_type: string
+          file_url: string
+          id?: string
+          linked_incident_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          linked_incident_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_linked_incident_id_fkey"
+            columns: ["linked_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          abuse_types: string[]
+          created_at: string
+          date: string
+          description: string
+          emotional_impact: string | null
+          id: string
+          location: string | null
+          time: string | null
+          user_id: string
+          witnesses: string | null
+        }
+        Insert: {
+          abuse_types?: string[]
+          created_at?: string
+          date: string
+          description: string
+          emotional_impact?: string | null
+          id?: string
+          location?: string | null
+          time?: string | null
+          user_id: string
+          witnesses?: string | null
+        }
+        Update: {
+          abuse_types?: string[]
+          created_at?: string
+          date?: string
+          description?: string
+          emotional_impact?: string | null
+          id?: string
+          location?: string | null
+          time?: string | null
+          user_id?: string
+          witnesses?: string | null
+        }
+        Relationships: []
+      }
+      voice_notes: {
+        Row: {
+          audio_url: string
+          created_at: string
+          date: string
+          duration_seconds: number | null
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          audio_url: string
+          created_at?: string
+          date: string
+          duration_seconds?: number | null
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          audio_url?: string
+          created_at?: string
+          date?: string
+          duration_seconds?: number | null
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
