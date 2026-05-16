@@ -10,6 +10,23 @@ interface Msg { role: "user" | "assistant"; content: string }
 
 const ELIGIBLE = ["/journal", "/timeline", "/case-builder"];
 
+const STARTER_PROMPTS: Record<string, { label: string; prompt: string }[]> = {
+  "/journal": [
+    { label: "Help me document an incident", prompt: "I want to document something that happened. Can you walk me through it step by step?" },
+    { label: "Something happened last night", prompt: "Something happened last night and I want to get it down while I remember. Where should we start?" },
+    { label: "An old incident I never wrote down", prompt: "There's an older incident I never wrote down. Help me remember the details." },
+    { label: "What evidence should I look for?", prompt: "I already described what happened. What kinds of evidence should I check for that connect to it?" },
+  ],
+  "/timeline": [
+    { label: "Help me see patterns", prompt: "Looking at my recent incidents, can you help me notice any patterns in timing, location, or who was around — without labeling anything?" },
+    { label: "What's missing from my timeline?", prompt: "What kinds of details or evidence are usually missing from a timeline like mine that I should try to add?" },
+  ],
+  "/case-builder": [
+    { label: "What does a strong case file include?", prompt: "What kinds of records and evidence does a case file usually need? Walk me through the categories." },
+    { label: "Help me prep for a lawyer meeting", prompt: "I have a meeting with a lawyer coming up. Help me organize what I have and figure out what's still missing." },
+  ],
+};
+
 export function AiSidekick() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const eligible = ELIGIBLE.some((p) => pathname.startsWith(p));
@@ -25,8 +42,10 @@ export function AiSidekick() {
 
   if (!eligible) return null;
 
-  const send = async () => {
-    const text = input.trim();
+  const starters = STARTER_PROMPTS[Object.keys(STARTER_PROMPTS).find((k) => pathname.startsWith(k)) ?? ""] ?? [];
+
+  const send = async (override?: string) => {
+    const text = (override ?? input).trim();
     if (!text || busy) return;
     const next: Msg[] = [...msgs, { role: "user", content: text }];
     setMsgs(next);
@@ -74,9 +93,28 @@ export function AiSidekick() {
           </div>
           <div className="flex-1 overflow-y-auto px-4 py-3 text-[14px]">
             {msgs.length === 0 && (
-              <p style={{ color: "var(--muted-foreground)" }}>
-                I'm here to help you document what happened. Tell me what's on your mind, or ask me a question.
-              </p>
+              <div className="space-y-4">
+                <p style={{ color: "var(--muted-foreground)" }}>
+                  I'll help you remember the details and figure out what evidence might exist. I'll ask one specific question at a time — answer what you can, skip what you can't.
+                </p>
+                {starters.length > 0 && (
+                  <div>
+                    <div className="label-eyebrow mb-2">Try one of these</div>
+                    <div className="flex flex-col gap-2">
+                      {starters.map((s) => (
+                        <button
+                          key={s.label}
+                          onClick={() => send(s.prompt)}
+                          className="rounded-xl px-3 py-2 text-left text-[13px] leading-snug transition-colors hover:opacity-90"
+                          style={{ background: "var(--input)", color: "var(--foreground)", border: "1px solid var(--border)" }}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
             {msgs.map((m, i) => (
               <div key={i} className={`mb-3 flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
