@@ -537,3 +537,71 @@ function ConfirmationCard({
     </div>
   );
 }
+
+function DrivePickerModal({
+  query, setQuery, onSearch, files, busy, error, onPick, onClose,
+}: {
+  query: string;
+  setQuery: (v: string) => void;
+  onSearch: () => void;
+  files: Array<{ id: string; name: string; mimeType: string; modifiedTime?: string }>;
+  busy: boolean;
+  error: string | null;
+  onPick: (f: { id: string; name: string; mimeType: string }) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.45)" }} onClick={onClose}>
+      <div className="card-pp w-full max-w-xl" onClick={(e) => e.stopPropagation()} style={{ maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="label-eyebrow">Google Drive</div>
+            <h3 className="mt-1 font-serif text-[20px]">Choose a document to import</h3>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-2 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+        </div>
+        <div className="mt-3 flex gap-2">
+          <input
+            className="input-pp flex-1"
+            placeholder="Search by name…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onSearch(); } }}
+          />
+          <button onClick={onSearch} className="btn-ghost inline-flex items-center gap-1 text-[13px]"><Search size={14} /> Search</button>
+        </div>
+
+        <div className="mt-4 overflow-auto" style={{ flex: 1 }}>
+          {busy && <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>Looking through your Drive…</p>}
+          {!busy && error && <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>{error}</p>}
+          {!busy && !error && files.length === 0 && (
+            <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              No PDFs or images found. Try a different search term.
+            </p>
+          )}
+          {!busy && !error && files.length > 0 && (
+            <ul className="space-y-1">
+              {files.map((f) => (
+                <li key={f.id}>
+                  <button
+                    onClick={() => onPick(f)}
+                    className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-black/5"
+                  >
+                    <FileText size={16} style={{ color: "var(--muted-foreground)" }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-serif text-[14px]">{f.name}</div>
+                      <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                        {f.mimeType.replace("application/", "").replace("image/", "")}
+                        {f.modifiedTime ? ` · ${new Date(f.modifiedTime).toLocaleDateString()}` : ""}
+                      </div>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
