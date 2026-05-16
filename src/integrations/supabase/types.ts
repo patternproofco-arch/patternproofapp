@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      attorney_access: {
+        Row: {
+          access_level: Database["public"]["Enums"]["access_level"]
+          access_token: string
+          attorney_email: string
+          attorney_name: string
+          attorney_type: Database["public"]["Enums"]["attorney_type"]
+          created_at: string
+          expires_at: string | null
+          id: string
+          include_escalation: boolean
+          last_accessed_at: string | null
+          revoked_at: string | null
+          shared_evidence_ids: string[]
+          shared_incident_ids: string[]
+          user_id: string
+        }
+        Insert: {
+          access_level?: Database["public"]["Enums"]["access_level"]
+          access_token?: string
+          attorney_email: string
+          attorney_name: string
+          attorney_type?: Database["public"]["Enums"]["attorney_type"]
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          include_escalation?: boolean
+          last_accessed_at?: string | null
+          revoked_at?: string | null
+          shared_evidence_ids?: string[]
+          shared_incident_ids?: string[]
+          user_id: string
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["access_level"]
+          access_token?: string
+          attorney_email?: string
+          attorney_name?: string
+          attorney_type?: Database["public"]["Enums"]["attorney_type"]
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          include_escalation?: boolean
+          last_accessed_at?: string | null
+          revoked_at?: string | null
+          shared_evidence_ids?: string[]
+          shared_incident_ids?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audit_log: {
+        Row: {
+          action_type: string
+          actor: string
+          created_at: string
+          entry_hash: string | null
+          id: string
+          record_reference: string | null
+          timestamp_utc: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          actor?: string
+          created_at?: string
+          entry_hash?: string | null
+          id?: string
+          record_reference?: string | null
+          timestamp_utc?: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          actor?: string
+          created_at?: string
+          entry_hash?: string | null
+          id?: string
+          record_reference?: string | null
+          timestamp_utc?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cases: {
         Row: {
           attached_evidence_ids: string[]
@@ -56,6 +140,47 @@ export type Database = {
         }
         Relationships: []
       }
+      escalation_flags: {
+        Row: {
+          created_at: string
+          details: string | null
+          dismissed_at: string | null
+          flag_type: string
+          id: string
+          incident_id: string | null
+          severity_tier: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          dismissed_at?: string | null
+          flag_type: string
+          id?: string
+          incident_id?: string | null
+          severity_tier: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          dismissed_at?: string | null
+          flag_type?: string
+          id?: string
+          incident_id?: string | null
+          severity_tier?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escalation_flags_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evidence: {
         Row: {
           created_at: string
@@ -65,6 +190,7 @@ export type Database = {
           file_url: string
           id: string
           linked_incident_id: string | null
+          linked_recording_id: string | null
           title: string
           user_id: string
         }
@@ -76,6 +202,7 @@ export type Database = {
           file_url: string
           id?: string
           linked_incident_id?: string | null
+          linked_recording_id?: string | null
           title: string
           user_id: string
         }
@@ -87,6 +214,7 @@ export type Database = {
           file_url?: string
           id?: string
           linked_incident_id?: string | null
+          linked_recording_id?: string | null
           title?: string
           user_id?: string
         }
@@ -98,6 +226,13 @@ export type Database = {
             referencedRelation: "incidents"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "evidence_linked_recording_id_fkey"
+            columns: ["linked_recording_id"]
+            isOneToOne: false
+            referencedRelation: "recordings"
+            referencedColumns: ["id"]
+          },
         ]
       }
       incidents: {
@@ -107,8 +242,10 @@ export type Database = {
           date: string
           description: string
           emotional_impact: string | null
+          has_escalation_flag: boolean
           id: string
           location: string | null
+          severity_level: number | null
           time: string | null
           user_id: string
           witnesses: string | null
@@ -119,8 +256,10 @@ export type Database = {
           date: string
           description: string
           emotional_impact?: string | null
+          has_escalation_flag?: boolean
           id?: string
           location?: string | null
+          severity_level?: number | null
           time?: string | null
           user_id: string
           witnesses?: string | null
@@ -131,13 +270,113 @@ export type Database = {
           date?: string
           description?: string
           emotional_impact?: string | null
+          has_escalation_flag?: boolean
           id?: string
           location?: string | null
+          severity_level?: number | null
           time?: string | null
           user_id?: string
           witnesses?: string | null
         }
         Relationships: []
+      }
+      opra_requests: {
+        Row: {
+          additional_details: string | null
+          agency_address: string | null
+          agency_name: string | null
+          created_at: string
+          custodian_title: string | null
+          date_range_end: string | null
+          date_range_start: string | null
+          generated_letter: string | null
+          id: string
+          record_types: string[]
+          status: Database["public"]["Enums"]["opra_status"]
+          user_id: string
+        }
+        Insert: {
+          additional_details?: string | null
+          agency_address?: string | null
+          agency_name?: string | null
+          created_at?: string
+          custodian_title?: string | null
+          date_range_end?: string | null
+          date_range_start?: string | null
+          generated_letter?: string | null
+          id?: string
+          record_types?: string[]
+          status?: Database["public"]["Enums"]["opra_status"]
+          user_id: string
+        }
+        Update: {
+          additional_details?: string | null
+          agency_address?: string | null
+          agency_name?: string | null
+          created_at?: string
+          custodian_title?: string | null
+          date_range_end?: string | null
+          date_range_start?: string | null
+          generated_letter?: string | null
+          id?: string
+          record_types?: string[]
+          status?: Database["public"]["Enums"]["opra_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recordings: {
+        Row: {
+          audio_url: string
+          created_at: string
+          date: string
+          duration_seconds: number | null
+          id: string
+          linked_incident_id: string | null
+          recording_ended_at: string | null
+          recording_started_at: string | null
+          state_recorded_in: string | null
+          title: string | null
+          transcript: string | null
+          user_id: string
+        }
+        Insert: {
+          audio_url: string
+          created_at?: string
+          date?: string
+          duration_seconds?: number | null
+          id?: string
+          linked_incident_id?: string | null
+          recording_ended_at?: string | null
+          recording_started_at?: string | null
+          state_recorded_in?: string | null
+          title?: string | null
+          transcript?: string | null
+          user_id: string
+        }
+        Update: {
+          audio_url?: string
+          created_at?: string
+          date?: string
+          duration_seconds?: number | null
+          id?: string
+          linked_incident_id?: string | null
+          recording_ended_at?: string | null
+          recording_started_at?: string | null
+          state_recorded_in?: string | null
+          title?: string | null
+          transcript?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recordings_linked_incident_id_fkey"
+            columns: ["linked_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       voice_notes: {
         Row: {
@@ -177,7 +416,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      access_level:
+        | "full"
+        | "court_packet_only"
+        | "incidents_only"
+        | "evidence_only"
+      attorney_type: "attorney" | "advocate"
+      opra_status: "draft" | "sent" | "response_received"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -304,6 +549,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      access_level: [
+        "full",
+        "court_packet_only",
+        "incidents_only",
+        "evidence_only",
+      ],
+      attorney_type: ["attorney", "advocate"],
+      opra_status: ["draft", "sent", "response_received"],
+    },
   },
 } as const
