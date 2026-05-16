@@ -10,6 +10,7 @@ interface Item {
   description: string;
   abuse_types: string[];
 }
+interface EvItem { id: string; title: string; file_type: string; file_url: string; linked_incident_id: string | null }
 
 export const Route = createFileRoute("/_authenticated/timeline")({
   component: TimelinePage,
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/timeline")({
 function TimelinePage() {
   const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
+  const [evByIncident, setEvByIncident] = useState<Record<string, Array<EvItem & { url?: string }>>>({});
   const [types, setTypes] = useState<string[]>([]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -32,6 +34,22 @@ function TimelinePage() {
         .eq("user_id", user.id)
         .order("date", { ascending: false });
       setItems((data as Item[] | null) ?? []);
+      const { data: ev } = await supabase
+        .from("evidence")
+        .select("id,title,file_type,file_url,linked_incident_id")
+        .eq("user_id", user.id)
+        .not("linked_incident_id", "is", null);
+      const rows = (ev as EvItem[] | null) ?? [];
+      const withUrls = await Promise.all(rows.map(async (r) => {
+        const { data: signed } = await supabase.storage.from("evidence-files").createSignedUrl(r.file_url, 3600);
+        return { ...r, url: signed?.signedUrl };
+      }));
+      const grouped: Record<string, Array<EvItem & { url?: string }>> = {};
+      withUrls.forEach((r) => {
+        const k = r.linked_incident_id!;
+        (grouped[k] ||= []).push(r);
+      });
+      setEvByIncident(grouped);
     })();
   }, [user]);
 
@@ -115,6 +133,21 @@ function TimelinePage() {
                         {open ? "Show less" : "Read more"}
                       </button>
                     )}
+                    {evByIncident[i.id]?.length ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {evByIncident[i.id].map((e) => (
+                          <a key={e.id} href={e.url} target="_blank" rel="noreferrer"
+                            className="block overflow-hidden rounded-lg" style={{ width: 88, background: "var(--input)", border: "1px solid var(--border)" }}>
+                            {e.file_type === "image" && e.url ? (
+                              <img src={e.url} alt={e.title} className="h-16 w-full object-cover" />
+                            ) : (
+                              <div className="flex h-16 items-center justify-center text-[10px]" style={{ color: "var(--muted-foreground)" }}>{e.file_type}</div>
+                            )}
+                            <div className="px-1.5 py-1 text-[10px] leading-tight" style={{ color: "var(--foreground)" }}>{e.title.slice(0, 22)}</div>
+                          </a>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               );

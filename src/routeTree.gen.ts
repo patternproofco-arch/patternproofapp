@@ -12,8 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedResourcesRouteImport } from './routes/_authenticated/resources'
+import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authenticated/live-recording'
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
@@ -22,6 +26,7 @@ import { Route as AuthenticatedEscalationDetectorRouteImport } from './routes/_a
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
+import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -37,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
+  id: '/attorney/$token',
+  path: '/attorney/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedVoiceNotesRoute = AuthenticatedVoiceNotesRouteImport.update({
   id: '/voice-notes',
   path: '/voice-notes',
@@ -45,6 +55,21 @@ const AuthenticatedVoiceNotesRoute = AuthenticatedVoiceNotesRouteImport.update({
 const AuthenticatedTimelineRoute = AuthenticatedTimelineRouteImport.update({
   id: '/timeline',
   path: '/timeline',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedResourcesRoute = AuthenticatedResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedOpraHelperRoute = AuthenticatedOpraHelperRouteImport.update({
+  id: '/opra-helper',
+  path: '/opra-helper',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
@@ -91,10 +116,17 @@ const AuthenticatedCaseBuilderRoute =
     path: '/case-builder',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAttorneyPortalRoute =
+  AuthenticatedAttorneyPortalRouteImport.update({
+    id: '/attorney-portal',
+    path: '/attorney-portal',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -103,12 +135,17 @@ export interface FileRoutesByFullPath {
   '/journal': typeof AuthenticatedJournalRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/opra-helper': typeof AuthenticatedOpraHelperRoute
+  '/resources': typeof AuthenticatedResourcesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
+  '/attorney/$token': typeof AttorneyTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -117,14 +154,19 @@ export interface FileRoutesByTo {
   '/journal': typeof AuthenticatedJournalRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/opra-helper': typeof AuthenticatedOpraHelperRoute
+  '/resources': typeof AuthenticatedResourcesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
+  '/attorney/$token': typeof AttorneyTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -133,14 +175,19 @@ export interface FileRoutesById {
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
   '/_authenticated/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
+  '/_authenticated/resources': typeof AuthenticatedResourcesRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
+  '/attorney/$token': typeof AttorneyTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
+    | '/attorney-portal'
     | '/case-builder'
     | '/court-packet'
     | '/dashboard'
@@ -149,12 +196,17 @@ export interface FileRouteTypes {
     | '/journal'
     | '/live-recording'
     | '/onboarding'
+    | '/opra-helper'
+    | '/resources'
+    | '/settings'
     | '/timeline'
     | '/voice-notes'
+    | '/attorney/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
+    | '/attorney-portal'
     | '/case-builder'
     | '/court-packet'
     | '/dashboard'
@@ -163,13 +215,18 @@ export interface FileRouteTypes {
     | '/journal'
     | '/live-recording'
     | '/onboarding'
+    | '/opra-helper'
+    | '/resources'
+    | '/settings'
     | '/timeline'
     | '/voice-notes'
+    | '/attorney/$token'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
+    | '/_authenticated/attorney-portal'
     | '/_authenticated/case-builder'
     | '/_authenticated/court-packet'
     | '/_authenticated/dashboard'
@@ -178,14 +235,19 @@ export interface FileRouteTypes {
     | '/_authenticated/journal'
     | '/_authenticated/live-recording'
     | '/_authenticated/onboarding'
+    | '/_authenticated/opra-helper'
+    | '/_authenticated/resources'
+    | '/_authenticated/settings'
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
+    | '/attorney/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  AttorneyTokenRoute: typeof AttorneyTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -211,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/attorney/$token': {
+      id: '/attorney/$token'
+      path: '/attorney/$token'
+      fullPath: '/attorney/$token'
+      preLoaderRoute: typeof AttorneyTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/voice-notes': {
       id: '/_authenticated/voice-notes'
       path: '/voice-notes'
@@ -223,6 +292,27 @@ declare module '@tanstack/react-router' {
       path: '/timeline'
       fullPath: '/timeline'
       preLoaderRoute: typeof AuthenticatedTimelineRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/resources': {
+      id: '/_authenticated/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof AuthenticatedResourcesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/opra-helper': {
+      id: '/_authenticated/opra-helper'
+      path: '/opra-helper'
+      fullPath: '/opra-helper'
+      preLoaderRoute: typeof AuthenticatedOpraHelperRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/onboarding': {
@@ -281,10 +371,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCaseBuilderRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/attorney-portal': {
+      id: '/_authenticated/attorney-portal'
+      path: '/attorney-portal'
+      fullPath: '/attorney-portal'
+      preLoaderRoute: typeof AuthenticatedAttorneyPortalRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAttorneyPortalRoute: typeof AuthenticatedAttorneyPortalRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
   AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -293,11 +391,15 @@ interface AuthenticatedRouteChildren {
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
   AuthenticatedLiveRecordingRoute: typeof AuthenticatedLiveRecordingRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
+  AuthenticatedResourcesRoute: typeof AuthenticatedResourcesRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAttorneyPortalRoute: AuthenticatedAttorneyPortalRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
   AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -306,6 +408,9 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
   AuthenticatedLiveRecordingRoute: AuthenticatedLiveRecordingRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
+  AuthenticatedResourcesRoute: AuthenticatedResourcesRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
 }
@@ -318,6 +423,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
+  AttorneyTokenRoute: AttorneyTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
