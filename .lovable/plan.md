@@ -1,49 +1,52 @@
-## PatternProof Part 2 — Implementation Plan
+# Plan — PatternProof: Drive import + universal AI extract + cross-page wiring
 
-This is a large addition on top of the existing 7-page foundation. I'll build it in coordinated phases so the app stays working at every step.
+Three connected pieces. I'll build them in this order so each one unlocks the next.
 
-### Phase 1 — Database & storage
-One migration adding:
-- New tables: `audit_log`, `attorney_access`, `recordings`, `escalation_flags`, `opra_requests` (all with RLS = own rows only)
-- New columns: `incidents.severity_level`, `incidents.has_escalation_flag`, `evidence.linked_recording_id`
-- New private storage bucket: `conversation-recordings` with per-user RLS
-- Enums for `attorney_type`, `access_level`, `opra_status`
+## 1. Google Drive import (Legal Documents page)
 
-### Phase 2 — Global safety shell
-- `QuickExitButton` — fixed top-right on every authenticated page, double-Escape shortcut, clears history + redirects to user's exit URL (default weather.com)
-- `PinLockProvider` — wraps authenticated area; PIN hash in localStorage, 60s (configurable) inactivity timeout, decoy PIN shows empty shell, 5-fail 30-min lockout
-- `SettingsContext` for app disguise name, exit URL, session timeout, state
-- Browser tab title follows disguise name
+- Add a **"Import from Google Drive"** button next to the existing upload control on `legal-documents.tsx`.
+- Use the **Google Drive connector** via Lovable's connector gateway (developer-owned account model — the user signs into their own Google account through the connection picker once; subsequent imports use that connection).
+- Flow:
+  1. User clicks Import → Drive file picker (a simple list-and-search UI fed by `files.list` through the gateway, filtered to PDFs and images).
+  2. User picks a file → server function downloads bytes from `files.get?alt=media`, uploads to the existing `evidence-files` storage bucket, then runs the same extraction pipeline as a normal upload.
+- New server function `src/lib/drive-import.functions.ts` with `listDriveFiles` and `importDriveFile` (both auth-protected).
+- Surface a clear "Connect Google Drive" empty state if the connection isn't linked yet.
 
-### Phase 3 — Onboarding flow
-New `/onboarding` route gated before Dashboard: safety notice → PIN setup (real + decoy + trusted contact) → app disguise → state selection. Persisted to localStorage + a lightweight `user_settings` row.
+## 2. Universal AI extraction (any document type)
 
-### Phase 4 — Navigation additions
-Add 6 new sidebar items below Court Packet: Live Recording, Escalation Detector, Attorney Portal, OPRA Helper, Resources, Settings.
+Today `extractLegalDocument` only handles images. Expand it so the same auto-fill works on every upload point:
 
-### Phase 5 — New pages
-- **Live Recording** — legal warning modal, MediaRecorder UI, Web Speech API transcription, recordings list separate from voice notes
-- **Escalation Detector** — passive analysis of incidents with 3 severity tiers, pattern summary, resources panel, strict language rules
-- **Attorney Portal** — Share My Case form + Shared Access list; generates access tokens (attorney login view is scoped for Part 3 — MVP shows the survivor-side management UI and read-only attorney view route)
-- **OPRA Helper** — 3-step form generating NJ OPRA letter, save-to-evidence, appeals guide
-- **Resources** — crisis panel + stage filter + hardcoded NJ + national resource cards
-- **Settings** — 6 sections (App Disguise, Access Code, Quick Exit, Notifications, Data & Privacy w/ export+delete, Safety Notice)
+- **PDF support**: switch the extractor to accept PDFs. Strategy: use the Lovable AI Gateway's vision model with PDF input where supported, otherwise fall back to PDF.js text extraction on the server function and send extracted text. (PDF.js is Worker-safe.)
+- **New generic extractor** `extractDocument` that returns a typed JSON union based on context:
+  - `legal_document` → fields already defined.
+  - `incident` → date, time, location, description, abuse_types[], witnesses, emotional_impact.
+  - `evidence` → title, date, description, suggested file_type.
+  - `voice_note_summary` → title, date, key points (used after voice note transcription).
+- Wire **auto-fill** into:
+  - Journal "New incident" form (upload a screenshot of a text or email → AI fills the form for review).
+  - Evidence upload (AI suggests title and description and links to nearest incident by date).
+  - Legal Documents (already wired, swap to the new generic function).
+- Every AI-filled field shows a small "AI suggested — edit me" hint and the user must confirm before save.
 
-### Phase 6 — AI Assistant sidekick
-Floating chat bubble on Journal, Timeline, Case Builder only. Side panel (not modal). Uses **Lovable AI Gateway** via a TanStack server function — not the user's Anthropic key — with the exact system prompt provided, page context, and last 3 incident summaries.
+## 3. Cross-page integrations
 
-### Phase 7 — Audit log
-Server-side `logAudit` server function called from every mutation/view path. SHA-256 hash chain. Surfaces in Settings → My Activity (last 50, human language) and as Court Packet appendix.
+The pages exist but don't talk to each other. Wire them up:
 
-### Phase 8 — Timeline + Court Packet evidence inline
-Timeline shows evidence thumbnails per incident, microphone badge for recordings. Court Packet table includes evidence reference numbers matching the Evidence Index.
+- **Legal Documents → Timeline**: each saved legal document with an `effective_date` or `incident_date` appears as a dedicated marker on Timeline (different visual treatment than incidents — uses doc-type accent on the left border).
+- **Legal Documents → Case Builder**: Case Builder gains a new "Legal documents" step (between Pattern and Key incidents) that lists the user's documents and lets them attach the relevant ones to the case.
+- **Legal Documents → Court Packet**: new **Section 5: Legal Documents** in the printed packet, listing each attached document with case number, court, dates, parties, and key terms. Images get a thumbnail; PDFs get a "see attached" line.
+- **Legal Documents → Evidence**: the existing mirror-into-evidence behavior gets a new "Legal Document" filter chip on the Evidence page so users can find them quickly.
+- **Recordings → Incidents**: after a recording stops, prompt "Was this an incident? Create one from this recording" → opens the Journal form prefilled from the transcript (uses the new universal extractor).
+- **Escalation Detector**: include legal-document events (e.g., a new TRO issued, a violation report) in escalation scoring.
 
-### Design fidelity
-Every new page uses existing palette (#C99878 / #DEB896 / #4E3B31 / #E77B56 / #6A92D6 / #A8D8B9), Georgia serif headings, warm empty states, no purple/red, no shadcn defaults.
+## What I need from you before I start
 
-### Notes & confirmations
-- **AI provider:** I'll wire the assistant to **Lovable AI** (`google/gemini-3-flash-preview` by default, system prompt verbatim). The original spec called the Anthropic API directly from the frontend, which would expose an API key in the browser — Lovable AI keeps the key server-side and is the recommended path on this stack. Say the word if you'd rather provide an Anthropic key and I'll switch.
-- **Attorney external login:** The full separate attorney auth/portal app is a large addition. I'll ship the survivor-side share management + a read-only `/attorney/:token` route that resolves a share and renders the scoped view. Multi-tenant attorney accounts (their own login, multiple clients) can be a follow-up.
-- **Server timestamps for recordings:** stored via server function so they're immutable.
+I'm going to ask one quick question about the Google Drive scope (the only thing I can't infer), then build everything above.
 
-Confirm and I'll build Phases 1–8 in order.
+## Technical details
+
+- Drive connector: `standard_connectors--connect` with `connector_id: google_drive`. All Drive calls go through `https://connector-gateway.lovable.dev/google_drive/drive/v3/...` from server functions using `LOVABLE_API_KEY` + `GOOGLE_DRIVE_API_KEY`.
+- AI extraction: continue using `google/gemini-2.5-pro` via Lovable AI Gateway for vision; add PDF.js (`pdfjs-dist`) for server-side text fallback (Worker-compatible build).
+- All new server functions use `requireSupabaseAuth` middleware and Zod input validation.
+- No new tables required — `legal_documents`, `incidents`, `evidence`, `recordings`, `cases` already exist. I'll add a small `legal_document_ids: uuid[]` column to `cases` so attachments persist (one migration).
+- Design stays inside the existing token system (`#C99878` bg, `#DEB896` cards, terracotta CTAs, Georgia serif headings, no red/purple).
