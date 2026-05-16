@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Upload, FileText, Trash2, Download, Pencil, ChevronDown, ChevronRight, Link as LinkIcon } from "lucide-react";
+import { Upload, FileText, Trash2, Download, Pencil, ChevronDown, ChevronRight, Link as LinkIcon, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
 import { extractLegalDocument } from "@/lib/legal-extract.functions";
+import { listDriveFiles, downloadDriveFile } from "@/lib/drive-import.functions";
 import { logAudit } from "@/lib/audit.functions";
 
 export const Route = createFileRoute("/_authenticated/legal-documents")({
@@ -102,6 +103,8 @@ function emptyExtracted(): Extracted {
 function LegalDocumentsPage() {
   const { user } = useAuth();
   const extract = useServerFn(extractLegalDocument);
+  const driveList = useServerFn(listDriveFiles);
+  const driveDownload = useServerFn(downloadDriveFile);
   const log = useServerFn(logAudit);
 
   const [docs, setDocs] = useState<LegalDoc[]>([]);
@@ -113,6 +116,11 @@ function LegalDocumentsPage() {
   const [extracted, setExtracted] = useState<Extracted>(emptyExtracted());
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const inputRef = useRef<HTMLInputElement>(null);
+  const [driveOpen, setDriveOpen] = useState(false);
+  const [driveBusy, setDriveBusy] = useState(false);
+  const [driveQuery, setDriveQuery] = useState("");
+  const [driveFiles, setDriveFiles] = useState<Array<{ id: string; name: string; mimeType: string; modifiedTime?: string }>>([]);
+  const [driveError, setDriveError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -130,6 +138,43 @@ function LegalDocumentsPage() {
     setPending(null); setDocType(""); setPhase("idle");
     setPendingKey(""); setExtracted(emptyExtracted());
     if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const openDrivePicker = async () => {
+    setDriveOpen(true);
+    setDriveError(null);
+    setDriveBusy(true);
+    const r = await driveList({ data: { query: driveQuery || undefined } });
+    setDriveBusy(false);
+    if (r.ok) setDriveFiles(r.files);
+    else setDriveError(r.reason === "missing-drive-connection"
+      ? "Google Drive isn't connected yet. Reach out to your project owner to enable it."
+      : "We couldn't reach Google Drive. Try again in a moment.");
+  };
+
+  const searchDrive = async () => {
+    setDriveBusy(true);
+    setDriveError(null);
+    const r = await driveList({ data: { query: driveQuery || undefined } });
+    setDriveBusy(false);
+    if (r.ok) setDriveFiles(r.files);
+    else setDriveError("Search failed. Try again.");
+  };
+
+  const pickDriveFile = async (f: { id: string; name: string; mimeType: string }) => {
+    setDriveOpen(false);
+    setPhase("extracting");
+    const dl = await driveDownload({ data: { fileId: f.id } });
+    if (!dl.ok) {
+      toast(dl.reason === "too-large" ? "That file is too large to import." : "We couldn't import that file.");
+      setPhase("idle");
+      return;
+    }
+    const bin = Uint8Array.from(atob(dl.base64), (c) => c.charCodeAt(0));
+    const file = new File([bin], dl.filename, { type: dl.mimeType });
+    setPending(file);
+    setPhase("idle");
+    toast("Imported from Google Drive. Pick a document type to continue.");
   };
 
   const startExtraction = async () => {
@@ -275,12 +320,16 @@ function LegalDocumentsPage() {
             onChange={(e) => { setPending(e.target.files?.[0] ?? null); setPhase("idle"); }} />
         </label>
 
-        <div className="flex flex-col gap-3">
-          <button type="button" disabled className="btn-ghost inline-flex items-center justify-center gap-2 self-start text-[13px] opacity-60" title="Sign in to Google Drive required">
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={openDrivePicker}
+            className="btn-ghost inline-flex items-center justify-center gap-2 self-start text-[13px]"
+          >
             <FileText size={14} /> Import from Google Drive
           </button>
           <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-            Sign in to Google Drive to import documents directly.
+            Pull a PDF or image straight from your Drive — we'll read it the same way.
           </div>
         </div>
 
@@ -318,6 +367,19 @@ function LegalDocumentsPage() {
           />
         )}
       </div>
+
+      {driveOpen && (
+        <DrivePickerModal
+          query={driveQuery}
+          setQuery={setDriveQuery}
+          onSearch={searchDrive}
+          files={driveFiles}
+          busy={driveBusy}
+          error={driveError}
+          onPick={pickDriveFile}
+          onClose={() => setDriveOpen(false)}
+        />
+      )}
 
       {/* Document list */}
       <div className="mt-10">
@@ -471,6 +533,74 @@ function ConfirmationCard({
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <button onClick={onSave} className="btn-primary">Save This Document</button>
         <button onClick={onCancel} className="btn-ghost">Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function DrivePickerModal({
+  query, setQuery, onSearch, files, busy, error, onPick, onClose,
+}: {
+  query: string;
+  setQuery: (v: string) => void;
+  onSearch: () => void;
+  files: Array<{ id: string; name: string; mimeType: string; modifiedTime?: string }>;
+  busy: boolean;
+  error: string | null;
+  onPick: (f: { id: string; name: string; mimeType: string }) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.45)" }} onClick={onClose}>
+      <div className="card-pp w-full max-w-xl" onClick={(e) => e.stopPropagation()} style={{ maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="label-eyebrow">Google Drive</div>
+            <h3 className="mt-1 font-serif text-[20px]">Choose a document to import</h3>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-2 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+        </div>
+        <div className="mt-3 flex gap-2">
+          <input
+            className="input-pp flex-1"
+            placeholder="Search by name…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onSearch(); } }}
+          />
+          <button onClick={onSearch} className="btn-ghost inline-flex items-center gap-1 text-[13px]"><Search size={14} /> Search</button>
+        </div>
+
+        <div className="mt-4 overflow-auto" style={{ flex: 1 }}>
+          {busy && <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>Looking through your Drive…</p>}
+          {!busy && error && <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>{error}</p>}
+          {!busy && !error && files.length === 0 && (
+            <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              No PDFs or images found. Try a different search term.
+            </p>
+          )}
+          {!busy && !error && files.length > 0 && (
+            <ul className="space-y-1">
+              {files.map((f) => (
+                <li key={f.id}>
+                  <button
+                    onClick={() => onPick(f)}
+                    className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-black/5"
+                  >
+                    <FileText size={16} style={{ color: "var(--muted-foreground)" }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-serif text-[14px]">{f.name}</div>
+                      <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                        {f.mimeType.replace("application/", "").replace("image/", "")}
+                        {f.modifiedTime ? ` · ${new Date(f.modifiedTime).toLocaleDateString()}` : ""}
+                      </div>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );

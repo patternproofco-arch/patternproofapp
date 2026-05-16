@@ -1,0 +1,1 @@
+ALTER TABLE public.cases ADD COLUMN IF NOT EXISTS legal_document_ids uuid[] NOT NULL DEFAULT '{}'::uuid[];
