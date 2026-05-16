@@ -35,9 +35,11 @@ export const extractLegalDocument = createServerFn({ method: "POST" })
     const key = process.env.LOVABLE_API_KEY;
     if (!key) return { ok: false as const, reason: "missing-key" };
 
-    // Only images are reliably supported by the vision model in this gateway.
+    // Accept images and PDFs. The gateway forwards data URIs to Gemini which
+    // can read both image inputs and PDF documents.
     const isImage = data.mimeType.startsWith("image/");
-    if (!isImage) {
+    const isPdf = data.mimeType === "application/pdf";
+    if (!isImage && !isPdf) {
       return { ok: false as const, reason: "unsupported-format" };
     }
 
