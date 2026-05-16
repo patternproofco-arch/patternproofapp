@@ -17,9 +17,17 @@ interface CaseRow {
   pattern_summary: string | null;
   highlighted_incident_ids: string[];
   attached_evidence_ids: string[];
+  legal_document_ids: string[];
 }
 interface Inc { id: string; date: string; description: string; abuse_types: string[] }
 interface Ev { id: string; title: string; date: string; file_type: string; linked_incident_id: string | null; file_url: string }
+interface LegalDoc {
+  id: string; document_type: string; title: string;
+  case_number: string | null; court_name: string | null; judge_name: string | null;
+  effective_date: string | null; expiration_date: string | null;
+  protected_party: string | null; restrained_party: string | null;
+  incident_date: string | null; key_terms: string | null; file_type: string; file_url: string;
+}
 
 function CourtPacket() {
   const { user } = useAuth();
@@ -28,6 +36,8 @@ function CourtPacket() {
   const [incidents, setIncidents] = useState<Inc[]>([]);
   const [evidence, setEvidence] = useState<Ev[]>([]);
   const [evUrls, setEvUrls] = useState<Record<string, string>>({});
+  const [legalDocs, setLegalDocs] = useState<LegalDoc[]>([]);
+  const [legalUrls, setLegalUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!user) return;
@@ -53,6 +63,22 @@ function CourtPacket() {
         if (s?.signedUrl) urls[e.id] = s.signedUrl;
       }));
       setEvUrls(urls);
+      const ldIds = row.legal_document_ids ?? [];
+      if (ldIds.length) {
+        const { data: ld } = await supabase
+          .from("legal_documents")
+          .select("id,document_type,title,case_number,court_name,judge_name,effective_date,expiration_date,protected_party,restrained_party,incident_date,key_terms,file_type,file_url")
+          .eq("user_id", user.id)
+          .in("id", ldIds);
+        const docs = (ld as LegalDoc[] | null) ?? [];
+        setLegalDocs(docs);
+        const lUrls: Record<string, string> = {};
+        await Promise.all(docs.filter((d) => d.file_type.startsWith("image/")).map(async (d) => {
+          const { data: s } = await supabase.storage.from("evidence-files").createSignedUrl(d.file_url, 3600);
+          if (s?.signedUrl) lUrls[d.id] = s.signedUrl;
+        }));
+        setLegalUrls(lUrls);
+      }
     })();
   }, [user]);
 
@@ -144,6 +170,43 @@ function CourtPacket() {
                 <figure key={e.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 6 }}>
                   <img src={evUrls[e.id]} alt={e.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 4 }} />
                   <figcaption style={{ marginTop: 4, fontSize: 11 }}>{e.title} · {new Date(e.date).toLocaleDateString()}</figcaption>
+                </figure>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        <Section title="Legal Documents">
+          {legalDocs.length === 0 ? <p style={{ color: "#666" }}>No legal documents attached.</p> : (
+            <ol style={{ paddingLeft: 20, margin: 0 }}>
+              {legalDocs.map((d) => (
+                <li key={d.id} style={{ marginBottom: 10 }}>
+                  <strong>{d.title}</strong>
+                  {d.case_number ? ` — Case #${d.case_number}` : ""}
+                  {d.court_name ? ` · ${d.court_name}` : ""}
+                  {d.effective_date ? ` · Effective ${new Date(d.effective_date).toLocaleDateString()}` : ""}
+                  {d.expiration_date ? ` · Expires ${new Date(d.expiration_date).toLocaleDateString()}` : ""}
+                  {d.protected_party || d.restrained_party ? (
+                    <div style={{ fontSize: 12, color: "#444" }}>
+                      {d.protected_party ? `Protected: ${d.protected_party}` : ""}
+                      {d.protected_party && d.restrained_party ? " · " : ""}
+                      {d.restrained_party ? `Restrained: ${d.restrained_party}` : ""}
+                    </div>
+                  ) : null}
+                  {d.key_terms && <div style={{ fontSize: 12, marginTop: 2 }}>{d.key_terms}</div>}
+                  {!d.file_type.startsWith("image/") && (
+                    <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>See attached document on file.</div>
+                  )}
+                </li>
+              ))}
+            </ol>
+          )}
+          {legalDocs.filter((d) => d.file_type.startsWith("image/") && legalUrls[d.id]).length > 0 && (
+            <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+              {legalDocs.filter((d) => d.file_type.startsWith("image/") && legalUrls[d.id]).map((d) => (
+                <figure key={d.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 6 }}>
+                  <img src={legalUrls[d.id]} alt={d.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 4 }} />
+                  <figcaption style={{ marginTop: 4, fontSize: 11 }}>{d.title}</figcaption>
                 </figure>
               ))}
             </div>
