@@ -16,6 +16,7 @@ import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedResourcesRouteImport } from './routes/_authenticated/resources'
+import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authenticated/live-recording'
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
@@ -57,6 +58,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedResourcesRoute = AuthenticatedResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedOpraHelperRoute = AuthenticatedOpraHelperRouteImport.update({
+  id: '/opra-helper',
+  path: '/opra-helper',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/journal': typeof AuthenticatedJournalRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/resources': typeof AuthenticatedResourcesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/timeline': typeof AuthenticatedTimelineRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/journal': typeof AuthenticatedJournalRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/resources': typeof AuthenticatedResourcesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/timeline': typeof AuthenticatedTimelineRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
   '/_authenticated/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/_authenticated/resources': typeof AuthenticatedResourcesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/live-recording'
     | '/onboarding'
+    | '/opra-helper'
     | '/resources'
     | '/settings'
     | '/timeline'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/live-recording'
     | '/onboarding'
+    | '/opra-helper'
     | '/resources'
     | '/settings'
     | '/timeline'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/_authenticated/journal'
     | '/_authenticated/live-recording'
     | '/_authenticated/onboarding'
+    | '/_authenticated/opra-helper'
     | '/_authenticated/resources'
     | '/_authenticated/settings'
     | '/_authenticated/timeline'
@@ -261,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/resources'
       fullPath: '/resources'
       preLoaderRoute: typeof AuthenticatedResourcesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/opra-helper': {
+      id: '/_authenticated/opra-helper'
+      path: '/opra-helper'
+      fullPath: '/opra-helper'
+      preLoaderRoute: typeof AuthenticatedOpraHelperRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/onboarding': {
@@ -331,6 +350,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
   AuthenticatedLiveRecordingRoute: typeof AuthenticatedLiveRecordingRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
   AuthenticatedResourcesRoute: typeof AuthenticatedResourcesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
@@ -346,6 +366,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
   AuthenticatedLiveRecordingRoute: AuthenticatedLiveRecordingRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
   AuthenticatedResourcesRoute: AuthenticatedResourcesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
