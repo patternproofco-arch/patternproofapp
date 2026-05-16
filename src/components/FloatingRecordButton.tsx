@@ -67,7 +67,7 @@ export function FloatingRecordButton() {
       {/* Elapsed timer above button while recording */}
       {isRecording && (
         <div
-          className="no-print fixed z-[95] rounded-full px-3 py-1 text-[12px] font-semibold"
+          className="no-print fixed z-[95] hidden rounded-full px-3 py-1 text-[12px] font-semibold md:block"
           style={{
             background: "#4E3B31",
             color: "#F5E6DF",
