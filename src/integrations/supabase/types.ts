@@ -106,6 +106,7 @@ export type Database = {
           highlighted_incident_ids: string[]
           id: string
           jurisdiction: string | null
+          legal_document_ids: string[]
           other_party: string | null
           pattern_summary: string | null
           relationship_type: string | null
@@ -119,6 +120,7 @@ export type Database = {
           highlighted_incident_ids?: string[]
           id?: string
           jurisdiction?: string | null
+          legal_document_ids?: string[]
           other_party?: string | null
           pattern_summary?: string | null
           relationship_type?: string | null
@@ -132,6 +134,7 @@ export type Database = {
           highlighted_incident_ids?: string[]
           id?: string
           jurisdiction?: string | null
+          legal_document_ids?: string[]
           other_party?: string | null
           pattern_summary?: string | null
           relationship_type?: string | null
