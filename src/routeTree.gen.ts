@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -42,6 +43,11 @@ const AuthenticatedVoiceNotesRoute = AuthenticatedVoiceNotesRouteImport.update({
 const AuthenticatedTimelineRoute = AuthenticatedTimelineRouteImport.update({
   id: '/timeline',
   path: '/timeline',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedJournalRoute = AuthenticatedJournalRouteImport.update({
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/journal': typeof AuthenticatedJournalRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
 }
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/journal': typeof AuthenticatedJournalRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
 }
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
+  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
 }
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/evidence'
     | '/journal'
+    | '/onboarding'
     | '/timeline'
     | '/voice-notes'
   fileRoutesByTo: FileRoutesByTo
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/evidence'
     | '/journal'
+    | '/onboarding'
     | '/timeline'
     | '/voice-notes'
   id:
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/evidence'
     | '/_authenticated/journal'
+    | '/_authenticated/onboarding'
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
   fileRoutesById: FileRoutesById
@@ -187,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTimelineRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/journal': {
       id: '/_authenticated/journal'
       path: '/journal'
@@ -231,6 +250,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
+  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
 }
@@ -241,6 +261,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
+  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
 }
@@ -257,3 +278,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
