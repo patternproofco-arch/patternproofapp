@@ -30,8 +30,10 @@ function AttorneyPortal() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [type, setType] = useState("attorney");
-  const [level, setLevel] = useState("full");
+  type AttorneyType = "advocate" | "attorney";
+  type AccessLevel = "court_packet_only" | "evidence_only" | "full" | "incidents_only";
+  const [type, setType] = useState<AttorneyType>("attorney");
+  const [level, setLevel] = useState<AccessLevel>("full");
   const [expiresDays, setExpiresDays] = useState(30);
   const [busy, setBusy] = useState(false);
 
@@ -111,18 +113,18 @@ function AttorneyPortal() {
               </div>
               <div>
                 <label className="label-eyebrow">Role</label>
-                <select className="input-pp mt-1" value={type} onChange={(e) => setType(e.target.value)}>
+                <select className="input-pp mt-1" value={type} onChange={(e) => setType(e.target.value as AttorneyType)}>
                   <option value="attorney">Attorney</option>
                   <option value="advocate">Advocate</option>
-                  <option value="paralegal">Paralegal</option>
-                  <option value="other">Other</option>
                 </select>
               </div>
               <div>
                 <label className="label-eyebrow">Access</label>
-                <select className="input-pp mt-1" value={level} onChange={(e) => setLevel(e.target.value)}>
+                <select className="input-pp mt-1" value={level} onChange={(e) => setLevel(e.target.value as AccessLevel)}>
                   <option value="full">Full (everything)</option>
-                  <option value="summary">Summary only</option>
+                  <option value="incidents_only">Incidents only</option>
+                  <option value="evidence_only">Evidence only</option>
+                  <option value="court_packet_only">Court packet only</option>
                 </select>
               </div>
               <div>
