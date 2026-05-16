@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authenticated/live-recording'
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -50,6 +51,12 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedLiveRecordingRoute =
+  AuthenticatedLiveRecordingRouteImport.update({
+    id: '/live-recording',
+    path: '/live-recording',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedJournalRoute = AuthenticatedJournalRouteImport.update({
   id: '/journal',
   path: '/journal',
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/journal': typeof AuthenticatedJournalRoute
+  '/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
@@ -98,6 +106,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/journal': typeof AuthenticatedJournalRoute
+  '/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
@@ -112,6 +121,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
+  '/_authenticated/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/evidence'
     | '/journal'
+    | '/live-recording'
     | '/onboarding'
     | '/timeline'
     | '/voice-notes'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/evidence'
     | '/journal'
+    | '/live-recording'
     | '/onboarding'
     | '/timeline'
     | '/voice-notes'
@@ -151,6 +163,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/evidence'
     | '/_authenticated/journal'
+    | '/_authenticated/live-recording'
     | '/_authenticated/onboarding'
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/live-recording': {
+      id: '/_authenticated/live-recording'
+      path: '/live-recording'
+      fullPath: '/live-recording'
+      preLoaderRoute: typeof AuthenticatedLiveRecordingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/journal': {
       id: '/_authenticated/journal'
       path: '/journal'
@@ -250,6 +270,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
+  AuthenticatedLiveRecordingRoute: typeof AuthenticatedLiveRecordingRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
@@ -261,6 +282,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
+  AuthenticatedLiveRecordingRoute: AuthenticatedLiveRecordingRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
