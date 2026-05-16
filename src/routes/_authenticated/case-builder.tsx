@@ -14,6 +14,7 @@ const CASE_TYPES = ["Domestic Violence", "Custody", "Divorce", "Protective Order
 
 interface IncRow { id: string; date: string; description: string; abuse_types: string[] }
 interface EvRow { id: string; title: string; date: string; file_type: string }
+interface LegalRow { id: string; document_type: string; title: string; effective_date: string | null; case_number: string | null }
 interface CaseRow {
   id: string;
   other_party: string | null;
@@ -23,6 +24,7 @@ interface CaseRow {
   pattern_summary: string | null;
   highlighted_incident_ids: string[];
   attached_evidence_ids: string[];
+  legal_document_ids: string[];
 }
 
 function CaseBuilder() {
@@ -37,18 +39,22 @@ function CaseBuilder() {
   const [summary, setSummary] = useState("");
   const [highlighted, setHighlighted] = useState<string[]>([]);
   const [attached, setAttached] = useState<string[]>([]);
+  const [legalAttached, setLegalAttached] = useState<string[]>([]);
   const [incidents, setIncidents] = useState<IncRow[]>([]);
   const [evidence, setEvidence] = useState<EvRow[]>([]);
+  const [legalDocs, setLegalDocs] = useState<LegalRow[]>([]);
 
   const loadCase = useCallback(async () => {
     if (!user) return;
-    const [c, inc, ev] = await Promise.all([
+    const [c, inc, ev, ld] = await Promise.all([
       supabase.from("cases").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1),
       supabase.from("incidents").select("id,date,description,abuse_types").eq("user_id", user.id).order("date", { ascending: false }),
       supabase.from("evidence").select("id,title,date,file_type").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("legal_documents").select("id,document_type,title,effective_date,case_number").eq("user_id", user.id).order("created_at", { ascending: false }),
     ]);
     setIncidents((inc.data as IncRow[] | null) ?? []);
     setEvidence((ev.data as EvRow[] | null) ?? []);
+    setLegalDocs((ld.data as LegalRow[] | null) ?? []);
     const row = (c.data?.[0] as CaseRow | undefined);
     if (row) {
       setCaseId(row.id);
@@ -59,6 +65,7 @@ function CaseBuilder() {
       setSummary(row.pattern_summary ?? "");
       setHighlighted(row.highlighted_incident_ids ?? []);
       setAttached(row.attached_evidence_ids ?? []);
+      setLegalAttached(row.legal_document_ids ?? []);
     }
   }, [user]);
 
@@ -75,6 +82,7 @@ function CaseBuilder() {
       pattern_summary: summary || null,
       highlighted_incident_ids: highlighted,
       attached_evidence_ids: attached,
+      legal_document_ids: legalAttached,
     };
     if (caseId) {
       await supabase.from("cases").update(payload).eq("id", caseId).eq("user_id", user.id);
@@ -82,7 +90,7 @@ function CaseBuilder() {
       const { data } = await supabase.from("cases").insert(payload).select("id").single();
       if (data?.id) setCaseId(data.id);
     }
-  }, [user, caseId, other, rel, types, jurisdiction, summary, highlighted, attached]);
+  }, [user, caseId, other, rel, types, jurisdiction, summary, highlighted, attached, legalAttached]);
 
   // auto-save when step changes
   useEffect(() => { const t = setTimeout(persist, 500); return () => clearTimeout(t); }, [persist, step]);
@@ -220,6 +228,31 @@ function CaseBuilder() {
                     <div className="min-w-0 flex-1">
                       <div className="font-serif text-[15px]">{e.title}</div>
                       <div className="label-eyebrow mt-1">{e.date} · {e.file_type}</div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
+            <h2 className="mt-6 font-serif text-[20px]">Legal documents</h2>
+            <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              Attach any TROs, police reports, or court orders that belong with this case.
+            </p>
+            <div className="space-y-2">
+              {legalDocs.length === 0 && <p className="text-[13px]">No legal documents saved yet.</p>}
+              {legalDocs.map((l) => {
+                const on = legalAttached.includes(l.id);
+                return (
+                  <label key={l.id} className="flex cursor-pointer items-start gap-3 rounded-xl p-3"
+                    style={{ background: on ? "var(--input)" : "transparent" }}>
+                    <input type="checkbox" checked={on} onChange={() => toggle(legalAttached, l.id, setLegalAttached)} className="mt-1" />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-serif text-[15px]">{l.title}</div>
+                      <div className="label-eyebrow mt-1">
+                        {l.document_type.replace("_", " ")}
+                        {l.case_number ? ` · Case #${l.case_number}` : ""}
+                        {l.effective_date ? ` · ${l.effective_date}` : ""}
+                      </div>
                     </div>
                   </label>
                 );
