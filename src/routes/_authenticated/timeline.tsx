@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
+import { FileText } from "lucide-react";
 
 interface Item {
   id: string;
@@ -11,6 +12,28 @@ interface Item {
   abuse_types: string[];
 }
 interface EvItem { id: string; title: string; file_type: string; file_url: string; linked_incident_id: string | null }
+interface LegalItem {
+  id: string;
+  document_type: string;
+  title: string;
+  effective_date: string | null;
+  incident_date: string | null;
+  expiration_date: string | null;
+  key_terms: string | null;
+  case_number: string | null;
+}
+
+const LEGAL_COLOR: Record<string, string> = {
+  tro: "#E77B56", fro: "#E77B56",
+  police_report: "#6A92D6", "911_log": "#6A92D6",
+  custody_order: "#A8D8B9", court_order: "#A8D8B9",
+  cps_report: "#D2B48C", hearing_transcript: "#B57E60", other: "#B57E60",
+};
+const LEGAL_LABEL: Record<string, string> = {
+  tro: "TRO", fro: "FRO", police_report: "Police Report", "911_log": "911 Log",
+  custody_order: "Custody Order", court_order: "Court Order",
+  cps_report: "CPS Report", hearing_transcript: "Hearing Transcript", other: "Document",
+};
 
 export const Route = createFileRoute("/_authenticated/timeline")({
   component: TimelinePage,
@@ -20,6 +43,8 @@ function TimelinePage() {
   const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [evByIncident, setEvByIncident] = useState<Record<string, Array<EvItem & { url?: string }>>>({});
+  const [legal, setLegal] = useState<LegalItem[]>([]);
+  const [showLegal, setShowLegal] = useState(true);
   const [types, setTypes] = useState<string[]>([]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -50,17 +75,33 @@ function TimelinePage() {
         (grouped[k] ||= []).push(r);
       });
       setEvByIncident(grouped);
+      const { data: ld } = await supabase
+        .from("legal_documents")
+        .select("id,document_type,title,effective_date,incident_date,expiration_date,key_terms,case_number")
+        .eq("user_id", user.id);
+      setLegal((ld as LegalItem[] | null) ?? []);
     })();
   }, [user]);
 
-  const filtered = useMemo(() => {
-    return items.filter((i) => {
+  type Row =
+    | { kind: "incident"; date: string; item: Item }
+    | { kind: "legal"; date: string; item: LegalItem };
+
+  const filtered = useMemo<Row[]>(() => {
+    const inc: Row[] = items.filter((i) => {
       if (types.length && !i.abuse_types.some((t) => types.includes(t))) return false;
       if (from && i.date < from) return false;
       if (to && i.date > to) return false;
       return true;
-    });
-  }, [items, types, from, to]);
+    }).map((i) => ({ kind: "incident", date: i.date, item: i } as Row));
+    const leg: Row[] = showLegal
+      ? legal
+          .map((l) => ({ ...l, _date: l.effective_date || l.incident_date || "" }))
+          .filter((l) => l._date && (!from || l._date >= from) && (!to || l._date <= to))
+          .map((l) => ({ kind: "legal", date: l._date, item: l } as Row))
+      : [];
+    return [...inc, ...leg].sort((a, b) => (a.date < b.date ? 1 : -1));
+  }, [items, legal, showLegal, types, from, to]);
 
   const toggleType = (v: string) => setTypes((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]));
 
@@ -96,6 +137,10 @@ function TimelinePage() {
             <div className="label-eyebrow mb-1">To</div>
             <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="input-pp" />
           </div>
+          <label className="flex items-center gap-2 self-center text-[12px]">
+            <input type="checkbox" checked={showLegal} onChange={(e) => setShowLegal(e.target.checked)} />
+            Include legal documents
+          </label>
         </div>
       </div>
 
@@ -109,12 +154,41 @@ function TimelinePage() {
           </div>
         ) : (
           <div className="space-y-5">
-            {filtered.map((i) => {
+            {filtered.map((row) => {
+              if (row.kind === "legal") {
+                const l = row.item;
+                const color = LEGAL_COLOR[l.document_type] ?? "#B57E60";
+                return (
+                  <div key={`l-${l.id}`} className="relative">
+                    <span className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4" style={{ background: color, boxShadow: "0 0 0 4px var(--background)" }}>
+                      <FileText size={10} color="#2A1A10" />
+                    </span>
+                    <div className="card-pp" style={{ borderLeft: `3px solid ${color}` }}>
+                      <div className="font-serif italic text-[16px]">
+                        {new Date(row.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
+                      </div>
+                      <div className="mt-1">
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: color, color: "#2A1A10" }}>
+                          {LEGAL_LABEL[l.document_type] ?? "Document"}
+                        </span>
+                      </div>
+                      <p className="mt-2 font-serif text-[15px]">{l.title}</p>
+                      {l.case_number && (
+                        <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>Case #{l.case_number}</div>
+                      )}
+                      {l.key_terms && (
+                        <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--foreground)" }}>{l.key_terms}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+              const i = row.item;
               const open = expanded[i.id];
               const primary = i.abuse_types[0] ?? "other";
               const long = i.description.length > 160;
               return (
-                <div key={i.id} className="relative">
+                <div key={`i-${i.id}`} className="relative">
                   <span className="absolute -left-[26px] top-3 h-3.5 w-3.5 rounded-full ring-4" style={{ background: typeColor(primary), boxShadow: "0 0 0 4px var(--background)" }} />
                   <div className="card-pp" style={{ borderLeft: `3px solid ${typeColor(primary)}` }}>
                     <div className="font-serif italic text-[16px]">
