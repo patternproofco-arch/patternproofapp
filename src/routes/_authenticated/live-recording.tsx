@@ -5,6 +5,9 @@ import { Mic, Square } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useSettings } from "@/lib/settings-context";
+import { useRecording, type PendingRecording } from "@/lib/recording-context";
+import { useServerFn } from "@tanstack/react-start";
+import { checkAccidental } from "@/lib/accidental-check.functions";
 
 export const Route = createFileRoute("/_authenticated/live-recording")({
   component: LiveRecording,
@@ -15,19 +18,16 @@ interface Rec { id: string; title: string | null; date: string; audio_url: strin
 function LiveRecording() {
   const { user } = useAuth();
   const { settings } = useSettings();
+  const { isRecording, elapsed, pending, start, stop, consumePending, discardPending } = useRecording();
+  const runCheck = useServerFn(checkAccidental);
   const [warned, setWarned] = useState(false);
-  const [recording, setRecording] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
-  const [blob, setBlob] = useState<Blob | null>(null);
+  const [item, setItem] = useState<PendingRecording | null>(null);
   const [title, setTitle] = useState("");
   const [state, setState] = useState(settings.state);
   const [transcript, setTranscript] = useState("");
   const [list, setList] = useState<Rec[]>([]);
-  const [startedAt, setStartedAt] = useState<string>("");
-  const mr = useRef<MediaRecorder | null>(null);
-  const chunks = useRef<Blob[]>([]);
-  const timer = useRef<number | undefined>(undefined);
-  const rec = useRef<unknown>(null);
+  const [accidental, setAccidental] = useState<{ accidental: boolean; confidence: string } | null>(null);
+  const checkedRef = useRef(false);
 
   const load = async () => {
     if (!user) return;
@@ -36,71 +36,56 @@ function LiveRecording() {
   };
   useEffect(() => { load(); }, [user]);
 
-  const start = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const m = new MediaRecorder(stream);
-      chunks.current = [];
-      m.ondataavailable = (e) => chunks.current.push(e.data);
-      m.onstop = () => {
-        setBlob(new Blob(chunks.current, { type: "audio/webm" }));
-        stream.getTracks().forEach((t) => t.stop());
-      };
-      mr.current = m;
-      m.start();
-      setStartedAt(new Date().toISOString());
-      setRecording(true);
-      setElapsed(0);
-      timer.current = window.setInterval(() => setElapsed((e) => e + 1), 1000);
-
-      const SR = (window as unknown as { webkitSpeechRecognition?: new () => unknown; SpeechRecognition?: new () => unknown }).SpeechRecognition
-        ?? (window as unknown as { webkitSpeechRecognition?: new () => unknown }).webkitSpeechRecognition;
-      if (SR) {
-        const r = new SR() as { continuous: boolean; interimResults: boolean; onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void; start: () => void; stop: () => void };
-        r.continuous = true;
-        r.interimResults = true;
-        r.onresult = (e) => {
-          let t = "";
-          for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript + " ";
-          setTranscript(t);
-        };
-        r.start();
-        rec.current = r;
+  // Consume globally pending recording from the floating button
+  useEffect(() => {
+    if (pending && !item) {
+      const p = consumePending();
+      if (p) {
+        setItem(p);
+        setTranscript(p.transcript);
       }
-    } catch {
-      toast("We couldn't access the microphone.");
     }
-  };
+  }, [pending, item, consumePending]);
 
-  const stop = () => {
-    mr.current?.stop();
-    if (timer.current) clearInterval(timer.current);
-    setRecording(false);
-    const r = rec.current as { stop?: () => void } | null;
-    r?.stop?.();
+  // Run accidental check once per item
+  useEffect(() => {
+    if (!item || checkedRef.current) return;
+    checkedRef.current = true;
+    runCheck({ data: { transcript: item.transcript, durationSec: item.durationSec } })
+      .then((r) => setAccidental(r))
+      .catch(() => setAccidental(null));
+  }, [item, runCheck]);
+
+  const beginLocal = async () => {
+    const ok = await start();
+    if (!ok) toast("We couldn't access the microphone.");
   };
 
   const save = async () => {
-    if (!user || !blob) return;
-    const endedAt = new Date().toISOString();
+    if (!user || !item) return;
     const path = `${user.id}/${crypto.randomUUID()}.webm`;
-    const up = await supabase.storage.from("conversation-recordings").upload(path, blob, { contentType: "audio/webm" });
+    const up = await supabase.storage.from("conversation-recordings").upload(path, item.blob, { contentType: "audio/webm" });
     if (up.error) { toast("We couldn't save that. Try again in a moment."); return; }
     const { error } = await supabase.from("recordings").insert({
       user_id: user.id,
       title: title || null,
       date: new Date().toISOString().slice(0, 10),
       audio_url: path,
-      duration_seconds: elapsed,
+      duration_seconds: item.durationSec,
       transcript: transcript || null,
-      recording_started_at: startedAt,
-      recording_ended_at: endedAt,
+      recording_started_at: item.startedAt,
+      recording_ended_at: item.endedAt,
       state_recorded_in: state || null,
     });
     if (error) { toast("We couldn't save that. Try again in a moment."); return; }
     toast("Saved. Your record is safe.");
-    setBlob(null); setTitle(""); setTranscript(""); setElapsed(0);
+    setItem(null); setTitle(""); setTranscript(""); setAccidental(null); checkedRef.current = false;
     load();
+  };
+
+  const discard = () => {
+    setItem(null); setTitle(""); setTranscript(""); setAccidental(null); checkedRef.current = false;
+    discardPending();
   };
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
@@ -129,31 +114,41 @@ function LiveRecording() {
       <h1 className="mt-2 font-serif text-[34px]">Record a conversation.</h1>
 
       <div className="mt-6 rounded-2xl p-8 text-center" style={{ background: "var(--sidebar)", color: "var(--sidebar-active)" }}>
-        {!recording && !blob && (
+        {!isRecording && !item && (
           <>
-            <button onClick={start} className="mx-auto flex h-24 w-24 items-center justify-center rounded-full" style={{ background: "var(--primary)" }}>
+            <button onClick={beginLocal} className="mx-auto flex h-24 w-24 items-center justify-center rounded-full" style={{ background: "var(--primary)" }}>
               <Mic size={36} color="#fff" />
             </button>
             <p className="mt-4 text-[14px]">Tap to start recording</p>
+            <p className="mt-1 text-[12px] opacity-70">Or tap the orange microphone in the corner from any screen.</p>
           </>
         )}
-        {recording && (
+        {isRecording && (
           <>
-            <button onClick={stop} className="mx-auto flex h-24 w-24 items-center justify-center rounded-full pulse-rec" style={{ background: "var(--primary)" }}>
+            <button onClick={() => stop()} className="mx-auto flex h-24 w-24 items-center justify-center rounded-full pulse-rec" style={{ background: "var(--primary)" }}>
               <Square size={32} color="#fff" />
             </button>
             <p className="mt-4 text-[14px]">Recording… {fmt(elapsed)}</p>
           </>
         )}
-        {blob && !recording && (
+        {item && !isRecording && (
           <div className="space-y-3 text-left">
-            <audio src={URL.createObjectURL(blob)} controls className="w-full" />
+            {accidental?.accidental && accidental.confidence === "high" && (
+              <div className="rounded-xl px-4 py-3" style={{ background: "rgba(242,232,216,0.95)", color: "#2A1A10", border: "1px solid rgba(78,59,49,0.15)" }}>
+                <p className="text-[13px]">This looks like it may have been accidental. Discard it?</p>
+                <div className="mt-2 flex gap-2">
+                  <button onClick={discard} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold" style={{ background: "#B57E60", color: "#F5E6DF" }}>Discard</button>
+                  <button onClick={() => setAccidental(null)} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold" style={{ background: "transparent", color: "#2A1A10" }}>Keep it</button>
+                </div>
+              </div>
+            )}
+            <audio src={URL.createObjectURL(item.blob)} controls className="w-full" />
             <input className="input-pp" placeholder="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} />
             <input className="input-pp" placeholder="State where recorded" value={state} onChange={(e) => setState(e.target.value)} />
             {transcript && <textarea className="input-pp" value={transcript} onChange={(e) => setTranscript(e.target.value)} />}
             <div className="flex gap-2">
               <button onClick={save} className="btn-primary">Save Recording</button>
-              <button onClick={() => setBlob(null)} className="btn-ghost">Discard</button>
+              <button onClick={discard} className="btn-ghost">Discard</button>
             </div>
           </div>
         )}
