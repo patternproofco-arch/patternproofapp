@@ -1,5 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { useSettings } from "@/lib/settings-context";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 const PIN_KEY = "pp_pin_hash_v1";
 const DECOY_KEY = "pp_decoy_hash_v1";
@@ -25,11 +24,9 @@ interface Ctx {
 const PinCtx = createContext<Ctx | null>(null);
 
 export function PinLockProvider({ children }: { children: ReactNode }) {
-  const { settings } = useSettings();
   const [hasPin, setHasPin] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [isDecoyMode, setIsDecoyMode] = useState(false);
-  const idleTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -37,23 +34,6 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     setHasPin(stored);
     if (stored) setIsLocked(true);
   }, []);
-
-  const resetIdle = useCallback(() => {
-    if (typeof window === "undefined") return;
-    if (idleTimer.current) window.clearTimeout(idleTimer.current);
-    if (!hasPin || isLocked) return;
-    idleTimer.current = window.setTimeout(() => {
-      setIsLocked(true);
-      setIsDecoyMode(false);
-    }, Math.max(15, settings.sessionTimeoutSec) * 1000);
-  }, [hasPin, isLocked, settings.sessionTimeoutSec]);
-
-  useEffect(() => {
-    const events = ["mousemove", "keydown", "click", "touchstart"];
-    events.forEach((e) => window.addEventListener(e, resetIdle));
-    resetIdle();
-    return () => events.forEach((e) => window.removeEventListener(e, resetIdle));
-  }, [resetIdle]);
 
   const setRealPin = async (pin: string) => {
     localStorage.setItem(PIN_KEY, await hash(pin));
