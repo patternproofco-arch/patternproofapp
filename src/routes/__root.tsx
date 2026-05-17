@@ -84,6 +84,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "PatternProof — Private documentation for your case" },
       { name: "twitter:description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
       { name: "twitter:site", content: "@PatternProof" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169" },
     ],
     links: [
       {
