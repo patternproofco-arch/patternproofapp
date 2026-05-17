@@ -6,6 +6,17 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
+  head: () => ({
+    meta: [
+      { title: "Sign in — PatternProof" },
+      { name: "description", content: "Sign in or create your PatternProof account to privately document incidents, evidence, and build your case." },
+      { property: "og:title", content: "Sign in to PatternProof" },
+      { property: "og:description", content: "Access your private, encrypted documentation space." },
+      { property: "og:url", content: "/login" },
+      { name: "robots", content: "noindex" },
+    ],
+    links: [{ rel: "canonical", href: "/login" }],
+  }),
   component: LoginPage,
 });
 
