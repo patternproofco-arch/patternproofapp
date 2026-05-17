@@ -3,6 +3,16 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "PatternProof — Private documentation for your case" },
+      { name: "description", content: "PatternProof helps survivors privately document incidents, organize evidence, and build court-ready records — encrypted and only visible to you." },
+      { property: "og:title", content: "PatternProof — Private documentation for your case" },
+      { property: "og:description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
+      { property: "og:url", content: "/" },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+  }),
   component: Index,
 });
 
