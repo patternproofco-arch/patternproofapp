@@ -48,19 +48,39 @@ const PAGE_ROUTES = [
   { file: "src/routes/attorney.$token.tsx", path: "/attorney/$token", requireCanonical: false },
 ];
 
+const readQuoted = (src, startIdx) => {
+  // Skip whitespace, read one of " ' or `, return [value, endIdx] or null.
+  let i = startIdx;
+  while (i < src.length && /\s/.test(src[i])) i++;
+  const q = src[i];
+  if (q !== '"' && q !== "'" && q !== "`") return null;
+  let out = "";
+  i++;
+  while (i < src.length) {
+    const c = src[i];
+    if (c === "\\") { out += src[i + 1] ?? ""; i += 2; continue; }
+    if (c === q) return [out, i + 1];
+    out += c;
+    i++;
+  }
+  return null;
+};
+
 const getMeta = (src, key, kind = "property") => {
-  // Match { property: "og:url", content: "..." } or backtick template strings.
-  const re = new RegExp(
-    `\\{\\s*${kind}\\s*:\\s*["']${key.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}["']\\s*,\\s*content\\s*:\\s*([\\\`"'])([^\\\`"']*)\\1`,
-    "i",
-  );
-  const m = src.match(re);
-  return m ? m[2] : null;
+  const keyEsc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`\\{\\s*${kind}\\s*:\\s*["']${keyEsc}["']\\s*,\\s*content\\s*:`, "g");
+  const m = re.exec(src);
+  if (!m) return null;
+  const r = readQuoted(src, m.index + m[0].length);
+  return r ? r[0] : null;
 };
 
 const getCanonical = (src) => {
-  const m = src.match(/rel\s*:\s*["']canonical["']\s*,\s*href\s*:\s*([\`"'])([^\`"']*)\1/);
-  return m ? m[2] : null;
+  const re = /rel\s*:\s*["']canonical["']\s*,\s*href\s*:/g;
+  const m = re.exec(src);
+  if (!m) return null;
+  const r = readQuoted(src, m.index + m[0].length);
+  return r ? r[0] : null;
 };
 
 for (const route of PAGE_ROUTES) {
