@@ -10,10 +10,10 @@ export const Route = createFileRoute("/login")({
     meta: [
       { title: "Sign in — PatternProof" },
       { name: "description", content: "Sign in or create your PatternProof account to privately document incidents, evidence, and build your case." },
-      { property: "og:title", content: "Sign in to PatternProof" },
+      { property: "og:title", content: "Sign in — PatternProof" },
       { property: "og:description", content: "Access your private, encrypted documentation space." },
       { property: "og:url", content: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/login" },
-      { name: "twitter:title", content: "Sign in to PatternProof" },
+      { name: "twitter:title", content: "Sign in — PatternProof" },
       { name: "twitter:description", content: "Access your private, encrypted documentation space." },
       { name: "robots", content: "noindex" },
     ],
