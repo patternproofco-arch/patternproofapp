@@ -74,10 +74,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PatternProof — Private documentation for your case" },
-      { name: "description", content: "PatternProof helps survivors privately document incidents, organize evidence, and build court-ready records." },
-      { property: "og:title", content: "PatternProof" },
-      { property: "og:description", content: "Private documentation for your case." },
+      { property: "og:site_name", content: "PatternProof" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

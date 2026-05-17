@@ -6,6 +6,15 @@ import { fetchSharedBundle } from "@/lib/attorney-public.functions";
 import { typeLabel } from "@/lib/abuse-types";
 
 export const Route = createFileRoute("/attorney/$token")({
+  head: () => ({
+    meta: [
+      { title: "Shared case bundle — PatternProof" },
+      { name: "description", content: "Read-only attorney access to a case bundle shared by a PatternProof user." },
+      { property: "og:title", content: "Shared case bundle — PatternProof" },
+      { property: "og:description", content: "Private, time-limited access to a survivor's case documentation." },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: AttorneyView,
 });
 
