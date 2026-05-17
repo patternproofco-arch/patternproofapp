@@ -1,5 +1,5 @@
-import { MessageCircle, X, Send } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { MessageCircle, X, Send, ListChecks, ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useRouterState } from "@tanstack/react-router";
 import { sidekickChat } from "@/lib/ai-chat.functions";
@@ -9,6 +9,20 @@ import { useAuth } from "@/lib/auth-context";
 interface Msg { role: "user" | "assistant"; content: string }
 
 const ELIGIBLE = ["/journal", "/timeline", "/case-builder"];
+
+interface ChecklistItem { id: string; label: string; hint: string }
+
+const EVIDENCE_CHECKLIST: ChecklistItem[] = [
+  { id: "texts", label: "Texts, voicemails, emails", hint: "Screenshots from around the time it happened — including ones from before and after." },
+  { id: "photos", label: "Photos", hint: "Injuries, the room, broken items, your face that day. Even ones you almost deleted." },
+  { id: "recordings", label: "Audio or video recordings", hint: "Doorbell cam, phone in pocket, smart speaker, voicemail." },
+  { id: "witnesses", label: "Witnesses you told", hint: "Names of friends, family, coworkers you spoke to — and roughly when." },
+  { id: "medical", label: "Medical visits", hint: "Doctor, urgent care, ER, therapist notes. Even days later counts." },
+  { id: "police", label: "Police contact", hint: "Report number, officer name, date — even if no charges were filed." },
+  { id: "written", label: "Your own notes", hint: "Phone notes, journal entries, calendar marks, emails to yourself." },
+  { id: "financial", label: "Financial records", hint: "Bank statements, receipts, locked accounts, missing money." },
+  { id: "social", label: "Social media posts or DMs", hint: "Theirs or yours — public posts, deleted ones you screenshotted, DMs." },
+];
 
 const STARTER_PROMPTS: Record<string, { label: string; prompt: string }[]> = {
   "/journal": [
@@ -35,10 +49,27 @@ export function AiSidekick() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [checklistOpen, setChecklistOpen] = useState(false);
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
   const chat = useServerFn(sidekickChat);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, busy]);
+
+  const storageKey = user ? `pp-evidence-checklist:${user.id}` : null;
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) setChecked(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, [storageKey]);
+  useEffect(() => {
+    if (!storageKey) return;
+    try { localStorage.setItem(storageKey, JSON.stringify(checked)); } catch { /* ignore */ }
+  }, [checked, storageKey]);
+
+  const completed = useMemo(() => EVIDENCE_CHECKLIST.filter((i) => checked[i.id]).length, [checked]);
 
   if (!eligible) return null;
 
@@ -90,6 +121,67 @@ export function AiSidekick() {
           <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: "var(--border)" }}>
             <div className="font-serif text-[16px]">PatternProof Assistant</div>
             <button onClick={() => setOpen(false)} aria-label="Close"><X size={18} /></button>
+          </div>
+          <div className="border-b" style={{ borderColor: "var(--border)" }}>
+            <button
+              type="button"
+              onClick={() => setChecklistOpen((v) => !v)}
+              className="flex w-full items-center justify-between px-4 py-2 text-left"
+              aria-expanded={checklistOpen}
+            >
+              <span className="flex items-center gap-2 text-[13px]">
+                <ListChecks size={16} />
+                <span>Evidence checklist</span>
+                <span style={{ color: "var(--muted-foreground)" }}>
+                  {completed} of {EVIDENCE_CHECKLIST.length}
+                </span>
+              </span>
+              {checklistOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            {checklistOpen && (
+              <div className="max-h-[40vh] overflow-y-auto px-4 pb-3">
+                <p className="mb-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  Tick things off as you find them. Tap a row to have the assistant walk you through it.
+                </p>
+                <ul className="space-y-1">
+                  {EVIDENCE_CHECKLIST.map((item) => {
+                    const isChecked = !!checked[item.id];
+                    return (
+                      <li
+                        key={item.id}
+                        className="rounded-lg p-2"
+                        style={{ background: "var(--input)", border: "1px solid var(--border)" }}
+                      >
+                        <div className="flex items-start gap-2">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => setChecked((c) => ({ ...c, [item.id]: e.target.checked }))}
+                            className="mt-1 h-4 w-4 shrink-0 cursor-pointer"
+                            aria-label={item.label}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => send(`Help me with: ${item.label.toLowerCase()}. ${item.hint} Walk me through what to look for and how to save it.`)}
+                            className="flex-1 text-left"
+                          >
+                            <div
+                              className="text-[13px] font-medium"
+                              style={{ textDecoration: isChecked ? "line-through" : "none", opacity: isChecked ? 0.6 : 1 }}
+                            >
+                              {item.label}
+                            </div>
+                            <div className="text-[12px] leading-snug" style={{ color: "var(--muted-foreground)" }}>
+                              {item.hint}
+                            </div>
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto px-4 py-3 text-[14px]">
             {msgs.length === 0 && (
