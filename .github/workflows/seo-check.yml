@@ -1,0 +1,17 @@
+name: SEO check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  seo-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Run SEO regression check
+        run: node scripts/seo-check.mjs
