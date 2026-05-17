@@ -9,9 +9,11 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "PatternProof helps survivors privately document incidents, organize evidence, and build court-ready records — encrypted and only visible to you." },
       { property: "og:title", content: "PatternProof — Private documentation for your case" },
       { property: "og:description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
-      { property: "og:url", content: "/" },
+      { property: "og:url", content: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/" },
+      { name: "twitter:title", content: "PatternProof — Private documentation for your case" },
+      { name: "twitter:description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [{ rel: "canonical", href: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/" }],
   }),
   component: Index,
 });

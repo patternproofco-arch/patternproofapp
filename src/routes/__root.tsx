@@ -74,9 +74,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
       { property: "og:site_name", content: "PatternProof" },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { property: "og:title", content: "PatternProof — Private documentation for your case" },
+      { property: "og:description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
+      { property: "og:url", content: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "PatternProof — Private documentation for your case" },
+      { name: "twitter:description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
+      { name: "twitter:site", content: "@PatternProof" },
     ],
     links: [
       {

@@ -12,6 +12,8 @@ export const Route = createFileRoute("/attorney/$token")({
       { name: "description", content: "Read-only attorney access to a case bundle shared by a PatternProof user." },
       { property: "og:title", content: "Shared case bundle — PatternProof" },
       { property: "og:description", content: "Private, time-limited access to a survivor's case documentation." },
+      { name: "twitter:title", content: "Shared case bundle — PatternProof" },
+      { name: "twitter:description", content: "Private, time-limited access to a survivor's case documentation." },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
