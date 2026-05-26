@@ -47,13 +47,13 @@
   --panel: #2F261C;               /* dark brown feature panel */
   --sidebar: #1F1A14;             /* near-black brown sidebar */
   --sidebar-active: #F8F3E2;
-  --sidebar-inactive: #B8AC93;
+  --sidebar-inactive: #E8DCC0;
   --primary: #E59AAB;             /* dusty rose accent */
   --primary-foreground: #1F1A14;
   --accent: #A2C0DF;              /* sky blue accent */
   --safe: #BFD2A8;                /* sage green */
   --gold: #C7B560;                /* gold accent */
-  --muted-foreground: #6E6552;
+  --muted-foreground: #4A4234;
   --border: rgba(31, 26, 20, 0.12);
   --input: #FFFCF1;
   --ring: #E59AAB;
