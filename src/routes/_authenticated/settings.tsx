@@ -6,6 +6,9 @@ import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useServerFn } from "@tanstack/react-start";
+import { generateExportZip } from "@/lib/export-zip.functions";
+import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -34,6 +37,25 @@ function SettingsPage() {
   const [newPin, setNewPin] = useState("");
   const [decoyPin, setDecoyPinInput] = useState("");
   const [audit, setAudit] = useState<AuditRow[]>([]);
+  const exportFn = useServerFn(generateExportZip);
+  const [exporting, setExporting] = useState(false);
+  const [exportResult, setExportResult] = useState<{ url: string; filename: string; bytes: number } | null>(null);
+
+  const runExport = async () => {
+    setExporting(true);
+    setExportResult(null);
+    try {
+      const r = await exportFn();
+      if (r.ok) {
+        setExportResult({ url: r.url, filename: r.filename, bytes: r.bytes });
+        toast("Export ready.");
+      } else {
+        toast("Couldn't build the export. Try again in a moment.");
+      }
+    } finally {
+      setExporting(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -175,6 +197,22 @@ function SettingsPage() {
         <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>
           If you ever feel watched, use the decoy PIN. If you're in immediate danger, call 911 or the National Domestic Violence Hotline at 1-800-799-7233. You're not alone in this.
         </p>
+      </div>
+
+      <div className="card-pp mt-6">
+        <div className="flex items-center gap-2"><Download size={18} style={{ color: "var(--accent)" }} /><h2 className="font-serif text-[19px]">Export everything</h2></div>
+        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          One ZIP file with every incident, every piece of evidence, every voice note and transcript, your pattern analysis, and a chronological narrative. SHA-256 hashes are included for integrity. Useful for attorney handoff or a personal backup.
+        </p>
+        <button onClick={runExport} disabled={exporting} className="btn-primary mt-4 inline-flex items-center gap-2">
+          <Download size={14} /> {exporting ? "Building export…" : "Export everything (.zip)"}
+        </button>
+        {exportResult && (
+          <div className="mt-4 rounded-xl p-3" style={{ background: "var(--input)" }}>
+            <p className="text-[13px]">Ready: {(exportResult.bytes / (1024 * 1024)).toFixed(1)} MB · link valid 24 hours.</p>
+            <a href={exportResult.url} download={exportResult.filename} className="btn-primary mt-2 inline-block">Download {exportResult.filename}</a>
+          </div>
+        )}
       </div>
     </div>
   );
