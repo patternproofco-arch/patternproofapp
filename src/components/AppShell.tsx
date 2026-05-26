@@ -52,7 +52,7 @@ const GROUPS: Group[] = [
   {
     label: "Prepare", key: "prepare",
     items: [
-      { to: "/attorney-portal", label: "Export for attorney", icon: Briefcase },
+      { to: "/share-with-attorney", label: "Share with attorney", icon: Briefcase },
       { to: "/court-packet", label: "Court summaries", icon: FileText },
       { to: "/case-builder", label: "Evidence packets", icon: Hammer },
     ],
