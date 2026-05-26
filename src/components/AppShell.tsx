@@ -60,7 +60,8 @@ const GROUPS: Group[] = [
     label: "Resources", key: "resources",
     items: [
       { to: "/why-courts-struggle", label: "Coercive control", icon: BookMarked },
-      { to: "/legal-documents", label: "Court system guide", icon: HeartHandshake },
+      { to: "/court-systems", label: "Court system guide", icon: HeartHandshake },
+      { to: "/legal-documents", label: "My legal documents", icon: FileText },
       { to: "/resources", label: "Safety planning", icon: LifeBuoy },
     ],
   },
