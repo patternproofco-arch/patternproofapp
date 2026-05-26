@@ -14,21 +14,16 @@ const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL"
 function Onboarding() {
   const navigate = useNavigate();
   const { update } = useSettings();
-  const { setRealPin, setDecoyPin } = usePinLock();
+  const { setRealPin } = usePinLock();
   const [step, setStep] = useState(0);
   const [pin, setPin] = useState("");
-  const [pin2, setPin2] = useState("");
-  const [decoy, setDecoy] = useState("");
   const [contact, setContact] = useState("");
   const [disguise, setDisguise] = useState("Daily Planner");
   const [state, setState] = useState("NJ");
 
   const finishPin = async () => {
-    if (pin.length !== 6 || pin !== pin2) { toast("Codes don't match. Try again."); return; }
-    if (decoy.length !== 6) { toast("Set a 6-digit decoy code."); return; }
-    if (decoy === pin) { toast("Your decoy code can't match your real code."); return; }
+    if (pin.length !== 4) { toast("Choose a 4-digit access code."); return; }
     await setRealPin(pin);
-    await setDecoyPin(decoy);
     if (contact) try { localStorage.setItem("pp_trusted_contact_v1", contact); } catch { /* */ }
     setStep(2);
   };
@@ -58,16 +53,9 @@ function Onboarding() {
         <div className="card-pp space-y-4">
           <h1 className="font-serif text-[28px]">Set your access code</h1>
           <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            Do not use a code your partner might guess — birthdays, anniversaries, or repeated numbers.
+            Pick 4 digits you'll remember. Avoid codes a partner might guess — birthdays or repeats.
           </p>
-          <Field label="6-digit access code" value={pin} onChange={setPin} />
-          <Field label="Confirm access code" value={pin2} onChange={setPin2} />
-          <div className="border-t pt-3" style={{ borderColor: "var(--border)" }}>
-            <p className="text-[13px] mb-2">
-              Set a second code that opens an empty version of the app. If someone asks to see your phone, enter this code instead.
-            </p>
-            <Field label="Decoy code" value={decoy} onChange={setDecoy} />
-          </div>
+          <Field label="4-digit access code" value={pin} onChange={setPin} />
           <div>
             <label className="label-eyebrow">Trusted contact phone (optional)</label>
             <input className="input-pp mt-1" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="For account recovery only" />
@@ -113,11 +101,11 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
       <input
         type="password"
         inputMode="numeric"
-        maxLength={6}
+        maxLength={4}
         value={value}
-        onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
         className="input-pp mt-1 text-center text-[20px] tracking-[0.5em]"
-        placeholder="••••••"
+        placeholder="••••"
       />
     </div>
   );
