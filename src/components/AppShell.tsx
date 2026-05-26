@@ -1,25 +1,22 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  BookOpen,
-  Clock3,
+  PenLine,
   Paperclip,
   Mic,
-  Hammer,
+  Clock3,
+  Sparkles,
+  TrendingUp,
+  Briefcase,
   FileText,
+  Hammer,
+  BookMarked,
+  HeartHandshake,
+  LifeBuoy,
   Lock,
   LogOut,
-  ShieldAlert,
-  Briefcase,
-  FileSearch,
-  HeartHandshake,
   Settings as SettingsIcon,
-  Scale,
   ChevronDown,
-  MessageCircle,
-  CalendarDays,
-  Sparkles,
-  BookMarked,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -33,47 +30,45 @@ import logoUrl from "@/assets/logo-pattern-proof.png";
 type Item = { to: string; label: string; icon: typeof LayoutDashboard };
 type Group = { label: string | null; key: string; items: Item[] };
 
+const HOME_ITEM: Item = { to: "/dashboard", label: "Home", icon: LayoutDashboard };
+
 const GROUPS: Group[] = [
   {
-    label: null, key: "main",
+    label: "Document", key: "document",
     items: [
-      { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { to: "/journal", label: "Journal", icon: BookOpen },
-      { to: "/timeline", label: "Timeline", icon: Clock3 },
-      { to: "/evidence", label: "Evidence", icon: Paperclip },
-      { to: "/communications", label: "Communications", icon: MessageCircle },
-      { to: "/calendar", label: "Calendar", icon: CalendarDays },
+      { to: "/journal", label: "Log incident", icon: PenLine },
+      { to: "/evidence", label: "Upload evidence", icon: Paperclip },
+      { to: "/voice-notes", label: "Voice memo", icon: Mic },
     ],
   },
   {
-    label: "My Case", key: "case",
+    label: "Patterns", key: "patterns",
     items: [
-      { to: "/voice-notes", label: "Voice Notes", icon: Mic },
-      { to: "/patterns", label: "Patterns", icon: Sparkles },
-      { to: "/case-builder", label: "Case Builder", icon: Hammer },
-      { to: "/court-packet", label: "Court Packet", icon: FileText },
+      { to: "/timeline", label: "My timeline", icon: Clock3 },
+      { to: "/patterns", label: "Pattern insights", icon: Sparkles },
+      { to: "/escalation-detector", label: "Behavior trends", icon: TrendingUp },
     ],
   },
   {
-    label: "Tools", key: "tools",
+    label: "Prepare", key: "prepare",
     items: [
-      { to: "/legal-documents", label: "Legal Documents", icon: Scale },
-      { to: "/escalation-detector", label: "Escalation Detector", icon: ShieldAlert },
-      { to: "/attorney-portal", label: "Attorney Portal", icon: Briefcase },
-      { to: "/opra-helper", label: "OPRA Helper", icon: FileSearch },
+      { to: "/attorney-portal", label: "Export for attorney", icon: Briefcase },
+      { to: "/court-packet", label: "Court summaries", icon: FileText },
+      { to: "/case-builder", label: "Evidence packets", icon: Hammer },
     ],
   },
   {
-    label: "Support", key: "support",
+    label: "Resources", key: "resources",
     items: [
-      { to: "/resources", label: "Resources", icon: HeartHandshake },
-      { to: "/why-courts-struggle", label: "Why Courts Struggle", icon: BookMarked },
+      { to: "/why-courts-struggle", label: "Coercive control", icon: BookMarked },
+      { to: "/legal-documents", label: "Court system guide", icon: HeartHandshake },
+      { to: "/resources", label: "Safety planning", icon: LifeBuoy },
     ],
   },
 ];
 
 const SETTINGS_ITEM: Item = { to: "/settings", label: "Settings", icon: SettingsIcon };
-const ALL_ITEMS: Item[] = [...GROUPS.flatMap((g) => g.items), SETTINGS_ITEM];
+const ALL_ITEMS: Item[] = [HOME_ITEM, ...GROUPS.flatMap((g) => g.items), SETTINGS_ITEM];
 
 export function AppShell() {
   const { user } = useAuth();
@@ -82,7 +77,7 @@ export function AppShell() {
 
   // Group open/closed state — auto-expand the group containing the active route.
   const [open, setOpen] = useState<Record<string, boolean>>({
-    main: true, case: true, tools: true, support: true,
+    document: true, patterns: true, prepare: true, resources: false,
   });
   useEffect(() => {
     for (const g of GROUPS) {
@@ -137,6 +132,36 @@ export function AppShell() {
           </div>
         </div>
         <nav className="flex-1 px-3">
+          {/* Home — always one click from anywhere */}
+          {(() => {
+            const active = pathname === HOME_ITEM.to;
+            const Icon = HOME_ITEM.icon;
+            return (
+              <Link
+                to={HOME_ITEM.to}
+                className="mb-3 flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition-colors"
+                style={itemClass(active)}
+              >
+                <Icon size={17} />
+                {HOME_ITEM.label}
+              </Link>
+            );
+          })()}
+
+          {/* Primary CTA — most-used action available from every route */}
+          <Link
+            to="/journal"
+            className="mb-4 flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-bold transition-opacity hover:opacity-90"
+            style={{
+              background: "var(--primary)",
+              color: "var(--sidebar)",
+              letterSpacing: "0.02em",
+            }}
+          >
+            <PenLine size={15} />
+            Log incident
+          </Link>
+
           {GROUPS.map((g, idx) => {
             const isOpen = open[g.key];
             return (
