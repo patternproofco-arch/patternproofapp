@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { getMyRole } from "@/lib/attorney-portal.functions";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const fetchRole = useServerFn(getMyRole);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [welcome, setWelcome] = useState(false);
   const [email, setEmail] = useState("");
@@ -32,8 +35,12 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user && !welcome) navigate({ to: "/dashboard", replace: true });
-  }, [user, loading, welcome, navigate]);
+    if (!loading && user && !welcome) {
+      fetchRole()
+        .then((r) => navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true }))
+        .catch(() => navigate({ to: "/dashboard", replace: true }));
+    }
+  }, [user, loading, welcome, navigate, fetchRole]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +58,8 @@ function LoginPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/dashboard", replace: true });
+        const r = await fetchRole().catch(() => ({ role: "survivor" as const }));
+        navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Something didn't work. Try again in a moment.";
