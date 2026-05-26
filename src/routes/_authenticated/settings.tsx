@@ -178,7 +178,7 @@ function SettingsPage() {
       <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--primary)" }}>
         <div className="flex items-center gap-2"><AlertTriangle size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">A note on safety</h2></div>
         <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>
-          If you ever feel watched, use the decoy PIN. If you're in immediate danger, call 911 or the National Domestic Violence Hotline at 1-800-799-7233. You're not alone in this.
+          If you're in immediate danger, call 911 or the National Domestic Violence Hotline at 1-800-799-7233. You're not alone in this.
         </p>
       </div>
 
