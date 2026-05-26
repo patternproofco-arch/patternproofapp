@@ -118,15 +118,15 @@ export function AppShell() {
             />
             <div className="min-w-0">
               <div
-                className="font-display text-[14px] font-extrabold leading-none"
-                style={{ color: "var(--sidebar-active)", letterSpacing: "0.18em" }}
+                className="font-display text-[14px] font-bold leading-none"
+                style={{ color: "var(--sidebar-active)", letterSpacing: "0.12em" }}
               >
                 {settings.disguiseName === "Daily Planner" ? "PATTERN" : settings.disguiseName.toUpperCase()}
               </div>
               {settings.disguiseName === "Daily Planner" && (
                 <div
-                  className="mt-1 font-display text-[14px] font-extrabold leading-none"
-                  style={{ color: "var(--primary)", letterSpacing: "0.18em" }}
+                  className="mt-1 font-display text-[14px] font-bold leading-none"
+                  style={{ color: "var(--primary)", letterSpacing: "0.12em" }}
                 >
                   PROOF
                 </div>
