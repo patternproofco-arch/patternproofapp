@@ -20,6 +20,7 @@ import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$t
 import { Route as AuthenticatedWhyCourtsStruggleRouteImport } from './routes/_authenticated/why-courts-struggle'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
+import { Route as AuthenticatedShareWithAttorneyRouteImport } from './routes/_authenticated/share-with-attorney'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedResourcesRouteImport } from './routes/_authenticated/resources'
 import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
@@ -93,6 +94,12 @@ const AuthenticatedTimelineRoute = AuthenticatedTimelineRouteImport.update({
   path: '/timeline',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedShareWithAttorneyRoute =
+  AuthenticatedShareWithAttorneyRouteImport.update({
+    id: '/share-with-attorney',
+    path: '/share-with-attorney',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -213,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/patterns': typeof AuthenticatedPatternsRoute
   '/resources': typeof AuthenticatedResourcesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
@@ -242,6 +250,7 @@ export interface FileRoutesByTo {
   '/patterns': typeof AuthenticatedPatternsRoute
   '/resources': typeof AuthenticatedResourcesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
@@ -274,6 +283,7 @@ export interface FileRoutesById {
   '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
   '/_authenticated/resources': typeof AuthenticatedResourcesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/_authenticated/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
@@ -305,6 +315,7 @@ export interface FileRouteTypes {
     | '/patterns'
     | '/resources'
     | '/settings'
+    | '/share-with-attorney'
     | '/timeline'
     | '/voice-notes'
     | '/why-courts-struggle'
@@ -334,6 +345,7 @@ export interface FileRouteTypes {
     | '/patterns'
     | '/resources'
     | '/settings'
+    | '/share-with-attorney'
     | '/timeline'
     | '/voice-notes'
     | '/why-courts-struggle'
@@ -365,6 +377,7 @@ export interface FileRouteTypes {
     | '/_authenticated/patterns'
     | '/_authenticated/resources'
     | '/_authenticated/settings'
+    | '/_authenticated/share-with-attorney'
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
     | '/_authenticated/why-courts-struggle'
@@ -461,6 +474,13 @@ declare module '@tanstack/react-router' {
       path: '/timeline'
       fullPath: '/timeline'
       preLoaderRoute: typeof AuthenticatedTimelineRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/share-with-attorney': {
+      id: '/_authenticated/share-with-attorney'
+      path: '/share-with-attorney'
+      fullPath: '/share-with-attorney'
+      preLoaderRoute: typeof AuthenticatedShareWithAttorneyRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings': {
@@ -633,6 +653,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
   AuthenticatedResourcesRoute: typeof AuthenticatedResourcesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedShareWithAttorneyRoute: typeof AuthenticatedShareWithAttorneyRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
   AuthenticatedWhyCourtsStruggleRoute: typeof AuthenticatedWhyCourtsStruggleRoute
@@ -655,6 +676,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
   AuthenticatedResourcesRoute: AuthenticatedResourcesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedShareWithAttorneyRoute: AuthenticatedShareWithAttorneyRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
   AuthenticatedWhyCourtsStruggleRoute: AuthenticatedWhyCourtsStruggleRoute,
