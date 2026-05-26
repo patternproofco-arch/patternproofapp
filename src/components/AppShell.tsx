@@ -16,6 +16,7 @@ import {
   Settings as SettingsIcon,
   Scale,
   ChevronDown,
+  MessageCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -36,6 +37,7 @@ const GROUPS: Group[] = [
       { to: "/journal", label: "Journal", icon: BookOpen },
       { to: "/timeline", label: "Timeline", icon: Clock3 },
       { to: "/evidence", label: "Evidence", icon: Paperclip },
+      { to: "/communications", label: "Communications", icon: MessageCircle },
     ],
   },
   {

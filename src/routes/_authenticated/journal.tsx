@@ -8,6 +8,7 @@ import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { IncidentCard, type IncidentLite } from "@/components/IncidentCard";
 import { useServerFn } from "@tanstack/react-start";
 import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
+import { sanitizeLine } from "@/lib/dates";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -73,10 +74,10 @@ function JournalPage() {
       user_id: user.id,
       date: form.date,
       time: form.time || null,
-      location: form.location || null,
+      location: sanitizeLine(form.location) || null,
       description: form.description,
       abuse_types: form.abuse_types,
-      witnesses: form.witnesses || null,
+      witnesses: sanitizeLine(form.witnesses) || null,
       emotional_impact: form.emotional_impact || null,
     };
     const { error } = editingId

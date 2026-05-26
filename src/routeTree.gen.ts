@@ -27,6 +27,7 @@ import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedEscalationDetectorRouteImport } from './routes/_authenticated/escalation-detector'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
+import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
 import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
 
@@ -123,6 +124,12 @@ const AuthenticatedCourtPacketRoute =
     path: '/court-packet',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCommunicationsRoute =
+  AuthenticatedCommunicationsRouteImport.update({
+    id: '/communications',
+    path: '/communications',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCaseBuilderRoute =
   AuthenticatedCaseBuilderRouteImport.update({
     id: '/case-builder',
@@ -142,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
+  '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
@@ -163,6 +171,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
+  '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
@@ -186,6 +195,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
+  '/_authenticated/communications': typeof AuthenticatedCommunicationsRoute
   '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/attorney-portal'
     | '/case-builder'
+    | '/communications'
     | '/court-packet'
     | '/dashboard'
     | '/escalation-detector'
@@ -230,6 +241,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/attorney-portal'
     | '/case-builder'
+    | '/communications'
     | '/court-packet'
     | '/dashboard'
     | '/escalation-detector'
@@ -252,6 +264,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/attorney-portal'
     | '/_authenticated/case-builder'
+    | '/_authenticated/communications'
     | '/_authenticated/court-packet'
     | '/_authenticated/dashboard'
     | '/_authenticated/escalation-detector'
@@ -404,6 +417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCourtPacketRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/communications': {
+      id: '/_authenticated/communications'
+      path: '/communications'
+      fullPath: '/communications'
+      preLoaderRoute: typeof AuthenticatedCommunicationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/case-builder': {
       id: '/_authenticated/case-builder'
       path: '/case-builder'
@@ -424,6 +444,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedAttorneyPortalRoute: typeof AuthenticatedAttorneyPortalRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
+  AuthenticatedCommunicationsRoute: typeof AuthenticatedCommunicationsRoute
   AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEscalationDetectorRoute: typeof AuthenticatedEscalationDetectorRoute
@@ -442,6 +463,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAttorneyPortalRoute: AuthenticatedAttorneyPortalRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
+  AuthenticatedCommunicationsRoute: AuthenticatedCommunicationsRoute,
   AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEscalationDetectorRoute: AuthenticatedEscalationDetectorRoute,
