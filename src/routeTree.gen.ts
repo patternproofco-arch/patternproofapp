@@ -29,6 +29,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
 import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -136,6 +137,11 @@ const AuthenticatedCaseBuilderRoute =
     path: '/case-builder',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAttorneyPortalRoute =
   AuthenticatedAttorneyPortalRouteImport.update({
     id: '/attorney-portal',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
+  '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
+  '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
+  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/_authenticated/communications': typeof AuthenticatedCommunicationsRoute
   '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sitemap.xml'
     | '/attorney-portal'
+    | '/calendar'
     | '/case-builder'
     | '/communications'
     | '/court-packet'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sitemap.xml'
     | '/attorney-portal'
+    | '/calendar'
     | '/case-builder'
     | '/communications'
     | '/court-packet'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sitemap.xml'
     | '/_authenticated/attorney-portal'
+    | '/_authenticated/calendar'
     | '/_authenticated/case-builder'
     | '/_authenticated/communications'
     | '/_authenticated/court-packet'
@@ -431,6 +443,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCaseBuilderRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/calendar': {
+      id: '/_authenticated/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/attorney-portal': {
       id: '/_authenticated/attorney-portal'
       path: '/attorney-portal'
@@ -443,6 +462,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAttorneyPortalRoute: typeof AuthenticatedAttorneyPortalRoute
+  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
   AuthenticatedCommunicationsRoute: typeof AuthenticatedCommunicationsRoute
   AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
@@ -462,6 +482,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAttorneyPortalRoute: AuthenticatedAttorneyPortalRoute,
+  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
   AuthenticatedCommunicationsRoute: AuthenticatedCommunicationsRoute,
   AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
@@ -493,3 +514,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
