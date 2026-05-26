@@ -17,6 +17,8 @@ import {
   Scale,
   ChevronDown,
   MessageCircle,
+  CalendarDays,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -38,12 +40,14 @@ const GROUPS: Group[] = [
       { to: "/timeline", label: "Timeline", icon: Clock3 },
       { to: "/evidence", label: "Evidence", icon: Paperclip },
       { to: "/communications", label: "Communications", icon: MessageCircle },
+      { to: "/calendar", label: "Calendar", icon: CalendarDays },
     ],
   },
   {
     label: "My Case", key: "case",
     items: [
       { to: "/voice-notes", label: "Voice Notes", icon: Mic },
+      { to: "/patterns", label: "Patterns", icon: Sparkles },
       { to: "/case-builder", label: "Case Builder", icon: Hammer },
       { to: "/court-packet", label: "Court Packet", icon: FileText },
     ],
