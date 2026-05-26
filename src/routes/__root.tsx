@@ -155,7 +155,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Outlet />
-        <Toaster position="top-center" toastOptions={{ style: { background: "#DEB896", color: "#2A1A10", border: "1px solid rgba(78,59,49,0.2)", borderRadius: "14px", fontFamily: "system-ui" } }} />
+        <Toaster position="top-center" toastOptions={{ style: { background: "#FFFCF1", color: "#1F1A14", border: "1px solid rgba(31,26,20,0.12)", borderRadius: "14px", fontFamily: "Inter, system-ui" } }} />
       </AuthProvider>
     </QueryClientProvider>
   );
