@@ -143,6 +143,57 @@ export type Database = {
         }
         Relationships: []
       }
+      communications: {
+        Row: {
+          channel: string
+          content: string | null
+          created_at: string
+          date: string
+          direction: string
+          from_party: string | null
+          harassment_flag: boolean
+          id: string
+          linked_incident_id: string | null
+          notes: string | null
+          screenshot_url: string | null
+          time: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          content?: string | null
+          created_at?: string
+          date: string
+          direction: string
+          from_party?: string | null
+          harassment_flag?: boolean
+          id?: string
+          linked_incident_id?: string | null
+          notes?: string | null
+          screenshot_url?: string | null
+          time?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          content?: string | null
+          created_at?: string
+          date?: string
+          direction?: string
+          from_party?: string | null
+          harassment_flag?: boolean
+          id?: string
+          linked_incident_id?: string | null
+          notes?: string | null
+          screenshot_url?: string | null
+          time?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       escalation_flags: {
         Row: {
           created_at: string
@@ -400,6 +451,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pattern_analyses: {
+        Row: {
+          analysis: Json
+          created_at: string
+          id: string
+          incident_count_at_time: number
+          model_used: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis: Json
+          created_at?: string
+          id?: string
+          incident_count_at_time?: number
+          model_used?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis?: Json
+          created_at?: string
+          id?: string
+          incident_count_at_time?: number
+          model_used?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       recordings: {
         Row: {
           audio_url: string
@@ -461,6 +539,9 @@ export type Database = {
           duration_seconds: number | null
           id: string
           title: string
+          transcribed_at: string | null
+          transcript: string | null
+          transcription_status: string
           user_id: string
         }
         Insert: {
@@ -470,6 +551,9 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           title: string
+          transcribed_at?: string | null
+          transcript?: string | null
+          transcription_status?: string
           user_id: string
         }
         Update: {
@@ -479,6 +563,9 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           title?: string
+          transcribed_at?: string | null
+          transcript?: string | null
+          transcription_status?: string
           user_id?: string
         }
         Relationships: []
