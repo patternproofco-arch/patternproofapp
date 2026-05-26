@@ -19,6 +19,7 @@ import {
   MessageCircle,
   CalendarDays,
   Sparkles,
+  BookMarked,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -66,6 +67,7 @@ const GROUPS: Group[] = [
     label: "Support", key: "support",
     items: [
       { to: "/resources", label: "Resources", icon: HeartHandshake },
+      { to: "/why-courts-struggle", label: "Why Courts Struggle", icon: BookMarked },
     ],
   },
 ];
