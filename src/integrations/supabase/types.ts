@@ -65,6 +65,275 @@ export type Database = {
         }
         Relationships: []
       }
+      attorney_client_links: {
+        Row: {
+          attorney_user_id: string
+          client_user_id: string
+          created_at: string
+          id: string
+          include_all_evidence: boolean
+          include_all_incidents: boolean
+          include_patterns: boolean
+          invitation_id: string | null
+          revoked_at: string | null
+          scope_evidence: string[]
+          scope_incidents: string[]
+          status: string
+        }
+        Insert: {
+          attorney_user_id: string
+          client_user_id: string
+          created_at?: string
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invitation_id?: string | null
+          revoked_at?: string | null
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          client_user_id?: string
+          created_at?: string
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invitation_id?: string | null
+          revoked_at?: string | null
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_client_links_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attorney_document_requests: {
+        Row: {
+          attorney_user_id: string
+          client_user_id: string
+          completed_at: string | null
+          created_at: string
+          details: string | null
+          id: string
+          link_id: string
+          status: string
+          title: string
+        }
+        Insert: {
+          attorney_user_id: string
+          client_user_id: string
+          completed_at?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          link_id: string
+          status?: string
+          title: string
+        }
+        Update: {
+          attorney_user_id?: string
+          client_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          link_id?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_document_requests_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attorney_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          attorney_email: string
+          attorney_name: string | null
+          client_user_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          include_all_evidence: boolean
+          include_all_incidents: boolean
+          include_patterns: boolean
+          invite_token: string
+          scope_evidence: string[]
+          scope_incidents: string[]
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          attorney_email: string
+          attorney_name?: string | null
+          client_user_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invite_token?: string
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          attorney_email?: string
+          attorney_name?: string | null
+          client_user_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invite_token?: string
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Relationships: []
+      }
+      attorney_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          link_id: string
+          read_at: string | null
+          sender_role: Database["public"]["Enums"]["app_role"]
+          sender_user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          link_id: string
+          read_at?: string | null
+          sender_role: Database["public"]["Enums"]["app_role"]
+          sender_user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          link_id?: string
+          read_at?: string | null
+          sender_role?: Database["public"]["Enums"]["app_role"]
+          sender_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_messages_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attorney_profiles: {
+        Row: {
+          bar_number: string | null
+          created_at: string
+          email: string
+          firm_name: string | null
+          full_name: string
+          jurisdiction: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bar_number?: string | null
+          created_at?: string
+          email: string
+          firm_name?: string | null
+          full_name: string
+          jurisdiction?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bar_number?: string | null
+          created_at?: string
+          email?: string
+          firm_name?: string | null
+          full_name?: string
+          jurisdiction?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      attorney_time_logs: {
+        Row: {
+          attorney_user_id: string
+          client_user_id: string
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          link_id: string | null
+          notes: string | null
+          page_path: string | null
+          started_at: string
+        }
+        Insert: {
+          attorney_user_id: string
+          client_user_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          link_id?: string | null
+          notes?: string | null
+          page_path?: string | null
+          started_at?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          client_user_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          link_id?: string | null
+          notes?: string | null
+          page_path?: string | null
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_time_logs_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action_type: string
@@ -531,6 +800,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_notes: {
         Row: {
           audio_url: string
@@ -575,7 +865,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_attorney_access: {
+        Args: { _attorney_id: string; _client_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       access_level:
@@ -583,6 +883,7 @@ export type Database = {
         | "court_packet_only"
         | "incidents_only"
         | "evidence_only"
+      app_role: "survivor" | "attorney" | "admin"
       attorney_type: "attorney" | "advocate"
       legal_document_type:
         | "tro"
@@ -728,6 +1029,7 @@ export const Constants = {
         "incidents_only",
         "evidence_only",
       ],
+      app_role: ["survivor", "attorney", "admin"],
       attorney_type: ["attorney", "advocate"],
       legal_document_type: [
         "tro",
