@@ -25,7 +25,7 @@ import { AiSidekick } from "@/components/AiSidekick";
 import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { useSettings } from "@/lib/settings-context";
 import { useState, useEffect } from "react";
-import logoUrl from "@/assets/logo-pattern-proof.png";
+import { BrandLogo } from "@/components/BrandLogo";
 
 type Item = { to: string; label: string; icon: typeof LayoutDashboard };
 type Group = { label: string | null; key: string; items: Item[] };
@@ -100,36 +100,20 @@ export function AppShell() {
   return (
     <div className="min-h-screen w-full" style={{ background: "var(--background)" }}>
       <QuickExitButton />
+      {/* Mobile fixed top-left brand lockup — dark on cream background */}
+      <div
+        className="no-print fixed left-6 top-6 z-50 md:hidden"
+        style={{ maxWidth: 140 }}
+      >
+        <BrandLogo variant="dark" maxWidth={140} withShadow />
+      </div>
       {/* Desktop sidebar */}
       <aside
         className="no-print fixed left-0 top-0 hidden h-screen w-[210px] flex-col overflow-y-auto md:flex"
         style={{ background: "var(--sidebar)" }}
       >
-        <div className="px-6 pt-7 pb-8">
-          <div className="flex items-center gap-3">
-            <img
-              src={logoUrl}
-              alt="Pattern Proof"
-              className="h-10 w-10 rounded-lg object-cover"
-              style={{ background: "#F8F3E2" }}
-            />
-            <div className="min-w-0">
-              <div
-                className="font-display text-[14px] font-bold leading-none"
-                style={{ color: "var(--sidebar-active)", letterSpacing: "0.12em" }}
-              >
-                {settings.disguiseName === "Daily Planner" ? "P4TTERN" : settings.disguiseName.toUpperCase()}
-              </div>
-              {settings.disguiseName === "Daily Planner" && (
-                <div
-                  className="mt-1 font-display text-[14px] font-bold leading-none"
-                  style={{ color: "var(--primary)", letterSpacing: "0.12em" }}
-                >
-                  PR00F
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="px-6 pt-6 pb-8">
+          <BrandLogo variant="light" maxWidth={180} />
         </div>
         <nav className="flex-1 px-3">
           {/* Home — always one click from anywhere */}
