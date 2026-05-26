@@ -27,6 +27,7 @@ import { AiSidekick } from "@/components/AiSidekick";
 import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { useSettings } from "@/lib/settings-context";
 import { useState, useEffect } from "react";
+import logoUrl from "@/assets/logo-pattern-proof.png";
 
 type Item = { to: string; label: string; icon: typeof LayoutDashboard };
 type Group = { label: string | null; key: string; items: Item[] };
@@ -108,8 +109,29 @@ export function AppShell() {
         style={{ background: "var(--sidebar)" }}
       >
         <div className="px-6 pt-7 pb-8">
-          <div className="font-serif text-[22px] font-bold" style={{ color: "var(--sidebar-active)" }}>
-            {settings.disguiseName}
+          <div className="flex items-center gap-3">
+            <img
+              src={logoUrl}
+              alt="Pattern Proof"
+              className="h-10 w-10 rounded-lg object-cover"
+              style={{ background: "#F8F3E2" }}
+            />
+            <div className="min-w-0">
+              <div
+                className="font-display text-[14px] font-extrabold leading-none"
+                style={{ color: "var(--sidebar-active)", letterSpacing: "0.18em" }}
+              >
+                {settings.disguiseName === "Daily Planner" ? "PATTERN" : settings.disguiseName.toUpperCase()}
+              </div>
+              {settings.disguiseName === "Daily Planner" && (
+                <div
+                  className="mt-1 font-display text-[14px] font-extrabold leading-none"
+                  style={{ color: "var(--primary)", letterSpacing: "0.18em" }}
+                >
+                  PROOF
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <nav className="flex-1 px-3">

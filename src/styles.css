@@ -2,6 +2,8 @@
 @source "../src";
 @import "tw-animate-css";
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Serif+Display&display=swap");
+
 @theme inline {
   --radius-sm: 10px;
   --radius-md: 14px;
@@ -24,88 +26,100 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Abuse type accents */
-  --color-type-physical: #B85C4A;
-  --color-type-emotional: #C58A5C;
-  --color-type-financial: #7E9E6E;
-  --color-type-coercive: #6A92D6;
-  --color-type-custody: #B57E60;
-  --color-type-other: #8A7665;
+  /* Abuse type accents — Pattern Proof brand palette */
+  --color-type-physical: #D98A95;
+  --color-type-emotional: #C7B560;
+  --color-type-financial: #BFD2A8;
+  --color-type-coercive: #A2C0DF;
+  --color-type-custody: #C9A487;
+  --color-type-other: #8E8678;
 
-  --font-serif: Georgia, "Palatino Linotype", Palatino, serif;
-  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Inter", system-ui, sans-serif;
 }
 
 :root {
-  --background: #C99878;
-  --foreground: #2A1A10;
-  --card: #DEB896;
-  --panel: #B57E60;
-  --sidebar: #4E3B31;
-  --sidebar-active: #F5E6DF;
-  --sidebar-inactive: #E8C9BC;
-  --primary: #E77B56;
-  --primary-foreground: #F5E6DF;
-  --accent: #6A92D6;
-  --safe: #A8D8B9;
-  --muted-foreground: #6B3520;
-  --border: rgba(78, 59, 49, 0.18);
-  --input: #F2E8D8;
-  --ring: #E77B56;
-  --destructive: #E77B56;
-  --destructive-foreground: #F5E6DF;
-  --popover: #DEB896;
-  --popover-foreground: #2A1A10;
-  --secondary: #B57E60;
-  --secondary-foreground: #F5E6DF;
-  --muted: #F2E8D8;
+  /* Pattern Proof — Partnership Proposal palette */
+  --background: #F8F3E2;          /* warm cream page */
+  --foreground: #1F1A14;          /* deep near-black brown */
+  --card: #FFFCF1;                /* ivory card surface */
+  --panel: #2F261C;               /* dark brown feature panel */
+  --sidebar: #1F1A14;             /* near-black brown sidebar */
+  --sidebar-active: #F8F3E2;
+  --sidebar-inactive: #B8AC93;
+  --primary: #E59AAB;             /* dusty rose accent */
+  --primary-foreground: #1F1A14;
+  --accent: #A2C0DF;              /* sky blue accent */
+  --safe: #BFD2A8;                /* sage green */
+  --gold: #C7B560;                /* gold accent */
+  --muted-foreground: #6E6552;
+  --border: rgba(31, 26, 20, 0.12);
+  --input: #FFFCF1;
+  --ring: #E59AAB;
+  --destructive: #D98A95;
+  --destructive-foreground: #1F1A14;
+  --popover: #FFFCF1;
+  --popover-foreground: #1F1A14;
+  --secondary: #EFE6CC;
+  --secondary-foreground: #1F1A14;
+  --muted: #EFE6CC;
 }
 
 @layer base {
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); }
-  body { font-family: var(--font-sans); }
-  h1, h2, h3, h4, h5 { font-family: var(--font-serif); color: var(--color-foreground); }
+  body { font-family: var(--font-sans); font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4, h5 { font-family: var(--font-display); color: var(--color-foreground); font-weight: 800; letter-spacing: -0.02em; }
 }
 
-.font-serif { font-family: var(--font-serif); }
+.font-serif { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; }
+.font-display { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; }
+em, .font-serif em, h1 em, h2 em, h3 em {
+  font-style: normal;
+  color: var(--primary);
+}
 .label-eyebrow {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 4px;
+  letter-spacing: 3px;
   color: var(--muted-foreground);
+  font-family: var(--font-sans);
 }
 .card-pp {
   background-color: var(--card);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 18px;
+  padding: 22px;
   border: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(31,26,20,0.03);
 }
 .btn-primary {
   background-color: var(--primary);
   color: var(--primary-foreground);
-  border-radius: 12px;
-  padding: 12px 24px;
-  font-weight: 600;
+  border-radius: 999px;
+  padding: 11px 22px;
+  font-weight: 700;
   transition: filter 0.15s ease;
   font-family: var(--font-sans);
+  letter-spacing: 0.01em;
 }
 .btn-primary:hover { filter: brightness(0.95); }
 .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn-ghost {
   color: var(--foreground);
   background: transparent;
-  border-radius: 12px;
+  border-radius: 999px;
   padding: 10px 18px;
-  font-weight: 600;
+  font-weight: 700;
+  border: 1px solid var(--border);
 }
-.btn-ghost:hover { background: rgba(42,26,16,0.06); }
+.btn-ghost:hover { background: rgba(31,26,20,0.04); }
 .input-pp {
   width: 100%;
   background-color: var(--input);
   color: var(--foreground);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 12px 14px;
   border: 1px solid var(--border);
   font-family: var(--font-sans);
@@ -114,12 +128,27 @@
 .input-pp:focus { outline: 2px solid var(--ring); outline-offset: 1px; }
 textarea.input-pp { min-height: 110px; resize: vertical; line-height: 1.5; }
 
+/* Section number chip (e.g. "01" in a thin ring), echoes the PDF */
+.section-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 11px;
+  font-family: var(--font-sans);
+}
+
 .pulse-rec {
   animation: pp-pulse 1.4s ease-in-out infinite;
 }
 @keyframes pp-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(231,123,86,0.55); }
-  50% { box-shadow: 0 0 0 18px rgba(231,123,86,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229,154,171,0.55); }
+  50% { box-shadow: 0 0 0 18px rgba(229,154,171,0); }
 }
 
 @media print {
