@@ -4,6 +4,7 @@ import { ShieldCheck, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { IncidentCard, type IncidentLite } from "@/components/IncidentCard";
+import { IncidentHeatMap } from "@/components/IncidentHeatMap";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -12,18 +13,21 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const { user } = useAuth();
   const [incidents, setIncidents] = useState<IncidentLite[]>([]);
+  const [allIncidents, setAllIncidents] = useState<Array<{ date: string; severity_level: number | null; has_escalation_flag: boolean }>>([]);
   const [counts, setCounts] = useState({ incidents: 0, evidence: 0, months: 0 });
   const [earliest, setEarliest] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [recent, allInc, ev] = await Promise.all([
+      const [recent, allInc, ev, heat] = await Promise.all([
         supabase.from("incidents").select("id,date,abuse_types,description,location").eq("user_id", user.id).order("date", { ascending: false }).limit(3),
         supabase.from("incidents").select("date", { count: "exact" }).eq("user_id", user.id).order("date", { ascending: true }).limit(1),
         supabase.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("incidents").select("date,severity_level,has_escalation_flag").eq("user_id", user.id),
       ]);
       setIncidents((recent.data as IncidentLite[] | null) ?? []);
+      setAllIncidents(heat.data ?? []);
       const earliestDate = allInc.data?.[0]?.date ?? null;
       setEarliest(earliestDate);
       const months = earliestDate
@@ -52,6 +56,20 @@ function Dashboard() {
         <StatCard label="Evidence files" value={counts.evidence} accent="var(--accent)" />
         <StatCard label="Months documented" value={counts.months} accent="var(--safe)" />
       </div>
+
+      {allIncidents.length > 0 && (
+        <div className="mt-8">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-serif text-[22px]">Frequency over time</h2>
+            <Link to="/calendar" className="text-[13px] font-semibold" style={{ color: "var(--accent)" }}>
+              Full calendar <ArrowRight size={13} className="inline" />
+            </Link>
+          </div>
+          <div className="card-pp">
+            <IncidentHeatMap incidents={allIncidents} months={6} />
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">

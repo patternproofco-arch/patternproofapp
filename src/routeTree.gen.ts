@@ -18,6 +18,7 @@ import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedResourcesRouteImport } from './routes/_authenticated/resources'
+import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
 import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authenticated/live-recording'
@@ -29,6 +30,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
 import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -73,6 +75,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedResourcesRoute = AuthenticatedResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPatternsRoute = AuthenticatedPatternsRouteImport.update({
+  id: '/patterns',
+  path: '/patterns',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOpraHelperRoute = AuthenticatedOpraHelperRouteImport.update({
@@ -136,6 +143,11 @@ const AuthenticatedCaseBuilderRoute =
     path: '/case-builder',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAttorneyPortalRoute =
   AuthenticatedAttorneyPortalRouteImport.update({
     id: '/attorney-portal',
@@ -148,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
+  '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
@@ -159,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
+  '/patterns': typeof AuthenticatedPatternsRoute
   '/resources': typeof AuthenticatedResourcesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/timeline': typeof AuthenticatedTimelineRoute
@@ -170,6 +184,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
+  '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
@@ -181,6 +196,7 @@ export interface FileRoutesByTo {
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
+  '/patterns': typeof AuthenticatedPatternsRoute
   '/resources': typeof AuthenticatedResourcesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/timeline': typeof AuthenticatedTimelineRoute
@@ -194,6 +210,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
+  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/_authenticated/communications': typeof AuthenticatedCommunicationsRoute
   '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
@@ -205,6 +222,7 @@ export interface FileRoutesById {
   '/_authenticated/live-recording': typeof AuthenticatedLiveRecordingRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
+  '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
   '/_authenticated/resources': typeof AuthenticatedResourcesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
@@ -218,6 +236,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sitemap.xml'
     | '/attorney-portal'
+    | '/calendar'
     | '/case-builder'
     | '/communications'
     | '/court-packet'
@@ -229,6 +248,7 @@ export interface FileRouteTypes {
     | '/live-recording'
     | '/onboarding'
     | '/opra-helper'
+    | '/patterns'
     | '/resources'
     | '/settings'
     | '/timeline'
@@ -240,6 +260,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sitemap.xml'
     | '/attorney-portal'
+    | '/calendar'
     | '/case-builder'
     | '/communications'
     | '/court-packet'
@@ -251,6 +272,7 @@ export interface FileRouteTypes {
     | '/live-recording'
     | '/onboarding'
     | '/opra-helper'
+    | '/patterns'
     | '/resources'
     | '/settings'
     | '/timeline'
@@ -263,6 +285,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sitemap.xml'
     | '/_authenticated/attorney-portal'
+    | '/_authenticated/calendar'
     | '/_authenticated/case-builder'
     | '/_authenticated/communications'
     | '/_authenticated/court-packet'
@@ -274,6 +297,7 @@ export interface FileRouteTypes {
     | '/_authenticated/live-recording'
     | '/_authenticated/onboarding'
     | '/_authenticated/opra-helper'
+    | '/_authenticated/patterns'
     | '/_authenticated/resources'
     | '/_authenticated/settings'
     | '/_authenticated/timeline'
@@ -354,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResourcesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/patterns': {
+      id: '/_authenticated/patterns'
+      path: '/patterns'
+      fullPath: '/patterns'
+      preLoaderRoute: typeof AuthenticatedPatternsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/opra-helper': {
       id: '/_authenticated/opra-helper'
       path: '/opra-helper'
@@ -431,6 +462,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCaseBuilderRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/calendar': {
+      id: '/_authenticated/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/attorney-portal': {
       id: '/_authenticated/attorney-portal'
       path: '/attorney-portal'
@@ -443,6 +481,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAttorneyPortalRoute: typeof AuthenticatedAttorneyPortalRoute
+  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
   AuthenticatedCommunicationsRoute: typeof AuthenticatedCommunicationsRoute
   AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
@@ -454,6 +493,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedLiveRecordingRoute: typeof AuthenticatedLiveRecordingRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
+  AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
   AuthenticatedResourcesRoute: typeof AuthenticatedResourcesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
@@ -462,6 +502,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAttorneyPortalRoute: AuthenticatedAttorneyPortalRoute,
+  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
   AuthenticatedCommunicationsRoute: AuthenticatedCommunicationsRoute,
   AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
@@ -473,6 +514,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedLiveRecordingRoute: AuthenticatedLiveRecordingRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
+  AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
   AuthenticatedResourcesRoute: AuthenticatedResourcesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,

@@ -4,17 +4,22 @@ import { Mic, Square, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useServerFn } from "@tanstack/react-start";
+import { transcribeVoiceNote } from "@/lib/transcribe-voice-note.functions";
 
 export const Route = createFileRoute("/_authenticated/voice-notes")({
   component: VoiceNotesPage,
 });
 
-interface Note { id: string; title: string; date: string; audio_url: string; duration_seconds: number | null }
+interface Note { id: string; title: string; date: string; audio_url: string; duration_seconds: number | null; transcript: string | null; transcription_status: string }
 const today = () => new Date().toISOString().slice(0, 10);
 
 function VoiceNotesPage() {
   const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
+  const [search, setSearch] = useState("");
+  const [transcribingId, setTranscribingId] = useState<string | null>(null);
+  const transcribeFn = useServerFn(transcribeVoiceNote);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [pendingBlob, setPendingBlob] = useState<Blob | null>(null);
@@ -99,6 +104,26 @@ function VoiceNotesPage() {
 
   const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+  const transcribe = async (n: Note) => {
+    setTranscribingId(n.id);
+    try {
+      const r = await transcribeFn({ data: { voiceNoteId: n.id } });
+      if (r.ok) toast("Transcript ready.");
+      else if (r.reason === "too-long" || r.reason === "too-large") toast("This recording is too long to transcribe automatically.");
+      else if (r.reason === "credits") toast("AI credits exhausted.");
+      else if (r.reason === "rate-limit") toast("Rate-limited. Try again shortly.");
+      else toast("Couldn't transcribe. Try again in a moment.");
+      load();
+    } finally {
+      setTranscribingId(null);
+    }
+  };
+
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? notes.filter((n) => n.title.toLowerCase().includes(q) || (n.transcript ?? "").toLowerCase().includes(q))
+    : notes;
+
   return (
     <div>
       <div className="label-eyebrow">Voice notes</div>
@@ -140,20 +165,44 @@ function VoiceNotesPage() {
       )}
 
       <div className="mt-8 space-y-3">
-        {notes.length === 0 ? (
+        {notes.length > 0 && (
+          <input
+            className="input-pp"
+            placeholder="Search titles and transcripts…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        )}
+        {filtered.length === 0 ? (
           <div className="card-pp">
             <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-              Sometimes it's easier to speak than to write. Record what happened in your own voice.
+              {notes.length === 0
+                ? "Sometimes it's easier to speak than to write. Record what happened in your own voice."
+                : "No recordings match that search."}
             </p>
           </div>
         ) : (
-          notes.map((n) => (
+          filtered.map((n) => (
             <div key={n.id} className="card-pp">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="font-serif text-[16px]">{n.title}</div>
                   <div className="label-eyebrow mt-1">{new Date(n.date).toLocaleDateString()} {n.duration_seconds != null && `· ${mmss(n.duration_seconds)}`}</div>
                   {audioUrls[n.id] && <audio controls src={audioUrls[n.id]} className="mt-3 w-full" />}
+                  {n.transcript ? (
+                    <div className="mt-3 rounded-xl p-3 text-[13px] leading-relaxed" style={{ background: "var(--input)" }}>
+                      <div className="label-eyebrow mb-1">Transcript</div>
+                      {n.transcript}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => transcribe(n)}
+                      disabled={transcribingId === n.id}
+                      className="btn-ghost mt-3 text-[12px]"
+                    >
+                      {transcribingId === n.id ? "Transcribing…" : n.transcription_status === "failed" ? "Retry transcription" : "Transcribe"}
+                    </button>
+                  )}
                 </div>
                 <button onClick={() => remove(n)} aria-label="Remove" className="rounded-lg p-2 hover:bg-black/5"><Trash2 size={15} /></button>
               </div>
