@@ -19,7 +19,7 @@ export function PinScreen() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin.length !== 6) return;
+    if (pin.length !== 4) return;
     const result = await unlock(pin);
     if (result === "locked-out") {
       setLocked(true);
@@ -107,14 +107,14 @@ export function PinScreen() {
               type="password"
               inputMode="numeric"
               pattern="[0-9]*"
-              maxLength={6}
+              maxLength={4}
               value={pin}
-              onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
               className="input-pp text-center text-[24px] tracking-[0.5em]"
-              placeholder="••••••"
+              placeholder="••••"
               autoFocus
             />
-            <button type="submit" disabled={pin.length !== 6} className="btn-primary w-full">Enter</button>
+            <button type="submit" disabled={pin.length !== 4} className="btn-primary w-full">Enter</button>
             {msg && <p className="text-center text-[13px]" style={{ color: "var(--muted-foreground)" }}>{msg}</p>}
           </form>
         )}
