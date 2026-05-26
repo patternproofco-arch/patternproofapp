@@ -141,7 +141,10 @@ export const listMyClients = createServerFn({ method: "GET" })
 
 /* ------------------------- single-client case ------------------------- */
 
-type AnyJson = Record<string, unknown>;
+// Use `any` here — TanStack server fn serializer rejects `unknown` index signatures,
+// and these payloads are arbitrary JSON returned to the client untyped.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyJson = Record<string, any>;
 
 export const getClientCase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
