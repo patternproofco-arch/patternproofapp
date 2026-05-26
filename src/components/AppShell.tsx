@@ -23,7 +23,6 @@ import { useAuth } from "@/lib/auth-context";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { AiSidekick } from "@/components/AiSidekick";
 import { FloatingRecordButton } from "@/components/FloatingRecordButton";
-import { useSettings } from "@/lib/settings-context";
 import { useState, useEffect } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 
@@ -72,7 +71,6 @@ const ALL_ITEMS: Item[] = [HOME_ITEM, ...GROUPS.flatMap((g) => g.items), SETTING
 
 export function AppShell() {
   const { user } = useAuth();
-  const { settings } = useSettings();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // Group open/closed state — auto-expand the group containing the active route.
