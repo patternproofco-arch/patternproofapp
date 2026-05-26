@@ -32,6 +32,7 @@ import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
 import { Route as AuthenticatedEscalationDetectorRouteImport } from './routes/_authenticated/escalation-detector'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCourtSystemsRouteImport } from './routes/_authenticated/court-systems'
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
 import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
@@ -158,6 +159,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedCourtSystemsRoute =
+  AuthenticatedCourtSystemsRouteImport.update({
+    id: '/court-systems',
+    path: '/court-systems',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCourtPacketRoute =
   AuthenticatedCourtPacketRouteImport.update({
     id: '/court-packet',
@@ -209,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
+  '/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
@@ -239,6 +247,7 @@ export interface FileRoutesByTo {
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
+  '/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
@@ -272,6 +281,7 @@ export interface FileRoutesById {
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/_authenticated/communications': typeof AuthenticatedCommunicationsRoute
   '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
+  '/_authenticated/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
@@ -304,6 +314,7 @@ export interface FileRouteTypes {
     | '/case-builder'
     | '/communications'
     | '/court-packet'
+    | '/court-systems'
     | '/dashboard'
     | '/escalation-detector'
     | '/evidence'
@@ -334,6 +345,7 @@ export interface FileRouteTypes {
     | '/case-builder'
     | '/communications'
     | '/court-packet'
+    | '/court-systems'
     | '/dashboard'
     | '/escalation-detector'
     | '/evidence'
@@ -366,6 +378,7 @@ export interface FileRouteTypes {
     | '/_authenticated/case-builder'
     | '/_authenticated/communications'
     | '/_authenticated/court-packet'
+    | '/_authenticated/court-systems'
     | '/_authenticated/dashboard'
     | '/_authenticated/escalation-detector'
     | '/_authenticated/evidence'
@@ -560,6 +573,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/court-systems': {
+      id: '/_authenticated/court-systems'
+      path: '/court-systems'
+      fullPath: '/court-systems'
+      preLoaderRoute: typeof AuthenticatedCourtSystemsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/court-packet': {
       id: '/_authenticated/court-packet'
       path: '/court-packet'
@@ -642,6 +662,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
   AuthenticatedCommunicationsRoute: typeof AuthenticatedCommunicationsRoute
   AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
+  AuthenticatedCourtSystemsRoute: typeof AuthenticatedCourtSystemsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEscalationDetectorRoute: typeof AuthenticatedEscalationDetectorRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
@@ -665,6 +686,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
   AuthenticatedCommunicationsRoute: AuthenticatedCommunicationsRoute,
   AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
+  AuthenticatedCourtSystemsRoute: AuthenticatedCourtSystemsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEscalationDetectorRoute: AuthenticatedEscalationDetectorRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,

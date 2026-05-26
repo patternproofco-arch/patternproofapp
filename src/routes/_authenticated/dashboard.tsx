@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { IncidentCard, type IncidentLite } from "@/components/IncidentCard";
 import { IncidentHeatMap } from "@/components/IncidentHeatMap";
 import { WhyCourtsStruggleModal } from "@/components/WhyCourtsStruggleModal";
+import { FirstTimeEducationModal } from "@/components/FirstTimeEducationModal";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -43,6 +44,7 @@ function Dashboard() {
   return (
     <div>
       <WhyCourtsStruggleModal />
+      <FirstTimeEducationModal />
       <div className="label-eyebrow">{today}</div>
       <h1 className="mt-3 font-serif text-[34px] leading-tight md:text-[42px]">
         You're building your case.

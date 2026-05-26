@@ -60,7 +60,8 @@ const GROUPS: Group[] = [
     label: "Resources", key: "resources",
     items: [
       { to: "/why-courts-struggle", label: "Coercive control", icon: BookMarked },
-      { to: "/legal-documents", label: "Court system guide", icon: HeartHandshake },
+      { to: "/court-systems", label: "Court system guide", icon: HeartHandshake },
+      { to: "/legal-documents", label: "My legal documents", icon: FileText },
       { to: "/resources", label: "Safety planning", icon: LifeBuoy },
     ],
   },
@@ -157,6 +158,31 @@ export function AppShell() {
           >
             <PenLine size={15} />
             Log incident
+          </Link>
+
+          {/* Attorney portal — elevated, navy/cream, distinct from journaling */}
+          <Link
+            to="/share-with-attorney"
+            className="mb-5 flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold transition-transform hover:-translate-y-px"
+            style={{
+              background: "linear-gradient(135deg, #1a2332 0%, #243349 100%)",
+              color: "#F5F1E6",
+              boxShadow: "0 8px 22px -10px rgba(26,35,50,0.55)",
+              border: "1px solid rgba(245,241,230,0.08)",
+            }}
+          >
+            <div
+              className="flex h-7 w-7 items-center justify-center rounded-md"
+              style={{ background: "rgba(245,241,230,0.12)" }}
+            >
+              <Briefcase size={14} />
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span>Attorney portal</span>
+              <span className="text-[10px] font-normal" style={{ opacity: 0.7, letterSpacing: "1.5px", textTransform: "uppercase" }}>
+                Share &amp; collaborate
+              </span>
+            </div>
           </Link>
 
           {GROUPS.map((g, idx) => {
