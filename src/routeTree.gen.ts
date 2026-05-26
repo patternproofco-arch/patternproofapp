@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
@@ -35,6 +36,8 @@ import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authe
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
+import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
+import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -53,6 +56,10 @@ const LawyerSignupRoute = LawyerSignupRouteImport.update({
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttorneyRoute = AttorneyRouteImport.update({
+  id: '/_attorney',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -173,12 +180,23 @@ const AuthenticatedAttorneyPortalRoute =
     path: '/attorney-portal',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AttorneyClientsRoute = AttorneyClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
+  id: '/$clientId',
+  path: '/$clientId',
+  getParentRoute: () => AttorneyClientsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/clients': typeof AttorneyClientsRouteWithChildren
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -200,12 +218,14 @@ export interface FileRoutesByFullPath {
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/clients/$clientId': typeof AttorneyClientsClientIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/clients': typeof AttorneyClientsRouteWithChildren
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -227,14 +247,17 @@ export interface FileRoutesByTo {
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/clients/$clientId': typeof AttorneyClientsClientIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_attorney': typeof AttorneyRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_attorney/clients': typeof AttorneyClientsRouteWithChildren
   '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -256,6 +279,7 @@ export interface FileRoutesById {
   '/_authenticated/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -264,6 +288,7 @@ export interface FileRouteTypes {
     | '/lawyer-signup'
     | '/login'
     | '/sitemap.xml'
+    | '/clients'
     | '/attorney-portal'
     | '/calendar'
     | '/case-builder'
@@ -285,12 +310,14 @@ export interface FileRouteTypes {
     | '/why-courts-struggle'
     | '/accept-invite/$token'
     | '/attorney/$token'
+    | '/clients/$clientId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/lawyer-signup'
     | '/login'
     | '/sitemap.xml'
+    | '/clients'
     | '/attorney-portal'
     | '/calendar'
     | '/case-builder'
@@ -312,13 +339,16 @@ export interface FileRouteTypes {
     | '/why-courts-struggle'
     | '/accept-invite/$token'
     | '/attorney/$token'
+    | '/clients/$clientId'
   id:
     | '__root__'
     | '/'
+    | '/_attorney'
     | '/_authenticated'
     | '/lawyer-signup'
     | '/login'
     | '/sitemap.xml'
+    | '/_attorney/clients'
     | '/_authenticated/attorney-portal'
     | '/_authenticated/calendar'
     | '/_authenticated/case-builder'
@@ -340,10 +370,12 @@ export interface FileRouteTypes {
     | '/_authenticated/why-courts-struggle'
     | '/accept-invite/$token'
     | '/attorney/$token'
+    | '/_attorney/clients/$clientId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AttorneyRoute: typeof AttorneyRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LawyerSignupRoute: typeof LawyerSignupRoute
   LoginRoute: typeof LoginRoute
@@ -380,6 +412,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_attorney': {
+      id: '/_attorney'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AttorneyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -536,8 +575,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAttorneyPortalRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_attorney/clients': {
+      id: '/_attorney/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof AttorneyClientsRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/clients/$clientId': {
+      id: '/_attorney/clients/$clientId'
+      path: '/$clientId'
+      fullPath: '/clients/$clientId'
+      preLoaderRoute: typeof AttorneyClientsClientIdRouteImport
+      parentRoute: typeof AttorneyClientsRoute
+    }
   }
 }
+
+interface AttorneyClientsRouteChildren {
+  AttorneyClientsClientIdRoute: typeof AttorneyClientsClientIdRoute
+}
+
+const AttorneyClientsRouteChildren: AttorneyClientsRouteChildren = {
+  AttorneyClientsClientIdRoute: AttorneyClientsClientIdRoute,
+}
+
+const AttorneyClientsRouteWithChildren = AttorneyClientsRoute._addFileChildren(
+  AttorneyClientsRouteChildren,
+)
+
+interface AttorneyRouteChildren {
+  AttorneyClientsRoute: typeof AttorneyClientsRouteWithChildren
+}
+
+const AttorneyRouteChildren: AttorneyRouteChildren = {
+  AttorneyClientsRoute: AttorneyClientsRouteWithChildren,
+}
+
+const AttorneyRouteWithChildren = AttorneyRoute._addFileChildren(
+  AttorneyRouteChildren,
+)
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAttorneyPortalRoute: typeof AuthenticatedAttorneyPortalRoute
@@ -589,6 +666,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AttorneyRoute: AttorneyRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LawyerSignupRoute: LawyerSignupRoute,
   LoginRoute: LoginRoute,
@@ -599,3 +677,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
