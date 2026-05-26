@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { IncidentCard, type IncidentLite } from "@/components/IncidentCard";
 import { IncidentHeatMap } from "@/components/IncidentHeatMap";
 import { WhyCourtsStruggleModal } from "@/components/WhyCourtsStruggleModal";
+import { FirstTimeEducationModal } from "@/components/FirstTimeEducationModal";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
