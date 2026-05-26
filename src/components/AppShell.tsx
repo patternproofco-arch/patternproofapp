@@ -73,10 +73,25 @@ export function AppShell() {
   const { user } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  // Group open/closed state — auto-expand the group containing the active route.
-  const [open, setOpen] = useState<Record<string, boolean>>({
-    document: true, patterns: true, prepare: true, resources: false,
+  // Group open/closed state — collapsed by default, persisted in localStorage,
+  // auto-expand only the group containing the active route.
+  const STORAGE_KEY = "pp.sidebar.groups";
+  const [open, setOpen] = useState<Record<string, boolean>>(() => {
+    const base: Record<string, boolean> = {
+      document: false, patterns: false, prepare: false, resources: false,
+    };
+    if (typeof window === "undefined") return base;
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw) return { ...base, ...JSON.parse(raw) };
+    } catch {}
+    return base;
   });
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(open));
+    } catch {}
+  }, [open]);
   useEffect(() => {
     for (const g of GROUPS) {
       if (g.items.some((i) => pathname === i.to || pathname.startsWith(i.to + "/"))) {
