@@ -57,22 +57,43 @@ function PatternsPage() {
 
   return (
     <div>
-      <div className="label-eyebrow">Pattern analysis</div>
-      <h1 className="mt-2 font-serif text-[34px] leading-tight">What the record <em>shows.</em></h1>
-      <p className="mt-3 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-        Quiet, calm trends from your own entries. Not a diagnosis. Not a legal conclusion. Just what's there.
-      </p>
-
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <button onClick={() => run(true)} disabled={busy} className="btn-primary inline-flex items-center gap-2">
-          {busy ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
-          {analysis ? "Refresh analysis" : "Run analysis"}
-        </button>
-        {createdAt && (
-          <span className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-            Last updated {new Date(createdAt).toLocaleString()}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-2xl">
+          <div className="label-eyebrow">Pattern analysis</div>
+          <h1 className="mt-2 font-serif text-[34px] leading-tight">What the record <em>shows.</em></h1>
+          <p className="mt-3 text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+            Quiet, calm trends from your own entries. Not a diagnosis. Not a legal conclusion. Just what's there.
+          </p>
+        </div>
+        <div className="flex flex-col items-stretch gap-2 md:items-end">
+          <span className="text-[12px] font-semibold md:text-right" style={{ color: "var(--muted-foreground)" }}>
+            Ready to see what your patterns reveal?
           </span>
-        )}
+          <button
+            onClick={() => run(true)}
+            disabled={busy}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-[14px] font-bold transition-all hover:-translate-y-px disabled:opacity-60"
+            style={{
+              background: "#1a2332",
+              color: "#F5F1E6",
+              letterSpacing: "0.02em",
+              boxShadow: "0 6px 18px rgba(26,35,50,0.22)",
+            }}
+          >
+            {busy ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
+            {busy ? "Analyzing…" : analysis ? "Refresh Analysis" : "Analyze My Patterns"}
+          </button>
+          {createdAt && (
+            <span className="text-[11px] md:text-right" style={{ color: "var(--muted-foreground)" }}>
+              Last updated {new Date(createdAt).toLocaleString()}
+            </span>
+          )}
+          {!analysis && !createdAt && (
+            <span className="text-[11px] md:text-right" style={{ color: "var(--muted-foreground)" }}>
+              First time? This analyzes your entries for behavioral patterns.
+            </span>
+          )}
+        </div>
       </div>
 
       {loading && <p className="mt-6 text-[14px]" style={{ color: "var(--muted-foreground)" }}>Loading…</p>}
