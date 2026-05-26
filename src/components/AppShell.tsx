@@ -132,6 +132,36 @@ export function AppShell() {
           </div>
         </div>
         <nav className="flex-1 px-3">
+          {/* Home — always one click from anywhere */}
+          {(() => {
+            const active = pathname === HOME_ITEM.to;
+            const Icon = HOME_ITEM.icon;
+            return (
+              <Link
+                to={HOME_ITEM.to}
+                className="mb-3 flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition-colors"
+                style={itemClass(active)}
+              >
+                <Icon size={17} />
+                {HOME_ITEM.label}
+              </Link>
+            );
+          })()}
+
+          {/* Primary CTA — most-used action available from every route */}
+          <Link
+            to="/journal"
+            className="mb-4 flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-bold transition-opacity hover:opacity-90"
+            style={{
+              background: "var(--primary)",
+              color: "var(--sidebar)",
+              letterSpacing: "0.02em",
+            }}
+          >
+            <PenLine size={15} />
+            Log incident
+          </Link>
+
           {GROUPS.map((g, idx) => {
             const isOpen = open[g.key];
             return (
