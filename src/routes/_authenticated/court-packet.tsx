@@ -110,7 +110,7 @@ function CourtPacket() {
 
       <div id="packet" style={{ background: "#fff", color: "#000", padding: "32px 36px", borderRadius: 12, fontFamily: "system-ui, sans-serif", fontSize: 14, lineHeight: 1.55 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderBottom: "2px solid #E77B56", paddingBottom: 10 }}>
-          <div style={{ fontFamily: "Georgia, serif", fontSize: 22, fontWeight: 700 }}>
+          <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 22, fontWeight: 700 }}>
             Pattern<span style={{ color: "#E77B56" }}>·</span>Proof
           </div>
           <div style={{ fontSize: 12, color: "#444" }}>Prepared {today}</div>
@@ -217,13 +217,13 @@ function CourtPacket() {
   );
 }
 
-const th: React.CSSProperties = { textAlign: "left", padding: "8px 10px", fontFamily: "Georgia, serif", fontSize: 13, borderBottom: "1px solid #000" };
+const th: React.CSSProperties = { textAlign: "left", padding: "8px 10px", fontFamily: "Inter, system-ui, sans-serif", fontSize: 13, borderBottom: "1px solid #000" };
 const td: React.CSSProperties = { padding: "8px 10px", verticalAlign: "top", fontSize: 13 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section style={{ marginTop: 22 }}>
-      <h2 style={{ fontFamily: "Georgia, serif", fontSize: 18, margin: "0 0 8px 0" }}>{title}</h2>
+      <h2 style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 18, margin: "0 0 8px 0" }}>{title}</h2>
       {children}
     </section>
   );

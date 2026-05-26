@@ -2,7 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Serif+Display&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
 
 @theme inline {
   --radius-sm: 10px;
@@ -70,11 +70,11 @@
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); }
   body { font-family: var(--font-sans); font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiased; }
-  h1, h2, h3, h4, h5 { font-family: var(--font-display); color: var(--color-foreground); font-weight: 800; letter-spacing: -0.02em; }
+  h1, h2, h3, h4, h5 { font-family: var(--font-display); color: var(--color-foreground); font-weight: 700; letter-spacing: -0.01em; }
 }
 
-.font-serif { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; }
-.font-display { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; }
+.font-serif { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
+.font-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
 em, .font-serif em, h1 em, h2 em, h3 em {
   font-style: normal;
   color: var(--primary);
