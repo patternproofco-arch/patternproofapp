@@ -100,12 +100,13 @@ em, .font-serif em, h1 em, h2 em, h3 em {
   border-radius: 999px;
   padding: 11px 22px;
   font-weight: 700;
-  transition: filter 0.15s ease;
+  transition: filter 0.15s ease, box-shadow 0.2s ease, transform 0.15s ease;
   font-family: var(--font-sans);
   letter-spacing: 0.01em;
+  box-shadow: 0 4px 14px rgba(31, 26, 20, 0.10);
 }
-.btn-primary:hover { filter: brightness(0.95); }
-.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-primary:hover { filter: brightness(0.95); box-shadow: 0 6px 20px rgba(31, 26, 20, 0.14); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; transform: none; }
 .btn-ghost {
   color: var(--foreground);
   background: transparent;
@@ -113,8 +114,10 @@ em, .font-serif em, h1 em, h2 em, h3 em {
   padding: 10px 18px;
   font-weight: 700;
   border: 1px solid var(--border);
+  transition: background 0.15s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgba(31, 26, 20, 0.05);
 }
-.btn-ghost:hover { background: rgba(31,26,20,0.04); }
+.btn-ghost:hover { background: rgba(31,26,20,0.04); box-shadow: 0 4px 12px rgba(31, 26, 20, 0.08); transform: translateY(-1px); }
 .input-pp {
   width: 100%;
   background-color: var(--input);
