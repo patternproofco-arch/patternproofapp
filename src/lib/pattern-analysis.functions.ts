@@ -109,7 +109,8 @@ export const analyzePatterns = createServerFn({ method: "POST" })
 
     await supabase.from("pattern_analyses").insert({
       user_id: userId,
-      analysis: parsed as unknown as Record<string, unknown>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      analysis: parsed as any,
       incident_count_at_time: incidents.length,
       model_used: "google/gemini-2.5-pro",
     });
