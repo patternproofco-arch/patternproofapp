@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ShieldCheck, KeyRound, Clock3, ScrollText, Lock, AlertTriangle, Mic } from "lucide-react";
+import { ShieldCheck, KeyRound, Clock3, ScrollText, AlertTriangle, Mic } from "lucide-react";
 import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,9 +33,8 @@ const DISGUISES = [
 function SettingsPage() {
   const { user } = useAuth();
   const { settings, update } = useSettings();
-  const { hasPin, setRealPin, setDecoyPin } = usePinLock();
+  const { hasPin, setRealPin } = usePinLock();
   const [newPin, setNewPin] = useState("");
-  const [decoyPin, setDecoyPinInput] = useState("");
   const [audit, setAudit] = useState<AuditRow[]>([]);
   const exportFn = useServerFn(generateExportZip);
   const [exporting, setExporting] = useState(false);
@@ -71,22 +70,13 @@ function SettingsPage() {
   }, [user]);
 
   const savePin = async () => {
-    if (newPin.length !== 6 || !/^\d+$/.test(newPin)) {
-      toast("PIN should be 6 digits.");
+    if (newPin.length !== 4 || !/^\d+$/.test(newPin)) {
+      toast("PIN should be 4 digits.");
       return;
     }
     await setRealPin(newPin);
     setNewPin("");
     toast("New PIN saved.");
-  };
-  const saveDecoy = async () => {
-    if (decoyPin.length !== 6 || !/^\d+$/.test(decoyPin)) {
-      toast("Decoy PIN should be 6 digits.");
-      return;
-    }
-    await setDecoyPin(decoyPin);
-    setDecoyPinInput("");
-    toast("Decoy PIN saved.");
   };
 
   return (
@@ -154,16 +144,9 @@ function SettingsPage() {
 
         <div className="card-pp">
           <div className="flex items-center gap-2"><KeyRound size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">{hasPin ? "Change PIN" : "Set PIN"}</h2></div>
-          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>6-digit PIN. Required every time the app wakes.</p>
-          <input className="input-pp mt-3" inputMode="numeric" maxLength={6} value={newPin} onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))} placeholder="••••••" />
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>4-digit PIN. Required every time the app wakes.</p>
+          <input className="input-pp mt-3" inputMode="numeric" maxLength={4} value={newPin} onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" />
           <button onClick={savePin} className="btn-primary mt-3">Save PIN</button>
-        </div>
-
-        <div className="card-pp">
-          <div className="flex items-center gap-2"><Lock size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">Decoy PIN</h2></div>
-          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>If anyone forces you to unlock, type this instead. They'll see an empty, harmless version of the app.</p>
-          <input className="input-pp mt-3" inputMode="numeric" maxLength={6} value={decoyPin} onChange={(e) => setDecoyPinInput(e.target.value.replace(/\D/g, ""))} placeholder="••••••" />
-          <button onClick={saveDecoy} className="btn-primary mt-3">Save decoy PIN</button>
         </div>
       </div>
 
