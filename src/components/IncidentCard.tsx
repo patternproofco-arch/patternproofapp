@@ -1,4 +1,5 @@
 import { typeColor, typeLabel } from "@/lib/abuse-types";
+import { formatDateLocal } from "@/lib/dates";
 
 export interface IncidentLite {
   id: string;
@@ -25,11 +26,7 @@ export function IncidentCard({
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <span className="label-eyebrow">
-              {new Date(incident.date).toLocaleDateString(undefined, {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
+              {formatDateLocal(incident.date, { month: "short", day: "numeric", year: "numeric" })}
             </span>
             {incident.abuse_types.slice(0, 3).map((t) => (
               <span
