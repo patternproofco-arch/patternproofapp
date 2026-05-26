@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
+import { Route as AuthenticatedWhyCourtsStruggleRouteImport } from './routes/_authenticated/why-courts-struggle'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -57,6 +58,12 @@ const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
   path: '/attorney/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWhyCourtsStruggleRoute =
+  AuthenticatedWhyCourtsStruggleRouteImport.update({
+    id: '/why-courts-struggle',
+    path: '/why-courts-struggle',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedVoiceNotesRoute = AuthenticatedVoiceNotesRouteImport.update({
   id: '/voice-notes',
   path: '/voice-notes',
@@ -177,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
+  '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/attorney/$token': typeof AttorneyTokenRoute
 }
 export interface FileRoutesByTo {
@@ -201,6 +209,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
+  '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/attorney/$token': typeof AttorneyTokenRoute
 }
 export interface FileRoutesById {
@@ -227,6 +236,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
+  '/_authenticated/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/attorney/$token': typeof AttorneyTokenRoute
 }
 export interface FileRouteTypes {
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/timeline'
     | '/voice-notes'
+    | '/why-courts-struggle'
     | '/attorney/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/timeline'
     | '/voice-notes'
+    | '/why-courts-struggle'
     | '/attorney/$token'
   id:
     | '__root__'
@@ -302,6 +314,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
+    | '/_authenticated/why-courts-struggle'
     | '/attorney/$token'
   fileRoutesById: FileRoutesById
 }
@@ -349,6 +362,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/attorney/$token'
       preLoaderRoute: typeof AttorneyTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/why-courts-struggle': {
+      id: '/_authenticated/why-courts-struggle'
+      path: '/why-courts-struggle'
+      fullPath: '/why-courts-struggle'
+      preLoaderRoute: typeof AuthenticatedWhyCourtsStruggleRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/voice-notes': {
       id: '/_authenticated/voice-notes'
@@ -498,6 +518,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
+  AuthenticatedWhyCourtsStruggleRoute: typeof AuthenticatedWhyCourtsStruggleRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -519,6 +540,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
+  AuthenticatedWhyCourtsStruggleRoute: AuthenticatedWhyCourtsStruggleRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
