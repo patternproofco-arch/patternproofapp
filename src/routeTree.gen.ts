@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
+import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
 import { Route as AuthenticatedWhyCourtsStruggleRouteImport } from './routes/_authenticated/why-courts-struggle'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
@@ -44,6 +46,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LawyerSignupRoute = LawyerSignupRouteImport.update({
+  id: '/lawyer-signup',
+  path: '/lawyer-signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -56,6 +63,11 @@ const IndexRoute = IndexRouteImport.update({
 const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
   id: '/attorney/$token',
   path: '/attorney/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcceptInviteTokenRoute = AcceptInviteTokenRouteImport.update({
+  id: '/accept-invite/$token',
+  path: '/accept-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedWhyCourtsStruggleRoute =
@@ -164,6 +176,7 @@ const AuthenticatedAttorneyPortalRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
@@ -185,10 +198,12 @@ export interface FileRoutesByFullPath {
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
+  '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
@@ -210,12 +225,14 @@ export interface FileRoutesByTo {
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
+  '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
@@ -237,12 +254,14 @@ export interface FileRoutesById {
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/_authenticated/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
+  '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/lawyer-signup'
     | '/login'
     | '/sitemap.xml'
     | '/attorney-portal'
@@ -264,10 +283,12 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/voice-notes'
     | '/why-courts-struggle'
+    | '/accept-invite/$token'
     | '/attorney/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/lawyer-signup'
     | '/login'
     | '/sitemap.xml'
     | '/attorney-portal'
@@ -289,11 +310,13 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/voice-notes'
     | '/why-courts-struggle'
+    | '/accept-invite/$token'
     | '/attorney/$token'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/lawyer-signup'
     | '/login'
     | '/sitemap.xml'
     | '/_authenticated/attorney-portal'
@@ -315,14 +338,17 @@ export interface FileRouteTypes {
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
     | '/_authenticated/why-courts-struggle'
+    | '/accept-invite/$token'
     | '/attorney/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LawyerSignupRoute: typeof LawyerSignupRoute
   LoginRoute: typeof LoginRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
 }
 
@@ -340,6 +366,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lawyer-signup': {
+      id: '/lawyer-signup'
+      path: '/lawyer-signup'
+      fullPath: '/lawyer-signup'
+      preLoaderRoute: typeof LawyerSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -361,6 +394,13 @@ declare module '@tanstack/react-router' {
       path: '/attorney/$token'
       fullPath: '/attorney/$token'
       preLoaderRoute: typeof AttorneyTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accept-invite/$token': {
+      id: '/accept-invite/$token'
+      path: '/accept-invite/$token'
+      fullPath: '/accept-invite/$token'
+      preLoaderRoute: typeof AcceptInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/why-courts-struggle': {
@@ -550,10 +590,22 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LawyerSignupRoute: LawyerSignupRoute,
   LoginRoute: LoginRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  AcceptInviteTokenRoute: AcceptInviteTokenRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
