@@ -54,7 +54,7 @@ export const analyzePatterns = createServerFn({ method: "POST" })
       const ageHours = (Date.now() - new Date(cached.created_at).getTime()) / 36e5;
       const countDelta = incidents.length - (cached.incident_count_at_time ?? 0);
       if (ageHours < 24 && countDelta < 3) {
-        return { ok: true as const, analysis: cached.analysis as PatternAnalysisResult, cached: true };
+        return { ok: true as const, analysis: cached.analysis as unknown as PatternAnalysisResult, cached: true };
       }
     }
 
@@ -109,7 +109,7 @@ export const analyzePatterns = createServerFn({ method: "POST" })
 
     await supabase.from("pattern_analyses").insert({
       user_id: userId,
-      analysis: parsed,
+      analysis: parsed as unknown as Record<string, unknown>,
       incident_count_at_time: incidents.length,
       model_used: "google/gemini-2.5-pro",
     });
@@ -139,5 +139,5 @@ export const getLatestPatternAnalysis = createServerFn({ method: "GET" })
       .limit(1)
       .maybeSingle();
     if (!data) return { found: false as const };
-    return { found: true as const, analysis: data.analysis as PatternAnalysisResult, incidentCountAtTime: data.incident_count_at_time, createdAt: data.created_at };
+    return { found: true as const, analysis: data.analysis as unknown as PatternAnalysisResult, incidentCountAtTime: data.incident_count_at_time, createdAt: data.created_at };
   });
