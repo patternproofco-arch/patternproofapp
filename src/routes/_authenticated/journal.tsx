@@ -274,6 +274,7 @@ function JournalPage() {
         </div>
       </div>
       <div className="hidden">{typeLabel("other")}{typeColor("other")}</div>
+      <AddFromJournalModal open={journalOpen} onClose={() => setJournalOpen(false)} onSaved={load} />
     </div>
   );
 }
