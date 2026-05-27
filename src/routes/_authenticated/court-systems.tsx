@@ -11,9 +11,11 @@ export const Route = createFileRoute("/_authenticated/court-systems")({
   component: CourtSystemsPage,
 });
 
-const NAVY = "#1a2332";
-const NAVY_SOFT = "#243349";
-const CREAM = "#F5F1E6";
+// Brand tokens — match the rest of the app
+const BROWN = "#1A140E";        // var(--sidebar) / deep brown
+const BROWN_SOFT = "#2B2017";   // var(--panel)
+const CREAM = "#F5EAD0";        // var(--background)
+const ROSE = "#E59AAB";         // var(--primary)
 
 function CourtSystemsPage() {
   return (
@@ -22,18 +24,18 @@ function CourtSystemsPage() {
       <header
         className="rounded-2xl px-7 py-8 md:px-10 md:py-10"
         style={{
-          background: `linear-gradient(135deg, ${NAVY} 0%, ${NAVY_SOFT} 100%)`,
+          background: `linear-gradient(135deg, ${BROWN} 0%, ${BROWN_SOFT} 100%)`,
           color: CREAM,
-          boxShadow: "0 20px 40px -20px rgba(26,35,50,0.45)",
+          boxShadow: "0 20px 40px -20px rgba(26,20,14,0.45)",
         }}
       >
-        <div className="mb-3 flex items-center gap-2 text-[11px] uppercase tracking-[3px]" style={{ opacity: 0.7 }}>
-          <Scale size={13} /> Court systems guide
+        <div className="mb-3 flex items-center gap-2 text-[12px] font-bold uppercase tracking-[3px]" style={{ opacity: 0.85 }}>
+          <Scale size={14} /> Court systems guide
         </div>
-        <h1 className="text-3xl font-semibold md:text-4xl" style={{ letterSpacing: "-0.01em" }}>
+        <h1 className="text-3xl font-extrabold md:text-4xl" style={{ letterSpacing: "-0.01em" }}>
           How courts actually evaluate your evidence
         </h1>
-        <p className="mt-3 max-w-2xl text-[15px]" style={{ opacity: 0.85 }}>
+        <p className="mt-3 max-w-2xl text-[17px] font-semibold leading-relaxed" style={{ opacity: 0.95 }}>
           Three different courts. Three different burdens of proof. Three different ways your documentation will be received. Know what you're walking into.
         </p>
       </header>
@@ -69,18 +71,18 @@ function CourtSystemsPage() {
       {/* Why patterns help */}
       <section
         className="rounded-2xl border p-7 md:p-9"
-        style={{ background: "var(--background)", borderColor: "rgba(31,26,20,0.08)" }}
+        style={{ background: "var(--card)", borderColor: "var(--border)" }}
       >
         <div className="mb-4 flex items-center gap-2">
-          <BookOpen size={18} style={{ color: NAVY }} />
-          <h2 className="text-xl font-semibold" style={{ color: NAVY }}>
+          <BookOpen size={20} style={{ color: BROWN }} />
+          <h2 className="text-2xl font-extrabold" style={{ color: BROWN }}>
             Why pattern evidence wins where single incidents lose
           </h2>
         </div>
-        <p className="text-[15px] leading-relaxed" style={{ color: "var(--foreground)" }}>
+        <p className="text-[17px] font-medium leading-relaxed" style={{ color: "var(--foreground)" }}>
           A single argument looks like "a bad day." Forty-seven documented incidents over eighteen months — escalating in frequency, with consistent control tactics — looks like a campaign. Courts are trained to weigh patterns. Your job is to make the pattern undeniable, chronological, and cross-referenced.
         </p>
-        <ul className="mt-5 space-y-3 text-[14px]" style={{ color: "var(--foreground)" }}>
+        <ul className="mt-5 space-y-3 text-[16px] font-medium" style={{ color: "var(--foreground)" }}>
           {[
             ["Chronology", "Dates and times anchor every incident. Gaps become suspicious; clusters become evidence of escalation."],
             ["Consistency", "The same tactics — financial control, isolation, monitoring — appearing across months proves intent, not coincidence."],
@@ -88,9 +90,9 @@ function CourtSystemsPage() {
             ["Severity arc", "Escalation flags graphed over time tell a judge what the next six months will look like if nothing changes."],
           ].map(([k, v]) => (
             <li key={k} className="flex gap-3">
-              <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: NAVY }} />
+              <span className="mt-2 h-2 w-2 flex-shrink-0 rounded-full" style={{ background: ROSE }} />
               <span>
-                <strong style={{ color: NAVY }}>{k}.</strong> {v}
+                <strong style={{ color: BROWN }}>{k}.</strong> {v}
               </span>
             </li>
           ))}
@@ -114,15 +116,15 @@ function CourtSystemsPage() {
       {/* CTAs */}
       <section
         className="rounded-2xl px-7 py-7 md:px-9"
-        style={{ background: CREAM, border: `1px solid ${NAVY}20` }}
+        style={{ background: "var(--card)", border: `1px solid var(--border)` }}
       >
-        <h2 className="text-lg font-semibold" style={{ color: NAVY }}>Ready to put this into practice?</h2>
-        <p className="mt-1 text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+        <h2 className="text-xl font-extrabold" style={{ color: BROWN }}>Ready to put this into practice?</h2>
+        <p className="mt-2 text-[16px] font-medium" style={{ color: "var(--foreground)" }}>
           Pattern-Proof builds court-ready documentation from your daily entries. Start with one of these:
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link to="/patterns" className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-[14px] font-semibold transition-transform hover:-translate-y-px" style={{ background: NAVY, color: CREAM }}>
-            Run pattern analysis <ArrowRight size={14} />
+          <Link to="/patterns" className="btn-primary inline-flex items-center gap-2">
+            Run pattern analysis <ArrowRight size={16} />
           </Link>
           <Link to="/court-packet" className="btn-ghost">Build court packet</Link>
           <Link to="/share-with-attorney" className="btn-ghost">Share with attorney</Link>
@@ -138,17 +140,17 @@ function CourtCard({ icon: Icon, title, burden, purpose, whatMatters, yourEdge }
   return (
     <div
       className="flex flex-col rounded-2xl border p-6"
-      style={{ background: "var(--background)", borderColor: "rgba(26,35,50,0.12)", boxShadow: "0 6px 18px -12px rgba(26,35,50,0.25)" }}
+      style={{ background: "var(--card)", borderColor: "var(--border)", boxShadow: "0 6px 18px -12px rgba(26,20,14,0.25)", borderLeft: `3px solid ${ROSE}` }}
     >
-      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: `${NAVY}10`, color: NAVY }}>
-        <Icon size={18} />
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: `${BROWN}12`, color: BROWN }}>
+        <Icon size={20} />
       </div>
-      <h3 className="text-[17px] font-semibold" style={{ color: NAVY }}>{title}</h3>
-      <div className="mt-1 text-[11px] uppercase tracking-[2px]" style={{ color: "var(--muted-foreground)" }}>{burden}</div>
-      <p className="mt-3 text-[13px]" style={{ color: "var(--muted-foreground)" }}>{purpose}</p>
-      <div className="mt-4 space-y-2 text-[13px]">
-        <p><strong style={{ color: NAVY }}>What matters: </strong>{whatMatters}</p>
-        <p><strong style={{ color: NAVY }}>Your edge: </strong>{yourEdge}</p>
+      <h3 className="text-[19px] font-extrabold" style={{ color: BROWN }}>{title}</h3>
+      <div className="mt-1 text-[12px] font-bold uppercase tracking-[2px]" style={{ color: ROSE }}>{burden}</div>
+      <p className="mt-3 text-[15px] font-medium" style={{ color: "var(--foreground)" }}>{purpose}</p>
+      <div className="mt-4 space-y-2 text-[15px] font-medium" style={{ color: "var(--foreground)" }}>
+        <p><strong style={{ color: BROWN }}>What matters: </strong>{whatMatters}</p>
+        <p><strong style={{ color: BROWN }}>Your edge: </strong>{yourEdge}</p>
       </div>
     </div>
   );
@@ -156,12 +158,12 @@ function CourtCard({ icon: Icon, title, burden, purpose, whatMatters, yourEdge }
 
 function InfoCard({ icon: Icon, title, body }: { icon: typeof FileText; title: string; body: string }) {
   return (
-    <div className="rounded-2xl border p-6" style={{ background: "var(--background)", borderColor: "rgba(31,26,20,0.08)" }}>
+    <div className="rounded-2xl border p-6" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
       <div className="mb-3 flex items-center gap-2">
-        <Icon size={16} style={{ color: NAVY }} />
-        <h3 className="text-[15px] font-semibold" style={{ color: NAVY }}>{title}</h3>
+        <Icon size={18} style={{ color: BROWN }} />
+        <h3 className="text-[17px] font-extrabold" style={{ color: BROWN }}>{title}</h3>
       </div>
-      <p className="text-[14px] leading-relaxed" style={{ color: "var(--foreground)" }}>{body}</p>
+      <p className="text-[16px] font-medium leading-relaxed" style={{ color: "var(--foreground)" }}>{body}</p>
     </div>
   );
 }
