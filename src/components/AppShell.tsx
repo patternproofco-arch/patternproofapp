@@ -165,10 +165,10 @@ export function AppShell() {
             to="/share-with-attorney"
             className="mb-5 flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold transition-transform hover:-translate-y-px"
             style={{
-              background: "linear-gradient(135deg, #1a2332 0%, #243349 100%)",
-              color: "#F5F1E6",
-              boxShadow: "0 8px 22px -10px rgba(26,35,50,0.55)",
-              border: "1px solid rgba(245,241,230,0.08)",
+              background: "linear-gradient(135deg, #1A140E 0%, #2B2017 100%)",
+              color: "#F5EAD0",
+              boxShadow: "0 8px 22px -10px rgba(26,20,14,0.55)",
+              border: "1px solid rgba(245,234,208,0.10)",
             }}
           >
             <div
