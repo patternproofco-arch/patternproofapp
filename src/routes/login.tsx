@@ -134,7 +134,15 @@ function LoginPage() {
           </form>
           <button
             type="button"
-            onClick={() => setMode(mode === "login" ? "signup" : "login")}
+            onPointerDown={(e) => {
+              // On mobile, an input may hold focus + keyboard. A plain onClick
+              // would only blur on first tap and require a second tap to fire.
+              // pointerdown fires before focus changes — toggle immediately.
+              e.preventDefault();
+              (document.activeElement as HTMLElement | null)?.blur?.();
+              setMode((m) => (m === "login" ? "signup" : "login"));
+            }}
+            onClick={(e) => e.preventDefault()}
             className="mt-4 w-full text-center text-[13px]"
             style={{ color: "var(--accent)" }}
           >
