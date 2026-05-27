@@ -33,11 +33,17 @@ export function QuickExitButton() {
     <button
       onClick={exit}
       aria-label="Quick exit"
-      title="Quick exit"
-      className="no-print fixed right-3 top-3 z-[9999] rounded-full p-2 transition-colors hover:bg-black/10"
-      style={{ color: "#B57E60" }}
+      title="Quick exit — double-press Esc"
+      className="no-print fixed right-4 top-4 z-[9999] inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold transition-all hover:scale-105"
+      style={{
+        background: "var(--sidebar)",
+        color: "var(--sidebar-active)",
+        boxShadow: "0 4px 14px rgba(31,26,20,0.18)",
+        letterSpacing: "0.04em",
+      }}
     >
-      <X size={20} strokeWidth={2.5} />
+      <span>Leave</span>
+      <X size={14} strokeWidth={2.5} />
     </button>
   );
 }
