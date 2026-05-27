@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertSupabaseStorageUrl } from "./safe-fetch.server";
 
 const OCR_PROMPT = `You are an OCR assistant. The user uploaded a photo of a handwritten journal page or typed notes. Transcribe ALL visible text as faithfully as possible. Preserve line breaks and dates. Do not summarize, do not interpret, do not add words. If a word is unclear, write [unclear]. Return plain text only — no commentary, no markdown.`;
 
@@ -43,6 +44,7 @@ export const ocrJournalImage = createServerFn({ method: "POST" })
     }
     let dataUri: string;
     try {
+      assertSupabaseStorageUrl(data.signedUrl);
       const fileRes = await fetch(data.signedUrl);
       if (!fileRes.ok) return { ok: false as const, reason: "fetch-failed" };
       const buf = Buffer.from(await fileRes.arrayBuffer());
