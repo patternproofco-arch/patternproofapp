@@ -26,10 +26,10 @@ const EVIDENCE_CHECKLIST: ChecklistItem[] = [
 
 const STARTER_PROMPTS: Record<string, { label: string; prompt: string }[]> = {
   "/journal": [
-    { label: "Help me document an incident", prompt: "I want to document something that happened. Can you walk me through it step by step?" },
-    { label: "Something happened last night", prompt: "Something happened last night and I want to get it down while I remember. Where should we start?" },
-    { label: "An old incident I never wrote down", prompt: "There's an older incident I never wrote down. Help me remember the details." },
-    { label: "What evidence should I look for?", prompt: "I already described what happened. What kinds of evidence should I check for that connect to it?" },
+    { label: "Document a new incident", prompt: "I'm ready to document an incident." },
+    { label: "Something happened recently", prompt: "Something happened recently and I want to get the facts on record." },
+    { label: "An older incident", prompt: "I want to document an older incident. The date may be approximate." },
+    { label: "What evidence counts?", prompt: "Walk me through what kinds of evidence I should check for." },
   ],
   "/timeline": [
     { label: "Help me see patterns", prompt: "Looking at my recent incidents, can you help me notice any patterns in timing, location, or who was around — without labeling anything?" },
@@ -187,7 +187,7 @@ export function AiSidekick() {
             {msgs.length === 0 && (
               <div className="space-y-4">
                 <p style={{ color: "var(--muted-foreground)" }}>
-                  I'll help you remember the details and figure out what evidence might exist. I'll ask one specific question at a time — answer what you can, skip what you can't.
+                  Documentation is different from journaling. I'll ask clarifying questions to capture the facts — date, time, location, what was said and done, witnesses, and evidence. Your feelings matter, but they go in a separate section. I won't interpret or label what happened.
                 </p>
                 {starters.length > 0 && (
                   <div>
