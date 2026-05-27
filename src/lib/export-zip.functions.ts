@@ -107,6 +107,7 @@ export const generateExportZip = createServerFn({ method: "POST" })
     };
 
     const evidenceFolder = zip.folder("evidence");
+    const evidenceCustody: Array<{ id: string; title: string; date: string; linked_incident_id: string | null; uploaded_at: string; safe_name: string; original_path: string; bytes: number; sha256: string }> = [];
     await Promise.all(evidence.map(async (e) => {
       if (!evidenceFolder) return;
       const buf = await downloadFile("evidence-files", e.file_url);
@@ -121,6 +122,11 @@ export const generateExportZip = createServerFn({ method: "POST" })
         sha256: hash, original_path: e.file_url,
       }, null, 2));
       fileHashes.push({ path: `evidence/${safeName}`, sha256: hash, bytes: buf.byteLength });
+      evidenceCustody.push({
+        id: e.id, title: e.title, date: e.date, linked_incident_id: e.linked_incident_id ?? null,
+        uploaded_at: e.created_at, safe_name: safeName, original_path: e.file_url,
+        bytes: buf.byteLength, sha256: hash,
+      });
     }));
 
     const vnFolder = zip.folder("voice-notes");
@@ -138,6 +144,11 @@ export const generateExportZip = createServerFn({ method: "POST" })
     }));
 
     // Manifest
+    // Hash-of-hashes — tamper-evident root for the whole evidence set
+    const hashOfHashes = createHash("sha256")
+      .update(fileHashes.map((f) => `${f.path}\t${f.sha256}\t${f.bytes}`).sort().join("\n"))
+      .digest("hex");
+
     zip.file("manifest.json", JSON.stringify({
       exported_at: exportedAt,
       user_id: userId,
@@ -149,9 +160,81 @@ export const generateExportZip = createServerFn({ method: "POST" })
         legal_documents: legalDocs.length,
       },
       file_hashes: fileHashes,
+      hash_of_hashes: hashOfHashes,
       generator: "PatternProof Export v1",
       integrity_note: "Each file in evidence/ and voice-notes/ has a SHA-256 hash listed above. Re-hash any file with `shasum -a 256 <file>` to verify it has not been altered since export.",
     }, null, 2));
+
+    // Chain-of-custody certificate (Markdown — renders cleanly in any viewer)
+    const coc: string[] = [
+      "# Chain of Custody Certificate",
+      "",
+      `**Export generated:** ${exportedAt}`,
+      `**Custodian (account holder ID):** ${userId}`,
+      `**Generator:** PatternProof Export v1`,
+      `**Root hash (SHA-256 of all file hashes):** \`${hashOfHashes}\``,
+      "",
+      "This certificate attests that the files listed below were exported from the",
+      "custodian's PatternProof account at the timestamp above. Each file's SHA-256",
+      "fingerprint is recorded. To verify integrity, re-compute the SHA-256 of any",
+      "file in this archive (e.g. `shasum -a 256 <file>`) and confirm it matches the",
+      "value recorded here and in `manifest.json`. Run `bash verify.sh` from the",
+      "archive root to verify every file at once.",
+      "",
+      "## Evidence files",
+      "",
+      "| Date | Title | File | Bytes | SHA-256 | Linked incident | Uploaded |",
+      "|------|-------|------|------:|---------|-----------------|----------|",
+      ...evidenceCustody
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map((c) => `| ${c.date} | ${c.title.replace(/\|/g, "\\|")} | \`evidence/${c.safe_name}\` | ${c.bytes} | \`${c.sha256}\` | ${c.linked_incident_id ?? "—"} | ${c.uploaded_at} |`),
+      "",
+      "## Voice notes & other artifacts",
+      "",
+      "| Path | Bytes | SHA-256 |",
+      "|------|------:|---------|",
+      ...fileHashes
+        .filter((f) => !f.path.startsWith("evidence/"))
+        .map((f) => `| \`${f.path}\` | ${f.bytes} | \`${f.sha256}\` |`),
+      "",
+      "## Record counts",
+      "",
+      `- Incidents: ${incidents.length}`,
+      `- Evidence files: ${evidence.length}`,
+      `- Communications: ${comms.length}`,
+      `- Voice notes: ${voiceNotes.length}`,
+      `- Legal documents: ${legalDocs.length}`,
+      "",
+      "_End of certificate._",
+      "",
+    ];
+    zip.file("chain-of-custody.md", coc.join("\n"));
+
+    // Verification helper — re-hashes every file and diffs against manifest.json
+    const verifySh = `#!/usr/bin/env bash
+# Verifies that every file in this archive matches the SHA-256 recorded in manifest.json.
+# Usage: bash verify.sh
+set -e
+if ! command -v shasum >/dev/null 2>&1 && ! command -v sha256sum >/dev/null 2>&1; then
+  echo "Need 'shasum' or 'sha256sum' installed." >&2; exit 1
+fi
+HASHER=$(command -v shasum >/dev/null 2>&1 && echo "shasum -a 256" || echo "sha256sum")
+FAILED=0
+CHECKED=0
+python3 -c "import json,sys; [print(f['path']+chr(9)+f['sha256']) for f in json.load(open('manifest.json'))['file_hashes']]" \\
+  | while IFS=$'\\t' read -r path expected; do
+      if [ ! -f "$path" ]; then echo "MISSING  $path"; FAILED=$((FAILED+1)); continue; fi
+      actual=$($HASHER "$path" | awk '{print $1}')
+      if [ "$actual" = "$expected" ]; then
+        echo "OK       $path"
+      else
+        echo "MISMATCH $path"; FAILED=$((FAILED+1))
+      fi
+      CHECKED=$((CHECKED+1))
+    done
+echo "Done."
+`;
+    zip.file("verify.sh", verifySh);
 
     const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE", compressionOptions: { level: 6 } });
 
