@@ -1,6 +1,7 @@
 {
-  "name": "Daily Planner",
-  "short_name": "Planner",
+  "name": "P4TTERN",
+  "short_name": "P4TTERN",
+  "description": "Evidence documentation",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
