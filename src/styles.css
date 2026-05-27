@@ -41,36 +41,37 @@
 
 :root {
   /* Pattern Proof — Partnership Proposal palette */
-  --background: #F8F3E2;          /* warm cream page */
-  --foreground: #1F1A14;          /* deep near-black brown */
-  --card: #FFFCF1;                /* ivory card surface */
-  --panel: #2F261C;               /* dark brown feature panel */
-  --sidebar: #1F1A14;             /* near-black brown sidebar */
-  --sidebar-active: #F8F3E2;
-  --sidebar-inactive: #E8DCC0;
+  --background: #F5EAD0;          /* warmer cream page */
+  --foreground: #1A140E;          /* deep warm near-black brown */
+  --card: #FBF1D8;                /* warmer ivory card surface */
+  --panel: #2B2017;               /* warmer dark brown feature panel */
+  --sidebar: #1A140E;             /* warm near-black brown sidebar */
+  --sidebar-active: #F5EAD0;
+  --sidebar-inactive: #E8CFA8;
   --primary: #E59AAB;             /* dusty rose accent */
-  --primary-foreground: #1F1A14;
+  --primary-foreground: #1A140E;
   --accent: #A2C0DF;              /* sky blue accent */
   --safe: #BFD2A8;                /* sage green */
   --gold: #C7B560;                /* gold accent */
-  --muted-foreground: #2E2820;
-  --border: rgba(31, 26, 20, 0.12);
-  --input: #FFFCF1;
+  --muted-foreground: #2A2018;
+  --border: rgba(26, 20, 14, 0.14);
+  --input: #FBF1D8;
   --ring: #E59AAB;
   --destructive: #D98A95;
-  --destructive-foreground: #1F1A14;
-  --popover: #FFFCF1;
-  --popover-foreground: #1F1A14;
-  --secondary: #EFE6CC;
-  --secondary-foreground: #1F1A14;
-  --muted: #EFE6CC;
+  --destructive-foreground: #1A140E;
+  --popover: #FBF1D8;
+  --popover-foreground: #1A140E;
+  --secondary: #ECDDB6;
+  --secondary-foreground: #1A140E;
+  --muted: #ECDDB6;
 }
 
 @layer base {
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); }
-  body { font-family: var(--font-sans); font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiased; font-size: 17px; line-height: 1.6; }
-  h1, h2, h3, h4, h5 { font-family: var(--font-display); color: var(--color-foreground); font-weight: 700; letter-spacing: -0.01em; }
+  body { font-family: var(--font-sans); font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiased; font-size: 18px; line-height: 1.65; font-weight: 500; }
+  h1, h2, h3, h4, h5 { font-family: var(--font-display); color: var(--color-foreground); font-weight: 800; letter-spacing: -0.01em; }
+  p, li, span, label, a, button, input, textarea, select { font-weight: 500; }
 }
 
 .font-serif { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
