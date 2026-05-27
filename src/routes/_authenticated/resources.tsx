@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Phone, Globe, MessageSquare, HeartHandshake } from "lucide-react";
+import { CollapsibleCard } from "@/components/CollapsibleCard";
 
 export const Route = createFileRoute("/_authenticated/resources")({
   component: ResourcesPage,
@@ -71,21 +72,28 @@ function ResourcesPage() {
         Real people, on the other end of a phone, who do this every day. Call from a safe device when you can.
       </p>
 
-      <h2 className="mt-8 font-serif text-[22px]">National</h2>
-      <div className="mt-3 grid gap-4 md:grid-cols-2">
-        {NATIONAL.map((r) => <Card key={r.name} r={r} />)}
-      </div>
+      <div className="mt-8 space-y-5">
+        <CollapsibleCard title="National hotlines" eyebrow={`${NATIONAL.length} resources`} accent="var(--accent)" defaultOpen>
+          <div className="grid gap-4 md:grid-cols-2">
+            {NATIONAL.map((r) => <Card key={r.name} r={r} />)}
+          </div>
+        </CollapsibleCard>
 
-      <h2 className="mt-10 font-serif text-[22px]">New Jersey</h2>
-      <div className="mt-3 grid gap-4 md:grid-cols-2">
-        {NJ.map((r) => <Card key={r.name} r={r} />)}
-      </div>
+        <CollapsibleCard title="New Jersey" eyebrow={`${NJ.length} resources`} accent="var(--accent)">
+          <div className="grid gap-4 md:grid-cols-2">
+            {NJ.map((r) => <Card key={r.name} r={r} />)}
+          </div>
+        </CollapsibleCard>
 
-      <div className="card-pp mt-10" style={{ borderLeft: "3px solid var(--safe)" }}>
-        <div className="flex items-center gap-2"><HeartHandshake size={18} style={{ color: "var(--safe)" }} /><h2 className="font-serif text-[19px]">Quiet safety reminders</h2></div>
-        <ul className="mt-3 space-y-2 text-[14px]" style={{ color: "var(--foreground)" }}>
-          {SAFETY_TIPS.map((t) => <li key={t}>• {t}</li>)}
-        </ul>
+        <CollapsibleCard
+          title="Quiet safety reminders"
+          icon={<HeartHandshake size={18} style={{ color: "var(--safe)" }} />}
+          accent="var(--safe)"
+        >
+          <ul className="space-y-2 text-[14px]" style={{ color: "var(--foreground)" }}>
+            {SAFETY_TIPS.map((t) => <li key={t}>• {t}</li>)}
+          </ul>
+        </CollapsibleCard>
       </div>
     </div>
   );
