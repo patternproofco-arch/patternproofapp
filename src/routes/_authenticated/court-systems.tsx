@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Scale, Gavel, Shield, FileText, Users, AlertTriangle, BookOpen, ArrowRight } from "lucide-react";
+import { CollapsibleCard } from "@/components/CollapsibleCard";
 
 export const Route = createFileRoute("/_authenticated/court-systems")({
   head: () => ({
@@ -38,45 +39,46 @@ function CourtSystemsPage() {
         </h1>
       </header>
 
-      {/* Three courts */}
-      <section className="grid gap-5 md:grid-cols-3">
-        <CourtCard
-          icon={Users}
-          title="Family Court"
-          burden="Preponderance of evidence"
-          purpose="Custody, divorce, protective orders, parenting time."
-          whatMatters="Patterns of behavior over time. Judges weigh credibility heavily. Coercive control is increasingly recognized but inconsistently applied."
-          yourEdge="Chronological timelines, escalation patterns, and corroborated incidents move the needle here."
-        />
-        <CourtCard
-          icon={Gavel}
-          title="Criminal Court"
-          burden="Beyond a reasonable doubt"
-          purpose="Charges filed by the state. Assault, stalking, violation of protective orders."
-          whatMatters="Discrete incidents with physical evidence, police reports, witnesses, medical records. Patterns alone rarely suffice."
-          yourEdge="Linked evidence (photo + medical + 911 log + journal entry) for each charged incident."
-        />
-        <CourtCard
-          icon={Shield}
-          title="Civil / Protective Order"
-          burden="Preponderance + immediacy"
-          purpose="TROs, FROs, restraining orders, harassment injunctions."
-          whatMatters="Recent incidents demonstrating fear of imminent harm. Recency and specificity outweigh volume."
-          yourEdge="Date-stamped communications, recent incident logs, and witness contact info ready to file."
-        />
-      </section>
-
-      {/* Why patterns help */}
-      <section
-        className="rounded-2xl border p-7 md:p-9"
-        style={{ background: "var(--card)", borderColor: "var(--border)" }}
+      <CollapsibleCard
+        eyebrow="The three courts"
+        title="Which court will hear your case"
+        icon={<Scale size={20} style={{ color: BROWN }} />}
+        accent={ROSE}
       >
-        <div className="mb-4 flex items-center gap-2">
-          <BookOpen size={20} style={{ color: BROWN }} />
-          <h2 className="text-2xl font-extrabold" style={{ color: BROWN }}>
-            Why pattern evidence wins where single incidents lose
-          </h2>
+        <div className="grid gap-5 md:grid-cols-3">
+          <CourtCard
+            icon={Users}
+            title="Family Court"
+            burden="Preponderance of evidence"
+            purpose="Custody, divorce, protective orders, parenting time."
+            whatMatters="Patterns of behavior over time. Judges weigh credibility heavily. Coercive control is increasingly recognized but inconsistently applied."
+            yourEdge="Chronological timelines, escalation patterns, and corroborated incidents move the needle here."
+          />
+          <CourtCard
+            icon={Gavel}
+            title="Criminal Court"
+            burden="Beyond a reasonable doubt"
+            purpose="Charges filed by the state. Assault, stalking, violation of protective orders."
+            whatMatters="Discrete incidents with physical evidence, police reports, witnesses, medical records. Patterns alone rarely suffice."
+            yourEdge="Linked evidence (photo + medical + 911 log + journal entry) for each charged incident."
+          />
+          <CourtCard
+            icon={Shield}
+            title="Civil / Protective Order"
+            burden="Preponderance + immediacy"
+            purpose="TROs, FROs, restraining orders, harassment injunctions."
+            whatMatters="Recent incidents demonstrating fear of imminent harm. Recency and specificity outweigh volume."
+            yourEdge="Date-stamped communications, recent incident logs, and witness contact info ready to file."
+          />
         </div>
+      </CollapsibleCard>
+
+      <CollapsibleCard
+        eyebrow="Patterns vs. incidents"
+        title="Why pattern evidence wins where single incidents lose"
+        icon={<BookOpen size={20} style={{ color: BROWN }} />}
+        accent={ROSE}
+      >
         <p className="text-[17px] font-medium leading-relaxed" style={{ color: "var(--foreground)" }}>
           A single argument looks like "a bad day." Forty-seven documented incidents over eighteen months — escalating in frequency, with consistent control tactics — looks like a campaign. Courts are trained to weigh patterns. Your job is to make the pattern undeniable, chronological, and cross-referenced.
         </p>
@@ -95,21 +97,27 @@ function CourtSystemsPage() {
             </li>
           ))}
         </ul>
-      </section>
+      </CollapsibleCard>
 
-      {/* What to expect */}
-      <section className="grid gap-5 md:grid-cols-2">
-        <InfoCard
-          icon={FileText}
-          title="What judges actually read"
-          body="Most judges have minutes — not hours — per case. They scan summaries, headlines, and exhibits. A 200-page journal dump gets skimmed. A 12-page court packet with a timeline, pattern summary, and indexed exhibits gets read."
-        />
-        <InfoCard
-          icon={AlertTriangle}
-          title="What weakens a strong case"
-          body="Inconsistent dates. Emotional language without facts. Missing context for screenshots. Vague allegations without specific incidents. Gaps in documentation that look like the abuse stopped (it usually didn't)."
-        />
-      </section>
+      <CollapsibleCard
+        eyebrow="In the courtroom"
+        title="What judges actually read — and what weakens a strong case"
+        icon={<FileText size={20} style={{ color: BROWN }} />}
+        accent={ROSE}
+      >
+        <div className="grid gap-5 md:grid-cols-2">
+          <InfoCard
+            icon={FileText}
+            title="What judges actually read"
+            body="Most judges have minutes — not hours — per case. They scan summaries, headlines, and exhibits. A 200-page journal dump gets skimmed. A 12-page court packet with a timeline, pattern summary, and indexed exhibits gets read."
+          />
+          <InfoCard
+            icon={AlertTriangle}
+            title="What weakens a strong case"
+            body="Inconsistent dates. Emotional language without facts. Missing context for screenshots. Vague allegations without specific incidents. Gaps in documentation that look like the abuse stopped (it usually didn't)."
+          />
+        </div>
+      </CollapsibleCard>
 
       {/* CTAs */}
       <section
