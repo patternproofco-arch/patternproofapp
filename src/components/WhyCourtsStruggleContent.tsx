@@ -1,4 +1,5 @@
-import { Scale, Gavel, Sparkles, Compass } from "lucide-react";
+import { useState } from "react";
+import { Scale, Gavel, Sparkles, Compass, ChevronDown } from "lucide-react";
 
 export function WhyCourtsStruggleContent() {
   return (
@@ -183,9 +184,15 @@ function Section({
   accent: string;
   children: React.ReactNode;
 }) {
+  const [open, setOpen] = useState(false);
   return (
     <section className="card-pp" style={{ borderLeft: `3px solid ${accent}` }}>
-      <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 text-left"
+      >
         <div
           className="flex h-9 w-9 items-center justify-center rounded-full font-display text-[13px] font-bold"
           style={{ background: accent, color: "var(--sidebar)" }}
@@ -193,9 +200,17 @@ function Section({
           {num}
         </div>
         <Icon size={18} style={{ color: accent }} />
-        <h2 className="font-serif text-[22px] leading-tight">{title}</h2>
-      </div>
-      <div className="mt-4 space-y-3 text-[15px] leading-relaxed">{children}</div>
+        <h2 className="flex-1 font-serif text-[22px] leading-tight">{title}</h2>
+        <ChevronDown
+          size={20}
+          style={{
+            transition: "transform 200ms",
+            transform: open ? "rotate(0deg)" : "rotate(-90deg)",
+            color: "var(--foreground)",
+          }}
+        />
+      </button>
+      {open && <div className="mt-4 space-y-3 text-[15px] leading-relaxed">{children}</div>}
     </section>
   );
 }
