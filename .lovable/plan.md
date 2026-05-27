@@ -1,36 +1,65 @@
-## Plan: Close remaining feature gaps
+## Dashboard polish & verify
 
-Based on the previous audit, the core 7 pages, AI Sidekick, 5 "exceptional" features, SEO, sidebar reorg, Attorney Portal, journal OCR, and bulk past-incident flows are all live. Three known bugs were already fixed last turn. What's left worth shipping now:
+The Dashboard at `src/routes/_authenticated/dashboard.tsx` already loads incident/evidence counts, a heat map, recent incidents, a "log now" panel, and a next-step card. I'll polish it with richer signal for active users and a real onboarding checklist for new users, then verify end-to-end.
 
-### 1. Cryptographic chain-of-custody certificate in ZIP export
-Currently `export-zip.functions.ts` bundles files + audit-log entry hashes, but does not emit a per-file tamper-evident certificate. Add:
-- For each evidence file: compute SHA-256 of the bytes, capture original filename, MIME, size, upload timestamp, linked incident id, uploader user id.
-- Emit `chain-of-custody.pdf` (or `.md` fallback if PDF rendering is too heavy in the Worker) listing every artifact with its hash, plus a manifest-level hash-of-hashes.
-- Add a `verify.sh` helper that re-hashes the `evidence/` folder against `manifest.json` so a third party can confirm nothing was altered.
+### What changes
 
-### 2. End-to-end smoke audit of all shipped features
-Walk each route + key action and confirm it loads and saves cleanly. Anything broken gets fixed in the same pass. Focus areas based on past test reports:
-- Onboarding → safety modal (already patched, reverify it doesn't reappear)
-- Journal: manual entry, OCR autofill, "Add from Journal Entry" multi-incident split, "Add Multiple Past Incidents" all 4 recall modes
-- Timeline / Calendar heat map / Patterns analysis refresh
-- Evidence upload + linking to incidents
-- Voice Notes record + transcribe
-- Communications log
-- Case Builder + Court Packet print
-- Attorney Portal: invite, accept, multi-tab case view, first-time welcome, time logging
-- OPRA Helper letter generation
-- Settings: PIN lock, export ZIP download
-- Login: single-tap toggle on mobile viewport
+**1. Onboarding checklist (replaces empty stat row + next-step card for new users)**
 
-### 3. Fix anything the smoke audit surfaces
-Bug fixes only — no scope creep. If a feature is broken, repair it. If a feature is merely "could be nicer," leave it alone and note it.
+Shown only when the user has nothing yet (`incidents === 0 && evidence === 0 && voice_notes === 0`). A warm, 4-step visual checklist with each step linking to its destination:
 
-### Out of scope (explicitly not doing)
-- Tier 2+ features previously deferred (PWA disguise tweaks beyond manifest name, geofenced lock, app-switcher blur, witness mgmt, expense tracker, multi-state FOIA, mood check-in, offline sync, global search, EXIF)
-- Phase 3+ of the logo/UX spec
-- Any new feature not previously requested
+```text
+[ ] Log your first incident                 → /journal
+[ ] Upload a piece of evidence              → /evidence
+[ ] Record a voice note                     → /voice-notes
+[ ] Shape your case                         → /case-builder
+```
 
-### Deliverable
-A short report: ✅ verified working / 🛠 fixed during audit / ⚠️ known gap intentionally left. Plus the chain-of-custody certificate live in the next ZIP export.
+Each step row shows a soft check circle (unchecked = ring, checked = filled sage), the warm copy, and a "Start" link. Steps already completed (e.g. they have one voice note but no incidents) render as checked. Below the list: *"Take it at your pace. Every step matters."*
 
-Approve and I'll switch to build mode and ship it.
+**2. Richer stats for returning users (replaces current 3-up stat grid)**
+
+Five compact stat tiles in a responsive grid (3 cols mobile, 5 cols lg):
+
+- Incidents logged
+- Evidence files
+- Voice notes
+- Months documented
+- Last entry (relative: "2 days ago" / "—")
+
+Each tile keeps the left-border accent in a different palette color and stays under the existing `.card-pp` shell.
+
+**3. Quick actions row (new)**
+
+Three pill buttons between hero copy and stats: **Log incident**, **Upload evidence**, **Record voice note**. Uses existing `btn-ghost` styling so it feels light, not a CTA wall. Hidden in the onboarding-checklist state (the checklist already covers it).
+
+**4. Pattern preview card (new, conditional)**
+
+When a `pattern_analyses` row exists for the user, surface a small card on the right rail beneath the "Something just happened" panel:
+
+- Eyebrow: "Latest pattern analysis"
+- 2-line clamp of `analysis.pattern_summary`
+- "Open analysis →" link to `/patterns`
+
+When no analysis exists but `incidents >= 2`, show a soft prompt instead: *"Ready to see what your records reveal?"* with a link to `/patterns`.
+
+**5. Keep existing pieces**
+
+Heat map (only when incidents exist), recent-incidents list, "Something just happened" CTA panel, encryption reassurance card, `WhyCourtsStruggleModal`, `FirstTimeEducationModal` — all unchanged.
+
+### Implementation notes (technical)
+
+- Extend the existing `useEffect` data fetch to also count `voice_notes` and pull the latest `pattern_analyses` row (`select analysis, created_at limit 1`) and latest incident date.
+- All queries stay client-side via `supabase` with `.eq('user_id', user.id)` — matches the project's hooks-direct convention.
+- Extract the onboarding checklist into a small in-file component (`OnboardingChecklist`) to keep the main `Dashboard` component well under the 150-line cap (current file is 158 lines, will need a light refactor anyway).
+- Extract `StatCard` + the new `PatternPreview` into in-file helpers; if `dashboard.tsx` would exceed ~150 lines, move `OnboardingChecklist` to `src/components/OnboardingChecklist.tsx`.
+- Use existing tokens only: `--primary`, `--accent`, `--safe`, `--gold`, `--muted-foreground`, plus type-color tokens. No new colors.
+- Copy stays warm and grounded — no "No data found", no exclamation marks, no clinical phrasing.
+
+### Verify
+
+After the edit:
+1. Reload `/dashboard` in the preview, dismiss the education + PIN modals.
+2. Confirm empty state shows the new checklist (no incidents/evidence/voice notes yet).
+3. Confirm the stat row, quick actions, heat map, pattern preview gracefully appear/hide based on data state.
+4. Confirm no console errors and the page stays under the existing layout width.
