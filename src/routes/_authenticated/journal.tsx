@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2, Sparkles, BookOpen } from "lucide-react";
+import { Pencil, Trash2, Sparkles, BookOpen, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -10,6 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { sanitizeLine } from "@/lib/dates";
 import { AddFromJournalModal } from "@/components/AddFromJournalModal";
+import { BulkPastIncidentsModal } from "@/components/BulkPastIncidentsModal";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -41,6 +42,7 @@ function JournalPage() {
   });
   const [busy, setBusy] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -151,17 +153,28 @@ function JournalPage() {
       </h1>
 
       <div className="mt-4">
-        <button
-          type="button"
-          onClick={() => setJournalOpen(true)}
-          className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[13px] font-semibold transition-colors hover:bg-black/5"
-          style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
-        >
-          <BookOpen size={15} />
-          Add from Journal Entry
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setJournalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[13px] font-semibold transition-colors hover:bg-black/5"
+            style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+          >
+            <BookOpen size={15} />
+            Add from Journal Entry
+          </button>
+          <button
+            type="button"
+            onClick={() => setBulkOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[13px] font-semibold transition-colors hover:bg-black/5"
+            style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+          >
+            <Clock size={15} />
+            Add Multiple Past Incidents
+          </button>
+        </div>
         <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          Upload a photo of a handwritten page — we'll split it into separate incident records.
+          Upload a journal page, or recall older incidents one memory at a time.
         </p>
       </div>
 
@@ -275,6 +288,7 @@ function JournalPage() {
       </div>
       <div className="hidden">{typeLabel("other")}{typeColor("other")}</div>
       <AddFromJournalModal open={journalOpen} onClose={() => setJournalOpen(false)} onSaved={load} />
+      <BulkPastIncidentsModal open={bulkOpen} onClose={() => setBulkOpen(false)} onSaved={load} />
     </div>
   );
 }
