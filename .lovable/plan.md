@@ -1,44 +1,36 @@
-## Build plan: 5 exceptional features
+## Plan: Close remaining feature gaps
 
-Building in this order so each phase is independently shippable and testable.
+Based on the previous audit, the core 7 pages, AI Sidekick, 5 "exceptional" features, SEO, sidebar reorg, Attorney Portal, journal OCR, and bulk past-incident flows are all live. Three known bugs were already fixed last turn. What's left worth shipping now:
 
-### Phase 1 — Communication Log (new surface)
-**DB:** new table `communications` (id, user_id, date, time, channel [text/call/email/voicemail/social/in-person], direction [incoming/outgoing/missed], from_party, content, screenshot_url, linked_incident_id, harassment_flag, created_at). RLS owner-only. Storage reuses `evidence-files` bucket under `comms/` prefix.
-**UI:** new route `/communications` with list + "Log communication" form + filter by channel/date. Sidebar entry between Evidence and Voice Notes.
-**Court packet:** include flagged comms in the chronology.
+### 1. Cryptographic chain-of-custody certificate in ZIP export
+Currently `export-zip.functions.ts` bundles files + audit-log entry hashes, but does not emit a per-file tamper-evident certificate. Add:
+- For each evidence file: compute SHA-256 of the bytes, capture original filename, MIME, size, upload timestamp, linked incident id, uploader user id.
+- Emit `chain-of-custody.pdf` (or `.md` fallback if PDF rendering is too heavy in the Worker) listing every artifact with its hash, plus a manifest-level hash-of-hashes.
+- Add a `verify.sh` helper that re-hashes the `evidence/` folder against `manifest.json` so a third party can confirm nothing was altered.
 
-### Phase 2 — Voice Note Transcription
-**Server fn:** `transcribeVoiceNote({ voiceNoteId })` — downloads audio from `voice-notes` bucket, sends to Lovable AI (`google/gemini-2.5-flash` with audio inline), saves `transcript` text. Add `transcript` + `transcribed_at` columns to `voice_notes`.
-**UI:** on Voice Notes page, "Transcribe" button per note, shows transcript inline once ready. Search bar searches transcripts.
+### 2. End-to-end smoke audit of all shipped features
+Walk each route + key action and confirm it loads and saves cleanly. Anything broken gets fixed in the same pass. Focus areas based on past test reports:
+- Onboarding → safety modal (already patched, reverify it doesn't reappear)
+- Journal: manual entry, OCR autofill, "Add from Journal Entry" multi-incident split, "Add Multiple Past Incidents" all 4 recall modes
+- Timeline / Calendar heat map / Patterns analysis refresh
+- Evidence upload + linking to incidents
+- Voice Notes record + transcribe
+- Communications log
+- Case Builder + Court Packet print
+- Attorney Portal: invite, accept, multi-tab case view, first-time welcome, time logging
+- OPRA Helper letter generation
+- Settings: PIN lock, export ZIP download
+- Login: single-tap toggle on mobile viewport
 
-### Phase 3 — Real AI Pattern Analysis
-**Server fn:** `analyzePatterns()` — loads all user's incidents + escalation flags + comms, sends to `google/gemini-2.5-pro` with structured-output tool call returning: { frequency_trends[], escalation_arc, abuse_type_breakdown[], gaps[], suggested_followups[], severity_trajectory }. Cache in new `pattern_analyses` table (id, user_id, analysis_json, incident_count_at_time, created_at).
-**UI:** revamp Dashboard "Pattern Analysis" card → full panel on `/patterns` route with: timeline chart, escalation arc narrative, gaps list with "Add entry" CTAs, AI-generated pattern summary auto-pushed into `cases.pattern_summary`. "Refresh analysis" button.
+### 3. Fix anything the smoke audit surfaces
+Bug fixes only — no scope creep. If a feature is broken, repair it. If a feature is merely "could be nicer," leave it alone and note it.
 
-### Phase 4 — Calendar Heat Map
-**UI only:** new component `IncidentHeatMap` on dashboard + standalone `/calendar` route. Month grid, color intensity = incident count, severity tints from escalation flags. Click day → filtered incident list. Pure client-side aggregation from existing `incidents` query.
+### Out of scope (explicitly not doing)
+- Tier 2+ features previously deferred (PWA disguise tweaks beyond manifest name, geofenced lock, app-switcher blur, witness mgmt, expense tracker, multi-state FOIA, mood check-in, offline sync, global search, EXIF)
+- Phase 3+ of the logo/UX spec
+- Any new feature not previously requested
 
-### Phase 5 — Full Data Export (ZIP)
-**Server fn:** `generateExportZip()` — uses `jszip` to build:
-- `narrative.md` (AI-generated chronological narrative)
-- `incidents.csv`, `evidence.csv`, `communications.csv`, `voice_notes.csv` (with transcripts)
-- `pattern_analysis.json`
-- `court_packet.pdf` (rendered server-side from existing court packet HTML via `@react-pdf/renderer` OR client-side print fallback if Worker can't handle it)
-- `evidence/` folder with original files + metadata sidecar JSON (filename, SHA-256, original date, linked incident)
-- `manifest.json` (export timestamp, file count, total hashes)
+### Deliverable
+A short report: ✅ verified working / 🛠 fixed during audit / ⚠️ known gap intentionally left. Plus the chain-of-custody certificate live in the next ZIP export.
 
-Returns a signed download URL (uploaded to new `exports` private bucket, 24h expiry). UI: "Export Everything" button on Settings → progress modal → download link.
-
-### Cross-cutting fixes (included)
-- **Date timezone bug** in `IncidentCard` and anywhere using `new Date(dateString).toLocaleDateString()` — parse with `T00:00:00` suffix.
-- **Newline sanitization** on incident `location` / `witnesses` fields before insert.
-
-### Risks / decisions
-- **Court packet PDF in Worker:** `@react-pdf/renderer` is Worker-compatible but heavy. Fallback: ship HTML in the ZIP and let user print-to-PDF from browser. I'll try PDF first, fall back cleanly.
-- **Audio transcription:** Lovable AI Gateway supports audio via Gemini 2.5 Flash. If a recording exceeds model limits, return a friendly "too long to transcribe automatically" message.
-- **Pattern analysis cost:** caching results means re-analysis only runs on user request or when incident count grows by ≥3.
-
-### Execution
-I'll ship phase 1 (Communication Log) first end-to-end including migration, then proceed through 2→5 in sequence. Each phase ends with a working, verifiable feature. Estimated 5 separate commits-worth of work in this loop.
-
-Approve to start with Phase 1?
+Approve and I'll switch to build mode and ship it.
