@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { X, Scale, FileText, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
@@ -9,15 +9,19 @@ const CREAM = "#F5F1E6";
 
 export function FirstTimeEducationModal() {
   const { user } = useAuth();
+  const userId = user?.id;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!user || typeof window === "undefined") return;
+    if (!userId || typeof window === "undefined") return;
+    // Don't intrude during the onboarding flow
+    if (pathname.startsWith("/onboarding")) return;
     if (localStorage.getItem(KEY)) return;
     // Small delay so dashboard paints first
     const t = setTimeout(() => setOpen(true), 600);
     return () => clearTimeout(t);
-  }, [user]);
+  }, [userId, pathname]);
 
   const dismiss = () => {
     localStorage.setItem(KEY, new Date().toISOString());
