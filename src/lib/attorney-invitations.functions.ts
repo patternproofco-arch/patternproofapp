@@ -118,6 +118,12 @@ export const acceptInvitation = createServerFn({ method: "POST" })
     if (inv.status !== "pending") throw new Error("Invitation no longer valid");
     if (inv.expires_at && new Date(inv.expires_at) < new Date()) throw new Error("Invitation expired");
 
+    // Verify the authenticated user's email matches the invitation's attorney_email.
+    const jwtEmail = (context.claims as { email?: string } | undefined)?.email?.toLowerCase();
+    if (!jwtEmail || jwtEmail !== String(inv.attorney_email).toLowerCase()) {
+      throw new Error("This invitation was sent to a different email address.");
+    }
+
     // Ensure attorney role
     await supabaseAdmin.from("user_roles").upsert(
       { user_id: context.userId, role: "attorney" },

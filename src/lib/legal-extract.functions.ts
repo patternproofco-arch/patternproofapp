@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertSupabaseStorageUrl } from "./safe-fetch.server";
 
 const SYSTEM_PROMPT = `You are a legal document extraction assistant for a domestic violence documentation app. The user has uploaded a legal document. Extract all relevant information and return it as JSON only with no other text, no preamble, no markdown.
 
@@ -46,6 +47,7 @@ export const extractLegalDocument = createServerFn({ method: "POST" })
     // Fetch the file and convert to data URI
     let dataUri: string;
     try {
+      assertSupabaseStorageUrl(data.signedUrl);
       const fileRes = await fetch(data.signedUrl);
       if (!fileRes.ok) return { ok: false as const, reason: "fetch-failed" };
       const buf = Buffer.from(await fileRes.arrayBuffer());

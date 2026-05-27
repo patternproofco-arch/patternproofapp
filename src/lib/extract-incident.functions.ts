@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertSupabaseStorageUrl } from "./safe-fetch.server";
 
 const SYSTEM_PROMPT = `You are an extraction assistant for a domestic-abuse documentation app. The user uploaded a screenshot (often a text message, email, or photo) and wants you to draft an incident record they can review and edit. Return JSON only, no preamble, no markdown.
 
@@ -35,6 +36,7 @@ export const extractIncidentFromImage = createServerFn({ method: "POST" })
 
     let dataUri: string;
     try {
+      assertSupabaseStorageUrl(data.signedUrl);
       const fileRes = await fetch(data.signedUrl);
       if (!fileRes.ok) return { ok: false as const, reason: "fetch-failed" };
       const buf = Buffer.from(await fileRes.arrayBuffer());
