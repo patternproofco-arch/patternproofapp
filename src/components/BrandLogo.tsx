@@ -53,9 +53,10 @@ export function BrandLogo({
       <span
         style={{
           fontFamily: "Inter, system-ui, sans-serif",
-          fontWeight: 600,
+          fontWeight: 700,
           fontSize: "15px",
-          letterSpacing: "-0.01em",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
           color: fill,
           lineHeight: 1,
           whiteSpace: "nowrap",

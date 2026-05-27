@@ -125,19 +125,6 @@ function Dashboard() {
 
         <div className="space-y-4">
           <div
-            className="rounded-2xl p-6"
-            style={{ background: "var(--sidebar)", color: "var(--sidebar-active)" }}
-          >
-            <h3 className="font-serif text-[22px] leading-tight">Something just happened.</h3>
-            <p className="mt-2 text-[13px]" style={{ color: "var(--sidebar-inactive)" }}>
-              Document it now, while the details are clear.
-            </p>
-            <Link to="/journal" className="btn-primary mt-4 inline-block">
-              Log an Incident
-            </Link>
-          </div>
-
-          <div
             className="rounded-2xl p-5"
             style={{ background: "var(--panel)", color: "var(--sidebar-active)" }}
           >
