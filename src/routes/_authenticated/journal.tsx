@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2, Sparkles } from "lucide-react";
+import { Pencil, Trash2, Sparkles, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -9,6 +9,7 @@ import { IncidentCard, type IncidentLite } from "@/components/IncidentCard";
 import { useServerFn } from "@tanstack/react-start";
 import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { sanitizeLine } from "@/lib/dates";
+import { AddFromJournalModal } from "@/components/AddFromJournalModal";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -39,6 +40,7 @@ function JournalPage() {
     emotional_impact: "",
   });
   const [busy, setBusy] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -147,6 +149,21 @@ function JournalPage() {
         <br />
         <em>In your own words.</em>
       </h1>
+
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={() => setJournalOpen(true)}
+          className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[13px] font-semibold transition-colors hover:bg-black/5"
+          style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+        >
+          <BookOpen size={15} />
+          Add from Journal Entry
+        </button>
+        <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+          Upload a photo of a handwritten page — we'll split it into separate incident records.
+        </p>
+      </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-5">
         <form onSubmit={submit} className="card-pp space-y-3 lg:col-span-2">
