@@ -20,24 +20,22 @@ const ROSE = "#E59AAB";         // var(--primary)
 function CourtSystemsPage() {
   return (
     <div className="space-y-10">
-      {/* Header — warm accent band */}
+      {/* Header */}
       <header
-        className="rounded-2xl px-7 py-8 md:px-10 md:py-10"
+        className="rounded-2xl border px-7 py-8 md:px-10 md:py-10"
         style={{
-          background: `linear-gradient(135deg, ${BROWN} 0%, ${BROWN_SOFT} 100%)`,
-          color: "#FFFFFF",
-          boxShadow: "0 20px 40px -20px rgba(26,20,14,0.45)",
+          background: "var(--card)",
+          borderColor: "var(--border)",
+          color: BROWN,
+          boxShadow: "0 12px 32px -16px rgba(26,20,14,0.18)",
         }}
       >
-        <div className="mb-3 flex items-center gap-2 text-[13px] font-bold uppercase tracking-[3px]" style={{ color: "rgba(255,255,255,0.85)" }}>
+        <div className="mb-3 flex items-center gap-2 text-[13px] font-bold uppercase tracking-[3px]" style={{ color: "rgba(26,20,14,0.65)" }}>
           <Scale size={14} /> Court systems guide
         </div>
-        <h1 className="text-3xl font-extrabold md:text-4xl" style={{ letterSpacing: "-0.01em", textShadow: "0 1px 2px rgba(0,0,0,0.25)" }}>
+        <h1 className="text-3xl font-extrabold md:text-4xl" style={{ letterSpacing: "-0.01em" }}>
           How courts actually evaluate your evidence
         </h1>
-        <p className="mt-3 max-w-2xl text-[17px] font-bold leading-relaxed" style={{ color: "rgba(255,255,255,0.95)" }}>
-          Three different courts. Three different burdens of proof. Three different ways your documentation will be received. Know what you're walking into.
-        </p>
       </header>
 
       {/* Three courts */}
