@@ -74,10 +74,10 @@ function PatternsPage() {
             disabled={busy}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-[14px] font-bold transition-all hover:-translate-y-px disabled:opacity-60"
             style={{
-              background: "#1a2332",
-              color: "#F5F1E6",
+              background: "var(--sidebar)",
+              color: "var(--sidebar-active)",
               letterSpacing: "0.02em",
-              boxShadow: "0 6px 18px rgba(26,35,50,0.22)",
+              boxShadow: "0 6px 18px rgba(26,20,14,0.22)",
             }}
           >
             {busy ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
