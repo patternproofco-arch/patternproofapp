@@ -21,9 +21,11 @@ export function BrandLogo({
   className,
   withShadow = false,
 }: BrandLogoProps) {
-  const stroke = variant === "light" ? "#F5F1E6" : "#1a2332";
-  const fill = variant === "light" ? "#F5F1E6" : "#1a2332";
-  const accent = variant === "light" ? "#E59AAB" : "#1a2332";
+  const isLight = variant === "light";
+  const stroke = isLight ? "#FAF7F2" : "#1A1714";
+  const fill = isLight ? "#FAF7F2" : "#1A1714";
+  const accent = "#D4708A";
+  const accentSquare = isLight ? "#D4708A" : "#D4708A";
   const shadow = withShadow
     ? "drop-shadow(0 1px 0 rgba(0,0,0,0.10))"
     : undefined;
@@ -46,23 +48,23 @@ export function BrandLogo({
         <rect x="2" y="2" width="12" height="12" rx="1.5" fill="none" stroke={stroke} strokeWidth="2" />
         <rect x="18" y="2" width="12" height="12" rx="1.5" fill="none" stroke={stroke} strokeWidth="2" />
         <rect x="2" y="18" width="12" height="12" rx="1.5" fill="none" stroke={stroke} strokeWidth="2" />
-        <rect x="18" y="18" width="12" height="12" rx="1.5" fill={accent} stroke={stroke} strokeWidth="2" />
+        <rect x="18" y="18" width="12" height="12" rx="1.5" fill={accentSquare} stroke={stroke} strokeWidth="2" />
         <line x1="14" y1="8" x2="18" y2="8" stroke={stroke} strokeWidth="2" />
         <line x1="8" y1="14" x2="8" y2="18" stroke={stroke} strokeWidth="2" />
       </svg>
       <span
         style={{
           fontFamily: "Inter, system-ui, sans-serif",
-          fontWeight: 700,
+          fontWeight: 800,
           fontSize: "15px",
-          letterSpacing: "0.08em",
+          letterSpacing: "0.10em",
           textTransform: "uppercase",
           color: fill,
           lineHeight: 1,
           whiteSpace: "nowrap",
         }}
       >
-        Pattern<span style={{ color: accent, fontWeight: 700 }}>-</span>Proof
+        Pattern<span style={{ color: accent }}>Proof</span>
       </span>
     </Link>
   );

@@ -110,9 +110,11 @@ export function AppShell() {
   };
 
   const itemClass = (active: boolean) => ({
-    background: active ? "rgba(245,230,223,0.15)" : "transparent",
+    background: active ? "rgba(212,112,138,0.08)" : "transparent",
     color: active ? "var(--sidebar-active)" : "var(--sidebar-inactive)",
     fontWeight: active ? 700 : 600,
+    borderLeft: active ? "2px solid var(--primary)" : "2px solid transparent",
+    paddingLeft: active ? "10px" : "12px",
   });
 
   const SidebarInner = (
@@ -149,18 +151,18 @@ export function AppShell() {
           to="/share-with-attorney"
           className="mb-5 flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold transition-transform hover:-translate-y-px"
           style={{
-            background: "linear-gradient(135deg, #1A140E 0%, #2B2017 100%)",
-            color: "#F5EAD0",
-            boxShadow: "0 8px 22px -10px rgba(26,20,14,0.55)",
-            border: "1px solid rgba(245,234,208,0.10)",
+            background: "rgba(212,112,138,0.12)",
+            color: "var(--sidebar-active)",
+            boxShadow: "0 8px 22px -10px rgba(0,0,0,0.45)",
+            border: "1px solid rgba(212,112,138,0.30)",
           }}
         >
-          <div className="flex h-7 w-7 items-center justify-center rounded-md" style={{ background: "rgba(245,241,230,0.12)" }}>
+          <div className="flex h-7 w-7 items-center justify-center rounded-md" style={{ background: "rgba(212,112,138,0.25)", color: "#fff" }}>
             <Briefcase size={14} />
           </div>
           <div className="flex flex-col leading-tight">
             <span>Attorney portal</span>
-            <span className="text-[10px] font-normal" style={{ opacity: 0.7, letterSpacing: "1.5px", textTransform: "uppercase" }}>
+            <span className="text-[10px] font-normal" style={{ opacity: 0.65, letterSpacing: "1.8px", textTransform: "uppercase" }}>
               Share &amp; collaborate
             </span>
           </div>
@@ -176,9 +178,9 @@ export function AppShell() {
                   onClick={() => setOpen((o) => ({ ...o, [g.key]: !o[g.key] }))}
                   className="mb-1 flex w-full items-center justify-between px-3 py-1.5"
                   style={{
-                    color: "rgba(232,201,188,0.5)",
-                    fontSize: "9px",
-                    letterSpacing: "5px",
+                    color: "rgba(250,247,242,0.45)",
+                    fontSize: "10px",
+                    letterSpacing: "3px",
                     textTransform: "uppercase",
                     fontWeight: 700,
                   }}
@@ -236,7 +238,7 @@ export function AppShell() {
       <div className="px-5 pb-6 pt-3">
         <div
           className="mb-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-[11px]"
-          style={{ background: "rgba(168,216,185,0.08)", color: "var(--safe)", letterSpacing: "2px", fontWeight: 600 }}
+          style={{ background: "rgba(122,168,123,0.12)", color: "var(--safe)", letterSpacing: "2px", fontWeight: 700 }}
         >
           <Lock size={13} />
           END-TO-END ENCRYPTED
