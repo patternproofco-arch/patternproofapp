@@ -98,6 +98,7 @@ function JournalPage() {
 
   const edit = (i: FullIncident) => {
     setEditingId(i.id);
+    setLogOpen(true);
     setForm({
       date: i.date,
       time: i.time ?? "",
