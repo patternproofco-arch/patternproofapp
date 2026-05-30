@@ -19,13 +19,14 @@ import {
   ChevronDown,
   Menu,
   X,
+  ArrowUpRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { QuickExitButton } from "@/components/QuickExitButton";
 import { AiSidekick } from "@/components/AiSidekick";
 import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { useState, useEffect } from "react";
+import { useSettings } from "@/lib/settings-context";
 import { BrandLogo } from "@/components/BrandLogo";
 
 type Item = { to: string; label: string; icon: typeof LayoutDashboard };
@@ -74,9 +75,30 @@ const SETTINGS_ITEM: Item = { to: "/settings", label: "Settings", icon: Settings
 export function AppShell() {
   const { user } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const { settings } = useSettings();
   // Close drawer on route change
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  useEffect(() => { setNavOpen(false); }, [pathname]);
+
+  // Quick-exit: discreet "Exit safely" link + double-Esc shortcut.
+  const exit = () => {
+    const url = settings.exitUrl || "https://weather.com";
+    try { window.history.replaceState(null, "", "/"); } catch { /* ignore */ }
+    window.location.replace(url);
+  };
+  useEffect(() => {
+    let last = 0;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        const now = Date.now();
+        if (now - last < 500) exit();
+        last = now;
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.exitUrl]);
 
   // Group open/closed state — collapsed by default, persisted in localStorage,
   // auto-expand only the group containing the active route.
@@ -110,9 +132,9 @@ export function AppShell() {
   };
 
   const itemClass = (active: boolean) => ({
-    background: active ? "rgba(212,112,138,0.08)" : "transparent",
+    background: active ? "rgba(122,148,121,0.18)" : "transparent",
     color: active ? "var(--sidebar-active)" : "var(--sidebar-inactive)",
-    fontWeight: active ? 700 : 600,
+    fontWeight: active ? 600 : 400,
     borderLeft: active ? "2px solid var(--primary)" : "2px solid transparent",
     paddingLeft: active ? "10px" : "12px",
   });
@@ -141,7 +163,7 @@ export function AppShell() {
         <Link
           to="/journal"
           className="mb-4 flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-bold transition-opacity hover:opacity-90"
-          style={{ background: "var(--primary)", color: "var(--sidebar)", letterSpacing: "0.02em" }}
+          style={{ background: "var(--primary)", color: "var(--primary-foreground)", letterSpacing: "0.02em" }}
         >
           <PenLine size={15} />
           Log incident
@@ -151,13 +173,13 @@ export function AppShell() {
           to="/share-with-attorney"
           className="mb-5 flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold transition-transform hover:-translate-y-px"
           style={{
-            background: "rgba(212,112,138,0.12)",
+            background: "rgba(122,148,121,0.16)",
             color: "var(--sidebar-active)",
-            boxShadow: "0 8px 22px -10px rgba(0,0,0,0.45)",
-            border: "1px solid rgba(212,112,138,0.30)",
+            boxShadow: "0 6px 18px -10px rgba(0,0,0,0.35)",
+            border: "1px solid rgba(122,148,121,0.30)",
           }}
         >
-          <div className="flex h-7 w-7 items-center justify-center rounded-md" style={{ background: "rgba(212,112,138,0.25)", color: "#fff" }}>
+          <div className="flex h-7 w-7 items-center justify-center rounded-md" style={{ background: "rgba(122,148,121,0.35)", color: "#fff" }}>
             <Briefcase size={14} />
           </div>
           <div className="flex flex-col leading-tight">
@@ -178,7 +200,7 @@ export function AppShell() {
                   onClick={() => setOpen((o) => ({ ...o, [g.key]: !o[g.key] }))}
                   className="mb-1 flex w-full items-center justify-between px-3 py-1.5"
                   style={{
-                    color: "rgba(250,247,242,0.45)",
+                    color: "rgba(247,243,236,0.50)",
                     fontSize: "10px",
                     letterSpacing: "3px",
                     textTransform: "uppercase",
@@ -238,7 +260,7 @@ export function AppShell() {
       <div className="px-5 pb-6 pt-3">
         <div
           className="mb-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-[11px]"
-          style={{ background: "rgba(122,168,123,0.12)", color: "var(--safe)", letterSpacing: "2px", fontWeight: 700 }}
+          style={{ background: "rgba(122,148,121,0.18)", color: "#BBD0BA", letterSpacing: "2px", fontWeight: 600 }}
         >
           <Lock size={13} />
           END-TO-END ENCRYPTED
@@ -258,8 +280,82 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen w-full" style={{ background: "var(--background)" }}>
-      <QuickExitButton />
-      {/* Mobile top bar — hamburger + brand lockup */}
+      {/* Universal minimal top bar — logo + lock + Exit safely + hamburger */}
+      <div
+        className="no-print fixed left-0 right-0 top-0 z-40 flex items-center justify-between px-5 py-4 md:px-10"
+        style={{ background: "var(--background)" }}
+      >
+        <BrandLogo variant="dark" maxWidth={150} />
+        <div className="flex items-center gap-4 md:gap-6">
+          <span
+            className="hidden items-center gap-1.5 text-[11px] sm:flex"
+            style={{ color: "var(--muted-foreground)", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 500 }}
+            title="End-to-end encrypted — only you can see this"
+          >
+            <Lock size={11} /> Private
+          </span>
+          <button
+            type="button"
+            onClick={exit}
+            className="flex items-center gap-1 text-[12px] transition-opacity hover:opacity-70"
+            style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+            aria-label="Exit safely — double-press Escape"
+            title="Exit safely — double-press Escape"
+          >
+            Exit safely <ArrowUpRight size={12} />
+          </button>
+          <button
+            type="button"
+            aria-label={navOpen ? "Close menu" : "Open menu"}
+            onClick={() => setNavOpen((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:opacity-80"
+            style={{ color: "var(--foreground)" }}
+          >
+            {navOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Slide-out drawer (used on every viewport) */}
+      {navOpen && (
+        <div
+          className="no-print fixed inset-0 z-50"
+          onClick={() => setNavOpen(false)}
+          style={{ background: "rgba(42,37,32,0.45)" }}
+        >
+          <aside
+            onClick={(e) => e.stopPropagation()}
+            className="absolute left-0 top-0 flex h-full w-[280px] flex-col overflow-y-auto"
+            style={{ background: "var(--sidebar)", boxShadow: "8px 0 24px -8px rgba(0,0,0,0.4)" }}
+          >
+            <button
+              type="button"
+              aria-label="Close menu"
+              onClick={() => setNavOpen(false)}
+              className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg"
+              style={{ color: "var(--sidebar-inactive)" }}
+            >
+              <X size={20} />
+            </button>
+            {SidebarInner}
+          </aside>
+        </div>
+      )}
+
+      <main className="print-page pt-16 md:pt-20">
+        <Outlet />
+      </main>
+      <AiSidekick />
+      <FloatingRecordButton />
+    </div>
+  );
+}
+
+/* Legacy mobile drawer removed in favor of universal top-bar + drawer above. */
+function _LegacyMobileBits() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  return (
+    mobileOpen ? (
       <div
         className="no-print fixed left-0 right-0 top-0 z-40 flex items-center justify-between px-4 py-3 md:hidden"
         style={{ background: "var(--background)", borderBottom: "1px solid var(--border)" }}
@@ -276,48 +372,6 @@ export function AppShell() {
         <BrandLogo variant="dark" maxWidth={130} />
         <span className="w-11" />
       </div>
-
-      {/* Desktop sidebar */}
-      <aside
-        className="no-print fixed left-0 top-0 hidden h-screen w-[210px] flex-col overflow-y-auto md:flex"
-        style={{ background: "var(--sidebar)" }}
-      >
-        {SidebarInner}
-      </aside>
-
-      {/* Mobile drawer + overlay */}
-      {mobileOpen && (
-        <div
-          className="no-print fixed inset-0 z-50 md:hidden"
-          onClick={() => setMobileOpen(false)}
-          style={{ background: "rgba(26,20,14,0.55)" }}
-        >
-          <aside
-            onClick={(e) => e.stopPropagation()}
-            className="absolute left-0 top-0 flex h-full w-[260px] flex-col overflow-y-auto"
-            style={{ background: "var(--sidebar)", boxShadow: "8px 0 24px -8px rgba(0,0,0,0.4)" }}
-          >
-            <button
-              type="button"
-              aria-label="Close menu"
-              onClick={() => setMobileOpen(false)}
-              className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg"
-              style={{ color: "var(--sidebar-inactive)" }}
-            >
-              <X size={20} />
-            </button>
-            {SidebarInner}
-          </aside>
-        </div>
-      )}
-
-      <main className="print-page pt-16 md:ml-[210px] md:pt-0 md:pb-12">
-        <div className="mx-auto max-w-6xl px-5 py-8 md:px-10 md:py-12">
-          <Outlet />
-        </div>
-      </main>
-      <AiSidekick />
-      <FloatingRecordButton />
-    </div>
+    ) : null
   );
 }
