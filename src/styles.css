@@ -34,9 +34,9 @@
   --color-type-custody: #C9A84C;
   --color-type-other: #8E8678;
 
-  --font-serif: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --font-serif: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 :root {
@@ -75,17 +75,18 @@
 @layer base {
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); }
-  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-size: 18px; line-height: 1.9; font-weight: 600; color: #1A1714; }
-  h1, h2, h3, h4, h5 { font-family: var(--font-display); color: #0E0C0A; font-weight: 800; letter-spacing: -0.01em; line-height: 1.12; }
+  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-size: 20px; line-height: 1.9; font-weight: 600; color: #1A1714; }
+  h1, h2, h3, h4, h5, h6, p, li, span, div, a, button, input, textarea, select, label { font-family: var(--font-sans); }
+  h1, h2, h3, h4, h5 { color: #0E0C0A; font-weight: 800; letter-spacing: -0.015em; line-height: 1.15; }
   h1 { font-size: clamp(2.25rem, 4.4vw, 3.1rem); }
   h2 { font-size: clamp(1.75rem, 2.8vw, 2.35rem); }
   h3 { font-size: clamp(1.4rem, 2.1vw, 1.7rem); }
   h4 { font-size: clamp(1.15rem, 1.6vw, 1.35rem); }
-  p, li { font-size: 17px; line-height: 1.95; font-weight: 600; color: #1F1B17; }
-  small { font-size: 14px; font-weight: 600; color: #2E2A26; }
-  label { font-weight: 700; color: #0E0C0A; font-size: 15px; }
+  p, li { font-size: 19px; line-height: 1.95; font-weight: 600; color: #1F1B17; }
+  small { font-size: 15px; font-weight: 600; color: #2E2A26; }
+  label { font-weight: 700; color: #0E0C0A; font-size: 16px; }
   button, a { font-weight: 700; color: #1A1714; }
-  nav a, nav button { font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
+  nav a, nav button { font-size: 16px; font-weight: 700; letter-spacing: 0.01em; }
 }
 
 @layer base {
