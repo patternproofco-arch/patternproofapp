@@ -292,21 +292,21 @@ export function AppShell() {
         <BrandLogo variant="dark" size="md" className="hidden md:inline-flex" />
         <div className="flex items-center gap-4 md:gap-6">
           <span
-            className="hidden items-center gap-1.5 text-[11px] sm:flex"
-            style={{ color: "var(--muted-foreground)", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 500 }}
+            className="hidden items-center gap-1.5 text-[12px] sm:flex"
+            style={{ color: "var(--muted-foreground)", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 700 }}
             title="End-to-end encrypted — only you can see this"
           >
-            <Lock size={11} /> Private
+            <Lock size={12} /> Private
           </span>
           <button
             type="button"
             onClick={exit}
-            className="flex items-center gap-1 text-[12px] transition-opacity hover:opacity-70"
-            style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+            className="flex items-center gap-1 text-[14px] transition-opacity hover:opacity-70"
+            style={{ color: "var(--muted-foreground)", fontWeight: 700 }}
             aria-label="Exit safely — double-press Escape"
             title="Exit safely — double-press Escape"
           >
-            Exit safely <ArrowUpRight size={12} />
+            Exit safely <ArrowUpRight size={14} />
           </button>
           <button
             type="button"
