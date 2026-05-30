@@ -70,16 +70,16 @@
   --tint-gold: rgba(201, 168, 76, 0.08);
   --tint-sage: rgba(122, 148, 121, 0.10);
   --linen: #E4DCCC;
-  /* Proposal accent palette — pulled from Pattern Proof brand PDF.
-     Use as soft, tinted section accents across pages. */
-  --accent-butter: #FDF5C4;
-  --accent-butter-ink: #8B7D3B;
-  --accent-powder: #E2EDF9;
-  --accent-powder-ink: #5A7FA3;
-  --accent-blush: #FDEEF0;
-  --accent-blush-ink: #A86A75;
-  --accent-sage-soft: #E3F0D8;
-  --accent-sage-soft-ink: #5A7A4A;
+  /* Proposal accent palette — desaturated and warmed to sit on the linen/sage theme.
+     Soft tinted surfaces with grounded, earthy ink colors. */
+  --accent-butter: #F2EAD3;          /* warm tea-stained cream */
+  --accent-butter-ink: #6E5F35;      /* deep olive-gold ink */
+  --accent-powder: #DDE5E0;          /* dusty sage-mist */
+  --accent-powder-ink: #3D5A5C;      /* muted slate-teal ink */
+  --accent-blush: #ECDCD8;           /* dusty rose-clay */
+  --accent-blush-ink: #7A4A4F;       /* aged burgundy ink */
+  --accent-sage-soft: #D9DFC8;       /* pale moss-linen */
+  --accent-sage-soft-ink: #4A5A38;   /* forest moss ink */
 }
 
 @layer base {
