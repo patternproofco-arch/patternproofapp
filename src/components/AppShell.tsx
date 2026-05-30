@@ -145,7 +145,7 @@ export function AppShell() {
     <div className="flex h-full flex-col">
       {/* Header zone: logo + Attorney Portal (pinned) */}
       <div className="shrink-0 px-6 pt-6 pb-4">
-        <BrandLogo variant="light" maxWidth={180} />
+        <BrandLogo variant="light" size="lg" />
       </div>
       <div className="shrink-0 px-4 pb-4" style={dividerStyle}>
         <Link
@@ -288,7 +288,8 @@ export function AppShell() {
         className="no-print fixed left-0 right-0 top-0 z-40 flex items-center justify-between px-5 py-4 md:px-10"
         style={{ background: "var(--background)" }}
       >
-        <BrandLogo variant="dark" maxWidth={150} />
+        <BrandLogo variant="dark" size="sm" className="md:hidden" />
+        <BrandLogo variant="dark" size="md" className="hidden md:inline-flex" />
         <div className="flex items-center gap-4 md:gap-6">
           <span
             className="hidden items-center gap-1.5 text-[11px] sm:flex"
