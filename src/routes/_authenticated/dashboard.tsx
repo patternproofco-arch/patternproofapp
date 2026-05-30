@@ -167,13 +167,15 @@ function Stat({ value, label }: { value: number; label: string }) {
 }
 
 function ProgressDots({ done, total }: { done: number; total: number }) {
+  // Show next step dot in primary too, so the active step glows softly.
+  const activeIndex = Math.min(done, total - 1);
   return (
     <div className="mb-5 flex items-center gap-2.5">
       {Array.from({ length: total }).map((_, i) => (
         <span
           key={i}
           className="block h-2 w-2 rounded-full transition-colors"
-          style={{ background: i < Math.max(done, 1) && i < done + 1 && (i < done || i === done) ? (i < done ? "var(--primary)" : "var(--primary)") : "var(--linen)" }}
+          style={{ background: i <= activeIndex ? "var(--primary)" : "var(--linen)" }}
         />
       ))}
     </div>
