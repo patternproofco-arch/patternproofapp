@@ -4,10 +4,12 @@ type Variant = "light" | "dark";
 
 interface BrandLogoProps {
   variant?: Variant;
-  /** Max width in px. Defaults to 180 (desktop). */
+  /** Max width in px. Defaults to a responsive clamp. */
   maxWidth?: number;
   className?: string;
   withShadow?: boolean;
+  /** Preset size — handles responsive scaling automatically. */
+  size?: "sm" | "md" | "lg";
 }
 
 /**
@@ -17,9 +19,10 @@ interface BrandLogoProps {
  */
 export function BrandLogo({
   variant = "dark",
-  maxWidth = 180,
+  maxWidth,
   className,
   withShadow = false,
+  size = "md",
 }: BrandLogoProps) {
   const isLight = variant === "light";
   // Diamond facets per brand sheet
@@ -31,10 +34,23 @@ export function BrandLogo({
   const patternColor = isLight ? "#1A1714" : "#FAF7F2";
   const proofColor = "#D4708A";
   const shadow = withShadow ? "drop-shadow(0 1px 0 rgba(0,0,0,0.10))" : undefined;
-  // Scale glyph height to wordmark
-  const markH = Math.round(maxWidth * 0.26);
+  // Responsive size presets — width clamps fluidly between mobile and desktop.
+  // sm: top bar mobile, md: top bar desktop / sidebar mobile, lg: sidebar desktop.
+  const presets = {
+    sm: { min: 116, pref: "32vw", max: 140 },
+    md: { min: 132, pref: "22vw", max: 160 },
+    lg: { min: 150, pref: "44vw", max: 184 },
+  } as const;
+  const p = presets[size];
+  // If an explicit maxWidth is supplied, honour it (back-compat).
+  const widthCss = maxWidth
+    ? `${maxWidth}px`
+    : `clamp(${p.min}px, ${p.pref}, ${p.max}px)`;
+  // Use the upper bound to derive glyph + type sizes so proportions stay stable.
+  const basis = maxWidth ?? p.max;
+  const markH = Math.round(basis * 0.26);
   const markW = Math.round(markH * (100 / 110));
-  const pSize = Math.max(14, Math.round(maxWidth * 0.115));
+  const pSize = Math.max(14, Math.round(basis * 0.115));
   const prSize = Math.max(9, Math.round(pSize * 0.55));
 
   return (
@@ -42,7 +58,7 @@ export function BrandLogo({
       to="/dashboard"
       aria-label="PatternProof — return to dashboard"
       className={"inline-flex items-center gap-3 " + (className ?? "")}
-      style={{ maxWidth, filter: shadow, fontFamily: "'DM Sans', system-ui, sans-serif" }}
+      style={{ width: widthCss, maxWidth: "100%", filter: shadow, fontFamily: "'DM Sans', system-ui, sans-serif" }}
     >
       <svg
         viewBox="0 0 100 110"
