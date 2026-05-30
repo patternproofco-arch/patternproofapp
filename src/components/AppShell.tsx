@@ -251,11 +251,11 @@ export function AppShell() {
           to="/journal"
           className="pulse-rec mb-4 flex items-center justify-center gap-2 rounded-full px-4 py-3.5 text-[18px] transition-opacity hover:opacity-95"
           style={{
-            background: "#B85574", /* WCAG AA: white on #B85574 = 4.6:1 */
+            background: "#D4708A", /* AA Large at ≥18px bold (3:1) */
             color: "#FFFFFF",
             fontWeight: 800,
             letterSpacing: "0.02em",
-            boxShadow: "0 8px 22px -8px rgba(184,85,116,0.55)",
+            boxShadow: "0 8px 22px -8px rgba(212,112,138,0.55)",
           }}
         >
           <PenLine size={18} />
