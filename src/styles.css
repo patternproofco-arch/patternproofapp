@@ -53,7 +53,7 @@
   --accent: #7A9479;              /* sage — single trust accent */
   --safe: #7A9479;
   --gold: #C9A84C;
-  --muted-foreground: #6B6258;
+  --muted-foreground: #3D3832;
   --border: rgba(42, 37, 32, 0.08);
   --input: #FFFFFF;
   --ring: #7A9479;
@@ -75,12 +75,15 @@
 @layer base {
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); }
-  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.7; font-weight: 400; }
-  h1, h2, h3, h4, h5 { font-family: var(--font-display); color: var(--color-foreground); font-weight: 400; letter-spacing: -0.005em; line-height: 1.18; }
-  p, li { font-size: 16px; line-height: 1.75; font-weight: 400; }
-  label { font-weight: 500; }
-  button, a { font-weight: 500; }
-  nav a, nav button { font-size: 14px; font-weight: 500; letter-spacing: 0.01em; }
+  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.7; font-weight: 500; color: #3D3832; }
+  h1, h2, h3, h4, h5 { font-family: var(--font-display); color: var(--color-foreground); font-weight: 800; letter-spacing: -0.005em; line-height: 1.15; }
+  h1 { font-size: clamp(2rem, 4vw, 2.75rem); }
+  h2 { font-size: clamp(1.5rem, 2.5vw, 2rem); }
+  h3 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
+  p, li { font-size: 16px; line-height: 1.75; font-weight: 500; color: #3D3832; }
+  label { font-weight: 600; color: #3D3832; }
+  button, a { font-weight: 600; }
+  nav a, nav button { font-size: 14px; font-weight: 600; letter-spacing: 0.01em; }
 }
 
 .font-serif { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.005em; }
