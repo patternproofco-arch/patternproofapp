@@ -27,11 +27,11 @@
   --color-ring: var(--ring);
 
   /* Abuse type accents — Pattern Proof brand palette */
-  --color-type-physical: #D98A95;
-  --color-type-emotional: #C7B560;
-  --color-type-financial: #BFD2A8;
-  --color-type-coercive: #A2C0DF;
-  --color-type-custody: #C9A487;
+  --color-type-physical: #D4708A;
+  --color-type-emotional: #C9A84C;
+  --color-type-financial: #7AA87B;
+  --color-type-coercive: #8BB8D4;
+  --color-type-custody: #C9A84C;
   --color-type-other: #8E8678;
 
   --font-serif: "Inter", system-ui, -apple-system, sans-serif;
@@ -40,30 +40,35 @@
 }
 
 :root {
-  /* Pattern Proof — Partnership Proposal palette */
-  --background: #F5EAD0;          /* warmer cream page */
-  --foreground: #1A140E;          /* deep warm near-black brown */
-  --card: #FBF1D8;                /* warmer ivory card surface */
-  --panel: #2B2017;               /* warmer dark brown feature panel */
-  --sidebar: #1A140E;             /* warm near-black brown sidebar */
-  --sidebar-active: #F5EAD0;
-  --sidebar-inactive: #E8CFA8;
-  --primary: #E59AAB;             /* dusty rose accent */
-  --primary-foreground: #1A140E;
-  --accent: #A2C0DF;              /* sky blue accent */
-  --safe: #BFD2A8;                /* sage green */
-  --gold: #C7B560;                /* gold accent */
-  --muted-foreground: #2A2018;
-  --border: rgba(26, 20, 14, 0.14);
-  --input: #FBF1D8;
-  --ring: #E59AAB;
-  --destructive: #D98A95;
-  --destructive-foreground: #1A140E;
-  --popover: #FBF1D8;
-  --popover-foreground: #1A140E;
-  --secondary: #ECDDB6;
-  --secondary-foreground: #1A140E;
-  --muted: #ECDDB6;
+  /* Pattern Proof — Partnership Proposal brand palette */
+  --background: #FAF7F2;          /* warm cream page */
+  --foreground: #1A1714;          /* charcoal text */
+  --card: #FFFFFF;                /* base card surface (tints layered on top) */
+  --panel: #1A1714;               /* charcoal feature panel */
+  --sidebar: #1A1714;             /* charcoal sidebar */
+  --sidebar-active: #FAF7F2;
+  --sidebar-inactive: rgba(250, 247, 242, 0.62);
+  --primary: #D4708A;             /* pink — primary actions, logo accent */
+  --primary-foreground: #FFFFFF;
+  --accent: #8BB8D4;              /* steel blue — info / secondary */
+  --safe: #7AA87B;                /* sage green — success / completed */
+  --gold: #C9A84C;                /* gold — stats / featured */
+  --muted-foreground: #5C534B;
+  --border: rgba(26, 23, 20, 0.10);
+  --input: #FFFFFF;
+  --ring: #D4708A;
+  --destructive: #D4708A;
+  --destructive-foreground: #FFFFFF;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1714;
+  --secondary: rgba(139, 184, 212, 0.10);
+  --secondary-foreground: #1A1714;
+  --muted: rgba(26, 23, 20, 0.05);
+  /* Tinted card surfaces — accents at ~6% */
+  --tint-pink: rgba(212, 112, 138, 0.06);
+  --tint-blue: rgba(139, 184, 212, 0.06);
+  --tint-gold: rgba(201, 168, 76, 0.08);
+  --tint-sage: rgba(122, 168, 123, 0.07);
 }
 
 @layer base {
@@ -93,12 +98,16 @@ em, .font-serif em, h1 em, h2 em, h3 em {
   font-family: var(--font-sans);
 }
 .card-pp {
-  background-color: var(--card);
+  background-color: var(--tint-pink);
   border-radius: 18px;
   padding: 22px;
   border: 1px solid var(--border);
-  box-shadow: 0 1px 0 rgba(31,26,20,0.03);
+  box-shadow: 0 1px 0 rgba(26,23,20,0.03);
 }
+.card-tint-pink { background-color: var(--tint-pink); }
+.card-tint-blue { background-color: var(--tint-blue); }
+.card-tint-gold { background-color: var(--tint-gold); }
+.card-tint-sage { background-color: var(--tint-sage); }
 .btn-primary {
   background-color: var(--primary);
   color: var(--primary-foreground);
