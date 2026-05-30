@@ -60,35 +60,20 @@ export function FloatingRecordButton() {
   };
 
   const frozen = settings.quickRecordFrozen;
-  const bg = frozen ? "#B57E60" : isRecording ? "#C4674A" : "#E77B56";
+  const bg = frozen ? "#6B6258" : isRecording ? "#5F7A5E" : "#7A9479";
 
   return (
     <>
       {/* Elapsed timer above button while recording */}
       {isRecording && (
         <div
-          className="no-print fixed z-[95] hidden rounded-full px-3 py-1 text-[12px] font-semibold md:block"
+          className="no-print fixed z-[95] rounded-full px-3 py-1 text-[12px]"
           style={{
-            background: "#4E3B31",
-            color: "#F5E6DF",
-            left: "16px",
-            bottom: "84px",
-          }}
-        >
-          {fmt(elapsed)}
-        </div>
-      )}
-
-      {/* Mobile: timer centered above mobile button */}
-      {isRecording && (
-        <div
-          className="no-print fixed z-[95] rounded-full px-3 py-1 text-[12px] font-semibold md:hidden"
-          style={{
-            background: "#4E3B31",
-            color: "#F5E6DF",
-            left: "50%",
-            transform: "translateX(-50%)",
-            bottom: "140px",
+            background: "var(--panel)",
+            color: "var(--sidebar-active)",
+            right: "24px",
+            bottom: "96px",
+            fontWeight: 500,
           }}
         >
           {fmt(elapsed)}
@@ -101,38 +86,38 @@ export function FloatingRecordButton() {
           data-record-menu
           className="no-print fixed z-[96] w-[180px] rounded-2xl p-2"
           style={{
-            background: "#DEB896",
-            border: "1px solid rgba(78,59,49,0.2)",
-            boxShadow: "0 6px 20px rgba(78,59,49,0.18)",
-            left: "16px",
-            bottom: "84px",
+            background: "var(--linen)",
+            border: "1px solid var(--border)",
+            boxShadow: "0 12px 28px rgba(42,37,32,0.14)",
+            right: "24px",
+            bottom: "96px",
           }}
         >
           <button
             onClick={() => { update({ quickRecordFrozen: !frozen }); setMenuOpen(false); }}
             className="block w-full rounded-lg px-3 py-2 text-left text-[13px]"
-            style={{ color: "#2A1A10" }}
+            style={{ color: "var(--foreground)" }}
           >
             {frozen ? "Unfreeze" : "Freeze"}
           </button>
           <button
             onClick={() => { update({ quickRecordVisible: false }); setMenuOpen(false); toast("Quick record button hidden. Turn it back on in Settings."); }}
             className="block w-full rounded-lg px-3 py-2 text-left text-[13px]"
-            style={{ color: "#2A1A10" }}
+            style={{ color: "var(--foreground)" }}
           >
             Hide
           </button>
           <button
             onClick={() => setMenuOpen(false)}
             className="block w-full rounded-lg px-3 py-2 text-left text-[13px]"
-            style={{ color: "#6B3520" }}
+            style={{ color: "var(--muted-foreground)" }}
           >
             Cancel
           </button>
         </div>
       )}
 
-      {/* The button — desktop bottom-left, mobile centered above tab bar */}
+      {/* The button — anchored bottom-right with soft breathing pulse */}
       <button
         data-record-btn
         aria-label={isRecording ? "Stop recording" : "Start recording"}
@@ -142,41 +127,25 @@ export function FloatingRecordButton() {
         onTouchStart={onPointerDown}
         onTouchEnd={onPointerUp}
         onClick={handleClick}
-        className={`no-print fixed z-[94] flex h-14 w-14 items-center justify-center rounded-full ${isRecording ? "pulse-rec" : ""}`}
+        className={`no-print fixed z-[94] flex h-14 w-14 items-center justify-center rounded-full ${isRecording ? "pulse-rec" : frozen ? "" : "breathe"}`}
         style={{
           background: bg,
-          color: "#fff",
-          left: "16px",
-          bottom: "16px",
-          boxShadow: "0 4px 14px rgba(78,59,49,0.25)",
+          color: "#F7F3EC",
+          right: "24px",
+          bottom: "24px",
+          boxShadow: "0 8px 22px rgba(42,37,32,0.18)",
         }}
       >
         <Mic size={22} />
         {frozen && (
           <span
             className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full"
-            style={{ background: "#4E3B31", color: "#F5E6DF" }}
+            style={{ background: "var(--panel)", color: "var(--sidebar-active)" }}
           >
             <Lock size={11} />
           </span>
         )}
       </button>
-
-      {/* Mobile reposition override */}
-      <style>{`
-        @media (max-width: 767px) {
-          [data-record-btn] {
-            left: 50% !important;
-            transform: translateX(-50%);
-            bottom: 80px !important;
-          }
-          [data-record-menu] {
-            left: 50% !important;
-            transform: translateX(-50%);
-            bottom: 150px !important;
-          }
-        }
-      `}</style>
     </>
   );
 }

@@ -22,10 +22,10 @@ export function BrandLogo({
   withShadow = false,
 }: BrandLogoProps) {
   const isLight = variant === "light";
-  const stroke = isLight ? "#FAF7F2" : "#1A1714";
-  const fill = isLight ? "#FAF7F2" : "#1A1714";
-  const accent = "#D4708A";
-  const accentSquare = isLight ? "#D4708A" : "#D4708A";
+  const stroke = isLight ? "#F7F3EC" : "#2A2520";
+  const fill = isLight ? "#F7F3EC" : "#2A2520";
+  const accent = "#7A9479";
+  const accentSquare = "#7A9479";
   const shadow = withShadow
     ? "drop-shadow(0 1px 0 rgba(0,0,0,0.10))"
     : undefined;
@@ -54,11 +54,11 @@ export function BrandLogo({
       </svg>
       <span
         style={{
-          fontFamily: "Inter, system-ui, sans-serif",
-          fontWeight: 800,
-          fontSize: "15px",
-          letterSpacing: "0.10em",
-          textTransform: "uppercase",
+          fontFamily: "'DM Serif Display', Georgia, serif",
+          fontWeight: 400,
+          fontSize: "20px",
+          letterSpacing: "-0.005em",
+          textTransform: "none",
           color: fill,
           lineHeight: 1,
           whiteSpace: "nowrap",
