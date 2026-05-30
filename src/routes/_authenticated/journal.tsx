@@ -159,8 +159,8 @@ function JournalPage() {
           <button
             type="button"
             onClick={() => setJournalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[13px] font-semibold transition-colors hover:bg-black/5"
-            style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+            className="inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
+            style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
           >
             <BookOpen size={15} />
             Add from Journal Entry
@@ -168,8 +168,8 @@ function JournalPage() {
           <button
             type="button"
             onClick={() => setBulkOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[13px] font-semibold transition-colors hover:bg-black/5"
-            style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+            className="inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
+            style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
           >
             <Clock size={15} />
             Add Multiple Past Incidents
