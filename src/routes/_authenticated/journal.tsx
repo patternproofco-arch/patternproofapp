@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2, Sparkles, BookOpen, Clock } from "lucide-react";
+import { Pencil, Trash2, Sparkles, BookOpen, Clock, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -43,6 +43,8 @@ function JournalPage() {
   const [busy, setBusy] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [logOpen, setLogOpen] = useState(true);
+  const [listOpen, setListOpen] = useState(true);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -179,9 +181,30 @@ function JournalPage() {
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-5">
-        <form onSubmit={submit} className="card-pp space-y-3 lg:col-span-2">
-          <h2 className="font-serif text-[20px]">{editingId ? "Edit incident" : "Log an incident"}</h2>
-
+        <section
+          className="card-pp lg:col-span-2"
+          style={{ background: "var(--accent-butter)", borderLeft: "4px solid var(--accent-butter-ink)" }}
+        >
+          <button
+            type="button"
+            onClick={() => setLogOpen((v) => !v)}
+            aria-expanded={logOpen}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <h2 className="font-serif text-[20px]" style={{ color: "var(--accent-butter-ink)" }}>
+              {editingId ? "Edit incident" : "Log an incident"}
+            </h2>
+            <ChevronDown
+              size={20}
+              style={{
+                color: "var(--accent-butter-ink)",
+                transition: "transform 200ms",
+                transform: logOpen ? "rotate(0deg)" : "rotate(-90deg)",
+              }}
+            />
+          </button>
+          {logOpen && (
+        <form onSubmit={submit} className="mt-4 space-y-3">
           <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed p-3 text-[12px]" style={{ borderColor: "var(--border)" }}>
             <Sparkles size={14} style={{ color: "var(--accent)" }} />
             <span className="flex-1">
@@ -259,10 +282,32 @@ function JournalPage() {
             {editingId && <button type="button" onClick={reset} className="btn-ghost">Cancel</button>}
           </div>
         </form>
+          )}
+        </section>
 
-        <div className="lg:col-span-3">
-          <h2 className="mb-3 font-serif text-[20px]">All incidents</h2>
-          {list.length === 0 ? (
+        <section
+          className="card-pp lg:col-span-3"
+          style={{ background: "var(--accent-powder)", borderLeft: "4px solid var(--accent-powder-ink)" }}
+        >
+          <button
+            type="button"
+            onClick={() => setListOpen((v) => !v)}
+            aria-expanded={listOpen}
+            className="mb-3 flex w-full items-center justify-between text-left"
+          >
+            <h2 className="font-serif text-[20px]" style={{ color: "var(--accent-powder-ink)" }}>
+              All incidents {list.length > 0 && <span className="opacity-70">· {list.length}</span>}
+            </h2>
+            <ChevronDown
+              size={20}
+              style={{
+                color: "var(--accent-powder-ink)",
+                transition: "transform 200ms",
+                transform: listOpen ? "rotate(0deg)" : "rotate(-90deg)",
+              }}
+            />
+          </button>
+          {listOpen && (list.length === 0 ? (
             <div className="card-pp">
               <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
                 Nothing here yet — when you're ready, this is a safe place to start.
@@ -283,8 +328,8 @@ function JournalPage() {
                 />
               ))}
             </div>
-          )}
-        </div>
+          ))}
+        </section>
       </div>
       <div className="hidden">{typeLabel("other")}{typeColor("other")}</div>
       <AddFromJournalModal open={journalOpen} onClose={() => setJournalOpen(false)} onSaved={load} />
