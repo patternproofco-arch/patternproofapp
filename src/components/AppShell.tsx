@@ -7,6 +7,7 @@ import {
   Clock3,
   Sparkles,
   TrendingUp,
+  Briefcase,
   FileText,
   Hammer,
   BookMarked,
