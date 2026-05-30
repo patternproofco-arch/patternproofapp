@@ -70,6 +70,16 @@
   --tint-gold: rgba(201, 168, 76, 0.08);
   --tint-sage: rgba(122, 148, 121, 0.10);
   --linen: #E4DCCC;
+  /* Proposal accent palette — pulled from Pattern Proof brand PDF.
+     Use as soft, tinted section accents across pages. */
+  --accent-butter: #FDF5C4;
+  --accent-butter-ink: #8B7D3B;
+  --accent-powder: #E2EDF9;
+  --accent-powder-ink: #5A7FA3;
+  --accent-blush: #FDEEF0;
+  --accent-blush-ink: #A86A75;
+  --accent-sage-soft: #E3F0D8;
+  --accent-sage-soft-ink: #5A7A4A;
 }
 
 @layer base {
