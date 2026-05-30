@@ -133,18 +133,36 @@ export function AppShell() {
 
   const itemClass = (active: boolean) => ({
     background: active ? "rgba(122,148,121,0.18)" : "transparent",
-    color: active ? "var(--sidebar-active)" : "var(--sidebar-inactive)",
-    fontWeight: active ? 600 : 400,
+    color: active ? "#FAF7F2" : "#C8C3BA",
+    fontWeight: active ? 700 : 600,
     borderLeft: active ? "2px solid var(--primary)" : "2px solid transparent",
     paddingLeft: active ? "10px" : "12px",
   });
 
+  const dividerStyle = { borderTop: "1px solid rgba(247,243,236,0.10)" } as const;
+
   const SidebarInner = (
-    <>
-      <div className="px-6 pt-6 pb-8">
+    <div className="flex h-full flex-col">
+      {/* Header zone: logo + Attorney Portal (pinned) */}
+      <div className="shrink-0 px-6 pt-6 pb-4">
         <BrandLogo variant="light" maxWidth={180} />
       </div>
-      <nav className="flex-1 px-3">
+      <div className="shrink-0 px-4 pb-4" style={dividerStyle}>
+        <Link
+          to="/share-with-attorney"
+          className="mt-4 flex items-center justify-center rounded-full px-4 py-3 text-[13px] transition-opacity hover:opacity-90"
+          style={{
+            background: "#A8CCE0",
+            color: "#1A1714",
+            fontWeight: 700,
+            letterSpacing: "0.02em",
+          }}
+        >
+          Attorney Portal
+        </Link>
+      </div>
+      {/* Middle scrollable nav */}
+      <nav className="min-h-0 flex-1 overflow-y-auto px-3 pt-3" style={dividerStyle}>
         {(() => {
           const active = pathname === HOME_ITEM.to;
           const Icon = HOME_ITEM.icon;
@@ -160,36 +178,6 @@ export function AppShell() {
           );
         })()}
 
-        <Link
-          to="/journal"
-          className="mb-4 flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-bold transition-opacity hover:opacity-90"
-          style={{ background: "var(--primary)", color: "var(--primary-foreground)", letterSpacing: "0.02em" }}
-        >
-          <PenLine size={15} />
-          Log incident
-        </Link>
-
-        <Link
-          to="/share-with-attorney"
-          className="mb-5 flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold transition-transform hover:-translate-y-px"
-          style={{
-            background: "rgba(122,148,121,0.16)",
-            color: "var(--sidebar-active)",
-            boxShadow: "0 6px 18px -10px rgba(0,0,0,0.35)",
-            border: "1px solid rgba(122,148,121,0.30)",
-          }}
-        >
-          <div className="flex h-7 w-7 items-center justify-center rounded-md" style={{ background: "rgba(122,148,121,0.35)", color: "#fff" }}>
-            <Briefcase size={14} />
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span>Attorney portal</span>
-            <span className="text-[10px] font-normal" style={{ opacity: 0.65, letterSpacing: "1.8px", textTransform: "uppercase" }}>
-              Share &amp; collaborate
-            </span>
-          </div>
-        </Link>
-
         {GROUPS.map((g, idx) => {
           const isOpen = open[g.key];
           return (
@@ -200,9 +188,9 @@ export function AppShell() {
                   onClick={() => setOpen((o) => ({ ...o, [g.key]: !o[g.key] }))}
                   className="mb-1 flex w-full items-center justify-between px-3 py-1.5"
                   style={{
-                    color: "rgba(247,243,236,0.50)",
+                    color: "#8A847E",
                     fontSize: "10px",
-                    letterSpacing: "3px",
+                    letterSpacing: "0.12em",
                     textTransform: "uppercase",
                     fontWeight: 700,
                   }}
@@ -257,10 +245,25 @@ export function AppShell() {
           })()}
         </div>
       </nav>
-      <div className="px-5 pb-6 pt-3">
+      {/* Footer zone: Log Incident pinned + encryption + signout */}
+      <div className="shrink-0 px-4 pb-5 pt-4" style={dividerStyle}>
+        <Link
+          to="/journal"
+          className="pulse-rec mb-4 flex items-center justify-center gap-2 rounded-full px-4 py-3.5 text-[14px] transition-opacity hover:opacity-95"
+          style={{
+            background: "#D4708A",
+            color: "#FFFFFF",
+            fontWeight: 700,
+            letterSpacing: "0.02em",
+            boxShadow: "0 8px 22px -8px rgba(212,112,138,0.55)",
+          }}
+        >
+          <PenLine size={16} />
+          Log Incident
+        </Link>
         <div
-          className="mb-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-[11px]"
-          style={{ background: "rgba(122,148,121,0.18)", color: "#BBD0BA", letterSpacing: "2px", fontWeight: 600 }}
+          className="mb-3 flex items-center gap-2 rounded-xl px-3 py-2 text-[11px]"
+          style={{ background: "rgba(122,148,121,0.18)", color: "#BBD0BA", letterSpacing: "0.18em", fontWeight: 700 }}
         >
           <Lock size={13} />
           END-TO-END ENCRYPTED
@@ -269,13 +272,13 @@ export function AppShell() {
           <button
             onClick={signOut}
             className="flex items-center gap-2 text-[12px]"
-            style={{ color: "var(--sidebar-inactive)" }}
+            style={{ color: "#C8C3BA", fontWeight: 600 }}
           >
             <LogOut size={13} /> Sign out
           </button>
         )}
       </div>
-    </>
+    </div>
   );
 
   return (
@@ -325,7 +328,7 @@ export function AppShell() {
         >
           <aside
             onClick={(e) => e.stopPropagation()}
-            className="absolute left-0 top-0 flex h-full w-[280px] flex-col overflow-y-auto"
+            className="absolute left-0 top-0 flex h-full w-[300px] flex-col"
             style={{ background: "var(--sidebar)", boxShadow: "8px 0 24px -8px rgba(0,0,0,0.4)" }}
           >
             <button
