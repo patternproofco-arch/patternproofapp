@@ -90,15 +90,15 @@
 
 @layer base {
   /* Page titles */
-  h1 { font-weight: 800; color: #1A1714; }
-  h2 { font-weight: 700; color: #1A1714; }
-  h3 { font-weight: 700; color: #3D3832; }
-  h4, h5, h6 { font-weight: 600; color: #3D3832; }
+  h1 { font-weight: 800; color: #0E0C0A; }
+  h2 { font-weight: 800; color: #0E0C0A; }
+  h3 { font-weight: 700; color: #1A1714; }
+  h4, h5, h6 { font-weight: 700; color: #1A1714; }
 
-  /* Body & secondary text — nothing lighter than #3D3832 */
-  p, span, li, .body-text, .description, .helper-text {
-    color: #3D3832;
-    font-weight: 500;
+  /* Body & secondary text — nothing lighter than #2E2A26 */
+  p, span, li, div, .body-text, .description, .helper-text {
+    color: #1F1B17;
+    font-weight: 600;
   }
 
   /* Form field labels */
@@ -109,9 +109,10 @@
 
   /* Eyebrow / section labels */
   .eyebrow, .section-label, [class*="eyebrow"], .label-eyebrow {
-    font-weight: 700;
-    color: #3D3832;
+    font-weight: 800;
+    color: #1A1714;
     letter-spacing: 0.12em;
+    font-size: 12px;
   }
 
   /* Card headings */
@@ -122,8 +123,8 @@
 
   /* Empty state / placeholder messages */
   .empty-state, [class*="empty-state"], [class*="placeholder-text"] {
-    color: #6B6560;
-    font-weight: 500;
+    color: #4A453F;
+    font-weight: 600;
   }
 
   /* Input placeholders */
