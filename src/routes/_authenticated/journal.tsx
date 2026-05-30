@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2, Sparkles, BookOpen, Clock, ChevronDown } from "lucide-react";
+import { Pencil, Trash2, Sparkles, BookOpen, Clock, ChevronDown, PenLine, List } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -43,8 +43,8 @@ function JournalPage() {
   const [busy, setBusy] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
-  const [logOpen, setLogOpen] = useState(true);
-  const [listOpen, setListOpen] = useState(true);
+  const [logOpen, setLogOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -98,6 +98,7 @@ function JournalPage() {
 
   const edit = (i: FullIncident) => {
     setEditingId(i.id);
+    setLogOpen(true);
     setForm({
       date: i.date,
       time: i.time ?? "",
@@ -180,31 +181,46 @@ function JournalPage() {
         </p>
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-5">
-        <section
-          className="card-pp lg:col-span-2"
-          style={{ background: "var(--accent-butter)", borderLeft: "4px solid var(--accent-butter-ink)" }}
+      {/* Primary CTAs — single-button entry points. Form/list stay concealed until tapped. */}
+      <div className="mt-8 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => { setLogOpen((v) => !v); if (!logOpen) setTimeout(() => window.scrollTo({ top: window.scrollY + 80, behavior: "smooth" }), 50); }}
+          aria-expanded={logOpen}
+          className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
+          style={{
+            background: "var(--brand-pink)",
+            color: "#FFFFFF",
+            boxShadow: "0 6px 18px -6px rgba(212,112,138,0.55)",
+          }}
         >
-          <button
-            type="button"
-            onClick={() => setLogOpen((v) => !v)}
-            aria-expanded={logOpen}
-            className="flex w-full items-center justify-between text-left"
-          >
-            <h2 className="font-serif text-[20px]" style={{ color: "var(--accent-butter-ink)" }}>
-              {editingId ? "Edit incident" : "Log an incident"}
-            </h2>
-            <ChevronDown
-              size={20}
-              style={{
-                color: "var(--accent-butter-ink)",
-                transition: "transform 200ms",
-                transform: logOpen ? "rotate(0deg)" : "rotate(-90deg)",
-              }}
-            />
-          </button>
-          {logOpen && (
-        <form onSubmit={submit} className="mt-4 space-y-3">
+          <PenLine size={17} />
+          {editingId ? "Edit incident" : "Log Incident"}
+          <ChevronDown size={16} style={{ transition: "transform 200ms", transform: logOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+        </button>
+        <button
+          type="button"
+          onClick={() => setListOpen((v) => !v)}
+          aria-expanded={listOpen}
+          className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
+          style={{
+            background: "var(--brand-pink-soft)",
+            color: "var(--brand-pink-strong)",
+            border: "1px solid rgba(212,112,138,0.30)",
+          }}
+        >
+          <List size={17} />
+          All Incidents {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
+          <ChevronDown size={16} style={{ transition: "transform 200ms", transform: listOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+        </button>
+      </div>
+
+      {logOpen && (
+        <section
+          className="card-pp mt-6"
+          style={{ background: "var(--brand-pink-soft)", borderLeft: "4px solid var(--brand-pink-strong)" }}
+        >
+          <form onSubmit={submit} className="space-y-3">
           <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed p-3 text-[12px]" style={{ borderColor: "var(--border)" }}>
             <Sparkles size={14} style={{ color: "var(--accent)" }} />
             <span className="flex-1">
@@ -282,32 +298,15 @@ function JournalPage() {
             {editingId && <button type="button" onClick={reset} className="btn-ghost">Cancel</button>}
           </div>
         </form>
-          )}
         </section>
+      )}
 
+      {listOpen && (
         <section
-          className="card-pp lg:col-span-3"
+          className="card-pp mt-6"
           style={{ background: "var(--accent-powder)", borderLeft: "4px solid var(--accent-powder-ink)" }}
         >
-          <button
-            type="button"
-            onClick={() => setListOpen((v) => !v)}
-            aria-expanded={listOpen}
-            className="mb-3 flex w-full items-center justify-between text-left"
-          >
-            <h2 className="font-serif text-[20px]" style={{ color: "var(--accent-powder-ink)" }}>
-              All incidents {list.length > 0 && <span className="opacity-70">· {list.length}</span>}
-            </h2>
-            <ChevronDown
-              size={20}
-              style={{
-                color: "var(--accent-powder-ink)",
-                transition: "transform 200ms",
-                transform: listOpen ? "rotate(0deg)" : "rotate(-90deg)",
-              }}
-            />
-          </button>
-          {listOpen && (list.length === 0 ? (
+          {list.length === 0 ? (
             <div className="card-pp">
               <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
                 Nothing here yet — when you're ready, this is a safe place to start.
@@ -328,9 +327,9 @@ function JournalPage() {
                 />
               ))}
             </div>
-          ))}
+          )}
         </section>
-      </div>
+      )}
       <div className="hidden">{typeLabel("other")}{typeColor("other")}</div>
       <AddFromJournalModal open={journalOpen} onClose={() => setJournalOpen(false)} onSaved={load} />
       <BulkPastIncidentsModal open={bulkOpen} onClose={() => setBulkOpen(false)} onSaved={load} />

@@ -41,35 +41,40 @@
 
 :root {
   /* Pattern Proof — Sage & Linen sanctuary palette */
-  --background: #F7F3EC;          /* warm linen cream */
+  --background: #F6EFE4;          /* warmer linen, leans toward peach-cream */
   --foreground: #1A1714;          /* near-black text */
   --card: #FFFFFF;
   --panel: #2A2520;               /* charcoal feature panel */
   --sidebar: #2A2520;
   --sidebar-active: #FAF7F2;
   --sidebar-inactive: #C8C3BA;
-  --primary: #7A9479;             /* sage — calm primary */
+  --primary: #C36A82;             /* Proof pink — primary CTA / brand accent */
   --primary-foreground: #F7F3EC;
-  --accent: #7A9479;              /* sage — secondary trust accent */
+  --accent: #C36A82;              /* Proof pink — secondary accent */
   --safe: #7A9479;
   --gold: #C9A84C;
+  /* Brand pink lifted straight from the "Proof" wordmark */
+  --brand-pink: #D4708A;
+  --brand-pink-strong: #B85574;   /* WCAG-AA safe ink on cream */
+  --brand-pink-soft: #F2D9E0;     /* warm wash for surfaces */
+  --brand-pink-tint: rgba(212, 112, 138, 0.10);
   --muted-foreground: #2E2A26;
-  --border: rgba(42, 37, 32, 0.08);
+  --border: rgba(184, 85, 116, 0.14);  /* subtly pink-tinted hairline */
   --input: #FFFFFF;
-  --ring: #7A9479;
+  --ring: #C36A82;
   --destructive: #B8728A;         /* dusty rose for destructive — never red */
   --destructive-foreground: #FFFFFF;
   --popover: #FFFFFF;
   --popover-foreground: #2A2520;
-  --secondary: #E4DCCC;
+  --secondary: #EBD9D2;           /* warm rose-linen */
   --secondary-foreground: #2A2520;
   --muted: rgba(42, 37, 32, 0.05);
   /* Tinted card surfaces */
-  --tint-pink: rgba(184, 114, 138, 0.06);
+  --tint-pink: rgba(212, 112, 138, 0.10);
   --tint-blue: rgba(122, 148, 121, 0.06);
   --tint-gold: rgba(201, 168, 76, 0.08);
   --tint-sage: rgba(122, 148, 121, 0.10);
-  --linen: #E4DCCC;
+  --linen: #EFE3D3;               /* warmer linen card surface */
   /* Proposal accent palette — desaturated and warmed to sit on the linen/sage theme.
      Soft tinted surfaces with grounded, earthy ink colors. */
   --accent-butter: #F2EAD3;          /* warm tea-stained cream */
@@ -150,7 +155,7 @@
 .font-display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.005em; }
 em, .font-serif em, h1 em, h2 em, h3 em {
   font-style: italic;
-  color: var(--primary);
+  color: var(--brand-pink-strong);
 }
 .label-eyebrow {
   font-size: 10px;
@@ -172,7 +177,7 @@ em, .font-serif em, h1 em, h2 em, h3 em {
 .card-tint-gold { background-color: var(--tint-gold); }
 .card-tint-sage { background-color: var(--tint-sage); }
 .btn-primary {
-  background-color: var(--primary);
+  background-color: var(--brand-pink);
   color: var(--primary-foreground);
   border-radius: 999px;
   padding: 13px 26px;
@@ -180,9 +185,9 @@ em, .font-serif em, h1 em, h2 em, h3 em {
   transition: filter 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
   font-family: var(--font-sans);
   letter-spacing: 0.01em;
-  box-shadow: 0 2px 10px rgba(122, 148, 121, 0.20);
+  box-shadow: 0 2px 10px rgba(212, 112, 138, 0.25);
 }
-.btn-primary:hover { filter: brightness(0.96); box-shadow: 0 6px 22px rgba(122, 148, 121, 0.28); transform: translateY(-1px); }
+.btn-primary:hover { filter: brightness(0.96); box-shadow: 0 6px 22px rgba(212, 112, 138, 0.33); transform: translateY(-1px); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
 .btn-ghost {
   color: var(--foreground);
@@ -233,8 +238,8 @@ textarea.input-pp { min-height: 130px; resize: vertical; line-height: 1.95; font
   animation: pp-pulse 2.6s ease-in-out infinite;
 }
 @keyframes pp-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(122, 148, 121, 0.45); }
-  50% { box-shadow: 0 0 0 22px rgba(122, 148, 121, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 112, 138, 0.45); }
+  50% { box-shadow: 0 0 0 22px rgba(212, 112, 138, 0); }
 }
 
 /* Soft breathing animation for the mic button at rest */
