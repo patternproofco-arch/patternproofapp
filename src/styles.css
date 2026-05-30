@@ -42,7 +42,7 @@
 :root {
   /* Pattern Proof — Sage & Linen sanctuary palette */
   --background: #F7F3EC;          /* warm linen cream */
-  --foreground: #2A2520;          /* charcoal text */
+  --foreground: #1A1714;          /* near-black text */
   --card: #FFFFFF;
   --panel: #2A2520;               /* charcoal feature panel */
   --sidebar: #2A2520;
@@ -53,7 +53,7 @@
   --accent: #7A9479;              /* sage — single trust accent */
   --safe: #7A9479;
   --gold: #C9A84C;
-  --muted-foreground: #3D3832;
+  --muted-foreground: #2E2A26;
   --border: rgba(42, 37, 32, 0.08);
   --input: #FFFFFF;
   --ring: #7A9479;
@@ -75,15 +75,17 @@
 @layer base {
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); }
-  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.7; font-weight: 500; color: #3D3832; }
-  h1, h2, h3, h4, h5 { font-family: var(--font-display); color: var(--color-foreground); font-weight: 800; letter-spacing: -0.005em; line-height: 1.15; }
-  h1 { font-size: clamp(2rem, 4vw, 2.75rem); }
-  h2 { font-size: clamp(1.5rem, 2.5vw, 2rem); }
-  h3 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
-  p, li { font-size: 16px; line-height: 1.75; font-weight: 500; color: #3D3832; }
-  label { font-weight: 600; color: #3D3832; }
-  button, a { font-weight: 600; }
-  nav a, nav button { font-size: 14px; font-weight: 600; letter-spacing: 0.01em; }
+  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-size: 18px; line-height: 1.65; font-weight: 600; color: #1A1714; }
+  h1, h2, h3, h4, h5 { font-family: var(--font-display); color: #0E0C0A; font-weight: 800; letter-spacing: -0.01em; line-height: 1.12; }
+  h1 { font-size: clamp(2.25rem, 4.4vw, 3.1rem); }
+  h2 { font-size: clamp(1.75rem, 2.8vw, 2.35rem); }
+  h3 { font-size: clamp(1.4rem, 2.1vw, 1.7rem); }
+  h4 { font-size: clamp(1.15rem, 1.6vw, 1.35rem); }
+  p, li { font-size: 17px; line-height: 1.7; font-weight: 600; color: #1F1B17; }
+  small { font-size: 14px; font-weight: 600; color: #2E2A26; }
+  label { font-weight: 700; color: #0E0C0A; font-size: 15px; }
+  button, a { font-weight: 700; color: #1A1714; }
+  nav a, nav button { font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
 }
 
 @layer base {
