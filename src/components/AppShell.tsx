@@ -286,8 +286,21 @@ export function AppShell() {
       {/* Universal minimal top bar — logo + lock + Exit safely + hamburger */}
       <div
         className="no-print fixed left-0 right-0 top-0 z-40 flex items-center justify-between px-5 py-4 md:px-10"
-        style={{ background: "var(--background)", borderTop: "6px solid #EFE6D8", boxShadow: "0 1px 0 rgba(42,37,32,0.06)" }}
+        style={{
+          background: "var(--background)",
+          borderTop: "6px solid #EFE6D8",
+          boxShadow: "0 1px 0 rgba(42,37,32,0.06)",
+        }}
       >
+        {/* Proposal-palette accent ribbon — sits on top of the cream border */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-0 right-0 top-0 h-[3px]"
+          style={{
+            background:
+              "linear-gradient(to right, var(--accent-butter) 0 25%, var(--accent-powder) 25% 50%, var(--accent-blush) 50% 75%, var(--accent-sage-soft) 75% 100%)",
+          }}
+        />
         <BrandLogo variant="dark" size="sm" className="md:hidden" />
         <BrandLogo variant="dark" size="md" className="hidden md:inline-flex" />
         <div className="flex items-center gap-4 md:gap-6">
