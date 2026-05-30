@@ -133,7 +133,7 @@ export function AppShell() {
 
   const itemClass = (active: boolean) => ({
     background: active ? "rgba(122,148,121,0.18)" : "transparent",
-    color: active ? "#FAF7F2" : "#C8C3BA",
+    color: active ? "#FAF7F2" : "#D6D2CA",
     fontWeight: active ? 700 : 600,
     borderLeft: active ? "2px solid var(--primary)" : "2px solid transparent",
     paddingLeft: active ? "10px" : "12px",
@@ -150,7 +150,7 @@ export function AppShell() {
       <div className="shrink-0 px-4 pb-4" style={dividerStyle}>
         <Link
           to="/share-with-attorney"
-          className="mt-4 flex items-center justify-center rounded-full px-4 py-3 text-[13px] transition-opacity hover:opacity-90"
+          className="mt-4 flex items-center justify-center rounded-full px-4 py-3 text-[15px] leading-snug transition-opacity hover:opacity-90"
           style={{
             background: "#A8CCE0",
             color: "#1A1714",
@@ -169,10 +169,10 @@ export function AppShell() {
           return (
             <Link
               to={HOME_ITEM.to}
-              className="mb-3 flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition-colors"
+              className="mb-3 flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] leading-relaxed transition-colors"
               style={itemClass(active)}
             >
-              <Icon size={17} />
+              <Icon size={18} />
               {HOME_ITEM.label}
             </Link>
           );
@@ -188,23 +188,23 @@ export function AppShell() {
                   onClick={() => setOpen((o) => ({ ...o, [g.key]: !o[g.key] }))}
                   className="mb-1 flex w-full items-center justify-between px-3 py-1.5"
                   style={{
-                    color: "#8A847E",
-                    fontSize: "10px",
+                    color: "#B8B2A8",
+                    fontSize: "12px",
                     letterSpacing: "0.12em",
                     textTransform: "uppercase",
-                    fontWeight: 700,
+                    fontWeight: 800,
                   }}
                 >
                   {g.label}
                   <ChevronDown
-                    size={11}
+                    size={13}
                     style={{ transition: "transform 200ms", transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)" }}
                   />
                 </button>
               )}
               <div
                 style={{
-                  maxHeight: isOpen ? `${g.items.length * 44 + 8}px` : "0px",
+                  maxHeight: isOpen ? `${g.items.length * 50 + 8}px` : "0px",
                   overflow: "hidden",
                   transition: "max-height 200ms ease",
                 }}
@@ -216,10 +216,10 @@ export function AppShell() {
                     <Link
                       key={item.to}
                       to={item.to}
-                      className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition-colors"
+                      className="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] leading-relaxed transition-colors"
                       style={itemClass(active)}
                     >
-                      <Icon size={17} />
+                      <Icon size={18} />
                       {item.label}
                     </Link>
                   );
@@ -235,10 +235,10 @@ export function AppShell() {
             return (
               <Link
                 to={SETTINGS_ITEM.to}
-                className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition-colors"
+                className="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] leading-relaxed transition-colors"
                 style={itemClass(active)}
               >
-                <Icon size={17} />
+                <Icon size={18} />
                 {SETTINGS_ITEM.label}
               </Link>
             );
@@ -262,19 +262,19 @@ export function AppShell() {
           Log Incident
         </Link>
         <div
-          className="mb-3 flex items-center gap-2 rounded-xl px-3 py-2 text-[11px]"
-          style={{ background: "rgba(122,148,121,0.18)", color: "#BBD0BA", letterSpacing: "0.18em", fontWeight: 700 }}
+          className="mb-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-[12px] leading-relaxed"
+          style={{ background: "rgba(122,148,121,0.18)", color: "#D6E5D5", letterSpacing: "0.16em", fontWeight: 800 }}
         >
-          <Lock size={13} />
+          <Lock size={14} />
           END-TO-END ENCRYPTED
         </div>
         {user && (
           <button
             onClick={signOut}
-            className="flex items-center gap-2 text-[12px]"
-            style={{ color: "#C8C3BA", fontWeight: 600 }}
+            className="flex items-center gap-2 text-[14px] leading-relaxed"
+            style={{ color: "#D6D2CA", fontWeight: 700 }}
           >
-            <LogOut size={13} /> Sign out
+            <LogOut size={14} /> Sign out
           </button>
         )}
       </div>
@@ -292,21 +292,21 @@ export function AppShell() {
         <BrandLogo variant="dark" size="md" className="hidden md:inline-flex" />
         <div className="flex items-center gap-4 md:gap-6">
           <span
-            className="hidden items-center gap-1.5 text-[11px] sm:flex"
-            style={{ color: "var(--muted-foreground)", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 500 }}
+            className="hidden items-center gap-1.5 text-[12px] sm:flex"
+            style={{ color: "var(--muted-foreground)", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 700 }}
             title="End-to-end encrypted — only you can see this"
           >
-            <Lock size={11} /> Private
+            <Lock size={12} /> Private
           </span>
           <button
             type="button"
             onClick={exit}
-            className="flex items-center gap-1 text-[12px] transition-opacity hover:opacity-70"
-            style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+            className="flex items-center gap-1 text-[14px] transition-opacity hover:opacity-70"
+            style={{ color: "var(--muted-foreground)", fontWeight: 700 }}
             aria-label="Exit safely — double-press Escape"
             title="Exit safely — double-press Escape"
           >
-            Exit safely <ArrowUpRight size={12} />
+            Exit safely <ArrowUpRight size={14} />
           </button>
           <button
             type="button"
