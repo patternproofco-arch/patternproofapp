@@ -350,28 +350,3 @@ export function AppShell() {
     </div>
   );
 }
-
-/* Legacy mobile drawer removed in favor of universal top-bar + drawer above. */
-function _LegacyMobileBits() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  return (
-    mobileOpen ? (
-      <div
-        className="no-print fixed left-0 right-0 top-0 z-40 flex items-center justify-between px-4 py-3 md:hidden"
-        style={{ background: "var(--background)", borderBottom: "1px solid var(--border)" }}
-      >
-        <button
-          type="button"
-          aria-label="Open menu"
-          onClick={() => setMobileOpen(true)}
-          className="flex h-11 w-11 items-center justify-center rounded-xl"
-          style={{ background: "var(--sidebar)", color: "var(--sidebar-active)" }}
-        >
-          <Menu size={22} />
-        </button>
-        <BrandLogo variant="dark" maxWidth={130} />
-        <span className="w-11" />
-      </div>
-    ) : null
-  );
-}
