@@ -19,12 +19,12 @@ import {
   ChevronDown,
   Menu,
   X,
-  ArrowUpRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { AiSidekick } from "@/components/AiSidekick";
 import { FloatingRecordButton } from "@/components/FloatingRecordButton";
+import { QuickExitButton } from "@/components/QuickExitButton";
 import { useState, useEffect } from "react";
 import { useSettings } from "@/lib/settings-context";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -301,8 +301,12 @@ export function AppShell() {
               "linear-gradient(to right, var(--accent-butter) 0 25%, var(--accent-powder) 25% 50%, var(--accent-blush) 50% 75%, var(--accent-sage-soft) 75% 100%)",
           }}
         />
-        <BrandLogo variant="dark" size="sm" className="md:hidden" />
-        <BrandLogo variant="dark" size="md" className="hidden md:inline-flex" />
+        <div className="md:hidden">
+          <BrandLogo variant="dark" size="sm" />
+        </div>
+        <div className="hidden md:block">
+          <BrandLogo variant="dark" size="md" />
+        </div>
         <div className="flex items-center gap-4 md:gap-6">
           <span
             className="hidden items-center gap-1.5 text-[12px] sm:flex"
@@ -311,16 +315,6 @@ export function AppShell() {
           >
             <Lock size={12} /> Private
           </span>
-          <button
-            type="button"
-            onClick={exit}
-            className="flex items-center gap-1 text-[14px] transition-opacity hover:opacity-70"
-            style={{ color: "var(--muted-foreground)", fontWeight: 700 }}
-            aria-label="Exit safely — double-press Escape"
-            title="Exit safely — double-press Escape"
-          >
-            Exit safely <ArrowUpRight size={14} />
-          </button>
           <button
             type="button"
             aria-label={navOpen ? "Close menu" : "Open menu"}
@@ -364,6 +358,7 @@ export function AppShell() {
       </main>
       <AiSidekick />
       <FloatingRecordButton />
+      <QuickExitButton />
     </div>
   );
 }
