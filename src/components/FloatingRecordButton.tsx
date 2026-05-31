@@ -1,9 +1,10 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Mic, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import { useRecording } from "@/lib/recording-context";
 import { useSettings } from "@/lib/settings-context";
 import { toast } from "sonner";
+import { useDraggable } from "@/hooks/use-draggable";
 
 const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
@@ -15,6 +16,10 @@ export function FloatingRecordButton() {
   const [menuOpen, setMenuOpen] = useState(false);
   const longPress = useRef<number | undefined>(undefined);
   const fired = useRef(false);
+  const { ref, style: dragStyle, dragHandlers, wasDragged } = useDraggable(
+    "pp.mic.pos",
+    { right: 24, bottom: 24 }
+  );
 
   // Hide on routes where button shouldn't render
   const hideOnRoutes = pathname === "/onboarding" || pathname.startsWith("/login") || pathname.startsWith("/attorney/");
@@ -46,6 +51,7 @@ export function FloatingRecordButton() {
   const onPointerLeave = onPointerUp;
 
   const handleClick = async () => {
+    if (wasDragged()) return;
     if (fired.current) { fired.current = false; return; }
     if (settings.quickRecordFrozen) return;
     if (isRecording) {
@@ -119,24 +125,37 @@ export function FloatingRecordButton() {
 
       {/* The button — anchored bottom-right with soft breathing pulse */}
       <button
+        ref={ref as React.RefObject<HTMLButtonElement>}
         data-record-btn
         aria-label={isRecording ? "Stop recording" : "Start recording"}
-        onMouseDown={onPointerDown}
+        onMouseDown={(e) => { dragHandlers.onMouseDown(e); onPointerDown(); }}
         onMouseUp={onPointerUp}
         onMouseLeave={onPointerLeave}
-        onTouchStart={onPointerDown}
+        onTouchStart={(e) => { dragHandlers.onTouchStart(e); onPointerDown(); }}
         onTouchEnd={onPointerUp}
         onClick={handleClick}
         className={`no-print fixed z-[94] flex h-14 w-14 items-center justify-center rounded-full ${isRecording ? "pulse-rec" : frozen ? "" : "breathe"}`}
         style={{
           background: bg,
           color: "#F7F3EC",
-          right: "24px",
-          bottom: "24px",
+          ...dragStyle,
           boxShadow: "0 8px 22px rgba(42,37,32,0.18)",
+          touchAction: "none",
+          cursor: "grab",
         }}
       >
-        <Mic size={22} />
+        {/* Recording dot icon */}
+        <span
+          aria-hidden
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: 999,
+            background: isRecording ? "#FFFFFF" : "#E25C5C",
+            boxShadow: isRecording ? "0 0 0 3px rgba(255,255,255,0.25)" : "0 0 0 3px rgba(226,92,92,0.25)",
+            display: "inline-block",
+          }}
+        />
         {frozen && (
           <span
             className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full"
