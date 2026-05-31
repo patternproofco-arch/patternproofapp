@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 const PIN_KEY = "pp_pin_hash_v1";
-const DECOY_KEY = "pp_decoy_hash_v1";
 const FAILS_KEY = "pp_pin_fails_v1";
 const LOCK_UNTIL_KEY = "pp_pin_lock_until_v1";
 
@@ -14,10 +13,8 @@ async function hash(pin: string): Promise<string> {
 interface Ctx {
   hasPin: boolean;
   isLocked: boolean;
-  isDecoyMode: boolean;
   setRealPin: (pin: string) => Promise<void>;
-  setDecoyPin: (pin: string) => Promise<void>;
-  unlock: (pin: string) => Promise<"real" | "decoy" | "wrong" | "locked-out">;
+  unlock: (pin: string) => Promise<"real" | "wrong" | "locked-out">;
   lock: () => void;
 }
 
@@ -26,7 +23,6 @@ const PinCtx = createContext<Ctx | null>(null);
 export function PinLockProvider({ children }: { children: ReactNode }) {
   const [hasPin, setHasPin] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
-  const [isDecoyMode, setIsDecoyMode] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -40,28 +36,17 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     setHasPin(true);
     setIsLocked(false);
   };
-  const setDecoyPin = async (pin: string) => {
-    localStorage.setItem(DECOY_KEY, await hash(pin));
-  };
 
-  const unlock = async (pin: string): Promise<"real" | "decoy" | "wrong" | "locked-out"> => {
+  const unlock = async (pin: string): Promise<"real" | "wrong" | "locked-out"> => {
     const lockUntil = Number(localStorage.getItem(LOCK_UNTIL_KEY) || 0);
     if (lockUntil > Date.now()) return "locked-out";
 
     const real = localStorage.getItem(PIN_KEY);
-    const decoy = localStorage.getItem(DECOY_KEY);
     const h = await hash(pin);
     if (real && h === real) {
       localStorage.setItem(FAILS_KEY, "0");
-      setIsDecoyMode(false);
       setIsLocked(false);
       return "real";
-    }
-    if (decoy && h === decoy) {
-      localStorage.setItem(FAILS_KEY, "0");
-      setIsDecoyMode(true);
-      setIsLocked(false);
-      return "decoy";
     }
     const fails = Number(localStorage.getItem(FAILS_KEY) || 0) + 1;
     localStorage.setItem(FAILS_KEY, String(fails));
@@ -72,10 +57,10 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     return "wrong";
   };
 
-  const lock = () => { setIsLocked(true); setIsDecoyMode(false); };
+  const lock = () => { setIsLocked(true); };
 
   return (
-    <PinCtx.Provider value={{ hasPin, isLocked, isDecoyMode, setRealPin, setDecoyPin, unlock, lock }}>
+    <PinCtx.Provider value={{ hasPin, isLocked, setRealPin, unlock, lock }}>
       {children}
     </PinCtx.Provider>
   );
