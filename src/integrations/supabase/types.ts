@@ -162,6 +162,45 @@ export type Database = {
           },
         ]
       }
+      attorney_incident_notes: {
+        Row: {
+          attorney_user_id: string
+          client_user_id: string
+          created_at: string
+          flagged: boolean
+          id: string
+          incident_id: string
+          link_id: string
+          note: string | null
+          reviewed: boolean
+          updated_at: string
+        }
+        Insert: {
+          attorney_user_id: string
+          client_user_id: string
+          created_at?: string
+          flagged?: boolean
+          id?: string
+          incident_id: string
+          link_id: string
+          note?: string | null
+          reviewed?: boolean
+          updated_at?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          client_user_id?: string
+          created_at?: string
+          flagged?: boolean
+          id?: string
+          incident_id?: string
+          link_id?: string
+          note?: string | null
+          reviewed?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attorney_invitations: {
         Row: {
           accepted_at: string | null
@@ -170,12 +209,16 @@ export type Database = {
           attorney_name: string | null
           client_user_id: string
           created_at: string
+          date_range_end: string | null
+          date_range_start: string | null
           expires_at: string | null
+          firm_name: string | null
           id: string
           include_all_evidence: boolean
           include_all_incidents: boolean
           include_patterns: boolean
           invite_token: string
+          personal_note: string | null
           scope_evidence: string[]
           scope_incidents: string[]
           status: string
@@ -187,12 +230,16 @@ export type Database = {
           attorney_name?: string | null
           client_user_id: string
           created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
           expires_at?: string | null
+          firm_name?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
           include_patterns?: boolean
           invite_token?: string
+          personal_note?: string | null
           scope_evidence?: string[]
           scope_incidents?: string[]
           status?: string
@@ -204,12 +251,16 @@ export type Database = {
           attorney_name?: string | null
           client_user_id?: string
           created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
           expires_at?: string | null
+          firm_name?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
           include_patterns?: boolean
           invite_token?: string
+          personal_note?: string | null
           scope_evidence?: string[]
           scope_incidents?: string[]
           status?: string
