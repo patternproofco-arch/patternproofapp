@@ -8,7 +8,6 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
 });
 
-const DISGUISES = ["Daily Planner", "Budget Tracker", "Recipe Book", "Fitness Log", "Notes"];
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
 function Onboarding() {
@@ -18,18 +17,17 @@ function Onboarding() {
   const [step, setStep] = useState(0);
   const [pin, setPin] = useState("");
   const [contact, setContact] = useState("");
-  const [disguise, setDisguise] = useState("Daily Planner");
   const [state, setState] = useState("NJ");
 
   const finishPin = async () => {
     if (pin.length !== 4) { toast("Choose a 4-digit access code."); return; }
     await setRealPin(pin);
     if (contact) try { localStorage.setItem("pp_trusted_contact_v1", contact); } catch { /* */ }
-    setStep(2);
+    setStep(3);
   };
 
   const finishAll = () => {
-    update({ disguiseName: disguise, state, onboarded: true });
+    update({ state, onboarded: true });
     navigate({ to: "/dashboard", replace: true });
   };
 
@@ -61,22 +59,6 @@ function Onboarding() {
             <input className="input-pp mt-1" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="For account recovery only" />
           </div>
           <button onClick={finishPin} className="btn-primary">Continue</button>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="card-pp space-y-4">
-          <h1 className="font-serif text-[28px]">Would you like to disguise this app?</h1>
-          <p className="text-[14px]">Choose a name that won't raise questions.</p>
-          <div className="flex flex-wrap gap-2">
-            {DISGUISES.map((d) => (
-              <button key={d} onClick={() => setDisguise(d)} className="rounded-full px-4 py-2 text-[13px] font-semibold"
-                style={{ background: disguise === d ? "var(--primary)" : "transparent", color: disguise === d ? "var(--primary-foreground)" : "var(--foreground)", border: "1.5px solid var(--primary)" }}>
-                {d}
-              </button>
-            ))}
-          </div>
-          <button onClick={() => setStep(3)} className="btn-primary">Continue</button>
         </div>
       )}
 
