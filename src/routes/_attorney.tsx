@@ -66,11 +66,7 @@ function AttorneyLayout() {
 
 /* ---------- top nav ---------- */
 const CASE_TABS = [
-  { key: "overview",  label: "Overview",  to: "/clients/$clientId" },
-  { key: "timeline",  label: "Timeline",  to: "/clients/$clientId/timeline" },
-  { key: "patterns",  label: "Patterns",  to: "/clients/$clientId/patterns" },
-  { key: "evidence",  label: "Evidence",  to: "/clients/$clientId/evidence" },
-  { key: "export",    label: "Export",    to: "/clients/$clientId/export" },
+  { key: "overview", label: "Case File", to: "/clients/$clientId" },
 ] as const;
 
 function useClientIdFromPath(): string | null {
@@ -170,12 +166,7 @@ function AttorneyBreadcrumb() {
     { label: "Attorney Portal", to: "/clients" },
   ];
   if (clientId) {
-    parts.push({ label: `Client PP-${clientId.slice(0, 4).toUpperCase()}`, to: `/clients/${clientId}` });
-    const tab = CASE_TABS.find((t) => {
-      const href = t.to.replace("$clientId", clientId);
-      return t.key === "overview" ? pathname === href : pathname.startsWith(href);
-    });
-    if (tab && tab.key !== "overview") parts.push({ label: tab.label });
+    parts.push({ label: `Client PP-${clientId.slice(0, 4).toUpperCase()}` });
   } else if (pathname === "/clients") {
     parts.push({ label: "Clients" });
   }
