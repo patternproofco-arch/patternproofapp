@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useNavigate, useParams, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { LogOut, Lock } from "lucide-react";
@@ -190,6 +190,3 @@ function AttorneyBreadcrumb() {
     </div>
   );
 }
-
-// Silence "imported but unused" if useParams not needed (kept for future).
-export { useParams as _useParams };
