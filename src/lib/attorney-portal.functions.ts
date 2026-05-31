@@ -548,7 +548,17 @@ export const upsertAttorneyNote = createServerFn({ method: "POST" })
       .eq("status", "active")
       .maybeSingle();
     if (!link) throw new Error("No active access");
-    const payload: Record<string, unknown> = {
+    type NoteUpsert = {
+      link_id: string;
+      attorney_user_id: string;
+      client_user_id: string;
+      incident_id: string;
+      updated_at: string;
+      note?: string | null;
+      flagged?: boolean;
+      reviewed?: boolean;
+    };
+    const payload: NoteUpsert = {
       link_id: link.id,
       attorney_user_id: context.userId,
       client_user_id: data.clientId,
