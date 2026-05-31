@@ -91,10 +91,10 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center px-5 py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <div className="font-serif text-[30px] font-bold" style={{ color: "var(--foreground)" }}>
+          <div className="font-nunito text-[34px] font-extrabold" style={{ color: "var(--foreground)", letterSpacing: "-0.01em" }}>
             Pattern<span style={{ color: "var(--primary)" }}>·</span>Proof
           </div>
-          <p className="mt-2 text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+          <p className="font-nunito mt-2 text-[15px]" style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>
             Private documentation for your case.
           </p>
         </div>
