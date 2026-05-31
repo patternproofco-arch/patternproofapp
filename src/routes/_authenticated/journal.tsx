@@ -189,9 +189,9 @@ function JournalPage() {
           aria-expanded={logOpen}
           className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
           style={{
-            background: "var(--brand-pink)",
+            background: "var(--primary)",
             color: "#FFFFFF",
-            boxShadow: "0 6px 18px -6px rgba(212,112,138,0.55)",
+            boxShadow: "0 6px 18px -6px rgba(122,148,121,0.55)",
           }}
         >
           <PenLine size={17} />
@@ -204,9 +204,9 @@ function JournalPage() {
           aria-expanded={listOpen}
           className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
           style={{
-            background: "var(--brand-pink-soft)",
-            color: "var(--brand-pink-strong)",
-            border: "1px solid rgba(212,112,138,0.30)",
+            background: "#E5E2DA",
+            color: "#2A2520",
+            border: "1px solid rgba(42,37,32,0.10)",
           }}
         >
           <List size={17} />
@@ -215,10 +215,11 @@ function JournalPage() {
         </button>
       </div>
 
-      {logOpen && (
+      <div className="collapse-shell mt-6" data-open={logOpen} aria-hidden={!logOpen}>
+        <div className="collapse-inner">
         <section
-          className="card-pp mt-6"
-          style={{ background: "var(--brand-pink-soft)", borderLeft: "4px solid var(--brand-pink-strong)" }}
+          className="card-pp"
+          style={{ background: "var(--linen)", borderLeft: "4px solid var(--primary)" }}
         >
           <form onSubmit={submit} className="space-y-3">
           <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed p-3 text-[12px]" style={{ borderColor: "var(--border)" }}>
@@ -299,11 +300,13 @@ function JournalPage() {
           </div>
         </form>
         </section>
-      )}
+        </div>
+      </div>
 
-      {listOpen && (
+      <div className="collapse-shell mt-6" data-open={listOpen} aria-hidden={!listOpen}>
+        <div className="collapse-inner">
         <section
-          className="card-pp mt-6"
+          className="card-pp"
           style={{ background: "var(--accent-powder)", borderLeft: "4px solid var(--accent-powder-ink)" }}
         >
           {list.length === 0 ? (
@@ -329,7 +332,8 @@ function JournalPage() {
             </div>
           )}
         </section>
-      )}
+        </div>
+      </div>
       <div className="hidden">{typeLabel("other")}{typeColor("other")}</div>
       <AddFromJournalModal open={journalOpen} onClose={() => setJournalOpen(false)} onSaved={load} />
       <BulkPastIncidentsModal open={bulkOpen} onClose={() => setBulkOpen(false)} onSaved={load} />
