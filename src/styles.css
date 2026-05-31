@@ -41,40 +41,40 @@
 
 :root {
   /* Pattern Proof — Sage & Linen sanctuary palette */
-  --background: #F6EFE4;          /* warmer linen, leans toward peach-cream */
+  --background: #ECEAE3;          /* cool linen-gray, calm and grounded */
   --foreground: #1A1714;          /* near-black text */
   --card: #FFFFFF;
   --panel: #2A2520;               /* charcoal feature panel */
   --sidebar: #2A2520;
   --sidebar-active: #FAF7F2;
   --sidebar-inactive: #C8C3BA;
-  --primary: #C36A82;             /* Proof pink — primary CTA / brand accent */
+  --primary: #7A9479;             /* sage — primary CTA */
   --primary-foreground: #F7F3EC;
-  --accent: #C36A82;              /* Proof pink — secondary accent */
+  --accent: #7A9479;              /* sage — secondary accent */
   --safe: #7A9479;
   --gold: #C9A84C;
   /* Brand pink lifted straight from the "Proof" wordmark */
   --brand-pink: #D4708A;
   --brand-pink-strong: #B85574;   /* WCAG-AA safe ink on cream */
-  --brand-pink-soft: #F2D9E0;     /* warm wash for surfaces */
-  --brand-pink-tint: rgba(212, 112, 138, 0.10);
+  --brand-pink-soft: #ECDDE2;     /* muted rose wash for surfaces */
+  --brand-pink-tint: rgba(212, 112, 138, 0.08);
   --muted-foreground: #2E2A26;
-  --border: rgba(184, 85, 116, 0.14);  /* subtly pink-tinted hairline */
+  --border: rgba(42, 37, 32, 0.10);   /* neutral hairline */
   --input: #FFFFFF;
-  --ring: #C36A82;
+  --ring: #7A9479;
   --destructive: #B8728A;         /* dusty rose for destructive — never red */
   --destructive-foreground: #FFFFFF;
   --popover: #FFFFFF;
   --popover-foreground: #2A2520;
-  --secondary: #EBD9D2;           /* warm rose-linen */
+  --secondary: #E0DED5;           /* cool linen */
   --secondary-foreground: #2A2520;
   --muted: rgba(42, 37, 32, 0.05);
   /* Tinted card surfaces */
-  --tint-pink: rgba(212, 112, 138, 0.10);
+  --tint-pink: rgba(212, 112, 138, 0.07);
   --tint-blue: rgba(122, 148, 121, 0.06);
   --tint-gold: rgba(201, 168, 76, 0.08);
   --tint-sage: rgba(122, 148, 121, 0.10);
-  --linen: #EFE3D3;               /* warmer linen card surface */
+  --linen: #E5E2DA;               /* cool linen card surface */
   /* Proposal accent palette — desaturated and warmed to sit on the linen/sage theme.
      Soft tinted surfaces with grounded, earthy ink colors. */
   --accent-butter: #F2EAD3;          /* warm tea-stained cream */
@@ -177,7 +177,7 @@ em, .font-serif em, h1 em, h2 em, h3 em {
 .card-tint-gold { background-color: var(--tint-gold); }
 .card-tint-sage { background-color: var(--tint-sage); }
 .btn-primary {
-  background-color: var(--brand-pink);
+  background-color: var(--primary);
   color: var(--primary-foreground);
   border-radius: 999px;
   padding: 13px 26px;
@@ -185,9 +185,9 @@ em, .font-serif em, h1 em, h2 em, h3 em {
   transition: filter 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
   font-family: var(--font-sans);
   letter-spacing: 0.01em;
-  box-shadow: 0 2px 10px rgba(212, 112, 138, 0.25);
+  box-shadow: 0 2px 10px rgba(122, 148, 121, 0.25);
 }
-.btn-primary:hover { filter: brightness(0.96); box-shadow: 0 6px 22px rgba(212, 112, 138, 0.33); transform: translateY(-1px); }
+.btn-primary:hover { filter: brightness(0.96); box-shadow: 0 6px 22px rgba(122, 148, 121, 0.33); transform: translateY(-1px); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
 .btn-ghost {
   color: var(--foreground);
@@ -238,9 +238,24 @@ textarea.input-pp { min-height: 130px; resize: vertical; line-height: 1.95; font
   animation: pp-pulse 2.6s ease-in-out infinite;
 }
 @keyframes pp-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 112, 138, 0.45); }
-  50% { box-shadow: 0 0 0 22px rgba(212, 112, 138, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(122, 148, 121, 0.45); }
+  50% { box-shadow: 0 0 0 22px rgba(122, 148, 121, 0); }
 }
+
+/* Smooth expand/collapse using grid-template-rows — keeps layout stable,
+   no modal, no popover. Wrap content in .collapse-shell + .collapse-inner. */
+.collapse-shell {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 220ms ease;
+  opacity: 0;
+}
+.collapse-shell[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.collapse-inner { overflow: hidden; min-height: 0; }
 
 /* Soft breathing animation for the mic button at rest */
 .breathe {
