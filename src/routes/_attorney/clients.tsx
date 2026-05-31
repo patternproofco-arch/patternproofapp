@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { AlertTriangle, FileText, MessageSquare, TrendingUp, Users } from "lucide-react";
+import { AlertTriangle, FileText, MessageSquare, TrendingUp, Users, ArrowRight } from "lucide-react";
 import { listMyClients } from "@/lib/attorney-portal.functions";
 
 export const Route = createFileRoute("/_attorney/clients")({
@@ -10,11 +10,11 @@ export const Route = createFileRoute("/_attorney/clients")({
 
 type ClientRow = Awaited<ReturnType<typeof listMyClients>>["clients"][number];
 
-const riskStyle: Record<string, { bg: string; label: string }> = {
-  low: { bg: "var(--safe)", label: "Low" },
-  moderate: { bg: "var(--type-coercive)", label: "Moderate" },
-  elevated: { bg: "var(--type-emotional)", label: "Elevated" },
-  high: { bg: "var(--primary)", label: "High" },
+const RISK: Record<string, { color: string; label: string }> = {
+  low:      { color: "#10B981", label: "Low" },
+  moderate: { color: "#FBBF24", label: "Moderate" },
+  elevated: { color: "#F59E0B", label: "Elevated" },
+  high:     { color: "#EF4444", label: "High" },
 };
 
 function ClientsList() {
@@ -25,58 +25,67 @@ function ClientsList() {
 
   return (
     <div>
-      <div className="label-eyebrow">Litigation intelligence</div>
-      <h1 className="mt-2 font-serif text-[32px]">Your clients</h1>
-      <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-        Every documented incident, evidence file, and pattern from each client — organized for filing, not for reading.
+      <div className="att-eyebrow">Case Files</div>
+      <h1 style={{ fontSize: 34, marginTop: 6, marginBottom: 6 }}>Your clients</h1>
+      <p style={{ color: "var(--att-text-2)", maxWidth: 640, marginBottom: 24 }}>
+        Read-only litigation portal for every survivor who has shared their PatternProof case file with you.
       </p>
 
       {!clients ? (
-        <div className="card-pp mt-6">Loading clients…</div>
+        <div className="att-card">Loading clients…</div>
       ) : clients.length === 0 ? (
-        <div className="card-pp mt-6">
-          <div className="flex items-center gap-2"><Users size={16} /><div className="font-serif text-[16px]">No clients yet</div></div>
-          <p className="mt-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            When a survivor invites you, their case will appear here. Ask them to send you an invitation link from PatternProof.
+        <div className="att-card" style={{ textAlign: "center", padding: 40 }}>
+          <Users size={28} style={{ color: "var(--att-muted)", margin: "0 auto 10px" }} />
+          <h2 style={{ fontSize: 22, marginBottom: 6 }}>No clients yet</h2>
+          <p style={{ color: "var(--att-text-2)", fontSize: 13 }}>
+            When a survivor invites you, their case appears here. Ask them to send you an invitation link from PatternProof.
           </p>
         </div>
       ) : (
-        <div className="mt-6 grid gap-3 md:grid-cols-2">
+        <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill,minmax(340px,1fr))" }}>
           {clients.map((c) => {
-            const risk = riskStyle[c.risk_level];
+            const risk = RISK[c.risk_level];
+            const caseId = `PP-${c.client_user_id.slice(0, 4).toUpperCase()}`;
             return (
               <Link
                 key={c.link_id}
                 to="/clients/$clientId"
                 params={{ clientId: c.client_user_id }}
-                className="card-pp block transition hover:opacity-90"
-                style={{ borderLeft: `4px solid ${risk.bg}` }}
+                className="att-card att-hover"
+                style={{ borderLeft: `3px solid ${risk.color}`, textDecoration: "none", color: "inherit", display: "block" }}
               >
-                <div className="flex items-start justify-between gap-2">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                   <div>
-                    <div className="font-serif text-[18px]">Client · {c.client_user_id.slice(0, 8)}</div>
-                    <div className="label-eyebrow mt-1">linked {new Date(c.linked_at).toLocaleDateString()}</div>
+                    <div className="att-eyebrow">Case</div>
+                    <h3 style={{ fontSize: 22, margin: "2px 0 2px" }}>Client {c.client_user_id.slice(0, 8)}</h3>
+                    <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+                      <span className="att-mono">{caseId}</span> · linked {new Date(c.linked_at).toLocaleDateString()}
+                    </div>
                   </div>
-                  <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: risk.bg, color: "var(--sidebar-active)" }}>
-                    {risk.label} risk
+                  <span className="att-tag" style={{ background: `${risk.color}1A`, color: risk.color }}>
+                    {risk.label}
                   </span>
                 </div>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-[12px]">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginTop: 16 }}>
                   <Stat icon={<FileText size={12} />} label="Incidents" v={c.incident_count} />
                   <Stat icon={<TrendingUp size={12} />} label="Evidence" v={c.evidence_count} />
-                  <Stat icon={<AlertTriangle size={12} />} label="Active flags" v={c.escalation_flag_count} />
+                  <Stat icon={<AlertTriangle size={12} />} label="Flags" v={c.escalation_flag_count} />
                 </div>
                 {(c.unread_messages > 0 || c.open_doc_requests > 0) && (
-                  <div className="mt-3 flex items-center gap-3 text-[11px]" style={{ color: "var(--primary)" }}>
-                    {c.unread_messages > 0 && <span className="inline-flex items-center gap-1"><MessageSquare size={11} /> {c.unread_messages} new</span>}
-                    {c.open_doc_requests > 0 && <span>{c.open_doc_requests} doc request{c.open_doc_requests === 1 ? "" : "s"} open</span>}
+                  <div style={{ marginTop: 12, display: "flex", gap: 12, fontSize: 11, color: "var(--att-blue)", fontWeight: 600 }}>
+                    {c.unread_messages > 0 && <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><MessageSquare size={11} /> {c.unread_messages} new</span>}
+                    {c.open_doc_requests > 0 && <span>{c.open_doc_requests} doc request{c.open_doc_requests === 1 ? "" : "s"}</span>}
                   </div>
                 )}
-                {c.last_incident_date && (
-                  <div className="mt-2 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                    Most recent incident: {new Date(c.last_incident_date).toLocaleDateString()}
-                  </div>
-                )}
+                <div className="att-divider" />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "var(--att-text-2)" }}>
+                  <span>
+                    {c.last_incident_date ? `Latest: ${new Date(c.last_incident_date).toLocaleDateString()}` : "No incidents yet"}
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--att-navy)", fontWeight: 600 }}>
+                    Open case <ArrowRight size={12} />
+                  </span>
+                </div>
               </Link>
             );
           })}
@@ -89,8 +98,8 @@ function ClientsList() {
 function Stat({ icon, label, v }: { icon: React.ReactNode; label: string; v: number }) {
   return (
     <div>
-      <div className="flex items-center gap-1" style={{ color: "var(--muted-foreground)" }}>{icon} {label}</div>
-      <div className="mt-0.5 font-serif text-[20px]">{v}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--att-slate)", fontSize: 11, fontWeight: 600, letterSpacing: 0.6, textTransform: "uppercase" }}>{icon}{label}</div>
+      <div style={{ fontSize: 24, fontFamily: '"Instrument Serif", serif', marginTop: 2 }}>{v}</div>
     </div>
   );
 }
