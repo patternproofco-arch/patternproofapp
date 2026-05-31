@@ -2,7 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 
-@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap");
 
 @theme inline {
   --radius-sm: 10px;
@@ -271,3 +271,10 @@ textarea.input-pp { min-height: 130px; resize: vertical; line-height: 1.95; font
   .no-print { display: none !important; }
   .print-page { padding: 0 !important; }
 }
+
+/* Mobile zoom — slightly compress UI on small screens for better fit */
+@media (max-width: 767px) {
+  html { zoom: 0.85; }
+}
+
+.font-nunito { font-family: "Nunito", system-ui, -apple-system, sans-serif; }
