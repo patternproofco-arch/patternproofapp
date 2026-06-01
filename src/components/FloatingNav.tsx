@@ -368,14 +368,15 @@ function DesktopDock({
         style={{
           display: "flex", alignItems: "center", gap: 12,
           padding: "10px 10px", borderRadius: 16,
-          color: "#C8C3BA", background: "transparent",
+          background: "transparent",
         }}
       >
-        <MoreHorizontal size={22} strokeWidth={2.25} style={{ marginLeft: 4 }} />
+        <MoreHorizontal size={22} strokeWidth={2.25} style={{ marginLeft: 4, color: "#C8C3BA" }} />
         <span
           style={{
             fontSize: 13, fontWeight: 700, whiteSpace: "nowrap",
             opacity: open ? 1 : 0, transition: "opacity 0.2s ease",
+            color: "#FAF7F2",
           }}
         >
           More
