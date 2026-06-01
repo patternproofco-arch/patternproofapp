@@ -341,19 +341,20 @@ function DesktopDock({
                 : it.pinnedLabel
                   ? "rgba(168,204,224,0.16)"
                   : active ? "rgba(255,255,255,0.08)" : "transparent",
-              color: ACCENT[it.accent],
               transition: "background 0.2s ease, transform 0.2s ease",
               transform: it.cta ? "scale(1.02)" : "scale(1)",
               borderLeft: active ? `2px solid ${ACCENT[it.accent]}` : "2px solid transparent",
             }}
           >
-            <it.Icon size={22} strokeWidth={2.25} style={{ flexShrink: 0, marginLeft: 4 }} />
+            <it.Icon size={22} strokeWidth={2.25} style={{ flexShrink: 0, marginLeft: 4, color: ACCENT[it.accent] }} />
             <span
               style={{
                 fontSize: 13, fontWeight: 700,
                 whiteSpace: "nowrap",
                 opacity: open ? 1 : 0,
                 transition: "opacity 0.2s ease",
+                color: "#FAF7F2",
+                letterSpacing: "0.01em",
               }}
             >
               {it.label}
