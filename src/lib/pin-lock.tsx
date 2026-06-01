@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 const PIN_KEY = "pp_pin_hash_v1";
 const FAILS_KEY = "pp_pin_fails_v1";
 const LOCK_UNTIL_KEY = "pp_pin_lock_until_v1";
+const SESSION_UNLOCKED_KEY = "pp_session_unlocked_v1";
 
 async function hash(pin: string): Promise<string> {
   const enc = new TextEncoder().encode("pp::" + pin);
@@ -28,7 +29,10 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return;
     const stored = !!localStorage.getItem(PIN_KEY);
     setHasPin(stored);
-    if (stored) setIsLocked(true);
+    if (stored) {
+      const sessionUnlocked = sessionStorage.getItem(SESSION_UNLOCKED_KEY);
+      setIsLocked(!sessionUnlocked);
+    }
   }, []);
 
   const setRealPin = async (pin: string) => {
@@ -45,6 +49,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     const h = await hash(pin);
     if (real && h === real) {
       localStorage.setItem(FAILS_KEY, "0");
+      sessionStorage.setItem(SESSION_UNLOCKED_KEY, "1");
       setIsLocked(false);
       return "real";
     }
@@ -57,7 +62,10 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     return "wrong";
   };
 
-  const lock = () => { setIsLocked(true); };
+  const lock = () => {
+    sessionStorage.removeItem(SESSION_UNLOCKED_KEY);
+    setIsLocked(true);
+  };
 
   return (
     <PinCtx.Provider value={{ hasPin, isLocked, setRealPin, unlock, lock }}>
