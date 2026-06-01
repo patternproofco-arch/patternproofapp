@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 const PIN_KEY = "pp_pin_hash_v1";
 const FAILS_KEY = "pp_pin_fails_v1";
 const LOCK_UNTIL_KEY = "pp_pin_lock_until_v1";
+const SESSION_UNLOCKED_KEY = "pp_session_unlocked_v1";
 
 async function hash(pin: string): Promise<string> {
   const enc = new TextEncoder().encode("pp::" + pin);
