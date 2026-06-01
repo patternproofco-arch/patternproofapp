@@ -50,7 +50,7 @@ export function AppShell() {
       <main
         className="app-surface print-page mx-auto w-full max-w-6xl px-5 md:px-10"
         style={{
-          paddingTop: 16,
+          paddingTop: 24,
           // bottom padding: nav island height + safety
           paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 120px)",
         }}
