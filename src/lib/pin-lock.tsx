@@ -29,7 +29,10 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return;
     const stored = !!localStorage.getItem(PIN_KEY);
     setHasPin(stored);
-    if (stored) setIsLocked(true);
+    if (stored) {
+      const sessionUnlocked = sessionStorage.getItem(SESSION_UNLOCKED_KEY);
+      setIsLocked(!sessionUnlocked);
+    }
   }, []);
 
   const setRealPin = async (pin: string) => {
