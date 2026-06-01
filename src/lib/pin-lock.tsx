@@ -49,6 +49,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     const h = await hash(pin);
     if (real && h === real) {
       localStorage.setItem(FAILS_KEY, "0");
+      sessionStorage.setItem(SESSION_UNLOCKED_KEY, "1");
       setIsLocked(false);
       return "real";
     }
@@ -61,7 +62,10 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     return "wrong";
   };
 
-  const lock = () => { setIsLocked(true); };
+  const lock = () => {
+    sessionStorage.removeItem(SESSION_UNLOCKED_KEY);
+    setIsLocked(true);
+  };
 
   return (
     <PinCtx.Provider value={{ hasPin, isLocked, setRealPin, unlock, lock }}>
