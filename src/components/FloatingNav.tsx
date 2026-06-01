@@ -1,8 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Home, PenLine, Clock3, Mic, Briefcase, MoreHorizontal,
+  Home, FilePlus2, CalendarClock, Mic, Scale, MoreHorizontal,
   Sparkles, Paperclip, FileText, Hammer, LifeBuoy, BookMarked,
   HeartHandshake, TrendingUp, Settings as SettingsIcon, LogOut, X,
+  PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,10 +30,10 @@ type Item = {
 
 const PRIMARY: Item[] = [
   { to: "/dashboard",          label: "Home",            Icon: Home,      accent: "neutral" },
-  { to: "/journal",            label: "Log Incident",    Icon: PenLine,   accent: "pink",   cta: true },
-  { to: "/timeline",           label: "Timeline",        Icon: Clock3,    accent: "yellow" },
+  { to: "/journal",            label: "Log Incident",    Icon: FilePlus2, accent: "pink",   cta: true },
+  { to: "/timeline",           label: "Timeline",        Icon: CalendarClock, accent: "yellow" },
   { to: "/voice-notes",        label: "Voice Memo",      Icon: Mic,       accent: "purple" },
-  { to: "/share-with-attorney",label: "Attorney Portal", Icon: Briefcase, accent: "blue", pinnedLabel: true },
+  { to: "/share-with-attorney",label: "Attorney Portal", Icon: Scale,     accent: "blue", pinnedLabel: true },
 ];
 
 const OVERFLOW = [
