@@ -39,7 +39,6 @@ import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenti
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
 import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
-import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -199,18 +198,13 @@ const AttorneyClientsRoute = AttorneyClientsRouteImport.update({
   path: '/clients',
   getParentRoute: () => AttorneyRoute,
 } as any)
-const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
-  id: '/$clientId',
-  path: '/$clientId',
-  getParentRoute: () => AttorneyClientsRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/clients': typeof AttorneyClientsRouteWithChildren
+  '/clients': typeof AttorneyClientsRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -234,14 +228,13 @@ export interface FileRoutesByFullPath {
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
-  '/clients/$clientId': typeof AttorneyClientsClientIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/clients': typeof AttorneyClientsRouteWithChildren
+  '/clients': typeof AttorneyClientsRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -265,7 +258,6 @@ export interface FileRoutesByTo {
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
-  '/clients/$clientId': typeof AttorneyClientsClientIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -275,7 +267,7 @@ export interface FileRoutesById {
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_attorney/clients': typeof AttorneyClientsRouteWithChildren
+  '/_attorney/clients': typeof AttorneyClientsRoute
   '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -299,7 +291,6 @@ export interface FileRoutesById {
   '/_authenticated/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
-  '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -332,7 +323,6 @@ export interface FileRouteTypes {
     | '/why-courts-struggle'
     | '/accept-invite/$token'
     | '/attorney/$token'
-    | '/clients/$clientId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -363,7 +353,6 @@ export interface FileRouteTypes {
     | '/why-courts-struggle'
     | '/accept-invite/$token'
     | '/attorney/$token'
-    | '/clients/$clientId'
   id:
     | '__root__'
     | '/'
@@ -396,7 +385,6 @@ export interface FileRouteTypes {
     | '/_authenticated/why-courts-struggle'
     | '/accept-invite/$token'
     | '/attorney/$token'
-    | '/_attorney/clients/$clientId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -622,34 +610,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyClientsRouteImport
       parentRoute: typeof AttorneyRoute
     }
-    '/_attorney/clients/$clientId': {
-      id: '/_attorney/clients/$clientId'
-      path: '/$clientId'
-      fullPath: '/clients/$clientId'
-      preLoaderRoute: typeof AttorneyClientsClientIdRouteImport
-      parentRoute: typeof AttorneyClientsRoute
-    }
   }
 }
 
-interface AttorneyClientsRouteChildren {
-  AttorneyClientsClientIdRoute: typeof AttorneyClientsClientIdRoute
-}
-
-const AttorneyClientsRouteChildren: AttorneyClientsRouteChildren = {
-  AttorneyClientsClientIdRoute: AttorneyClientsClientIdRoute,
-}
-
-const AttorneyClientsRouteWithChildren = AttorneyClientsRoute._addFileChildren(
-  AttorneyClientsRouteChildren,
-)
-
 interface AttorneyRouteChildren {
-  AttorneyClientsRoute: typeof AttorneyClientsRouteWithChildren
+  AttorneyClientsRoute: typeof AttorneyClientsRoute
 }
 
 const AttorneyRouteChildren: AttorneyRouteChildren = {
-  AttorneyClientsRoute: AttorneyClientsRouteWithChildren,
+  AttorneyClientsRoute: AttorneyClientsRoute,
 }
 
 const AttorneyRouteWithChildren = AttorneyRoute._addFileChildren(
@@ -721,3 +690,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
