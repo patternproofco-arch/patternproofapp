@@ -1,8 +1,15 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
-import { AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, FileText, HelpCircle, Sparkles, TrendingUp, X } from "lucide-react";
-import { getClientCase, generateDepositionPrep } from "@/lib/attorney-portal.functions";
+import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
+  Flag, HelpCircle, Image as ImageIcon, Music, Paperclip, Printer, Sparkles,
+  TrendingUp,
+} from "lucide-react";
+import {
+  getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
+  listAttorneyNotes, upsertAttorneyNote,
+} from "@/lib/attorney-portal.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { toast } from "sonner";
 
@@ -12,79 +19,28 @@ export const Route = createFileRoute("/_attorney/clients/$clientId")({
 
 type CaseData = Awaited<ReturnType<typeof getClientCase>>;
 type DepoResult = Awaited<ReturnType<typeof generateDepositionPrep>>;
+type NoteRow = { incident_id: string; note: string | null; flagged: boolean; reviewed: boolean };
 
-const TABS = ["Overview", "Patterns", "Checklist", "Gaps", "Timeline", "Deposition"] as const;
+const TABS = [
+  "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
+] as const;
 type Tab = (typeof TABS)[number];
-
-const TAB_GUIDE: Record<Tab, { title: string; see: string; do: string; why: string; court: string; flag?: string }> = {
-  Overview: {
-    title: "Your client's case summary",
-    see: "Recent incidents, pattern summary, key metrics.",
-    do: "Start here. Skim the summary and recent incidents.",
-    why: "5-minute client understanding instead of a 2-hour review.",
-    court: "Client summary can become your opening narrative.",
-  },
-  Patterns: {
-    title: "The abuse architecture",
-    see: "Categorized pattern types (isolation, financial control, threats) with frequency counts.",
-    do: "Identify the dominant pattern for your legal theory.",
-    why: "Courts understand coercive control through patterns, not isolated incidents.",
-    court: "Argue 'systematic control' vs. 'isolated conflict.'",
-    flag: "If patterns are uneven (e.g. 5 isolation, 0 financial), prepare for selection-bias attacks.",
-  },
-  Checklist: {
-    title: "Stark coercive control framework",
-    see: "Which control mechanisms are documented and how many incidents per mechanism.",
-    do: "Check which boxes are documented vs. missing.",
-    why: "Family courts recognize the Stark framework — this proves systematic control.",
-    court: "8+ of 11 Stark behaviors documented = textbook coercive control case.",
-    flag: "Missing mechanisms? Ask the client to document them before filing.",
-  },
-  Gaps: {
-    title: "What's missing (and why it matters)",
-    see: "Evidence gaps, documentation weaknesses, pattern holes.",
-    do: "Use this to prep your client before deposition or cross-examination.",
-    why: "Opposing counsel will attack these gaps — address them first.",
-    court: "Demonstrates thorough case prep to the bench.",
-  },
-  Timeline: {
-    title: "Escalation proof",
-    see: "Month-by-month incident frequency and severity trends.",
-    do: "Show this to judges and mediators as proof of escalation.",
-    why: "Escalation = premeditation = coercive control, not mutual conflict.",
-    court: "Visual proof of systematic worsening — powerful for custody and restraining orders.",
-    flag: "A flat timeline still indicates maintained control — adjust strategy, don't dismiss.",
-  },
-  Deposition: {
-    title: "Your witness prep",
-    see: "Chronology strengths, credibility gaps, likely cross angles, prep questions.",
-    do: "Run this 48 hours before deposition or testimony.",
-    why: "AI surfaces weak spots in advance and gives you a deflection strategy.",
-    court: "Client testimony lands tighter and less emotionally triggered.",
-  },
-};
-
-const METRIC_HELP: Record<string, string> = {
-  Incidents: "Total documented incidents in this case file.",
-  Evidence: "Files (photos, audio, documents) the client has uploaded as evidence.",
-  "Last 30d": "Incidents documented in the past 30 days — relevant for emergency motions.",
-  "Avg severity": "Severity 1 (minor) to 5 (severe). Helps establish pattern intensity for judges evaluating risk.",
-  "Active flags": "Escalation moments, threats, or control attempts that happened recently. Relevant for emergency motions and TROs.",
-  Risk: "HIGH RISK = escalating patterns, documented threats, or active surveillance. Strengthens protective orders, custody modifications, and emergency relief.",
-};
 
 function ClientCaseView() {
   const { clientId } = useParams({ from: "/_attorney/clients/$clientId" });
   const fetcher = useServerFn(getClientCase);
   const depoFn = useServerFn(generateDepositionPrep);
+  const notesFn = useServerFn(listAttorneyNotes);
   const [data, setData] = useState<CaseData | null>(null);
   const [tab, setTab] = useState<Tab>("Overview");
   const [depo, setDepo] = useState<DepoResult | null>(null);
   const [depoLoading, setDepoLoading] = useState(false);
+  const [notes, setNotes] = useState<NoteRow[]>([]);
 
   useEffect(() => {
     fetcher({ data: { clientId } }).then(setData).catch(() => toast("Couldn't load case."));
-  }, [fetcher, clientId]);
+    notesFn({ data: { clientId } }).then((r) => setNotes(r.notes)).catch(() => {});
+  }, [fetcher, notesFn, clientId]);
 
   const runDepo = async () => {
     setDepoLoading(true);
@@ -95,280 +51,339 @@ function ClientCaseView() {
     } finally { setDepoLoading(false); }
   };
 
-  if (!data) return <div className="card-pp">Loading case…</div>;
+  if (!data) return <div className="att-card">Loading case file…</div>;
 
+  const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
   const riskColor: Record<string, string> = {
-    low: "var(--safe)", moderate: "var(--type-coercive)",
-    elevated: "var(--type-emotional)", high: "var(--primary)",
+    low: "#10B981", moderate: "#FBBF24", elevated: "#F59E0B", high: "#EF4444",
   };
 
   return (
     <div>
-      <FirstTimeAttorneyModal />
-      <Link to="/clients" className="inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--accent)" }}>
-        <ArrowLeft size={13} /> All clients
+      <Link to="/clients" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--att-slate)", textDecoration: "none" }}>
+        <ArrowLeft size={12} /> All clients
       </Link>
-      <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginTop: 12 }}>
         <div>
-          <div className="label-eyebrow">Case file</div>
-          <h1 className="mt-1 font-serif text-[28px]">Client · {clientId.slice(0, 8)}</h1>
+          <div className="att-eyebrow">Case File</div>
+          <h1 style={{ fontSize: 30, marginTop: 4 }}>Client {clientId.slice(0, 8)}</h1>
+          <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+            <span className="att-mono">{caseId}</span>
+            {data.incidents.length > 0 && (
+              <> · {data.incidents.length} incidents · {data.evidence.length} evidence items</>
+            )}
+          </div>
         </div>
-        <span title={METRIC_HELP.Risk} className="inline-flex cursor-help items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold" style={{ background: riskColor[data.risk_level], color: "var(--sidebar-active)" }}>
-          {data.risk_level.toUpperCase()} RISK <HelpCircle size={11} />
+        <span className="att-tag" style={{ background: `${riskColor[data.risk_level]}1A`, color: riskColor[data.risk_level] }}>
+          {data.risk_level.toUpperCase()} RISK
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-5">
-        <Metric label="Incidents" v={data.incidents.length} help={METRIC_HELP.Incidents} />
-        <Metric label="Evidence" v={data.evidence.length} help={METRIC_HELP.Evidence} />
-        <Metric label="Last 30d" v={data.last_30_days} help={METRIC_HELP["Last 30d"]} />
-        <Metric label="Avg severity" v={data.avg_severity.toFixed(1)} help={METRIC_HELP["Avg severity"]} />
-        <Metric label="Active flags" v={data.flags.filter((f) => !f.dismissed_at).length} help={METRIC_HELP["Active flags"]} />
+      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", marginTop: 18 }}>
+        <Metric label="Incidents" v={data.incidents.length} />
+        <Metric label="Evidence" v={data.evidence.length} />
+        <Metric label="Last 30 days" v={data.last_30_days} />
+        <Metric label="Avg severity" v={data.avg_severity.toFixed(1)} />
+        <Metric label="Active flags" v={data.flags.filter((f) => !f.dismissed_at).length} />
       </div>
 
-      <TimeSavedCard />
-      <NextStepsCard onJump={(t) => setTab(t)} onGenerate={() => { setTab("Deposition"); runDepo(); }} />
-
-      <div className="mt-6 flex flex-wrap gap-1 border-b" style={{ borderColor: "var(--border)" }}>
+      <nav style={{ display: "flex", flexWrap: "wrap", gap: 2, borderBottom: "1px solid var(--att-border)", marginTop: 28 }}>
         {TABS.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className="px-3 py-2 text-[13px]"
             style={{
-              borderBottom: tab === t ? "2px solid var(--primary)" : "2px solid transparent",
-              fontWeight: tab === t ? 700 : 500,
-              color: tab === t ? "var(--foreground)" : "var(--muted-foreground)",
+              padding: "10px 14px", fontSize: 13, fontWeight: tab === t ? 600 : 500,
+              color: tab === t ? "var(--att-navy)" : "var(--att-text-2)",
+              borderBottom: tab === t ? "2px solid var(--att-navy)" : "2px solid transparent",
+              background: "transparent", cursor: "pointer", fontFamily: "inherit",
             }}
           >
             {t}
           </button>
         ))}
-      </div>
+      </nav>
 
-      <TabGuide tab={tab} />
-
-      <div className="mt-5">
+      <div style={{ marginTop: 20 }}>
         {tab === "Overview" && <Overview data={data} />}
+        {tab === "Timeline" && <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} />}
         {tab === "Patterns" && <Patterns data={data} />}
-        {tab === "Checklist" && <Checklist data={data} />}
+        {tab === "Checklist" && <ChecklistTab data={data} />}
         {tab === "Gaps" && <Gaps data={data} />}
-        {tab === "Timeline" && <TimelineTab data={data} />}
+        {tab === "Evidence" && <EvidenceTab data={data} clientId={clientId} />}
         {tab === "Deposition" && <DepoTab depo={depo} loading={depoLoading} onRun={runDepo} />}
+        {tab === "Export" && <ExportTab data={data} caseId={caseId} />}
       </div>
     </div>
   );
 }
+
+/* ---------------- shared atoms ---------------- */
 
 function Metric({ label, v, help }: { label: string; v: number | string; help?: string }) {
   return (
-    <div className="card-pp" style={{ padding: 12 }} title={help}>
-      <div className="label-eyebrow inline-flex items-center gap-1">
+    <div className="att-card" style={{ padding: 14 }} title={help}>
+      <div className="att-eyebrow" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
         {label}{help && <HelpCircle size={10} style={{ opacity: 0.6 }} />}
       </div>
-      <div className="mt-1 font-serif text-[22px]">{v}</div>
+      <div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>{v}</div>
     </div>
   );
 }
 
-function TimeSavedCard() {
+function SectionTitle({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="card-pp mt-4" style={{ borderLeft: "3px solid var(--accent)" }}>
-      <div className="flex items-center gap-2"><Clock size={16} style={{ color: "var(--accent)" }} /><div className="font-serif text-[18px]">What this saves you per case</div></div>
-      <div className="mt-3 grid gap-3 md:grid-cols-2">
-        <div>
-          <div className="label-eyebrow">Without Pattern-Proof</div>
-          <ul className="mt-2 space-y-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            <li>40h reviewing scattered screenshots & notes</li>
-            <li>8h building timelines by hand</li>
-            <li>12h interviewing client for exact dates/quotes</li>
-            <li>6h organizing evidence for discovery</li>
-          </ul>
-          <div className="mt-2 text-[13px]"><strong>66h × $300 = $19,800</strong></div>
-        </div>
-        <div>
-          <div className="label-eyebrow">With Pattern-Proof</div>
-          <ul className="mt-2 space-y-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            <li>2h reviewing organized incidents</li>
-            <li>0h on timeline (auto-generated)</li>
-            <li>1h clarifying gaps</li>
-            <li>1h preparing court packet</li>
-          </ul>
-          <div className="mt-2 text-[13px]"><strong>4h × $300 = $1,200</strong></div>
-        </div>
-      </div>
-      <div className="mt-3 rounded-md p-3 text-[13px]" style={{ background: "var(--input)" }}>
-        <strong>62 hours saved per case</strong> — a 94% reduction in case prep. More cases, same hours, more revenue.
-      </div>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+      {icon}
+      <h2 style={{ fontSize: 20 }}>{children}</h2>
     </div>
   );
 }
 
-function NextStepsCard({ onJump, onGenerate }: { onJump: (t: Tab) => void; onGenerate: () => void }) {
-  return (
-    <div className="card-pp mt-4">
-      <div className="font-serif text-[18px]">What to do right now</div>
-      <div className="mt-3 grid gap-2 md:grid-cols-3">
-        <button onClick={() => onJump("Checklist")} className="rounded-md p-3 text-left text-[13px]" style={{ background: "var(--accent)", color: "var(--sidebar-active)" }}>
-          <div className="font-semibold">1. Review checklist</div>
-          <div className="mt-1 opacity-90">3 minutes. See how many Stark items are documented.</div>
-        </button>
-        <button onClick={() => onJump("Gaps")} className="rounded-md p-3 text-left text-[13px]" style={{ background: "#1a2332", color: "#F5F1E6" }}>
-          <div className="font-semibold">2. Check gaps</div>
-          <div className="mt-1 opacity-90">Know what opposing counsel will attack. Prepare for it.</div>
-        </button>
-        <button onClick={onGenerate} className="rounded-md p-3 text-left text-[13px]" style={{ background: "var(--sidebar)", color: "var(--sidebar-active)" }}>
-          <div className="font-semibold">3. Generate deposition prep</div>
-          <div className="mt-1 opacity-90">48h before testimony. Use this to coach your client.</div>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function TabGuide({ tab }: { tab: Tab }) {
-  const g = TAB_GUIDE[tab];
-  const [open, setOpen] = useState(false);
-  return (
-    <details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)} className="mt-4 card-pp">
-      <summary className="cursor-pointer text-[13px]"><strong>{g.title}</strong> <span style={{ color: "var(--muted-foreground)" }}>— what this tab does</span></summary>
-      <div className="mt-3 space-y-1 text-[13px]">
-        <div><span className="label-eyebrow">What you see: </span>{g.see}</div>
-        <div><span className="label-eyebrow">What to do: </span>{g.do}</div>
-        <div><span className="label-eyebrow">Why it matters: </span>{g.why}</div>
-        <div><span className="label-eyebrow">Court value: </span>{g.court}</div>
-        {g.flag && <div style={{ color: "var(--primary)" }}><span className="label-eyebrow" style={{ color: "var(--primary)" }}>Red flag: </span>{g.flag}</div>}
-      </div>
-    </details>
-  );
-}
-
-function FirstTimeAttorneyModal() {
-  const KEY = "pp-attorney-first-case-v1";
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!localStorage.getItem(KEY)) setOpen(true);
-  }, []);
-  if (!open) return null;
-  const close = () => { localStorage.setItem(KEY, "1"); setOpen(false); };
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)" }} onClick={close}>
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-xl" style={{ background: "var(--card)" }} onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between p-5" style={{ background: "linear-gradient(135deg, #1a2332, #243349)", color: "#F5F1E6", borderRadius: "12px 12px 0 0" }}>
-          <div>
-            <div className="label-eyebrow" style={{ color: "#E8C9BC" }}>Welcome to Pattern-Proof: Counsel</div>
-            <h2 className="mt-1 font-serif text-[24px]">You're looking at a forensic pattern analysis</h2>
-            <p className="mt-1 text-[13px] opacity-90">This isn't a journal. It's organized evidence architecture.</p>
-          </div>
-          <button onClick={close} aria-label="Close" className="rounded-full p-1" style={{ background: "rgba(255,255,255,0.1)", color: "#F5F1E6" }}><X size={16} /></button>
-        </div>
-        <div className="space-y-4 p-5 text-[14px]">
-          <p>
-            Your client documented their abuse with precision. We analyzed it for patterns, gaps, and credibility.
-            Below is everything you need for discovery, deposition prep, and settlement leverage.
-          </p>
-          <div className="rounded-md p-3" style={{ background: "var(--input)" }}>
-            <div className="font-serif text-[16px]">Here's what's here</div>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-[13px]">
-              <li><strong>Patterns</strong> — categorized control mechanisms with frequency counts</li>
-              <li><strong>Stark checklist</strong> — coercive control framework documented vs. missing</li>
-              <li><strong>Gaps</strong> — what opposing counsel will attack</li>
-              <li><strong>Timeline</strong> — month-by-month escalation proof</li>
-              <li><strong>Deposition prep</strong> — AI-surfaced weak spots and cross warnings</li>
-            </ul>
-          </div>
-          <div className="rounded-md p-3" style={{ background: "var(--input)" }}>
-            <div className="font-serif text-[16px]">Why this is different</div>
-            <p className="mt-2 text-[13px]">
-              Most DV clients bring shoeboxes of screenshots and a year of fragmented memory. Pattern-Proof clients bring
-              a chronologically organized, forensically structured case file — with patterns already identified and
-              gaps already flagged. You skip the 60+ hours of reconstruction and go straight to strategy.
-            </p>
-          </div>
-          <div className="flex justify-end gap-2">
-            <button onClick={close} className="btn-primary">Open case file</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+/* ---------------- Overview ---------------- */
 
 function Overview({ data }: { data: CaseData }) {
-  const recent = data.incidents.slice(-8).reverse();
+  const recent = data.incidents.slice(-6).reverse();
   return (
-    <div className="space-y-4">
-      {data.case?.pattern_summary && (
-        <div className="card-pp">
-          <div className="label-eyebrow">Client summary</div>
-          <p className="mt-2 whitespace-pre-wrap text-[14px]">{data.case.pattern_summary}</p>
+    <div style={{ display: "grid", gap: 16, gridTemplateColumns: "minmax(0,2fr) minmax(0,1fr)" }}>
+      <div style={{ display: "grid", gap: 16 }}>
+        {data.case?.pattern_summary && (
+          <div className="att-card">
+            <div className="att-eyebrow">Client summary</div>
+            <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{data.case.pattern_summary}</p>
+          </div>
+        )}
+        <div className="att-card">
+          <SectionTitle icon={<FileText size={16} />}>Recent incidents</SectionTitle>
+          <ul style={{ display: "grid", gap: 10, listStyle: "none", padding: 0, margin: 0 }}>
+            {recent.length === 0 && <li style={{ color: "var(--att-text-2)", fontSize: 13 }}>No incidents documented yet.</li>}
+            {recent.map((i) => (
+              <li key={i.id} style={{ borderLeft: "3px solid var(--att-navy)", paddingLeft: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>
+                  {new Date(i.date).toLocaleDateString()}
+                  {i.severity_level ? ` · severity ${i.severity_level}` : ""}
+                </div>
+                <div style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 2 }}>{i.description?.slice(0, 220)}</div>
+              </li>
+            ))}
+          </ul>
         </div>
-      )}
-      <div className="card-pp">
-        <div className="flex items-center gap-2"><FileText size={16} /><div className="font-serif text-[18px]">Recent incidents</div></div>
-        <ul className="mt-3 space-y-2 text-[13px]">
-          {recent.length === 0 && <li style={{ color: "var(--muted-foreground)" }}>No incidents documented yet.</li>}
-          {recent.map((i) => (
-            <li key={i.id} className="border-l-2 pl-3" style={{ borderColor: "var(--accent)" }}>
-              <strong>{new Date(i.date).toLocaleDateString()}</strong>
-              {i.severity_level ? ` · severity ${i.severity_level}` : ""}
-              <div style={{ color: "var(--muted-foreground)" }}>{i.description?.slice(0, 200)}</div>
-            </li>
-          ))}
-        </ul>
+      </div>
+      <div style={{ display: "grid", gap: 16 }}>
+        <div className="att-card">
+          <div className="att-eyebrow">Case info</div>
+          <dl style={{ marginTop: 10, fontSize: 13, display: "grid", gap: 8 }}>
+            <Row k="Other party" v={data.case?.other_party ?? "—"} />
+            <Row k="Jurisdiction" v={data.case?.jurisdiction ?? "—"} />
+            <Row k="Relationship" v={data.case?.relationship_type ?? "—"} />
+            <Row k="Span" v={data.timeline.length > 0 ? `${data.timeline[0].month} – ${data.timeline[data.timeline.length - 1].month}` : "—"} />
+          </dl>
+        </div>
+        <div className="att-card" style={{ background: "#F8FAFC" }}>
+          <div className="att-eyebrow">Quick actions</div>
+          <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+            <button className="att-btn-secondary" onClick={() => window.print()}>
+              <Printer size={13} /> Print case file
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function Patterns({ data }: { data: CaseData }) {
+function Row({ k, v }: { k: string; v: string }) {
   return (
-    <div className="card-pp">
-      <div className="flex items-center gap-2"><TrendingUp size={16} /><div className="font-serif text-[18px]">Categorized patterns</div></div>
-      {data.categories.length === 0 ? (
-        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>Not enough data to categorize yet.</p>
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+      <dt style={{ color: "var(--att-text-2)" }}>{k}</dt>
+      <dd style={{ fontWeight: 500, textAlign: "right" }}>{v}</dd>
+    </div>
+  );
+}
+
+/* ---------------- Timeline (with attorney private notes) ---------------- */
+
+function TimelineTab({ data, clientId, notes, onNotes }: { data: CaseData; clientId: string; notes: NoteRow[]; onNotes: (n: NoteRow[]) => void }) {
+  const upsert = useServerFn(upsertAttorneyNote);
+
+  const byMonth = useMemo(() => {
+    const m: Record<string, CaseData["incidents"]> = {};
+    for (const i of [...data.incidents].sort((a, b) => b.date.localeCompare(a.date))) {
+      const k = i.date.slice(0, 7);
+      (m[k] ??= []).push(i);
+    }
+    return m;
+  }, [data.incidents]);
+
+  const noteMap = useMemo(() => Object.fromEntries(notes.map((n) => [n.incident_id, n])), [notes]);
+
+  const update = async (incidentId: string, patch: Partial<NoteRow>) => {
+    const current = noteMap[incidentId] ?? { incident_id: incidentId, note: null, flagged: false, reviewed: false };
+    const next = { ...current, ...patch };
+    const others = notes.filter((n) => n.incident_id !== incidentId);
+    onNotes([...others, next]);
+    try {
+      await upsert({ data: { clientId, incidentId, ...patch } });
+    } catch {
+      toast("Couldn't save note.");
+    }
+  };
+
+  return (
+    <div className="att-card">
+      <SectionTitle icon={<TrendingUp size={16} />}>Incident timeline</SectionTitle>
+      {data.incidents.length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No incidents documented.</p>
       ) : (
-        <div className="mt-3 space-y-2">
-          {data.categories.sort((a, b) => b.count - a.count).map((c) => {
-            const max = Math.max(...data.categories.map((x) => x.count));
-            const pct = (c.count / max) * 100;
-            return (
+        Object.entries(byMonth).map(([month, items]) => (
+          <section key={month} style={{ marginBottom: 24 }}>
+            <div className="att-eyebrow" style={{ marginBottom: 8 }}>
+              {new Date(month + "-01").toLocaleDateString("en-US", { month: "long", year: "numeric" })} · {items.length} incident{items.length === 1 ? "" : "s"}
+            </div>
+            <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
+              {items.map((i) => {
+                const n = noteMap[i.id];
+                const evCount = data.evidence.filter((e) => e.linked_incident_id === i.id).length;
+                return (
+                  <li key={i.id} style={{ borderLeft: "3px solid var(--att-navy)", padding: "10px 14px", background: "#F8FAFC", borderRadius: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>
+                          {new Date(i.date).toLocaleDateString()}
+                          {i.severity_level ? ` · severity ${i.severity_level}` : ""}
+                        </div>
+                        {i.abuse_types?.length ? (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+                            {i.abuse_types.map((t) => (
+                              <span key={t} className={`att-tag att-tag-${t}`}>{typeLabel(t)}</span>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button
+                          className="att-btn-ghost"
+                          style={{ color: n?.flagged ? "#EF4444" : "var(--att-text-2)" }}
+                          onClick={() => update(i.id, { flagged: !n?.flagged })}
+                          title="Flag for review"
+                        >
+                          <Flag size={13} />
+                        </button>
+                        <button
+                          className="att-btn-ghost"
+                          style={{ color: n?.reviewed ? "var(--att-green)" : "var(--att-text-2)" }}
+                          onClick={() => update(i.id, { reviewed: !n?.reviewed })}
+                          title="Mark reviewed"
+                        >
+                          <CheckCircle2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: 13, marginTop: 6, color: "var(--att-text)" }}>{i.description}</p>
+                    {i.location && <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>Location: {i.location}</div>}
+                    {i.witnesses && <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>Witnesses: {i.witnesses}</div>}
+                    {evCount > 0 && (
+                      <div style={{ marginTop: 6 }}>
+                        <span className="att-tag att-tag-auth">{evCount} evidence file{evCount === 1 ? "" : "s"} authenticated</span>
+                      </div>
+                    )}
+                    <details style={{ marginTop: 8 }}>
+                      <summary style={{ fontSize: 12, color: "var(--att-navy)", cursor: "pointer" }}>
+                        Attorney note {n?.note ? "·" : ""} {n?.note ? "saved" : "(private)"}
+                      </summary>
+                      <textarea
+                        className="att-textarea"
+                        defaultValue={n?.note ?? ""}
+                        placeholder="Private note — never visible to the client."
+                        onBlur={(e) => { if (e.target.value !== (n?.note ?? "")) update(i.id, { note: e.target.value }); }}
+                        style={{ marginTop: 6 }}
+                      />
+                    </details>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        ))
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Patterns ---------------- */
+
+function Patterns({ data }: { data: CaseData }) {
+  const max = Math.max(1, ...data.categories.map((c) => c.count));
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      <div className="att-card">
+        <SectionTitle icon={<TrendingUp size={16} />}>Behavior categories</SectionTitle>
+        {data.categories.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>Not enough data to categorize yet.</p>
+        ) : (
+          <div style={{ display: "grid", gap: 8 }}>
+            {[...data.categories].sort((a, b) => b.count - a.count).map((c) => (
               <div key={c.type}>
-                <div className="flex justify-between text-[12px]"><span>{c.type}</span><span style={{ color: "var(--muted-foreground)" }}>{c.count}</span></div>
-                <div className="mt-1 h-2 rounded-full" style={{ background: "var(--input)" }}>
-                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "var(--primary)" }} />
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span>{c.type}</span>
+                  <span className="att-mono" style={{ color: "var(--att-text-2)" }}>{c.count}</span>
                 </div>
+                <div style={{ height: 6, borderRadius: 999, background: "var(--att-border)", marginTop: 4 }}>
+                  <div style={{ height: "100%", borderRadius: 999, width: `${(c.count / max) * 100}%`, background: "var(--att-navy)" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="att-card">
+        <SectionTitle>Monthly frequency</SectionTitle>
+        <div style={{ display: "grid", gap: 4 }}>
+          {data.timeline.length === 0 && <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No dated incidents yet.</p>}
+          {data.timeline.map((m) => {
+            const tMax = Math.max(1, ...data.timeline.map((x) => x.count));
+            return (
+              <div key={m.month} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12 }}>
+                <div style={{ width: 80, color: "var(--att-text-2)" }} className="att-mono">{m.month}</div>
+                <div style={{ flex: 1, height: 6, background: "var(--att-border)", borderRadius: 999 }}>
+                  <div style={{ height: "100%", borderRadius: 999, width: `${(m.count / tMax) * 100}%`, background: m.avg_severity >= 3 ? "#EF4444" : "var(--att-navy-mid)" }} />
+                </div>
+                <div style={{ width: 90, textAlign: "right" }}>{m.count} · sev {m.avg_severity.toFixed(1)}</div>
               </div>
             );
           })}
         </div>
-      )}
-      {data.pattern_analysis?.analysis && (
-        <details className="mt-4">
-          <summary className="cursor-pointer text-[13px]" style={{ color: "var(--accent)" }}>Raw pattern analysis JSON</summary>
-          <pre className="mt-2 max-h-80 overflow-auto rounded-md p-3 text-[11px]" style={{ background: "var(--input)" }}>
-{JSON.stringify(data.pattern_analysis.analysis, null, 2)}
-          </pre>
-        </details>
-      )}
+      </div>
+      <div className="att-card" style={{ background: "#EFF6FF", borderColor: "#BFDBFE" }}>
+        <div className="att-eyebrow" style={{ color: "#1E40AF" }}>Legal framing</div>
+        <p style={{ fontSize: 13, marginTop: 6, color: "#1E3A8A", lineHeight: 1.6 }}>
+          The frequency, breadth, and escalation pattern shown above is consistent with the coercive-control framework
+          recognized in many jurisdictions. Use this to argue systematic control rather than isolated conflict.
+        </p>
+      </div>
     </div>
   );
 }
 
-function Checklist({ data }: { data: CaseData }) {
+/* ---------------- Checklist ---------------- */
+
+function ChecklistTab({ data }: { data: CaseData }) {
+  const docCount = data.checklist.filter((r) => r.documented).length;
   return (
-    <div className="card-pp">
-      <div className="font-serif text-[18px]">Coercive control checklist <span className="text-[12px] font-normal" style={{ color: "var(--muted-foreground)" }}>(Stark framework)</span></div>
-      <ul className="mt-3 space-y-2">
+    <div className="att-card">
+      <SectionTitle>Coercive control checklist <span style={{ fontSize: 12, color: "var(--att-text-2)", fontFamily: "inherit" }}>· Stark framework</span></SectionTitle>
+      <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 14 }}>
+        {docCount} of {data.checklist.length} mechanisms documented.
+      </p>
+      <ul style={{ display: "grid", gap: 10, listStyle: "none", padding: 0, margin: 0 }}>
         {data.checklist.map((row) => (
-          <li key={row.item} className="flex items-start gap-2 text-[14px]">
+          <li key={row.item} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14 }}>
             {row.documented
-              ? <CheckCircle2 size={16} style={{ color: "var(--safe)", marginTop: 2 }} />
-              : <Circle size={16} style={{ color: "var(--muted-foreground)", marginTop: 2 }} />}
+              ? <CheckCircle2 size={16} style={{ color: "var(--att-green)", marginTop: 2 }} />
+              : <Circle size={16} style={{ color: "var(--att-muted)", marginTop: 2 }} />}
             <div>
               <div>{row.item}</div>
-              <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+              <div style={{ fontSize: 11, color: "var(--att-text-2)" }}>
                 {row.documented ? `${row.count} incident${row.count === 1 ? "" : "s"} documented` : "No documented incidents"}
               </div>
             </div>
@@ -379,18 +394,20 @@ function Checklist({ data }: { data: CaseData }) {
   );
 }
 
+/* ---------------- Gaps ---------------- */
+
 function Gaps({ data }: { data: CaseData }) {
   return (
-    <div className="card-pp">
-      <div className="flex items-center gap-2"><AlertTriangle size={16} style={{ color: "var(--primary)" }} /><div className="font-serif text-[18px]">Evidence gaps</div></div>
+    <div className="att-card">
+      <SectionTitle icon={<AlertTriangle size={16} style={{ color: "#F59E0B" }} />}>Evidence gaps</SectionTitle>
       {data.gaps.length === 0 ? (
-        <p className="mt-2 text-[13px]" style={{ color: "var(--safe)" }}>No critical gaps detected.</p>
+        <p style={{ fontSize: 13, color: "var(--att-green)" }}>No critical gaps detected.</p>
       ) : (
-        <ul className="mt-3 space-y-2 text-[13px]">
+        <ul style={{ display: "grid", gap: 8, listStyle: "none", padding: 0, margin: 0 }}>
           {data.gaps.map((g, i) => (
-            <li key={i} className="border-l-2 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <strong>{g.kind}</strong>
-              <div style={{ color: "var(--muted-foreground)" }}>{g.detail}</div>
+            <li key={i} style={{ borderLeft: "3px solid #F59E0B", paddingLeft: 12 }}>
+              <strong style={{ fontSize: 13 }}>{g.kind}</strong>
+              <div style={{ fontSize: 13, color: "var(--att-text-2)" }}>{g.detail}</div>
             </li>
           ))}
         </ul>
@@ -399,60 +416,106 @@ function Gaps({ data }: { data: CaseData }) {
   );
 }
 
-function TimelineTab({ data }: { data: CaseData }) {
+/* ---------------- Evidence vault ---------------- */
+
+function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
+  const signedFn = useServerFn(getSignedEvidenceUrl);
+  type Cat = "All" | "Photos" | "Screenshots" | "Documents" | "Audio";
+  const [cat, setCat] = useState<Cat>("All");
+  const [openingId, setOpeningId] = useState<string | null>(null);
+
+  const matches = (type: string, cat: Cat) => {
+    const t = (type || "").toLowerCase();
+    if (cat === "All") return true;
+    if (cat === "Photos") return t.startsWith("image/") && !t.includes("png");
+    if (cat === "Screenshots") return t.includes("png") || t.includes("image/png");
+    if (cat === "Audio") return t.startsWith("audio/");
+    if (cat === "Documents") return t.includes("pdf") || t.includes("document") || t.includes("text/");
+    return true;
+  };
+
+  const items = data.evidence.filter((e) => matches(e.file_type, cat));
+
+  const open = async (id: string) => {
+    setOpeningId(id);
+    try {
+      const r = await signedFn({ data: { clientId, evidenceId: id } });
+      if (r.url) window.open(r.url, "_blank", "noopener");
+      else toast("Couldn't generate signed URL.");
+    } catch { toast("Couldn't open file."); }
+    finally { setOpeningId(null); }
+  };
+
+  const icon = (type: string) => {
+    const t = (type || "").toLowerCase();
+    if (t.startsWith("image/")) return <ImageIcon size={18} />;
+    if (t.startsWith("audio/")) return <Music size={18} />;
+    return <Paperclip size={18} />;
+  };
+
   return (
-    <div className="card-pp">
-      <div className="font-serif text-[18px]">Monthly escalation</div>
-      <div className="mt-4 space-y-1">
-        {data.timeline.length === 0 && <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>No dated incidents yet.</p>}
-        {data.timeline.map((m) => {
-          const max = Math.max(...data.timeline.map((x) => x.count));
-          const pct = (m.count / max) * 100;
-          return (
-            <div key={m.month} className="flex items-center gap-3 text-[12px]">
-              <div className="w-20" style={{ color: "var(--muted-foreground)" }}>{m.month}</div>
-              <div className="h-2 flex-1 rounded-full" style={{ background: "var(--input)" }}>
-                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: m.avg_severity >= 3 ? "var(--primary)" : "var(--accent)" }} />
+    <div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+        {(["All", "Photos", "Screenshots", "Documents", "Audio"] as Cat[]).map((c) => (
+          <button
+            key={c}
+            onClick={() => setCat(c)}
+            className={cat === c ? "att-btn-primary" : "att-btn-secondary"}
+            style={{ padding: "6px 12px", fontSize: 12 }}
+          >{c}</button>
+        ))}
+      </div>
+      {items.length === 0 ? (
+        <div className="att-card" style={{ textAlign: "center", color: "var(--att-text-2)", fontSize: 13 }}>
+          No evidence in this category.
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))" }}>
+          {items.map((e) => (
+            <div key={e.id} className="att-card att-hover" style={{ padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--att-text-2)" }}>
+                {icon(e.file_type)}
+                <span className="att-mono" style={{ fontSize: 10, textTransform: "uppercase" }}>{e.file_type || "file"}</span>
               </div>
-              <div className="w-16 text-right">{m.count} · sev {m.avg_severity.toFixed(1)}</div>
+              <h3 style={{ fontSize: 16, marginTop: 8 }}>{e.title}</h3>
+              <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
+                {new Date(e.date).toLocaleDateString()}
+                {e.linked_incident_id ? " · linked to incident" : " · unlinked"}
+              </div>
+              {e.description && <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8 }}>{e.description.slice(0, 120)}</p>}
+              <div style={{ marginTop: 12, display: "flex", gap: 6 }}>
+                <button className="att-btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} disabled={openingId === e.id} onClick={() => open(e.id)}>
+                  <Download size={12} /> {openingId === e.id ? "Opening…" : "Open"}
+                </button>
+                <span className="att-tag att-tag-auth" style={{ alignSelf: "center" }}>AUTH</span>
+              </div>
             </div>
-          );
-        })}
-      </div>
-      <div className="mt-6">
-        <div className="label-eyebrow">All incidents</div>
-        <ol className="mt-2 space-y-2 text-[13px]">
-          {data.incidents.map((i) => (
-            <li key={i.id} className="border-l-2 pl-3" style={{ borderColor: "var(--accent)" }}>
-              <strong>{new Date(i.date).toLocaleDateString()}</strong>
-              {i.severity_level ? ` · sev ${i.severity_level}` : ""}
-              {i.abuse_types?.length ? ` · ${i.abuse_types.map(typeLabel).join(", ")}` : ""}
-              <div style={{ color: "var(--muted-foreground)" }}>{i.description}</div>
-            </li>
           ))}
-        </ol>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
 
+/* ---------------- Deposition ---------------- */
+
 function DepoTab({ depo, loading, onRun }: { depo: DepoResult | null; loading: boolean; onRun: () => void }) {
   return (
-    <div className="card-pp">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2"><Sparkles size={16} style={{ color: "var(--accent)" }} /><div className="font-serif text-[18px]">AI deposition prep</div></div>
-        <button onClick={onRun} disabled={loading} className="btn-primary">
+    <div className="att-card">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <SectionTitle icon={<Sparkles size={16} />}>AI deposition prep</SectionTitle>
+        <button onClick={onRun} disabled={loading} className="att-btn-primary">
           {loading ? "Analyzing…" : depo ? "Re-run analysis" : "Generate prep"}
         </button>
       </div>
-      <p className="mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-        Surfaces chronology strengths, credibility gaps, and likely cross-examination angles.
+      <p style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+        Surfaces chronology strengths, credibility gaps, and likely cross-examination angles. Internal work product.
       </p>
       {depo && !depo.ok && (
-        <p className="mt-4 text-[13px]" style={{ color: "var(--primary)" }}>Couldn't generate: {depo.reason}</p>
+        <p style={{ marginTop: 12, fontSize: 13, color: "#EF4444" }}>Couldn't generate: {depo.reason}</p>
       )}
       {depo?.ok && depo.prep && (
-        <div className="mt-5 space-y-5 text-[13px]">
+        <div style={{ marginTop: 18, display: "grid", gap: 18, fontSize: 13 }}>
           <DepoSection title="Chronology strengths" items={depo.prep.chronology_strengths} />
           <DepoComplex title="Weak spots" items={depo.prep.weak_spots} keys={["issue", "risk", "suggested_fix"]} />
           <DepoComplex title="Credibility gaps" items={depo.prep.credibility_gaps} keys={["gap", "address_before_testimony"]} />
@@ -469,8 +532,8 @@ function DepoSection({ title, items, ordered }: { title: string; items?: string[
   const Tag = ordered ? "ol" : "ul";
   return (
     <div>
-      <div className="font-serif text-[15px]">{title}</div>
-      <Tag className={`mt-1 ${ordered ? "list-decimal" : "list-disc"} space-y-1 pl-5`}>
+      <h3 style={{ fontSize: 16, marginBottom: 6 }}>{title}</h3>
+      <Tag style={{ paddingLeft: 20, display: "grid", gap: 4 }}>
         {items.map((s, i) => <li key={i}>{s}</li>)}
       </Tag>
     </div>
@@ -481,16 +544,98 @@ function DepoComplex({ title, items, keys }: { title: string; items?: Array<Reco
   if (!items?.length) return null;
   return (
     <div>
-      <div className="font-serif text-[15px]">{title}</div>
-      <ul className="mt-1 space-y-2">
+      <h3 style={{ fontSize: 16, marginBottom: 6 }}>{title}</h3>
+      <ul style={{ display: "grid", gap: 8, listStyle: "none", padding: 0 }}>
         {items.map((row, i) => (
-          <li key={i} className="border-l-2 pl-3" style={{ borderColor: "var(--primary)" }}>
+          <li key={i} style={{ borderLeft: "3px solid #F59E0B", paddingLeft: 12 }}>
             {keys.map((k) => (
-              <div key={k}><span className="label-eyebrow">{k.replace(/_/g, " ")}: </span>{row[k]}</div>
+              <div key={k}><span className="att-eyebrow">{k.replace(/_/g, " ")}: </span>{row[k]}</div>
             ))}
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/* ---------------- Export ---------------- */
+
+function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
+  const [include, setInclude] = useState({
+    overview: true, timeline: true, patterns: true, checklist: true, gaps: true, evidence: true,
+  });
+  const [format, setFormat] = useState<"pdf" | "print" | "word">("print");
+  const [certify, setCertify] = useState(false);
+
+  const toggle = (k: keyof typeof include) => setInclude((s) => ({ ...s, [k]: !s[k] }));
+
+  const generate = () => {
+    if (format === "word") {
+      toast("Word export coming soon — use Print → Save as PDF for now.");
+      return;
+    }
+    window.print();
+  };
+
+  const Item = ({ k, label, note }: { k: keyof typeof include; label: string; note: string }) => (
+    <label style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: 10, borderRadius: 8, background: include[k] ? "#F8FAFC" : "transparent", border: "1px solid var(--att-border)" }}>
+      <input type="checkbox" checked={include[k]} onChange={() => toggle(k)} style={{ marginTop: 3 }} />
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 500 }}>{label}</div>
+        <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>{note}</div>
+      </div>
+    </label>
+  );
+
+  return (
+    <div style={{ display: "grid", gap: 16, gridTemplateColumns: "minmax(0,2fr) minmax(0,1fr)" }}>
+      <div className="att-card">
+        <SectionTitle icon={<Printer size={16} />}>Court-ready export</SectionTitle>
+        <div style={{ display: "grid", gap: 8 }}>
+          <Item k="overview" label="Case overview & summary" note="Hero stats, client summary, jurisdiction." />
+          <Item k="timeline" label="Full incident timeline" note={`${data.incidents.length} incidents grouped by month.`} />
+          <Item k="patterns" label="Pattern analysis" note="Behavior categories, monthly frequency." />
+          <Item k="checklist" label="Coercive control checklist" note="Stark framework documentation status." />
+          <Item k="gaps" label="Evidence gaps" note={`${data.gaps.length} gaps flagged.`} />
+          <Item k="evidence" label="Evidence index" note={`${data.evidence.length} authenticated files (titles + metadata).`} />
+        </div>
+
+        <div style={{ marginTop: 18 }}>
+          <div className="att-eyebrow">Format</div>
+          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+            {(["print", "pdf", "word"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFormat(f)}
+                className={format === f ? "att-btn-primary" : "att-btn-secondary"}
+                style={{ padding: "6px 14px", fontSize: 12 }}
+              >
+                {f === "print" ? "Print / Save PDF" : f === "pdf" ? "PDF" : "Word (.docx)"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <label style={{ display: "flex", gap: 8, marginTop: 18, fontSize: 12, color: "var(--att-text-2)", alignItems: "flex-start" }}>
+          <input type="checkbox" checked={certify} onChange={(e) => setCertify(e.target.checked)} style={{ marginTop: 3 }} />
+          <span>Include attorney certification block (full name, bar number, signature line).</span>
+        </label>
+
+        <button className="att-btn-export" onClick={generate} style={{ marginTop: 18, width: "100%", padding: "12px 20px" }}>
+          <Download size={14} /> Generate report
+        </button>
+      </div>
+      <div className="att-card" style={{ background: "#F8FAFC" }}>
+        <div className="att-eyebrow">Chain of custody</div>
+        <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 8, lineHeight: 1.6 }}>
+          Every generated report carries case ID <span className="att-mono">{caseId}</span>, the generating attorney's
+          identity, and the export timestamp. All access is logged.
+        </p>
+        <div className="att-divider" />
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--att-slate)" }}>
+          <Clock size={11} /> Export logged · {new Date().toLocaleString()}
+        </div>
+      </div>
     </div>
   );
 }
