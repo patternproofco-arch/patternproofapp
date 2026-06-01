@@ -42,13 +42,13 @@ export function AppShell() {
 
       {/* Minimal logo strip (no chrome bar) — sits in normal flow */}
       <header
-        className="no-print app-surface flex items-center justify-center px-5 pt-5 md:justify-start md:px-10 md:pt-6"
+        className="no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-center px-5 pt-5 md:px-10 md:pt-6"
       >
         <BrandLogo variant="dark" size="sm" />
       </header>
 
       <main
-        className="app-surface print-page"
+        className="app-surface print-page mx-auto w-full max-w-6xl px-5 md:px-10"
         style={{
           paddingTop: 16,
           // bottom padding: nav island height + safety
