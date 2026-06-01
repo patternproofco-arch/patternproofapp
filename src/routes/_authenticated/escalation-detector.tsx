@@ -62,10 +62,14 @@ function EscalationPage() {
         ))}
       </div>
 
-      <div className="card-pp mt-8" style={{ background: "var(--sidebar)", color: "var(--sidebar-active)" }}>
-        <div className="font-serif text-[18px]">If you need help now</div>
-        <p className="mt-2 text-[14px]">National DV Hotline: <strong>1-800-799-7233</strong></p>
-        <p className="text-[14px]">Crisis Text Line: text <strong>START</strong> to 678-678</p>
+      <div className="card-pp mt-8" style={{ background: "var(--sidebar)" }}>
+        <div className="font-serif text-[18px]" style={{ color: "#FAF7F2" }}>If you need help now</div>
+        <p className="mt-2 text-[14px]" style={{ color: "#FAF7F2" }}>
+          National DV Hotline: <strong style={{ color: "#FFFFFF" }}>1-800-799-7233</strong>
+        </p>
+        <p className="text-[14px]" style={{ color: "#FAF7F2" }}>
+          Crisis Text Line: text <strong style={{ color: "#FFFFFF" }}>START</strong> to 678-678
+        </p>
       </div>
     </div>
   );
