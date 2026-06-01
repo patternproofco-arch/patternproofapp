@@ -468,16 +468,19 @@ export const logTime = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: link } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id")
+      .select("id, status")
       .eq("attorney_user_id", context.userId)
       .eq("client_user_id", data.clientId)
       .maybeSingle();
+    if (!link || link.status !== "active") {
+      throw new Error("No active link for this client");
+    }
     const now = new Date();
     const started = new Date(now.getTime() - data.duration_seconds * 1000);
     await supabaseAdmin.from("attorney_time_logs").insert({
       attorney_user_id: context.userId,
       client_user_id: data.clientId,
-      link_id: link?.id ?? null,
+      link_id: link.id,
       page_path: data.page_path ?? null,
       started_at: started.toISOString(),
       ended_at: now.toISOString(),
