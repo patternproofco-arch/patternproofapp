@@ -274,12 +274,18 @@ export function FloatingNav() {
 function DesktopDock({
   isActive, dim, onMore,
 }: { isActive: (to: string) => boolean; dim: boolean; onMore: () => void }) {
-  const [hover, setHover] = useState(false);
+  const [expanded, setExpanded] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const v = window.localStorage.getItem("pp:nav-expanded");
+    return v === null ? true : v === "1";
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("pp:nav-expanded", expanded ? "1" : "0"); } catch { /* ignore */ }
+  }, [expanded]);
+  const open = expanded;
   return (
     <div
       className="no-print hidden md:flex"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       style={{
         position: "fixed",
         top: "50%",
@@ -293,7 +299,7 @@ function DesktopDock({
         border: "1px solid rgba(255,255,255,0.10)",
         borderRadius: 28,
         padding: "16px 10px",
-        width: hover ? 220 : 56,
+        width: open ? 224 : 64,
         flexDirection: "column",
         alignItems: "stretch",
         gap: 6,
@@ -302,6 +308,20 @@ function DesktopDock({
         boxShadow: "0 12px 36px rgba(26,23,20,0.30)",
       }}
     >
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        aria-label={open ? "Collapse menu" : "Expand menu"}
+        title={open ? "Collapse menu" : "Expand menu"}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: open ? "flex-end" : "center",
+          gap: 8, padding: "6px 10px", marginBottom: 4,
+          color: "rgba(255,255,255,0.65)", background: "transparent",
+          borderRadius: 12,
+        }}
+      >
+        {open ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={20} />}
+      </button>
       {PRIMARY.map((it) => {
         const active = isActive(it.to);
         return (
@@ -309,6 +329,7 @@ function DesktopDock({
             key={it.to}
             to={it.to}
             className={it.cta ? "btn-log" : ""}
+            title={it.label}
             style={{
               display: "flex",
               alignItems: "center",
@@ -326,12 +347,12 @@ function DesktopDock({
               borderLeft: active ? `2px solid ${ACCENT[it.accent]}` : "2px solid transparent",
             }}
           >
-            <it.Icon size={20} style={{ flexShrink: 0, marginLeft: 4 }} />
+            <it.Icon size={22} strokeWidth={2.25} style={{ flexShrink: 0, marginLeft: 4 }} />
             <span
               style={{
                 fontSize: 13, fontWeight: 700,
                 whiteSpace: "nowrap",
-                opacity: hover || it.pinnedLabel ? 1 : 0,
+                opacity: open ? 1 : 0,
                 transition: "opacity 0.2s ease",
               }}
             >
@@ -342,17 +363,18 @@ function DesktopDock({
       })}
       <button
         onClick={onMore}
+        title="More"
         style={{
           display: "flex", alignItems: "center", gap: 12,
           padding: "10px 10px", borderRadius: 16,
           color: "#C8C3BA", background: "transparent",
         }}
       >
-        <MoreHorizontal size={20} style={{ marginLeft: 4 }} />
+        <MoreHorizontal size={22} strokeWidth={2.25} style={{ marginLeft: 4 }} />
         <span
           style={{
             fontSize: 13, fontWeight: 700, whiteSpace: "nowrap",
-            opacity: hover ? 1 : 0, transition: "opacity 0.2s ease",
+            opacity: open ? 1 : 0, transition: "opacity 0.2s ease",
           }}
         >
           More
@@ -365,7 +387,7 @@ function DesktopDock({
           fontSize: 9, letterSpacing: "0.18em",
           color: "rgba(255,255,255,0.40)", fontWeight: 700,
           textAlign: "center", whiteSpace: "nowrap",
-          opacity: hover ? 1 : 0, transition: "opacity 0.2s ease",
+          opacity: open ? 1 : 0, transition: "opacity 0.2s ease",
         }}
       >
         🔒 ENCRYPTED
