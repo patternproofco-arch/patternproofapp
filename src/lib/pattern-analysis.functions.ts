@@ -10,6 +10,13 @@ export interface PatternAnalysisResult {
   severity_trajectory: "decreasing" | "stable" | "increasing" | "volatile" | "unknown";
   gaps: Array<{ gap: string; suggestion: string }>;
   suggested_followups: string[];
+  abuser_tactics?: Array<{
+    tactic: string;
+    description: string;
+    examples_count: number;
+    why_it_matters: string;
+    example_dates?: string[];
+  }>;
   generated_at: string;
 }
 
@@ -23,8 +30,23 @@ const TOOL_SCHEMA = {
     severity_trajectory: { type: "string", enum: ["decreasing", "stable", "increasing", "volatile", "unknown"] },
     gaps: { type: "array", items: { type: "object", properties: { gap: { type: "string", description: "What's missing or unclear in the record" }, suggestion: { type: "string", description: "Gentle, specific suggestion of what to add" } }, required: ["gap", "suggestion"] } },
     suggested_followups: { type: "array", items: { type: "string" }, description: "Concrete next documentation steps in the user's voice" },
+    abuser_tactics: {
+      type: "array",
+      description: "Specific, recurring behavioral tactics the other party is using against the survivor (e.g. DARVO, gaslighting, love-bombing, isolation, financial control, monitoring, intimidation, silent treatment, triangulation, moving the goalposts). Only include tactics with clear evidence in the records.",
+      items: {
+        type: "object",
+        properties: {
+          tactic: { type: "string", description: "Short label for the tactic (e.g. 'DARVO', 'Gaslighting')." },
+          description: { type: "string", description: "One-sentence plain-language description of how this tactic is showing up in this survivor's record." },
+          examples_count: { type: "integer", description: "Approximate number of incidents where this tactic appears." },
+          why_it_matters: { type: "string", description: "One sentence on why this pattern is worth tracking — for the survivor's own understanding, not legal advice." },
+          example_dates: { type: "array", items: { type: "string" }, description: "Up to 3 dates (YYYY-MM-DD) of incidents that best illustrate the tactic." },
+        },
+        required: ["tactic", "description", "examples_count", "why_it_matters"],
+      },
+    },
   },
-  required: ["pattern_summary", "escalation_arc", "frequency_trends", "abuse_type_breakdown", "severity_trajectory", "gaps", "suggested_followups"],
+  required: ["pattern_summary", "escalation_arc", "frequency_trends", "abuse_type_breakdown", "severity_trajectory", "gaps", "suggested_followups", "abuser_tactics"],
   additionalProperties: false,
 };
 
