@@ -48,8 +48,10 @@ function Gate() {
     );
   }
 
-  // PIN lock is optional and disabled by default.
-  void hasPin; void isLocked;
+  // Lock screen only shows when the user has opted in (PIN or biometric).
+  if ((hasPin || (typeof window !== "undefined" && localStorage.getItem("pp_biometric_cred_v1"))) && isLocked && pathname !== "/onboarding") {
+    return <PinScreen />;
+  }
 
   return <AppShell />;
 }
