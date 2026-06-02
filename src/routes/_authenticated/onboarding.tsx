@@ -20,8 +20,10 @@ function Onboarding() {
   const [state, setState] = useState("NJ");
 
   const finishPin = async () => {
-    if (pin.length !== 4) { toast("Choose a 4-digit access code."); return; }
-    await setRealPin(pin);
+    // PIN is optional — only set if user entered all 4 digits.
+    if (pin.length === 4) {
+      await setRealPin(pin);
+    }
     if (contact) try { localStorage.setItem("pp_trusted_contact_v1", contact); } catch { /* */ }
     setStep(3);
   };
@@ -49,16 +51,17 @@ function Onboarding() {
 
       {step === 1 && (
         <div className="card-pp space-y-4">
-          <h1 className="font-serif text-[28px]">Set your access code</h1>
+          <h1 className="font-serif text-[28px]">Optional: set an access code</h1>
           <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            Pick 4 digits you'll remember. Avoid codes a partner might guess — birthdays or repeats.
+            You can skip this. If you want extra protection, pick 4 digits — avoid ones a partner might guess.
           </p>
-          <Field label="4-digit access code" value={pin} onChange={setPin} />
+          <Field label="4-digit access code (optional)" value={pin} onChange={setPin} />
           <div>
             <label className="label-eyebrow">Trusted contact phone (optional)</label>
             <input className="input-pp mt-1" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="For account recovery only" />
           </div>
           <button onClick={finishPin} className="btn-primary">Continue</button>
+          <button onClick={() => setStep(3)} className="btn-ghost w-full text-[13px]" style={{ color: "var(--muted-foreground)" }}>Skip for now</button>
         </div>
       )}
 

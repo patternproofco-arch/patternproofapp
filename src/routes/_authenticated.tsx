@@ -48,9 +48,8 @@ function Gate() {
     );
   }
 
-  if (hasPin && isLocked && pathname !== "/onboarding") {
-    return <PinScreen />;
-  }
+  // PIN lock is optional and disabled by default.
+  void hasPin; void isLocked;
 
   return <AppShell />;
 }
