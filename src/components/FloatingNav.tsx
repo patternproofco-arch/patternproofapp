@@ -3,7 +3,7 @@ import {
   Home, FilePlus2, CalendarClock, Mic, Scale, MoreHorizontal,
   Sparkles, Paperclip, FileText, Hammer, LifeBuoy, BookMarked,
   HeartHandshake, TrendingUp, Settings as SettingsIcon, LogOut, X,
-  PanelLeftClose, PanelLeftOpen,
+  PanelLeftClose, PanelLeftOpen, ShieldAlert,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,7 @@ const PRIMARY: Item[] = [
 const OVERFLOW = [
   { to: "/evidence",            label: "Upload evidence",   Icon: Paperclip },
   { to: "/patterns",            label: "Pattern insights",  Icon: Sparkles },
+  { to: "/abuser-tactics",      label: "Abuser tactics",    Icon: ShieldAlert },
   { to: "/escalation-detector", label: "Behavior trends",   Icon: TrendingUp },
   { to: "/court-packet",        label: "Court summaries",   Icon: FileText },
   { to: "/case-builder",        label: "Evidence packets",  Icon: Hammer },
