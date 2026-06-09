@@ -10,6 +10,7 @@ import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
   listAttorneyNotes, upsertAttorneyNote,
 } from "@/lib/attorney-portal.functions";
+import { getAttorneyEntitlement, generateAttorneyCourtPacket } from "@/lib/payments.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { toast } from "sonner";
 
@@ -22,7 +23,7 @@ type DepoResult = Awaited<ReturnType<typeof generateDepositionPrep>>;
 type NoteRow = { incident_id: string; note: string | null; flagged: boolean; reviewed: boolean };
 
 const TABS = [
-  "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
+  "Dashboard", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
 ] as const;
 type Tab = (typeof TABS)[number];
 
@@ -31,16 +32,23 @@ function ClientCaseView() {
   const fetcher = useServerFn(getClientCase);
   const depoFn = useServerFn(generateDepositionPrep);
   const notesFn = useServerFn(listAttorneyNotes);
+  const entFn = useServerFn(getAttorneyEntitlement);
   const [data, setData] = useState<CaseData | null>(null);
-  const [tab, setTab] = useState<Tab>("Overview");
+  const [tab, setTab] = useState<Tab>("Dashboard");
   const [depo, setDepo] = useState<DepoResult | null>(null);
   const [depoLoading, setDepoLoading] = useState(false);
   const [notes, setNotes] = useState<NoteRow[]>([]);
+  const [ent, setEnt] = useState<{ entitled: boolean; reason: string } | null>(null);
 
   useEffect(() => {
+    entFn({ data: { clientId } }).then(setEnt).catch(() => setEnt({ entitled: false, reason: "paywall" }));
+  }, [entFn, clientId]);
+
+  useEffect(() => {
+    if (!ent?.entitled) return;
     fetcher({ data: { clientId } }).then(setData).catch(() => toast("Couldn't load case."));
     notesFn({ data: { clientId } }).then((r) => setNotes(r.notes)).catch(() => {});
-  }, [fetcher, notesFn, clientId]);
+  }, [fetcher, notesFn, clientId, ent]);
 
   const runDepo = async () => {
     setDepoLoading(true);
@@ -51,6 +59,20 @@ function ClientCaseView() {
     } finally { setDepoLoading(false); }
   };
 
+  if (ent === null) return <div className="att-card">Checking access…</div>;
+  if (!ent.entitled) {
+    return (
+      <div className="att-card" style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}>
+        <h2 style={{ fontSize: 22, marginBottom: 6 }}>Subscription required</h2>
+        <p style={{ color: "var(--att-text-2)", fontSize: 13, marginBottom: 16 }}>
+          You already have one free client case open. Subscribe to unlock unlimited cases for $297/month.
+        </p>
+        <Link to="/subscribe" className="att-btn-secondary" style={{ display: "inline-block" }}>
+          Subscribe — $297/mo
+        </Link>
+      </div>
+    );
+  }
   if (!data) return <div className="att-card">Loading case file…</div>;
 
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
@@ -105,6 +127,7 @@ function ClientCaseView() {
       </nav>
 
       <div style={{ marginTop: 20 }}>
+        {tab === "Dashboard" && <Dashboard data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
         {tab === "Timeline" && <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} />}
         {tab === "Patterns" && <Patterns data={data} />}
@@ -113,6 +136,115 @@ function ClientCaseView() {
         {tab === "Evidence" && <EvidenceTab data={data} clientId={clientId} />}
         {tab === "Deposition" && <DepoTab depo={depo} loading={depoLoading} onRun={runDepo} />}
         {tab === "Export" && <ExportTab data={data} caseId={caseId} />}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- New unified Dashboard tab ---------------- */
+
+function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
+  const packetFn = useServerFn(generateAttorneyCourtPacket);
+  const [downloading, setDownloading] = useState(false);
+
+  const download = async () => {
+    setDownloading(true);
+    try {
+      const r = await packetFn({ data: { clientId } });
+      if (!r.ok) { toast("Couldn't generate packet: " + r.reason); return; }
+      window.open(r.url, "_blank");
+    } finally { setDownloading(false); }
+  };
+
+  const tMax = Math.max(1, ...data.timeline.map((x) => x.count));
+  const sortedCats = [...data.categories].sort((a, b) => b.count - a.count).slice(0, 6);
+  const catMax = Math.max(1, ...sortedCats.map((c) => c.count));
+  const high = data.flags.filter((f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3).length;
+
+  return (
+    <div style={{ display: "grid", gap: 18 }}>
+      <div className="att-card" style={{ background: "#F8FAFC" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div className="att-eyebrow">Court packet</div>
+            <h2 style={{ fontSize: 20, marginTop: 4 }}>Download court-ready ZIP</h2>
+            <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 4 }}>
+              Includes incidents, evidence files, communications, pattern summary, and a tamper-evident manifest.
+            </p>
+          </div>
+          <button className="att-btn-export" onClick={download} disabled={downloading} style={{ padding: "12px 18px" }}>
+            <Download size={14} /> {downloading ? "Preparing…" : "Download packet"}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18 }}>
+        <div className="att-card">
+          <SectionTitle icon={<TrendingUp size={16} />}>Timeline</SectionTitle>
+          {data.timeline.length === 0 ? (
+            <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No dated incidents yet.</p>
+          ) : (
+            <div style={{ display: "grid", gap: 4 }}>
+              {data.timeline.map((m) => (
+                <div key={m.month} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12 }}>
+                  <div style={{ width: 70, color: "var(--att-text-2)" }} className="att-mono">{m.month}</div>
+                  <div style={{ flex: 1, height: 6, background: "var(--att-border)", borderRadius: 999 }}>
+                    <div style={{ height: "100%", borderRadius: 999, width: `${(m.count / tMax) * 100}%`, background: m.avg_severity >= 3 ? "#EF4444" : "var(--att-navy-mid)" }} />
+                  </div>
+                  <div style={{ width: 80, textAlign: "right" }}>{m.count} · sev {m.avg_severity.toFixed(1)}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="att-card">
+          <SectionTitle icon={<Sparkles size={16} />}>Pattern summary</SectionTitle>
+          {sortedCats.length === 0 ? (
+            <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>Not enough data to categorize yet.</p>
+          ) : (
+            <div style={{ display: "grid", gap: 8 }}>
+              {sortedCats.map((c) => (
+                <div key={c.type}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                    <span>{c.type}</span>
+                    <span className="att-mono" style={{ color: "var(--att-text-2)" }}>{c.count}</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 999, background: "var(--att-border)", marginTop: 4 }}>
+                    <div style={{ height: "100%", borderRadius: 999, width: `${(c.count / catMax) * 100}%`, background: "var(--att-navy)" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {data.case?.pattern_summary && (
+            <p style={{ marginTop: 12, fontSize: 13, color: "var(--att-text-2)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+              {data.case.pattern_summary.slice(0, 400)}{data.case.pattern_summary.length > 400 ? "…" : ""}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="att-card">
+        <SectionTitle icon={<AlertTriangle size={16} />}>Escalation arc</SectionTitle>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 12 }}>
+          <Metric label="Incidents" v={data.incidents.length} />
+          <Metric label="Last 30 days" v={data.last_30_days} />
+          <Metric label="Avg severity" v={data.avg_severity.toFixed(1)} />
+          <Metric label="High-severity flags" v={high} />
+        </div>
+        {data.flags.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No escalation flags recorded.</p>
+        ) : (
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
+            {data.flags.slice(0, 8).map((f) => (
+              <li key={f.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, padding: "8px 10px", background: "#FEF2F2", borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "#EF4444" : "#F59E0B"}`, borderRadius: 4 }}>
+                <span>{f.details ?? f.flag_type ?? "Escalation flagged"}</span>
+                <span className="att-mono" style={{ color: "var(--att-text-2)" }}>sev {f.severity_tier ?? "?"}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
