@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
+import JSZip from "jszip";
+import { createHash } from "crypto";
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 type PortalResult = { url: string } | { error: string };
@@ -125,4 +127,159 @@ export const getMySubscription = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
     return { subscription: (row as SubRow) ?? null };
+  });
+
+/**
+ * Entitlement: free for the earliest-linked client; paid sub required beyond.
+ */
+async function isAttorneyEntitled(attorneyId: string, clientId: string): Promise<{ entitled: boolean; reason: "free" | "subscribed" | "paywall" }>
+{
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  // Active sub?
+  const { data: sub } = await supabaseAdmin
+    .from("subscriptions")
+    .select("status,current_period_end")
+    .eq("user_id", attorneyId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (sub) {
+    const end = sub.current_period_end ? new Date(sub.current_period_end as string).getTime() : null;
+    const future = end === null || end > Date.now();
+    const status = sub.status as string;
+    const active = (["active", "trialing", "past_due"].includes(status) && future)
+      || (status === "canceled" && end !== null && end > Date.now());
+    if (active) return { entitled: true, reason: "subscribed" };
+  }
+  // Free first client?
+  const { data: links } = await supabaseAdmin
+    .from("attorney_client_links")
+    .select("client_user_id,created_at")
+    .eq("attorney_user_id", attorneyId)
+    .eq("status", "active")
+    .order("created_at", { ascending: true })
+    .limit(1);
+  const firstClient = links?.[0]?.client_user_id as string | undefined;
+  if (firstClient && firstClient === clientId) return { entitled: true, reason: "free" };
+  return { entitled: false, reason: "paywall" };
+}
+
+export const getAttorneyEntitlement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { clientId: string }) => data)
+  .handler(async ({ data, context }) => {
+    const r = await isAttorneyEntitled(context.userId, data.clientId);
+    return r;
+  });
+
+/**
+ * Build a court-ready ZIP packet for a specific client (attorney-scoped).
+ * Reuses the survivor exporter shape but scoped to one client via the admin client.
+ */
+function toCsv(rows: Array<Record<string, unknown>>): string {
+  if (rows.length === 0) return "";
+  const cols = Array.from(new Set(rows.flatMap((r) => Object.keys(r))));
+  const esc = (v: unknown) => {
+    if (v === null || v === undefined) return "";
+    const s = typeof v === "string" ? v : JSON.stringify(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  return [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+}
+function sha256(buf: ArrayBuffer | Uint8Array): string {
+  return createHash("sha256").update(Buffer.from(buf as ArrayBuffer)).digest("hex");
+}
+
+export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { clientId: string }) => data)
+  .handler(async ({ data, context }) => {
+    const ent = await isAttorneyEntitled(context.userId, data.clientId);
+    if (!ent.entitled) return { ok: false as const, reason: "paywall" as const };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [incRes, evRes, commsRes, paRes, casesRes, flagsRes] = await Promise.all([
+      supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).order("date"),
+      supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).order("date"),
+      supabaseAdmin.from("communications").select("*").eq("user_id", data.clientId).order("date"),
+      supabaseAdmin.from("pattern_analyses").select("analysis,created_at").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1),
+      supabaseAdmin.from("cases").select("*").eq("user_id", data.clientId).order("updated_at", { ascending: false }).limit(1),
+      supabaseAdmin.from("escalation_flags").select("*").eq("user_id", data.clientId).order("created_at"),
+    ]);
+    const incidents = incRes.data ?? [];
+    const evidence = evRes.data ?? [];
+    const comms = commsRes.data ?? [];
+    const latestAnalysis = paRes.data?.[0];
+    const latestCase = casesRes.data?.[0];
+    const flags = flagsRes.data ?? [];
+
+    const zip = new JSZip();
+    const exportedAt = new Date().toISOString();
+    const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
+
+    zip.file("incidents.csv", toCsv(incidents as Array<Record<string, unknown>>));
+    zip.file("evidence.csv", toCsv(evidence as Array<Record<string, unknown>>));
+    zip.file("communications.csv", toCsv(comms as Array<Record<string, unknown>>));
+    zip.file("escalation_flags.csv", toCsv(flags as Array<Record<string, unknown>>));
+    if (latestAnalysis) zip.file("pattern_analysis.json", JSON.stringify(latestAnalysis, null, 2));
+    if (latestCase) zip.file("case.json", JSON.stringify(latestCase, null, 2));
+
+    const evFolder = zip.folder("evidence");
+    await Promise.all(evidence.map(async (e: any) => {
+      if (!evFolder) return;
+      if (/^https?:\/\//i.test(e.file_url)) return;
+      const { data: blob } = await supabaseAdmin.storage.from("evidence-files").download(e.file_url);
+      if (!blob) return;
+      const buf = await blob.arrayBuffer();
+      const ext = String(e.file_url).split(".").pop() || "bin";
+      const safe = `${e.date}_${String(e.id).slice(0, 8)}_${String(e.title).replace(/[^a-zA-Z0-9-_]+/g, "_").slice(0, 60)}.${ext}`;
+      evFolder.file(safe, buf);
+      const h = sha256(buf);
+      fileHashes.push({ path: `evidence/${safe}`, sha256: h, bytes: buf.byteLength });
+    }));
+
+    const summary = [
+      `# Court Packet — Client ${data.clientId.slice(0, 8)}`,
+      ``,
+      `Generated: ${exportedAt}`,
+      `Prepared by attorney: ${context.userId}`,
+      ``,
+      `## Counts`,
+      `- Incidents: ${incidents.length}`,
+      `- Evidence files: ${evidence.length}`,
+      `- Communications: ${comms.length}`,
+      `- Escalation flags: ${flags.length}`,
+      ``,
+    ];
+    if (latestAnalysis) {
+      const a = latestAnalysis.analysis as any;
+      summary.push(`## Pattern summary`, ``, a?.pattern_summary ?? "", ``, `## Escalation arc`, ``, a?.escalation_arc ?? "", ``);
+    }
+    zip.file("summary.md", summary.join("\n"));
+
+    zip.file("manifest.json", JSON.stringify({
+      exported_at: exportedAt,
+      client_user_id: data.clientId,
+      attorney_user_id: context.userId,
+      counts: { incidents: incidents.length, evidence: evidence.length, communications: comms.length, escalation_flags: flags.length },
+      file_hashes: fileHashes,
+      generator: "PatternProof Attorney Court Packet v1",
+    }, null, 2));
+
+    const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+    const ts = exportedAt.replace(/[:.]/g, "-");
+    const objectPath = `${context.userId}/court-packet-${data.clientId}-${ts}.zip`;
+    const up = await supabaseAdmin.storage.from("exports").upload(objectPath, zipBuf, {
+      contentType: "application/zip",
+      upsert: false,
+    });
+    if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
+    const signed = await supabaseAdmin.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 24);
+    if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
+    return {
+      ok: true as const,
+      url: signed.data.signedUrl,
+      bytes: zipBuf.byteLength,
+      filename: `court-packet-${data.clientId.slice(0, 8)}-${ts}.zip`,
+    };
   });
