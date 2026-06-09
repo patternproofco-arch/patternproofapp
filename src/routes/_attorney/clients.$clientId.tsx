@@ -239,7 +239,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
             {data.flags.slice(0, 8).map((f) => (
               <li key={f.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, padding: "8px 10px", background: "#FEF2F2", borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "#EF4444" : "#F59E0B"}`, borderRadius: 4 }}>
-                <span>{f.note ?? "Escalation flagged"}</span>
+                <span>{f.details ?? f.flag_type ?? "Escalation flagged"}</span>
                 <span className="att-mono" style={{ color: "var(--att-text-2)" }}>sev {f.severity_tier ?? "?"}</span>
               </li>
             ))}
