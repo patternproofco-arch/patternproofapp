@@ -74,10 +74,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         ui_mode: "embedded_page",
         return_url: data.returnUrl,
         customer: customerId,
-        managed_payments: { enabled: true },
         metadata: { userId, managed_payments: "true" },
         ...(isRecurring && { subscription_data: { metadata: { userId } } }),
-      });
+        // managed_payments enabled via cast — SDK types don't yet include it
+        ...({ managed_payments: { enabled: true } } as Record<string, unknown>),
+      } as Parameters<typeof stripe.checkout.sessions.create>[0]);
       return { clientSecret: session.client_secret ?? "" };
     } catch (error) {
       return { error: getStripeErrorMessage(error) };
