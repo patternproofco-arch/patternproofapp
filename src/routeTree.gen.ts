@@ -42,6 +42,7 @@ import { Route as AuthenticatedAbuserTacticsRouteImport } from './routes/_authen
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
 import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
+import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -219,6 +220,11 @@ const AttorneyBillingReturnRoute = AttorneyBillingReturnRouteImport.update({
   path: '/billing-return',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AttorneyClientsIndexRoute = AttorneyClientsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AttorneyClientsRoute,
+} as any)
 const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
   id: '/$clientId',
   path: '/$clientId',
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/clients/': typeof AttorneyClientsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -272,7 +279,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
-  '/clients': typeof AttorneyClientsRouteWithChildren
   '/subscribe': typeof AttorneySubscribeRoute
   '/abuser-tactics': typeof AuthenticatedAbuserTacticsRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
@@ -299,6 +305,7 @@ export interface FileRoutesByTo {
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/clients': typeof AttorneyClientsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -337,6 +344,7 @@ export interface FileRoutesById {
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/_attorney/clients/': typeof AttorneyClientsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -374,6 +382,7 @@ export interface FileRouteTypes {
     | '/accept-invite/$token'
     | '/attorney/$token'
     | '/clients/$clientId'
+    | '/clients/'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -382,7 +391,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/sitemap.xml'
     | '/billing-return'
-    | '/clients'
     | '/subscribe'
     | '/abuser-tactics'
     | '/attorney-portal'
@@ -409,6 +417,7 @@ export interface FileRouteTypes {
     | '/accept-invite/$token'
     | '/attorney/$token'
     | '/clients/$clientId'
+    | '/clients'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -446,6 +455,7 @@ export interface FileRouteTypes {
     | '/accept-invite/$token'
     | '/attorney/$token'
     | '/_attorney/clients/$clientId'
+    | '/_attorney/clients/'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -694,6 +704,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyBillingReturnRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_attorney/clients/': {
+      id: '/_attorney/clients/'
+      path: '/'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AttorneyClientsIndexRouteImport
+      parentRoute: typeof AttorneyClientsRoute
+    }
     '/_attorney/clients/$clientId': {
       id: '/_attorney/clients/$clientId'
       path: '/$clientId'
@@ -713,10 +730,12 @@ declare module '@tanstack/react-router' {
 
 interface AttorneyClientsRouteChildren {
   AttorneyClientsClientIdRoute: typeof AttorneyClientsClientIdRoute
+  AttorneyClientsIndexRoute: typeof AttorneyClientsIndexRoute
 }
 
 const AttorneyClientsRouteChildren: AttorneyClientsRouteChildren = {
   AttorneyClientsClientIdRoute: AttorneyClientsClientIdRoute,
+  AttorneyClientsIndexRoute: AttorneyClientsIndexRoute,
 }
 
 const AttorneyClientsRouteWithChildren = AttorneyClientsRoute._addFileChildren(
@@ -807,3 +826,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
