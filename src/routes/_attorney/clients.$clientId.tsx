@@ -10,6 +10,7 @@ import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
   listAttorneyNotes, upsertAttorneyNote,
 } from "@/lib/attorney-portal.functions";
+import { getAttorneyEntitlement, generateAttorneyCourtPacket } from "@/lib/payments.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { toast } from "sonner";
 
@@ -22,7 +23,7 @@ type DepoResult = Awaited<ReturnType<typeof generateDepositionPrep>>;
 type NoteRow = { incident_id: string; note: string | null; flagged: boolean; reviewed: boolean };
 
 const TABS = [
-  "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
+  "Dashboard", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
 ] as const;
 type Tab = (typeof TABS)[number];
 
@@ -31,16 +32,23 @@ function ClientCaseView() {
   const fetcher = useServerFn(getClientCase);
   const depoFn = useServerFn(generateDepositionPrep);
   const notesFn = useServerFn(listAttorneyNotes);
+  const entFn = useServerFn(getAttorneyEntitlement);
   const [data, setData] = useState<CaseData | null>(null);
-  const [tab, setTab] = useState<Tab>("Overview");
+  const [tab, setTab] = useState<Tab>("Dashboard");
   const [depo, setDepo] = useState<DepoResult | null>(null);
   const [depoLoading, setDepoLoading] = useState(false);
   const [notes, setNotes] = useState<NoteRow[]>([]);
+  const [ent, setEnt] = useState<{ entitled: boolean; reason: string } | null>(null);
 
   useEffect(() => {
+    entFn({ data: { clientId } }).then(setEnt).catch(() => setEnt({ entitled: false, reason: "paywall" }));
+  }, [entFn, clientId]);
+
+  useEffect(() => {
+    if (!ent?.entitled) return;
     fetcher({ data: { clientId } }).then(setData).catch(() => toast("Couldn't load case."));
     notesFn({ data: { clientId } }).then((r) => setNotes(r.notes)).catch(() => {});
-  }, [fetcher, notesFn, clientId]);
+  }, [fetcher, notesFn, clientId, ent]);
 
   const runDepo = async () => {
     setDepoLoading(true);
@@ -51,6 +59,20 @@ function ClientCaseView() {
     } finally { setDepoLoading(false); }
   };
 
+  if (ent === null) return <div className="att-card">Checking access…</div>;
+  if (!ent.entitled) {
+    return (
+      <div className="att-card" style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}>
+        <h2 style={{ fontSize: 22, marginBottom: 6 }}>Subscription required</h2>
+        <p style={{ color: "var(--att-text-2)", fontSize: 13, marginBottom: 16 }}>
+          You already have one free client case open. Subscribe to unlock unlimited cases for $297/month.
+        </p>
+        <Link to="/subscribe" className="att-btn-secondary" style={{ display: "inline-block" }}>
+          Subscribe — $297/mo
+        </Link>
+      </div>
+    );
+  }
   if (!data) return <div className="att-card">Loading case file…</div>;
 
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
@@ -105,6 +127,7 @@ function ClientCaseView() {
       </nav>
 
       <div style={{ marginTop: 20 }}>
+        {tab === "Dashboard" && <Dashboard data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
         {tab === "Timeline" && <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} />}
         {tab === "Patterns" && <Patterns data={data} />}
