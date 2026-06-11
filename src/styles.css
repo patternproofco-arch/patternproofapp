@@ -2,8 +2,6 @@
 @source "../src";
 @import "tw-animate-css";
 
-@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap");
-
 @theme inline {
   --radius-sm: 10px;
   --radius-md: 14px;
