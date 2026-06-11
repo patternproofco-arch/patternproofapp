@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
 import JSZip from "jszip";
 import { createHash } from "crypto";
+import { z } from "zod";
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 type PortalResult = { url: string } | { error: string };
@@ -166,7 +167,9 @@ async function isAttorneyEntitled(attorneyId: string, clientId: string): Promise
 
 export const getAttorneyEntitlement = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { clientId: string }) => data)
+  .inputValidator((input) =>
+    z.object({ clientId: z.string().uuid() }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const r = await isAttorneyEntitled(context.userId, data.clientId);
     return r;
@@ -192,17 +195,48 @@ function sha256(buf: ArrayBuffer | Uint8Array): string {
 
 export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { clientId: string }) => data)
+  .inputValidator((input) =>
+    z.object({ clientId: z.string().uuid() }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const ent = await isAttorneyEntitled(context.userId, data.clientId);
     if (!ent.entitled) return { ok: false as const, reason: "paywall" as const };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Authorization: an active attorney_client_link must exist for this pair.
+    // Billing entitlement alone does NOT authorize data access.
+    const { data: link } = await supabaseAdmin
+      .from("attorney_client_links")
+      .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
+      .eq("attorney_user_id", context.userId)
+      .eq("client_user_id", data.clientId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (!link) return { ok: false as const, reason: "no-active-link" as const };
+
+    const scopeIncidents = (link.scope_incidents as string[] | null) ?? [];
+    const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];
+    const includeAllIncidents = link.include_all_incidents !== false;
+    const includeAllEvidence = link.include_all_evidence !== false;
+    const includePatterns = link.include_patterns !== false;
+
+    const incidentsQuery = includeAllIncidents
+      ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).order("date")
+      : supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopeIncidents.length ? scopeIncidents : ["00000000-0000-0000-0000-000000000000"]).order("date");
+    const evidenceQuery = includeAllEvidence
+      ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).order("date")
+      : supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopeEvidence.length ? scopeEvidence : ["00000000-0000-0000-0000-000000000000"]).order("date");
+
     const [incRes, evRes, commsRes, paRes, casesRes, flagsRes] = await Promise.all([
-      supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).order("date"),
-      supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).order("date"),
-      supabaseAdmin.from("communications").select("*").eq("user_id", data.clientId).order("date"),
-      supabaseAdmin.from("pattern_analyses").select("analysis,created_at").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1),
+      incidentsQuery,
+      evidenceQuery,
+      includeAllIncidents
+        ? supabaseAdmin.from("communications").select("*").eq("user_id", data.clientId).order("date")
+        : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
+      includePatterns
+        ? supabaseAdmin.from("pattern_analyses").select("analysis,created_at").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1)
+        : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
       supabaseAdmin.from("cases").select("*").eq("user_id", data.clientId).order("updated_at", { ascending: false }).limit(1),
       supabaseAdmin.from("escalation_flags").select("*").eq("user_id", data.clientId).order("created_at"),
     ]);
