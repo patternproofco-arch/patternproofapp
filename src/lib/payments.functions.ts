@@ -88,6 +88,48 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     }
   });
 
+/**
+ * Pay-What-You-Can checkout for the Court Ready tier.
+ * Survivors choose any amount from $1 to $500 (one-time payment).
+ */
+export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      amountInCents: z.number().int().min(100).max(50000),
+      returnUrl: z.string().url(),
+      environment: z.enum(["sandbox", "live"]),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }): Promise<CheckoutResult> => {
+    try {
+      const { userId, supabase } = context;
+      const { data: { user } } = await supabase.auth.getUser();
+      const email = user?.email ?? undefined;
+      const stripe = createStripeClient(data.environment as StripeEnv);
+      const customerId = await resolveOrCreateCustomer(stripe, { email, userId });
+      const session = await stripe.checkout.sessions.create({
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            product_data: { name: "PatternProof Court Ready — Pay What You Can" },
+            unit_amount: data.amountInCents,
+          },
+          quantity: 1,
+        }],
+        mode: "payment",
+        ui_mode: "embedded_page",
+        return_url: data.returnUrl,
+        customer: customerId,
+        payment_intent_data: { description: "PatternProof Court Ready — Pay What You Can" },
+        metadata: { userId, tier: "court_ready_pwyc" },
+      } as Parameters<typeof stripe.checkout.sessions.create>[0]);
+      return { clientSecret: session.client_secret ?? "" };
+    } catch (error) {
+      return { error: getStripeErrorMessage(error) };
+    }
+  });
+
 export const createPortalSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { returnUrl?: string; environment: StripeEnv }) => data)
@@ -131,15 +173,16 @@ export const getMySubscription = createServerFn({ method: "POST" })
   });
 
 /**
- * Entitlement: free for the earliest-linked client; paid sub required beyond.
+ * Entitlement: attorney needs an active PatternProof attorney subscription.
+ * "The Pilot" (first client free) is marketing copy on the pricing page —
+ * full app access requires an active Solo/Firm/Enterprise subscription.
  */
 async function isAttorneyEntitled(attorneyId: string, clientId: string): Promise<{ entitled: boolean; reason: "free" | "subscribed" | "paywall" }>
 {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  // Active sub?
   const { data: sub } = await supabaseAdmin
     .from("subscriptions")
-    .select("status,current_period_end")
+    .select("status,current_period_end,price_id")
     .eq("user_id", attorneyId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -148,20 +191,21 @@ async function isAttorneyEntitled(attorneyId: string, clientId: string): Promise
     const end = sub.current_period_end ? new Date(sub.current_period_end as string).getTime() : null;
     const future = end === null || end > Date.now();
     const status = sub.status as string;
+    const priceId = sub.price_id as string | null;
+    const attorneyPlans = new Set([
+      "attorney_solo_monthly",
+      "attorney_firm_monthly",
+      "attorney_enterprise_monthly",
+      // legacy price id used during The Pilot rollout
+      "attorney_portal_monthly_297",
+    ]);
     const active = (["active", "trialing", "past_due"].includes(status) && future)
       || (status === "canceled" && end !== null && end > Date.now());
-    if (active) return { entitled: true, reason: "subscribed" };
+    if (active && priceId && attorneyPlans.has(priceId)) {
+      return { entitled: true, reason: "subscribed" };
+    }
   }
-  // Free first client?
-  const { data: links } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("client_user_id,created_at")
-    .eq("attorney_user_id", attorneyId)
-    .eq("status", "active")
-    .order("created_at", { ascending: true })
-    .limit(1);
-  const firstClient = links?.[0]?.client_user_id as string | undefined;
-  if (firstClient && firstClient === clientId) return { entitled: true, reason: "free" };
+  void clientId;
   return { entitled: false, reason: "paywall" };
 }
 
