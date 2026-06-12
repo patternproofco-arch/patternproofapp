@@ -1,126 +1,80 @@
-## Attorney Portal — Full Build Plan
+# PatternProof Rebrand & Full Sweep
 
-This is a large two-sided build. Confirming scope before I touch files.
+Three workstreams. I'll do them in this order so the underlying gates exist before the copy lands on top.
 
-### What already exists
-- `attorney_invitations`, `attorney_client_links`, `attorney_profiles`, `attorney_messages`, `attorney_document_requests`, `attorney_time_logs` tables (full invite + link model)
-- `src/lib/attorney-invitations.functions.ts` — create / list / revoke / peek / accept
-- `src/lib/attorney-portal.functions.ts` — attorney-side reads
-- `src/routes/_authenticated/share-with-attorney.tsx` — basic survivor share UI
-- `src/routes/_authenticated/attorney-portal.tsx` — older `attorney_access` UI (legacy)
-- `src/routes/accept-invite.$token.tsx` — attorney accepts invite (signed in)
-- `src/routes/_attorney/clients.tsx` + `clients.$clientId.tsx` — minimal attorney workspace
-- `src/routes/_attorney.tsx` — attorney layout (basic)
+## 1. Pricing & Stripe products
 
-I will build on the **invitation/link** system (not the legacy `attorney_access` table) since it has proper RLS, role gating, and email verification.
+Replace existing Stripe products with the four canonical SKUs. Human-readable price IDs (stable across sandbox/live):
 
----
+| Tier | Audience | Price ID | Amount | Interval |
+|---|---|---|---|---|
+| Court Ready | Survivor | `court_ready_monthly` | $10 | month |
+| Court Ready (pay-what-you-can) | Survivor | `price_data` inline, min $1 | variable | one-time |
+| Solo | Attorney | `attorney_solo_monthly` | $297 | month |
+| Firm (recommended) | Attorney | `attorney_firm_monthly` | $697 | month |
+| Enterprise | Attorney | `attorney_enterprise_monthly` | $1497 | month |
 
-### PART 1 — Survivor share flow (redesigned)
+Existing `attorney_portal_monthly_297` stays as the underlying price for Solo (rename via lookup_key swap). All registered with `txcd_10103001` (SaaS) + `managed_payments: { enabled: true }`.
 
-Replace `src/routes/_authenticated/attorney-portal.tsx` with a redesigned share screen that matches the spec:
-- Heading + supportive subtext
-- Form fields: attorney email, name (opt), firm (opt)
-- Three toggles (incidents / evidence / patterns) — on by default
-- Optional date range
-- Optional private note to attorney (stored on invitation row)
-- "Generate Secure Access Link" → creates invitation, shows step 2
-- Step 2: full URL `pattern-proof.tech/attorney/[token]`, copy + mailto buttons, expiry note
-- Below: list of active links and pending invites with Revoke
-- Green dot on the nav item when an active link exists (via FloatingNav)
+Tier resolution in `payments.functions.ts` maps `price_id` → tier name + client cap (Solo 5, Firm unlimited+3 seats, Enterprise unlimited+white-label flag).
 
-DB additions needed (small migration):
-- `attorney_invitations.firm_name text`
-- `attorney_invitations.personal_note text`
-- `attorney_invitations.date_range_start date`, `date_range_end date`
+## 2. Gating changes
 
-### PART 2 — Attorney portal design system
+**Survivor side — keep Core free forever.**
+- Court Ready paywall ONLY blocks: AI court packet generation, attorney share/export. Everything else (journal, timeline, evidence, voice notes, PIN, escalation detector, quick exit) stays open. No hard paywall on the survivor app.
+- Court Ready upsell screen lives at `/court-ready` with two CTAs: `$10/month` and `Pay what you can` (custom amount checkout, $1–$500).
 
-New file `src/styles/attorney.css` (imported only by `_attorney` routes) — completely isolated from survivor pastel system:
-- Background `#F4F6F9`, navy `#1B2A4A`, slate, white cards
-- Instrument Serif + IBM Plex Sans + IBM Plex Mono from Google Fonts
-- Classes: `.att-card`, `.att-btn-primary`, `.att-btn-export`, `.att-btn-secondary`, `.att-tag-*`, `.att-nav`, `.att-nav-tab`, `.att-security-banner`
-- No glassmorphism, no particles — the `_attorney` layout will NOT mount `AmbientBackground`
+**Attorney side — hard paywall on first login.**
+- Remove the "view 1 client free" softness from `_attorney/clients.index.tsx` and `_attorney.tsx`. The Pilot becomes marketing copy only.
+- `_attorney.tsx` layout: if `!subscription.isActive`, redirect to `/subscribe` before rendering any child.
+- `accept-invite.$token.tsx` (attorney path): after acceptance, route to `/subscribe`, not `/clients`.
 
-Rewrite `src/routes/_attorney.tsx`:
-- Sticky navy top nav with 5 tabs (Overview / Timeline / Patterns / Evidence / Export)
-- Security banner row (dismissible per session)
-- Client name + Case ID on the right
-- Footer with chain-of-custody line
-- NO survivor chrome (no AppShell, no AmbientBackground, no FloatingNav)
+## 3. Copy & UX sweep
 
-### PART 3 — Attorney portal pages (under `/clients/$clientId/...`)
+**The four screens that matter:**
 
-Restructure to mirror spec:
-```
-/clients                              — client picker (existing, restyled)
-/clients/$clientId                    — Overview (Page 1) — REWRITE existing
-/clients/$clientId/timeline           — Timeline (Page 2) — NEW
-/clients/$clientId/patterns           — Pattern analysis (Page 3) — NEW
-/clients/$clientId/evidence           — Evidence vault (Page 4) — NEW
-/clients/$clientId/export             — Court-ready export (Page 5) — NEW
-```
+1. **Survivor Screen 1** (`onboarding.tsx` step 0) — rewrite to "You don't have to remember everything alone." PIN step (current step 1) moves to be the FIRST interactive step, before anything else. Name/state come after.
+2. **Free Promise** — new standalone route `/free-promise` shown once after PIN setup, before state selection: "This app is free. Full stop." with a single "Continue" button.
+3. **Attorney Pricing Hero** (`lawyer-signup.tsx` or new `/for-attorneys`) — hero line "Your clients are already documented before they walk in the door." + Grace's signature story block + 3-tier pricing (Solo / Firm-highlighted / Enterprise) + Pilot framing + cognitive close "$297/month. One billable hour. Your first client is free — The Pilot."
+4. **Attorney Portal first login** (`clients.index.tsx` empty state) — replace empty grid with a **Diagnosis Card**: "Status: ready. What needs attention: invite your first client." Never shows raw empty state.
 
-**Page 0 — Access Gate**: token-based gate already lives at `/attorney/$token` and `/accept-invite/$token`. Will restyle accept-invite to match the new attorney design (name, bar #, email, confidentiality checkbox, "Access Case File" navy CTA).
+**Banned-word sweep** (rg-driven, then manual):
+- Survivor-facing files: replace `victim` → `survivor`, `evidence` (in user-facing copy only — column names stay) → `record`/`proof`, `incident report` → `entry`, `abuser` → `the other party`, `free trial` → `The Pilot` (attorney) / removed (survivor), `basic plan` → `Core`, `upgrade now` → `unlock Court Ready`, `are you sure?` → specific question.
+- Attorney-facing: `victim` → `client`, `free trial` → `The Pilot`, `we hope this helps` → removed, "feature-first" descriptions reworded outcome-first.
+- "we think / we believe" → "I've observed" everywhere it appears in marketing copy.
 
-**Page 1 — Overview**: 4 hero stat cards (incidents, evidence, severity, time span) + AI case summary card (uses existing `pattern_analyses` if present, else placeholder) + last 5 incidents + right sidebar (case info, applicable law by state, quick actions).
+**Global Quick Exit** — `QuickExitButton.tsx` already exists. Verify it's mounted in `_authenticated.tsx` AppShell (bottom-right, always visible). Add if missing.
 
-**Page 2 — Timeline**: filter bar, incidents grouped by month, full descriptions, evidence list per incident with auth badges, attorney-private notes (new table), flag/reviewed toggles.
+**Cognitive close audit** — pass through dashboard, journal, timeline, evidence, voice-notes, patterns, court-packet, settings. Replace generic "Learn more" / dead-end empty states with one specific next action per screen.
 
-**Page 3 — Patterns**: frequency bar chart, behavior-type breakdown (donut), escalation line chart with auto-callout, Power & Control wheel grid (8 cells filled/empty by abuse_types match), legal framing callout. Will use `recharts` (already installed via shadcn chart).
+## Technical details
 
-**Page 4 — Evidence**: tabbed grid (All/Photos/Screenshots/Documents/Audio), 3-col cards with thumbnail/icon, side panel on click with metadata and download.
+**Files I'll touch:**
+- `src/lib/payments.functions.ts` — add `createCourtReadyCheckout` (fixed) and `createPayWhatYouCanCheckout` (price_data, $1 min). Update tier resolution map. Solo/Firm/Enterprise checkout helpers.
+- `src/hooks/useSubscription.ts` — expose `tier: 'core' | 'court_ready' | 'solo' | 'firm' | 'enterprise'` derived from price_id.
+- `src/routes/_attorney.tsx` — hard paywall guard.
+- `src/routes/_attorney/subscribe.tsx` — rewrite as 3-tier picker (Solo / **Firm recommended** / Enterprise), Grace's story, Pilot framing.
+- `src/routes/_attorney/clients.index.tsx` — diagnosis card replaces empty state.
+- New `src/routes/for-attorneys.tsx` — public attorney pricing hero (replaces or supplements `lawyer-signup.tsx`).
+- New `src/routes/_authenticated/court-ready.tsx` — survivor upsell with $10 + pay-what-you-can.
+- New `src/routes/_authenticated/free-promise.tsx` — standalone screen post-PIN.
+- `src/routes/_authenticated/onboarding.tsx` — reorder: intro → PIN → free promise (redirect) → state. Strip "name/email" personal asks before PIN.
+- `src/routes/_authenticated/court-packet.tsx`, `share-with-attorney.tsx` — gate behind `tier !== 'core'`, link to `/court-ready`.
+- `src/components/AppShell.tsx` — verify QuickExitButton mounted globally.
+- `src/components/StripeEmbeddedCheckout.tsx` — extend to accept a `customAmountCents` prop for pay-what-you-can path (calls new server fn).
+- Stripe products created via `payments--batch_create_product`.
+- DB migration: add `tier` column to `subscriptions` (text, nullable, derived in webhook). Skip if already represented via price_id.
 
-**Page 5 — Export**: checklist of sections, format radio (PDF/Word/Print), date range, optional attorney certification block, large green "Generate Report" button. Initial implementation = window.print() against a styled print view; PDF generation TBD.
+**What I'm NOT touching:**
+- Underlying schema (incidents, evidence, voice_notes, etc.) — column names like `evidence` stay, only user-visible copy changes.
+- Auth flow itself, RLS, attorney-client linking model.
+- Patterns/escalation analysis logic.
 
-### PART 4 — New DB (one migration)
+## Out of scope (flag for later)
 
-```sql
--- richer invitation fields (Part 1)
-ALTER TABLE attorney_invitations
-  ADD COLUMN firm_name text,
-  ADD COLUMN personal_note text,
-  ADD COLUMN date_range_start date,
-  ADD COLUMN date_range_end date;
+- Firm tier seat management UI (multi-attorney invite flow) — pricing exists, seat enforcement is a future build.
+- Enterprise white-label theming.
+- Pay-what-you-can recurring (custom amount is one-time only; recurring requires custom Stripe price creation per user, much bigger scope).
+- Localization, A/B test infrastructure for hero copy.
 
--- attorney-only private notes per incident
-CREATE TABLE attorney_incident_notes (
-  id uuid primary key default gen_random_uuid(),
-  link_id uuid not null,
-  attorney_user_id uuid not null,
-  client_user_id uuid not null,
-  incident_id uuid not null,
-  note text,
-  flagged boolean not null default false,
-  reviewed boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (link_id, incident_id)
-);
--- grants + RLS: only the attorney on the link can read/write; survivor cannot see
-```
-
-### PART 5 — Server functions (new)
-
-Add to `src/lib/attorney-portal.functions.ts`:
-- `getCaseOverview({ clientId })` — stats, summary, last 5 incidents, applicable law
-- `getCaseTimeline({ clientId, filters })` — incidents + linked evidence grouped by month
-- `getCasePatterns({ clientId })` — aggregations for charts
-- `getCaseEvidence({ clientId, type })` — evidence grid data
-- `upsertAttorneyNote({ incidentId, note, flagged, reviewed })`
-- `logAttorneyAccess({ clientId, page })` — writes to `attorney_time_logs`
-
-All gated by `requireSupabaseAuth` + `has_attorney_access(auth.uid(), client_user_id)`.
-
----
-
-### Scope confirmation
-
-This is roughly 12–15 new files and one DB migration. I'll skip the legacy `attorney_access` table entirely (won't delete it — just stop using it).
-
-**Open questions before I start:**
-1. **AI case summary** — generate live with Lovable AI on each load, or store in `pattern_analyses` and reuse? (Live is simpler; pattern_analyses caching is better long-term.)
-2. **Court-ready PDF export** — for v1, is a styled "Print view" (browser → Save as PDF) acceptable, or do you want server-side PDF generation now?
-3. **"Email directly to attorney" button** — `mailto:` link (works everywhere, no infra), or proper transactional email via a connector?
-
-Reply with any answers and I'll build the whole thing in one pass.
+Ready to build on approval. I'll work in passes: Stripe products → gating → 4 hero screens → copy sweep → quick-exit + cognitive-close audit, verifying preview between passes.
