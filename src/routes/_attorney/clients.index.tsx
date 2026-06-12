@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { AlertTriangle, FileText, MessageSquare, TrendingUp, Users, ArrowRight, Lock } from "lucide-react";
+import { AlertTriangle, FileText, MessageSquare, TrendingUp, ArrowRight, CheckCircle2, Send } from "lucide-react";
 import { listMyClients } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -25,52 +25,33 @@ function ClientsIndex() {
 
   useEffect(() => { fetcher().then((r) => setClients(r.clients)); }, [fetcher]);
 
-  const earliestId = clients && clients.length
-    ? [...clients].sort((a, b) => a.linked_at.localeCompare(b.linked_at))[0].client_user_id
-    : null;
-
   return (
     <div>
       <div className="att-eyebrow">Case Files</div>
       <h1 style={{ fontSize: 32, marginTop: 6, marginBottom: 6 }}>Your clients</h1>
       <p style={{ color: "var(--att-text-2)", maxWidth: 640, marginBottom: 24 }}>
-        Read-only litigation portal for every survivor who has shared their PatternProof case file with you.
+        Every survivor who has shared their PatternProof case file with you. Read-only. Chain-of-custody logged.
       </p>
 
-      {!sub.isActive && clients && clients.length > 0 && (
-        <div className="att-card" style={{ background: "#FFFBEB", borderColor: "#FCD34D", marginBottom: 16 }}>
-          <div className="att-eyebrow" style={{ color: "#92400E" }}>Free preview</div>
-          <p style={{ fontSize: 13, marginTop: 4, color: "#78350F" }}>
-            You can view your first connected client free. Subscribe for $297/mo to unlock unlimited cases.{" "}
-            <Link to="/subscribe" style={{ fontWeight: 600 }}>Subscribe →</Link>
-          </p>
-        </div>
+      {/* Diagnosis card — never shows a raw empty grid */}
+      <DiagnosisCard clientCount={clients?.length ?? null} tier={sub.tier} />
+
+      {!clients ? null : clients.length === 0 ? null : (
+        <div className="att-card">Loading clients…</div>
       )}
 
-      {!clients ? (
-        <div className="att-card">Loading clients…</div>
-      ) : clients.length === 0 ? (
-        <div className="att-card" style={{ textAlign: "center", padding: 40 }}>
-          <Users size={28} style={{ color: "var(--att-muted)", margin: "0 auto 10px" }} />
-          <h2 style={{ fontSize: 22, marginBottom: 6 }}>No clients yet</h2>
-          <p style={{ color: "var(--att-text-2)", fontSize: 13 }}>
-            When a survivor invites you, their case appears here.
-          </p>
-        </div>
-      ) : (
+      {clients && clients.length > 0 && (
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))" }}>
           {clients.map((c) => {
             const risk = RISK[c.risk_level];
             const caseId = `PP-${c.client_user_id.slice(0, 4).toUpperCase()}`;
-            const free = c.client_user_id === earliestId;
-            const locked = !sub.isActive && !free;
             return (
               <Link
                 key={c.link_id}
                 to="/clients/$clientId"
                 params={{ clientId: c.client_user_id }}
                 className="att-card att-hover"
-                style={{ borderLeft: `3px solid ${risk.color}`, textDecoration: "none", color: "inherit", display: "block", opacity: locked ? 0.85 : 1 }}
+                style={{ borderLeft: `3px solid ${risk.color}`, textDecoration: "none", color: "inherit", display: "block" }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                   <div>
@@ -82,8 +63,6 @@ function ClientsIndex() {
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
                     <span className="att-tag" style={{ background: `${risk.color}1A`, color: risk.color }}>{risk.label}</span>
-                    {locked && <span className="att-tag" style={{ background: "#F3F4F6", color: "#374151", display: "inline-flex", gap: 4, alignItems: "center" }}><Lock size={10} /> Locked</span>}
-                    {free && !sub.isActive && <span className="att-tag" style={{ background: "#ECFDF5", color: "#065F46" }}>FREE</span>}
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginTop: 16 }}>
@@ -107,6 +86,43 @@ function ClientsIndex() {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function DiagnosisCard({ clientCount, tier }: { clientCount: number | null; tier: string }) {
+  const tierLabel = tier === "firm" ? "Firm" : tier === "enterprise" ? "Enterprise" : tier === "solo" ? "Solo" : "Solo";
+  const cap = tier === "firm" || tier === "enterprise" ? "Unlimited" : "5";
+  const status = clientCount === null ? "loading" : clientCount === 0 ? "empty" : "active";
+  return (
+    <div className="att-card" style={{ marginBottom: 24, borderLeft: "4px solid var(--att-navy)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div>
+          <div className="att-eyebrow">Portal status</div>
+          <h2 style={{ fontSize: 22, margin: "4px 0 6px", fontFamily: '"Instrument Serif", serif' }}>
+            {status === "loading" && "Opening your portal…"}
+            {status === "empty" && "You're ready. The first invite is the next move."}
+            {status === "active" && `${clientCount} client case file${clientCount === 1 ? "" : "s"} active.`}
+          </h2>
+          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
+            Plan: <strong>PatternProof {tierLabel}</strong> · Client cap: {cap}
+          </p>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 220 }}>
+          <div className="att-eyebrow">What needs attention</div>
+          {status === "empty" ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+              <Send size={14} style={{ color: "var(--att-blue)" }} />
+              <span>Send your first client an invitation link.</span>
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+              <CheckCircle2 size={14} style={{ color: "var(--att-green)" }} />
+              <span>Open a case file below to begin review.</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
