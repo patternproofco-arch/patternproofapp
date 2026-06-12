@@ -4,6 +4,7 @@ import { Printer, Edit3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { typeLabel } from "@/lib/abuse-types";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export const Route = createFileRoute("/_authenticated/court-packet")({
   component: CourtPacket,
@@ -32,6 +33,12 @@ interface LegalDoc {
 function CourtPacket() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const sub = useSubscription();
+  useEffect(() => {
+    if (!sub.loading && sub.tier === "core") {
+      navigate({ to: "/court-ready", replace: true });
+    }
+  }, [sub.loading, sub.tier, navigate]);
   const [caseRow, setCaseRow] = useState<CaseRow | null>(null);
   const [incidents, setIncidents] = useState<Inc[]>([]);
   const [evidence, setEvidence] = useState<Ev[]>([]);

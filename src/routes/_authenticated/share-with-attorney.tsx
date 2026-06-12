@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback } from "react";
 import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check } from "lucide-react";
 import { toast } from "sonner";
 import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } from "@/lib/attorney-invitations.functions";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export const Route = createFileRoute("/_authenticated/share-with-attorney")({
   component: ShareWithAttorney,
@@ -12,6 +13,13 @@ export const Route = createFileRoute("/_authenticated/share-with-attorney")({
 type Listing = Awaited<ReturnType<typeof listMyInvitations>>;
 
 function ShareWithAttorney() {
+  const navigate = useNavigate();
+  const sub = useSubscription();
+  useEffect(() => {
+    if (!sub.loading && sub.tier === "core") {
+      navigate({ to: "/court-ready", replace: true });
+    }
+  }, [sub.loading, sub.tier, navigate]);
   const list = useServerFn(listMyInvitations);
   const create = useServerFn(createInvitation);
   const revokeInv = useServerFn(revokeInvitation);
