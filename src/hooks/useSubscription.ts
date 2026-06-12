@@ -9,6 +9,7 @@ export type SubscriptionState = {
   isActive: boolean;
   status: string | null;
   priceId: string | null;
+  tier: "core" | "court_ready" | "solo" | "firm" | "enterprise";
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   refetch: () => void;
@@ -62,8 +63,29 @@ export function useSubscription(): SubscriptionState {
     isActive: computeActive(row),
     status: row?.status ?? null,
     priceId: row?.price_id ?? null,
+    tier: deriveTier(row?.price_id ?? null, computeActive(row)),
     currentPeriodEnd: row?.current_period_end ?? null,
     cancelAtPeriodEnd: row?.cancel_at_period_end ?? false,
     refetch: load,
   };
+}
+
+function deriveTier(
+  priceId: string | null,
+  active: boolean,
+): "core" | "court_ready" | "solo" | "firm" | "enterprise" {
+  if (!active || !priceId) return "core";
+  switch (priceId) {
+    case "court_ready_monthly":
+      return "court_ready";
+    case "attorney_solo_monthly":
+    case "attorney_portal_monthly_297":
+      return "solo";
+    case "attorney_firm_monthly":
+      return "firm";
+    case "attorney_enterprise_monthly":
+      return "enterprise";
+    default:
+      return "core";
+  }
 }

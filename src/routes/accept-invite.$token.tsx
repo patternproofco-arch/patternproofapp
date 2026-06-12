@@ -52,7 +52,7 @@ function AcceptInvite() {
     if (!loading && user && peeked?.status === "ok" && !accepted) {
       setBusy(true);
       accept({ data: { token } })
-        .then(() => { setAccepted(true); toast("Access granted."); navigate({ to: "/clients" }); })
+        .then(() => { setAccepted(true); toast("Access granted. One step left."); navigate({ to: "/subscribe" }); })
         .catch((e) => toast(e instanceof Error ? e.message : "Couldn't accept."))
         .finally(() => setBusy(false));
     }
