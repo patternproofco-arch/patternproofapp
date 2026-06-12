@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 
@@ -14,18 +13,15 @@ function Onboarding() {
   const navigate = useNavigate();
   const { update } = useSettings();
   const { setRealPin } = usePinLock();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState<"hello" | "pin" | "promise" | "state">("hello");
   const [pin, setPin] = useState("");
-  const [contact, setContact] = useState("");
   const [state, setState] = useState("NJ");
 
   const finishPin = async () => {
-    // PIN is optional — only set if user entered all 4 digits.
     if (pin.length === 4) {
       await setRealPin(pin);
     }
-    if (contact) try { localStorage.setItem("pp_trusted_contact_v1", contact); } catch { /* */ }
-    setStep(3);
+    setStep("promise");
   };
 
   const finishAll = () => {
@@ -35,40 +31,45 @@ function Onboarding() {
 
   return (
     <div className="mx-auto max-w-2xl px-5 py-10 md:py-16">
-      {step === 0 && (
+      {step === "hello" && (
         <div className="card-pp space-y-4">
-          <h1 className="font-serif text-[28px]">Before you begin — a few things about your safety.</h1>
+          <h1 className="font-serif text-[28px]">You don't have to remember everything alone.</h1>
           <div className="space-y-3 text-[14px] leading-relaxed">
-            <p>This app stores your records securely in the cloud, not on this device. However, if someone has access to your account login, they could access your records.</p>
-            <p>Use a password your partner has never seen. Do not use this app on a shared device.</p>
-            <p>If you think your device is being monitored, use a library computer or a trusted friend's device instead.</p>
-            <p>You can delete everything in this app instantly at any time from Settings.</p>
+            <p>PatternProof holds your story for you. Quietly. In your own words.</p>
+            <p>Before anything else, we'll set a 4-digit code that only you know. So if someone picks up your phone, your space stays yours.</p>
             <p>If you are in immediate danger, call <strong>911</strong>. National DV Hotline: <strong>1-800-799-7233</strong>.</p>
           </div>
-          <button onClick={() => setStep(1)} className="btn-primary">I understand, let's begin</button>
+          <button onClick={() => setStep("pin")} className="btn-primary">Set my code</button>
         </div>
       )}
 
-      {step === 1 && (
+      {step === "pin" && (
         <div className="card-pp space-y-4">
-          <h1 className="font-serif text-[28px]">Optional: set an access code</h1>
+          <h1 className="font-serif text-[28px]">Your 4-digit code.</h1>
           <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            You can skip this. If you want extra protection, pick 4 digits — avoid ones a partner might guess.
+            Pick four digits no one else would guess. We never show them or store them anywhere you can read them.
           </p>
-          <Field label="4-digit access code (optional)" value={pin} onChange={setPin} />
-          <div>
-            <label className="label-eyebrow">Trusted contact phone (optional)</label>
-            <input className="input-pp mt-1" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="For account recovery only" />
-          </div>
+          <Field label="4-digit code" value={pin} onChange={setPin} />
           <button onClick={finishPin} className="btn-primary">Continue</button>
-          <button onClick={() => setStep(3)} className="btn-ghost w-full text-[13px]" style={{ color: "var(--muted-foreground)" }}>Skip for now</button>
+          <button onClick={() => setStep("promise")} className="btn-ghost w-full text-[13px]" style={{ color: "var(--muted-foreground)" }}>Skip for now</button>
         </div>
       )}
 
-      {step === 3 && (
+      {step === "promise" && (
+        <div className="card-pp space-y-5" style={{ textAlign: "center", padding: "40px 24px" }}>
+          <h1 className="font-serif" style={{ fontSize: 40, lineHeight: 1.15 }}>This app is free.</h1>
+          <h2 className="font-serif" style={{ fontSize: 32, color: "var(--accent)" }}>Full stop.</h2>
+          <p className="text-[14px]" style={{ color: "var(--muted-foreground)", maxWidth: 420, margin: "0 auto" }}>
+            The journal, timeline, evidence vault, voice notes, escalation detector, quick exit — all of it. Forever. No card, no catch.
+          </p>
+          <button onClick={() => setStep("state")} className="btn-primary" style={{ marginTop: 12 }}>Continue</button>
+        </div>
+      )}
+
+      {step === "state" && (
         <div className="card-pp space-y-4">
           <h1 className="font-serif text-[28px]">Which state are you in?</h1>
-          <p className="text-[14px]">This helps us show you the right legal resources and recording laws.</p>
+          <p className="text-[14px]">So I can show you the right legal resources and recording laws.</p>
           <select value={state} onChange={(e) => setState(e.target.value)} className="input-pp">
             {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
