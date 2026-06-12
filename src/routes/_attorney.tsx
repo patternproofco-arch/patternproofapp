@@ -5,6 +5,7 @@ import { LogOut, Lock } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/attorney-portal.functions";
+import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
 
 export const Route = createFileRoute("/_attorney")({
@@ -23,6 +24,8 @@ function AttorneyLayout() {
   const navigate = useNavigate();
   const getRole = useServerFn(getMyRole);
   const [checking, setChecking] = useState(true);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const sub = useSubscription();
 
   useEffect(() => {
     if (loading) return;
@@ -33,7 +36,17 @@ function AttorneyLayout() {
     }).catch(() => navigate({ to: "/lawyer-signup", replace: true }));
   }, [user, loading, getRole, navigate]);
 
-  if (loading || checking) {
+  // Hard paywall: any non-billing route requires an active subscription.
+  // /subscribe and /billing-return are the only screens reachable without one.
+  const billingPaths = pathname === "/subscribe" || pathname === "/billing-return";
+  useEffect(() => {
+    if (loading || checking || sub.loading) return;
+    if (!sub.isActive && !billingPaths) {
+      navigate({ to: "/subscribe", replace: true });
+    }
+  }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate]);
+
+  if (loading || checking || sub.loading) {
     return (
       <div className="att-root" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <span className="att-eyebrow">Opening portal…</span>
