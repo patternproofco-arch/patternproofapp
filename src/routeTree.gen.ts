@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
+import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as IndexRouteImport } from './routes/index'
@@ -33,6 +34,7 @@ import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedEscalationDetectorRouteImport } from './routes/_authenticated/escalation-detector'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCourtSystemsRouteImport } from './routes/_authenticated/court-systems'
+import { Route as AuthenticatedCourtReadyRouteImport } from './routes/_authenticated/court-ready'
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
 import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
@@ -59,6 +61,11 @@ const LoginRoute = LoginRouteImport.update({
 const LawyerSignupRoute = LawyerSignupRouteImport.update({
   id: '/lawyer-signup',
   path: '/lawyer-signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForAttorneysRoute = ForAttorneysRouteImport.update({
+  id: '/for-attorneys',
+  path: '/for-attorneys',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -170,6 +177,11 @@ const AuthenticatedCourtSystemsRoute =
     path: '/court-systems',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCourtReadyRoute = AuthenticatedCourtReadyRouteImport.update({
+  id: '/court-ready',
+  path: '/court-ready',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedCourtPacketRoute =
   AuthenticatedCourtPacketRouteImport.update({
     id: '/court-packet',
@@ -239,6 +251,7 @@ const ApiPublicPaymentsWebhookRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/for-attorneys': typeof ForAttorneysRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -251,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
+  '/court-ready': typeof AuthenticatedCourtReadyRoute
   '/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
@@ -275,6 +289,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/for-attorneys': typeof ForAttorneysRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -286,6 +301,7 @@ export interface FileRoutesByTo {
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
+  '/court-ready': typeof AuthenticatedCourtReadyRoute
   '/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
@@ -313,6 +329,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_attorney': typeof AttorneyRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/for-attorneys': typeof ForAttorneysRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -325,6 +342,7 @@ export interface FileRoutesById {
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/_authenticated/communications': typeof AuthenticatedCommunicationsRoute
   '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
+  '/_authenticated/court-ready': typeof AuthenticatedCourtReadyRoute
   '/_authenticated/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
@@ -351,6 +369,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/for-attorneys'
     | '/lawyer-signup'
     | '/login'
     | '/sitemap.xml'
@@ -363,6 +382,7 @@ export interface FileRouteTypes {
     | '/case-builder'
     | '/communications'
     | '/court-packet'
+    | '/court-ready'
     | '/court-systems'
     | '/dashboard'
     | '/escalation-detector'
@@ -387,6 +407,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/for-attorneys'
     | '/lawyer-signup'
     | '/login'
     | '/sitemap.xml'
@@ -398,6 +419,7 @@ export interface FileRouteTypes {
     | '/case-builder'
     | '/communications'
     | '/court-packet'
+    | '/court-ready'
     | '/court-systems'
     | '/dashboard'
     | '/escalation-detector'
@@ -424,6 +446,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_attorney'
     | '/_authenticated'
+    | '/for-attorneys'
     | '/lawyer-signup'
     | '/login'
     | '/sitemap.xml'
@@ -436,6 +459,7 @@ export interface FileRouteTypes {
     | '/_authenticated/case-builder'
     | '/_authenticated/communications'
     | '/_authenticated/court-packet'
+    | '/_authenticated/court-ready'
     | '/_authenticated/court-systems'
     | '/_authenticated/dashboard'
     | '/_authenticated/escalation-detector'
@@ -463,6 +487,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AttorneyRoute: typeof AttorneyRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ForAttorneysRoute: typeof ForAttorneysRoute
   LawyerSignupRoute: typeof LawyerSignupRoute
   LoginRoute: typeof LoginRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -492,6 +517,13 @@ declare module '@tanstack/react-router' {
       path: '/lawyer-signup'
       fullPath: '/lawyer-signup'
       preLoaderRoute: typeof LawyerSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-attorneys': {
+      id: '/for-attorneys'
+      path: '/for-attorneys'
+      fullPath: '/for-attorneys'
+      preLoaderRoute: typeof ForAttorneysRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -641,6 +673,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCourtSystemsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/court-ready': {
+      id: '/_authenticated/court-ready'
+      path: '/court-ready'
+      fullPath: '/court-ready'
+      preLoaderRoute: typeof AuthenticatedCourtReadyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/court-packet': {
       id: '/_authenticated/court-packet'
       path: '/court-packet'
@@ -765,6 +804,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
   AuthenticatedCommunicationsRoute: typeof AuthenticatedCommunicationsRoute
   AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
+  AuthenticatedCourtReadyRoute: typeof AuthenticatedCourtReadyRoute
   AuthenticatedCourtSystemsRoute: typeof AuthenticatedCourtSystemsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEscalationDetectorRoute: typeof AuthenticatedEscalationDetectorRoute
@@ -790,6 +830,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
   AuthenticatedCommunicationsRoute: AuthenticatedCommunicationsRoute,
   AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
+  AuthenticatedCourtReadyRoute: AuthenticatedCourtReadyRoute,
   AuthenticatedCourtSystemsRoute: AuthenticatedCourtSystemsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEscalationDetectorRoute: AuthenticatedEscalationDetectorRoute,
@@ -816,6 +857,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AttorneyRoute: AttorneyRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ForAttorneysRoute: ForAttorneysRoute,
   LawyerSignupRoute: LawyerSignupRoute,
   LoginRoute: LoginRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
