@@ -96,9 +96,15 @@ function CourtReadyPage() {
 
         <div style={{ border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
           {mode === "monthly" ? (
-            <StripeEmbeddedCheckout priceId="court_ready_monthly" />
+            <StripeEmbeddedCheckout
+              priceId="court_ready_monthly"
+              returnUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/court-ready-thanks?session_id={CHECKOUT_SESSION_ID}`}
+            />
           ) : (
-            <StripeEmbeddedCheckout customAmountCents={amount * 100} />
+            <StripeEmbeddedCheckout
+              customAmountCents={amount * 100}
+              returnUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/court-ready-thanks?session_id={CHECKOUT_SESSION_ID}`}
+            />
           )}
         </div>
       </div>
