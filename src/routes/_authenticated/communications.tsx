@@ -8,6 +8,7 @@ import { BulkPastePanel } from "@/components/communications/BulkPastePanel";
 import { CommCard } from "@/components/communications/CommCard";
 import { CommFilters, type Filter } from "@/components/communications/CommFilters";
 import type { Comm, IncidentLite } from "@/components/communications/types";
+import { CognitiveClose } from "@/components/CognitiveClose";
 
 export const Route = createFileRoute("/_authenticated/communications")({
   component: CommunicationsPage,
@@ -135,6 +136,12 @@ function CommunicationsPage() {
           )}
         </div>
       </div>
+      <CognitiveClose
+        title="Link a message to the day it happened"
+        body="Open the journal entry for that date and attach this communication — context makes it count."
+        cta="Go to journal"
+        to="/journal"
+      />
     </div>
   );
 }

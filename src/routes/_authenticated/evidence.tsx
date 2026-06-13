@@ -4,6 +4,7 @@ import { Upload, Image as ImageIcon, FileText, Music, Video, Trash2, Download } 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { CognitiveClose } from "@/components/CognitiveClose";
 
 export const Route = createFileRoute("/_authenticated/evidence")({
   component: EvidencePage,
@@ -189,6 +190,12 @@ function EvidencePage() {
           </div>
         )}
       </div>
+      <CognitiveClose
+        title="Tie evidence to an incident"
+        body="A screenshot becomes much stronger when it sits next to the day it happened. Open the journal to link them up."
+        cta="Go to journal"
+        to="/journal"
+      />
     </div>
   );
 }

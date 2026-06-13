@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { FileText } from "lucide-react";
+import { CognitiveClose } from "@/components/CognitiveClose";
 
 interface Item {
   id: string;
@@ -229,6 +230,12 @@ function TimelinePage() {
           </div>
         )}
       </div>
+      <CognitiveClose
+        title="See what the pattern is telling you"
+        body="Once your timeline has a few entries, our pattern view surfaces escalation and recurring tactics."
+        cta="View patterns"
+        to="/patterns"
+      />
     </div>
   );
 }

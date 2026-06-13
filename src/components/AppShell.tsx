@@ -7,6 +7,7 @@ import { QuickExitButton } from "@/components/QuickExitButton";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { FloatingNav } from "@/components/FloatingNav";
 import { BrandLogo } from "@/components/BrandLogo";
+import { NotificationBanner } from "@/components/NotificationBanner";
 
 /**
  * AppShell — Living Canvas edition.
@@ -46,6 +47,8 @@ export function AppShell() {
       >
         <BrandLogo variant="dark" size="sm" />
       </header>
+
+      <NotificationBanner />
 
       <main
         className="app-surface print-page mx-auto w-full max-w-6xl px-5 md:px-10"

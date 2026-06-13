@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
 import { transcribeVoiceNote } from "@/lib/transcribe-voice-note.functions";
+import { CognitiveClose } from "@/components/CognitiveClose";
 
 export const Route = createFileRoute("/_authenticated/voice-notes")({
   component: VoiceNotesPage,
@@ -210,6 +211,12 @@ function VoiceNotesPage() {
           ))
         )}
       </div>
+      <CognitiveClose
+        title="Turn a voice note into a written record"
+        body="When you're ready, log the moment in your journal so it joins your timeline."
+        cta="Open journal"
+        to="/journal"
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { sanitizeLine } from "@/lib/dates";
 import { AddFromJournalModal } from "@/components/AddFromJournalModal";
 import { BulkPastIncidentsModal } from "@/components/BulkPastIncidentsModal";
+import { CognitiveClose } from "@/components/CognitiveClose";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -337,6 +338,12 @@ function JournalPage() {
       <div className="hidden">{typeLabel("other")}{typeColor("other")}</div>
       <AddFromJournalModal open={journalOpen} onClose={() => setJournalOpen(false)} onSaved={load} />
       <BulkPastIncidentsModal open={bulkOpen} onClose={() => setBulkOpen(false)} onSaved={load} />
+      <CognitiveClose
+        title="See your entries on a timeline"
+        body="One date next to another is where the pattern starts to show. Take a look when you're ready."
+        cta="Open timeline"
+        to="/timeline"
+      />
     </div>
   );
 }

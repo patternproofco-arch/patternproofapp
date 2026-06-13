@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { typeLabel } from "@/lib/abuse-types";
+import { CognitiveClose } from "@/components/CognitiveClose";
 
 export const Route = createFileRoute("/_authenticated/escalation-detector")({
   component: EscalationPage,
@@ -71,6 +72,12 @@ function EscalationPage() {
           Crisis Text Line: text <strong style={{ color: "#FFFFFF" }}>START</strong> to 678-678
         </p>
       </div>
+      <CognitiveClose
+        title="Bring this into your case file"
+        body="The case builder pulls flagged incidents into a packet your attorney can read in minutes."
+        cta="Open case builder"
+        to="/case-builder"
+      />
     </div>
   );
 }
