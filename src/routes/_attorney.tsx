@@ -41,10 +41,11 @@ function AttorneyLayout() {
   const billingPaths = pathname === "/subscribe" || pathname === "/billing-return";
   useEffect(() => {
     if (loading || checking || sub.loading) return;
+    if (!user) return;
     if (!sub.isActive && !billingPaths) {
       navigate({ to: "/subscribe", replace: true });
     }
-  }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate]);
+  }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate, user]);
 
   if (loading || checking || sub.loading) {
     return (

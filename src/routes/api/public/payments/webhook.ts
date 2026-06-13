@@ -80,6 +80,37 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
 }
 
 /**
+ * Court Ready Pay-What-You-Can: a one-time payment that grants 12 months
+ * of Court Ready access. We synthesize a `subscriptions` row keyed on the
+ * checkout session id so `useSubscription` / `tier` resolution works the
+ * same as the recurring plan.
+ */
+async function handleCheckoutCompleted(session: any, env: StripeEnv) {
+  if (session.mode !== "payment") return;
+  if (session.metadata?.tier !== "court_ready_pwyc") return;
+  const userId = session.metadata?.userId;
+  if (!userId) return;
+  const now = new Date();
+  const oneYear = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+  await getSupabase().from("subscriptions").upsert(
+    {
+      user_id: userId,
+      stripe_subscription_id: `pwyc_${session.id}`,
+      stripe_customer_id: session.customer,
+      product_id: "court_ready",
+      price_id: "court_ready_monthly",
+      status: "active",
+      current_period_start: now.toISOString(),
+      current_period_end: oneYear.toISOString(),
+      cancel_at_period_end: true,
+      environment: env,
+      updated_at: now.toISOString(),
+    },
+    { onConflict: "stripe_subscription_id" },
+  );
+}
+
+/**
  * When an attorney's subscription ends, pause every active client link
  * and notify each affected survivor. Survivors keep their data — only
  * the attorney's shared view is suspended until they re-subscribe.
@@ -131,6 +162,9 @@ async function handleWebhook(req: Request, env: StripeEnv) {
       break;
     case "customer.subscription.deleted":
       await handleSubscriptionDeleted(event.data.object, env);
+      break;
+    case "checkout.session.completed":
+      await handleCheckoutCompleted(event.data.object, env);
       break;
     default:
       console.log("Unhandled event:", event.type);
