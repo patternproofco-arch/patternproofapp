@@ -34,6 +34,7 @@ import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedEscalationDetectorRouteImport } from './routes/_authenticated/escalation-detector'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCourtSystemsRouteImport } from './routes/_authenticated/court-systems'
+import { Route as AuthenticatedCourtReadyThanksRouteImport } from './routes/_authenticated/court-ready-thanks'
 import { Route as AuthenticatedCourtReadyRouteImport } from './routes/_authenticated/court-ready'
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
 import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
@@ -177,6 +178,12 @@ const AuthenticatedCourtSystemsRoute =
     path: '/court-systems',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCourtReadyThanksRoute =
+  AuthenticatedCourtReadyThanksRouteImport.update({
+    id: '/court-ready-thanks',
+    path: '/court-ready-thanks',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCourtReadyRoute = AuthenticatedCourtReadyRouteImport.update({
   id: '/court-ready',
   path: '/court-ready',
@@ -265,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/court-ready': typeof AuthenticatedCourtReadyRoute
+  '/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
   '/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
@@ -302,6 +310,7 @@ export interface FileRoutesByTo {
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/court-ready': typeof AuthenticatedCourtReadyRoute
+  '/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
   '/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
@@ -343,6 +352,7 @@ export interface FileRoutesById {
   '/_authenticated/communications': typeof AuthenticatedCommunicationsRoute
   '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
   '/_authenticated/court-ready': typeof AuthenticatedCourtReadyRoute
+  '/_authenticated/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
   '/_authenticated/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
@@ -383,6 +393,7 @@ export interface FileRouteTypes {
     | '/communications'
     | '/court-packet'
     | '/court-ready'
+    | '/court-ready-thanks'
     | '/court-systems'
     | '/dashboard'
     | '/escalation-detector'
@@ -420,6 +431,7 @@ export interface FileRouteTypes {
     | '/communications'
     | '/court-packet'
     | '/court-ready'
+    | '/court-ready-thanks'
     | '/court-systems'
     | '/dashboard'
     | '/escalation-detector'
@@ -460,6 +472,7 @@ export interface FileRouteTypes {
     | '/_authenticated/communications'
     | '/_authenticated/court-packet'
     | '/_authenticated/court-ready'
+    | '/_authenticated/court-ready-thanks'
     | '/_authenticated/court-systems'
     | '/_authenticated/dashboard'
     | '/_authenticated/escalation-detector'
@@ -673,6 +686,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCourtSystemsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/court-ready-thanks': {
+      id: '/_authenticated/court-ready-thanks'
+      path: '/court-ready-thanks'
+      fullPath: '/court-ready-thanks'
+      preLoaderRoute: typeof AuthenticatedCourtReadyThanksRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/court-ready': {
       id: '/_authenticated/court-ready'
       path: '/court-ready'
@@ -805,6 +825,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommunicationsRoute: typeof AuthenticatedCommunicationsRoute
   AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
   AuthenticatedCourtReadyRoute: typeof AuthenticatedCourtReadyRoute
+  AuthenticatedCourtReadyThanksRoute: typeof AuthenticatedCourtReadyThanksRoute
   AuthenticatedCourtSystemsRoute: typeof AuthenticatedCourtSystemsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEscalationDetectorRoute: typeof AuthenticatedEscalationDetectorRoute
@@ -831,6 +852,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommunicationsRoute: AuthenticatedCommunicationsRoute,
   AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
   AuthenticatedCourtReadyRoute: AuthenticatedCourtReadyRoute,
+  AuthenticatedCourtReadyThanksRoute: AuthenticatedCourtReadyThanksRoute,
   AuthenticatedCourtSystemsRoute: AuthenticatedCourtSystemsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEscalationDetectorRoute: AuthenticatedEscalationDetectorRoute,
