@@ -65,6 +65,9 @@ async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
     })
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+  if (["canceled", "unpaid", "incomplete_expired"].includes(subscription.status)) {
+    await pauseAttorneyAccessIfApplicable(subscription);
+  }
 }
 
 async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
