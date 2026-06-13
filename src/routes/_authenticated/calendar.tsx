@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { IncidentHeatMap } from "@/components/IncidentHeatMap";
+import { CognitiveClose } from "@/components/CognitiveClose";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   component: CalendarPage,
@@ -33,6 +34,12 @@ function CalendarPage() {
       <div className="card-pp mt-6">
         <IncidentHeatMap incidents={incidents} months={12} />
       </div>
+      <CognitiveClose
+        title="A dense cluster usually means escalation"
+        body="If you see one, open the escalation detector — it scans your entries for high-risk language."
+        cta="Run escalation check"
+        to="/escalation-detector"
+      />
     </div>
   );
 }
