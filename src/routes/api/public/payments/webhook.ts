@@ -73,6 +73,48 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
     .update({ status: "canceled", updated_at: new Date().toISOString() })
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+  await pauseAttorneyAccessIfApplicable(subscription);
+}
+
+/**
+ * When an attorney's subscription ends, pause every active client link
+ * and notify each affected survivor. Survivors keep their data — only
+ * the attorney's shared view is suspended until they re-subscribe.
+ */
+async function pauseAttorneyAccessIfApplicable(subscription: any) {
+  const attorneyUserId: string | undefined = subscription.metadata?.userId;
+  if (!attorneyUserId) return;
+  const supabase = getSupabase();
+
+  const { data: isAttorney } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", attorneyUserId)
+    .eq("role", "attorney")
+    .maybeSingle();
+  if (!isAttorney) return;
+
+  const { data: links } = await supabase
+    .from("attorney_client_links")
+    .select("id, client_user_id")
+    .eq("attorney_user_id", attorneyUserId)
+    .eq("status", "active");
+  if (!links || links.length === 0) return;
+
+  const ids = links.map((l: any) => l.id);
+  await supabase
+    .from("attorney_client_links")
+    .update({ status: "paused", updated_at: new Date().toISOString() })
+    .in("id", ids);
+
+  const rows = links.map((l: any) => ({
+    user_id: l.client_user_id,
+    kind: "attorney_access_paused",
+    title: "Your attorney's access is paused",
+    body: "Your records are safe and unchanged. Your attorney's shared view is paused until their subscription is active again.",
+    metadata: { link_id: l.id, attorney_user_id: attorneyUserId },
+  }));
+  if (rows.length) await supabase.from("notifications").insert(rows);
 }
 
 async function handleWebhook(req: Request, env: StripeEnv) {
