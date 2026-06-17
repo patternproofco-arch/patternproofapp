@@ -305,6 +305,42 @@ export type Database = {
           },
         ]
       }
+      attorney_missing_evidence_checklist: {
+        Row: {
+          attorney_user_id: string
+          client_user_id: string
+          created_at: string
+          id: string
+          is_resolved: boolean
+          item_label: string
+          notes: string | null
+          resolved_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          attorney_user_id: string
+          client_user_id: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          item_label: string
+          notes?: string | null
+          resolved_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          client_user_id?: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          item_label?: string
+          notes?: string | null
+          resolved_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attorney_profiles: {
         Row: {
           bar_number: string | null
@@ -509,6 +545,42 @@ export type Database = {
           notes?: string | null
           screenshot_url?: string | null
           time?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      court_dates: {
+        Row: {
+          court_name: string
+          created_at: string
+          hearing_at: string
+          hearing_type: string
+          id: string
+          location: string | null
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          court_name: string
+          created_at?: string
+          hearing_at: string
+          hearing_type: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          court_name?: string
+          created_at?: string
+          hearing_at?: string
+          hearing_type?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
           updated_at?: string
           user_id?: string
         }
