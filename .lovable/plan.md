@@ -1,80 +1,118 @@
-# PatternProof Rebrand & Full Sweep
 
-Three workstreams. I'll do them in this order so the underlying gates exist before the copy lands on top.
+# PatternProof Audit & Improvement Plan
 
-## 1. Pricing & Stripe products
+This is a large scope. I've grouped it into 8 work packages aligned to your list, sequenced so safety-critical work ships first and visual polish lands last. I'll flag what already exists vs. what's new so we don't rebuild duplicate UI.
 
-Replace existing Stripe products with the four canonical SKUs. Human-readable price IDs (stable across sandbox/live):
+---
 
-| Tier | Audience | Price ID | Amount | Interval |
-|---|---|---|---|---|
-| Court Ready | Survivor | `court_ready_monthly` | $10 | month |
-| Court Ready (pay-what-you-can) | Survivor | `price_data` inline, min $1 | variable | one-time |
-| Solo | Attorney | `attorney_solo_monthly` | $297 | month |
-| Firm (recommended) | Attorney | `attorney_firm_monthly` | $697 | month |
-| Enterprise | Attorney | `attorney_enterprise_monthly` | $1497 | month |
+## What already exists (from the codebase)
 
-Existing `attorney_portal_monthly_297` stays as the underlying price for Solo (rename via lookup_key swap). All registered with `txcd_10103001` (SaaS) + `managed_payments: { enabled: true }`.
+- **Survivor**: PIN lock (`PinScreen`, `pin-lock.tsx`), onboarding route, dashboard, journal, timeline, evidence, voice notes, court packet, court-ready paywall, escalation detector, pattern analysis, attorney portal handoff, Quick Exit button, cognitive close, notification banner.
+- **Attorney**: `_attorney` layout with subscribe, clients list, client detail, billing return.
+- **Payments**: Court Ready ($10/mo + PWYC) and Attorney Solo/Firm/Enterprise products live; webhook + entitlement working.
+- **No DV-org portal exists yet.**
 
-Tier resolution in `payments.functions.ts` maps `price_id` → tier name + client cap (Solo 5, Firm unlimited+3 seats, Enterprise unlimited+white-label flag).
+So this is mostly **refinement + filling gaps**, not a rebuild.
 
-## 2. Gating changes
+---
 
-**Survivor side — keep Core free forever.**
-- Court Ready paywall ONLY blocks: AI court packet generation, attorney share/export. Everything else (journal, timeline, evidence, voice notes, PIN, escalation detector, quick exit) stays open. No hard paywall on the survivor app.
-- Court Ready upsell screen lives at `/court-ready` with two CTAs: `$10/month` and `Pay what you can` (custom amount checkout, $1–$500).
+## Work packages
 
-**Attorney side — hard paywall on first login.**
-- Remove the "view 1 client free" softness from `_attorney/clients.index.tsx` and `_attorney.tsx`. The Pilot becomes marketing copy only.
-- `_attorney.tsx` layout: if `!subscription.isActive`, redirect to `/subscribe` before rendering any child.
-- `accept-invite.$token.tsx` (attorney path): after acceptance, route to `/subscribe`, not `/clients`.
+### 1. Survivor safety onboarding (refine existing `/onboarding`)
+Add a sequenced 6-step intro before the dashboard:
+1. **Safe device check** — "Is this device only used by you? If not, here's how to use Quick Exit."
+2. **Emergency disclaimer** — "If you are in danger right now, call 911 or the National DV Hotline 1-800-799-7233. PatternProof is not a crisis service."
+3. **Quick Exit demo** — show the button, let them try it once.
+4. **Notification safety** — "We never send push notifications. Email is opt-in and uses a neutral sender name."
+5. **PIN setup** (already exists — wire into this flow as step 5).
+6. **Scope disclaimer** — "PatternProof documents patterns. We are not a law firm and do not provide legal advice."
+Persist completion in `profiles.onboarding_completed_at`.
 
-## 3. Copy & UX sweep
+### 2. Survivor dashboard (rebuild layout of `/dashboard`)
+Card grid:
+- **Log an incident** (primary CTA)
+- **Recent timeline** (last 5 incidents, link to full timeline)
+- **Pattern insights** (top 2 detected patterns, link to `/patterns`)
+- **Upcoming court dates** (new — pulls from `incidents` where `category = legal_court` and date is future, plus a new `court_dates` table)
+- **Export report** (opens court packet flow)
+- **Safety checklist** (PIN set, Quick Exit known, emergency contacts saved, safe device confirmed)
 
-**The four screens that matter:**
+### 3. Incident logging — guided categories
+Refactor `src/lib/abuse-types.ts` and the journal form to use this taxonomy:
+- Verbal abuse, Physical violence, Sexual violence, Financial control, Threats, Stalking, Harassment, Child-related, Legal/court violation, Property damage, Digital abuse
+- Plus **evidence flags** (not categories): Witness present, Police report filed, Medical evidence available
+Each category gets a short trauma-informed helper sentence and a color-coded left border (per your design rules — colored border, never colored card bg).
 
-1. **Survivor Screen 1** (`onboarding.tsx` step 0) — rewrite to "You don't have to remember everything alone." PIN step (current step 1) moves to be the FIRST interactive step, before anything else. Name/state come after.
-2. **Free Promise** — new standalone route `/free-promise` shown once after PIN setup, before state selection: "This app is free. Full stop." with a single "Continue" button.
-3. **Attorney Pricing Hero** (`lawyer-signup.tsx` or new `/for-attorneys`) — hero line "Your clients are already documented before they walk in the door." + Grace's signature story block + 3-tier pricing (Solo / Firm-highlighted / Enterprise) + Pilot framing + cognitive close "$297/month. One billable hour. Your first client is free — The Pilot."
-4. **Attorney Portal first login** (`clients.index.tsx` empty state) — replace empty grid with a **Diagnosis Card**: "Status: ready. What needs attention: invite your first client." Never shows raw empty state.
+### 4. Pattern detection
+Extend `pattern-analysis.functions.ts` to surface these named pattern cards on `/patterns` and the dashboard:
+- Repeated custody-exchange conflict (clusters around child handoff times)
+- Threats after boundaries are set (threat incidents within 72h of a "no contact"/"boundary" journal entry)
+- Harassment spikes after legal action (harassment count rises after a `legal_court` incident)
+- Financial control pattern (≥3 financial incidents in 30 days)
+- Child-related manipulation pattern (≥3 child-related incidents in 60 days)
+Each card: title, plain-language explanation, supporting incident count, "View incidents" link.
 
-**Banned-word sweep** (rg-driven, then manual):
-- Survivor-facing files: replace `victim` → `survivor`, `evidence` (in user-facing copy only — column names stay) → `record`/`proof`, `incident report` → `entry`, `abuser` → `the other party`, `free trial` → `The Pilot` (attorney) / removed (survivor), `basic plan` → `Core`, `upgrade now` → `unlock Court Ready`, `are you sure?` → specific question.
-- Attorney-facing: `victim` → `client`, `free trial` → `The Pilot`, `we hope this helps` → removed, "feature-first" descriptions reworded outcome-first.
-- "we think / we believe" → "I've observed" everywhere it appears in marketing copy.
+### 5. Court-ready exports
+Expand `/court-packet` into a chooser with 6 export types:
+- Timeline PDF (chronological, all incidents)
+- Incident summary (one-pager per incident, last 90 days)
+- Evidence packet (incidents + linked evidence files, zipped)
+- Attorney brief (timeline + pattern insights + case summary)
+- Custody pattern report (filters child-related + custody-exchange patterns)
+- Protection order support summary (threats + physical + stalking + witnesses/police flags)
+All gated behind existing Court Ready entitlement. Reuse `export-zip.functions.ts`.
 
-**Global Quick Exit** — `QuickExitButton.tsx` already exists. Verify it's mounted in `_authenticated.tsx` AppShell (bottom-right, always visible). Add if missing.
+### 6. Attorney portal polish
+- New headline on `/for-attorneys` and `/subscribe`: **"See the pattern before the hearing."**
+- `/clients` dashboard adds: pattern flags column, missing-evidence indicator per client.
+- `/clients/$clientId` adds tabs: **Timeline · Patterns · Case Notes · Missing Evidence · Hearing Prep · Court Packet Export**.
+- New tables: `attorney_case_notes` (exists as `attorney_incident_notes` — extend), `attorney_missing_evidence_checklist`.
+- Hearing prep view = filtered timeline + top 3 patterns + flagged incidents, printable.
 
-**Cognitive close audit** — pass through dashboard, journal, timeline, evidence, voice-notes, patterns, court-packet, settings. Replace generic "Learn more" / dead-end empty states with one specific next action per screen.
+### 7. DV organization portal (new)
+New `_org` route group mirroring `_attorney`:
+- `app_role` enum extended with `'dv_org'`
+- New tables: `org_profiles`, `org_client_links` (org ↔ survivor), `advocate_notes`, `safety_plans`, `referrals`, `risk_flags`
+- Pages: `/org/intake` (new survivor intake form), `/org/clients` (caseload), `/org/clients/$id` (notes, risk, safety plan, referrals), `/org/handoff` (legal aid handoff PDF export)
+- Payment: out of scope this round — orgs are invite-only, manual provisioning via `user_roles` insert.
 
-## Technical details
+### 8. Visual design — three brand modes
+Token sets in `src/styles.css`, applied per route group:
+- **Survivor** (`_authenticated/*`): iridescent pastel teal/purple gradient accents, soft white bg `#FAFBFF`, calm cards. Replaces current cream/terracotta on survivor side per your new direction.
+- **Attorney** (`_attorney/*`): navy `#0F1B3D`, white cards, structured dashboard density, IBM Plex Serif headings (already loaded).
+- **DV org** (`_org/*`): white bg, gray `#F4F6F8` panels, light blue `#3B6FA0` accents, supportive sans-serif (Inter).
+Each mode = its own CSS class on the layout route's `<body>` wrapper; tokens swap via `@theme inline`.
 
-**Files I'll touch:**
-- `src/lib/payments.functions.ts` — add `createCourtReadyCheckout` (fixed) and `createPayWhatYouCanCheckout` (price_data, $1 min). Update tier resolution map. Solo/Firm/Enterprise checkout helpers.
-- `src/hooks/useSubscription.ts` — expose `tier: 'core' | 'court_ready' | 'solo' | 'firm' | 'enterprise'` derived from price_id.
-- `src/routes/_attorney.tsx` — hard paywall guard.
-- `src/routes/_attorney/subscribe.tsx` — rewrite as 3-tier picker (Solo / **Firm recommended** / Enterprise), Grace's story, Pilot framing.
-- `src/routes/_attorney/clients.index.tsx` — diagnosis card replaces empty state.
-- New `src/routes/for-attorneys.tsx` — public attorney pricing hero (replaces or supplements `lawyer-signup.tsx`).
-- New `src/routes/_authenticated/court-ready.tsx` — survivor upsell with $10 + pay-what-you-can.
-- New `src/routes/_authenticated/free-promise.tsx` — standalone screen post-PIN.
-- `src/routes/_authenticated/onboarding.tsx` — reorder: intro → PIN → free promise (redirect) → state. Strip "name/email" personal asks before PIN.
-- `src/routes/_authenticated/court-packet.tsx`, `share-with-attorney.tsx` — gate behind `tier !== 'core'`, link to `/court-ready`.
-- `src/components/AppShell.tsx` — verify QuickExitButton mounted globally.
-- `src/components/StripeEmbeddedCheckout.tsx` — extend to accept a `customAmountCents` prop for pay-what-you-can path (calls new server fn).
-- Stripe products created via `payments--batch_create_product`.
-- DB migration: add `tier` column to `subscriptions` (text, nullable, derived in webhook). Skip if already represented via price_id.
+> **Note on the existing palette**: your workspace-knowledge file says cream `#FFFDD0` / terracotta `#E77B56` for survivor, but item 8 of this request asks for iridescent pastel teal/purple on soft white. I'll follow this request and update the survivor palette accordingly. **Confirm if you want me to also update the workspace memory.**
 
-**What I'm NOT touching:**
-- Underlying schema (incidents, evidence, voice_notes, etc.) — column names like `evidence` stay, only user-visible copy changes.
-- Auth flow itself, RLS, attorney-client linking model.
-- Patterns/escalation analysis logic.
+---
 
-## Out of scope (flag for later)
+## Technical notes
 
-- Firm tier seat management UI (multi-attorney invite flow) — pricing exists, seat enforcement is a future build.
-- Enterprise white-label theming.
-- Pay-what-you-can recurring (custom amount is one-time only; recurring requires custom Stripe price creation per user, much bigger scope).
-- Localization, A/B test infrastructure for hero copy.
+- Migrations needed: `court_dates`, `attorney_missing_evidence_checklist`, `org_profiles`, `org_client_links`, `advocate_notes`, `safety_plans`, `referrals`, `risk_flags`, `app_role` enum add `'dv_org'`, `profiles.onboarding_completed_at`. Each with GRANTs + RLS scoped by `auth.uid()` or `has_role`.
+- All new server logic via `createServerFn` in `*.functions.ts`. Org and attorney protected routes go under their respective layout gates.
+- Pattern detection runs as a server fn invoked from dashboard/patterns pages, cached via TanStack Query.
+- No new payment products this round.
+- Quick Exit, cognitive close, notification banner stay as-is — just surface them in onboarding.
 
-Ready to build on approval. I'll work in passes: Stripe products → gating → 4 hero screens → copy sweep → quick-exit + cognitive-close audit, verifying preview between passes.
+---
+
+## Suggested rollout order
+1. Migrations + role/enum updates
+2. Safety onboarding flow + dashboard rebuild
+3. Incident taxonomy refactor + pattern detection expansion
+4. Court-ready export chooser
+5. Attorney portal polish (tabs + missing evidence)
+6. DV org portal (largest new build)
+7. Visual mode tokens + applied per layout
+
+---
+
+## Clarifying questions before I start
+
+1. **Survivor palette**: confirm iridescent teal/purple on white (overriding cream/terracotta in your workspace memory)?
+2. **DV org access**: invite-only with manual role grant by you for now, or self-signup with verification later?
+3. **Court dates source**: new dedicated `court_dates` table, or keep them as a special incident category?
+4. **Scope cut for this round**: if I have to defer one of the 8 packages to fit, which is lowest priority for you? (My guess: DV org portal, since it's a net-new build.)
+
+Answer those and I'll proceed in build mode.
