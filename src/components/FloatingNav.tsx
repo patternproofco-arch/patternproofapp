@@ -109,7 +109,7 @@ export function FloatingNav() {
             textAlign: "center",
             fontSize: 9,
             letterSpacing: "0.18em",
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(255,255,255,0.78)",
             background: "rgba(26,23,20,0.55)",
             padding: "2px 10px",
             borderRadius: 999,
@@ -311,7 +311,7 @@ function DesktopDock({
         style={{
           display: "flex", alignItems: "center", justifyContent: open ? "flex-end" : "center",
           gap: 8, padding: "6px 10px", marginBottom: 4,
-          color: "rgba(255,255,255,0.65)", background: "transparent",
+          color: "rgba(255,255,255,0.82)", background: "transparent",
           borderRadius: 12,
         }}
       >
@@ -382,7 +382,7 @@ function DesktopDock({
           marginTop: 6, paddingTop: 8,
           borderTop: "1px solid rgba(255,255,255,0.08)",
           fontSize: 9, letterSpacing: "0.18em",
-          color: "rgba(255,255,255,0.40)", fontWeight: 700,
+          color: "rgba(255,255,255,0.72)", fontWeight: 700,
           textAlign: "center", whiteSpace: "nowrap",
           opacity: open ? 1 : 0, transition: "opacity 0.2s ease",
         }}

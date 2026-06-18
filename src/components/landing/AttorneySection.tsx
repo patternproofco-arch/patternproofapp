@@ -24,7 +24,7 @@ export function AttorneySection() {
       <div style={{ maxWidth: 1080, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
           <Logo variant="attorney" size={36} onDark />
-          <span style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(245,247,255,0.6)", fontWeight: 700 }}>
+          <span style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(245,247,255,0.82)", fontWeight: 700 }}>
             For attorneys
           </span>
         </div>
@@ -125,7 +125,7 @@ function PricingPsychology() {
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
         <div style={{ padding: 20, background: "rgba(255,255,255,0.04)", borderRadius: 16 }}>
-          <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(245,247,255,0.55)", fontWeight: 700, marginBottom: 10 }}>
+          <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(245,247,255,0.82)", fontWeight: 700, marginBottom: 10 }}>
             Manual evidence organization
           </div>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6, color: "rgba(245,247,255,0.9)", fontSize: 14 }}>

@@ -45,7 +45,7 @@ export function CollapsibleCard({
           {eyebrow && (
             <div
               className="mb-1 text-[11px] font-bold uppercase tracking-[3px]"
-              style={{ color: "rgba(26,20,14,0.55)" }}
+              style={{ color: "rgba(26,20,14,0.78)" }}
             >
               {eyebrow}
             </div>

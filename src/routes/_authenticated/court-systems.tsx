@@ -31,7 +31,7 @@ function CourtSystemsPage() {
           boxShadow: "0 12px 32px -16px rgba(26,20,14,0.18)",
         }}
       >
-        <div className="mb-3 flex items-center gap-2 text-[13px] font-bold uppercase tracking-[3px]" style={{ color: "rgba(26,20,14,0.65)" }}>
+        <div className="mb-3 flex items-center gap-2 text-[13px] font-bold uppercase tracking-[3px]" style={{ color: "rgba(26,20,14,0.82)" }}>
           <Scale size={14} /> Court systems guide
         </div>
         <h1 className="text-3xl font-extrabold md:text-4xl" style={{ letterSpacing: "-0.01em" }}>
