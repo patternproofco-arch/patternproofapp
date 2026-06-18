@@ -25,8 +25,8 @@ export function SurvivorSection() {
         </h2>
         <p style={{ fontSize: 18, color: "var(--muted-foreground)", maxWidth: 720, marginBottom: 36 }}>
           {pos < 50
-            ? "Without PatternProof, incidents can feel disconnected: a text here, a threat there, a missed exchange, a screenshot, a voice note, a memory."
-            : "With PatternProof, those moments become a timeline, the timeline reveals patterns, and the patterns become easier to explain."}
+            ? "Without P4TTERN PR00F, incidents can feel disconnected: a text here, a threat there, a missed exchange, a screenshot, a voice note, a memory."
+            : "With P4TTERN PR00F, those moments become a timeline, the timeline reveals patterns, and the patterns become easier to explain."}
         </p>
 
         <PatternRevealSlider value={pos} onChange={setPos} />

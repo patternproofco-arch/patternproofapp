@@ -5,7 +5,7 @@ import { CollapsibleCard } from "@/components/CollapsibleCard";
 export const Route = createFileRoute("/_authenticated/court-systems")({
   head: () => ({
     meta: [
-      { title: "Understanding Court Systems — Pattern-Proof" },
+      { title: "Understanding Court Systems — P4TTERN PR00F" },
       { name: "description", content: "How family, criminal, and civil courts treat coercive control evidence — and how to prepare." },
     ],
   }),
@@ -126,7 +126,7 @@ function CourtSystemsPage() {
       >
         <h2 className="text-xl font-extrabold" style={{ color: BROWN }}>Ready to put this into practice?</h2>
         <p className="mt-2 text-[16px] font-medium" style={{ color: "var(--foreground)" }}>
-          Pattern-Proof builds court-ready documentation from your daily entries. Start with one of these:
+          P4TTERN PR00F builds court-ready documentation from your daily entries. Start with one of these:
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link to="/patterns" className="btn-primary inline-flex items-center gap-2">

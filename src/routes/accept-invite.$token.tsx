@@ -12,7 +12,7 @@ export const Route = createFileRoute("/accept-invite/$token")({
   head: () => ({
     links: [{ rel: "stylesheet", href: attorneyCss }],
     meta: [
-      { title: "Accept client invitation — PatternProof" },
+      { title: "Accept client invitation — P4TTERN PR00F" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -89,7 +89,7 @@ function AcceptInvite() {
     <Frame>
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div className="att-nav-brand-mark" style={{ width: 40, height: 40, margin: "0 auto 14px" }} />
-        <div className="att-eyebrow">Pattern Proof · Attorney Portal</div>
+        <div className="att-eyebrow">P4TTERN PR00F · Attorney Portal</div>
         <h1 style={{ fontSize: 32, marginTop: 8, marginBottom: 6 }}>Confidential case access</h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 13 }}>
           {peeked.invitation?.attorney_name ? `Prepared for ${peeked.invitation.attorney_name}.` : "Read-only litigation access."}

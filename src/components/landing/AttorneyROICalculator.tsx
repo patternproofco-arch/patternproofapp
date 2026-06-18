@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Slider } from "@/components/ui/slider";
 
 const PLAN_COST = 297;
-const TIME_SAVED_PCT = 0.7; // PatternProof recovers 70% of manual hours
+const TIME_SAVED_PCT = 0.7; // P4TTERN PR00F recovers 70% of manual hours
 
 export function calcAttorneyROI(input: {
   clients: number;
@@ -66,7 +66,7 @@ export function AttorneyROICalculator() {
       </div>
 
       <p style={{ marginTop: 20, fontSize: 13, color: "var(--muted-foreground)" }}>
-        Estimate assumes PatternProof recovers ~70% of manual evidence-organization time.
+        Estimate assumes P4TTERN PR00F recovers ~70% of manual evidence-organization time.
       </p>
     </div>
   );

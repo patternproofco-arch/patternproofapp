@@ -39,8 +39,8 @@ Authed users still auto-redirect to `/dashboard`. Unauthed users see the new mul
 
 ### B2. Hero
 - Headline: "The proof is in the patterns."
-- Sub: "PatternProof turns scattered incidents, evidence, and timelines into organized patterns survivors can document, attorneys can review, and advocates can understand faster."
-- Visual: iridescent particle field that organizes into the PatternProof mark (CSS/SVG canvas animation — no new deps).
+- Sub: "P4TTERN PR00F turns scattered incidents, evidence, and timelines into organized patterns survivors can document, attorneys can review, and advocates can understand faster."
+- Visual: iridescent particle field that organizes into the P4TTERN PR00F mark (CSS/SVG canvas animation — no new deps).
 - CTAs: "Start documenting" / "For attorneys" / "For DV organizations".
 
 ### B3. Survivor section
@@ -52,7 +52,7 @@ Authed users still auto-redirect to `/dashboard`. Unauthed users see the new mul
   - Sliders: clients/mo, manual hours/client, hourly value, monthly revenue/client.
   - Outputs: monthly hours lost, hours recovered (assume 70% reduction), value recovered, additional case capacity, monthly ROI net of $297.
 - CTAs: "Calculate time saved" (scroll-to) / "Start attorney beta".
-- Pricing psychology block: "If PatternProof saves your team even 2 billable hours a month, it can pay for itself." Before/after comparison.
+- Pricing psychology block: "If P4TTERN PR00F saves your team even 2 billable hours a month, it can pay for itself." Before/after comparison.
 
 ### B5. DV org section (light blue/gray)
 - Headline + pain bullets as specified.

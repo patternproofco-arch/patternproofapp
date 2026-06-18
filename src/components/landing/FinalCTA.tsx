@@ -38,7 +38,7 @@ export function FinalCTA() {
           </Link>
         </div>
         <p style={{ marginTop: 40, fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
-          PatternProof is not an emergency service. If you are in immediate danger, call 911 or your local crisis line.
+          P4TTERN PR00F is not an emergency service. If you are in immediate danger, call 911 or your local crisis line.
         </p>
       </div>
     </section>

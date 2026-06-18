@@ -90,7 +90,7 @@ function ShareWithAttorney() {
           <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={() => { navigator.clipboard.writeText(justCreated.url); toast("Link copied."); }} className="btn-primary inline-flex items-center gap-2"><Copy size={14} /> Copy link</button>
             <a
-              href={`mailto:${encodeURIComponent(justCreated.email)}?subject=${encodeURIComponent("Your client has shared their PatternProof case file")}&body=${encodeURIComponent(`I've shared my documented case with you through PatternProof.\n\nAccess link (expires in ${days} days):\n${justCreated.url}\n\nYou'll be asked to create a brief attorney account on first use.`)}`}
+              href={`mailto:${encodeURIComponent(justCreated.email)}?subject=${encodeURIComponent("Your client has shared their P4TTERN PR00F case file")}&body=${encodeURIComponent(`I've shared my documented case with you through P4TTERN PR00F.\n\nAccess link (expires in ${days} days):\n${justCreated.url}\n\nYou'll be asked to create a brief attorney account on first use.`)}`}
               className="btn-ghost inline-flex items-center gap-2"
             ><Mail size={14} /> Email to attorney</a>
             <button onClick={() => setJustCreated(null)} className="btn-ghost">Done</button>

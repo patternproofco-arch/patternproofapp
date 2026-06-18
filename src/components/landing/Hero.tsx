@@ -40,7 +40,7 @@ export function Hero() {
             margin: "0 auto 36px",
           }}
         >
-          PatternProof turns scattered incidents, evidence, and timelines into organized
+          P4TTERN PR00F turns scattered incidents, evidence, and timelines into organized
           patterns survivors can document, attorneys can review, and advocates can
           understand faster.
         </p>

@@ -112,8 +112,8 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
       const cred = (await navigator.credentials.create({
         publicKey: {
           challenge,
-          rp: { name: "PatternProof" },
-          user: { id: userId, name: "patternproof-user", displayName: "PatternProof" },
+          rp: { name: "P4TTERN PR00F" },
+          user: { id: userId, name: "patternproof-user", displayName: "P4TTERN PR00F" },
           pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
           authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "preferred" },
           timeout: 60000,
