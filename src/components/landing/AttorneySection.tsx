@@ -32,7 +32,7 @@ export function AttorneySection() {
           Your team is losing hours before the case even begins.
         </h2>
         <p style={{ fontSize: 18, lineHeight: 1.6, color: "rgba(245,247,255,0.78)", maxWidth: 760, marginBottom: 32 }}>
-          PatternProof organizes client incidents, evidence, timelines, and recurring
+          P4TTERN PR00F organizes client incidents, evidence, timelines, and recurring
           behaviors before they reach your desk, so your firm can review the pattern
           faster and take on more complex cases without drowning in screenshots.
         </p>
@@ -121,7 +121,7 @@ function PricingPsychology() {
         $297/month. One billable hour.
       </h3>
       <p style={{ color: "rgba(245,247,255,0.78)", marginBottom: 24, fontSize: 16 }}>
-        If PatternProof saves your team even 2 billable hours a month, it can pay for itself.
+        If P4TTERN PR00F saves your team even 2 billable hours a month, it can pay for itself.
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
         <div style={{ padding: 20, background: "rgba(255,255,255,0.04)", borderRadius: 16 }}>
@@ -136,7 +136,7 @@ function PricingPsychology() {
         </div>
         <div style={{ padding: 20, background: "rgba(158,216,208,0.10)", border: "1px solid rgba(158,216,208,0.30)", borderRadius: 16 }}>
           <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9ED8D0", fontWeight: 700, marginBottom: 10 }}>
-            With PatternProof
+            With P4TTERN PR00F
           </div>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6, color: "#FFFFFF", fontSize: 14 }}>
             <li>Organized timeline</li>

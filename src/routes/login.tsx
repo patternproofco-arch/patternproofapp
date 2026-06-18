@@ -11,12 +11,12 @@ import { Logo } from "@/components/Logo";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign in — PatternProof" },
-      { name: "description", content: "Sign in or create your PatternProof account to privately document incidents, evidence, and build your case." },
-      { property: "og:title", content: "Sign in — PatternProof" },
+      { title: "Sign in — P4TTERN PR00F" },
+      { name: "description", content: "Sign in or create your P4TTERN PR00F account to privately document incidents, evidence, and build your case." },
+      { property: "og:title", content: "Sign in — P4TTERN PR00F" },
       { property: "og:description", content: "Access your private, encrypted documentation space." },
       { property: "og:url", content: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/login" },
-      { name: "twitter:title", content: "Sign in — PatternProof" },
+      { name: "twitter:title", content: "Sign in — P4TTERN PR00F" },
       { name: "twitter:description", content: "Access your private, encrypted documentation space." },
       { name: "robots", content: "noindex" },
     ],

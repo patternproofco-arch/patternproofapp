@@ -112,7 +112,7 @@ export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
         line_items: [{
           price_data: {
             currency: "usd",
-            product_data: { name: "PatternProof Court Ready — Pay What You Can" },
+            product_data: { name: "P4TTERN PR00F Court Ready — Pay What You Can" },
             unit_amount: data.amountInCents,
           },
           quantity: 1,
@@ -121,7 +121,7 @@ export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
         ui_mode: "embedded_page",
         return_url: data.returnUrl,
         customer: customerId,
-        payment_intent_data: { description: "PatternProof Court Ready — Pay What You Can" },
+        payment_intent_data: { description: "P4TTERN PR00F Court Ready — Pay What You Can" },
         metadata: { userId, tier: "court_ready_pwyc" },
       } as Parameters<typeof stripe.checkout.sessions.create>[0]);
       return { clientSecret: session.client_secret ?? "" };
@@ -173,7 +173,7 @@ export const getMySubscription = createServerFn({ method: "POST" })
   });
 
 /**
- * Entitlement: attorney needs an active PatternProof attorney subscription.
+ * Entitlement: attorney needs an active P4TTERN PR00F attorney subscription.
  * "The Pilot" (first client free) is marketing copy on the pricing page —
  * full app access requires an active Solo/Firm/Enterprise subscription.
  */
@@ -341,7 +341,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       attorney_user_id: context.userId,
       counts: { incidents: incidents.length, evidence: evidence.length, communications: comms.length, escalation_flags: flags.length },
       file_hashes: fileHashes,
-      generator: "PatternProof Attorney Court Packet v1",
+      generator: "P4TTERN PR00F Attorney Court Packet v1",
     }, null, 2));
 
     const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });

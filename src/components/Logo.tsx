@@ -29,7 +29,7 @@ export function Logo({ variant, size = 40, className, onDark = false }: LogoProp
   return (
     <img
       src={src}
-      alt="PatternProof logo"
+      alt="P4TTERN PR00F logo"
       height={size}
       style={{ height: size, width: "auto", filter, display: "block" }}
       className={className}

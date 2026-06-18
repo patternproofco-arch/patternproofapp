@@ -119,7 +119,7 @@ function LiveRecording() {
           <h2 className="font-serif text-[24px]">Before you record — this is important.</h2>
           <p className="text-[14px] leading-relaxed">In New Jersey, you can legally record any conversation you are part of without telling the other person.</p>
           <p className="text-[14px] leading-relaxed">If you or the other person are in a different state, recording laws may be different. In some states, recording without consent is illegal and could result in the recording being inadmissible or, in rare cases, criminal charges.</p>
-          <p className="text-[14px] leading-relaxed">PatternProof cannot give legal advice. If you are unsure whether recording is legal in your situation, speak with an attorney first.</p>
+          <p className="text-[14px] leading-relaxed">P4TTERN PR00F cannot give legal advice. If you are unsure whether recording is legal in your situation, speak with an attorney first.</p>
           <p className="text-[14px] leading-relaxed">Your safety matters more than any recording. If recording could put you in danger, do not record.</p>
           <div className="flex gap-2 pt-2">
             <button className="btn-primary" onClick={() => setWarned(true)}>I understand, continue</button>

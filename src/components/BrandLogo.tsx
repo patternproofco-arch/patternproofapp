@@ -13,7 +13,7 @@ interface BrandLogoProps {
 }
 
 /**
- * Pattern-Proof brand lockup: geometric tessellation mark + wordmark.
+ * P4TTERN PR00F brand lockup: geometric tessellation mark + wordmark.
  * Forensic / legal-tech aesthetic — deep navy on light, ivory on dark.
  * Clickable, routes to /dashboard.
  */
@@ -56,7 +56,7 @@ export function BrandLogo({
   return (
     <Link
       to="/dashboard"
-      aria-label="PatternProof — return to dashboard"
+      aria-label="P4TTERN PR00F — return to dashboard"
       className={"inline-flex items-center gap-3 " + (className ?? "")}
       style={{ width: widthCss, maxWidth: "100%", filter: shadow, fontFamily: "'DM Sans', system-ui, sans-serif" }}
     >
@@ -87,7 +87,7 @@ export function BrandLogo({
             lineHeight: 1,
           }}
         >
-          Pattern
+          P4TTERN
         </span>
         <span
           style={{
@@ -104,7 +104,7 @@ export function BrandLogo({
           }}
         >
           <span style={{ height: 1, width: 12, background: proofColor, display: "inline-block" }} />
-          Proof
+          PR00F
           <span style={{ height: 1, width: 12, background: proofColor, display: "inline-block" }} />
         </span>
       </div>

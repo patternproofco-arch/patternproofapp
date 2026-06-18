@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_attorney")({
   head: () => ({
     links: [{ rel: "stylesheet", href: attorneyCss }],
     meta: [
-      { title: "Attorney Portal — PatternProof" },
+      { title: "Attorney Portal — P4TTERN PR00F" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -65,7 +65,7 @@ function AttorneyLayout() {
         <Outlet />
       </main>
       <footer className="att-footer">
-        <span>PatternProof</span>
+        <span>P4TTERN PR00F</span>
         <span>·</span>
         <span>attorney.pattern-proof.tech</span>
         <span>·</span>
@@ -176,7 +176,7 @@ function AttorneyBreadcrumb() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const clientId = useClientIdFromPath();
   const parts: Array<{ label: string; to?: string }> = [
-    { label: "Pattern Proof", to: "/clients" },
+    { label: "P4TTERN PR00F", to: "/clients" },
     { label: "Attorney Portal", to: "/clients" },
   ];
   if (clientId) {

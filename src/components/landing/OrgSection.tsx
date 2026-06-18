@@ -31,7 +31,7 @@ export function OrgSection() {
           Your advocates should not have to rebuild every story from scratch.
         </h2>
         <p style={{ fontSize: 18, lineHeight: 1.6, color: "var(--muted-foreground)", maxWidth: 760, marginBottom: 32 }}>
-          PatternProof helps survivors document incidents before intake, so advocates can
+          P4TTERN PR00F helps survivors document incidents before intake, so advocates can
           see timelines, risk signals, evidence, and repeating patterns faster.
         </p>
 

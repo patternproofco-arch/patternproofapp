@@ -161,7 +161,7 @@ export const generateExportZip = createServerFn({ method: "POST" })
       },
       file_hashes: fileHashes,
       hash_of_hashes: hashOfHashes,
-      generator: "PatternProof Export v1",
+      generator: "P4TTERN PR00F Export v1",
       integrity_note: "Each file in evidence/ and voice-notes/ has a SHA-256 hash listed above. Re-hash any file with `shasum -a 256 <file>` to verify it has not been altered since export.",
     }, null, 2));
 
@@ -171,11 +171,11 @@ export const generateExportZip = createServerFn({ method: "POST" })
       "",
       `**Export generated:** ${exportedAt}`,
       `**Custodian (account holder ID):** ${userId}`,
-      `**Generator:** PatternProof Export v1`,
+      `**Generator:** P4TTERN PR00F Export v1`,
       `**Root hash (SHA-256 of all file hashes):** \`${hashOfHashes}\``,
       "",
       "This certificate attests that the files listed below were exported from the",
-      "custodian's PatternProof account at the timestamp above. Each file's SHA-256",
+      "custodian's P4TTERN PR00F account at the timestamp above. Each file's SHA-256",
       "fingerprint is recorded. To verify integrity, re-compute the SHA-256 of any",
       "file in this archive (e.g. `shasum -a 256 <file>`) and confirm it matches the",
       "value recorded here and in `manifest.json`. Run `bash verify.sh` from the",
