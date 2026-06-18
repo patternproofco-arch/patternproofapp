@@ -20,6 +20,25 @@ export const Route = createFileRoute("/")({
       { name: "twitter:description", content: "Turn scattered evidence into structured patterns." },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "P4TTERN PR00F",
+          description:
+            "Pattern infrastructure for survivors, attorneys, and DV organizations. Turn scattered incidents, evidence, and timelines into organized patterns.",
+          brand: { "@type": "Brand", name: "P4TTERN PR00F" },
+          url: "https://pattern-proof.tech/",
+          offers: [
+            { "@type": "Offer", name: "Survivor — Free", price: "0", priceCurrency: "USD", url: "https://pattern-proof.tech/login", availability: "https://schema.org/InStock" },
+            { "@type": "Offer", name: "Attorney Solo", price: "297", priceCurrency: "USD", url: "https://pattern-proof.tech/for-attorneys", availability: "https://schema.org/InStock" },
+            { "@type": "Offer", name: "DV Organization — Invite", price: "0", priceCurrency: "USD", url: "https://pattern-proof.tech/for-organizations", availability: "https://schema.org/LimitedAvailability" },
+          ],
+        }),
+      },
+    ],
   }),
   component: Index,
 });
