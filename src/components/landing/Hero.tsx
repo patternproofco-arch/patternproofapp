@@ -35,7 +35,8 @@ export function Hero() {
           style={{
             fontSize: 19,
             lineHeight: 1.6,
-            color: "var(--muted-foreground)",
+            color: "#1A1714",
+            fontWeight: 500,
             maxWidth: 560,
             margin: "0 auto 36px",
           }}

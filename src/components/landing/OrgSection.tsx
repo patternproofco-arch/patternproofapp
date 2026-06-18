@@ -28,7 +28,7 @@ export function OrgSection() {
         <h2 style={{ fontSize: "clamp(2rem, 4.2vw, 3rem)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 20, lineHeight: 1.1 }}>
           Advocates shouldn't rebuild every story.
         </h2>
-        <p style={{ fontSize: 18, lineHeight: 1.6, color: "var(--muted-foreground)", maxWidth: 560, marginBottom: 32 }}>
+        <p style={{ fontSize: 18, lineHeight: 1.6, color: "#1A1714", fontWeight: 500, maxWidth: 560, marginBottom: 32 }}>
           Survivors document before intake. Advocates see the pattern faster.
         </p>
 
