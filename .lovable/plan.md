@@ -1,118 +1,251 @@
+# PatternProof — MVP Launch Readiness Plan
 
-# PatternProof Audit & Improvement Plan
-
-This is a large scope. I've grouped it into 8 work packages aligned to your list, sequenced so safety-critical work ships first and visual polish lands last. I'll flag what already exists vs. what's new so we don't rebuild duplicate UI.
-
----
-
-## What already exists (from the codebase)
-
-- **Survivor**: PIN lock (`PinScreen`, `pin-lock.tsx`), onboarding route, dashboard, journal, timeline, evidence, voice notes, court packet, court-ready paywall, escalation detector, pattern analysis, attorney portal handoff, Quick Exit button, cognitive close, notification banner.
-- **Attorney**: `_attorney` layout with subscribe, clients list, client detail, billing return.
-- **Payments**: Court Ready ($10/mo + PWYC) and Attorney Solo/Firm/Enterprise products live; webhook + entitlement working.
-- **No DV-org portal exists yet.**
-
-So this is mostly **refinement + filling gaps**, not a rebuild.
+A focused plan to take PatternProof from "feature-rich audit build" to a sharp, beta-testable MVP for survivors, attorneys, and DV advocates — plus a clean rollout of the new transparent logo system.
 
 ---
 
-## Work packages
+## 1. MVP launch readiness
 
-### 1. Survivor safety onboarding (refine existing `/onboarding`)
-Add a sequenced 6-step intro before the dashboard:
-1. **Safe device check** — "Is this device only used by you? If not, here's how to use Quick Exit."
-2. **Emergency disclaimer** — "If you are in danger right now, call 911 or the National DV Hotline 1-800-799-7233. PatternProof is not a crisis service."
-3. **Quick Exit demo** — show the button, let them try it once.
-4. **Notification safety** — "We never send push notifications. Email is opt-in and uses a neutral sender name."
-5. **PIN setup** (already exists — wire into this flow as step 5).
-6. **Scope disclaimer** — "PatternProof documents patterns. We are not a law firm and do not provide legal advice."
-Persist completion in `profiles.onboarding_completed_at`.
+### Must finish before beta
+- Survivor: Landing → Safety warning → PIN → Onboarding → Journal → Timeline → Patterns → Court Packet export (end-to-end, no dead ends).
+- Quick Exit button visible on every authenticated survivor page.
+- PIN lock screen on app open + after inactivity.
+- Stable Court Packet PDF (incidents, evidence, witnesses, dates, pattern summary).
+- Attorney: Landing → Signup → Subscribe → Invite client → View client packet.
+- Working Stripe checkout for Survivor Court Ready ($10) + Attorney Solo ($297).
+- One unified Logo component shipped across all routes.
 
-### 2. Survivor dashboard (rebuild layout of `/dashboard`)
-Card grid:
-- **Log an incident** (primary CTA)
-- **Recent timeline** (last 5 incidents, link to full timeline)
-- **Pattern insights** (top 2 detected patterns, link to `/patterns`)
-- **Upcoming court dates** (new — pulls from `incidents` where `category = legal_court` and date is future, plus a new `court_dates` table)
-- **Export report** (opens court packet flow)
-- **Safety checklist** (PIN set, Quick Exit known, emergency contacts saved, safe device confirmed)
+### Can wait (post-beta)
+- Calendar view, OPRA helper, Escalation detector, Live recording, Communications log.
+- Attorney Firm/Enterprise tier flows (keep pricing page, defer seats/SSO/billing splits).
+- Hearing prep workspace (stub it as "Coming soon" on client detail).
+- Court systems / Why courts struggle / Abuser tactics educational pages — collapse into a single Resources page.
 
-### 3. Incident logging — guided categories
-Refactor `src/lib/abuse-types.ts` and the journal form to use this taxonomy:
-- Verbal abuse, Physical violence, Sexual violence, Financial control, Threats, Stalking, Harassment, Child-related, Legal/court violation, Property damage, Digital abuse
-- Plus **evidence flags** (not categories): Witness present, Police report filed, Medical evidence available
-Each category gets a short trauma-informed helper sentence and a color-coded left border (per your design rules — colored border, never colored card bg).
+### Unnecessary right now — remove or hide from nav
+- `_authenticated/court-systems.tsx`, `why-courts-struggle.tsx`, `abuser-tactics.tsx` → merge into `/resources`.
+- `attorney-portal.tsx` inside survivor area (redundant with `/share-with-attorney`).
+- `legal-documents.tsx` (premature; no template engine yet).
+- DV org route group — defer entirely, do not scaffold `_org` yet.
 
-### 4. Pattern detection
-Extend `pattern-analysis.functions.ts` to surface these named pattern cards on `/patterns` and the dashboard:
-- Repeated custody-exchange conflict (clusters around child handoff times)
-- Threats after boundaries are set (threat incidents within 72h of a "no contact"/"boundary" journal entry)
-- Harassment spikes after legal action (harassment count rises after a `legal_court` incident)
-- Financial control pattern (≥3 financial incidents in 30 days)
-- Child-related manipulation pattern (≥3 child-related incidents in 60 days)
-Each card: title, plain-language explanation, supporting incident count, "View incidents" link.
-
-### 5. Court-ready exports
-Expand `/court-packet` into a chooser with 6 export types:
-- Timeline PDF (chronological, all incidents)
-- Incident summary (one-pager per incident, last 90 days)
-- Evidence packet (incidents + linked evidence files, zipped)
-- Attorney brief (timeline + pattern insights + case summary)
-- Custody pattern report (filters child-related + custody-exchange patterns)
-- Protection order support summary (threats + physical + stalking + witnesses/police flags)
-All gated behind existing Court Ready entitlement. Reuse `export-zip.functions.ts`.
-
-### 6. Attorney portal polish
-- New headline on `/for-attorneys` and `/subscribe`: **"See the pattern before the hearing."**
-- `/clients` dashboard adds: pattern flags column, missing-evidence indicator per client.
-- `/clients/$clientId` adds tabs: **Timeline · Patterns · Case Notes · Missing Evidence · Hearing Prep · Court Packet Export**.
-- New tables: `attorney_case_notes` (exists as `attorney_incident_notes` — extend), `attorney_missing_evidence_checklist`.
-- Hearing prep view = filtered timeline + top 3 patterns + flagged incidents, printable.
-
-### 7. DV organization portal (new)
-New `_org` route group mirroring `_attorney`:
-- `app_role` enum extended with `'dv_org'`
-- New tables: `org_profiles`, `org_client_links` (org ↔ survivor), `advocate_notes`, `safety_plans`, `referrals`, `risk_flags`
-- Pages: `/org/intake` (new survivor intake form), `/org/clients` (caseload), `/org/clients/$id` (notes, risk, safety plan, referrals), `/org/handoff` (legal aid handoff PDF export)
-- Payment: out of scope this round — orgs are invite-only, manual provisioning via `user_roles` insert.
-
-### 8. Visual design — three brand modes
-Token sets in `src/styles.css`, applied per route group:
-- **Survivor** (`_authenticated/*`): iridescent pastel teal/purple gradient accents, soft white bg `#FAFBFF`, calm cards. Replaces current cream/terracotta on survivor side per your new direction.
-- **Attorney** (`_attorney/*`): navy `#0F1B3D`, white cards, structured dashboard density, IBM Plex Serif headings (already loaded).
-- **DV org** (`_org/*`): white bg, gray `#F4F6F8` panels, light blue `#3B6FA0` accents, supportive sans-serif (Inter).
-Each mode = its own CSS class on the layout route's `<body>` wrapper; tokens swap via `@theme inline`.
-
-> **Note on the existing palette**: your workspace-knowledge file says cream `#FFFDD0` / terracotta `#E77B56` for survivor, but item 8 of this request asks for iridescent pastel teal/purple on soft white. I'll follow this request and update the survivor palette accordingly. **Confirm if you want me to also update the workspace memory.**
+### Broken / confusing flows to fix
+- Two attorney entry points (`/attorney/$token` + `/accept-invite/$token`) → consolidate to one invite flow.
+- `/court-ready` vs `/court-ready-thanks` — collapse thanks into a toast + redirect to `/court-packet`.
+- Survivor nav currently surfaces 20+ items — trim to 7: Dashboard, Journal, Timeline, Evidence, Patterns, Court Packet, Resources.
+- `/onboarding` runs even for returning users in some cases — gate on `profiles.onboarded_at`.
 
 ---
 
-## Technical notes
+## 2. Survivor beta flow (with copy)
 
-- Migrations needed: `court_dates`, `attorney_missing_evidence_checklist`, `org_profiles`, `org_client_links`, `advocate_notes`, `safety_plans`, `referrals`, `risk_flags`, `app_role` enum add `'dv_org'`, `profiles.onboarding_completed_at`. Each with GRANTs + RLS scoped by `auth.uid()` or `has_role`.
-- All new server logic via `createServerFn` in `*.functions.ts`. Org and attorney protected routes go under their respective layout gates.
-- Pattern detection runs as a server fn invoked from dashboard/patterns pages, cached via TanStack Query.
-- No new payment products this round.
-- Quick Exit, cognitive close, notification banner stay as-is — just surface them in onboarding.
-
----
-
-## Suggested rollout order
-1. Migrations + role/enum updates
-2. Safety onboarding flow + dashboard rebuild
-3. Incident taxonomy refactor + pattern detection expansion
-4. Court-ready export chooser
-5. Attorney portal polish (tabs + missing evidence)
-6. DV org portal (largest new build)
-7. Visual mode tokens + applied per layout
+| Step | Route | Headline | Body copy |
+|---|---|---|---|
+| Landing | `/` | "Document what happened. Safely." | "PatternProof helps you record incidents, see patterns, and prepare court-ready evidence — privately, on your own time." |
+| Safety warning | modal before signup | "Before you continue" | "Use PatternProof only on a device the other party cannot access. A Quick Exit button is always at the top of every page. If you are in immediate danger, call 911 or your local emergency line." |
+| PIN setup | `/onboarding/pin` | "Set a 4-digit PIN" | "Your PIN locks PatternProof when you step away. We can't recover it, so pick something you'll remember." |
+| Onboarding | `/onboarding` | "A few quick questions" | "This helps us organize your records. You can change any answer later." (case type, jurisdiction, other party) |
+| First incident | `/journal/new` | "Log your first incident" | "Write what happened in your own words. Date, place, and how you felt. Add evidence anytime." |
+| Timeline | `/timeline` | "Your record, in order" | "Every incident, in the order it happened. Tap any entry to add detail or evidence." |
+| Pattern insight | `/patterns` | "We noticed a pattern" | "Based on what you've logged, here's what's repeating. Patterns are what courts respond to." |
+| Export prompt | inline on Timeline after 3+ incidents | "Ready to share this with someone?" | "Export a clean, dated summary you can give to an attorney or advocate." |
+| Court Ready upgrade | `/court-ready` | "Court Ready packets" | "$10/month or pay-what-you-can. Full PDF packet, evidence index, pattern summary, attorney-ready formatting. Cancel anytime." |
 
 ---
 
-## Clarifying questions before I start
+## 3. Attorney beta flow
 
-1. **Survivor palette**: confirm iridescent teal/purple on white (overriding cream/terracotta in your workspace memory)?
-2. **DV org access**: invite-only with manual role grant by you for now, or self-signup with verification later?
-3. **Court dates source**: new dedicated `court_dates` table, or keep them as a special incident category?
-4. **Scope cut for this round**: if I have to defer one of the 8 packages to fit, which is lowest priority for you? (My guess: DV org portal, since it's a net-new build.)
+| Step | Route | Purpose |
+|---|---|---|
+| Landing | `/for-attorneys` | Hero line: **"See the pattern before the hearing."** Sub: "Receive court-ready documentation from clients in one organized packet." |
+| Signup | `/lawyer-signup` | Email + firm name + bar # (optional). |
+| Subscribe | `/subscribe` | Solo $297 default selected; Firm/Enterprise visible but "Contact us". |
+| Invite client | `/clients` → "Invite client" | Generates a one-time invite link the survivor accepts at `/accept-invite/$token`. |
+| Client dashboard | `/clients` | Table: client, last activity, incident count, packet status. |
+| Client detail | `/clients/$clientId` | Pattern summary at top, timeline, evidence index, download packet. |
+| Pattern review | tab on client detail | Shows detected patterns with incident references. |
+| Court packet export | button on client detail | One-click PDF + ZIP of evidence. |
+| Hearing prep | stub | "Coming soon — request early access." |
 
-Answer those and I'll proceed in build mode.
+Copy anchor everywhere on attorney side: **"See the pattern before the hearing."**
+
+---
+
+## 4. Conversion & pricing audit
+
+### Survivor — Court Ready
+Current: $10/mo + PWYC. Page does not explain *what changes* after upgrading. Fix:
+- **Free**: Unlimited journal, timeline, evidence uploads, basic PDF export.
+- **Court Ready — $10/mo (or PWYC)**: Full court packet PDF with pattern summary, evidence index, witness list, attorney-ready formatting, priority export, share link to attorney.
+
+Upgrade prompts (non-predatory): inline on Court Packet page when free user clicks Export, and a single dismissible banner on Patterns page after 5+ incidents.
+
+### Attorney
+- **Solo — $297/mo**: 1 attorney seat, unlimited clients, packet downloads, pattern review, email support.
+- **Firm — $697/mo**: Up to 5 seats, shared client list, branded packets, priority support.
+- **Enterprise — $1,497/mo**: Unlimited seats, SSO, custom intake form, dedicated success manager.
+
+Add a clear "What you get" bullet block on `/for-attorneys` and `/subscribe`. Add testimonial slot (placeholder for beta).
+
+---
+
+## 5. Trust & safety layer (copy)
+
+- **Crisis disclaimer** (footer of safety warning + Resources): "PatternProof is not an emergency service. If you are in immediate danger, call 911 or your local crisis line."
+- **Legal disclaimer** (footer + court packet cover): "PatternProof helps you organize your own records. It does not provide legal advice. For legal guidance, talk to a licensed attorney."
+- **Privacy** (settings + landing): "Your records are private to you. We use encryption in transit and at rest. We do not sell your data."
+- **Safe device warning** (pre-signup modal): "Use PatternProof only on a device the other party cannot access."
+- **Quick Exit explainer** (tooltip on the button): "Tap to leave this site immediately. It will open a neutral page."
+- **Court document disclaimer** (cover page of every packet): "This document was prepared by the user. It is a personal record, not a sworn statement or legal filing."
+- **Data export warning** (before download): "Once exported, this file lives on your device. Store it somewhere only you can reach."
+- **Safe-device reminder** (login screen, small text): "Only sign in on a device you trust."
+
+---
+
+## 6. Court-ready output quality
+
+### Packet should include
+1. Cover page: client name, case type, date range, jurisdiction, disclaimer.
+2. Pattern summary (1 page): plain-language summary of recurring behaviors with incident counts.
+3. Chronological incident log: date, time, location, description, abuse type tags, witnesses, emotional impact.
+4. Evidence index: each item numbered, linked to the incident it supports, with date and source.
+5. Witness list.
+6. Voice note transcripts (if any).
+
+### Language rules
+- Factual, neutral, first-person ("I observed", not "He abused").
+- No diagnostic language ("narcissist", "sociopath").
+- No legal conclusions ("this constitutes harassment").
+- Dates in ISO + readable form. Times in 24h.
+- Every claim links back to a logged incident ID.
+
+### Organization
+- Group by month, then chronological within.
+- Screenshots/photos rendered inline at incident, full-res in appendix.
+- Audio notes referenced by file name + duration; transcript inline.
+
+---
+
+## 7. PatternProof's moat
+
+Not a journal, not a folder, not Notes. The defensible wedge:
+1. **Pattern detection** across incident types (coercive control, custody interference, financial) — surfaces what survivors and attorneys both miss.
+2. **Court-ready formatting** out of the box — neutral language, evidence linkage, disclaimer-correct.
+3. **Attorney handoff** as a first-class product surface, not an export button.
+4. **Survivor-safe UX**: PIN lock, Quick Exit, safe-device warnings, no notifications.
+5. **Trauma-informed**: warm copy, no red, no alarms, no "errors" — calm language throughout.
+6. **Custody + coercive control visibility** — categories and patterns most generic tools don't model.
+
+---
+
+## 8. Visual polish audit
+
+### Survivor mode (iridescent teal/purple on soft white)
+- Currently leans terracotta/cream in places — inconsistent with the new direction.
+- Fix: replace warm terracotta CTAs on `/dashboard`, `/journal`, `/timeline` with iridescent teal→purple gradient buttons; keep white card surfaces, drop the `#DEB896` tan.
+- Add soft glow under hero logo, subtle pastel gradient on dashboard header strip.
+
+### Attorney mode (navy + white)
+- Cards feel plain. Fix: deeper navy header bar, white cards with thin 1px slate border, structured table density on `/clients`.
+- Add small navy "PatternProof for Attorneys" lockup in header.
+
+### DV org mode (white/gray/light blue)
+- Not built yet — defer entirely per scope.
+
+### Cross-mode
+- Sidebar item counts too high on survivor → trim to 7.
+- Inconsistent font weights between Playfair headings and section labels — standardize H1 600, H2 500, body 400.
+
+---
+
+## 9. Beta testing checklist
+
+**Recruit**: 5 survivors (mix of DV and high-conflict custody), 3 attorneys (1 solo, 2 small-firm), 2 DV advocates.
+
+**Tasks each tester completes**
+- Survivors: sign up → set PIN → log 3 incidents → upload 1 piece of evidence → export packet.
+- Attorneys: sign up → subscribe (test mode) → invite a survivor → open packet → export.
+- Advocates: walk through survivor flow and rate safety language.
+
+**Questions to ask**
+- Did anything feel unsafe, alarming, or clinical?
+- Was the Quick Exit obvious?
+- Did the packet look like something you'd hand to a judge / receive from a client?
+- What was missing? What was too much?
+- Would you pay $10/mo? Would you pay $297/mo?
+
+**Metrics to track**
+- Time to first incident logged.
+- % completing Court Packet export.
+- Drop-off step in onboarding.
+- Attorney: time from signup to first client invite.
+
+**Red flags before launch**
+- Any tester triggered by copy.
+- Quick Exit not noticed.
+- Packet language sounds accusatory or diagnostic.
+- More than 2 testers confused by nav.
+- Attorneys say packet isn't usable in court.
+
+---
+
+## 10. Next build priority (ranked)
+
+### Must ship before beta
+1. New transparent Logo component + variant routing (see Technical section).
+2. Trim survivor nav to 7 items; merge education pages into `/resources`.
+3. Re-skin survivor mode to iridescent teal/purple (remove terracotta/tan from authed routes).
+4. Fix Court Packet PDF: cover page, disclaimers, pattern summary, evidence index.
+5. Consolidate attorney invite flow (one route, one token).
+6. Wire upgrade prompts on Court Packet export + Patterns banner.
+
+### Should ship soon
+7. Hearing prep stub on client detail with waitlist capture.
+8. Per-mode trust/safety copy pass (all 8 disclaimers).
+9. Stripe live mode for Solo + Court Ready; Firm/Enterprise as "Contact us".
+
+### Later
+10. DV org portal, Live recording, Escalation detector, OPRA helper, Calendar.
+
+---
+
+## Technical section — Logo system rollout
+
+### Assets
+Extract uploaded zip and upload as CDN assets:
+- `src/assets/patternproof-logo-attorney-transparent.png.asset.json`
+- `src/assets/patternproof-logo-survivor-transparent.png.asset.json`
+- `src/assets/patternproof-logo-org-transparent.png.asset.json`
+
+### Component
+`src/components/Logo.tsx`:
+```tsx
+type Variant = "attorney" | "survivor" | "org";
+interface Props { variant: Variant; size?: number; className?: string; }
+```
+- Reads pointer JSON for the matching variant.
+- Renders `<img>` with `alt="PatternProof logo"`, intrinsic sizing via `height={size}`, `width="auto"`.
+- Adds variant-specific filter:
+  - survivor: `drop-shadow(0 0 12px rgba(180,160,255,0.35))`
+  - attorney: `drop-shadow(0 1px 2px rgba(15,27,61,0.25))` on light bg, none on navy.
+  - org: `drop-shadow(0 1px 1px rgba(0,0,0,0.08))`.
+- Never wrap in a white box.
+
+### Route-group auto-selection
+- `_attorney.tsx` layout passes `variant="attorney"` via context or imports Logo directly.
+- `_authenticated.tsx` layout uses `variant="survivor"`.
+- Future `_org.tsx` uses `variant="org"`.
+- Public routes (`/`, `/login`, `/for-attorneys`, `/lawyer-signup`) choose explicitly based on audience.
+
+### Sizing tokens
+- Header: 40px. Sidebar: 36px. Auth/onboarding: 80px. Landing hero: 120px.
+
+### Files touched (logo only)
+- New: `src/components/Logo.tsx`, 3 `.asset.json` pointers.
+- Edited (replace existing wordmark): `__root.tsx` or per-layout headers in `_attorney.tsx`, `_authenticated.tsx`, plus `index.tsx`, `login.tsx`, `for-attorneys.tsx`, `lawyer-signup.tsx`, `onboarding.tsx`.
+
+---
+
+## Out of scope for this round
+- DV org portal and any `_org` routes.
+- Hearing prep workspace (stub only).
+- Firm/Enterprise billing internals.
+- Calendar, Live recording, Escalation detector, OPRA helper, Communications.
