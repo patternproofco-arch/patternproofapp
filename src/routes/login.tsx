@@ -92,7 +92,7 @@ function LoginPage() {
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
           <div className="font-nunito text-[34px] font-extrabold" style={{ color: "var(--foreground)", letterSpacing: "-0.01em" }}>
-            P4TTERN| PR00F
+            P4TTERN PR00F
           </div>
           <p className="font-nunito mt-2 text-[15px]" style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>
             Private documentation for your case.
