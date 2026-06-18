@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
 import { Route as AuthenticatedWhyCourtsStruggleRouteImport } from './routes/_authenticated/why-courts-struggle'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
@@ -92,6 +93,11 @@ const IndexRoute = IndexRouteImport.update({
 const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
   id: '/attorney/$token',
   path: '/attorney/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcceptInviteTokenRoute = AcceptInviteTokenRouteImport.update({
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/clients/': typeof AttorneyClientsIndexRoute
@@ -344,6 +351,7 @@ export interface FileRoutesByTo {
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/clients': typeof AttorneyClientsIndexRoute
@@ -388,6 +396,7 @@ export interface FileRoutesById {
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/_authenticated/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
@@ -431,6 +440,7 @@ export interface FileRouteTypes {
     | '/voice-notes'
     | '/why-courts-struggle'
     | '/accept-invite/$token'
+    | '/api/chat'
     | '/attorney/$token'
     | '/clients/$clientId'
     | '/clients/'
@@ -471,6 +481,7 @@ export interface FileRouteTypes {
     | '/voice-notes'
     | '/why-courts-struggle'
     | '/accept-invite/$token'
+    | '/api/chat'
     | '/attorney/$token'
     | '/clients/$clientId'
     | '/clients'
@@ -514,6 +525,7 @@ export interface FileRouteTypes {
     | '/_authenticated/voice-notes'
     | '/_authenticated/why-courts-struggle'
     | '/accept-invite/$token'
+    | '/api/chat'
     | '/attorney/$token'
     | '/_attorney/clients/$clientId'
     | '/_attorney/clients/'
@@ -530,6 +542,7 @@ export interface RootRouteChildren {
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
+  ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -597,6 +610,13 @@ declare module '@tanstack/react-router' {
       path: '/attorney/$token'
       fullPath: '/attorney/$token'
       preLoaderRoute: typeof AttorneyTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/accept-invite/$token': {
@@ -926,6 +946,7 @@ const rootRouteChildren: RootRouteChildren = {
   RequestOrgAccessRoute: RequestOrgAccessRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,
+  ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
