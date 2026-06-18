@@ -36,13 +36,11 @@ export function Hero() {
             fontSize: 19,
             lineHeight: 1.6,
             color: "var(--muted-foreground)",
-            maxWidth: 720,
+            maxWidth: 560,
             margin: "0 auto 36px",
           }}
         >
-          P4TTERN PR00F turns scattered incidents, evidence, and timelines into organized
-          patterns survivors can document, attorneys can review, and advocates can
-          understand faster.
+          Scattered evidence becomes a clear, court-ready pattern.
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 12 }}>
           <Link
@@ -50,18 +48,15 @@ export function Hero() {
             className="btn-primary"
             style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "14px 24px", fontSize: 15 }}
           >
-            Start documenting <ArrowRight size={16} />
+            Start <ArrowRight size={16} />
           </Link>
           <Link to="/for-attorneys" className="btn-ghost" style={{ padding: "14px 24px", fontSize: 15 }}>
             For attorneys
           </Link>
           <Link to="/for-organizations" className="btn-ghost" style={{ padding: "14px 24px", fontSize: 15 }}>
-            For DV organizations
+            For organizations
           </Link>
         </div>
-        <p style={{ marginTop: 32, fontSize: 13, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700 }}>
-          Turn scattered evidence into structured patterns
-        </p>
       </div>
     </section>
   );

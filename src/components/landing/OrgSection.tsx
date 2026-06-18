@@ -4,11 +4,9 @@ import { Logo } from "@/components/Logo";
 import { OrgCapacityCalculator } from "./OrgCapacityCalculator";
 
 const PAINS = [
-  "Intake takes too long when documentation is scattered.",
-  "Advocates spend hours sorting screenshots, notes, and dates.",
-  "Survivors often forget details under stress.",
-  "Pattern visibility helps advocates understand what is escalating or repeating.",
-  "Cleaner documentation improves referrals to legal aid and attorneys.",
+  "Faster intake — documentation arrives organized.",
+  "Advocates see what's escalating, not just what happened.",
+  "Cleaner referrals to legal aid and attorneys.",
 ];
 
 export function OrgSection() {
@@ -28,11 +26,10 @@ export function OrgSection() {
           </span>
         </div>
         <h2 style={{ fontSize: "clamp(2rem, 4.2vw, 3rem)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 20, lineHeight: 1.1 }}>
-          Your advocates should not have to rebuild every story from scratch.
+          Advocates shouldn't rebuild every story.
         </h2>
-        <p style={{ fontSize: 18, lineHeight: 1.6, color: "var(--muted-foreground)", maxWidth: 760, marginBottom: 32 }}>
-          P4TTERN PR00F helps survivors document incidents before intake, so advocates can
-          see timelines, risk signals, evidence, and repeating patterns faster.
+        <p style={{ fontSize: 18, lineHeight: 1.6, color: "var(--muted-foreground)", maxWidth: 560, marginBottom: 32 }}>
+          Survivors document before intake. Advocates see the pattern faster.
         </p>
 
         <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 12, marginBottom: 36, maxWidth: 760 }}>
@@ -72,11 +69,10 @@ export function OrgSection() {
             lineHeight: 1.6,
             color: "#14171F",
             fontStyle: "italic",
-            maxWidth: 720,
+            maxWidth: 600,
           }}
         >
-          Capacity is care. When documentation takes less time, advocates can spend more
-          time helping survivors plan, prepare, and stay safe.
+          Capacity is care.
         </blockquote>
 
         <OrgCapacityCalculator />
@@ -95,7 +91,7 @@ export function OrgSection() {
             Invite-only
           </div>
           <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 14 }}>
-            DV organization access is currently invite-only.
+            Org access is invite-only.
           </h3>
           <Link
             to="/request-org-access"

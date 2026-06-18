@@ -23,10 +23,10 @@ export function SurvivorSection() {
         <h2 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 20 }}>
           Scattered moments become a pattern.
         </h2>
-        <p style={{ fontSize: 18, color: "var(--muted-foreground)", maxWidth: 720, marginBottom: 36 }}>
+        <p style={{ fontSize: 18, color: "var(--muted-foreground)", maxWidth: 560, marginBottom: 36 }}>
           {pos < 50
-            ? "Without P4TTERN PR00F, incidents can feel disconnected: a text here, a threat there, a missed exchange, a screenshot, a voice note, a memory."
-            : "With P4TTERN PR00F, those moments become a timeline, the timeline reveals patterns, and the patterns become easier to explain."}
+            ? "Texts, photos, voice notes, memories — disconnected."
+            : "One timeline. Clear patterns. Easier to explain."}
         </p>
 
         <PatternRevealSlider value={pos} onChange={setPos} />
