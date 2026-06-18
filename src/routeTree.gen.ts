@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
+import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
 import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
@@ -73,6 +74,11 @@ const LoginRoute = LoginRouteImport.update({
 const LawyerSignupRoute = LawyerSignupRouteImport.update({
   id: '/lawyer-signup',
   path: '/lawyer-signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForOrganizationsRoute = ForOrganizationsRouteImport.update({
+  id: '/for-organizations',
+  path: '/for-organizations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForAttorneysRoute = ForAttorneysRouteImport.update({
@@ -296,6 +302,7 @@ const ApiPublicPaymentsWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/for-attorneys': typeof ForAttorneysRoute
+  '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/request-org-access': typeof RequestOrgAccessRoute
@@ -341,6 +348,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/for-attorneys': typeof ForAttorneysRoute
+  '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/request-org-access': typeof RequestOrgAccessRoute
@@ -387,6 +395,7 @@ export interface FileRoutesById {
   '/_attorney': typeof AttorneyRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/for-attorneys': typeof ForAttorneysRoute
+  '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/request-org-access': typeof RequestOrgAccessRoute
@@ -434,6 +443,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/for-attorneys'
+    | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
     | '/request-org-access'
@@ -479,6 +489,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/for-attorneys'
+    | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
     | '/request-org-access'
@@ -524,6 +535,7 @@ export interface FileRouteTypes {
     | '/_attorney'
     | '/_authenticated'
     | '/for-attorneys'
+    | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
     | '/request-org-access'
@@ -572,6 +584,7 @@ export interface RootRouteChildren {
   AttorneyRoute: typeof AttorneyRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   ForAttorneysRoute: typeof ForAttorneysRoute
+  ForOrganizationsRoute: typeof ForOrganizationsRoute
   LawyerSignupRoute: typeof LawyerSignupRoute
   LoginRoute: typeof LoginRoute
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
@@ -610,6 +623,13 @@ declare module '@tanstack/react-router' {
       path: '/lawyer-signup'
       fullPath: '/lawyer-signup'
       preLoaderRoute: typeof LawyerSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-organizations': {
+      id: '/for-organizations'
+      path: '/for-organizations'
+      fullPath: '/for-organizations'
+      preLoaderRoute: typeof ForOrganizationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/for-attorneys': {
@@ -1012,6 +1032,7 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneyRoute: AttorneyRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ForAttorneysRoute: ForAttorneysRoute,
+  ForOrganizationsRoute: ForOrganizationsRoute,
   LawyerSignupRoute: LawyerSignupRoute,
   LoginRoute: LoginRoute,
   RequestOrgAccessRoute: RequestOrgAccessRoute,

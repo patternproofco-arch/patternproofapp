@@ -52,12 +52,12 @@ export function Hero() {
           >
             Start documenting <ArrowRight size={16} />
           </Link>
-          <a href="#attorneys" className="btn-ghost" style={{ padding: "14px 24px", fontSize: 15 }}>
+          <Link to="/for-attorneys" className="btn-ghost" style={{ padding: "14px 24px", fontSize: 15 }}>
             For attorneys
-          </a>
-          <a href="#organizations" className="btn-ghost" style={{ padding: "14px 24px", fontSize: 15 }}>
+          </Link>
+          <Link to="/for-organizations" className="btn-ghost" style={{ padding: "14px 24px", fontSize: 15 }}>
             For DV organizations
-          </a>
+          </Link>
         </div>
         <p style={{ marginTop: 32, fontSize: 13, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700 }}>
           Turn scattered evidence into structured patterns
