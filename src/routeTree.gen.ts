@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
 import { Route as AuthenticatedWhyCourtsStruggleRouteImport } from './routes/_authenticated/why-courts-struggle'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
@@ -43,11 +44,14 @@ import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authe
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
+import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AuthenticatedAbuserTacticsRouteImport } from './routes/_authenticated/abuser-tactics'
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
 import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
+import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
+import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -92,6 +96,11 @@ const IndexRoute = IndexRouteImport.update({
 const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
   id: '/attorney/$token',
   path: '/attorney/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcceptInviteTokenRoute = AcceptInviteTokenRouteImport.update({
@@ -230,6 +239,11 @@ const AuthenticatedAttorneyPortalRoute =
     path: '/attorney-portal',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAbuserTacticsRoute =
   AuthenticatedAbuserTacticsRouteImport.update({
     id: '/abuser-tactics',
@@ -251,11 +265,22 @@ const AttorneyBillingReturnRoute = AttorneyBillingReturnRouteImport.update({
   path: '/billing-return',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AuthenticatedAgentIndexRoute = AuthenticatedAgentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAgentRoute,
+} as any)
 const AttorneyClientsIndexRoute = AttorneyClientsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AttorneyClientsRoute,
 } as any)
+const AuthenticatedAgentThreadIdRoute =
+  AuthenticatedAgentThreadIdRouteImport.update({
+    id: '/$threadId',
+    path: '/$threadId',
+    getParentRoute: () => AuthenticatedAgentRoute,
+  } as any)
 const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
   id: '/$clientId',
   path: '/$clientId',
@@ -279,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/clients': typeof AttorneyClientsRouteWithChildren
   '/subscribe': typeof AttorneySubscribeRoute
   '/abuser-tactics': typeof AuthenticatedAbuserTacticsRoute
+  '/agent': typeof AuthenticatedAgentRouteWithChildren
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -304,9 +330,12 @@ export interface FileRoutesByFullPath {
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/clients/': typeof AttorneyClientsIndexRoute
+  '/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -344,9 +373,12 @@ export interface FileRoutesByTo {
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/clients': typeof AttorneyClientsIndexRoute
+  '/agent': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -363,6 +395,7 @@ export interface FileRoutesById {
   '/_attorney/clients': typeof AttorneyClientsRouteWithChildren
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
   '/_authenticated/abuser-tactics': typeof AuthenticatedAbuserTacticsRoute
+  '/_authenticated/agent': typeof AuthenticatedAgentRouteWithChildren
   '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -388,9 +421,12 @@ export interface FileRoutesById {
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/_authenticated/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
+  '/_authenticated/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -406,6 +442,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/subscribe'
     | '/abuser-tactics'
+    | '/agent'
     | '/attorney-portal'
     | '/calendar'
     | '/case-builder'
@@ -431,9 +468,12 @@ export interface FileRouteTypes {
     | '/voice-notes'
     | '/why-courts-struggle'
     | '/accept-invite/$token'
+    | '/api/chat'
     | '/attorney/$token'
     | '/clients/$clientId'
+    | '/agent/$threadId'
     | '/clients/'
+    | '/agent/'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -471,9 +511,12 @@ export interface FileRouteTypes {
     | '/voice-notes'
     | '/why-courts-struggle'
     | '/accept-invite/$token'
+    | '/api/chat'
     | '/attorney/$token'
     | '/clients/$clientId'
+    | '/agent/$threadId'
     | '/clients'
+    | '/agent'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -489,6 +532,7 @@ export interface FileRouteTypes {
     | '/_attorney/clients'
     | '/_attorney/subscribe'
     | '/_authenticated/abuser-tactics'
+    | '/_authenticated/agent'
     | '/_authenticated/attorney-portal'
     | '/_authenticated/calendar'
     | '/_authenticated/case-builder'
@@ -514,9 +558,12 @@ export interface FileRouteTypes {
     | '/_authenticated/voice-notes'
     | '/_authenticated/why-courts-struggle'
     | '/accept-invite/$token'
+    | '/api/chat'
     | '/attorney/$token'
     | '/_attorney/clients/$clientId'
+    | '/_authenticated/agent/$threadId'
     | '/_attorney/clients/'
+    | '/_authenticated/agent/'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -530,6 +577,7 @@ export interface RootRouteChildren {
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
+  ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -597,6 +645,13 @@ declare module '@tanstack/react-router' {
       path: '/attorney/$token'
       fullPath: '/attorney/$token'
       preLoaderRoute: typeof AttorneyTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/accept-invite/$token': {
@@ -774,6 +829,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAttorneyPortalRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/agent': {
+      id: '/_authenticated/agent'
+      path: '/agent'
+      fullPath: '/agent'
+      preLoaderRoute: typeof AuthenticatedAgentRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/abuser-tactics': {
       id: '/_authenticated/abuser-tactics'
       path: '/abuser-tactics'
@@ -802,12 +864,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyBillingReturnRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_authenticated/agent/': {
+      id: '/_authenticated/agent/'
+      path: '/'
+      fullPath: '/agent/'
+      preLoaderRoute: typeof AuthenticatedAgentIndexRouteImport
+      parentRoute: typeof AuthenticatedAgentRoute
+    }
     '/_attorney/clients/': {
       id: '/_attorney/clients/'
       path: '/'
       fullPath: '/clients/'
       preLoaderRoute: typeof AttorneyClientsIndexRouteImport
       parentRoute: typeof AttorneyClientsRoute
+    }
+    '/_authenticated/agent/$threadId': {
+      id: '/_authenticated/agent/$threadId'
+      path: '/$threadId'
+      fullPath: '/agent/$threadId'
+      preLoaderRoute: typeof AuthenticatedAgentThreadIdRouteImport
+      parentRoute: typeof AuthenticatedAgentRoute
     }
     '/_attorney/clients/$clientId': {
       id: '/_attorney/clients/$clientId'
@@ -856,8 +932,22 @@ const AttorneyRouteWithChildren = AttorneyRoute._addFileChildren(
   AttorneyRouteChildren,
 )
 
+interface AuthenticatedAgentRouteChildren {
+  AuthenticatedAgentThreadIdRoute: typeof AuthenticatedAgentThreadIdRoute
+  AuthenticatedAgentIndexRoute: typeof AuthenticatedAgentIndexRoute
+}
+
+const AuthenticatedAgentRouteChildren: AuthenticatedAgentRouteChildren = {
+  AuthenticatedAgentThreadIdRoute: AuthenticatedAgentThreadIdRoute,
+  AuthenticatedAgentIndexRoute: AuthenticatedAgentIndexRoute,
+}
+
+const AuthenticatedAgentRouteWithChildren =
+  AuthenticatedAgentRoute._addFileChildren(AuthenticatedAgentRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedAbuserTacticsRoute: typeof AuthenticatedAbuserTacticsRoute
+  AuthenticatedAgentRoute: typeof AuthenticatedAgentRouteWithChildren
   AuthenticatedAttorneyPortalRoute: typeof AuthenticatedAttorneyPortalRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
@@ -886,6 +976,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAbuserTacticsRoute: AuthenticatedAbuserTacticsRoute,
+  AuthenticatedAgentRoute: AuthenticatedAgentRouteWithChildren,
   AuthenticatedAttorneyPortalRoute: AuthenticatedAttorneyPortalRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
@@ -926,6 +1017,7 @@ const rootRouteChildren: RootRouteChildren = {
   RequestOrgAccessRoute: RequestOrgAccessRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,
+  ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
