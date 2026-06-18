@@ -101,11 +101,11 @@ function LoginPage() {
 
         <div className="card-pp">
           <h2 className="font-serif text-[22px]">
-            {mode === "login" ? "Welcome back." : "Make space for your story."}
+            {mode === "login" ? "\n" : "Make space for your story."}
           </h2>
           <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             {mode === "login"
-              ? "Sign in to continue."
+              ? "\n"
               : "Create an account. Only you can see what you write here."}
           </p>
           <form onSubmit={submit} className="space-y-3">
