@@ -99,10 +99,9 @@ function AttorneyTopNav() {
 
   return (
     <nav className="att-nav">
-      <Link to="/clients" className="att-nav-brand">
-        <span className="att-nav-brand-mark" aria-hidden />
-        <span>PATTERN PROOF</span>
-        <span style={{ opacity: 0.55, fontSize: 13, marginLeft: 6 }}>· Attorney Portal</span>
+      <Link to="/clients" className="att-nav-brand" style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+        <Logo variant="attorney" size={36} />
+        <span style={{ opacity: 0.55, fontSize: 13 }}>· Attorney Portal</span>
       </Link>
 
       <div className="att-nav-tabs">

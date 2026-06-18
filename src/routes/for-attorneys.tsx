@@ -43,7 +43,10 @@ function ForAttorneys() {
       <main style={{ maxWidth: 1080, margin: "0 auto", padding: "60px 24px" }}>
         {/* Hero */}
         <div style={{ textAlign: "center", marginBottom: 56 }}>
-          <div className="att-eyebrow">PatternProof · Attorney Portal</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+            <Logo variant="attorney" size={120} />
+          </div>
+          <div className="att-eyebrow">Attorney Portal</div>
           <h1 style={{ fontSize: 56, lineHeight: 1.05, fontFamily: '"Instrument Serif", serif', marginTop: 12, marginBottom: 16, maxWidth: 880, marginLeft: "auto", marginRight: "auto" }}>
             See the pattern before the hearing.
           </h1>
