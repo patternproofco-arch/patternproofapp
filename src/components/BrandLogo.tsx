@@ -87,7 +87,7 @@ export function BrandLogo({
             lineHeight: 1,
           }}
         >
-          Pattern
+          P4TTERN
         </span>
         <span
           style={{
@@ -104,7 +104,7 @@ export function BrandLogo({
           }}
         >
           <span style={{ height: 1, width: 12, background: proofColor, display: "inline-block" }} />
-          Proof
+          PR00F
           <span style={{ height: 1, width: 12, background: proofColor, display: "inline-block" }} />
         </span>
       </div>
