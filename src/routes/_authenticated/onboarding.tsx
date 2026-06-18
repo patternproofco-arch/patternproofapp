@@ -4,6 +4,7 @@ import { AlertTriangle, BellOff, DoorOpen, Phone, ShieldCheck, Smartphone } from
 import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { QuickExitButton } from "@/components/QuickExitButton";
+import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
@@ -48,7 +49,8 @@ function Onboarding() {
   return (
     <div className="relative mx-auto max-w-2xl px-5 py-10 md:py-14">
       {/* Quick Exit visible from the very first screen */}
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex items-center justify-between">
+        <Logo variant="survivor" size={40} />
         <QuickExitButton />
       </div>
 

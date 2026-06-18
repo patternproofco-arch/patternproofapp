@@ -6,7 +6,7 @@ import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { FloatingNav } from "@/components/FloatingNav";
-import { BrandLogo } from "@/components/BrandLogo";
+import { Logo } from "@/components/Logo";
 import { NotificationBanner } from "@/components/NotificationBanner";
 
 /**
@@ -45,7 +45,7 @@ export function AppShell() {
       <header
         className="no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-center px-5 pt-5 md:px-10 md:pt-6"
       >
-        <BrandLogo variant="dark" size="sm" />
+        <Logo variant="survivor" size={44} />
       </header>
 
       <NotificationBanner />

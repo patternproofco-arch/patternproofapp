@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getMyRole } from "@/lib/attorney-portal.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -90,11 +91,9 @@ function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-5 py-10">
       <div className="w-full max-w-md">
-        <div className="mb-6 text-center">
-          <div className="font-nunito text-[34px] font-extrabold" style={{ color: "var(--foreground)", letterSpacing: "-0.01em" }}>
-            P4TTERN PR00F
-          </div>
-          <p className="font-nunito mt-2 text-[15px]" style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>
+        <div className="mb-6 flex flex-col items-center text-center">
+          <Logo variant="survivor" size={88} />
+          <p className="font-nunito mt-3 text-[15px]" style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>
             Private documentation for your case.
           </p>
         </div>

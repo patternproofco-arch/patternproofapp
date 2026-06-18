@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Scale } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { upsertAttorneyProfile } from "@/lib/attorney-portal.functions";
@@ -85,9 +85,9 @@ function LawyerSignup() {
   return (
     <div className="flex min-h-screen items-center justify-center px-5 py-10">
       <div className="w-full max-w-md">
-        <div className="mb-6 text-center">
-          <Scale size={28} className="mx-auto mb-2" style={{ color: "var(--accent)" }} />
-          <div className="font-serif text-[28px] font-bold">Attorney portal</div>
+        <div className="mb-6 flex flex-col items-center text-center">
+          <Logo variant="attorney" size={80} />
+          <div className="font-serif text-[28px] font-bold mt-3">Attorney portal</div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             Turn 40 hours of evidence review into 2.
           </p>
