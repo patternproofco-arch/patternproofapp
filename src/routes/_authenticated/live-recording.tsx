@@ -112,28 +112,21 @@ function LiveRecording() {
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-  if (!warned) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-5" style={{ background: "rgba(42,26,16,0.6)" }}>
-        <div className="card-pp max-w-xl space-y-3">
-          <h2 className="font-serif text-[24px]">Before you record — this is important.</h2>
-          <p className="text-[14px] leading-relaxed">In New Jersey, you can legally record any conversation you are part of without telling the other person.</p>
-          <p className="text-[14px] leading-relaxed">If you or the other person are in a different state, recording laws may be different. In some states, recording without consent is illegal and could result in the recording being inadmissible or, in rare cases, criminal charges.</p>
-          <p className="text-[14px] leading-relaxed">P4TTERN PR00F cannot give legal advice. If you are unsure whether recording is legal in your situation, speak with an attorney first.</p>
-          <p className="text-[14px] leading-relaxed">Your safety matters more than any recording. If recording could put you in danger, do not record.</p>
-          <div className="flex gap-2 pt-2">
-            <button className="btn-primary" onClick={() => setWarned(true)}>I understand, continue</button>
-            <a href="/dashboard" className="btn-ghost">Go back</a>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <div className="label-eyebrow">Live Recording</div>
       <h1 className="mt-2 font-serif text-[34px]">Record a conversation.</h1>
+
+      {!warned && (
+        <div className="mt-4 rounded-2xl p-4" style={{ background: "var(--tint-purple)", border: "1px solid var(--border)" }}>
+          <p className="text-[13px] leading-relaxed">
+            Recording-consent laws vary by state. In NJ you can record any conversation you're part of; other states may require consent. P4TTERN PR00F can't give legal advice — if you're unsure, ask an attorney. Your safety comes first.
+          </p>
+          <button onClick={() => setWarned(true)} className="mt-3 text-[13px] font-bold underline-offset-4 hover:underline" style={{ color: "var(--primary)" }}>
+            Got it
+          </button>
+        </div>
+      )}
 
       <div className="mt-6 rounded-2xl p-8 text-center" style={{ background: "var(--sidebar)", color: "var(--sidebar-active)" }}>
         {!isRecording && !item && (
