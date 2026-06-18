@@ -38,50 +38,57 @@
 }
 
 :root {
-  /* Pattern Proof — Living Canvas pastel sanctuary palette */
-  --background: #FAF7F2;          /* warm cream */
-  --foreground: #1A1714;          /* charcoal */
-  --charcoal-mid: #3D3832;
-  --warm-gray: #C8C3BA;
+  /* Pattern Proof — Survivor: iridescent pastel teal + purple on soft white */
+  --background: #FAFBFF;          /* soft white */
+  --foreground: #14171F;          /* near-black */
+  --charcoal-mid: #2E3340;
+  --warm-gray: #C5C9D4;
   --card: #FFFFFF;
-  --panel: #1A1714;
-  --sidebar: #1A1714;
-  --sidebar-active: #FAF7F2;
-  --sidebar-inactive: #C8C3BA;
-  /* Pastel accents */
-  --pastel-pink:   #E8A0B4;
-  --pastel-purple: #C4B0D8;
-  --pastel-blue:   #A8CCE0;
-  --pastel-yellow: #F0DFA0;
-  --pastel-sage:   #C8D4C0;
-  --pink-dark:     #D4708A;       /* CTA only */
-  --primary: #D4708A;
+  --panel: #14171F;
+  --sidebar: #14171F;
+  --sidebar-active: #F2F4FB;
+  --sidebar-inactive: #B8BFD0;
+  /* Iridescent pastel accents */
+  --pastel-teal:   #9ED8D0;
+  --pastel-purple: #C4B0E8;
+  --pastel-blue:   #B5C7F0;
+  --pastel-mint:   #BDE6D4;
+  --pastel-lilac:  #D8C8F0;
+  --pastel-pink:   #E8C4DD;       /* legacy alias retained */
+  --pastel-yellow: #F2E6B8;       /* legacy alias retained */
+  --pastel-sage:   #C8D4C0;       /* legacy alias retained */
+  --teal-dark:     #2F8D85;       /* primary CTA */
+  --purple-dark:   #7C5CC4;       /* accent */
+  --primary: #2F8D85;
   --primary-foreground: #FFFFFF;
-  --accent: #C4B0D8;
-  --safe: #C8D4C0;
-  --gold: #F0DFA0;
-  --brand-pink: #D4708A;
-  --brand-pink-strong: #B85574;
-  --brand-pink-soft: #ECDDE2;
-  --brand-pink-tint: rgba(212, 112, 138, 0.08);
+  --accent: #C4B0E8;
+  --safe: #BDE6D4;
+  --gold: #F2E6B8;
+  --brand-pink: #2F8D85;          /* alias kept; now teal */
+  --brand-pink-strong: #7C5CC4;   /* alias kept; now purple emphasis */
+  --brand-pink-soft: #DDEFF0;
+  --brand-pink-tint: rgba(47, 141, 133, 0.08);
   --muted-foreground: #3D3832;
-  --border: rgba(26, 23, 20, 0.10);
+  --border: rgba(20, 23, 31, 0.10);
   --input: rgba(255, 255, 255, 0.7);
-  --ring: #D4708A;
-  --destructive: #D4708A;
+  --ring: #2F8D85;
+  --destructive: #C45670;
   --destructive-foreground: #FFFFFF;
   --popover: #FFFFFF;
-  --popover-foreground: #1A1714;
-  --secondary: #EFEAE1;
-  --secondary-foreground: #1A1714;
-  --muted: rgba(26, 23, 20, 0.05);
+  --popover-foreground: #14171F;
+  --secondary: #EEF1F8;
+  --secondary-foreground: #14171F;
+  --muted: rgba(20, 23, 31, 0.05);
   /* Tinted card surfaces */
-  --tint-pink:   rgba(232, 160, 180, 0.08);
-  --tint-blue:   rgba(168, 204, 224, 0.08);
-  --tint-gold:   rgba(240, 223, 160, 0.08);
-  --tint-sage:   rgba(200, 212, 192, 0.08);
-  --tint-purple: rgba(196, 176, 216, 0.08);
-  --linen: rgba(250, 247, 242, 0.65);
+  --tint-teal:   rgba(158, 216, 208, 0.10);
+  --tint-purple: rgba(196, 176, 232, 0.10);
+  --tint-blue:   rgba(181, 199, 240, 0.10);
+  --tint-mint:   rgba(189, 230, 212, 0.10);
+  --tint-lilac:  rgba(216, 200, 240, 0.10);
+  --tint-pink:   rgba(232, 196, 221, 0.08); /* legacy alias */
+  --tint-gold:   rgba(242, 230, 184, 0.08); /* legacy alias */
+  --tint-sage:   rgba(189, 230, 212, 0.10); /* legacy alias */
+  --linen: rgba(250, 251, 255, 0.70);
   --accent-butter: #F0DFA0;
   --accent-butter-ink: #5A4A1A;
   --accent-powder: #A8CCE0;
@@ -164,15 +171,15 @@
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
     radial-gradient(ellipse 80% 60% at 15% 10%,
-      rgba(232,160,180,0.20) 0%, transparent 70%),
+      rgba(158,216,208,0.24) 0%, transparent 70%),
     radial-gradient(ellipse 60% 50% at 85% 20%,
-      rgba(196,176,216,0.17) 0%, transparent 65%),
+      rgba(196,176,232,0.22) 0%, transparent 65%),
     radial-gradient(ellipse 70% 55% at 72% 78%,
-      rgba(168,204,224,0.16) 0%, transparent 65%),
+      rgba(181,199,240,0.18) 0%, transparent 65%),
     radial-gradient(ellipse 50% 45% at 18% 82%,
-      rgba(240,223,160,0.18) 0%, transparent 60%),
+      rgba(189,230,212,0.18) 0%, transparent 60%),
     radial-gradient(ellipse 55% 50% at 50% 48%,
-      rgba(200,212,192,0.13) 0%, transparent 70%);
+      rgba(216,200,240,0.14) 0%, transparent 70%);
   filter: blur(40px);
   animation: poolDrift1 20s ease-in-out infinite;
 }
@@ -299,9 +306,9 @@ em, .font-serif em, h1 em, h2 em, h3 em {
   transition: filter 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
   font-family: var(--font-sans);
   letter-spacing: 0.01em;
-  box-shadow: 0 2px 10px rgba(122, 148, 121, 0.25);
+  box-shadow: 0 2px 10px rgba(47, 141, 133, 0.25);
 }
-.btn-primary:hover { filter: brightness(0.96); box-shadow: 0 6px 22px rgba(122, 148, 121, 0.33); transform: translateY(-1px); }
+.btn-primary:hover { filter: brightness(0.96); box-shadow: 0 6px 22px rgba(47, 141, 133, 0.33); transform: translateY(-1px); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
 .btn-ghost {
   color: var(--foreground);
@@ -352,8 +359,8 @@ textarea.input-pp { min-height: 130px; resize: vertical; line-height: 1.95; font
   animation: pp-pulse 2.6s ease-in-out infinite;
 }
 @keyframes pp-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(122, 148, 121, 0.45); }
-  50% { box-shadow: 0 0 0 22px rgba(122, 148, 121, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(47, 141, 133, 0.45); }
+  50% { box-shadow: 0 0 0 22px rgba(47, 141, 133, 0); }
 }
 
 /* Smooth expand/collapse using grid-template-rows — keeps layout stable,
@@ -376,8 +383,8 @@ textarea.input-pp { min-height: 130px; resize: vertical; line-height: 1.95; font
   animation: breathe 3.4s ease-in-out infinite;
 }
 @keyframes breathe {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(122, 148, 121, 0.30); }
-  50%      { box-shadow: 0 0 0 14px rgba(122, 148, 121, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(47, 141, 133, 0.30); }
+  50%      { box-shadow: 0 0 0 14px rgba(47, 141, 133, 0); }
 }
 
 @media print {
