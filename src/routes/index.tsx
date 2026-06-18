@@ -1,19 +1,25 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { Hero } from "@/components/landing/Hero";
+import { SurvivorSection } from "@/components/landing/SurvivorSection";
+import { AttorneySection } from "@/components/landing/AttorneySection";
+import { OrgSection } from "@/components/landing/OrgSection";
+import { FinalCTA } from "@/components/landing/FinalCTA";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PatternProof — Private documentation for your case" },
-      { name: "description", content: "PatternProof helps survivors privately document incidents, organize evidence, and build court-ready records — encrypted and only visible to you." },
-      { property: "og:title", content: "PatternProof — Private documentation for your case" },
-      { property: "og:description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
-      { property: "og:url", content: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/" },
-      { name: "twitter:title", content: "PatternProof — Private documentation for your case" },
-      { name: "twitter:description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
+      { title: "PatternProof — Turn scattered evidence into structured patterns" },
+      { name: "description", content: "PatternProof turns scattered incidents, evidence, and timelines into organized patterns survivors can document, attorneys can review, and advocates can understand faster." },
+      { property: "og:title", content: "PatternProof — The proof is in the patterns." },
+      { property: "og:description", content: "Pattern infrastructure for DV, custody, and coercive control documentation." },
+      { property: "og:url", content: "https://pattern-proof.tech/" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "PatternProof — The proof is in the patterns." },
+      { name: "twitter:description", content: "Turn scattered evidence into structured patterns." },
     ],
-    links: [{ rel: "canonical", href: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/" }],
   }),
   component: Index,
 });
@@ -22,12 +28,24 @@ function Index() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   useEffect(() => {
-    if (loading) return;
-    navigate({ to: user ? "/dashboard" : "/login", replace: true });
+    if (!loading && user) navigate({ to: "/dashboard", replace: true });
   }, [user, loading, navigate]);
+
+  if (loading || user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="label-eyebrow">Preparing your space…</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="label-eyebrow">Preparing your space…</div>
+    <div className="min-h-screen" style={{ background: "var(--background)" }}>
+      <Hero />
+      <SurvivorSection />
+      <AttorneySection />
+      <OrgSection />
+      <FinalCTA />
     </div>
   );
 }

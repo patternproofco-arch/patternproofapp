@@ -1,9 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Home, FilePlus2, CalendarClock, Mic, Scale, MoreHorizontal,
-  Sparkles, Paperclip, FileText, Hammer, LifeBuoy, BookMarked,
-  HeartHandshake, TrendingUp, Settings as SettingsIcon, LogOut, X,
-  PanelLeftClose, PanelLeftOpen, ShieldAlert,
+  Sparkles, Paperclip, FileText, LifeBuoy,
+  Settings as SettingsIcon, LogOut, X,
+  PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,21 +32,15 @@ const PRIMARY: Item[] = [
   { to: "/dashboard",          label: "Home",            Icon: Home,      accent: "neutral" },
   { to: "/journal",            label: "Log Incident",    Icon: FilePlus2, accent: "pink",   cta: true },
   { to: "/timeline",           label: "Timeline",        Icon: CalendarClock, accent: "yellow" },
-  { to: "/voice-notes",        label: "Voice Memo",      Icon: Mic,       accent: "purple" },
-  { to: "/share-with-attorney",label: "Attorney Portal", Icon: Scale,     accent: "blue", pinnedLabel: true },
+  { to: "/patterns",           label: "Patterns",        Icon: Sparkles,  accent: "purple" },
+  { to: "/court-packet",       label: "Court Packet",    Icon: FileText,  accent: "blue", pinnedLabel: true },
 ];
 
 const OVERFLOW = [
-  { to: "/evidence",            label: "Upload evidence",   Icon: Paperclip },
-  { to: "/patterns",            label: "Pattern insights",  Icon: Sparkles },
-  { to: "/abuser-tactics",      label: "Abuser tactics",    Icon: ShieldAlert },
-  { to: "/escalation-detector", label: "Behavior trends",   Icon: TrendingUp },
-  { to: "/court-packet",        label: "Court summaries",   Icon: FileText },
-  { to: "/case-builder",        label: "Evidence packets",  Icon: Hammer },
-  { to: "/why-courts-struggle", label: "Coercive control",  Icon: BookMarked },
-  { to: "/court-systems",       label: "Court system guide",Icon: HeartHandshake },
-  { to: "/legal-documents",     label: "Legal documents",   Icon: FileText },
-  { to: "/resources",           label: "Safety planning",   Icon: LifeBuoy },
+  { to: "/evidence",            label: "Evidence",          Icon: Paperclip },
+  { to: "/voice-notes",         label: "Voice notes",       Icon: Mic },
+  { to: "/resources",           label: "Resources",         Icon: LifeBuoy },
+  { to: "/share-with-attorney", label: "Share with attorney", Icon: Scale },
   { to: "/settings",            label: "Settings",          Icon: SettingsIcon },
 ];
 
