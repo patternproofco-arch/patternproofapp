@@ -186,8 +186,6 @@ export function PatternRevealSlider({ value, onChange }: Props) {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const p = value / 100;
-
   return (
     <div
       style={{
