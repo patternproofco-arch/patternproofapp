@@ -85,6 +85,30 @@ function Dashboard() {
           </p>
         </header>
 
+        {/* Agent CTA */}
+        <Link to="/agent" className="block">
+          <div className="card-pp mb-4 flex items-center justify-between gap-6"
+            style={{ borderLeft: "4px solid var(--purple-dark, #6A92D6)", padding: 22 }}>
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl p-2"
+                style={{ background: "rgba(106,146,214,0.15)", color: "#6A92D6" }}>
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <span className="label-eyebrow" style={{ color: "#6A92D6" }}>Ask the P4TTERN PR00F Agent</span>
+                <h2 className="font-serif text-[20px] mt-1">Get one calm, useful next step</h2>
+                <p className="mt-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+                  Trauma-informed help to document, organize, and prepare — not legal advice.
+                </p>
+              </div>
+            </div>
+            <span className="btn-primary inline-flex items-center gap-2 whitespace-nowrap"
+              style={{ background: "#6A92D6" }}>
+              Open agent <ArrowRight size={14} />
+            </span>
+          </div>
+        </Link>
+
         {/* Primary CTA */}
         <Link to="/journal" className="block">
           <div className="card-pp mb-6 flex items-center justify-between gap-6"
