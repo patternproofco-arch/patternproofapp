@@ -10,8 +10,6 @@ import { useAuth } from "@/lib/auth-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { useSettings } from "@/lib/settings-context";
 import { typeColor, typeLabel } from "@/lib/abuse-types";
-import { WhyCourtsStruggleModal } from "@/components/WhyCourtsStruggleModal";
-import { FirstTimeEducationModal } from "@/components/FirstTimeEducationModal";
 import { upcomingCourtDates } from "@/lib/court-dates.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -70,9 +68,6 @@ function Dashboard() {
   return (
     <div className="min-h-[calc(100vh-5rem)] px-5 py-8 md:px-10 md:py-12"
          style={{ opacity: loaded ? 1 : 0, transition: "opacity 500ms ease" }}>
-      <WhyCourtsStruggleModal />
-      <FirstTimeEducationModal />
-
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 max-w-3xl">
           <h1 className="font-serif text-[36px] leading-[1.15] md:text-[44px]">
@@ -80,34 +75,7 @@ function Dashboard() {
             <br />
             <em>one record at a time.</em>
           </h1>
-          <p className="mt-3 italic" style={{ color: "var(--primary)", fontFamily: "var(--font-display)" }}>
-            Deep breaths. You are in a safe space.
-          </p>
         </header>
-
-        {/* Agent CTA */}
-        <Link to="/agent" className="block">
-          <div className="card-pp mb-4 flex items-center justify-between gap-6"
-            style={{ borderLeft: "4px solid var(--purple-dark, #6A92D6)", padding: 22 }}>
-            <div className="flex items-start gap-3">
-              <div className="rounded-xl p-2"
-                style={{ background: "rgba(106,146,214,0.15)", color: "#6A92D6" }}>
-                <Sparkles size={18} />
-              </div>
-              <div>
-                <span className="label-eyebrow" style={{ color: "#6A92D6" }}>Ask the P4TTERN PR00F Agent</span>
-                <h2 className="font-serif text-[20px] mt-1">Get one calm, useful next step</h2>
-                <p className="mt-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-                  Trauma-informed help to document, organize, and prepare — not legal advice.
-                </p>
-              </div>
-            </div>
-            <span className="btn-primary inline-flex items-center gap-2 whitespace-nowrap"
-              style={{ background: "#6A92D6" }}>
-              Open agent <ArrowRight size={14} />
-            </span>
-          </div>
-        </Link>
 
         {/* Primary CTA */}
         <Link to="/journal" className="block">
@@ -128,6 +96,7 @@ function Dashboard() {
 
         {/* Card grid */}
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <AgentCard />
           <RecentTimelineCard rows={recent} />
           <PatternCard pattern={pattern} count={counts.incidents} />
           <CourtDatesCard rows={hearings} />
@@ -144,7 +113,7 @@ function CardShell({
   eyebrow, title, accent = "var(--primary)", to, children, action,
 }: {
   eyebrow: string; title: string; accent?: string;
-  to?: "/timeline" | "/patterns" | "/court-dates" | "/court-packet" | "/settings";
+  to?: "/timeline" | "/patterns" | "/court-dates" | "/court-packet" | "/settings" | "/agent";
   children: React.ReactNode;
   action?: { label: string; to: string };
 }) {
