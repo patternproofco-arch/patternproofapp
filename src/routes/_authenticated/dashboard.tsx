@@ -254,10 +254,11 @@ function SafetyChecklistCard({ items, done }: {
   items: { key: string; label: string; done: boolean }[];
   done: number;
 }) {
+  const allDone = done === items.length;
   return (
     <CardShell
       eyebrow="Safety checklist"
-      title={`${done} of ${items.length} steps in place`}
+      title={allDone ? "All set" : `${done} of ${items.length} in place`}
       accent="var(--primary)"
       to="/settings"
       action={{ label: "Open settings", to: "/settings" }}
@@ -272,6 +273,20 @@ function SafetyChecklistCard({ items, done }: {
           </li>
         ))}
       </ul>
+    </CardShell>
+  );
+}
+
+function AgentCard() {
+  return (
+    <CardShell
+      eyebrow="Ask the agent"
+      title="One calm, useful next step"
+      accent="#6A92D6"
+      to="/agent"
+      action={{ label: "Open agent", to: "/agent" }}
+    >
+      <p>Trauma-informed help to document, organize, and prepare — not legal advice.</p>
     </CardShell>
   );
 }
