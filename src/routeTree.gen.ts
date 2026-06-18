@@ -51,6 +51,7 @@ import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
+import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -274,6 +275,12 @@ const AttorneyClientsIndexRoute = AttorneyClientsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AttorneyClientsRoute,
 } as any)
+const AuthenticatedAgentThreadIdRoute =
+  AuthenticatedAgentThreadIdRouteImport.update({
+    id: '/$threadId',
+    path: '/$threadId',
+    getParentRoute: () => AuthenticatedAgentRoute,
+  } as any)
 const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
   id: '/$clientId',
   path: '/$clientId',
@@ -326,6 +333,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/clients/': typeof AttorneyClientsIndexRoute
   '/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -368,6 +376,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/clients': typeof AttorneyClientsIndexRoute
   '/agent': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -415,6 +424,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
   '/_authenticated/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -461,6 +471,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/attorney/$token'
     | '/clients/$clientId'
+    | '/agent/$threadId'
     | '/clients/'
     | '/agent/'
     | '/api/public/payments/webhook'
@@ -503,6 +514,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/attorney/$token'
     | '/clients/$clientId'
+    | '/agent/$threadId'
     | '/clients'
     | '/agent'
     | '/api/public/payments/webhook'
@@ -549,6 +561,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/attorney/$token'
     | '/_attorney/clients/$clientId'
+    | '/_authenticated/agent/$threadId'
     | '/_attorney/clients/'
     | '/_authenticated/agent/'
     | '/api/public/payments/webhook'
@@ -865,6 +878,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyClientsIndexRouteImport
       parentRoute: typeof AttorneyClientsRoute
     }
+    '/_authenticated/agent/$threadId': {
+      id: '/_authenticated/agent/$threadId'
+      path: '/$threadId'
+      fullPath: '/agent/$threadId'
+      preLoaderRoute: typeof AuthenticatedAgentThreadIdRouteImport
+      parentRoute: typeof AuthenticatedAgentRoute
+    }
     '/_attorney/clients/$clientId': {
       id: '/_attorney/clients/$clientId'
       path: '/$clientId'
@@ -913,10 +933,12 @@ const AttorneyRouteWithChildren = AttorneyRoute._addFileChildren(
 )
 
 interface AuthenticatedAgentRouteChildren {
+  AuthenticatedAgentThreadIdRoute: typeof AuthenticatedAgentThreadIdRoute
   AuthenticatedAgentIndexRoute: typeof AuthenticatedAgentIndexRoute
 }
 
 const AuthenticatedAgentRouteChildren: AuthenticatedAgentRouteChildren = {
+  AuthenticatedAgentThreadIdRoute: AuthenticatedAgentThreadIdRoute,
   AuthenticatedAgentIndexRoute: AuthenticatedAgentIndexRoute,
 }
 

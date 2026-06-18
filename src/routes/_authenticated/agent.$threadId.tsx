@@ -35,7 +35,7 @@ function AgentThreadPage() {
       const { data } = await supabase.auth.getSession();
       setToken(data.session?.access_token ?? null);
       const { messages } = await getMessagesFn({ data: { threadId } });
-      setInitialMessages(messages as UIMessage[]);
+      setInitialMessages(messages as unknown as UIMessage[]);
     })();
   }, [threadId, getMessagesFn]);
 
