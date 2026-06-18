@@ -1,9 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Home, FilePlus2, CalendarClock, Mic, Scale, MoreHorizontal,
-  Sparkles, Paperclip, FileText, Hammer, LifeBuoy, BookMarked,
-  HeartHandshake, TrendingUp, Settings as SettingsIcon, LogOut, X,
-  PanelLeftClose, PanelLeftOpen, ShieldAlert,
+  Sparkles, Paperclip, FileText, LifeBuoy,
+  Settings as SettingsIcon, LogOut, X,
+  PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
