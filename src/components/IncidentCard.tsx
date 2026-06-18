@@ -32,7 +32,7 @@ export function IncidentCard({
               <span
                 key={t}
                 className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-                style={{ background: typeColor(t), color: "#fff" }}
+                style={{ background: typeColor(t), color: "#1A1714" }}
               >
                 {typeLabel(t)}
               </span>

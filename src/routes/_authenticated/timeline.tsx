@@ -197,7 +197,7 @@ function TimelinePage() {
                     </div>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {i.abuse_types.map((t) => (
-                        <span key={t} className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: typeColor(t), color: "#fff" }}>{typeLabel(t)}</span>
+                        <span key={t} className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: typeColor(t), color: "#1A1714" }}>{typeLabel(t)}</span>
                       ))}
                     </div>
                     <p className="mt-2 text-[14px] leading-relaxed" style={{ color: "var(--foreground)" }}>
