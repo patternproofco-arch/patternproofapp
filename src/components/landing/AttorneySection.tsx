@@ -4,11 +4,9 @@ import { Logo } from "@/components/Logo";
 import { AttorneyROICalculator } from "./AttorneyROICalculator";
 
 const PAINS = [
-  "Stop rebuilding timelines from scattered texts and photos.",
-  "Stop paying staff to manually organize evidence.",
-  "Spot custody, coercive control, harassment, and financial abuse patterns faster.",
-  "Review stronger client packets before hearings.",
-  "Increase case capacity without increasing admin chaos.",
+  "No more rebuilding timelines from screenshots.",
+  "Spot patterns of coercion, harassment, and custody interference faster.",
+  "Stronger client packets before every hearing.",
 ];
 
 export function AttorneySection() {
@@ -29,12 +27,10 @@ export function AttorneySection() {
           </span>
         </div>
         <h2 style={{ fontSize: "clamp(2rem, 4.2vw, 3.1rem)", fontWeight: 800, letterSpacing: "-0.02em", color: "#FFFFFF", marginBottom: 20, lineHeight: 1.1 }}>
-          Your team is losing hours before the case even begins.
+          Hours back before the case begins.
         </h2>
-        <p style={{ fontSize: 18, lineHeight: 1.6, color: "rgba(245,247,255,0.78)", maxWidth: 760, marginBottom: 32 }}>
-          P4TTERN PR00F organizes client incidents, evidence, timelines, and recurring
-          behaviors before they reach your desk, so your firm can review the pattern
-          faster and take on more complex cases without drowning in screenshots.
+        <p style={{ fontSize: 18, lineHeight: 1.6, color: "rgba(245,247,255,0.85)", maxWidth: 600, marginBottom: 32 }}>
+          Client incidents, evidence, and timelines — organized before they hit your desk.
         </p>
 
         <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 12, marginBottom: 36, maxWidth: 760 }}>
@@ -87,13 +83,12 @@ export function AttorneySection() {
             margin: "0 0 48px",
             fontSize: 18,
             lineHeight: 1.6,
-            color: "rgba(245,247,255,0.85)",
+            color: "rgba(245,247,255,0.9)",
             fontStyle: "italic",
-            maxWidth: 720,
+            maxWidth: 600,
           }}
         >
-          Every hour spent reconstructing the timeline is an hour not spent preparing
-          strategy, serving another client, or moving the case forward.
+          Every hour reconstructing the timeline is an hour off strategy.
         </blockquote>
 
         <div id="att-calc">
@@ -120,8 +115,8 @@ function PricingPsychology() {
       <h3 style={{ fontSize: 24, fontWeight: 700, color: "#FFFFFF", marginBottom: 8 }}>
         $297/month. One billable hour.
       </h3>
-      <p style={{ color: "rgba(245,247,255,0.78)", marginBottom: 24, fontSize: 16 }}>
-        If P4TTERN PR00F saves your team even 2 billable hours a month, it can pay for itself.
+      <p style={{ color: "rgba(245,247,255,0.85)", marginBottom: 24, fontSize: 16 }}>
+        Save two billable hours a month — it pays for itself.
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
         <div style={{ padding: 20, background: "rgba(255,255,255,0.04)", borderRadius: 16 }}>
