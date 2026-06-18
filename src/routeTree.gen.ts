@@ -44,6 +44,7 @@ import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authe
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
+import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AuthenticatedAbuserTacticsRouteImport } from './routes/_authenticated/abuser-tactics'
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
 import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
@@ -236,6 +237,11 @@ const AuthenticatedAttorneyPortalRoute =
     path: '/attorney-portal',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAbuserTacticsRoute =
   AuthenticatedAbuserTacticsRouteImport.update({
     id: '/abuser-tactics',
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/clients': typeof AttorneyClientsRouteWithChildren
   '/subscribe': typeof AttorneySubscribeRoute
   '/abuser-tactics': typeof AuthenticatedAbuserTacticsRoute
+  '/agent': typeof AuthenticatedAgentRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -326,6 +333,7 @@ export interface FileRoutesByTo {
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/subscribe': typeof AttorneySubscribeRoute
   '/abuser-tactics': typeof AuthenticatedAbuserTacticsRoute
+  '/agent': typeof AuthenticatedAgentRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -371,6 +379,7 @@ export interface FileRoutesById {
   '/_attorney/clients': typeof AttorneyClientsRouteWithChildren
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
   '/_authenticated/abuser-tactics': typeof AuthenticatedAbuserTacticsRoute
+  '/_authenticated/agent': typeof AuthenticatedAgentRoute
   '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -415,6 +424,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/subscribe'
     | '/abuser-tactics'
+    | '/agent'
     | '/attorney-portal'
     | '/calendar'
     | '/case-builder'
@@ -456,6 +466,7 @@ export interface FileRouteTypes {
     | '/billing-return'
     | '/subscribe'
     | '/abuser-tactics'
+    | '/agent'
     | '/attorney-portal'
     | '/calendar'
     | '/case-builder'
@@ -500,6 +511,7 @@ export interface FileRouteTypes {
     | '/_attorney/clients'
     | '/_attorney/subscribe'
     | '/_authenticated/abuser-tactics'
+    | '/_authenticated/agent'
     | '/_authenticated/attorney-portal'
     | '/_authenticated/calendar'
     | '/_authenticated/case-builder'
@@ -794,6 +806,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAttorneyPortalRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/agent': {
+      id: '/_authenticated/agent'
+      path: '/agent'
+      fullPath: '/agent'
+      preLoaderRoute: typeof AuthenticatedAgentRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/abuser-tactics': {
       id: '/_authenticated/abuser-tactics'
       path: '/abuser-tactics'
@@ -878,6 +897,7 @@ const AttorneyRouteWithChildren = AttorneyRoute._addFileChildren(
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAbuserTacticsRoute: typeof AuthenticatedAbuserTacticsRoute
+  AuthenticatedAgentRoute: typeof AuthenticatedAgentRoute
   AuthenticatedAttorneyPortalRoute: typeof AuthenticatedAttorneyPortalRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
@@ -906,6 +926,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAbuserTacticsRoute: AuthenticatedAbuserTacticsRoute,
+  AuthenticatedAgentRoute: AuthenticatedAgentRoute,
   AuthenticatedAttorneyPortalRoute: AuthenticatedAttorneyPortalRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
