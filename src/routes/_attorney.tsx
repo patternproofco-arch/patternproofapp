@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
+import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({

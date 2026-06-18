@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Star, ArrowRight } from "lucide-react";
 import attorneyCss from "@/styles/attorney.css?url";
+import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/for-attorneys")({
   head: () => ({

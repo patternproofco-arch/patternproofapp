@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getMyRole } from "@/lib/attorney-portal.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
