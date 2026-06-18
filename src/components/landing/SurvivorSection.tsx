@@ -23,7 +23,7 @@ export function SurvivorSection() {
         <h2 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 20 }}>
           Scattered moments become a pattern.
         </h2>
-        <p style={{ fontSize: 18, color: "var(--muted-foreground)", maxWidth: 560, marginBottom: 36 }}>
+        <p style={{ fontSize: 18, color: "#1A1714", fontWeight: 500, maxWidth: 560, marginBottom: 36 }}>
           {pos < 50
             ? "Texts, photos, voice notes, memories — disconnected."
             : "One timeline. Clear patterns. Easier to explain."}

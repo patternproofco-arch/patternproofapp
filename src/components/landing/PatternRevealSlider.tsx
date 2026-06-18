@@ -94,8 +94,12 @@ export function PatternRevealSlider({ value, onChange }: Props) {
     const setup = () => {
       const rect = container.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-      const w = Math.floor(rect.width);
-      const h = Math.floor(rect.height);
+      const w = Math.max(1, Math.floor(rect.width));
+      const h = Math.max(1, Math.floor(rect.height));
+      if (rect.width < 8 || rect.height < 8) {
+        // Container not laid out yet — wait for ResizeObserver to fire with real dims
+        return;
+      }
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width = `${w}px`;
