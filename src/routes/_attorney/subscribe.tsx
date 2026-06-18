@@ -93,7 +93,7 @@ function SubscribePage() {
       <div style={{ marginTop: 24, marginBottom: 24 }}>
         <div className="att-eyebrow">Attorney Portal · Pricing</div>
         <h1 style={{ fontSize: 36, marginTop: 4, marginBottom: 10, fontFamily: '"Instrument Serif", serif' }}>
-          Your clients are already documented before they walk in the door.
+          See the pattern before the hearing.
         </h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 15, maxWidth: 640 }}>
           Pick the plan that fits the firm. Your first client is free. We call it The Pilot.
