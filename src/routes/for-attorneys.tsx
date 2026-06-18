@@ -45,10 +45,10 @@ function ForAttorneys() {
         <div style={{ textAlign: "center", marginBottom: 56 }}>
           <div className="att-eyebrow">PatternProof · Attorney Portal</div>
           <h1 style={{ fontSize: 56, lineHeight: 1.05, fontFamily: '"Instrument Serif", serif', marginTop: 12, marginBottom: 16, maxWidth: 880, marginLeft: "auto", marginRight: "auto" }}>
-            Your clients are already documented before they walk in the door.
+            See the pattern before the hearing.
           </h1>
-          <p style={{ fontSize: 17, color: "var(--att-text-2)", maxWidth: 620, margin: "0 auto" }}>
-            Survivors document their own cases. You receive an organized timeline, evidence vault, and court-ready packet on day one of representation.
+          <p style={{ fontSize: 17, color: "var(--att-text-2)", maxWidth: 640, margin: "0 auto" }}>
+            Your clients arrive already documented. PatternProof gives you the timeline, evidence vault, pattern flags, and court-ready packet on day one of representation.
           </p>
           <Link to="/lawyer-signup" className="att-btn-primary" style={{ marginTop: 28, display: "inline-flex" }}>
             Start with The Pilot <ArrowRight size={14} />
