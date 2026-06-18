@@ -37,6 +37,7 @@ import { Route as AuthenticatedCourtSystemsRouteImport } from './routes/_authent
 import { Route as AuthenticatedCourtReadyThanksRouteImport } from './routes/_authenticated/court-ready-thanks'
 import { Route as AuthenticatedCourtReadyRouteImport } from './routes/_authenticated/court-ready'
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
+import { Route as AuthenticatedCourtDatesRouteImport } from './routes/_authenticated/court-dates'
 import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
@@ -195,6 +196,11 @@ const AuthenticatedCourtPacketRoute =
     path: '/court-packet',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCourtDatesRoute = AuthenticatedCourtDatesRouteImport.update({
+  id: '/court-dates',
+  path: '/court-dates',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedCommunicationsRoute =
   AuthenticatedCommunicationsRouteImport.update({
     id: '/communications',
@@ -270,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
+  '/court-dates': typeof AuthenticatedCourtDatesRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/court-ready': typeof AuthenticatedCourtReadyRoute
   '/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
@@ -308,6 +315,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
+  '/court-dates': typeof AuthenticatedCourtDatesRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/court-ready': typeof AuthenticatedCourtReadyRoute
   '/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
@@ -350,6 +358,7 @@ export interface FileRoutesById {
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/_authenticated/communications': typeof AuthenticatedCommunicationsRoute
+  '/_authenticated/court-dates': typeof AuthenticatedCourtDatesRoute
   '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
   '/_authenticated/court-ready': typeof AuthenticatedCourtReadyRoute
   '/_authenticated/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
@@ -391,6 +400,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/case-builder'
     | '/communications'
+    | '/court-dates'
     | '/court-packet'
     | '/court-ready'
     | '/court-ready-thanks'
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/case-builder'
     | '/communications'
+    | '/court-dates'
     | '/court-packet'
     | '/court-ready'
     | '/court-ready-thanks'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/_authenticated/calendar'
     | '/_authenticated/case-builder'
     | '/_authenticated/communications'
+    | '/_authenticated/court-dates'
     | '/_authenticated/court-packet'
     | '/_authenticated/court-ready'
     | '/_authenticated/court-ready-thanks'
@@ -707,6 +719,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCourtPacketRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/court-dates': {
+      id: '/_authenticated/court-dates'
+      path: '/court-dates'
+      fullPath: '/court-dates'
+      preLoaderRoute: typeof AuthenticatedCourtDatesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/communications': {
       id: '/_authenticated/communications'
       path: '/communications'
@@ -823,6 +842,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
   AuthenticatedCommunicationsRoute: typeof AuthenticatedCommunicationsRoute
+  AuthenticatedCourtDatesRoute: typeof AuthenticatedCourtDatesRoute
   AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
   AuthenticatedCourtReadyRoute: typeof AuthenticatedCourtReadyRoute
   AuthenticatedCourtReadyThanksRoute: typeof AuthenticatedCourtReadyThanksRoute
@@ -850,6 +870,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
   AuthenticatedCommunicationsRoute: AuthenticatedCommunicationsRoute,
+  AuthenticatedCourtDatesRoute: AuthenticatedCourtDatesRoute,
   AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
   AuthenticatedCourtReadyRoute: AuthenticatedCourtReadyRoute,
   AuthenticatedCourtReadyThanksRoute: AuthenticatedCourtReadyThanksRoute,
