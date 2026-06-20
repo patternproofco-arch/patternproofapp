@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { UploadCloud, CalendarRange, Fingerprint, Scale, ShieldCheck, ArrowRight } from "lucide-react";
+import { UploadCloud, CalendarRange, Fingerprint, Scale, ShieldCheck, ArrowRight, Sparkles, Info } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -12,12 +12,14 @@ interface DashCard {
   step: string;
   title: string;
   blurb: string;
+  status: string;
   icon: React.ReactNode;
   tint: string;        // soft glow color
   iconBg: string;      // solid icon tile bg
   iconFg: string;      // icon stroke color
   ariaLabel: string;
   luminous?: boolean;
+  featured?: boolean;
 }
 
 function Dashboard() {
@@ -26,14 +28,17 @@ function Dashboard() {
       to: "/evidence", step: "Step 1 · Upload",
       title: "Upload Evidence",
       blurb: "Add screenshots, texts, documents, photos, or recordings.",
+      status: "Start here",
       icon: <UploadCloud size={26} strokeWidth={2} />,
       tint: "rgba(120, 200, 220, 0.45)", iconBg: "#2F8D85", iconFg: "#FFFFFF",
-      ariaLabel: "Upload evidence",
+      ariaLabel: "Upload evidence — start here",
+      featured: true,
     },
     {
       to: "/timeline", step: "Step 2 · Organize",
       title: "Timeline",
       blurb: "See incidents organized by date and pattern.",
+      status: "Builds as you add evidence",
       icon: <CalendarRange size={26} strokeWidth={2} />,
       tint: "rgba(170, 160, 230, 0.45)", iconBg: "#7C5CC4", iconFg: "#FFFFFF",
       ariaLabel: "Open timeline",
@@ -42,6 +47,7 @@ function Dashboard() {
       to: "/patterns", step: "Step 3 · Find patterns",
       title: "Pattern Report",
       blurb: "View repeated behaviors, escalation, and abuse patterns.",
+      status: "Pattern detection",
       icon: <Fingerprint size={26} strokeWidth={2} />,
       tint: "rgba(140, 210, 200, 0.45)", iconBg: "#3FA89D", iconFg: "#FFFFFF",
       ariaLabel: "Open pattern report",
@@ -50,6 +56,7 @@ function Dashboard() {
       to: "/court-packet", step: "Step 4 · Court summary",
       title: "Court Summary",
       blurb: "Generate an attorney-ready court overview.",
+      status: "Attorney-ready",
       icon: <Scale size={26} strokeWidth={2} />,
       tint: "rgba(160, 180, 230, 0.45)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
       ariaLabel: "Build court summary",
@@ -58,6 +65,7 @@ function Dashboard() {
       to: "/agent", step: "Step 5 · Ask the agent",
       title: "P4TTERN PR00F Agent",
       blurb: "Ask the agent to organize, explain, or summarize your evidence.",
+      status: "Ask for help",
       icon: <PrismIcon />,
       tint: "rgba(180, 220, 240, 0.65)", iconBg: "transparent", iconFg: "#5B7CC4",
       ariaLabel: "Open the P4TTERN PR00F agent",
@@ -67,6 +75,7 @@ function Dashboard() {
       to: "/settings", step: "Always on",
       title: "Safety & Settings",
       blurb: "Manage PIN, privacy, and account safety.",
+      status: "Private & secure",
       icon: <ShieldCheck size={26} strokeWidth={2} />,
       tint: "rgba(170, 220, 200, 0.45)", iconBg: "#2F8D85", iconFg: "#FFFFFF",
       ariaLabel: "Open safety and settings",
@@ -74,7 +83,7 @@ function Dashboard() {
   ];
 
   return (
-    <div className="relative min-h-[calc(100vh-5rem)] overflow-hidden px-5 py-10 md:px-10 md:py-14">
+    <div className="relative min-h-[calc(100vh-5rem)] overflow-hidden px-5 py-10 pb-28 md:px-10 md:py-14 md:pb-14">
       <IridescentBackdrop />
       <div className="relative mx-auto max-w-6xl">
         <header className="mb-10 max-w-3xl">
@@ -97,29 +106,83 @@ function Dashboard() {
           </Link>
         </header>
 
+        {/* Helper strip */}
+        <div
+          role="note"
+          className="mb-8 flex items-start gap-3 rounded-2xl px-5 py-4"
+          style={{
+            background: "rgba(255,255,255,0.55)",
+            backdropFilter: "blur(14px) saturate(140%)",
+            border: "1px solid rgba(255,255,255,0.7)",
+            boxShadow: "0 8px 24px rgba(15,23,42,0.06)",
+          }}
+        >
+          <span
+            aria-hidden
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white"
+            style={{ background: "linear-gradient(135deg, #2F8D85, #5B7CC4)" }}
+          >
+            <Info size={18} />
+          </span>
+          <div className="min-w-0">
+            <div className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
+              New here? Start by uploading evidence.
+            </div>
+            <p className="mt-0.5 text-[13px]" style={{ color: "#2A1A10" }}>
+              P4TTERN PR00F will help organize it into patterns, timelines, and summaries.
+            </p>
+          </div>
+        </div>
+
         <ol aria-label="Dashboard steps" className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {cards.map((c) => (
-            <li key={c.to} className="contents">
+            <li key={c.to} className={c.featured ? "md:col-span-2 lg:col-span-1" : "contents"}>
               <GlassCard card={c} />
             </li>
           ))}
         </ol>
+
+        {/* Agent supporting line */}
+        <p
+          className="mt-6 flex items-center justify-center gap-2 text-center text-[13px]"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          <Sparkles size={14} style={{ color: "#5B7CC4" }} />
+          Use the agent to turn scattered evidence into organized insight.
+        </p>
+      </div>
+
+      {/* Sticky mobile CTA */}
+      <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 md:hidden">
+        <Link
+          to="/evidence"
+          aria-label="Upload evidence"
+          className="flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-[15px] font-semibold text-white shadow-[0_14px_36px_rgba(47,141,133,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          style={{ background: "linear-gradient(135deg, #2F8D85 0%, #5B7CC4 100%)" }}
+        >
+          <UploadCloud size={18} /> Upload Evidence
+        </Link>
       </div>
     </div>
   );
 }
 
 function GlassCard({ card }: { card: DashCard }) {
+  const featured = card.featured;
   return (
     <Link
       to={card.to}
       aria-label={card.ariaLabel}
-      className="group relative block h-full rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4] focus-visible:ring-offset-2"
+      className="group relative block h-full min-h-[200px] rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4] focus-visible:ring-offset-2"
       style={{
-        background: "rgba(255, 255, 255, 0.55)",
+        background: featured
+          ? "linear-gradient(135deg, rgba(47,141,133,0.18), rgba(91,124,196,0.18))"
+          : "rgba(255, 255, 255, 0.55)",
         backdropFilter: "blur(18px) saturate(140%)",
-        border: "1px solid rgba(255, 255, 255, 0.7)",
-        boxShadow: `0 12px 40px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255,255,255,0.9), 0 0 0 0 ${card.tint}`,
+        border: featured ? "1.5px solid rgba(47,141,133,0.5)" : "1px solid rgba(255, 255, 255, 0.7)",
+        boxShadow: featured
+          ? "0 18px 48px rgba(47,141,133,0.25), inset 0 1px 0 rgba(255,255,255,0.9)"
+          : `0 12px 40px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255,255,255,0.9)`,
       }}
     >
       {/* iridescent glow on hover */}
@@ -131,7 +194,7 @@ function GlassCard({ card }: { card: DashCard }) {
         }}
       />
       <div className="relative flex h-full flex-col">
-        <div className="flex items-center gap-4">
+        <div className="flex items-start justify-between gap-3">
           <div
             className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ${
               card.luminous ? "shadow-[0_8px_24px_rgba(91,124,196,0.35)]" : "shadow-[0_6px_18px_rgba(15,23,42,0.18)]"
@@ -147,13 +210,20 @@ function GlassCard({ card }: { card: DashCard }) {
             {card.icon}
           </div>
           <span
-            className="text-[11px] font-semibold uppercase tracking-[0.16em]"
-            style={{ color: "var(--muted-foreground)" }}
+            className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+            style={{
+              background: featured ? "#2F8D85" : "rgba(255,255,255,0.85)",
+              color: featured ? "#FFFFFF" : "#2F8D85",
+              border: featured ? "none" : "1px solid rgba(47,141,133,0.3)",
+            }}
           >
-            {card.step}
+            {card.status}
           </span>
         </div>
-        <h3 className="mt-5 font-serif text-[22px] leading-tight" style={{ color: "var(--foreground)" }}>
+        <div className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>
+          {card.step}
+        </div>
+        <h3 className="mt-1 font-serif text-[22px] leading-tight" style={{ color: "var(--foreground)" }}>
           {card.title}
         </h3>
         <p className="mt-2 flex-1 text-[14px] leading-relaxed" style={{ color: "#2A1A10" }}>
@@ -161,9 +231,9 @@ function GlassCard({ card }: { card: DashCard }) {
         </p>
         <span
           className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold transition-transform group-hover:translate-x-0.5"
-          style={{ color: "var(--teal-dark)" }}
+          style={{ color: featured ? "#2F8D85" : "var(--teal-dark)" }}
         >
-          Open <ArrowRight size={14} />
+          {featured ? "Upload now" : "Open"} <ArrowRight size={14} />
         </span>
       </div>
     </Link>
