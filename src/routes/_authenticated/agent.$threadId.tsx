@@ -126,24 +126,19 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-5">
         {showGreeting && (
-          <div className="max-w-2xl space-y-4 text-[#2A1A10]">
+          <div className="max-w-2xl space-y-4 text-foreground">
             <p>
               Hi. I can help you document what happened, organize evidence, or look for patterns in
               what you've already logged. We can start with one incident, even if you only remember
               part of it.
             </p>
-            <p className="text-sm text-[#4E3B31]/80">What would you like help with right now?</p>
+            <p className="text-sm text-muted-foreground">What would you like help with right now?</p>
             <div className="flex flex-wrap gap-2 pt-1">
               {STARTERS.map((s) => (
                 <button
                   key={s}
                   onClick={() => handleSend(s)}
-                  className="text-left text-sm rounded-full px-3 py-1.5 transition-colors"
-                  style={{
-                    background: "rgba(106,146,214,0.12)",
-                    color: "#2A1A10",
-                    borderLeft: "3px solid #6A92D6",
-                  }}
+                  className="text-left text-sm rounded-full px-3 py-1.5 transition-colors bg-secondary hover:bg-secondary/80 text-foreground border-l-[3px] border-primary"
                 >
                   {s}
                 </button>
