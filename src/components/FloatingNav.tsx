@@ -1,26 +1,28 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Home, NotebookPen, GitCommitHorizontal, Mic, MoreHorizontal,
-  Fingerprint, Files, Landmark, BookOpen, Briefcase,
+  Home, NotebookPen, History, Mic, MoreHorizontal,
+  Waypoints, Files, Landmark, BookOpen, Scale,
   Settings as SettingsIcon, LogOut, X,
-  PanelLeftClose, PanelLeftOpen,
+  PanelLeftClose, PanelLeftOpen, GripVertical, EyeOff, Eye,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { NavIcon } from "@/components/NavIcon";
+import { useDraggable } from "@/hooks/use-draggable";
 
 /**
  * PrismIcon — custom mark for the P4TTERN PR00F Agent.
  * Translucent prism silhouette with a hidden "PP" inside and small
  * pattern nodes around it. Inherits stroke color from currentColor.
  */
-function PrismIcon({ size = 22, strokeWidth = 2 }: { size?: number; strokeWidth?: number }) {
+function PrismIcon({ size = 22, strokeWidth = 1.75, color = "currentColor" }: { size?: number; strokeWidth?: number; color?: string }) {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
       fill="none"
-      stroke="currentColor"
+      stroke={color}
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -29,15 +31,17 @@ function PrismIcon({ size = 22, strokeWidth = 2 }: { size?: number; strokeWidth?
       {/* prism body */}
       <path d="M12 3.5 L20 18.5 L4 18.5 Z" />
       {/* inner geometric PP hint */}
-      <path d="M10 11.5 v4.5 M10 11.5 h2 a1.2 1.2 0 0 1 0 2.4 h-2" strokeWidth={Math.max(1.2, strokeWidth - 0.4)} opacity="0.85" />
-      <path d="M13.6 11.5 v4.5 M13.6 11.5 h2 a1.2 1.2 0 0 1 0 2.4 h-2" strokeWidth={Math.max(1.2, strokeWidth - 0.4)} opacity="0.85" />
+      <path d="M10 11.5 v4.5 M10 11.5 h2 a1.2 1.2 0 0 1 0 2.4 h-2" strokeWidth={Math.max(1.1, strokeWidth - 0.35)} opacity="0.85" />
+      <path d="M13.6 11.5 v4.5 M13.6 11.5 h2 a1.2 1.2 0 0 1 0 2.4 h-2" strokeWidth={Math.max(1.1, strokeWidth - 0.35)} opacity="0.85" />
       {/* pattern nodes */}
-      <circle cx="3" cy="6" r="1" fill="currentColor" stroke="none" />
-      <circle cx="21" cy="6" r="1" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="21.5" r="1" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="6" r="1" fill={color} stroke="none" />
+      <circle cx="21" cy="6" r="1" fill={color} stroke="none" />
+      <circle cx="12" cy="21.5" r="1" fill={color} stroke="none" />
     </svg>
   );
 }
+
+export { PrismIcon };
 
 type AccentKey = "neutral" | "pink" | "yellow" | "purple" | "blue";
 const ACCENT: Record<AccentKey, string> = {
@@ -51,7 +55,8 @@ const ACCENT: Record<AccentKey, string> = {
 type Item = {
   to: string;
   label: string;
-  Icon: typeof Home;
+  Icon: typeof Home | ((p: { size?: number; strokeWidth?: number; color?: string }) => JSX.Element);
+  custom?: boolean;
   accent: AccentKey;
   /** Treat this nav item as primary CTA (Log Incident). */
   cta?: boolean;
@@ -62,17 +67,18 @@ type Item = {
 const PRIMARY: Item[] = [
   { to: "/dashboard",          label: "Home",            Icon: Home,                 accent: "neutral" },
   { to: "/journal",            label: "Log Incident",    Icon: NotebookPen,          accent: "pink",   cta: true },
-  { to: "/timeline",           label: "Timeline",        Icon: GitCommitHorizontal,  accent: "yellow" },
-  { to: "/patterns",           label: "Patterns",        Icon: Fingerprint,          accent: "purple" },
+  { to: "/timeline",           label: "Timeline",        Icon: History,              accent: "yellow" },
+  { to: "/patterns",           label: "Patterns",        Icon: Waypoints,            accent: "purple" },
+  { to: "/agent",              label: "Agent",           Icon: PrismIcon as unknown as typeof Home, custom: true, accent: "blue" },
   { to: "/court-packet",       label: "Court Packet",    Icon: Landmark,             accent: "blue", pinnedLabel: true },
 ];
 
 const OVERFLOW = [
-  { to: "/agent",               label: "P4TTERN PR00F Agent", Icon: PrismIcon as unknown as typeof Home },
   { to: "/evidence",            label: "Evidence",            Icon: Files },
   { to: "/voice-notes",         label: "Voice notes",         Icon: Mic },
   { to: "/resources",           label: "Resources",           Icon: BookOpen },
-  { to: "/share-with-attorney", label: "Share with attorney", Icon: Briefcase },
+  { to: "/share-with-attorney", label: "Attorney Portal",     Icon: Scale },
+  { to: "/attorney-portal",     label: "Shared with attorney", Icon: Scale },
   { to: "/settings",            label: "Settings",            Icon: SettingsIcon },
 ];
 
