@@ -356,8 +356,8 @@ export function FloatingNav() {
 }
 
 function DesktopDock({
-  isActive, dim, onMore,
-}: { isActive: (to: string) => boolean; dim: boolean; onMore: () => void }) {
+  isActive, dim, onMore, onHide,
+}: { isActive: (to: string) => boolean; dim: boolean; onMore: () => void; onHide: () => void }) {
   const [expanded, setExpanded] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     const v = window.localStorage.getItem("pp:nav-expanded");
@@ -367,14 +367,15 @@ function DesktopDock({
     try { window.localStorage.setItem("pp:nav-expanded", expanded ? "1" : "0"); } catch { /* ignore */ }
   }, [expanded]);
   const open = expanded;
+  const drag = useDraggable("pp:nav-pos", { left: 16, top: typeof window !== "undefined" ? Math.max(16, window.innerHeight / 2 - 240) : 200 });
   return (
     <div
+      ref={drag.ref as React.RefObject<HTMLDivElement>}
       className="no-print hidden md:flex"
       style={{
         position: "fixed",
-        top: "50%",
-        left: 16,
-        transform: `translateY(-50%) scale(${dim ? 0.97 : 1})`,
+        ...drag.style,
+        transform: `scale(${dim ? 0.97 : 1})`,
         zIndex: 100,
         opacity: dim ? 0.7 : 1,
         background: "rgba(26,23,20,0.85)",
@@ -388,24 +389,52 @@ function DesktopDock({
         alignItems: "stretch",
         gap: 6,
         overflow: "hidden",
-        transition: "width 0.25s ease, opacity 0.25s ease, transform 0.25s ease",
+        transition: "width 0.25s ease, opacity 0.25s ease",
         boxShadow: "0 12px 36px rgba(26,23,20,0.30)",
       }}
     >
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        aria-label={open ? "Collapse menu" : "Expand menu"}
-        title={open ? "Collapse menu" : "Expand menu"}
+      <div
         style={{
-          display: "flex", alignItems: "center", justifyContent: open ? "flex-end" : "center",
-          gap: 8, padding: "6px 10px", marginBottom: 4,
-          color: "rgba(255,255,255,0.82)", background: "transparent",
-          borderRadius: 12,
+          display: "flex", alignItems: "center",
+          justifyContent: open ? "space-between" : "center",
+          gap: 4, padding: "2px 6px 6px", marginBottom: 2,
+          color: "rgba(255,255,255,0.82)",
         }}
       >
-        {open ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={20} />}
-      </button>
+        <button
+          type="button"
+          {...drag.dragHandlers}
+          aria-label="Drag to move menu"
+          title="Drag to move"
+          style={{
+            cursor: "grab", padding: 4, borderRadius: 8,
+            background: "transparent", color: "rgba(255,255,255,0.6)",
+            touchAction: "none",
+          }}
+        >
+          <NavIcon icon={GripVertical} size={16} color="rgba(255,255,255,0.6)" />
+        </button>
+        {open && (
+          <button
+            type="button"
+            onClick={onHide}
+            aria-label="Hide navigation"
+            title="Hide navigation"
+            style={{ padding: 4, borderRadius: 8, background: "transparent", color: "rgba(255,255,255,0.7)" }}
+          >
+            <NavIcon icon={EyeOff} size={16} color="rgba(255,255,255,0.7)" />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-label={open ? "Collapse menu" : "Expand menu"}
+          title={open ? "Collapse menu" : "Expand menu"}
+          style={{ padding: 4, borderRadius: 8, background: "transparent", color: "rgba(255,255,255,0.82)" }}
+        >
+          <NavIcon icon={open ? PanelLeftClose : PanelLeftOpen} size={open ? 18 : 20} color="rgba(255,255,255,0.82)" />
+        </button>
+      </div>
       {PRIMARY.map((it) => {
         const active = isActive(it.to);
         return (
@@ -460,7 +489,7 @@ function DesktopDock({
           background: "transparent",
         }}
       >
-        <MoreHorizontal size={22} strokeWidth={2.25} style={{ marginLeft: 4, color: "#C8C3BA" }} />
+        <NavIcon icon={MoreHorizontal} size={22} color="#C8C3BA" style={{ marginLeft: 4 }} />
         <span
           style={{
             fontSize: 13, fontWeight: 700, whiteSpace: "nowrap",
