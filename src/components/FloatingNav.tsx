@@ -207,7 +207,13 @@ export function FloatingNav() {
                 }}
                 aria-label={it.label}
               >
-                <it.Icon size={it.cta ? 22 : 18} strokeWidth={2} />
+                {it.custom ? (
+                  // Custom SVG (e.g. PrismIcon) — already matches the shared treatment.
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (() => { const C = it.Icon as any; return <C size={it.cta ? 22 : 18} strokeWidth={1.75} color={ACCENT[it.accent]} />; })()
+                ) : (
+                  <NavIcon icon={it.Icon as typeof Home} size={it.cta ? 22 : 18} color={ACCENT[it.accent]} />
+                )}
                 {showLabel && (
                   <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
                     {it.label}
@@ -284,7 +290,7 @@ export function FloatingNav() {
                       color: "#1A1714", fontSize: 15, fontWeight: 600,
                     }}
                   >
-                    <it.Icon size={17} />
+                    <NavIcon icon={it.Icon} size={17} />
                     {it.label}
                   </Link>
                 );
@@ -379,7 +385,12 @@ function DesktopDock({
               borderLeft: active ? `2px solid ${ACCENT[it.accent]}` : "2px solid transparent",
             }}
           >
-            <it.Icon size={22} strokeWidth={2.25} style={{ flexShrink: 0, marginLeft: 4, color: ACCENT[it.accent] }} />
+            {it.custom ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (() => { const C = it.Icon as any; return <C size={22} strokeWidth={1.75} color={ACCENT[it.accent]} />; })()
+            ) : (
+              <NavIcon icon={it.Icon as typeof Home} size={22} color={ACCENT[it.accent]} style={{ flexShrink: 0, marginLeft: 4 }} />
+            )}
             <span
               style={{
                 fontSize: 13, fontWeight: 700,
