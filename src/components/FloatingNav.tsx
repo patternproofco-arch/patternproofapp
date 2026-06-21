@@ -5,7 +5,7 @@ import {
   Settings as SettingsIcon, LogOut, X,
   PanelLeftClose, PanelLeftOpen, GripVertical, EyeOff, Eye,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { NavIcon } from "@/components/NavIcon";
 import { useDraggable } from "@/hooks/use-draggable";
@@ -55,7 +55,7 @@ const ACCENT: Record<AccentKey, string> = {
 type Item = {
   to: string;
   label: string;
-  Icon: typeof Home | ((p: { size?: number; strokeWidth?: number; color?: string }) => React.ReactElement);
+  Icon: typeof Home | ((p: { size?: number; strokeWidth?: number; color?: string }) => ReactElement);
   custom?: boolean;
   accent: AccentKey;
   /** Treat this nav item as primary CTA (Log Incident). */
