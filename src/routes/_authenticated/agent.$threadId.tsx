@@ -154,18 +154,15 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
           if (m.role === "user") {
             return (
               <div key={m.id} className="flex justify-end">
-                <div
-                  className="max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap"
-                  style={{ background: "#4E3B31", color: "#F5E6DF" }}
-                >
+                <div className="max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap bg-primary text-primary-foreground">
                   {text}
                 </div>
               </div>
             );
           }
           return (
-            <div key={m.id} className="max-w-3xl text-[#2A1A10]">
-              <div className="prose prose-sm max-w-none prose-headings:font-serif prose-headings:italic prose-strong:text-[#2A1A10] prose-p:my-2 prose-ul:my-2 prose-li:my-0.5">
+            <div key={m.id} className="max-w-3xl text-foreground">
+              <div className="prose prose-sm max-w-none prose-headings:font-serif prose-headings:italic prose-strong:text-foreground prose-p:my-2 prose-ul:my-2 prose-li:my-0.5">
                 <ReactMarkdown>{text || " "}</ReactMarkdown>
               </div>
             </div>
@@ -173,13 +170,10 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
         })}
 
         {status === "submitted" && (
-          <div className="text-sm text-[#4E3B31]/70 italic">Thinking…</div>
+          <div className="text-sm text-muted-foreground italic">Thinking…</div>
         )}
         {error && (
-          <div
-            className="flex items-start gap-2 text-sm rounded-xl px-3 py-2"
-            style={{ background: "rgba(231,123,86,0.12)", color: "#7A2E12", borderLeft: "3px solid #E77B56" }}
-          >
+          <div className="flex items-start gap-2 text-sm rounded-xl px-3 py-2 bg-destructive/10 text-destructive border-l-[3px] border-destructive">
             <ShieldAlert size={16} className="mt-0.5 shrink-0" />
             <span>We couldn't reach the agent. Try again in a moment.</span>
           </div>
@@ -189,13 +183,9 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
       {/* Composer */}
       <form
         onSubmit={(e) => { e.preventDefault(); void handleSend(); }}
-        className="px-4 py-3"
-        style={{ borderTop: "1px solid rgba(78,59,49,0.12)" }}
+        className="px-4 py-3 border-t border-border"
       >
-        <div
-          className="flex items-end gap-2 rounded-2xl p-2"
-          style={{ background: "#F2E8D8", border: "1px solid rgba(78,59,49,0.12)" }}
-        >
+        <div className="flex items-end gap-2 rounded-2xl p-2 bg-input border border-border">
           <textarea
             ref={inputRef}
             value={input}
@@ -208,20 +198,19 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
             }}
             rows={1}
             placeholder="Start with what you know. It's okay if the memory is incomplete."
-            className="flex-1 resize-none bg-transparent outline-none text-sm text-[#2A1A10] placeholder:text-[#4E3B31]/50 px-2 py-1.5 max-h-40"
+            className="flex-1 resize-none bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground px-2 py-1.5 max-h-40"
             disabled={busy}
           />
           <button
             type="submit"
             disabled={busy || !input.trim()}
-            className="rounded-full p-2.5 transition-opacity disabled:opacity-40"
-            style={{ background: "#E77B56", color: "#FFF" }}
+            className="rounded-full p-2.5 transition-opacity disabled:opacity-40 bg-primary text-primary-foreground"
             aria-label="Send"
           >
             <Send size={16} />
           </button>
         </div>
-        <p className="text-[11px] text-[#4E3B31]/70 mt-2 px-1">
+        <p className="text-[11px] text-muted-foreground mt-2 px-1">
           Your conversations are private to your account. The agent will not give legal advice or
           diagnose anyone.
         </p>
