@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Trash2,
+  ArrowLeft, MapPin, Plus, Trash2,
   ChevronLeft, ChevronRight, ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -424,6 +424,3 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
-
-// Suppress unused-import warning when CalendarIcon isn't rendered.
-void CalendarIcon;
