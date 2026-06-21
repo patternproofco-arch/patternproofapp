@@ -107,6 +107,13 @@ export function FloatingNav() {
   const dim = useScrollDir();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [hidden, setHidden] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("pp:nav-hidden") === "1";
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("pp:nav-hidden", hidden ? "1" : "0"); } catch { /* ignore */ }
+  }, [hidden]);
 
   useEffect(() => { setExpanded(null); setMoreOpen(false); }, [pathname]);
 
@@ -125,6 +132,30 @@ export function FloatingNav() {
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
   const signOut = async () => { await supabase.auth.signOut(); };
+
+  if (hidden) {
+    return (
+      <button
+        type="button"
+        onClick={() => setHidden(false)}
+        className="no-print"
+        aria-label="Show navigation"
+        title="Show navigation"
+        style={{
+          position: "fixed", left: 12, bottom: 12, zIndex: 100,
+          width: 40, height: 40, borderRadius: 999,
+          background: "rgba(26,23,20,0.85)",
+          border: "1px solid rgba(255,255,255,0.15)",
+          color: "#FAF7F2",
+          display: "grid", placeItems: "center",
+          backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+          boxShadow: "0 8px 24px rgba(26,23,20,0.30)",
+        }}
+      >
+        <NavIcon icon={Eye} size={18} color="#FAF7F2" />
+      </button>
+    );
+  }
 
   return (
     <>
@@ -244,13 +275,27 @@ export function FloatingNav() {
               background: "transparent", color: "#C8C3BA",
             }}
           >
-            <MoreHorizontal size={18} />
+            <NavIcon icon={MoreHorizontal} size={18} color="#C8C3BA" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setHidden(true)}
+            aria-label="Hide navigation"
+            title="Hide navigation"
+            style={{ padding: 10, borderRadius: 999, background: "transparent", color: "#C8C3BA" }}
+          >
+            <NavIcon icon={EyeOff} size={16} color="#C8C3BA" />
           </button>
         </div>
       </div>
 
       {/* ===== Desktop: side dock ===== */}
-      <DesktopDock isActive={isActive} dim={dim} onMore={() => setMoreOpen(true)} />
+      <DesktopDock
+        isActive={isActive}
+        dim={dim}
+        onMore={() => setMoreOpen(true)}
+        onHide={() => setHidden(true)}
+      />
 
       {/* ===== More sheet ===== */}
       {moreOpen && (
@@ -274,7 +319,7 @@ export function FloatingNav() {
                 More
               </span>
               <button onClick={() => setMoreOpen(false)} aria-label="Close" style={{ color: "#3D3832" }}>
-                <X size={18} />
+                <NavIcon icon={X} size={18} color="#3D3832" />
               </button>
             </div>
             <div className="flex flex-col gap-1">
@@ -300,7 +345,7 @@ export function FloatingNav() {
                 className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-left"
                 style={{ color: "#3D3832", fontSize: 14, fontWeight: 600 }}
               >
-                <LogOut size={16} /> Sign out
+                <NavIcon icon={LogOut} size={16} color="#3D3832" /> Sign out
               </button>
             </div>
           </aside>
