@@ -572,43 +572,6 @@ function ymd(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Custom prism icon for the P4TTERN PR00F Agent — translucent iridescent
- *  cube with a hidden geometric PP and small pattern nodes around it. */
-function PrismIcon() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 48 48" fill="none" aria-hidden>
-      <defs>
-        <linearGradient id="ppPrism" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#9ED8FF" />
-          <stop offset="50%" stopColor="#C9B9FF" />
-          <stop offset="100%" stopColor="#9CE9D2" />
-        </linearGradient>
-        <linearGradient id="ppPrismFace" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.35" />
-        </linearGradient>
-      </defs>
-      {/* pattern nodes */}
-      <circle cx="6" cy="10" r="1.6" fill="#7C5CC4" />
-      <circle cx="42" cy="10" r="1.6" fill="#2F8D85" />
-      <circle cx="6" cy="38" r="1.6" fill="#5B7CC4" />
-      <circle cx="42" cy="38" r="1.6" fill="#7C5CC4" />
-      <path d="M7.5 11 L17 17 M40.5 11 L31 17 M7.5 37 L17 31 M40.5 37 L31 31"
-        stroke="#5B7CC4" strokeOpacity="0.45" strokeWidth="1" />
-      {/* prism cube */}
-      <path d="M24 6 L40 15 L40 33 L24 42 L8 33 L8 15 Z" fill="url(#ppPrism)" fillOpacity="0.55" stroke="#5B7CC4" strokeWidth="1.2" />
-      <path d="M24 6 L40 15 L24 24 L8 15 Z" fill="url(#ppPrismFace)" stroke="#5B7CC4" strokeWidth="1" strokeOpacity="0.5" />
-      <path d="M24 24 L24 42" stroke="#5B7CC4" strokeWidth="1" strokeOpacity="0.4" />
-      {/* hidden geometric PP */}
-      <path
-        d="M18 18 L18 30 M18 18 L22 18 Q24 18 24 21 Q24 24 22 24 L18 24
-           M26 18 L26 30 M26 18 L30 18 Q32 18 32 21 Q32 24 30 24 L26 24"
-        stroke="#2F8D85" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"
-      />
-    </svg>
-  );
-}
-
 /** Soft iridescent backdrop — pearl white with teal / lavender / blue-gray blooms. */
 function IridescentBackdrop() {
   return (
