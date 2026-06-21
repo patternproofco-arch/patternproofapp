@@ -27,11 +27,8 @@ function AgentIndex() {
   }, [createFn, navigate]);
 
   return (
-    <div
-      className="h-full rounded-2xl flex items-center justify-center p-10"
-      style={{ background: "#DEB896" }}
-    >
-      <div className="flex flex-col items-center gap-3 text-[#2A1A10]/80">
+    <div className="h-full rounded-2xl flex items-center justify-center p-10 bg-card border border-border">
+      <div className="flex flex-col items-center gap-3 text-muted-foreground">
         <Logo variant="survivor" size={56} />
         <p className="text-sm">Opening a safe space…</p>
       </div>
