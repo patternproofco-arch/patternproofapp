@@ -1,7 +1,8 @@
 import { createFileRoute, Outlet, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Plus, MessageCircle, Trash2 } from "lucide-react";
+import { Plus, MessageCircle, Trash2, FolderLock, Clock3, Sparkles, FileText, LifeBuoy, Settings as SettingsIcon, Menu, X } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Logo } from "@/components/Logo";
 import {
   listAgentThreads,
@@ -15,6 +16,15 @@ export const Route = createFileRoute("/_authenticated/agent")({
 
 type Thread = { id: string; title: string; updated_at: string };
 
+const NAV_LINKS: { to: string; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
+  { to: "/evidence", label: "Evidence Vault", icon: FolderLock },
+  { to: "/timeline", label: "Timeline", icon: Clock3 },
+  { to: "/patterns", label: "Pattern Map", icon: Sparkles },
+  { to: "/court-packet", label: "Court Packet", icon: FileText },
+  { to: "/resources", label: "Safety Resources", icon: LifeBuoy },
+  { to: "/settings", label: "Settings", icon: SettingsIcon },
+];
+
 function AgentLayout() {
   const navigate = useNavigate();
   const params = useParams({ strict: false }) as { threadId?: string };
@@ -23,6 +33,8 @@ function AgentLayout() {
   const deleteFn = useServerFn(deleteAgentThread);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const currentPath = useRouterState({ select: (s) => s.location.pathname });
 
   const refresh = async () => {
     const { threads } = await listFn();
@@ -35,6 +47,7 @@ function AgentLayout() {
   const handleNew = async () => {
     const { thread } = await createFn({ data: {} });
     await refresh();
+    setMobileOpen(false);
     navigate({ to: "/agent/$threadId", params: { threadId: (thread as Thread).id } });
   };
 
@@ -44,64 +57,136 @@ function AgentLayout() {
     await refresh();
   };
 
-  return (
-    <div className="min-h-[calc(100vh-2rem)] grid grid-cols-1 md:grid-cols-[280px_1fr] gap-4 p-4">
-      <aside
-        className="rounded-2xl p-4 flex flex-col gap-3"
-        style={{ background: "#DEB896", border: "1px solid rgba(78,59,49,0.12)" }}
+  const Sidebar = (
+    <aside
+      className="rounded-2xl p-4 flex flex-col gap-3 h-full"
+      style={{
+        background: "#EAF7EF",
+        border: "1px solid #D8F0E0",
+        boxShadow: "0 1px 0 rgba(79,175,167,0.06), 0 8px 28px -18px rgba(31,41,51,0.18)",
+      }}
+    >
+      <div className="flex items-center gap-2 px-1">
+        <Logo variant="survivor" size={26} />
+        <div className="font-semibold text-[15px]" style={{ color: "#1F2933" }}>PatternProof</div>
+      </div>
+      <button
+        onClick={handleNew}
+        className="w-full rounded-xl px-3 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:brightness-105"
+        style={{ background: "#4FAFA7", color: "#FFFFFF", boxShadow: "0 4px 14px -6px rgba(79,175,167,0.55)" }}
       >
-        <div className="flex items-center gap-2 px-1">
-          <Logo variant="survivor" size={28} />
-          <div className="font-serif italic text-[#2A1A10]">Agent</div>
-        </div>
-        <button
-          onClick={handleNew}
-          className="w-full rounded-xl px-3 py-2 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
-          style={{ background: "#E77B56", color: "#FFF" }}
-        >
-          <Plus size={16} /> New conversation
-        </button>
-        <div className="text-[11px] uppercase tracking-wider text-[#4E3B31]/70 px-1 pt-1">Conversations</div>
-        <nav className="flex-1 overflow-y-auto -mx-1">
-          {!loaded && <div className="px-2 py-2 text-sm text-[#4E3B31]/70">Loading…</div>}
-          {loaded && threads.length === 0 && (
-            <div className="px-2 py-2 text-sm text-[#4E3B31]/70">
-              Nothing here yet — when you're ready, start a new conversation.
-            </div>
-          )}
-          {threads.map((t) => {
-            const active = params.threadId === t.id;
-            return (
-              <div
-                key={t.id}
-                className="group flex items-center gap-1 mx-1 rounded-lg"
-                style={{ background: active ? "rgba(106,146,214,0.18)" : "transparent" }}
+        <Plus size={16} /> New case chat
+      </button>
+
+      <div className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 pt-2" style={{ color: "#667085" }}>
+        Case chats
+      </div>
+      <nav className="flex-1 overflow-y-auto -mx-1 min-h-[80px]">
+        {!loaded && <div className="px-2 py-2 text-sm" style={{ color: "#667085" }}>Loading…</div>}
+        {loaded && threads.length === 0 && (
+          <div className="px-2 py-2 text-sm leading-relaxed" style={{ color: "#667085" }}>
+            Nothing here yet — when you're ready, start a new case chat.
+          </div>
+        )}
+        {threads.map((t) => {
+          const active = params.threadId === t.id;
+          return (
+            <div
+              key={t.id}
+              className="group flex items-center gap-1 mx-1 rounded-lg transition-colors"
+              style={{ background: active ? "#D8F0E0" : "transparent" }}
+            >
+              <button
+                onClick={() => { setMobileOpen(false); navigate({ to: "/agent/$threadId", params: { threadId: t.id } }); }}
+                className="flex-1 text-left px-2 py-2 text-sm truncate flex items-center gap-2 hover:bg-white/40 rounded-lg"
+                style={{ color: "#1F2933" }}
+                title={t.title}
               >
-                <button
-                  onClick={() => navigate({ to: "/agent/$threadId", params: { threadId: t.id } })}
-                  className="flex-1 text-left px-2 py-2 text-sm text-[#2A1A10] truncate flex items-center gap-2"
-                  title={t.title}
-                >
-                  <MessageCircle size={14} className="shrink-0 opacity-70" />
-                  <span className="truncate">{t.title}</span>
-                </button>
-                <button
-                  onClick={() => handleDelete(t.id)}
-                  className="px-2 py-2 text-[#4E3B31]/60 hover:text-[#E77B56] opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label="Delete conversation"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            );
-          })}
-        </nav>
-        <p className="text-[11px] text-[#4E3B31]/70 px-1 leading-relaxed">
-          Information only — not legal advice. If you're in immediate danger, call 911 or the
-          National DV Hotline 1-800-799-7233.
-        </p>
-      </aside>
-      <main>
+                <MessageCircle size={14} className="shrink-0 opacity-60" />
+                <span className="truncate">{t.title}</span>
+              </button>
+              <button
+                onClick={() => handleDelete(t.id)}
+                className="px-2 py-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ color: "#667085" }}
+                aria-label="Delete case chat"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          );
+        })}
+      </nav>
+
+      <div className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 pt-1" style={{ color: "#667085" }}>
+        Workspace
+      </div>
+      <div className="flex flex-col gap-0.5">
+        {NAV_LINKS.map(({ to, label, icon: Icon }) => {
+          const active = currentPath === to;
+          return (
+            <Link
+              key={to}
+              to={to}
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2.5 mx-1 px-2 py-2 rounded-lg text-sm transition-colors hover:bg-white/50"
+              style={{
+                color: active ? "#1F2933" : "#3a4654",
+                background: active ? "#D8F0E0" : "transparent",
+                fontWeight: active ? 600 : 500,
+              }}
+            >
+              <Icon size={15} className="opacity-70" />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+      </div>
+
+      <p className="text-[11px] px-2 pt-1 leading-relaxed" style={{ color: "#667085" }}>
+        Information only — not legal advice. If you're in immediate danger, call 911 or the
+        National DV Hotline 1-800-799-7233.
+      </p>
+    </aside>
+  );
+
+  return (
+    <div
+      className="min-h-[calc(100vh-2rem)] grid grid-cols-1 md:grid-cols-[280px_1fr] gap-4 p-4"
+      style={{ background: "#FBFEFC" }}
+    >
+      {/* Desktop sidebar */}
+      <div className="hidden md:block">{Sidebar}</div>
+
+      {/* Mobile menu trigger */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="md:hidden fixed top-3 left-3 z-40 rounded-full p-2 shadow"
+        style={{ background: "#EAF7EF", border: "1px solid #D8F0E0", color: "#1F2933" }}
+        aria-label="Open menu"
+      >
+        <Menu size={18} />
+      </button>
+
+      {/* Mobile sidebar drawer */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setMobileOpen(false)} />
+          <div className="relative w-[88%] max-w-[320px] h-full p-3" style={{ background: "#FBFEFC" }}>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="absolute top-2 right-2 z-10 rounded-full p-1.5"
+              style={{ color: "#1F2933" }}
+              aria-label="Close menu"
+            >
+              <X size={18} />
+            </button>
+            <div className="h-full">{Sidebar}</div>
+          </div>
+        </div>
+      )}
+
+      <main className="min-w-0">
         <Outlet />
       </main>
     </div>
