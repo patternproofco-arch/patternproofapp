@@ -111,19 +111,13 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
   const showGreeting = messages.length === 0;
 
   return (
-    <div
-      className="h-[calc(100vh-2rem)] rounded-2xl flex flex-col overflow-hidden"
-      style={{ background: "#DEB896", border: "1px solid rgba(78,59,49,0.12)" }}
-    >
+    <div className="h-[calc(100vh-2rem)] rounded-2xl flex flex-col overflow-hidden bg-card border border-border">
       {/* Header */}
-      <div
-        className="flex items-center gap-3 px-5 py-3"
-        style={{ borderBottom: "1px solid rgba(78,59,49,0.12)" }}
-      >
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-border">
         <Logo variant="survivor" size={32} />
         <div>
-          <div className="font-serif italic text-[#2A1A10]">P4TTERN PR00F Agent</div>
-          <div className="text-[11px] text-[#4E3B31]/70">
+          <div className="font-serif italic text-foreground">P4TTERN PR00F Agent</div>
+          <div className="text-[11px] text-muted-foreground">
             Calm, trauma-informed. Information only — not legal advice.
           </div>
         </div>
