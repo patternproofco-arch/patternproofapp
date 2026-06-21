@@ -341,7 +341,7 @@ function CourtCalendarCard() {
       <div className="flex items-start justify-between gap-3">
         <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl shadow-[0_6px_18px_rgba(15,23,42,0.18)]"
           style={{ background: "#5B7CC4", color: "#FFFFFF" }} aria-hidden>
-          <CalendarDays size={26} strokeWidth={2} />
+          <CalendarGridIcon size={26} strokeWidth={1.9} color="#FFFFFF" />
         </div>
         <span className="rounded-full border border-[#5B7CC4]/30 bg-white/75 px-2.5 py-1 text-[11px] font-semibold" style={{ color: "#5B7CC4" }}>
           Upcoming dates
