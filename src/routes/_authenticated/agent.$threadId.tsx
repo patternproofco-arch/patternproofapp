@@ -41,11 +41,8 @@ function AgentThreadPage() {
 
   if (initialMessages === null || token === null) {
     return (
-      <div
-        className="h-full rounded-2xl flex items-center justify-center"
-        style={{ background: "#DEB896" }}
-      >
-        <div className="text-[#2A1A10]/70 text-sm">Opening conversation…</div>
+      <div className="h-full rounded-2xl flex items-center justify-center bg-card border border-border">
+        <div className="text-muted-foreground text-sm">Opening conversation…</div>
       </div>
     );
   }
