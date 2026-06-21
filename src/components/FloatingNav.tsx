@@ -1,26 +1,28 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Home, NotebookPen, GitCommitHorizontal, Mic, MoreHorizontal,
-  Fingerprint, Files, Landmark, BookOpen, Briefcase,
+  Home, NotebookPen, History, Mic, MoreHorizontal,
+  Waypoints, Files, Landmark, BookOpen, Scale,
   Settings as SettingsIcon, LogOut, X,
-  PanelLeftClose, PanelLeftOpen,
+  PanelLeftClose, PanelLeftOpen, GripVertical, EyeOff, Eye,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { NavIcon } from "@/components/NavIcon";
+import { useDraggable } from "@/hooks/use-draggable";
 
 /**
  * PrismIcon — custom mark for the P4TTERN PR00F Agent.
  * Translucent prism silhouette with a hidden "PP" inside and small
  * pattern nodes around it. Inherits stroke color from currentColor.
  */
-function PrismIcon({ size = 22, strokeWidth = 2 }: { size?: number; strokeWidth?: number }) {
+function PrismIcon({ size = 22, strokeWidth = 1.75, color = "currentColor" }: { size?: number; strokeWidth?: number; color?: string }) {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
       fill="none"
-      stroke="currentColor"
+      stroke={color}
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -29,15 +31,17 @@ function PrismIcon({ size = 22, strokeWidth = 2 }: { size?: number; strokeWidth?
       {/* prism body */}
       <path d="M12 3.5 L20 18.5 L4 18.5 Z" />
       {/* inner geometric PP hint */}
-      <path d="M10 11.5 v4.5 M10 11.5 h2 a1.2 1.2 0 0 1 0 2.4 h-2" strokeWidth={Math.max(1.2, strokeWidth - 0.4)} opacity="0.85" />
-      <path d="M13.6 11.5 v4.5 M13.6 11.5 h2 a1.2 1.2 0 0 1 0 2.4 h-2" strokeWidth={Math.max(1.2, strokeWidth - 0.4)} opacity="0.85" />
+      <path d="M10 11.5 v4.5 M10 11.5 h2 a1.2 1.2 0 0 1 0 2.4 h-2" strokeWidth={Math.max(1.1, strokeWidth - 0.35)} opacity="0.85" />
+      <path d="M13.6 11.5 v4.5 M13.6 11.5 h2 a1.2 1.2 0 0 1 0 2.4 h-2" strokeWidth={Math.max(1.1, strokeWidth - 0.35)} opacity="0.85" />
       {/* pattern nodes */}
-      <circle cx="3" cy="6" r="1" fill="currentColor" stroke="none" />
-      <circle cx="21" cy="6" r="1" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="21.5" r="1" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="6" r="1" fill={color} stroke="none" />
+      <circle cx="21" cy="6" r="1" fill={color} stroke="none" />
+      <circle cx="12" cy="21.5" r="1" fill={color} stroke="none" />
     </svg>
   );
 }
+
+export { PrismIcon };
 
 type AccentKey = "neutral" | "pink" | "yellow" | "purple" | "blue";
 const ACCENT: Record<AccentKey, string> = {
@@ -51,7 +55,8 @@ const ACCENT: Record<AccentKey, string> = {
 type Item = {
   to: string;
   label: string;
-  Icon: typeof Home;
+  Icon: typeof Home | ((p: { size?: number; strokeWidth?: number; color?: string }) => ReactElement);
+  custom?: boolean;
   accent: AccentKey;
   /** Treat this nav item as primary CTA (Log Incident). */
   cta?: boolean;
@@ -62,17 +67,18 @@ type Item = {
 const PRIMARY: Item[] = [
   { to: "/dashboard",          label: "Home",            Icon: Home,                 accent: "neutral" },
   { to: "/journal",            label: "Log Incident",    Icon: NotebookPen,          accent: "pink",   cta: true },
-  { to: "/timeline",           label: "Timeline",        Icon: GitCommitHorizontal,  accent: "yellow" },
-  { to: "/patterns",           label: "Patterns",        Icon: Fingerprint,          accent: "purple" },
+  { to: "/timeline",           label: "Timeline",        Icon: History,              accent: "yellow" },
+  { to: "/patterns",           label: "Patterns",        Icon: Waypoints,            accent: "purple" },
+  { to: "/agent",              label: "Agent",           Icon: PrismIcon as unknown as typeof Home, custom: true, accent: "blue" },
   { to: "/court-packet",       label: "Court Packet",    Icon: Landmark,             accent: "blue", pinnedLabel: true },
 ];
 
 const OVERFLOW = [
-  { to: "/agent",               label: "P4TTERN PR00F Agent", Icon: PrismIcon as unknown as typeof Home },
   { to: "/evidence",            label: "Evidence",            Icon: Files },
   { to: "/voice-notes",         label: "Voice notes",         Icon: Mic },
   { to: "/resources",           label: "Resources",           Icon: BookOpen },
-  { to: "/share-with-attorney", label: "Share with attorney", Icon: Briefcase },
+  { to: "/share-with-attorney", label: "Attorney Portal",     Icon: Scale },
+  { to: "/attorney-portal",     label: "Shared with attorney", Icon: Scale },
   { to: "/settings",            label: "Settings",            Icon: SettingsIcon },
 ];
 
@@ -101,6 +107,13 @@ export function FloatingNav() {
   const dim = useScrollDir();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [hidden, setHidden] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("pp:nav-hidden") === "1";
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("pp:nav-hidden", hidden ? "1" : "0"); } catch { /* ignore */ }
+  }, [hidden]);
 
   useEffect(() => { setExpanded(null); setMoreOpen(false); }, [pathname]);
 
@@ -119,6 +132,30 @@ export function FloatingNav() {
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
   const signOut = async () => { await supabase.auth.signOut(); };
+
+  if (hidden) {
+    return (
+      <button
+        type="button"
+        onClick={() => setHidden(false)}
+        className="no-print"
+        aria-label="Show navigation"
+        title="Show navigation"
+        style={{
+          position: "fixed", left: 12, bottom: 12, zIndex: 100,
+          width: 40, height: 40, borderRadius: 999,
+          background: "rgba(26,23,20,0.85)",
+          border: "1px solid rgba(255,255,255,0.15)",
+          color: "#FAF7F2",
+          display: "grid", placeItems: "center",
+          backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+          boxShadow: "0 8px 24px rgba(26,23,20,0.30)",
+        }}
+      >
+        <NavIcon icon={Eye} size={18} color="#FAF7F2" />
+      </button>
+    );
+  }
 
   return (
     <>
@@ -201,7 +238,13 @@ export function FloatingNav() {
                 }}
                 aria-label={it.label}
               >
-                <it.Icon size={it.cta ? 22 : 18} strokeWidth={2} />
+                {it.custom ? (
+                  // Custom SVG (e.g. PrismIcon) — already matches the shared treatment.
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (() => { const C = it.Icon as any; return <C size={it.cta ? 22 : 18} strokeWidth={1.75} color={ACCENT[it.accent]} />; })()
+                ) : (
+                  <NavIcon icon={it.Icon as typeof Home} size={it.cta ? 22 : 18} color={ACCENT[it.accent]} />
+                )}
                 {showLabel && (
                   <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
                     {it.label}
@@ -232,13 +275,27 @@ export function FloatingNav() {
               background: "transparent", color: "#C8C3BA",
             }}
           >
-            <MoreHorizontal size={18} />
+            <NavIcon icon={MoreHorizontal} size={18} color="#C8C3BA" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setHidden(true)}
+            aria-label="Hide navigation"
+            title="Hide navigation"
+            style={{ padding: 10, borderRadius: 999, background: "transparent", color: "#C8C3BA" }}
+          >
+            <NavIcon icon={EyeOff} size={16} color="#C8C3BA" />
           </button>
         </div>
       </div>
 
       {/* ===== Desktop: side dock ===== */}
-      <DesktopDock isActive={isActive} dim={dim} onMore={() => setMoreOpen(true)} />
+      <DesktopDock
+        isActive={isActive}
+        dim={dim}
+        onMore={() => setMoreOpen(true)}
+        onHide={() => setHidden(true)}
+      />
 
       {/* ===== More sheet ===== */}
       {moreOpen && (
@@ -262,7 +319,7 @@ export function FloatingNav() {
                 More
               </span>
               <button onClick={() => setMoreOpen(false)} aria-label="Close" style={{ color: "#3D3832" }}>
-                <X size={18} />
+                <NavIcon icon={X} size={18} color="#3D3832" />
               </button>
             </div>
             <div className="flex flex-col gap-1">
@@ -278,7 +335,7 @@ export function FloatingNav() {
                       color: "#1A1714", fontSize: 15, fontWeight: 600,
                     }}
                   >
-                    <it.Icon size={17} />
+                    <NavIcon icon={it.Icon} size={17} />
                     {it.label}
                   </Link>
                 );
@@ -288,7 +345,7 @@ export function FloatingNav() {
                 className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-left"
                 style={{ color: "#3D3832", fontSize: 14, fontWeight: 600 }}
               >
-                <LogOut size={16} /> Sign out
+                <NavIcon icon={LogOut} size={16} color="#3D3832" /> Sign out
               </button>
             </div>
           </aside>
@@ -299,8 +356,8 @@ export function FloatingNav() {
 }
 
 function DesktopDock({
-  isActive, dim, onMore,
-}: { isActive: (to: string) => boolean; dim: boolean; onMore: () => void }) {
+  isActive, dim, onMore, onHide,
+}: { isActive: (to: string) => boolean; dim: boolean; onMore: () => void; onHide: () => void }) {
   const [expanded, setExpanded] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     const v = window.localStorage.getItem("pp:nav-expanded");
@@ -310,14 +367,15 @@ function DesktopDock({
     try { window.localStorage.setItem("pp:nav-expanded", expanded ? "1" : "0"); } catch { /* ignore */ }
   }, [expanded]);
   const open = expanded;
+  const drag = useDraggable("pp:nav-pos", { left: 16, top: typeof window !== "undefined" ? Math.max(16, window.innerHeight / 2 - 240) : 200 });
   return (
     <div
+      ref={drag.ref as React.RefObject<HTMLDivElement>}
       className="no-print hidden md:flex"
       style={{
         position: "fixed",
-        top: "50%",
-        left: 16,
-        transform: `translateY(-50%) scale(${dim ? 0.97 : 1})`,
+        ...drag.style,
+        transform: `scale(${dim ? 0.97 : 1})`,
         zIndex: 100,
         opacity: dim ? 0.7 : 1,
         background: "rgba(26,23,20,0.85)",
@@ -331,24 +389,52 @@ function DesktopDock({
         alignItems: "stretch",
         gap: 6,
         overflow: "hidden",
-        transition: "width 0.25s ease, opacity 0.25s ease, transform 0.25s ease",
+        transition: "width 0.25s ease, opacity 0.25s ease",
         boxShadow: "0 12px 36px rgba(26,23,20,0.30)",
       }}
     >
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        aria-label={open ? "Collapse menu" : "Expand menu"}
-        title={open ? "Collapse menu" : "Expand menu"}
+      <div
         style={{
-          display: "flex", alignItems: "center", justifyContent: open ? "flex-end" : "center",
-          gap: 8, padding: "6px 10px", marginBottom: 4,
-          color: "rgba(255,255,255,0.82)", background: "transparent",
-          borderRadius: 12,
+          display: "flex", alignItems: "center",
+          justifyContent: open ? "space-between" : "center",
+          gap: 4, padding: "2px 6px 6px", marginBottom: 2,
+          color: "rgba(255,255,255,0.82)",
         }}
       >
-        {open ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={20} />}
-      </button>
+        <button
+          type="button"
+          {...drag.dragHandlers}
+          aria-label="Drag to move menu"
+          title="Drag to move"
+          style={{
+            cursor: "grab", padding: 4, borderRadius: 8,
+            background: "transparent", color: "rgba(255,255,255,0.6)",
+            touchAction: "none",
+          }}
+        >
+          <NavIcon icon={GripVertical} size={16} color="rgba(255,255,255,0.6)" />
+        </button>
+        {open && (
+          <button
+            type="button"
+            onClick={onHide}
+            aria-label="Hide navigation"
+            title="Hide navigation"
+            style={{ padding: 4, borderRadius: 8, background: "transparent", color: "rgba(255,255,255,0.7)" }}
+          >
+            <NavIcon icon={EyeOff} size={16} color="rgba(255,255,255,0.7)" />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-label={open ? "Collapse menu" : "Expand menu"}
+          title={open ? "Collapse menu" : "Expand menu"}
+          style={{ padding: 4, borderRadius: 8, background: "transparent", color: "rgba(255,255,255,0.82)" }}
+        >
+          <NavIcon icon={open ? PanelLeftClose : PanelLeftOpen} size={open ? 18 : 20} color="rgba(255,255,255,0.82)" />
+        </button>
+      </div>
       {PRIMARY.map((it) => {
         const active = isActive(it.to);
         return (
@@ -373,7 +459,12 @@ function DesktopDock({
               borderLeft: active ? `2px solid ${ACCENT[it.accent]}` : "2px solid transparent",
             }}
           >
-            <it.Icon size={22} strokeWidth={2.25} style={{ flexShrink: 0, marginLeft: 4, color: ACCENT[it.accent] }} />
+            {it.custom ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (() => { const C = it.Icon as any; return <C size={22} strokeWidth={1.75} color={ACCENT[it.accent]} />; })()
+            ) : (
+              <NavIcon icon={it.Icon as typeof Home} size={22} color={ACCENT[it.accent]} style={{ flexShrink: 0, marginLeft: 4 }} />
+            )}
             <span
               style={{
                 fontSize: 13, fontWeight: 700,
@@ -398,7 +489,7 @@ function DesktopDock({
           background: "transparent",
         }}
       >
-        <MoreHorizontal size={22} strokeWidth={2.25} style={{ marginLeft: 4, color: "#C8C3BA" }} />
+        <NavIcon icon={MoreHorizontal} size={22} color="#C8C3BA" style={{ marginLeft: 4 }} />
         <span
           style={{
             fontSize: 13, fontWeight: 700, whiteSpace: "nowrap",
