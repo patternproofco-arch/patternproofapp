@@ -26,6 +26,7 @@ import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
 import { Route as AuthenticatedShareWithAttorneyRouteImport } from './routes/_authenticated/share-with-attorney'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedResourcesRouteImport } from './routes/_authenticated/resources'
 import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
 import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
@@ -139,6 +140,11 @@ const AuthenticatedShareWithAttorneyRoute =
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedResourcesRoute = AuthenticatedResourcesRouteImport.update({
@@ -331,6 +337,7 @@ export interface FileRoutesByFullPath {
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/patterns': typeof AuthenticatedPatternsRoute
   '/resources': typeof AuthenticatedResourcesRoute
+  '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/timeline': typeof AuthenticatedTimelineRoute
@@ -375,6 +382,7 @@ export interface FileRoutesByTo {
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/patterns': typeof AuthenticatedPatternsRoute
   '/resources': typeof AuthenticatedResourcesRoute
+  '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/timeline': typeof AuthenticatedTimelineRoute
@@ -424,6 +432,7 @@ export interface FileRoutesById {
   '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
   '/_authenticated/resources': typeof AuthenticatedResourcesRoute
+  '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
@@ -472,6 +481,7 @@ export interface FileRouteTypes {
     | '/opra-helper'
     | '/patterns'
     | '/resources'
+    | '/search'
     | '/settings'
     | '/share-with-attorney'
     | '/timeline'
@@ -516,6 +526,7 @@ export interface FileRouteTypes {
     | '/opra-helper'
     | '/patterns'
     | '/resources'
+    | '/search'
     | '/settings'
     | '/share-with-attorney'
     | '/timeline'
@@ -564,6 +575,7 @@ export interface FileRouteTypes {
     | '/_authenticated/opra-helper'
     | '/_authenticated/patterns'
     | '/_authenticated/resources'
+    | '/_authenticated/search'
     | '/_authenticated/settings'
     | '/_authenticated/share-with-attorney'
     | '/_authenticated/timeline'
@@ -714,6 +726,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/search': {
+      id: '/_authenticated/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof AuthenticatedSearchRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/resources': {
@@ -987,6 +1006,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
   AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
   AuthenticatedResourcesRoute: typeof AuthenticatedResourcesRoute
+  AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShareWithAttorneyRoute: typeof AuthenticatedShareWithAttorneyRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
@@ -1016,6 +1036,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
   AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
   AuthenticatedResourcesRoute: AuthenticatedResourcesRoute,
+  AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShareWithAttorneyRoute: AuthenticatedShareWithAttorneyRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
