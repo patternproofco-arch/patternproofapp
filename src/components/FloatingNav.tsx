@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Home, NotebookPen, History, Mic, MoreHorizontal,
-  Waypoints, Files, Landmark, BookOpen, Scale,
+  Home, NotebookPen, Mic, MoreHorizontal,
+  Files, BookOpen, Scale,
   Settings as SettingsIcon, LogOut, X,
   PanelLeftClose, PanelLeftOpen, GripVertical, EyeOff, Eye,
 } from "lucide-react";
@@ -9,39 +9,18 @@ import { useEffect, useState, type ReactElement } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { NavIcon } from "@/components/NavIcon";
 import { useDraggable } from "@/hooks/use-draggable";
+import {
+  TimelineDotsIcon, DotCirclePatternIcon, PpTriangleIcon, CourtSummaryIcon,
+} from "@/components/icons/PpIcons";
 
 /**
  * PrismIcon — custom mark for the P4TTERN PR00F Agent.
  * Translucent prism silhouette with a hidden "PP" inside and small
  * pattern nodes around it. Inherits stroke color from currentColor.
  */
-function PrismIcon({ size = 22, strokeWidth = 1.75, color = "currentColor" }: { size?: number; strokeWidth?: number; color?: string }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {/* prism body */}
-      <path d="M12 3.5 L20 18.5 L4 18.5 Z" />
-      {/* inner geometric PP hint */}
-      <path d="M10 11.5 v4.5 M10 11.5 h2 a1.2 1.2 0 0 1 0 2.4 h-2" strokeWidth={Math.max(1.1, strokeWidth - 0.35)} opacity="0.85" />
-      <path d="M13.6 11.5 v4.5 M13.6 11.5 h2 a1.2 1.2 0 0 1 0 2.4 h-2" strokeWidth={Math.max(1.1, strokeWidth - 0.35)} opacity="0.85" />
-      {/* pattern nodes */}
-      <circle cx="3" cy="6" r="1" fill={color} stroke="none" />
-      <circle cx="21" cy="6" r="1" fill={color} stroke="none" />
-      <circle cx="12" cy="21.5" r="1" fill={color} stroke="none" />
-    </svg>
-  );
-}
-
-export { PrismIcon };
+/** Re-export the canonical Agent icon (triangle with PP) as PrismIcon
+ *  for backwards compatibility with existing imports. */
+export { PpTriangleIcon as PrismIcon };
 
 type AccentKey = "neutral" | "pink" | "yellow" | "purple" | "blue";
 const ACCENT: Record<AccentKey, string> = {
@@ -67,10 +46,10 @@ type Item = {
 const PRIMARY: Item[] = [
   { to: "/dashboard",          label: "Home",            Icon: Home,                 accent: "neutral" },
   { to: "/journal",            label: "Log Incident",    Icon: NotebookPen,          accent: "pink",   cta: true },
-  { to: "/timeline",           label: "Timeline",        Icon: History,              accent: "yellow" },
-  { to: "/patterns",           label: "Patterns",        Icon: Waypoints,            accent: "purple" },
-  { to: "/agent",              label: "Agent",           Icon: PrismIcon as unknown as typeof Home, custom: true, accent: "blue" },
-  { to: "/court-packet",       label: "Court Packet",    Icon: Landmark,             accent: "blue", pinnedLabel: true },
+  { to: "/timeline",           label: "Timeline",        Icon: TimelineDotsIcon as unknown as typeof Home, custom: true, accent: "yellow" },
+  { to: "/patterns",           label: "Patterns",        Icon: DotCirclePatternIcon as unknown as typeof Home, custom: true, accent: "purple" },
+  { to: "/agent",              label: "Agent",           Icon: PpTriangleIcon as unknown as typeof Home, custom: true, accent: "blue" },
+  { to: "/court-packet",       label: "Court Summary",   Icon: CourtSummaryIcon as unknown as typeof Home, custom: true, accent: "blue", pinnedLabel: true },
 ];
 
 const OVERFLOW = [

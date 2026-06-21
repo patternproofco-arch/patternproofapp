@@ -2,9 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
-  UploadCloud, CalendarRange, Fingerprint, Scale, ShieldCheck, ArrowRight,
-  Sparkles, Info, CalendarDays, ChevronLeft, ChevronRight, Plus,
+  UploadCloud, ShieldCheck, ArrowRight,
+  Sparkles, Info, ChevronLeft, ChevronRight, Plus,
 } from "lucide-react";
+import {
+  UploadDocIcon, TimelineDotsIcon, CalendarGridIcon,
+  DotCirclePatternIcon, PpTriangleIcon, CourtSummaryIcon,
+} from "@/components/icons/PpIcons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,7 +53,7 @@ function Dashboard() {
       title: "Upload Evidence",
       blurb: "Add screenshots, texts, documents, photos, or recordings.",
       status: "Start here",
-      icon: <UploadCloud size={26} strokeWidth={2} />,
+      icon: <UploadDocIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(120, 200, 220, 0.45)", iconBg: "#2F8D85", iconFg: "#FFFFFF",
       ariaLabel: "Upload evidence — start here",
       featured: true,
@@ -59,16 +63,16 @@ function Dashboard() {
       title: "Timeline",
       blurb: "See incidents organized by date and pattern.",
       status: "Builds as you add evidence",
-      icon: <CalendarRange size={26} strokeWidth={2} />,
+      icon: <TimelineDotsIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(170, 160, 230, 0.45)", iconBg: "#7C5CC4", iconFg: "#FFFFFF",
       ariaLabel: "Open timeline",
     },
     {
       to: "/patterns", step: "Step 4 · Patterns",
-      title: "Pattern Report",
+      title: "Pattern Detection",
       blurb: "View repeated behaviors, escalation, and abuse patterns.",
       status: "Pattern detection",
-      icon: <Fingerprint size={26} strokeWidth={2} />,
+      icon: <DotCirclePatternIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(140, 210, 200, 0.45)", iconBg: "#3FA89D", iconFg: "#FFFFFF",
       ariaLabel: "Open pattern report",
     },
@@ -77,8 +81,8 @@ function Dashboard() {
       title: "P4TTERN PR00F Agent",
       blurb: "Ask the agent to organize, explain, or summarize your evidence.",
       status: "Ask for help",
-      icon: <PrismIcon />,
-      tint: "rgba(180, 220, 240, 0.65)", iconBg: "transparent", iconFg: "#5B7CC4",
+      icon: <PpTriangleIcon size={26} strokeWidth={1.9} color="#FFFFFF" />,
+      tint: "rgba(180, 220, 240, 0.65)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
       ariaLabel: "Open the P4TTERN PR00F agent",
       luminous: true,
     },
@@ -87,7 +91,7 @@ function Dashboard() {
       title: "Court Summary",
       blurb: "Generate an attorney-ready court overview.",
       status: "Attorney-ready",
-      icon: <Scale size={26} strokeWidth={2} />,
+      icon: <CourtSummaryIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(160, 180, 230, 0.45)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
       ariaLabel: "Build court summary",
     },
@@ -337,7 +341,7 @@ function CourtCalendarCard() {
       <div className="flex items-start justify-between gap-3">
         <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl shadow-[0_6px_18px_rgba(15,23,42,0.18)]"
           style={{ background: "#5B7CC4", color: "#FFFFFF" }} aria-hidden>
-          <CalendarDays size={26} strokeWidth={2} />
+          <CalendarGridIcon size={26} strokeWidth={1.9} color="#FFFFFF" />
         </div>
         <span className="rounded-full border border-[#5B7CC4]/30 bg-white/75 px-2.5 py-1 text-[11px] font-semibold" style={{ color: "#5B7CC4" }}>
           Upcoming dates
@@ -566,43 +570,6 @@ function buildMonthGrid(cursor: Date): Date[] {
 
 function ymd(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-/** Custom prism icon for the P4TTERN PR00F Agent — translucent iridescent
- *  cube with a hidden geometric PP and small pattern nodes around it. */
-function PrismIcon() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 48 48" fill="none" aria-hidden>
-      <defs>
-        <linearGradient id="ppPrism" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#9ED8FF" />
-          <stop offset="50%" stopColor="#C9B9FF" />
-          <stop offset="100%" stopColor="#9CE9D2" />
-        </linearGradient>
-        <linearGradient id="ppPrismFace" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.35" />
-        </linearGradient>
-      </defs>
-      {/* pattern nodes */}
-      <circle cx="6" cy="10" r="1.6" fill="#7C5CC4" />
-      <circle cx="42" cy="10" r="1.6" fill="#2F8D85" />
-      <circle cx="6" cy="38" r="1.6" fill="#5B7CC4" />
-      <circle cx="42" cy="38" r="1.6" fill="#7C5CC4" />
-      <path d="M7.5 11 L17 17 M40.5 11 L31 17 M7.5 37 L17 31 M40.5 37 L31 31"
-        stroke="#5B7CC4" strokeOpacity="0.45" strokeWidth="1" />
-      {/* prism cube */}
-      <path d="M24 6 L40 15 L40 33 L24 42 L8 33 L8 15 Z" fill="url(#ppPrism)" fillOpacity="0.55" stroke="#5B7CC4" strokeWidth="1.2" />
-      <path d="M24 6 L40 15 L24 24 L8 15 Z" fill="url(#ppPrismFace)" stroke="#5B7CC4" strokeWidth="1" strokeOpacity="0.5" />
-      <path d="M24 24 L24 42" stroke="#5B7CC4" strokeWidth="1" strokeOpacity="0.4" />
-      {/* hidden geometric PP */}
-      <path
-        d="M18 18 L18 30 M18 18 L22 18 Q24 18 24 21 Q24 24 22 24 L18 24
-           M26 18 L26 30 M26 18 L30 18 Q32 18 32 21 Q32 24 30 24 L26 24"
-        stroke="#2F8D85" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"
-      />
-    </svg>
-  );
 }
 
 /** Soft iridescent backdrop — pearl white with teal / lavender / blue-gray blooms. */
