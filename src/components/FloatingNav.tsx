@@ -55,7 +55,7 @@ const ACCENT: Record<AccentKey, string> = {
 type Item = {
   to: string;
   label: string;
-  Icon: typeof Home | ((p: { size?: number; strokeWidth?: number; color?: string }) => JSX.Element);
+  Icon: typeof Home | ((p: { size?: number; strokeWidth?: number; color?: string }) => React.ReactElement);
   custom?: boolean;
   accent: AccentKey;
   /** Treat this nav item as primary CTA (Log Incident). */
