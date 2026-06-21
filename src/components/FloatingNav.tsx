@@ -4,6 +4,7 @@ import {
   Files, BookOpen, Scale,
   Settings as SettingsIcon, LogOut, X,
   PanelLeftClose, PanelLeftOpen, GripVertical, EyeOff, Eye,
+  Search as SearchIcon,
 } from "lucide-react";
 import { useEffect, useState, type ReactElement } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,7 @@ const PRIMARY: Item[] = [
 ];
 
 const OVERFLOW = [
+  { to: "/search",              label: "Search",              Icon: SearchIcon },
   { to: "/evidence",            label: "Evidence",            Icon: Files },
   { to: "/voice-notes",         label: "Voice notes",         Icon: Mic },
   { to: "/resources",           label: "Resources",           Icon: BookOpen },
