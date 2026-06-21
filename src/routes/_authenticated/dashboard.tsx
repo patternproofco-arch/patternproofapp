@@ -2,9 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
-  UploadCloud, CalendarRange, Fingerprint, Scale, ShieldCheck, ArrowRight,
-  Sparkles, Info, CalendarDays, ChevronLeft, ChevronRight, Plus,
+  UploadCloud, ShieldCheck, ArrowRight,
+  Sparkles, Info, ChevronLeft, ChevronRight, Plus,
 } from "lucide-react";
+import {
+  UploadDocIcon, TimelineDotsIcon, CalendarGridIcon,
+  DotCirclePatternIcon, PpTriangleIcon, CourtSummaryIcon,
+} from "@/components/icons/PpIcons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,7 +53,7 @@ function Dashboard() {
       title: "Upload Evidence",
       blurb: "Add screenshots, texts, documents, photos, or recordings.",
       status: "Start here",
-      icon: <UploadCloud size={26} strokeWidth={2} />,
+      icon: <UploadDocIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(120, 200, 220, 0.45)", iconBg: "#2F8D85", iconFg: "#FFFFFF",
       ariaLabel: "Upload evidence — start here",
       featured: true,
@@ -59,16 +63,16 @@ function Dashboard() {
       title: "Timeline",
       blurb: "See incidents organized by date and pattern.",
       status: "Builds as you add evidence",
-      icon: <CalendarRange size={26} strokeWidth={2} />,
+      icon: <TimelineDotsIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(170, 160, 230, 0.45)", iconBg: "#7C5CC4", iconFg: "#FFFFFF",
       ariaLabel: "Open timeline",
     },
     {
       to: "/patterns", step: "Step 4 · Patterns",
-      title: "Pattern Report",
+      title: "Pattern Detection",
       blurb: "View repeated behaviors, escalation, and abuse patterns.",
       status: "Pattern detection",
-      icon: <Fingerprint size={26} strokeWidth={2} />,
+      icon: <DotCirclePatternIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(140, 210, 200, 0.45)", iconBg: "#3FA89D", iconFg: "#FFFFFF",
       ariaLabel: "Open pattern report",
     },
@@ -77,8 +81,8 @@ function Dashboard() {
       title: "P4TTERN PR00F Agent",
       blurb: "Ask the agent to organize, explain, or summarize your evidence.",
       status: "Ask for help",
-      icon: <PrismIcon />,
-      tint: "rgba(180, 220, 240, 0.65)", iconBg: "transparent", iconFg: "#5B7CC4",
+      icon: <PpTriangleIcon size={26} strokeWidth={1.9} color="#FFFFFF" />,
+      tint: "rgba(180, 220, 240, 0.65)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
       ariaLabel: "Open the P4TTERN PR00F agent",
       luminous: true,
     },
@@ -87,7 +91,7 @@ function Dashboard() {
       title: "Court Summary",
       blurb: "Generate an attorney-ready court overview.",
       status: "Attorney-ready",
-      icon: <Scale size={26} strokeWidth={2} />,
+      icon: <CourtSummaryIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(160, 180, 230, 0.45)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
       ariaLabel: "Build court summary",
     },
