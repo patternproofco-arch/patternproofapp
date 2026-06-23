@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
   Flag, HelpCircle, Image as ImageIcon, Lock, Music, Paperclip, Printer, Sparkles,
-  TrendingUp,
+  TrendingUp, Briefcase, Shield, ListChecks, Scale, Gauge,
 } from "lucide-react";
 import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
@@ -27,7 +27,7 @@ type DepoResult = Awaited<ReturnType<typeof generateDepositionPrep>>;
 type NoteRow = { incident_id: string; note: string | null; flagged: boolean; reviewed: boolean };
 
 const TABS = [
-  "Dashboard", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
+  "Dashboard", "Intake", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
 ] as const;
 type Tab = (typeof TABS)[number];
 
@@ -132,6 +132,7 @@ function ClientCaseView() {
 
       <div style={{ marginTop: 20 }}>
         {tab === "Dashboard" && <Dashboard data={data} clientId={clientId} />}
+        {tab === "Intake" && <IntakeTab data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
         {tab === "Timeline" && <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} />}
         {tab === "Patterns" && <Patterns data={data} />}
@@ -149,7 +150,13 @@ function ClientCaseView() {
 
 function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
   const packetFn = useServerFn(generateAttorneyCourtPacket);
+  const reviewsFn = useServerFn(listEvidenceReviews);
   const [downloading, setDownloading] = useState(false);
+  const [reviews, setReviews] = useState<Array<{ evidence_id: string; status: string; exhibit_label: string | null }>>([]);
+
+  useEffect(() => {
+    reviewsFn({ data: { clientId } }).then((r) => setReviews(r.reviews as never)).catch(() => {});
+  }, [reviewsFn, clientId]);
 
   const download = async () => {
     setDownloading(true);
@@ -181,6 +188,8 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
           </button>
         </div>
       </div>
+
+      <DashboardKpiRow data={data} reviews={reviews} />
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18 }}>
         <div className="att-card">
@@ -1027,6 +1036,222 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--att-slate)" }}>
           <Clock size={11} /> Export logged · {new Date().toLocaleString()}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Dashboard KPI row (new attorney command-center cards) ---------------- */
+
+type ReviewLite = { evidence_id: string; status: string; exhibit_label: string | null };
+
+function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLite[] }) {
+  const totalEv = data.evidence.length;
+  const reviewed = reviews.filter((r) => r.status && r.status !== "unreviewed").length;
+  const useful = reviews.filter((r) => r.status === "useful" || r.status === "exhibit_candidate").length;
+  const exhibits = reviews.filter((r) => r.exhibit_label && r.exhibit_label.trim().length > 0).length;
+  const excluded = reviews.filter((r) => r.status === "exclude" || r.status === "privileged").length;
+  const linked = data.evidence.filter((e) => e.linked_incident_id).length;
+
+  const strengthPct = totalEv === 0 ? 0 : Math.round(((useful * 2 + linked) / (totalEv * 3)) * 100);
+  const strengthLabel = strengthPct >= 70 ? "Strong" : strengthPct >= 40 ? "Building" : totalEv === 0 ? "No evidence yet" : "Thin";
+  const strengthColor = strengthPct >= 70 ? "#10B981" : strengthPct >= 40 ? "#F59E0B" : "#EF4444";
+
+  const reviewPct = totalEv === 0 ? 0 : Math.round((reviewed / totalEv) * 100);
+  const highRisk = data.flags.filter((f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3).length;
+
+  const moves: { label: string; why: string }[] = [];
+  if (highRisk > 0) moves.push({ label: "File for protective relief", why: `${highRisk} high-severity flag${highRisk === 1 ? "" : "s"} on record` });
+  if (data.gaps.some((g) => g.severity === "high")) moves.push({ label: "Send evidence request to client", why: "Critical gaps in case file" });
+  if (totalEv > 0 && reviewed < totalEv) moves.push({ label: `Finish reviewing ${totalEv - reviewed} evidence item${totalEv - reviewed === 1 ? "" : "s"}`, why: "Unreviewed items can't be assigned exhibit numbers" });
+  if (exhibits === 0 && useful > 0) moves.push({ label: "Assign exhibit numbers", why: `${useful} useful item${useful === 1 ? "" : "s"} ready for labeling` });
+  if (data.last_30_days >= 2) moves.push({ label: "Document recency in motion practice", why: `${data.last_30_days} incidents in last 30 days` });
+  if (moves.length === 0) moves.push({ label: "Case is ready for export", why: "All review steps complete" });
+
+  return (
+    <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}>
+      <div className="att-card">
+        <SectionTitle icon={<Gauge size={14} />}>Evidence strength</SectionTitle>
+        <div style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', color: strengthColor }}>{strengthPct}%</div>
+        <div style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 8 }}>{strengthLabel} · {linked}/{totalEv || 0} linked to incidents</div>
+        <div style={{ height: 6, background: "var(--att-border)", borderRadius: 999 }}>
+          <div style={{ width: `${strengthPct}%`, height: "100%", background: strengthColor, borderRadius: 999 }} />
+        </div>
+      </div>
+
+      <div className="att-card">
+        <SectionTitle icon={<ListChecks size={14} />}>Review status</SectionTitle>
+        <div style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif' }}>{reviewed}<span style={{ fontSize: 14, color: "var(--att-text-2)" }}> / {totalEv}</span></div>
+        <div style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 8 }}>{reviewPct}% reviewed · {exhibits} exhibit{exhibits === 1 ? "" : "s"} · {excluded} excluded</div>
+        <div style={{ height: 6, background: "var(--att-border)", borderRadius: 999 }}>
+          <div style={{ width: `${reviewPct}%`, height: "100%", background: "var(--att-navy)", borderRadius: 999 }} />
+        </div>
+      </div>
+
+      <div className="att-card">
+        <SectionTitle icon={<Shield size={14} />}>Urgent risk flags</SectionTitle>
+        <div style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', color: highRisk > 0 ? "#EF4444" : "var(--att-text)" }}>{highRisk}</div>
+        <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+          {highRisk === 0 ? "No high-severity flags active" : `High-severity escalation${highRisk === 1 ? "" : "s"} on record`}
+        </div>
+      </div>
+
+      <div className="att-card" style={{ background: "#F8FAFC" }}>
+        <SectionTitle icon={<Scale size={14} />}>Next legal moves</SectionTitle>
+        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
+          {moves.slice(0, 3).map((m, i) => (
+            <li key={i} style={{ fontSize: 12.5 }}>
+              <div style={{ fontWeight: 600, color: "var(--att-navy)" }}>{m.label}</div>
+              <div style={{ color: "var(--att-text-2)", fontSize: 11 }}>{m.why}</div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="att-card" style={{ background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
+        <SectionTitle icon={<Briefcase size={14} />}>Clio integration</SectionTitle>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <span style={{ width: 8, height: 8, borderRadius: 999, background: "#F59E0B" }} />
+          <span style={{ fontSize: 13, fontWeight: 600 }}>Not connected</span>
+        </div>
+        <p style={{ fontSize: 11.5, color: "var(--att-text-2)", lineHeight: 1.5, margin: 0 }}>
+          Use <strong>Prepare for Clio</strong> on the Export tab to generate a Clio-ready ZIP today. Live sync coming soon.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Intake tab (attorney intake summary, auto-generated) ---------------- */
+
+function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
+  const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
+  const c = data.case;
+  const sortedInc = [...data.incidents].sort((a, b) => a.date.localeCompare(b.date));
+  const first = sortedInc[0]?.date;
+  const last = sortedInc[sortedInc.length - 1]?.date;
+  const highSev = sortedInc.filter((i) => (i.severity_level ?? 0) >= 4);
+  const policeMentions = sortedInc.filter((i) => /police|911|officer|report/i.test(i.description ?? "")).length;
+  const childMentions = sortedInc.filter((i) => /child|kid|custody|son|daughter|minor/i.test(i.description ?? "")).length;
+  const orderDocs = data.legal_documents.filter((d) => /order|restrain|tro|custody|divorce/i.test(`${d.title} ${d.document_type ?? ""}`));
+  const witnesses = Array.from(new Set(sortedInc.map((i) => i.witnesses).filter(Boolean))).slice(0, 8);
+  const oppBehaviors = data.categories.sort((a, b) => b.count - a.count).slice(0, 4).map((c) => c.type);
+  const missingDocs = data.gaps.filter((g) => g.severity === "high" || g.severity === "moderate").slice(0, 6).map((g) => g.kind);
+
+  const sections: { title: string; body: React.ReactNode }[] = [
+    { title: "Client intake summary", body:
+      <p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--att-text)" }}>
+        Client {clientId.slice(0, 8)} has documented <strong>{data.incidents.length} incidents</strong>
+        {first && last ? <> spanning <strong>{new Date(first).toLocaleDateString()}</strong> to <strong>{new Date(last).toLocaleDateString()}</strong></> : null},
+        with <strong>{data.evidence.length} evidence file{data.evidence.length === 1 ? "" : "s"}</strong> attached.
+        Current risk profile is <strong style={{ textTransform: "uppercase" }}>{data.risk_level}</strong>.
+        {c?.case_types && c.case_types.length > 0 ? <> Matter type: <strong>{c.case_types.join(", ")}</strong>.</> : null}
+      </p>
+    },
+    { title: "Facts of the case", body:
+      <p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--att-text-2)", whiteSpace: "pre-wrap" }}>
+        {c?.pattern_summary ?? "No client-provided narrative on file. Recommend scheduling an intake conversation to capture the case theory in the client's own words."}
+      </p>
+    },
+    { title: "Key dates", body:
+      <ul style={{ fontSize: 13, paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
+        {first && <li>First documented incident: <strong>{new Date(first).toLocaleDateString()}</strong></li>}
+        {last && <li>Most recent incident: <strong>{new Date(last).toLocaleDateString()}</strong></li>}
+        {highSev.slice(0, 4).map((i) => (
+          <li key={i.id}>{new Date(i.date).toLocaleDateString()} — severity {i.severity_level}: {(i.description ?? "").slice(0, 80)}</li>
+        ))}
+        {!first && <li style={{ color: "var(--att-text-2)" }}>No dated incidents on file.</li>}
+      </ul>
+    },
+    { title: "Opposing party behavior", body:
+      <>
+        {c?.other_party && <div style={{ fontSize: 13, marginBottom: 8 }}>Identified party: <strong>{c.other_party}</strong> ({c.relationship_type ?? "relationship unspecified"})</div>}
+        {oppBehaviors.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>Insufficient documented incidents to characterize a behavioral pattern.</p>
+        ) : (
+          <p style={{ fontSize: 13, lineHeight: 1.6 }}>
+            Documented patterns include: <strong>{oppBehaviors.join(", ")}</strong>.
+            {data.flags.length > 0 && <> Survivor has flagged {data.flags.length} escalation event{data.flags.length === 1 ? "" : "s"}.</>}
+          </p>
+        )}
+      </>
+    },
+    { title: "Children involved", body:
+      <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
+        {childMentions === 0 ? "No incidents reference children. Confirm at intake." : `${childMentions} incident${childMentions === 1 ? "" : "s"} reference children or custody.`}
+      </p>
+    },
+    { title: "Current orders on file", body:
+      orderDocs.length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No protective, custody, or divorce orders uploaded. Request copies from client.</p>
+      ) : (
+        <ul style={{ fontSize: 13, paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
+          {orderDocs.map((d) => (
+            <li key={d.id}>{d.title}{d.case_number ? ` · ${d.case_number}` : ""}{d.court_name ? ` · ${d.court_name}` : ""}</li>
+          ))}
+        </ul>
+      )
+    },
+    { title: "Police involvement", body:
+      <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
+        {policeMentions === 0 ? "No documented police contact. Confirm whether any 911 calls, reports, or OPRA requests exist." : `${policeMentions} incident${policeMentions === 1 ? "" : "s"} reference police, 911, or reports.`}
+      </p>
+    },
+    { title: "Witnesses & contacts", body:
+      witnesses.length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No witnesses named in incident records.</p>
+      ) : (
+        <ul style={{ fontSize: 13, paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
+          {witnesses.map((w, i) => <li key={i}>{w}</li>)}
+        </ul>
+      )
+    },
+    { title: "Urgent risks", body:
+      data.flags.filter((f) => !f.dismissed_at).length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No active escalation flags.</p>
+      ) : (
+        <ul style={{ fontSize: 13, paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
+          {data.flags.filter((f) => !f.dismissed_at).slice(0, 6).map((f) => (
+            <li key={f.id}>Severity {f.severity_tier ?? "?"}: {f.details ?? f.flag_type ?? "Escalation flagged"}</li>
+          ))}
+        </ul>
+      )
+    },
+    { title: "Requested relief", body:
+      <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
+        To be captured at attorney intake. Suggested relief based on case profile: {data.risk_level === "high" ? "emergency protective order, custody modification, supervised visitation" : "protective order, custody clarification, no-contact terms"}.
+      </p>
+    },
+    { title: "Missing documents", body:
+      missingDocs.length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--att-green)" }}>No critical gaps detected.</p>
+      ) : (
+        <ul style={{ fontSize: 13, paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
+          {missingDocs.map((m, i) => <li key={i}>{m}</li>)}
+        </ul>
+      )
+    },
+  ];
+
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      <div className="att-card" style={{ background: "linear-gradient(135deg,#0F2547,#1E3A6B)", color: "#fff", borderColor: "transparent" }}>
+        <div style={{ fontSize: 10, letterSpacing: 1.4, opacity: 0.75 }}>ATTORNEY INTAKE SUMMARY</div>
+        <h2 style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', marginTop: 4, color: "#fff" }}>Case {caseId}</h2>
+        <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
+          Auto-generated from survivor-uploaded evidence · Print or include in court packet
+        </div>
+        <button className="att-btn-secondary" onClick={() => window.print()} style={{ marginTop: 14, background: "#fff", color: "var(--att-navy)" }}>
+          <Printer size={13} /> Print intake summary
+        </button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 14 }}>
+        {sections.map((s) => (
+          <div key={s.title} className="att-card">
+            <div className="att-eyebrow" style={{ marginBottom: 8 }}>{s.title}</div>
+            {s.body}
+          </div>
+        ))}
       </div>
     </div>
   );
