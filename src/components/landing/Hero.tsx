@@ -1,9 +1,45 @@
-import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { ArrowRight, Heart, Scale, Users } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { ParticleField } from "./ParticleField";
 
 export function Hero() {
+  const [active, setActive] = useState<"survivor" | "attorney" | "org" | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const ids: Array<{ id: string; key: "survivor" | "attorney" | "org" }> = [
+      { id: "survivors", key: "survivor" },
+      { id: "attorneys", key: "attorney" },
+      { id: "organizations", key: "org" },
+    ];
+    const els = ids
+      .map((x) => ({ ...x, el: document.getElementById(x.id) }))
+      .filter((x): x is { id: string; key: "survivor" | "attorney" | "org"; el: HTMLElement } => !!x.el);
+    if (!els.length) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        const match = els.find((x) => x.el === visible.target);
+        if (match) setActive(match.key);
+      },
+      { rootMargin: "-40% 0px -50% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
+    );
+    els.forEach((x) => obs.observe(x.el));
+    return () => obs.disconnect();
+  }, []);
+
+  const scrollTo = (id: string, key: "survivor" | "attorney" | "org") => {
+    const el = typeof document !== "undefined" ? document.getElementById(id) : null;
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActive(key);
+    }
+  };
+
   return (
     <section
       style={{
@@ -83,31 +119,34 @@ export function Hero() {
 
         <div className="hero-audience-grid">
           <AudienceCard
-            to="/login"
+            onClick={() => scrollTo("survivors", "survivor")}
+            active={active === "survivor"}
             tone="survivor"
             icon={<Heart size={20} />}
             eyebrow="Survivor Portal"
             title="Document. Organize. Reclaim your story."
             desc="Turn incidents, screenshots, photos, voice notes, and court documents into a clear, searchable timeline."
-            cta="Enter Survivor Portal"
+            cta="See how it works"
           />
           <AudienceCard
-            to="/for-attorneys"
+            onClick={() => scrollTo("attorneys", "attorney")}
+            active={active === "attorney"}
             tone="attorney"
             icon={<Scale size={20} />}
             eyebrow="Attorney Portal"
             title="Recover hours before the case begins."
             desc="Transform disorganized evidence into structured case intelligence and attorney-ready summaries."
-            cta="Enter Attorney Portal"
+            cta="See how it works"
           />
           <AudienceCard
-            to="/for-organizations"
+            onClick={() => scrollTo("organizations", "org")}
+            active={active === "org"}
             tone="org"
             icon={<Users size={20} />}
             eyebrow="Organization Portal"
             title="Increase capacity without increasing staff."
             desc="Help more survivors while reducing intake and documentation workload."
-            cta="Enter Organization Portal"
+            cta="See how it works"
           />
         </div>
       </div>
@@ -116,9 +155,10 @@ export function Hero() {
 }
 
 function AudienceCard({
-  to, tone, icon, eyebrow, title, desc, cta,
+  onClick, active, tone, icon, eyebrow, title, desc, cta,
 }: {
-  to: string;
+  onClick: () => void;
+  active: boolean;
   tone: "survivor" | "attorney" | "org";
   icon: React.ReactNode;
   eyebrow: string;
@@ -162,14 +202,27 @@ function AudienceCard({
   const titleColor = tone === "attorney" ? "#FFFFFF" : "#14171F";
   const descColor = tone === "attorney" ? "rgba(226,232,240,0.78)" : "#3D3832";
 
+  const activeRing = {
+    survivor: "0 0 0 2px #7C5CC4, 0 24px 70px -18px rgba(124,92,196,0.55)",
+    attorney: "0 0 0 2px #9CB3E8, 0 24px 70px -18px rgba(15,27,61,0.7)",
+    org: "0 0 0 2px #3D72B8, 0 24px 70px -18px rgba(61,114,184,0.45)",
+  }[tone];
+
   return (
-    <Link
-      to={to}
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
       className="hero-audience-card"
       style={{
         background: styles.bg,
         border: styles.border,
-        boxShadow: styles.glow,
+        boxShadow: active ? activeRing : styles.glow,
+        transform: active ? "translateY(-2px)" : undefined,
+        transition: "box-shadow 220ms ease, transform 220ms ease",
+        textAlign: "left",
+        cursor: "pointer",
+        font: "inherit",
       }}
     >
       <div
@@ -229,6 +282,6 @@ function AudienceCard({
       >
         {cta} <ArrowRight size={14} />
       </span>
-    </Link>
+    </button>
   );
 }
