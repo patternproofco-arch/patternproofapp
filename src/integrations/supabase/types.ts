@@ -442,6 +442,51 @@ export type Database = {
         }
         Relationships: []
       }
+      attorney_survivor_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          attorney_user_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          invite_token: string
+          personal_note: string | null
+          status: string
+          survivor_email: string
+          survivor_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          attorney_user_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          personal_note?: string | null
+          status?: string
+          survivor_email: string
+          survivor_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          attorney_user_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          personal_note?: string | null
+          status?: string
+          survivor_email?: string
+          survivor_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attorney_time_logs: {
         Row: {
           attorney_user_id: string

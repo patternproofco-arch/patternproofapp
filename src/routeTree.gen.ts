@@ -18,6 +18,7 @@ import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
@@ -99,6 +100,11 @@ const AttorneyRoute = AttorneyRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SurvivorInviteTokenRoute = SurvivorInviteTokenRouteImport.update({
+  id: '/survivor-invite/$token',
+  path: '/survivor-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
@@ -353,6 +359,7 @@ export interface FileRoutesByFullPath {
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/clients/': typeof AttorneyClientsIndexRoute
@@ -399,6 +406,7 @@ export interface FileRoutesByTo {
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/clients': typeof AttorneyClientsIndexRoute
@@ -450,6 +458,7 @@ export interface FileRoutesById {
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
@@ -500,6 +509,7 @@ export interface FileRouteTypes {
     | '/accept-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
+    | '/survivor-invite/$token'
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/clients/'
@@ -546,6 +556,7 @@ export interface FileRouteTypes {
     | '/accept-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
+    | '/survivor-invite/$token'
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/clients'
@@ -596,6 +607,7 @@ export interface FileRouteTypes {
     | '/accept-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
+    | '/survivor-invite/$token'
     | '/_attorney/clients/$clientId'
     | '/_authenticated/agent/$threadId'
     | '/_attorney/clients/'
@@ -616,6 +628,7 @@ export interface RootRouteChildren {
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
   ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
+  SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
@@ -682,6 +695,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/survivor-invite/$token': {
+      id: '/survivor-invite/$token'
+      path: '/survivor-invite/$token'
+      fullPath: '/survivor-invite/$token'
+      preLoaderRoute: typeof SurvivorInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attorney/$token': {
@@ -1082,6 +1102,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,
   ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,
+  SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
