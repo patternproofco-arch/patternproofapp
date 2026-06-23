@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
   Flag, HelpCircle, Image as ImageIcon, Lock, Music, Paperclip, Printer, Sparkles,
-  TrendingUp,
+  TrendingUp, Briefcase, Shield, ListChecks, Scale, Gauge,
 } from "lucide-react";
 import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
@@ -27,7 +27,7 @@ type DepoResult = Awaited<ReturnType<typeof generateDepositionPrep>>;
 type NoteRow = { incident_id: string; note: string | null; flagged: boolean; reviewed: boolean };
 
 const TABS = [
-  "Dashboard", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
+  "Dashboard", "Intake", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
 ] as const;
 type Tab = (typeof TABS)[number];
 
@@ -132,6 +132,7 @@ function ClientCaseView() {
 
       <div style={{ marginTop: 20 }}>
         {tab === "Dashboard" && <Dashboard data={data} clientId={clientId} />}
+        {tab === "Intake" && <IntakeTab data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
         {tab === "Timeline" && <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} />}
         {tab === "Patterns" && <Patterns data={data} />}
