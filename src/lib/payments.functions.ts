@@ -333,7 +333,6 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       caseNote = (caseLinkRes.data as { attorney_case_notes: string | null } | null)?.attorney_case_notes ?? "";
       incidentNotes = (incNotesRes.data ?? []) as typeof incidentNotes;
     }
-    const incNoteByIncident = new Map(incidentNotes.map((n) => [n.incident_id, n]));
 
     const zip = new JSZip();
     const exportedAt = new Date().toISOString();
