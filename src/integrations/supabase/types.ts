@@ -403,31 +403,40 @@ export type Database = {
       attorney_profiles: {
         Row: {
           bar_number: string | null
+          confidentiality_accepted_at: string | null
           created_at: string
           email: string
           firm_name: string | null
           full_name: string
           jurisdiction: string | null
+          onboarded: boolean
+          role: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           bar_number?: string | null
+          confidentiality_accepted_at?: string | null
           created_at?: string
           email: string
           firm_name?: string | null
           full_name: string
           jurisdiction?: string | null
+          onboarded?: boolean
+          role?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           bar_number?: string | null
+          confidentiality_accepted_at?: string | null
           created_at?: string
           email?: string
           firm_name?: string | null
           full_name?: string
           jurisdiction?: string | null
+          onboarded?: boolean
+          role?: string | null
           updated_at?: string
           user_id?: string
         }
