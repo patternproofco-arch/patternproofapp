@@ -892,15 +892,24 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   });
   const [format, setFormat] = useState<"pdf" | "print" | "word">("print");
   const [certify, setCertify] = useState(false);
+  const [attorneyNotes, setAttorneyNotes] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const packetFn = useServerFn(generateAttorneyCourtPacket);
 
   const toggle = (k: keyof typeof include) => setInclude((s) => ({ ...s, [k]: !s[k] }));
 
-  const generate = () => {
+  const generate = async () => {
     if (format === "word") {
       toast("Word export coming soon — use Print → Save as PDF for now.");
       return;
     }
-    window.print();
+    setDownloading(true);
+    try {
+      const r = await packetFn({ data: { clientId: caseId, includeAttorneyNotes: attorneyNotes } });
+      if (!r.ok) { toast("Couldn't generate packet: " + r.reason); return; }
+      window.open(r.url, "_blank");
+      toast("Packet ready. Includes cover, TOC, timeline, evidence index, and exhibit list.");
+    } finally { setDownloading(false); }
   };
 
   const Item = ({ k, label, note }: { k: keyof typeof include; label: string; note: string }) => (
@@ -947,8 +956,13 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
           <span>Include attorney certification block (full name, bar number, signature line).</span>
         </label>
 
-        <button className="att-btn-export" onClick={generate} style={{ marginTop: 18, width: "100%", padding: "12px 20px" }}>
-          <Download size={14} /> Generate report
+        <label style={{ display: "flex", gap: 8, marginTop: 8, fontSize: 12, color: "var(--att-text-2)", alignItems: "flex-start" }}>
+          <input type="checkbox" checked={attorneyNotes} onChange={(e) => setAttorneyNotes(e.target.checked)} style={{ marginTop: 3 }} />
+          <span>Include private attorney notes (07_attorney_notes.md). Survivor never sees these. Strip before filing.</span>
+        </label>
+
+        <button className="att-btn-export" onClick={generate} disabled={downloading} style={{ marginTop: 18, width: "100%", padding: "12px 20px" }}>
+          <Download size={14} /> {downloading ? "Preparing packet…" : "Generate court packet (ZIP)"}
         </button>
       </div>
       <div className="att-card" style={{ background: "#F8FAFC" }}>
