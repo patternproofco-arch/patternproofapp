@@ -400,6 +400,184 @@ textarea.input-pp { min-height: 130px; resize: vertical; line-height: 1.95; font
 
 .font-nunito { font-family: "Nunito", system-ui, -apple-system, sans-serif; }
 
+/* ============================================================
+   PatternProof Unified Design System (Phase 0)
+   Shared tokens + primitive utilities used across survivor,
+   attorney, and organization surfaces. Additive — does not
+   replace existing .card-pp / .btn-primary / .att-* classes.
+   ============================================================ */
+:root {
+  /* Brand */
+  --pp-bg:        #FAFBFF;
+  --pp-fg:        #14171F;
+  --pp-card:      #FFFFFF;
+  --pp-border:    #E2E8F0;
+  --pp-border-strong: #CBD5E1;
+  --pp-muted-fg:  #475569;
+
+  --pp-teal:      #2F8D85;
+  --pp-navy:      #1B2A4A;
+  --pp-navy-deep: #071426;
+  --pp-blue:      #2D4A8A;
+
+  /* Iridescent accents */
+  --pp-purple:    #C4B0E8;
+  --pp-mint:      #BDE6D4;
+  --pp-sblue:     #B5C7F0;
+  --pp-lilac:     #D8C8F0;
+  --pp-pink:      #E8C4DD;
+  --pp-gold:      #F2E6B8;
+
+  /* Status */
+  --pp-success:     #10B981;
+  --pp-warning:     #F59E0B;
+  --pp-danger:      #EF4444;
+  --pp-destructive: #C45670;
+
+  /* Radius + shadow scale */
+  --pp-r-sm: 8px;
+  --pp-r-md: 12px;
+  --pp-r-lg: 16px;
+  --pp-r-xl: 20px;
+  --pp-r-pill: 999px;
+  --pp-shadow-sm: 0 1px 2px rgba(15,23,42,0.06);
+  --pp-shadow-md: 0 4px 14px rgba(15,23,42,0.08);
+  --pp-shadow-lg: 0 12px 32px rgba(15,23,42,0.12);
+  --pp-shadow-glow: 0 0 0 1px rgba(47,141,133,0.10), 0 10px 28px rgba(47,141,133,0.18);
+}
+
+/* Shared card surface (survivor + org). Attorney uses .att-card. */
+.pp-card {
+  background: var(--pp-card);
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-r-lg);
+  box-shadow: var(--pp-shadow-sm);
+  padding: 24px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.pp-card-hover:hover {
+  box-shadow: var(--pp-shadow-md);
+  border-color: var(--pp-border-strong);
+}
+.pp-card-glass {
+  background: rgba(255,255,255,0.72);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.5);
+  border-radius: var(--pp-r-xl);
+  box-shadow: 0 4px 24px rgba(20,23,31,0.06);
+}
+
+/* Buttons — shared family */
+.pp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--font-sans); font-weight: 600; font-size: 14px;
+  padding: 11px 22px; border-radius: var(--pp-r-pill);
+  border: 1px solid transparent; cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
+  white-space: nowrap;
+}
+.pp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.pp-btn-primary { background: var(--pp-teal); color: #fff; box-shadow: 0 2px 10px rgba(47,141,133,0.25); }
+.pp-btn-primary:hover:not(:disabled) { filter: brightness(0.96); box-shadow: 0 6px 22px rgba(47,141,133,0.33); transform: translateY(-1px); }
+.pp-btn-navy { background: var(--pp-navy); color: #fff; box-shadow: 0 2px 10px rgba(27,42,74,0.25); }
+.pp-btn-navy:hover:not(:disabled) { background: var(--pp-blue); transform: translateY(-1px); }
+.pp-btn-secondary { background: #fff; color: var(--pp-fg); border-color: var(--pp-border); }
+.pp-btn-secondary:hover:not(:disabled) { background: #F8FAFC; border-color: var(--pp-border-strong); }
+.pp-btn-danger { background: var(--pp-destructive); color: #fff; }
+.pp-btn-danger:hover:not(:disabled) { filter: brightness(0.95); }
+
+/* Inputs */
+.pp-input, .pp-textarea, .pp-select {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-r-md);
+  padding: 11px 14px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--pp-fg);
+  line-height: 1.55;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.pp-input:focus, .pp-textarea:focus, .pp-select:focus {
+  outline: none;
+  border-color: var(--pp-teal);
+  box-shadow: 0 0 0 3px rgba(47,141,133,0.15);
+}
+.pp-textarea { min-height: 110px; resize: vertical; }
+.pp-label { display: block; font-size: 13px; font-weight: 700; color: var(--pp-fg); margin-bottom: 6px; letter-spacing: 0.01em; }
+.pp-help { font-size: 12px; color: var(--pp-muted-fg); margin-top: 6px; }
+.pp-error { font-size: 12px; color: var(--pp-destructive); margin-top: 6px; font-weight: 600; }
+
+/* Badges */
+.pp-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  background: #F1F5F9; color: #334155;
+  border: 1px solid transparent;
+}
+.pp-badge-success { background: #DCFCE7; color: #166534; }
+.pp-badge-warning { background: #FEF3C7; color: #92400E; }
+.pp-badge-danger  { background: #FEE2E2; color: #991B1B; }
+.pp-badge-info    { background: #DBEAFE; color: #1E40AF; }
+.pp-badge-teal    { background: rgba(47,141,133,0.12); color: #1F6B65; }
+.pp-badge-purple  { background: rgba(196,176,232,0.22); color: #4F3F7A; }
+.pp-badge-outline { background: transparent; border-color: var(--pp-border); color: var(--pp-muted-fg); }
+
+/* Page header — shared structure for every main page */
+.pp-page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+.pp-page-header__text { min-width: 0; }
+.pp-page-header__eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--pp-muted-fg); margin-bottom: 8px; }
+.pp-page-header__title { font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.015em; color: var(--pp-fg); margin: 0; line-height: 1.15; }
+.pp-page-header__desc { margin-top: 8px; color: var(--pp-muted-fg); font-size: 15px; line-height: 1.6; max-width: 60ch; }
+
+/* Empty state */
+.pp-empty { text-align: center; padding: 40px 24px; border: 1px dashed var(--pp-border); border-radius: var(--pp-r-lg); background: rgba(255,255,255,0.5); }
+.pp-empty__icon { width: 48px; height: 48px; margin: 0 auto 12px; border-radius: 999px; background: linear-gradient(135deg, var(--pp-mint), var(--pp-sblue)); display: grid; place-items: center; color: var(--pp-navy); }
+.pp-empty__title { font-weight: 700; font-size: 16px; color: var(--pp-fg); margin-bottom: 6px; }
+.pp-empty__desc  { font-size: 14px; color: var(--pp-muted-fg); max-width: 42ch; margin: 0 auto; line-height: 1.6; }
+
+/* Iridescent divider — ties all three product surfaces together */
+.pp-divider-iridescent { height: 1px; border: 0; background: linear-gradient(90deg,
+  rgba(196,176,232,0) 0%,
+  rgba(189,230,212,0.7) 20%,
+  rgba(181,199,240,0.8) 50%,
+  rgba(196,176,232,0.7) 80%,
+  rgba(216,200,240,0) 100%); margin: 24px 0; }
+
+/* Attorney cockpit background — applied to .att-root.att-cockpit */
+.att-root.att-cockpit {
+  background: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(59,130,246,0.18) 0%, transparent 60%),
+              radial-gradient(ellipse 70% 55% at 85% 100%, rgba(196,176,232,0.14) 0%, transparent 60%),
+              linear-gradient(180deg, var(--pp-navy-deep) 0%, #0E1B36 35%, var(--pp-navy) 100%);
+  color: #E2E8F0;
+}
+.att-root.att-cockpit .att-nav {
+  background: rgba(7,20,38,0.72);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.att-root.att-cockpit .att-nav-tab.active {
+  background: rgba(59,130,246,0.18);
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.35), 0 6px 18px rgba(59,130,246,0.18);
+}
+.att-glass {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 20px;
+  color: #E2E8F0;
+}
+.att-glow { box-shadow: 0 0 0 1px rgba(59,130,246,0.35), 0 10px 30px rgba(59,130,246,0.22); }
+.att-iridescent-divider { height: 1px; border: 0;
+  background: linear-gradient(90deg, rgba(59,130,246,0) 0%, rgba(59,130,246,0.6) 30%, rgba(196,176,232,0.7) 70%, rgba(196,176,232,0) 100%);
+  margin: 18px 0;
+}
+
 /* Respect reduced motion — kill drift, particles, entrance, pulses */
 @media (prefers-reduced-motion: reduce) {
   .bg-pool-1, .bg-pool-2 { animation: none !important; }
