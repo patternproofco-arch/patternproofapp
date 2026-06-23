@@ -102,6 +102,8 @@ function AttorneyLayout() {
         <span>Session logged · {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
         <span>·</span>
         <span>All access recorded for chain of custody</span>
+        <span>·</span>
+        <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
       </footer>
     </div>
   );
