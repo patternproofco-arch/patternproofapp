@@ -92,7 +92,7 @@ function ClientCaseView() {
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginTop: 12 }}>
         <div>
           <div className="att-eyebrow">Case File</div>
-          <h1 style={{ fontSize: 30, marginTop: 4 }}>Client {clientId.slice(0, 8)}</h1>
+          <h1 style={{ fontSize: 34, marginTop: 4, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>Client {clientId.slice(0, 8)}</h1>
           <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
             <span className="att-mono">{caseId}</span>
             {data.incidents.length > 0 && (
