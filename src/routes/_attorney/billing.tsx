@@ -25,9 +25,10 @@ function BillingPage() {
   const openPortal = async () => {
     setOpening(true);
     try {
-      const r = await portalFn({ data: {} });
-      if (r?.url) window.location.href = r.url;
-      else toast("Couldn't open billing portal.");
+      const env = (import.meta.env.VITE_STRIPE_ENV as "live" | "sandbox") ?? "sandbox";
+      const r = await portalFn({ data: { environment: env, returnUrl: window.location.href } });
+      if ("url" in r) window.location.href = r.url;
+      else toast("Couldn't open billing portal: " + r.error);
     } catch { toast("Couldn't open billing portal."); }
     finally { setOpening(false); }
   };
