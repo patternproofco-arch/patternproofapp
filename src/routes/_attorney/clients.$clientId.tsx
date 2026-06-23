@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
-  Flag, HelpCircle, Image as ImageIcon, Lock, Music, Paperclip, Printer, Sparkles,
+  Flag, HelpCircle, Image as ImageIcon, Lock, Music, Paperclip, Printer, Sparkles, MessageSquare,
   TrendingUp, Briefcase, Shield, ListChecks, Scale, Gauge,
   ShieldCheck, Hash, Send, ChevronDown, ChevronRight,
 } from "lucide-react";
@@ -11,6 +11,7 @@ import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
   listAttorneyNotes, upsertAttorneyNote, createDocRequest,
   getCaseNote, saveCaseNote,
+  listClientThreads, getClientThread,
 } from "@/lib/attorney-portal.functions";
 import {
   listEvidenceReviews, upsertEvidenceReview,
@@ -28,7 +29,7 @@ type DepoResult = Awaited<ReturnType<typeof generateDepositionPrep>>;
 type NoteRow = { incident_id: string; note: string | null; flagged: boolean; reviewed: boolean };
 
 const TABS = [
-  "Dashboard", "Intake", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
+  "Dashboard", "Intake", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Threads", "Deposition", "Export",
 ] as const;
 type Tab = (typeof TABS)[number];
 
@@ -140,6 +141,7 @@ function ClientCaseView() {
         {tab === "Checklist" && <ChecklistTab data={data} />}
         {tab === "Gaps" && <Gaps data={data} />}
         {tab === "Evidence" && <EvidenceTab data={data} clientId={clientId} />}
+        {tab === "Threads" && <ThreadsTab clientId={clientId} />}
         {tab === "Deposition" && <DepoTab depo={depo} loading={depoLoading} onRun={runDepo} />}
         {tab === "Export" && <ExportTab data={data} caseId={caseId} />}
       </div>
