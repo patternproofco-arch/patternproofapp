@@ -5,6 +5,7 @@ import {
   AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
   Flag, HelpCircle, Image as ImageIcon, Lock, Music, Paperclip, Printer, Sparkles,
   TrendingUp, Briefcase, Shield, ListChecks, Scale, Gauge,
+  ShieldCheck, Hash, Send, ChevronDown, ChevronRight,
 } from "lucide-react";
 import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
@@ -336,6 +337,16 @@ function SectionTitle({ icon, children }: { icon?: React.ReactNode; children: Re
   );
 }
 
+function IntegrityStat({ label, value, tone }: { label: string; value: number | string; tone?: "green" | "amber" | "red" }) {
+  const color = tone === "green" ? "#10B981" : tone === "amber" ? "#F59E0B" : tone === "red" ? "#EF4444" : "var(--att-text)";
+  return (
+    <div style={{ padding: 10, background: "#fff", border: "1px solid var(--att-border)", borderRadius: 6 }}>
+      <div className="att-eyebrow">{label}</div>
+      <div style={{ fontSize: 20, fontFamily: '"Instrument Serif", serif', marginTop: 2, color }}>{value}</div>
+    </div>
+  );
+}
+
 /* ---------------- Overview ---------------- */
 
 function Overview({ data }: { data: CaseData }) {
@@ -601,6 +612,8 @@ function GapsTab({ data }: { data: CaseData }) {
   const reqFn = useServerFn(createDocRequest);
   const [sentIdx, setSentIdx] = useState<Set<number>>(new Set());
   const [sendingIdx, setSendingIdx] = useState<number | null>(null);
+  const [openBucket, setOpenBucket] = useState<Record<string, boolean>>({ high: true, moderate: true, low: false });
+  const [bulkSending, setBulkSending] = useState<string | null>(null);
 
   const sevColor: Record<string, string> = { high: "#EF4444", moderate: "#F59E0B", low: "#94A3B8" };
 
@@ -632,64 +645,130 @@ function GapsTab({ data }: { data: CaseData }) {
     { high: 0, moderate: 0, low: 0 } as Record<"high" | "moderate" | "low", number>,
   );
 
+  const buckets: Array<"high" | "moderate" | "low"> = ["high", "moderate", "low"];
+  const indexedGaps = data.gaps.map((g, i) => ({ g, i }));
+  const totalGaps = data.gaps.length;
+  const closedGaps = sentIdx.size;
+  const readinessPct = totalGaps === 0 ? 100 : Math.round(((totalGaps - (totalGaps - closedGaps)) / totalGaps) * 100);
+  const readinessLabel = totalGaps === 0
+    ? "Court-ready"
+    : counts.high > 0 ? "Not trial-ready — close high-severity gaps first"
+    : counts.moderate > 0 ? "Filing-ready, trial work remains"
+    : "Polish — low-priority items only";
+  const readinessColor = totalGaps === 0 || (counts.high === 0 && counts.moderate === 0) ? "#10B981"
+    : counts.high === 0 ? "#F59E0B" : "#EF4444";
+
+  const sendBucket = async (sev: "high" | "moderate" | "low") => {
+    setBulkSending(sev);
+    try {
+      const targets = indexedGaps.filter(({ g, i }) => (g.severity ?? "moderate") === sev && !sentIdx.has(i));
+      for (const { g, i } of targets) {
+        try {
+          await reqFn({ data: { clientId, title: g.kind, details: g.suggested_request ?? g.detail } });
+          setSentIdx((s) => new Set(s).add(i));
+        } catch { /* continue */ }
+      }
+      toast(`Sent ${targets.length} clarification request${targets.length === 1 ? "" : "s"}.`);
+    } finally { setBulkSending(null); }
+  };
+
   return (
-    <div className="att-card">
-      <SectionTitle icon={<AlertTriangle size={16} style={{ color: "#F59E0B" }} />}>Evidence gaps</SectionTitle>
-      {data.gaps.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--att-green)" }}>No critical gaps detected.</p>
-      ) : (
-        <>
-          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-            <span className="att-tag" style={{ background: `${sevColor.high}1A`, color: sevColor.high }}>{counts.high} high</span>
-            <span className="att-tag" style={{ background: `${sevColor.moderate}1A`, color: sevColor.moderate }}>{counts.moderate} moderate</span>
-            <span className="att-tag" style={{ background: `${sevColor.low}1A`, color: sevColor.low }}>{counts.low} low</span>
+    <div style={{ display: "grid", gap: 16 }}>
+      <div className="att-card" style={{ background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div className="att-eyebrow">Court-readiness</div>
+            <h2 style={{ fontSize: 22, marginTop: 4, color: readinessColor }}>{readinessLabel}</h2>
+            <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
+              {closedGaps} of {totalGaps} gap{totalGaps === 1 ? "" : "s"} addressed this session.
+              Critical gaps below should be closed before filing.
+            </p>
           </div>
-          <ul style={{ display: "grid", gap: 14, listStyle: "none", padding: 0, margin: 0 }}>
-            {data.gaps.map((g, i) => {
-              const sev = (g.severity ?? "moderate") as "high" | "moderate" | "low";
-              const sent = sentIdx.has(i);
-              return (
-                <li
-                  key={i}
-                  style={{
-                    borderLeft: `3px solid ${sevColor[sev]}`,
-                    padding: "12px 14px",
-                    background: "#F8FAFC",
-                    borderRadius: 6,
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                    <strong style={{ fontSize: 14 }}>{g.kind}</strong>
-                    <span className="att-tag" style={{ background: `${sevColor[sev]}1A`, color: sevColor[sev], fontSize: 10, textTransform: "uppercase" }}>{sev}</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 8 }}>{g.detail}</div>
-                  {g.why_it_matters && (
-                    <div style={{ fontSize: 12, marginTop: 8 }}>
-                      <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Why it matters</span>
-                      <span style={{ color: "var(--att-text-2)" }}>{g.why_it_matters}</span>
-                    </div>
-                  )}
-                  {g.suggested_fix && (
-                    <div style={{ fontSize: 12, marginTop: 8 }}>
-                      <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Suggested fix</span>
-                      <span style={{ color: "var(--att-text-2)" }}>{g.suggested_fix}</span>
-                    </div>
-                  )}
-                  <div style={{ marginTop: 10 }}>
-                    <button
-                      className="att-btn-secondary"
-                      style={{ padding: "6px 12px", fontSize: 12 }}
-                      disabled={sent || sendingIdx === i}
-                      onClick={() => requestClarification(i, g)}
-                    >
-                      {sent ? "Request sent" : sendingIdx === i ? "Sending…" : "Request clarification"}
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </>
+          <div style={{ minWidth: 220 }}>
+            <div style={{ height: 8, background: "var(--att-border)", borderRadius: 999 }}>
+              <div style={{ width: `${readinessPct}%`, height: "100%", background: readinessColor, borderRadius: 999, transition: "width .3s" }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 11, color: "var(--att-text-2)" }}>
+              <span>{counts.high} high</span><span>{counts.moderate} moderate</span><span>{counts.low} low</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {totalGaps === 0 ? (
+        <div className="att-card" style={{ textAlign: "center", padding: 24 }}>
+          <ShieldCheck size={32} style={{ color: "var(--att-green)", margin: "0 auto" }} />
+          <p style={{ fontSize: 14, color: "var(--att-green)", marginTop: 8 }}>No critical gaps detected. This case file is fully supported.</p>
+        </div>
+      ) : (
+        buckets.map((sev) => {
+          const gapsInBucket = indexedGaps.filter(({ g }) => (g.severity ?? "moderate") === sev);
+          if (gapsInBucket.length === 0) return null;
+          const open = openBucket[sev];
+          const unsentInBucket = gapsInBucket.filter(({ i }) => !sentIdx.has(i)).length;
+          return (
+            <div key={sev} className="att-card" style={{ borderLeft: `4px solid ${sevColor[sev]}`, padding: 0 }}>
+              <button
+                onClick={() => setOpenBucket((s) => ({ ...s, [sev]: !s[sev] }))}
+                style={{ display: "flex", width: "100%", alignItems: "center", gap: 8, padding: "14px 16px", background: "transparent", border: 0, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
+              >
+                {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                <strong style={{ fontSize: 14, textTransform: "capitalize", color: sevColor[sev] }}>{sev} severity</strong>
+                <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>· {gapsInBucket.length} item{gapsInBucket.length === 1 ? "" : "s"}</span>
+                {unsentInBucket > 0 && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.stopPropagation(); sendBucket(sev); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); sendBucket(sev); } }}
+                    className="att-btn-secondary"
+                    style={{ marginLeft: "auto", padding: "4px 10px", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer" }}
+                  >
+                    <Send size={11} /> {bulkSending === sev ? "Sending…" : `Request all ${unsentInBucket}`}
+                  </span>
+                )}
+              </button>
+              {open && (
+                <ul style={{ display: "grid", gap: 10, listStyle: "none", padding: "0 16px 16px", margin: 0 }}>
+                  {gapsInBucket.map(({ g, i }) => {
+                    const sent = sentIdx.has(i);
+                    return (
+                      <li key={i} style={{ padding: "12px 14px", background: "#F8FAFC", borderRadius: 6, borderLeft: `3px solid ${sevColor[sev]}` }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
+                          <strong style={{ fontSize: 14 }}>{g.kind}</strong>
+                          {sent && <span className="att-tag att-tag-auth" style={{ fontSize: 10 }}>REQUESTED</span>}
+                        </div>
+                        <div style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 8 }}>{g.detail}</div>
+                        {g.why_it_matters && (
+                          <div style={{ fontSize: 12, marginTop: 8 }}>
+                            <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Why it matters</span>
+                            <span style={{ color: "var(--att-text-2)" }}>{g.why_it_matters}</span>
+                          </div>
+                        )}
+                        {g.suggested_fix && (
+                          <div style={{ fontSize: 12, marginTop: 8 }}>
+                            <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Suggested fix</span>
+                            <span style={{ color: "var(--att-text-2)" }}>{g.suggested_fix}</span>
+                          </div>
+                        )}
+                        <div style={{ marginTop: 10 }}>
+                          <button
+                            className="att-btn-secondary"
+                            style={{ padding: "6px 12px", fontSize: 12 }}
+                            disabled={sent || sendingIdx === i}
+                            onClick={() => requestClarification(i, g)}
+                          >
+                            {sent ? "Request sent" : sendingIdx === i ? "Sending…" : "Request clarification"}
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          );
+        })
       )}
     </div>
   );
@@ -755,6 +834,30 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
     .filter((e) => matches(e.file_type, cat))
     .filter((e) => statusFilter === "all" ? true : (reviews[e.id]?.status ?? "unreviewed") === statusFilter);
 
+  const bulkApply = async (status: string) => {
+    for (const e of items) {
+      const current = reviews[e.id]?.status ?? "unreviewed";
+      if (current === status) continue;
+      // optimistic
+      setReviews((s) => ({
+        ...s,
+        [e.id]: { ...(s[e.id] ?? { evidence_id: e.id, exhibit_label: null, notes: null, linked_incident_id: null, status: "unreviewed" }), status },
+      }));
+      try { await saveReview({ data: { clientId, evidenceId: e.id, status } }); } catch { /* continue */ }
+    }
+    toast(`Updated ${items.length} item${items.length === 1 ? "" : "s"}.`);
+  };
+
+  // Integrity / chain-of-custody rollup
+  const totalEv = data.evidence.length;
+  const linkedEv = data.evidence.filter((e) => e.linked_incident_id).length;
+  const reviewedEv = Object.values(reviews).filter((r) => r.status && r.status !== "unreviewed").length;
+  const earliestUpload = data.evidence
+    .map((e) => (e as { created_at?: string }).created_at)
+    .filter(Boolean)
+    .sort()[0];
+  const integrityScore = totalEv === 0 ? 0 : Math.round(((linkedEv + reviewedEv) / (totalEv * 2)) * 100);
+
   const open = async (id: string) => {
     setOpeningId(id);
     try {
@@ -774,6 +877,23 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div>
+      <div className="att-card" style={{ marginBottom: 14, background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <ShieldCheck size={16} style={{ color: "var(--att-green)" }} />
+          <SectionTitle>Evidence integrity record</SectionTitle>
+        </div>
+        <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))" }}>
+          <IntegrityStat label="Files on record" value={totalEv} />
+          <IntegrityStat label="Linked to incidents" value={`${linkedEv}/${totalEv || 0}`} />
+          <IntegrityStat label="Reviewed" value={`${reviewedEv}/${totalEv || 0}`} />
+          <IntegrityStat label="Earliest upload" value={earliestUpload ? new Date(earliestUpload).toLocaleDateString() : "—"} />
+          <IntegrityStat label="Integrity score" value={`${integrityScore}%`} tone={integrityScore >= 70 ? "green" : integrityScore >= 40 ? "amber" : "red"} />
+        </div>
+        <p style={{ fontSize: 11.5, color: "var(--att-text-2)", marginTop: 12, display: "flex", alignItems: "center", gap: 6 }}>
+          <Hash size={11} /> All files retained with original upload timestamp, MIME type, and survivor attestation. Access is logged per file.
+        </p>
+      </div>
+
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
         {(["All", "Photos", "Screenshots", "Documents", "Audio"] as Cat[]).map((c) => (
           <button
@@ -798,6 +918,19 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
           >{s.label}</button>
         ))}
       </div>
+
+      {items.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "#F8FAFC", border: "1px solid var(--att-border)", borderRadius: 6, marginBottom: 14, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+            <strong>{items.length}</strong> item{items.length === 1 ? "" : "s"} visible · bulk apply:
+          </span>
+          <button className="att-btn-secondary" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => bulkApply("useful")}>Mark useful</button>
+          <button className="att-btn-secondary" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => bulkApply("exhibit_candidate")}>Exhibit candidate</button>
+          <button className="att-btn-secondary" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => bulkApply("needs_context")}>Needs context</button>
+          <button className="att-btn-secondary" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => bulkApply("exclude")}>Exclude</button>
+        </div>
+      )}
+
       {items.length === 0 ? (
         <div className="att-card" style={{ textAlign: "center", color: "var(--att-text-2)", fontSize: 13 }}>
           No evidence in this category.
