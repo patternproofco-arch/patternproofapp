@@ -5,6 +5,7 @@ import {
   AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
   Flag, HelpCircle, Image as ImageIcon, Lock, Music, Paperclip, Printer, Sparkles,
   TrendingUp, Briefcase, Shield, ListChecks, Scale, Gauge,
+  ShieldCheck, Hash, Send, ChevronDown, ChevronRight,
 } from "lucide-react";
 import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
