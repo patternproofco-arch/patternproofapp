@@ -3,12 +3,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
-  Flag, HelpCircle, Image as ImageIcon, Music, Paperclip, Printer, Sparkles,
+  Flag, HelpCircle, Image as ImageIcon, Lock, Music, Paperclip, Printer, Sparkles,
   TrendingUp,
 } from "lucide-react";
 import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
   listAttorneyNotes, upsertAttorneyNote, createDocRequest,
+  getCaseNote, saveCaseNote,
 } from "@/lib/attorney-portal.functions";
 import {
   listEvidenceReviews, upsertEvidenceReview,
