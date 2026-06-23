@@ -221,6 +221,60 @@ export type Database = {
           },
         ]
       }
+      attorney_evidence_reviews: {
+        Row: {
+          attorney_user_id: string
+          client_user_id: string
+          created_at: string
+          evidence_id: string
+          exhibit_label: string | null
+          id: string
+          linked_incident_id: string | null
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attorney_user_id: string
+          client_user_id: string
+          created_at?: string
+          evidence_id: string
+          exhibit_label?: string | null
+          id?: string
+          linked_incident_id?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          client_user_id?: string
+          created_at?: string
+          evidence_id?: string
+          exhibit_label?: string | null
+          id?: string
+          linked_incident_id?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_evidence_reviews_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attorney_evidence_reviews_linked_incident_id_fkey"
+            columns: ["linked_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attorney_incident_notes: {
         Row: {
           attorney_user_id: string
