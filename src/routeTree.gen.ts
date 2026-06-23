@@ -53,6 +53,7 @@ import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscr
 import { Route as AttorneySetupRouteImport } from './routes/_attorney/setup'
 import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
+import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
@@ -289,6 +290,11 @@ const AttorneyBillingReturnRoute = AttorneyBillingReturnRouteImport.update({
   path: '/billing-return',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AttorneyBillingRoute = AttorneyBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AuthenticatedAgentIndexRoute = AuthenticatedAgentIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -325,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/clients': typeof AttorneyClientsRouteWithChildren
   '/setup': typeof AttorneySetupRoute
@@ -374,6 +381,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
@@ -424,6 +432,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_attorney/billing': typeof AttorneyBillingRoute
   '/_attorney/billing-return': typeof AttorneyBillingReturnRoute
   '/_attorney/clients': typeof AttorneyClientsRouteWithChildren
   '/_attorney/setup': typeof AttorneySetupRoute
@@ -475,6 +484,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/request-org-access'
     | '/sitemap.xml'
+    | '/billing'
     | '/billing-return'
     | '/clients'
     | '/setup'
@@ -524,6 +534,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/request-org-access'
     | '/sitemap.xml'
+    | '/billing'
     | '/billing-return'
     | '/setup'
     | '/subscribe'
@@ -573,6 +584,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/request-org-access'
     | '/sitemap.xml'
+    | '/_attorney/billing'
     | '/_attorney/billing-return'
     | '/_attorney/clients'
     | '/_attorney/setup'
@@ -942,6 +954,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyBillingReturnRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_attorney/billing': {
+      id: '/_attorney/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof AttorneyBillingRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/_authenticated/agent/': {
       id: '/_authenticated/agent/'
       path: '/'
@@ -995,6 +1014,7 @@ const AttorneyClientsRouteWithChildren = AttorneyClientsRoute._addFileChildren(
 )
 
 interface AttorneyRouteChildren {
+  AttorneyBillingRoute: typeof AttorneyBillingRoute
   AttorneyBillingReturnRoute: typeof AttorneyBillingReturnRoute
   AttorneyClientsRoute: typeof AttorneyClientsRouteWithChildren
   AttorneySetupRoute: typeof AttorneySetupRoute
@@ -1002,6 +1022,7 @@ interface AttorneyRouteChildren {
 }
 
 const AttorneyRouteChildren: AttorneyRouteChildren = {
+  AttorneyBillingRoute: AttorneyBillingRoute,
   AttorneyBillingReturnRoute: AttorneyBillingReturnRoute,
   AttorneyClientsRoute: AttorneyClientsRouteWithChildren,
   AttorneySetupRoute: AttorneySetupRoute,
