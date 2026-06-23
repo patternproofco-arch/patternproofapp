@@ -555,9 +555,36 @@ function Gaps({ data }: { data: CaseData }) {
 
 function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
   const signedFn = useServerFn(getSignedEvidenceUrl);
+  const listReviews = useServerFn(listEvidenceReviews);
+  const saveReview = useServerFn(upsertEvidenceReview);
   type Cat = "All" | "Photos" | "Screenshots" | "Documents" | "Audio";
   const [cat, setCat] = useState<Cat>("All");
   const [openingId, setOpeningId] = useState<string | null>(null);
+  type Review = { evidence_id: string; status: string; exhibit_label: string | null; notes: string | null; linked_incident_id: string | null };
+  const [reviews, setReviews] = useState<Record<string, Review>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  useEffect(() => {
+    listReviews({ data: { clientId } })
+      .then((r) => {
+        const map: Record<string, Review> = {};
+        for (const row of r.reviews) map[row.evidence_id] = row as Review;
+        setReviews(map);
+      })
+      .catch(() => {});
+  }, [listReviews, clientId]);
+
+  const update = async (evidenceId: string, patch: Partial<Review>) => {
+    const current = reviews[evidenceId] ?? { evidence_id: evidenceId, status: "unreviewed", exhibit_label: null, notes: null, linked_incident_id: null };
+    const next = { ...current, ...patch };
+    setReviews((s) => ({ ...s, [evidenceId]: next }));
+    try {
+      await saveReview({ data: { clientId, evidenceId, ...patch } });
+    } catch {
+      toast("Couldn't save review.");
+    }
+  };
 
   const matches = (type: string, cat: Cat) => {
     const t = (type || "").toLowerCase();
@@ -569,7 +596,20 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
     return true;
   };
 
-  const items = data.evidence.filter((e) => matches(e.file_type, cat));
+  const STATUS_OPTIONS: { value: string; label: string; color: string }[] = [
+    { value: "unreviewed", label: "Unreviewed", color: "#94A3B8" },
+    { value: "useful", label: "Useful", color: "#10B981" },
+    { value: "needs_context", label: "Needs context", color: "#FBBF24" },
+    { value: "duplicate", label: "Duplicate", color: "#94A3B8" },
+    { value: "exclude", label: "Exclude", color: "#EF4444" },
+    { value: "privileged", label: "Privileged", color: "#8B5CF6" },
+    { value: "exhibit_candidate", label: "Exhibit candidate", color: "#2D4A8A" },
+  ];
+  const statusMeta = (v: string) => STATUS_OPTIONS.find((s) => s.value === v) ?? STATUS_OPTIONS[0];
+
+  const items = data.evidence
+    .filter((e) => matches(e.file_type, cat))
+    .filter((e) => statusFilter === "all" ? true : (reviews[e.id]?.status ?? "unreviewed") === statusFilter);
 
   const open = async (id: string) => {
     setOpeningId(id);
@@ -599,6 +639,20 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
             style={{ padding: "6px 12px", fontSize: 12 }}
           >{c}</button>
         ))}
+        <span style={{ width: 1, background: "var(--att-border)", margin: "0 4px" }} />
+        <button
+          onClick={() => setStatusFilter("all")}
+          className={statusFilter === "all" ? "att-btn-primary" : "att-btn-secondary"}
+          style={{ padding: "6px 12px", fontSize: 12 }}
+        >All reviews</button>
+        {STATUS_OPTIONS.map((s) => (
+          <button
+            key={s.value}
+            onClick={() => setStatusFilter(s.value)}
+            className={statusFilter === s.value ? "att-btn-primary" : "att-btn-secondary"}
+            style={{ padding: "6px 12px", fontSize: 12, borderLeft: `3px solid ${s.color}` }}
+          >{s.label}</button>
+        ))}
       </div>
       {items.length === 0 ? (
         <div className="att-card" style={{ textAlign: "center", color: "var(--att-text-2)", fontSize: 13 }}>
@@ -606,11 +660,18 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
         </div>
       ) : (
         <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))" }}>
-          {items.map((e) => (
-            <div key={e.id} className="att-card att-hover" style={{ padding: 14 }}>
+          {items.map((e) => {
+            const r = reviews[e.id];
+            const meta = statusMeta(r?.status ?? "unreviewed");
+            const isEditing = editingId === e.id;
+            return (
+            <div key={e.id} className="att-card att-hover" style={{ padding: 14, borderLeft: r && r.status !== "unreviewed" ? `3px solid ${meta.color}` : undefined }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--att-text-2)" }}>
                 {icon(e.file_type)}
                 <span className="att-mono" style={{ fontSize: 10, textTransform: "uppercase" }}>{e.file_type || "file"}</span>
+                <span className="att-tag" style={{ marginLeft: "auto", background: `${meta.color}1A`, color: meta.color, fontSize: 10 }}>
+                  {meta.label}{r?.exhibit_label ? ` · ${r.exhibit_label}` : ""}
+                </span>
               </div>
               <h3 style={{ fontSize: 16, marginTop: 8 }}>{e.title}</h3>
               <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
@@ -618,14 +679,56 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
                 {e.linked_incident_id ? " · linked to incident" : " · unlinked"}
               </div>
               {e.description && <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8 }}>{e.description.slice(0, 120)}</p>}
-              <div style={{ marginTop: 12, display: "flex", gap: 6 }}>
+              {r?.notes && !isEditing && (
+                <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8, padding: 8, background: "#F8FAFC", borderLeft: "2px solid var(--att-navy)", borderRadius: 4 }}>
+                  <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Attorney note</span>
+                  {r.notes}
+                </p>
+              )}
+              {isEditing && (
+                <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                  <select
+                    value={r?.status ?? "unreviewed"}
+                    onChange={(ev) => update(e.id, { status: ev.target.value })}
+                    className="att-input"
+                    style={{ padding: "6px 8px", fontSize: 12 }}
+                  >
+                    {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Exhibit label (e.g. Exhibit A)"
+                    defaultValue={r?.exhibit_label ?? ""}
+                    onBlur={(ev) => update(e.id, { exhibit_label: ev.target.value.trim() || null })}
+                    className="att-input"
+                    style={{ padding: "6px 8px", fontSize: 12 }}
+                  />
+                  <textarea
+                    placeholder="Private attorney notes…"
+                    defaultValue={r?.notes ?? ""}
+                    onBlur={(ev) => update(e.id, { notes: ev.target.value.trim() || null })}
+                    className="att-input"
+                    rows={3}
+                    style={{ padding: "6px 8px", fontSize: 12, fontFamily: "inherit", resize: "vertical" }}
+                  />
+                </div>
+              )}
+              <div style={{ marginTop: 12, display: "flex", gap: 6, flexWrap: "wrap" }}>
                 <button className="att-btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} disabled={openingId === e.id} onClick={() => open(e.id)}>
                   <Download size={12} /> {openingId === e.id ? "Opening…" : "Open"}
+                </button>
+                <button
+                  className="att-btn-secondary"
+                  style={{ padding: "6px 10px", fontSize: 12 }}
+                  onClick={() => setEditingId(isEditing ? null : e.id)}
+                >
+                  <Flag size={12} /> {isEditing ? "Done" : "Review"}
                 </button>
                 <span className="att-tag att-tag-auth" style={{ alignSelf: "center" }}>AUTH</span>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
