@@ -93,6 +93,7 @@ function CourtPacket() {
     return (
       <div>
         <div className="label-eyebrow">Court packet</div>
+        <h1 className="mt-2 font-serif text-[34px] leading-tight">Your packet isn't ready yet.</h1>
         <div className="card-pp mt-6">
           <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
             Build your case in the Case Builder first — your packet will be ready here.
@@ -107,8 +108,11 @@ function CourtPacket() {
 
   return (
     <div>
-      <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="label-eyebrow">Court packet (preview)</div>
+      <div className="no-print mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="label-eyebrow">Court packet</div>
+          <h1 className="mt-2 font-serif text-[30px] leading-tight">Preview your packet.</h1>
+        </div>
         <div className="flex gap-2">
           <button onClick={() => navigate({ to: "/case-builder" })} className="btn-ghost inline-flex items-center gap-1"><Edit3 size={14} /> Edit Case</button>
           <button onClick={() => window.print()} className="btn-primary inline-flex items-center gap-2"><Printer size={15} /> Print / Save as PDF</button>

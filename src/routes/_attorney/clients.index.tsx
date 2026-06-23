@@ -48,7 +48,7 @@ function ClientsIndex() {
   return (
     <div>
       <div className="att-eyebrow">Case Files</div>
-      <h1 style={{ fontSize: 32, marginTop: 6, marginBottom: 6 }}>Your clients</h1>
+      <h1 style={{ fontSize: 36, marginTop: 6, marginBottom: 6, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>Your clients</h1>
       <p style={{ color: "var(--att-text-2)", maxWidth: 640, marginBottom: 24 }}>
         Every survivor who has shared their P4TTERN PR00F case file with you. Read-only. Chain-of-custody logged.
       </p>
@@ -58,7 +58,7 @@ function ClientsIndex() {
 
       <InvitePanel invites={invites} onChange={reloadInvites} />
 
-      {!clients ? null : clients.length === 0 ? null : (
+      {clients === null && (
         <div className="att-card">Loading clients…</div>
       )}
 
