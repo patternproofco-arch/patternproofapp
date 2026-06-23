@@ -193,7 +193,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
   };
 
   const copyLink = (token: string) => {
-    const url = `${window.location.origin}/accept-invite/${token}`;
+    const url = `${window.location.origin}/survivor-invite/${token}`;
     navigator.clipboard.writeText(url).then(() => toast("Invite link copied."));
   };
 
@@ -268,7 +268,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
         <div style={{ display: "grid", gap: 8 }}>
           {invites.map((inv) => {
             const s = STATUS_STYLE[inv.effective_status] ?? STATUS_STYLE.pending;
-            const link = `${typeof window === "undefined" ? "" : window.location.origin}/accept-invite/${inv.invite_token}`;
+            const link = `${typeof window === "undefined" ? "" : window.location.origin}/survivor-invite/${inv.invite_token}`;
             const isPending = inv.effective_status === "pending";
             const isExpired = inv.effective_status === "expired";
             return (
