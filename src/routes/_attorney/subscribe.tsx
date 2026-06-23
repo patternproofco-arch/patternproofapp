@@ -73,7 +73,7 @@ function SubscribePage() {
     return (
       <div className="att-card" style={{ maxWidth: 640, margin: "40px auto", textAlign: "center" }}>
         <Check size={32} style={{ color: "var(--att-green)", margin: "0 auto 12px" }} />
-        <h1 style={{ fontSize: 24, marginBottom: 8 }}>You're subscribed.</h1>
+        <h1 style={{ fontSize: 30, marginBottom: 8, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>You're subscribed.</h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 14, marginBottom: 16 }}>
           Plan: P4TTERN PR00F {sub.tier === "firm" ? "Firm" : sub.tier === "enterprise" ? "Enterprise" : "Solo"} · {sub.status}
           {sub.currentPeriodEnd && <> · renews {new Date(sub.currentPeriodEnd).toLocaleDateString()}</>}
