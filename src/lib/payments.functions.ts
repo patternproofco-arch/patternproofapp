@@ -302,14 +302,14 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
         .eq("attorney_user_id", context.userId)
         .eq("client_user_id", data.clientId),
       supabaseAdmin
-        .from("attorney_doc_requests")
-        .select("kind,title,details,status,created_at,resolved_at")
+        .from("attorney_document_requests")
+        .select("title,details,status,created_at,completed_at")
         .eq("attorney_user_id", context.userId)
         .eq("client_user_id", data.clientId)
         .order("created_at"),
     ]);
     const reviews = (reviewsRes.data ?? []) as Array<{ evidence_id: string; status: string; exhibit_label: string | null; notes: string | null; linked_incident_id: string | null }>;
-    const docRequests = (docReqRes.data ?? []) as Array<Record<string, unknown>>;
+    const docRequests = (docReqRes.data ?? []) as unknown as Array<Record<string, unknown>>;
     const reviewByEv = new Map(reviews.map((r) => [r.evidence_id, r]));
 
     const zip = new JSZip();
