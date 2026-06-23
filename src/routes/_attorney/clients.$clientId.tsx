@@ -337,6 +337,16 @@ function SectionTitle({ icon, children }: { icon?: React.ReactNode; children: Re
   );
 }
 
+function IntegrityStat({ label, value, tone }: { label: string; value: number | string; tone?: "green" | "amber" | "red" }) {
+  const color = tone === "green" ? "#10B981" : tone === "amber" ? "#F59E0B" : tone === "red" ? "#EF4444" : "var(--att-text)";
+  return (
+    <div style={{ padding: 10, background: "#fff", border: "1px solid var(--att-border)", borderRadius: 6 }}>
+      <div className="att-eyebrow">{label}</div>
+      <div style={{ fontSize: 20, fontFamily: '"Instrument Serif", serif', marginTop: 2, color }}>{value}</div>
+    </div>
+  );
+}
+
 /* ---------------- Overview ---------------- */
 
 function Overview({ data }: { data: CaseData }) {
