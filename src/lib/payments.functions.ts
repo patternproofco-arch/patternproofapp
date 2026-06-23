@@ -240,7 +240,10 @@ function sha256(buf: ArrayBuffer | Uint8Array): string {
 export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ clientId: z.string().uuid() }).parse(input),
+    z.object({
+      clientId: z.string().uuid(),
+      includeAttorneyNotes: z.boolean().optional(),
+    }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const ent = await isAttorneyEntitled(context.userId, data.clientId);
@@ -291,6 +294,24 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     const latestCase = casesRes.data?.[0];
     const flags = flagsRes.data ?? [];
 
+    // Attorney-side enrichments (reviews + doc requests). Scoped to this attorney+client.
+    const [reviewsRes, docReqRes] = await Promise.all([
+      supabaseAdmin
+        .from("attorney_evidence_reviews")
+        .select("evidence_id,status,exhibit_label,notes,linked_incident_id")
+        .eq("attorney_user_id", context.userId)
+        .eq("client_user_id", data.clientId),
+      supabaseAdmin
+        .from("attorney_doc_requests")
+        .select("kind,title,details,status,created_at,resolved_at")
+        .eq("attorney_user_id", context.userId)
+        .eq("client_user_id", data.clientId)
+        .order("created_at"),
+    ]);
+    const reviews = (reviewsRes.data ?? []) as Array<{ evidence_id: string; status: string; exhibit_label: string | null; notes: string | null; linked_incident_id: string | null }>;
+    const docRequests = (docReqRes.data ?? []) as Array<Record<string, unknown>>;
+    const reviewByEv = new Map(reviews.map((r) => [r.evidence_id, r]));
+
     const zip = new JSZip();
     const exportedAt = new Date().toISOString();
     const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
@@ -316,24 +337,144 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       fileHashes.push({ path: `evidence/${safe}`, sha256: h, bytes: buf.byteLength });
     }));
 
-    const summary = [
-      `# Court Packet — Client ${data.clientId.slice(0, 8)}`,
+    const caseLabel = (latestCase as any)?.case_type ?? "Case file";
+    const otherParty = (latestCase as any)?.other_party ?? "—";
+    const jurisdiction = (latestCase as any)?.jurisdiction ?? "—";
+    const caseShort = data.clientId.slice(0, 8).toUpperCase();
+
+    // 00_cover.md
+    zip.file("00_cover.md", [
+      `# Court Packet`,
       ``,
-      `Generated: ${exportedAt}`,
-      `Prepared by attorney: ${context.userId}`,
+      `**Case:** ${caseLabel}`,
+      `**Client ref:** ${caseShort}`,
+      `**Opposing party:** ${otherParty}`,
+      `**Jurisdiction:** ${jurisdiction}`,
       ``,
-      `## Counts`,
-      `- Incidents: ${incidents.length}`,
-      `- Evidence files: ${evidence.length}`,
-      `- Communications: ${comms.length}`,
-      `- Escalation flags: ${flags.length}`,
+      `**Prepared:** ${exportedAt}`,
+      `**Attorney ref:** ${context.userId.slice(0, 8).toUpperCase()}`,
       ``,
+      `---`,
+      ``,
+      `This packet has been compiled from the survivor's documented record. All`,
+      `evidence files included in the /evidence directory are hashed in manifest.json`,
+      `for chain-of-custody verification.`,
+    ].join("\n"));
+
+    // 01_table_of_contents.md
+    const toc = [
+      `# Table of Contents`,
+      ``,
+      `1. Cover — 00_cover.md`,
+      `2. Pattern summary — 02_pattern_summary.md`,
+      `3. Incident timeline — 03_timeline.md`,
+      `4. Escalation flags — 04_escalation.md`,
+      `5. Evidence index — 05_evidence_index.csv`,
+      `6. Exhibit list — 06_exhibit_list.md`,
+      `7. Legal correspondence — legal/doc_requests.csv`,
     ];
+    if (data.includeAttorneyNotes) toc.push(`8. Attorney notes — 07_attorney_notes.md`);
+    toc.push(``, `Raw data: incidents.csv, evidence.csv, communications.csv, escalation_flags.csv`);
+    toc.push(`Manifest: manifest.json (SHA-256 hashes for every evidence file)`);
+    zip.file("01_table_of_contents.md", toc.join("\n"));
+
+    // 02_pattern_summary.md
+    const patternLines: string[] = [`# Pattern Summary`, ``];
     if (latestAnalysis) {
-      const a = latestAnalysis.analysis as any;
-      summary.push(`## Pattern summary`, ``, a?.pattern_summary ?? "", ``, `## Escalation arc`, ``, a?.escalation_arc ?? "", ``);
+      const a = (latestAnalysis as any).analysis as any;
+      patternLines.push(`_Generated: ${(latestAnalysis as any).created_at}_`, ``);
+      if (a?.pattern_summary) patternLines.push(`## Overview`, ``, a.pattern_summary, ``);
+      if (a?.escalation_arc) patternLines.push(`## Escalation arc`, ``, a.escalation_arc, ``);
+      if (Array.isArray(a?.behavior_categories)) {
+        patternLines.push(`## Behavior categories`, ``);
+        a.behavior_categories.forEach((c: any) => patternLines.push(`- **${c.name ?? c.category ?? "—"}** — ${c.count ?? c.frequency ?? ""} ${c.description ?? ""}`.trim()));
+        patternLines.push(``);
+      }
+    } else {
+      patternLines.push(`_No pattern analysis on file._`);
     }
-    zip.file("summary.md", summary.join("\n"));
+    zip.file("02_pattern_summary.md", patternLines.join("\n"));
+
+    // 03_timeline.md grouped by month
+    const byMonth = new Map<string, any[]>();
+    (incidents as any[]).forEach((i) => {
+      const m = String(i.date ?? "").slice(0, 7) || "undated";
+      if (!byMonth.has(m)) byMonth.set(m, []);
+      byMonth.get(m)!.push(i);
+    });
+    const months = Array.from(byMonth.keys()).sort();
+    const tl: string[] = [`# Incident Timeline`, ``, `${incidents.length} incidents on file.`, ``];
+    months.forEach((m) => {
+      tl.push(`## ${m}`, ``);
+      byMonth.get(m)!.forEach((i: any) => {
+        const types = Array.isArray(i.abuse_types) ? i.abuse_types.join(", ") : "";
+        tl.push(`- **${i.date}${i.time ? " " + i.time : ""}** — ${i.location ?? ""}${types ? ` _(${types})_` : ""}`);
+        if (i.description) tl.push(`  - ${String(i.description).replace(/\n+/g, " ")}`);
+        if (i.witnesses) tl.push(`  - _Witnesses:_ ${i.witnesses}`);
+      });
+      tl.push(``);
+    });
+    zip.file("03_timeline.md", tl.join("\n"));
+
+    // 04_escalation.md
+    const esc: string[] = [`# Escalation Flags`, ``, `${flags.length} flags raised.`, ``];
+    (flags as any[]).forEach((f) => {
+      esc.push(`- **${f.created_at?.slice(0, 10) ?? ""}** — ${f.severity ?? "flag"}: ${f.summary ?? f.description ?? ""}`);
+    });
+    zip.file("04_escalation.md", esc.join("\n"));
+
+    // 05_evidence_index.csv with attorney review metadata + exhibit labels
+    const evIndexRows = (evidence as any[]).map((e) => {
+      const r = reviewByEv.get(e.id);
+      return {
+        exhibit_label: r?.exhibit_label ?? "",
+        date: e.date ?? "",
+        title: e.title ?? "",
+        file_type: e.file_type ?? "",
+        review_status: r?.status ?? "unreviewed",
+        linked_incident_id: r?.linked_incident_id ?? e.linked_incident_id ?? "",
+        description: e.description ?? "",
+        evidence_id: e.id,
+      };
+    });
+    zip.file("05_evidence_index.csv", toCsv(evIndexRows));
+
+    // 06_exhibit_list.md (only items the attorney marked with an exhibit label or candidate status)
+    const exhibits = (evidence as any[])
+      .map((e) => ({ e, r: reviewByEv.get(e.id) }))
+      .filter(({ r }) => r && (r.exhibit_label || r.status === "exhibit_candidate"))
+      .sort((a, b) => String(a.r?.exhibit_label ?? "").localeCompare(String(b.r?.exhibit_label ?? "")));
+    const exLines: string[] = [`# Exhibit List`, ``];
+    if (exhibits.length === 0) {
+      exLines.push(`_No exhibits tagged yet._`);
+    } else {
+      exhibits.forEach(({ e, r }) => {
+        exLines.push(`### ${r?.exhibit_label || "Candidate"} — ${e.title ?? ""}`);
+        exLines.push(`- **Date:** ${e.date ?? "—"}`);
+        exLines.push(`- **Type:** ${e.file_type ?? "—"}`);
+        if (e.description) exLines.push(`- **Description:** ${e.description}`);
+        if (r?.linked_incident_id) exLines.push(`- **Tied to incident:** ${r.linked_incident_id}`);
+        exLines.push(``);
+      });
+    }
+    zip.file("06_exhibit_list.md", exLines.join("\n"));
+
+    // legal/doc_requests.csv
+    const legalFolder = zip.folder("legal");
+    legalFolder?.file("doc_requests.csv", toCsv(docRequests));
+
+    // 07_attorney_notes.md (optional)
+    if (data.includeAttorneyNotes) {
+      const notesLines: string[] = [`# Attorney Notes`, ``, `_For internal use. Do not file without review._`, ``];
+      reviews.filter((r) => r.notes).forEach((r) => {
+        const ev = (evidence as any[]).find((e) => e.id === r.evidence_id);
+        notesLines.push(`### ${r.exhibit_label || ev?.title || r.evidence_id.slice(0, 8)}`);
+        notesLines.push(`- **Status:** ${r.status}`);
+        notesLines.push(`- **Note:** ${r.notes}`);
+        notesLines.push(``);
+      });
+      zip.file("07_attorney_notes.md", notesLines.join("\n"));
+    }
 
     zip.file("manifest.json", JSON.stringify({
       exported_at: exportedAt,
@@ -341,6 +482,9 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       attorney_user_id: context.userId,
       counts: { incidents: incidents.length, evidence: evidence.length, communications: comms.length, escalation_flags: flags.length },
       file_hashes: fileHashes,
+      include_attorney_notes: !!data.includeAttorneyNotes,
+      exhibit_count: exhibits.length,
+      doc_request_count: docRequests.length,
       generator: "P4TTERN PR00F Attorney Court Packet v1",
     }, null, 2));
 
