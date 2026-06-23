@@ -10,6 +10,9 @@ import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
   listAttorneyNotes, upsertAttorneyNote,
 } from "@/lib/attorney-portal.functions";
+import {
+  listEvidenceReviews, upsertEvidenceReview,
+} from "@/lib/attorney-evidence-reviews.functions";
 import { getAttorneyEntitlement, generateAttorneyCourtPacket } from "@/lib/payments.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { toast } from "sonner";
