@@ -824,6 +824,30 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
     .filter((e) => matches(e.file_type, cat))
     .filter((e) => statusFilter === "all" ? true : (reviews[e.id]?.status ?? "unreviewed") === statusFilter);
 
+  const bulkApply = async (status: string) => {
+    for (const e of items) {
+      const current = reviews[e.id]?.status ?? "unreviewed";
+      if (current === status) continue;
+      // optimistic
+      setReviews((s) => ({
+        ...s,
+        [e.id]: { ...(s[e.id] ?? { evidence_id: e.id, exhibit_label: null, notes: null, linked_incident_id: null, status: "unreviewed" }), status },
+      }));
+      try { await saveReview({ data: { clientId, evidenceId: e.id, status } }); } catch { /* continue */ }
+    }
+    toast(`Updated ${items.length} item${items.length === 1 ? "" : "s"}.`);
+  };
+
+  // Integrity / chain-of-custody rollup
+  const totalEv = data.evidence.length;
+  const linkedEv = data.evidence.filter((e) => e.linked_incident_id).length;
+  const reviewedEv = Object.values(reviews).filter((r) => r.status && r.status !== "unreviewed").length;
+  const earliestUpload = data.evidence
+    .map((e) => (e as { created_at?: string }).created_at)
+    .filter(Boolean)
+    .sort()[0];
+  const integrityScore = totalEv === 0 ? 0 : Math.round(((linkedEv + reviewedEv) / (totalEv * 2)) * 100);
+
   const open = async (id: string) => {
     setOpeningId(id);
     try {
@@ -843,6 +867,23 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div>
+      <div className="att-card" style={{ marginBottom: 14, background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <ShieldCheck size={16} style={{ color: "var(--att-green)" }} />
+          <SectionTitle>Evidence integrity record</SectionTitle>
+        </div>
+        <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))" }}>
+          <IntegrityStat label="Files on record" value={totalEv} />
+          <IntegrityStat label="Linked to incidents" value={`${linkedEv}/${totalEv || 0}`} />
+          <IntegrityStat label="Reviewed" value={`${reviewedEv}/${totalEv || 0}`} />
+          <IntegrityStat label="Earliest upload" value={earliestUpload ? new Date(earliestUpload).toLocaleDateString() : "—"} />
+          <IntegrityStat label="Integrity score" value={`${integrityScore}%`} tone={integrityScore >= 70 ? "green" : integrityScore >= 40 ? "amber" : "red"} />
+        </div>
+        <p style={{ fontSize: 11.5, color: "var(--att-text-2)", marginTop: 12, display: "flex", alignItems: "center", gap: 6 }}>
+          <Hash size={11} /> All files retained with original upload timestamp, MIME type, and survivor attestation. Access is logged per file.
+        </p>
+      </div>
+
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
         {(["All", "Photos", "Screenshots", "Documents", "Audio"] as Cat[]).map((c) => (
           <button
@@ -867,6 +908,19 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
           >{s.label}</button>
         ))}
       </div>
+
+      {items.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "#F8FAFC", border: "1px solid var(--att-border)", borderRadius: 6, marginBottom: 14, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+            <strong>{items.length}</strong> item{items.length === 1 ? "" : "s"} visible · bulk apply:
+          </span>
+          <button className="att-btn-secondary" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => bulkApply("useful")}>Mark useful</button>
+          <button className="att-btn-secondary" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => bulkApply("exhibit_candidate")}>Exhibit candidate</button>
+          <button className="att-btn-secondary" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => bulkApply("needs_context")}>Needs context</button>
+          <button className="att-btn-secondary" style={{ padding: "4px 10px", fontSize: 11 }} onClick={() => bulkApply("exclude")}>Exclude</button>
+        </div>
+      )}
+
       {items.length === 0 ? (
         <div className="att-card" style={{ textAlign: "center", color: "var(--att-text-2)", fontSize: 13 }}>
           No evidence in this category.
