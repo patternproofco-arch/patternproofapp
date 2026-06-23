@@ -22,20 +22,12 @@ function CourtSystemsPage() {
   return (
     <div className="space-y-10">
       {/* Header */}
-      <header
-        className="rounded-2xl border px-7 py-8 md:px-10 md:py-10"
-        style={{
-          background: "var(--card)",
-          borderColor: "var(--border)",
-          color: BROWN,
-          boxShadow: "0 12px 32px -16px rgba(26,20,14,0.18)",
-        }}
-      >
-        <div className="mb-3 flex items-center gap-2 text-[13px] font-bold uppercase tracking-[3px]" style={{ color: "rgba(26,20,14,0.82)" }}>
-          <Scale size={14} /> Court systems guide
+      <header>
+        <div className="label-eyebrow inline-flex items-center gap-2">
+          <Scale size={12} /> Court systems guide
         </div>
-        <h1 className="text-3xl font-extrabold md:text-4xl" style={{ letterSpacing: "-0.01em" }}>
-          How courts actually evaluate your evidence
+        <h1 className="mt-2 font-serif text-[34px] leading-tight">
+          How courts actually <em>evaluate</em> your evidence
         </h1>
       </header>
 
