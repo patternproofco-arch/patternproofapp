@@ -67,6 +67,43 @@ export const upsertAttorneyProfile = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      full_name: z.string().trim().min(1).max(120),
+      email: z.string().email().max(255),
+      firm_name: z.string().trim().max(200).optional().nullable(),
+      bar_number: z.string().trim().max(60).optional().nullable(),
+      jurisdiction: z.string().trim().max(120).optional().nullable(),
+      role: z.enum(["solo", "firm", "paralegal", "advocate"]),
+      confidentiality_accepted: z.literal(true),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("user_roles").upsert(
+      { user_id: context.userId, role: "attorney" },
+      { onConflict: "user_id,role" },
+    );
+    const { error } = await supabaseAdmin
+      .from("attorney_profiles")
+      .upsert({
+        user_id: context.userId,
+        full_name: data.full_name,
+        email: data.email,
+        firm_name: data.firm_name ?? null,
+        bar_number: data.bar_number ?? null,
+        jurisdiction: data.jurisdiction ?? null,
+        role: data.role,
+        confidentiality_accepted_at: new Date().toISOString(),
+        onboarded: true,
+        updated_at: new Date().toISOString(),
+      });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const getAttorneyProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
