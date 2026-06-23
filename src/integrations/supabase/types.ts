@@ -126,6 +126,7 @@ export type Database = {
       }
       attorney_client_links: {
         Row: {
+          attorney_case_notes: string | null
           attorney_user_id: string
           client_user_id: string
           created_at: string
@@ -140,6 +141,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          attorney_case_notes?: string | null
           attorney_user_id: string
           client_user_id: string
           created_at?: string
@@ -154,6 +156,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          attorney_case_notes?: string | null
           attorney_user_id?: string
           client_user_id?: string
           created_at?: string

@@ -652,6 +652,45 @@ export const upsertAttorneyNote = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/* ------------------------- case-level attorney notes ------------------------- */
+
+export const getCaseNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAttorney(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: link } = await supabaseAdmin
+      .from("attorney_client_links")
+      .select("attorney_case_notes")
+      .eq("attorney_user_id", context.userId)
+      .eq("client_user_id", data.clientId)
+      .eq("status", "active")
+      .maybeSingle();
+    return { note: (link as { attorney_case_notes: string | null } | null)?.attorney_case_notes ?? "" };
+  });
+
+export const saveCaseNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      clientId: z.string().uuid(),
+      note: z.string().max(20000),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAttorney(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("attorney_client_links")
+      .update({ attorney_case_notes: data.note })
+      .eq("attorney_user_id", context.userId)
+      .eq("client_user_id", data.clientId)
+      .eq("status", "active");
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 /* ------------------------- signed evidence URLs ------------------------- */
 
 export const getSignedEvidenceUrl = createServerFn({ method: "POST" })

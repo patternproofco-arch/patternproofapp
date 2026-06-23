@@ -3,12 +3,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
-  Flag, HelpCircle, Image as ImageIcon, Music, Paperclip, Printer, Sparkles,
+  Flag, HelpCircle, Image as ImageIcon, Lock, Music, Paperclip, Printer, Sparkles,
   TrendingUp,
 } from "lucide-react";
 import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
   listAttorneyNotes, upsertAttorneyNote, createDocRequest,
+  getCaseNote, saveCaseNote,
 } from "@/lib/attorney-portal.functions";
 import {
   listEvidenceReviews, upsertEvidenceReview,
@@ -249,11 +250,62 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
           </ul>
         )}
       </div>
+
+      <CaseNotesCard clientId={clientId} />
     </div>
   );
 }
 
 /* ---------------- shared atoms ---------------- */
+
+function CaseNotesCard({ clientId }: { clientId: string }) {
+  const get = useServerFn(getCaseNote);
+  const save = useServerFn(saveCaseNote);
+  const [note, setNote] = useState<string>("");
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+
+  useEffect(() => {
+    get({ data: { clientId } })
+      .then((r) => { setNote(r.note ?? ""); setLoaded(true); })
+      .catch(() => setLoaded(true));
+  }, [get, clientId]);
+
+  const persist = async (value: string) => {
+    setSaving(true);
+    try {
+      await save({ data: { clientId, note: value } });
+      setSavedAt(new Date());
+    } catch {
+      toast("Couldn't save note.");
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="att-card" style={{ background: "#FFFBEB", borderColor: "#FCD34D" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+        <SectionTitle icon={<Lock size={16} />}>Private attorney notes</SectionTitle>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--att-text-2)" }}>
+          <Lock size={11} /> Survivor never sees this · {saving ? "Saving…" : savedAt ? `Saved ${savedAt.toLocaleTimeString()}` : "Autosaves on blur"}
+        </div>
+      </div>
+      <textarea
+        value={note}
+        disabled={!loaded}
+        onChange={(e) => setNote(e.target.value)}
+        onBlur={(e) => persist(e.target.value)}
+        placeholder="Theory of the case, contradictions to watch, strategy notes. Visible only to you. Included in court packet ZIP only when you toggle Attorney Notes on export."
+        rows={6}
+        style={{
+          width: "100%", padding: 12, fontSize: 13, lineHeight: 1.6,
+          border: "1px solid #FCD34D", borderRadius: 8, background: "#FFFFFF",
+          fontFamily: "inherit", resize: "vertical",
+        }}
+      />
+    </div>
+  );
+}
 
 function Metric({ label, v, help }: { label: string; v: number | string; help?: string }) {
   return (
