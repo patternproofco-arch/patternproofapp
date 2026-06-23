@@ -49,6 +49,7 @@ import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
 import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AuthenticatedAbuserTacticsRouteImport } from './routes/_authenticated/abuser-tactics'
+import { Route as AttorneyTrustRouteImport } from './routes/_attorney/trust'
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
 import { Route as AttorneySetupRouteImport } from './routes/_attorney/setup'
 import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
@@ -270,6 +271,11 @@ const AuthenticatedAbuserTacticsRoute =
     path: '/abuser-tactics',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AttorneyTrustRoute = AttorneyTrustRouteImport.update({
+  id: '/trust',
+  path: '/trust',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AttorneySubscribeRoute = AttorneySubscribeRouteImport.update({
   id: '/subscribe',
   path: '/subscribe',
@@ -336,6 +342,7 @@ export interface FileRoutesByFullPath {
   '/clients': typeof AttorneyClientsRouteWithChildren
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
+  '/trust': typeof AttorneyTrustRoute
   '/abuser-tactics': typeof AuthenticatedAbuserTacticsRoute
   '/agent': typeof AuthenticatedAgentRouteWithChildren
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
@@ -385,6 +392,7 @@ export interface FileRoutesByTo {
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
+  '/trust': typeof AttorneyTrustRoute
   '/abuser-tactics': typeof AuthenticatedAbuserTacticsRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/calendar': typeof AuthenticatedCalendarRoute
@@ -437,6 +445,7 @@ export interface FileRoutesById {
   '/_attorney/clients': typeof AttorneyClientsRouteWithChildren
   '/_attorney/setup': typeof AttorneySetupRoute
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
+  '/_attorney/trust': typeof AttorneyTrustRoute
   '/_authenticated/abuser-tactics': typeof AuthenticatedAbuserTacticsRoute
   '/_authenticated/agent': typeof AuthenticatedAgentRouteWithChildren
   '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
@@ -489,6 +498,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/setup'
     | '/subscribe'
+    | '/trust'
     | '/abuser-tactics'
     | '/agent'
     | '/attorney-portal'
@@ -538,6 +548,7 @@ export interface FileRouteTypes {
     | '/billing-return'
     | '/setup'
     | '/subscribe'
+    | '/trust'
     | '/abuser-tactics'
     | '/attorney-portal'
     | '/calendar'
@@ -589,6 +600,7 @@ export interface FileRouteTypes {
     | '/_attorney/clients'
     | '/_attorney/setup'
     | '/_attorney/subscribe'
+    | '/_attorney/trust'
     | '/_authenticated/abuser-tactics'
     | '/_authenticated/agent'
     | '/_authenticated/attorney-portal'
@@ -926,6 +938,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAbuserTacticsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_attorney/trust': {
+      id: '/_attorney/trust'
+      path: '/trust'
+      fullPath: '/trust'
+      preLoaderRoute: typeof AttorneyTrustRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/_attorney/subscribe': {
       id: '/_attorney/subscribe'
       path: '/subscribe'
@@ -1019,6 +1038,7 @@ interface AttorneyRouteChildren {
   AttorneyClientsRoute: typeof AttorneyClientsRouteWithChildren
   AttorneySetupRoute: typeof AttorneySetupRoute
   AttorneySubscribeRoute: typeof AttorneySubscribeRoute
+  AttorneyTrustRoute: typeof AttorneyTrustRoute
 }
 
 const AttorneyRouteChildren: AttorneyRouteChildren = {
@@ -1027,6 +1047,7 @@ const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneyClientsRoute: AttorneyClientsRouteWithChildren,
   AttorneySetupRoute: AttorneySetupRoute,
   AttorneySubscribeRoute: AttorneySubscribeRoute,
+  AttorneyTrustRoute: AttorneyTrustRoute,
 }
 
 const AttorneyRouteWithChildren = AttorneyRoute._addFileChildren(

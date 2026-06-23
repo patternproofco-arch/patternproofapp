@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Activity, Lock, Mail, Shield, ShieldCheck, Users } from "lucide-react";
 import { getTrustPanel } from "@/lib/attorney-trust.functions";
 
-export const Route = createFileRoute("/_attorney/settings")({
+export const Route = createFileRoute("/_attorney/trust")({
   component: SettingsPage,
 });
 
