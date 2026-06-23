@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Upload, Image as ImageIcon, FileText, Music, Video, Trash2, Download, Sparkles, Check } from "lucide-react";
+import { Upload, Image as ImageIcon, FileText, Music, Video, Trash2, Download, Sparkles, Check, MessageSquare } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -226,6 +227,28 @@ function EvidencePage() {
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Keep the proof <em>close.</em>
       </h1>
+
+      <Link
+        to="/message-threads"
+        className="mt-5 flex items-start gap-3 rounded-2xl p-4"
+        style={{
+          background: "linear-gradient(135deg, rgba(196,167,255,0.16), rgba(164,255,239,0.16))",
+          border: "1px solid rgba(124,92,196,0.22)",
+          color: "var(--foreground)",
+          textDecoration: "none",
+        }}
+      >
+        <div style={{ width: 38, height: 38, borderRadius: 12, background: "linear-gradient(135deg,#E2DCFA,#C7E9E3)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+          <MessageSquare size={18} color="#3D2C5C" />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#1A1714" }}>Upload a Message Thread</div>
+          <div style={{ fontSize: 13, color: "#3D3832", marginTop: 2, lineHeight: 1.5 }}>
+            Import iPhone, iMessage, or SMS exports (PDF, CSV/Excel, TXT, RSMF, ZIP) into a searchable, flagged timeline.
+          </div>
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#7C5CC4" }}>Open →</span>
+      </Link>
 
       <form onSubmit={submit} className="card-pp mt-6 space-y-4">
         <label className="block cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center"
