@@ -256,24 +256,56 @@ export const getClientCase = createServerFn({ method: "POST" })
     /* ---- evidence gaps ---- */
     const incidentsWithEvidence = new Set(evidence.map((e) => e.linked_incident_id).filter(Boolean));
     const incidentsWithoutEvidence = incidents.filter((i) => !incidentsWithEvidence.has(i.id));
-    const gaps: Array<{ kind: string; detail: string }> = [];
+    const gaps: Array<{
+      kind: string;
+      detail: string;
+      why_it_matters: string;
+      suggested_fix: string;
+      severity: "low" | "moderate" | "high";
+      suggested_request: string;
+    }> = [];
     if (incidentsWithoutEvidence.length > 0) {
       gaps.push({
         kind: "Unsupported incidents",
         detail: `${incidentsWithoutEvidence.length} incident${incidentsWithoutEvidence.length === 1 ? "" : "s"} have no linked evidence file.`,
+        why_it_matters: "Incidents without corroborating evidence (photos, texts, medical records, witness statements) are vulnerable on cross-examination. Judges weigh patterns more heavily when each event has at least one independent artifact.",
+        suggested_fix: "Ask the client to attach any photos, screenshots, messages, medical records, police reports, or third-party messages that reference these events — even if indirect.",
+        severity: "high",
+        suggested_request: "Please review any unlinked incidents and attach any supporting photos, screenshots, messages, or records you can find — even partial corroboration helps.",
       });
     }
     for (const row of checklist) {
       if (row.count === 0) {
-        gaps.push({ kind: "Missing category", detail: `No documented incidents for: ${row.item}` });
+        gaps.push({
+          kind: "Missing category",
+          detail: `No documented incidents for: ${row.item}`,
+          why_it_matters: "Coercive-control cases rely on the breadth of tactics, not just the worst single event. Missing categories can let opposing counsel argue the conduct was isolated rather than systemic.",
+          suggested_fix: `Ask the client whether this tactic occurred and, if so, to document specific examples for: ${row.item}.`,
+          severity: "moderate",
+          suggested_request: `Have you experienced anything related to "${row.item}"? If so, please log any specific dated examples you can remember.`,
+        });
       }
     }
     if ((flags.length ?? 0) === 0 && incidents.length >= 5) {
-      gaps.push({ kind: "No escalation flags", detail: "Five+ incidents documented but no escalation flag set. Review high-risk events." });
+      gaps.push({
+        kind: "No escalation flags",
+        detail: "Five+ incidents documented but no escalation flag set. Review high-risk events.",
+        why_it_matters: "Escalation arcs are a primary judicial concern in protective-order and custody matters. A documented case without any flagged escalation reads as static rather than worsening.",
+        suggested_fix: "Ask the client to flag any incidents involving threats, weapons, violence near children, or behavior that genuinely scared them.",
+        severity: "moderate",
+        suggested_request: "Please review your incident log and flag any events that felt like an escalation — threats, weapons, presence of children, or moments that genuinely frightened you.",
+      });
     }
     const incidentsWithoutSeverity = incidents.filter((i) => i.severity_level == null).length;
     if (incidentsWithoutSeverity > 0) {
-      gaps.push({ kind: "Severity unrated", detail: `${incidentsWithoutSeverity} incidents are missing a severity rating.` });
+      gaps.push({
+        kind: "Severity unrated",
+        detail: `${incidentsWithoutSeverity} incidents are missing a severity rating.`,
+        why_it_matters: "Severity ratings drive the risk timeline and the court-packet summary. Unrated incidents under-count the case's true weight.",
+        suggested_fix: "Ask the client to revisit unrated incidents and assign a 1–5 severity based on impact and fear.",
+        severity: "low",
+        suggested_request: "Some of your incidents don't have a severity rating yet. When you're ready, please open each one and add a 1–5 rating based on how it affected you.",
+      });
     }
 
     /* ---- risk score ---- */
