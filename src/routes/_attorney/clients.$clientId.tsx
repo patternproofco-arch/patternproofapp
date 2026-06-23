@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
-  listAttorneyNotes, upsertAttorneyNote,
+  listAttorneyNotes, upsertAttorneyNote, createDocRequest,
 } from "@/lib/attorney-portal.functions";
 import {
   listEvidenceReviews, upsertEvidenceReview,
@@ -532,20 +532,103 @@ function ChecklistTab({ data }: { data: CaseData }) {
 /* ---------------- Gaps ---------------- */
 
 function Gaps({ data }: { data: CaseData }) {
+  return <GapsTab data={data} />;
+}
+
+function GapsTab({ data }: { data: CaseData }) {
+  const { clientId } = useParams({ from: "/_attorney/clients/$clientId" });
+  const reqFn = useServerFn(createDocRequest);
+  const [sentIdx, setSentIdx] = useState<Set<number>>(new Set());
+  const [sendingIdx, setSendingIdx] = useState<number | null>(null);
+
+  const sevColor: Record<string, string> = { high: "#EF4444", moderate: "#F59E0B", low: "#94A3B8" };
+
+  const requestClarification = async (idx: number, g: CaseData["gaps"][number]) => {
+    setSendingIdx(idx);
+    try {
+      await reqFn({
+        data: {
+          clientId,
+          title: g.kind,
+          details: g.suggested_request ?? g.detail,
+        },
+      });
+      setSentIdx((s) => new Set(s).add(idx));
+      toast("Clarification request sent.");
+    } catch {
+      toast("Couldn't send request.");
+    } finally {
+      setSendingIdx(null);
+    }
+  };
+
+  const counts = data.gaps.reduce(
+    (acc, g) => {
+      const sev = (g.severity ?? "moderate") as keyof typeof acc;
+      acc[sev] = (acc[sev] ?? 0) + 1;
+      return acc;
+    },
+    { high: 0, moderate: 0, low: 0 } as Record<"high" | "moderate" | "low", number>,
+  );
+
   return (
     <div className="att-card">
       <SectionTitle icon={<AlertTriangle size={16} style={{ color: "#F59E0B" }} />}>Evidence gaps</SectionTitle>
       {data.gaps.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--att-green)" }}>No critical gaps detected.</p>
       ) : (
-        <ul style={{ display: "grid", gap: 8, listStyle: "none", padding: 0, margin: 0 }}>
-          {data.gaps.map((g, i) => (
-            <li key={i} style={{ borderLeft: "3px solid #F59E0B", paddingLeft: 12 }}>
-              <strong style={{ fontSize: 13 }}>{g.kind}</strong>
-              <div style={{ fontSize: 13, color: "var(--att-text-2)" }}>{g.detail}</div>
-            </li>
-          ))}
-        </ul>
+        <>
+          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+            <span className="att-tag" style={{ background: `${sevColor.high}1A`, color: sevColor.high }}>{counts.high} high</span>
+            <span className="att-tag" style={{ background: `${sevColor.moderate}1A`, color: sevColor.moderate }}>{counts.moderate} moderate</span>
+            <span className="att-tag" style={{ background: `${sevColor.low}1A`, color: sevColor.low }}>{counts.low} low</span>
+          </div>
+          <ul style={{ display: "grid", gap: 14, listStyle: "none", padding: 0, margin: 0 }}>
+            {data.gaps.map((g, i) => {
+              const sev = (g.severity ?? "moderate") as "high" | "moderate" | "low";
+              const sent = sentIdx.has(i);
+              return (
+                <li
+                  key={i}
+                  style={{
+                    borderLeft: `3px solid ${sevColor[sev]}`,
+                    padding: "12px 14px",
+                    background: "#F8FAFC",
+                    borderRadius: 6,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <strong style={{ fontSize: 14 }}>{g.kind}</strong>
+                    <span className="att-tag" style={{ background: `${sevColor[sev]}1A`, color: sevColor[sev], fontSize: 10, textTransform: "uppercase" }}>{sev}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 8 }}>{g.detail}</div>
+                  {g.why_it_matters && (
+                    <div style={{ fontSize: 12, marginTop: 8 }}>
+                      <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Why it matters</span>
+                      <span style={{ color: "var(--att-text-2)" }}>{g.why_it_matters}</span>
+                    </div>
+                  )}
+                  {g.suggested_fix && (
+                    <div style={{ fontSize: 12, marginTop: 8 }}>
+                      <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Suggested fix</span>
+                      <span style={{ color: "var(--att-text-2)" }}>{g.suggested_fix}</span>
+                    </div>
+                  )}
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      className="att-btn-secondary"
+                      style={{ padding: "6px 12px", fontSize: 12 }}
+                      disabled={sent || sendingIdx === i}
+                      onClick={() => requestClarification(i, g)}
+                    >
+                      {sent ? "Request sent" : sendingIdx === i ? "Sending…" : "Request clarification"}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
     </div>
   );
