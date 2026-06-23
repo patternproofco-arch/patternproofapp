@@ -9,7 +9,7 @@ import {
   getAttorneyProfile,
 } from "@/lib/attorney-portal.functions";
 
-export const Route = createFileRoute("/_attorney/onboarding")({
+export const Route = createFileRoute("/_attorney/setup")({
   component: OnboardingPage,
 });
 
