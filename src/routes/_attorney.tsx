@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { LogOut, Lock } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { getMyRole } from "@/lib/attorney-portal.functions";
+import { getMyRole, getAttorneyProfile } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
 import { Logo } from "@/components/Logo";
@@ -24,29 +24,55 @@ function AttorneyLayout() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const getRole = useServerFn(getMyRole);
+  const getProfile = useServerFn(getAttorneyProfile);
   const [checking, setChecking] = useState(true);
+  const [onboarded, setOnboarded] = useState<boolean | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sub = useSubscription();
 
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate({ to: "/lawyer-signup", replace: true }); return; }
-    getRole().then((r) => {
-      if (r.role !== "attorney") navigate({ to: "/lawyer-signup", replace: true });
-      else setChecking(false);
+    getRole().then(async (r) => {
+      if (r.role !== "attorney") {
+        navigate({ to: "/lawyer-signup", replace: true });
+        return;
+      }
+      try {
+        const { profile } = await getProfile();
+        setOnboarded(profile?.onboarded === true);
+      } catch {
+        setOnboarded(false);
+      }
+      setChecking(false);
     }).catch(() => navigate({ to: "/lawyer-signup", replace: true }));
-  }, [user, loading, getRole, navigate]);
+  }, [user, loading, getRole, getProfile, navigate]);
 
   // Hard paywall: any non-billing route requires an active subscription.
-  // /subscribe and /billing-return are the only screens reachable without one.
-  const billingPaths = pathname === "/subscribe" || pathname === "/billing-return";
+  // /subscribe, /billing-return, and /setup are reachable without one.
+  const billingPaths =
+    pathname === "/subscribe" ||
+    pathname === "/billing-return" ||
+    pathname === "/setup";
+  const onSetup = pathname === "/setup";
+
+  // Force onboarding before anything else if attorney hasn't completed it.
+  useEffect(() => {
+    if (loading || checking) return;
+    if (!user) return;
+    if (onboarded === false && !onSetup) {
+      navigate({ to: "/setup", replace: true });
+    }
+  }, [loading, checking, onboarded, onSetup, navigate, user]);
+
   useEffect(() => {
     if (loading || checking || sub.loading) return;
     if (!user) return;
+    if (onboarded === false) return; // onboarding takes priority over paywall
     if (!sub.isActive && !billingPaths) {
       navigate({ to: "/subscribe", replace: true });
     }
-  }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate, user]);
+  }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate, user, onboarded]);
 
   if (loading || checking || sub.loading) {
     return (
