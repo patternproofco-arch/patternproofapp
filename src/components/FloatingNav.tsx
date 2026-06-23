@@ -329,6 +329,13 @@ export function FloatingNav() {
               >
                 <NavIcon icon={LogOut} size={16} color="#3D3832" /> Sign out
               </button>
+              <Link
+                to="/privacy"
+                className="mt-1 px-3 py-2 text-left"
+                style={{ color: "#6B6478", fontSize: 12, fontWeight: 500, textDecoration: "underline" }}
+              >
+                Privacy Policy
+              </Link>
             </div>
           </aside>
         </div>

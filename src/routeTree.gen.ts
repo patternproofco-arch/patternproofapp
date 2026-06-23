@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
 import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
@@ -70,6 +71,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const RequestOrgAccessRoute = RequestOrgAccessRouteImport.update({
   id: '/request-org-access',
   path: '/request-org-access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -342,6 +348,7 @@ export interface FileRoutesByFullPath {
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/billing': typeof AttorneyBillingRoute
@@ -394,6 +401,7 @@ export interface FileRoutesByTo {
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/billing': typeof AttorneyBillingRoute
@@ -447,6 +455,7 @@ export interface FileRoutesById {
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_attorney/billing': typeof AttorneyBillingRoute
@@ -501,6 +510,7 @@ export interface FileRouteTypes {
     | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
+    | '/privacy'
     | '/request-org-access'
     | '/sitemap.xml'
     | '/billing'
@@ -553,6 +563,7 @@ export interface FileRouteTypes {
     | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
+    | '/privacy'
     | '/request-org-access'
     | '/sitemap.xml'
     | '/billing'
@@ -605,6 +616,7 @@ export interface FileRouteTypes {
     | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
+    | '/privacy'
     | '/request-org-access'
     | '/sitemap.xml'
     | '/_attorney/billing'
@@ -660,6 +672,7 @@ export interface RootRouteChildren {
   ForOrganizationsRoute: typeof ForOrganizationsRoute
   LawyerSignupRoute: typeof LawyerSignupRoute
   LoginRoute: typeof LoginRoute
+  PrivacyRoute: typeof PrivacyRoute
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
@@ -683,6 +696,13 @@ declare module '@tanstack/react-router' {
       path: '/request-org-access'
       fullPath: '/request-org-access'
       preLoaderRoute: typeof RequestOrgAccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1161,6 +1181,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForOrganizationsRoute: ForOrganizationsRoute,
   LawyerSignupRoute: LawyerSignupRoute,
   LoginRoute: LoginRoute,
+  PrivacyRoute: PrivacyRoute,
   RequestOrgAccessRoute: RequestOrgAccessRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,

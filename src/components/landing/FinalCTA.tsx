@@ -92,6 +92,13 @@ export function FinalCTA() {
         <p style={{ marginTop: 56, fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
           Not an emergency service. In immediate danger, call 911.
         </p>
+        <p style={{ marginTop: 16, fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+          <Link to="/privacy" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "underline" }}>
+            Privacy Policy
+          </Link>
+          <span style={{ margin: "0 10px", opacity: 0.5 }}>·</span>
+          <span>© {new Date().getFullYear()} PatternProof</span>
+        </p>
       </div>
     </section>
   );
