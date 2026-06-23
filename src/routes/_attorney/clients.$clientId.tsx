@@ -150,7 +150,13 @@ function ClientCaseView() {
 
 function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
   const packetFn = useServerFn(generateAttorneyCourtPacket);
+  const reviewsFn = useServerFn(listEvidenceReviews);
   const [downloading, setDownloading] = useState(false);
+  const [reviews, setReviews] = useState<Array<{ evidence_id: string; status: string; exhibit_label: string | null }>>([]);
+
+  useEffect(() => {
+    reviewsFn({ data: { clientId } }).then((r) => setReviews(r.reviews as never)).catch(() => {});
+  }, [reviewsFn, clientId]);
 
   const download = async () => {
     setDownloading(true);
@@ -182,6 +188,8 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
           </button>
         </div>
       </div>
+
+      <DashboardKpiRow data={data} reviews={reviews} />
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18 }}>
         <div className="att-card">
