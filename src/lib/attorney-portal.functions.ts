@@ -662,7 +662,7 @@ export const getCaseNote = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: link } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("attorney_case_notes,updated_at:created_at")
+      .select("attorney_case_notes")
       .eq("attorney_user_id", context.userId)
       .eq("client_user_id", data.clientId)
       .eq("status", "active")
