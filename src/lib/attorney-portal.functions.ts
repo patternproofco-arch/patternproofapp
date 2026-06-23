@@ -737,3 +737,46 @@ export const hasActiveAttorneyShare = createServerFn({ method: "GET" })
     ]);
     return { active_links: links ?? 0, pending_invites: invites ?? 0 };
   });
+
+/* ------------------------- message threads (attorney view) ------------------------- */
+
+export const listClientThreads = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAttorney(context.userId);
+    await assertLink(context.userId, data.clientId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows } = await supabaseAdmin
+      .from("message_threads")
+      .select("id,source_filename,source_type,conversation_participant,exhibit_label,parse_status,message_count,summary,attorney_summary,flags,created_at")
+      .eq("user_id", data.clientId)
+      .order("created_at", { ascending: false });
+    return { threads: rows ?? [] };
+  });
+
+export const getClientThread = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ clientId: z.string().uuid(), threadId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAttorney(context.userId);
+    await assertLink(context.userId, data.clientId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: thread } = await supabaseAdmin
+      .from("message_threads")
+      .select("*")
+      .eq("id", data.threadId)
+      .eq("user_id", data.clientId)
+      .maybeSingle();
+    if (!thread) throw new Error("Thread not found");
+    const { data: messages } = await supabaseAdmin
+      .from("thread_messages")
+      .select("id,position,sender,recipient,sent_on,sent_at_time,body,attachment_name,flags")
+      .eq("thread_id", data.threadId)
+      .eq("user_id", data.clientId)
+      .order("position", { ascending: true })
+      .limit(2000);
+    return { thread, messages: messages ?? [] };
+  });

@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
-  Flag, HelpCircle, Image as ImageIcon, Lock, Music, Paperclip, Printer, Sparkles,
+  Flag, HelpCircle, Image as ImageIcon, Lock, Music, Paperclip, Printer, Sparkles, MessageSquare,
   TrendingUp, Briefcase, Shield, ListChecks, Scale, Gauge,
   ShieldCheck, Hash, Send, ChevronDown, ChevronRight,
 } from "lucide-react";
@@ -11,6 +11,7 @@ import {
   getClientCase, generateDepositionPrep, getSignedEvidenceUrl,
   listAttorneyNotes, upsertAttorneyNote, createDocRequest,
   getCaseNote, saveCaseNote,
+  listClientThreads, getClientThread,
 } from "@/lib/attorney-portal.functions";
 import {
   listEvidenceReviews, upsertEvidenceReview,
@@ -28,7 +29,7 @@ type DepoResult = Awaited<ReturnType<typeof generateDepositionPrep>>;
 type NoteRow = { incident_id: string; note: string | null; flagged: boolean; reviewed: boolean };
 
 const TABS = [
-  "Dashboard", "Intake", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Deposition", "Export",
+  "Dashboard", "Intake", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Threads", "Deposition", "Export",
 ] as const;
 type Tab = (typeof TABS)[number];
 
@@ -140,6 +141,7 @@ function ClientCaseView() {
         {tab === "Checklist" && <ChecklistTab data={data} />}
         {tab === "Gaps" && <Gaps data={data} />}
         {tab === "Evidence" && <EvidenceTab data={data} clientId={clientId} />}
+        {tab === "Threads" && <ThreadsTab clientId={clientId} />}
         {tab === "Deposition" && <DepoTab depo={depo} loading={depoLoading} onRun={runDepo} />}
         {tab === "Export" && <ExportTab data={data} caseId={caseId} />}
       </div>
@@ -1385,6 +1387,211 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
             {s.body}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Threads tab (attorney message-thread viewer) ---------------- */
+
+type ThreadRow = {
+  id: string;
+  source_filename: string;
+  source_type: string;
+  conversation_participant: string | null;
+  exhibit_label: string | null;
+  parse_status: string;
+  message_count: number;
+  summary: string | null;
+  attorney_summary: string | null;
+  flags: unknown;
+  created_at: string;
+};
+
+type ThreadMessage = {
+  id: string;
+  position: number;
+  sender: string | null;
+  recipient: string | null;
+  sent_on: string | null;
+  sent_at_time: string | null;
+  body: string | null;
+  attachment_name: string | null;
+  flags: unknown;
+};
+
+type ThreadFlag = { type?: string; label?: string; evidence?: string; severity?: string };
+
+function toFlags(v: unknown): ThreadFlag[] {
+  return Array.isArray(v) ? (v as ThreadFlag[]) : [];
+}
+
+function ThreadsTab({ clientId }: { clientId: string }) {
+  const listFn = useServerFn(listClientThreads);
+  const getFn = useServerFn(getClientThread);
+  const [threads, setThreads] = useState<ThreadRow[] | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [openThread, setOpenThread] = useState<{ thread: ThreadRow; messages: ThreadMessage[] } | null>(null);
+  const [loadingOpen, setLoadingOpen] = useState(false);
+
+  useEffect(() => {
+    listFn({ data: { clientId } })
+      .then((r) => setThreads(r.threads as ThreadRow[]))
+      .catch(() => setThreads([]));
+  }, [listFn, clientId]);
+
+  const open = async (id: string) => {
+    setOpenId(id);
+    setLoadingOpen(true);
+    setOpenThread(null);
+    try {
+      const r = await getFn({ data: { clientId, threadId: id } });
+      setOpenThread({ thread: r.thread as ThreadRow, messages: r.messages as ThreadMessage[] });
+    } catch {
+      toast("Couldn't open thread.");
+    } finally {
+      setLoadingOpen(false);
+    }
+  };
+
+  if (threads === null) return <div className="att-card">Loading threads…</div>;
+
+  if (threads.length === 0) {
+    return (
+      <div className="att-card" style={{ textAlign: "center", padding: 32 }}>
+        <MessageSquare size={28} style={{ color: "var(--att-text-2)", marginBottom: 8 }} />
+        <h3 style={{ fontSize: 16, marginBottom: 4 }}>No message threads uploaded</h3>
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
+          When the client uploads an exported iMessage, SMS, or chat conversation, it will appear here with an AI-generated attorney summary and flagged passages.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0,360px) minmax(0,1fr)", gap: 18, alignItems: "start" }}>
+      <div style={{ display: "grid", gap: 10 }}>
+        {threads.map((t) => {
+          const flags = toFlags(t.flags);
+          const high = flags.filter((f) => f.severity === "high").length;
+          const active = openId === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => open(t.id)}
+              className="att-card"
+              style={{
+                textAlign: "left", cursor: "pointer", padding: 14,
+                border: active ? "1.5px solid var(--att-navy)" : "1px solid var(--att-border)",
+                background: active ? "#F8FAFC" : "#fff",
+                fontFamily: "inherit",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--att-navy)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {t.exhibit_label || t.conversation_participant || t.source_filename}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 2 }}>
+                    {t.source_type.toUpperCase()} · {t.message_count} msgs · {new Date(t.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                {high > 0 && (
+                  <span className="att-tag" style={{ background: "#FEE2E2", color: "#B91C1C", fontSize: 10 }}>
+                    {high} high
+                  </span>
+                )}
+              </div>
+              {t.parse_status !== "parsed" && (
+                <div style={{ fontSize: 10, marginTop: 6, color: "var(--att-text-2)", fontStyle: "italic" }}>
+                  {t.parse_status}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="att-card" style={{ minHeight: 400 }}>
+        {!openId && (
+          <div style={{ textAlign: "center", color: "var(--att-text-2)", padding: "60px 20px", fontSize: 13 }}>
+            Select a thread to view AI summary, flagged passages, and full conversation.
+          </div>
+        )}
+        {openId && loadingOpen && <div style={{ fontSize: 13 }}>Loading conversation…</div>}
+        {openId && !loadingOpen && openThread && <ThreadViewer t={openThread.thread} messages={openThread.messages} />}
+      </div>
+    </div>
+  );
+}
+
+function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[] }) {
+  const flags = toFlags(t.flags);
+  const sevColor = (s?: string) => s === "high" ? "#B91C1C" : s === "medium" ? "#B45309" : "#0F2547";
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      <div>
+        <div className="att-eyebrow">Exhibit</div>
+        <h3 style={{ fontSize: 18, marginTop: 4, fontFamily: '"Instrument Serif", serif' }}>
+          {t.exhibit_label || t.conversation_participant || t.source_filename}
+        </h3>
+        <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 2 }}>
+          Source: {t.source_filename} · {t.source_type.toUpperCase()} · {t.message_count} messages
+        </div>
+      </div>
+
+      {t.attorney_summary && (
+        <div style={{ padding: 14, background: "#F8FAFC", borderLeft: "3px solid var(--att-navy)", borderRadius: 4 }}>
+          <div className="att-eyebrow" style={{ marginBottom: 6 }}>Attorney summary</div>
+          <p style={{ fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap", margin: 0 }}>{t.attorney_summary}</p>
+        </div>
+      )}
+
+      {flags.length > 0 && (
+        <div>
+          <div className="att-eyebrow" style={{ marginBottom: 8 }}>Flagged passages ({flags.length})</div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {flags.map((f, i) => (
+              <div key={i} style={{ padding: 10, borderLeft: `3px solid ${sevColor(f.severity)}`, background: "#FEF9F4", borderRadius: 4 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+                  <span>{f.label || f.type}</span>
+                  <span className="att-mono" style={{ color: sevColor(f.severity), textTransform: "uppercase", fontSize: 10 }}>
+                    {f.severity}
+                  </span>
+                </div>
+                {f.evidence && (
+                  <p style={{ fontSize: 12, color: "var(--att-text-2)", margin: 0, fontStyle: "italic" }}>"{f.evidence}"</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <div className="att-eyebrow" style={{ marginBottom: 8 }}>Full conversation</div>
+        {messages.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No structured messages parsed for this thread.</p>
+        ) : (
+          <div style={{ display: "grid", gap: 6, maxHeight: 500, overflowY: "auto", paddingRight: 6 }}>
+            {messages.map((m) => (
+              <div key={m.id} style={{ padding: "8px 10px", background: "#fff", border: "1px solid var(--att-border)", borderRadius: 6 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--att-text-2)", marginBottom: 2 }}>
+                  <span style={{ fontWeight: 600, color: "var(--att-navy)" }}>{m.sender || "Unknown"}</span>
+                  <span className="att-mono">
+                    {[m.sent_on, m.sent_at_time].filter(Boolean).join(" ") || "—"}
+                  </span>
+                </div>
+                {m.body && <div style={{ fontSize: 13, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{m.body}</div>}
+                {m.attachment_name && (
+                  <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                    <Paperclip size={11} /> {m.attachment_name}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
