@@ -55,7 +55,7 @@ function AttorneyLayout() {
     pathname === "/billing-return" ||
     pathname === "/setup" ||
     pathname === "/billing" ||
-    pathname === "/settings";
+    pathname === "/trust";
   const onSetup = pathname === "/setup";
 
   // Force onboarding before anything else if attorney hasn't completed it.
@@ -155,7 +155,7 @@ function AttorneyTopNav() {
           <>
             <Link to="/clients" className={`att-nav-tab ${pathname === "/clients" ? "active" : ""}`}>Clients</Link>
             <Link to="/billing" className={`att-nav-tab ${pathname === "/billing" ? "active" : ""}`}>Billing</Link>
-            <Link to="/settings" className={`att-nav-tab ${pathname === "/settings" ? "active" : ""}`}>Trust</Link>
+            <Link to="/trust" className={`att-nav-tab ${pathname === "/trust" ? "active" : ""}`}>Trust</Link>
           </>
         )}
       </div>
