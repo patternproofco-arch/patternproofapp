@@ -838,10 +838,15 @@ function DepoTab({ depo, loading, onRun }: { depo: DepoResult | null; loading: b
       {depo?.ok && depo.prep && (
         <div style={{ marginTop: 18, display: "grid", gap: 18, fontSize: 13 }}>
           <DepoSection title="Chronology strengths" items={depo.prep.chronology_strengths} />
+          <DepoSection title="Talking points (narrative spine)" items={depo.prep.talking_points} />
+          <DepoComplex title="Strongest evidence" items={depo.prep.strongest_evidence} keys={["item", "why_it_helps", "tied_to_incident"]} accent="#10B981" />
+          <DepoComplex title="Weakest evidence" items={depo.prep.weakest_evidence} keys={["item", "risk", "recommended_action"]} accent="#EF4444" />
+          <DepoComplex title="Contradictions to reconcile" items={depo.prep.contradictions} keys={["topic", "conflicting_accounts", "how_to_reconcile"]} accent="#F59E0B" />
           <DepoComplex title="Weak spots" items={depo.prep.weak_spots} keys={["issue", "risk", "suggested_fix"]} />
           <DepoComplex title="Credibility gaps" items={depo.prep.credibility_gaps} keys={["gap", "address_before_testimony"]} />
           <DepoSection title="Direct examination questions" items={depo.prep.prep_questions} ordered />
           <DepoSection title="Cross-examination warnings" items={depo.prep.cross_warnings} />
+          <DepoComplex title="Court-safe phrasing" items={depo.prep.court_safe_phrasing} keys={["instead_of", "say"]} accent="#2D4A8A" />
         </div>
       )}
     </div>
@@ -861,14 +866,14 @@ function DepoSection({ title, items, ordered }: { title: string; items?: string[
   );
 }
 
-function DepoComplex({ title, items, keys }: { title: string; items?: Array<Record<string, string>>; keys: string[] }) {
+function DepoComplex({ title, items, keys, accent }: { title: string; items?: Array<Record<string, string>>; keys: string[]; accent?: string }) {
   if (!items?.length) return null;
   return (
     <div>
       <h3 style={{ fontSize: 16, marginBottom: 6 }}>{title}</h3>
       <ul style={{ display: "grid", gap: 8, listStyle: "none", padding: 0 }}>
         {items.map((row, i) => (
-          <li key={i} style={{ borderLeft: "3px solid #F59E0B", paddingLeft: 12 }}>
+          <li key={i} style={{ borderLeft: `3px solid ${accent ?? "#F59E0B"}`, paddingLeft: 12 }}>
             {keys.map((k) => (
               <div key={k}><span className="att-eyebrow">{k.replace(/_/g, " ")}: </span>{row[k]}</div>
             ))}
