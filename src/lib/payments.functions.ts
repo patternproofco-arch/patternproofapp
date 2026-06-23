@@ -312,6 +312,29 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     const docRequests = (docReqRes.data ?? []) as unknown as Array<Record<string, unknown>>;
     const reviewByEv = new Map(reviews.map((r) => [r.evidence_id, r]));
 
+    // Attorney private notes — case-level + per-incident — only loaded if the toggle is on.
+    let caseNote = "";
+    let incidentNotes: Array<{ incident_id: string; note: string | null; flagged: boolean; reviewed: boolean }> = [];
+    if (data.includeAttorneyNotes) {
+      const [caseLinkRes, incNotesRes] = await Promise.all([
+        supabaseAdmin
+          .from("attorney_client_links")
+          .select("attorney_case_notes")
+          .eq("attorney_user_id", context.userId)
+          .eq("client_user_id", data.clientId)
+          .eq("status", "active")
+          .maybeSingle(),
+        supabaseAdmin
+          .from("attorney_incident_notes")
+          .select("incident_id,note,flagged,reviewed")
+          .eq("attorney_user_id", context.userId)
+          .eq("client_user_id", data.clientId),
+      ]);
+      caseNote = (caseLinkRes.data as { attorney_case_notes: string | null } | null)?.attorney_case_notes ?? "";
+      incidentNotes = (incNotesRes.data ?? []) as typeof incidentNotes;
+    }
+    const incNoteByIncident = new Map(incidentNotes.map((n) => [n.incident_id, n]));
+
     const zip = new JSZip();
     const exportedAt = new Date().toISOString();
     const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
@@ -465,14 +488,41 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
 
     // 07_attorney_notes.md (optional)
     if (data.includeAttorneyNotes) {
-      const notesLines: string[] = [`# Attorney Notes`, ``, `_For internal use. Do not file without review._`, ``];
-      reviews.filter((r) => r.notes).forEach((r) => {
-        const ev = (evidence as any[]).find((e) => e.id === r.evidence_id);
-        notesLines.push(`### ${r.exhibit_label || ev?.title || r.evidence_id.slice(0, 8)}`);
-        notesLines.push(`- **Status:** ${r.status}`);
-        notesLines.push(`- **Note:** ${r.notes}`);
-        notesLines.push(``);
-      });
+      const notesLines: string[] = [`# Attorney Notes`, ``, `_For internal use only. Strip this file before filing or sharing._`, ``];
+
+      notesLines.push(`## Case strategy`, ``);
+      notesLines.push(caseNote.trim() ? caseNote : `_(none)_`, ``);
+
+      const flaggedIncidentNotes = incidentNotes.filter((n) => (n.note && n.note.trim()) || n.flagged);
+      notesLines.push(`## Incident notes (${flaggedIncidentNotes.length})`, ``);
+      if (flaggedIncidentNotes.length === 0) {
+        notesLines.push(`_(none)_`, ``);
+      } else {
+        flaggedIncidentNotes.forEach((n) => {
+          const inc = (incidents as any[]).find((i) => i.id === n.incident_id);
+          const date = inc?.date ?? "—";
+          notesLines.push(`### ${date} — incident ${String(n.incident_id).slice(0, 8)}`);
+          if (n.flagged) notesLines.push(`- **Flagged for follow-up**`);
+          if (n.reviewed) notesLines.push(`- **Reviewed**`);
+          if (inc?.description) notesLines.push(`- _Summary:_ ${String(inc.description).slice(0, 220)}`);
+          if (n.note) notesLines.push(`- **Note:** ${n.note}`);
+          notesLines.push(``);
+        });
+      }
+
+      const evidenceNotes = reviews.filter((r) => r.notes);
+      notesLines.push(`## Evidence notes (${evidenceNotes.length})`, ``);
+      if (evidenceNotes.length === 0) {
+        notesLines.push(`_(none)_`, ``);
+      } else {
+        evidenceNotes.forEach((r) => {
+          const ev = (evidence as any[]).find((e) => e.id === r.evidence_id);
+          notesLines.push(`### ${r.exhibit_label || ev?.title || r.evidence_id.slice(0, 8)}`);
+          notesLines.push(`- **Status:** ${r.status}`);
+          notesLines.push(`- **Note:** ${r.notes}`);
+          notesLines.push(``);
+        });
+      }
       zip.file("07_attorney_notes.md", notesLines.join("\n"));
     }
 
