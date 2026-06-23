@@ -968,6 +968,60 @@ export type Database = {
         }
         Relationships: []
       }
+      message_threads: {
+        Row: {
+          attorney_summary: string | null
+          conversation_participant: string | null
+          created_at: string
+          exhibit_label: string | null
+          file_url: string
+          flags: Json
+          id: string
+          message_count: number
+          parse_error: string | null
+          parse_status: string
+          source_filename: string
+          source_type: string
+          summary: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attorney_summary?: string | null
+          conversation_participant?: string | null
+          created_at?: string
+          exhibit_label?: string | null
+          file_url: string
+          flags?: Json
+          id?: string
+          message_count?: number
+          parse_error?: string | null
+          parse_status?: string
+          source_filename: string
+          source_type: string
+          summary?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attorney_summary?: string | null
+          conversation_participant?: string | null
+          created_at?: string
+          exhibit_label?: string | null
+          file_url?: string
+          flags?: Json
+          id?: string
+          message_count?: number
+          parse_error?: string | null
+          parse_status?: string
+          source_filename?: string
+          source_type?: string
+          summary?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -1173,6 +1227,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      thread_messages: {
+        Row: {
+          attachment_name: string | null
+          attachment_url: string | null
+          body: string | null
+          created_at: string
+          flags: Json
+          id: string
+          position: number
+          recipient: string | null
+          sender: string | null
+          sent_at_time: string | null
+          sent_on: string | null
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          body?: string | null
+          created_at?: string
+          flags?: Json
+          id?: string
+          position?: number
+          recipient?: string | null
+          sender?: string | null
+          sent_at_time?: string | null
+          sent_on?: string | null
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          body?: string | null
+          created_at?: string
+          flags?: Json
+          id?: string
+          position?: number
+          recipient?: string | null
+          sender?: string | null
+          sent_at_time?: string | null
+          sent_on?: string | null
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
