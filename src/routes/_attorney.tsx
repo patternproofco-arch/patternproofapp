@@ -53,7 +53,9 @@ function AttorneyLayout() {
   const billingPaths =
     pathname === "/subscribe" ||
     pathname === "/billing-return" ||
-    pathname === "/setup";
+    pathname === "/setup" ||
+    pathname === "/billing" ||
+    pathname === "/trust";
   const onSetup = pathname === "/setup";
 
   // Force onboarding before anything else if attorney hasn't completed it.
@@ -150,7 +152,11 @@ function AttorneyTopNav() {
             );
           })
         ) : (
-          <Link to="/clients" className={`att-nav-tab ${pathname === "/clients" ? "active" : ""}`}>Clients</Link>
+          <>
+            <Link to="/clients" className={`att-nav-tab ${pathname === "/clients" ? "active" : ""}`}>Clients</Link>
+            <Link to="/billing" className={`att-nav-tab ${pathname === "/billing" ? "active" : ""}`}>Billing</Link>
+            <Link to="/trust" className={`att-nav-tab ${pathname === "/trust" ? "active" : ""}`}>Trust</Link>
+          </>
         )}
       </div>
 
