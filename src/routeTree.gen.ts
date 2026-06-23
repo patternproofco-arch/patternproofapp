@@ -32,6 +32,7 @@ import { Route as AuthenticatedResourcesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
 import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedMessageThreadsRouteImport } from './routes/_authenticated/message-threads'
 import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authenticated/live-recording'
 import { Route as AuthenticatedLegalDocumentsRouteImport } from './routes/_authenticated/legal-documents'
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
@@ -176,6 +177,12 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMessageThreadsRoute =
+  AuthenticatedMessageThreadsRouteImport.update({
+    id: '/message-threads',
+    path: '/message-threads',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedLiveRecordingRoute =
   AuthenticatedLiveRecordingRouteImport.update({
     id: '/live-recording',
@@ -360,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/journal': typeof AuthenticatedJournalRoute
   '/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
+  '/message-threads': typeof AuthenticatedMessageThreadsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/patterns': typeof AuthenticatedPatternsRoute
@@ -409,6 +417,7 @@ export interface FileRoutesByTo {
   '/journal': typeof AuthenticatedJournalRoute
   '/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
+  '/message-threads': typeof AuthenticatedMessageThreadsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/patterns': typeof AuthenticatedPatternsRoute
@@ -463,6 +472,7 @@ export interface FileRoutesById {
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
   '/_authenticated/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/_authenticated/live-recording': typeof AuthenticatedLiveRecordingRoute
+  '/_authenticated/message-threads': typeof AuthenticatedMessageThreadsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
@@ -516,6 +526,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/legal-documents'
     | '/live-recording'
+    | '/message-threads'
     | '/onboarding'
     | '/opra-helper'
     | '/patterns'
@@ -565,6 +576,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/legal-documents'
     | '/live-recording'
+    | '/message-threads'
     | '/onboarding'
     | '/opra-helper'
     | '/patterns'
@@ -618,6 +630,7 @@ export interface FileRouteTypes {
     | '/_authenticated/journal'
     | '/_authenticated/legal-documents'
     | '/_authenticated/live-recording'
+    | '/_authenticated/message-threads'
     | '/_authenticated/onboarding'
     | '/_authenticated/opra-helper'
     | '/_authenticated/patterns'
@@ -817,6 +830,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/message-threads': {
+      id: '/_authenticated/message-threads'
+      path: '/message-threads'
+      fullPath: '/message-threads'
+      preLoaderRoute: typeof AuthenticatedMessageThreadsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/live-recording': {
@@ -1085,6 +1105,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
   AuthenticatedLegalDocumentsRoute: typeof AuthenticatedLegalDocumentsRoute
   AuthenticatedLiveRecordingRoute: typeof AuthenticatedLiveRecordingRoute
+  AuthenticatedMessageThreadsRoute: typeof AuthenticatedMessageThreadsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
   AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
@@ -1115,6 +1136,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
   AuthenticatedLegalDocumentsRoute: AuthenticatedLegalDocumentsRoute,
   AuthenticatedLiveRecordingRoute: AuthenticatedLiveRecordingRoute,
+  AuthenticatedMessageThreadsRoute: AuthenticatedMessageThreadsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
   AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
