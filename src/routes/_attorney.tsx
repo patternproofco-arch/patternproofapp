@@ -57,7 +57,7 @@ function AttorneyLayout() {
   }
 
   return (
-    <div className="att-root">
+    <div className="att-root att-cockpit">
       <AttorneyTopNav />
       <SecurityBanner />
       <AttorneyBreadcrumb />
