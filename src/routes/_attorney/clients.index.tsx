@@ -1,8 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { AlertTriangle, FileText, MessageSquare, TrendingUp, ArrowRight, CheckCircle2, Send } from "lucide-react";
+import {
+  AlertTriangle, FileText, MessageSquare, TrendingUp, ArrowRight, CheckCircle2,
+  Send, Copy, RotateCw, X, Mail, Plus,
+} from "lucide-react";
+import { toast } from "sonner";
 import { listMyClients } from "@/lib/attorney-portal.functions";
+import {
+  listSurvivorInvites, createSurvivorInvite, revokeSurvivorInvite, resendSurvivorInvite,
+} from "@/lib/attorney-survivor-invites.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 
 export const Route = createFileRoute("/_attorney/clients/")({
@@ -10,6 +17,7 @@ export const Route = createFileRoute("/_attorney/clients/")({
 });
 
 type ClientRow = Awaited<ReturnType<typeof listMyClients>>["clients"][number];
+type InviteRow = Awaited<ReturnType<typeof listSurvivorInvites>>["invites"][number];
 
 const RISK: Record<string, { color: string; label: string }> = {
   low: { color: "#10B981", label: "Low" },
@@ -18,12 +26,24 @@ const RISK: Record<string, { color: string; label: string }> = {
   high: { color: "#EF4444", label: "High" },
 };
 
+const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
+  pending: { bg: "#FEF3C7", fg: "#92400E", label: "Pending" },
+  accepted: { bg: "#D1FAE5", fg: "#065F46", label: "Accepted" },
+  expired: { bg: "#E2E8F0", fg: "#475569", label: "Expired" },
+  revoked: { bg: "#FEE2E2", fg: "#991B1B", label: "Revoked" },
+};
+
 function ClientsIndex() {
   const fetcher = useServerFn(listMyClients);
+  const invitesFetcher = useServerFn(listSurvivorInvites);
   const [clients, setClients] = useState<ClientRow[] | null>(null);
+  const [invites, setInvites] = useState<InviteRow[] | null>(null);
   const sub = useSubscription();
 
   useEffect(() => { fetcher().then((r) => setClients(r.clients)); }, [fetcher]);
+  useEffect(() => { invitesFetcher().then((r) => setInvites(r.invites)); }, [invitesFetcher]);
+
+  const reloadInvites = () => invitesFetcher().then((r) => setInvites(r.invites));
 
   return (
     <div>
@@ -35,6 +55,8 @@ function ClientsIndex() {
 
       {/* Diagnosis card — never shows a raw empty grid */}
       <DiagnosisCard clientCount={clients?.length ?? null} tier={sub.tier} />
+
+      <InvitePanel invites={invites} onChange={reloadInvites} />
 
       {!clients ? null : clients.length === 0 ? null : (
         <div className="att-card">Loading clients…</div>
