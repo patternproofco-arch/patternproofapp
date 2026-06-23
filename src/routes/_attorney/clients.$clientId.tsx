@@ -16,7 +16,7 @@ import {
 import {
   listEvidenceReviews, upsertEvidenceReview,
 } from "@/lib/attorney-evidence-reviews.functions";
-import { getAttorneyEntitlement, generateAttorneyCourtPacket } from "@/lib/payments.functions";
+import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateClioPackage } from "@/lib/payments.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { toast } from "sonner";
 
@@ -1090,7 +1090,9 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   const [certify, setCertify] = useState(false);
   const [attorneyNotes, setAttorneyNotes] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [clioDownloading, setClioDownloading] = useState(false);
   const packetFn = useServerFn(generateAttorneyCourtPacket);
+  const clioFn = useServerFn(generateClioPackage);
 
   const toggle = (k: keyof typeof include) => setInclude((s) => ({ ...s, [k]: !s[k] }));
 
@@ -1106,6 +1108,16 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
       window.open(r.url, "_blank");
       toast("Packet ready. Includes cover, TOC, timeline, evidence index, and exhibit list.");
     } finally { setDownloading(false); }
+  };
+
+  const generateClio = async () => {
+    setClioDownloading(true);
+    try {
+      const r = await clioFn({ data: { clientId: caseId } });
+      if (!r.ok) { toast("Couldn't prepare Clio package: " + r.reason); return; }
+      window.open(r.url, "_blank");
+      toast(`Clio package ready — ${r.counts.documents} documents, ${r.counts.tasks} tasks.`);
+    } finally { setClioDownloading(false); }
   };
 
   const Item = ({ k, label, note }: { k: keyof typeof include; label: string; note: string }) => (
@@ -1171,6 +1183,22 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--att-slate)" }}>
           <Clock size={11} /> Export logged · {new Date().toLocaleString()}
         </div>
+        <div className="att-divider" />
+        <div className="att-eyebrow" style={{ marginTop: 4 }}>Prepare for Clio</div>
+        <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, lineHeight: 1.6 }}>
+          Drop-in import package for Clio Manage. Contains <span className="att-mono">contacts.csv</span>,
+          <span className="att-mono"> matter.csv</span>, <span className="att-mono">events.csv</span>,
+          <span className="att-mono"> documents.csv</span>, <span className="att-mono">tasks.csv</span>, and a
+          <span className="att-mono"> /documents</span> folder with every evidence file.
+        </p>
+        <button
+          className="att-btn-secondary"
+          onClick={generateClio}
+          disabled={clioDownloading}
+          style={{ marginTop: 10, width: "100%", padding: "10px 14px", fontSize: 13 }}
+        >
+          <Briefcase size={13} /> {clioDownloading ? "Preparing…" : "Download Clio package (ZIP)"}
+        </button>
       </div>
     </div>
   );

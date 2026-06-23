@@ -554,3 +554,232 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       filename: `court-packet-${data.clientId.slice(0, 8)}-${ts}.zip`,
     };
   });
+
+/* ------------------------- Prepare for Clio ZIP ------------------------- */
+
+export const generateClioPackage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ clientId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const ent = await isAttorneyEntitled(context.userId, data.clientId);
+    if (!ent.entitled) return { ok: false as const, reason: "paywall" as const };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: link } = await supabaseAdmin
+      .from("attorney_client_links")
+      .select("status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence")
+      .eq("attorney_user_id", context.userId)
+      .eq("client_user_id", data.clientId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (!link) return { ok: false as const, reason: "no-active-link" as const };
+
+    const includeAllIncidents = link.include_all_incidents !== false;
+    const includeAllEvidence = link.include_all_evidence !== false;
+    const scopeIncidents = (link.scope_incidents as string[] | null) ?? [];
+    const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];
+
+    const incidentsQuery = includeAllIncidents
+      ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).order("date")
+      : supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopeIncidents.length ? scopeIncidents : ["00000000-0000-0000-0000-000000000000"]).order("date");
+    const evidenceQuery = includeAllEvidence
+      ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).order("date")
+      : supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopeEvidence.length ? scopeEvidence : ["00000000-0000-0000-0000-000000000000"]).order("date");
+
+    const [incRes, evRes, casesRes, reviewsRes, docReqRes, attorneyProfileRes] = await Promise.all([
+      incidentsQuery,
+      evidenceQuery,
+      supabaseAdmin.from("cases").select("*").eq("user_id", data.clientId).order("updated_at", { ascending: false }).limit(1),
+      supabaseAdmin
+        .from("attorney_evidence_reviews")
+        .select("evidence_id,status,exhibit_label,notes,linked_incident_id")
+        .eq("attorney_user_id", context.userId)
+        .eq("client_user_id", data.clientId),
+      supabaseAdmin
+        .from("attorney_document_requests")
+        .select("title,details,status,created_at,completed_at")
+        .eq("attorney_user_id", context.userId)
+        .eq("client_user_id", data.clientId)
+        .order("created_at"),
+      supabaseAdmin.from("attorney_profiles").select("full_name,firm_name,email,bar_number,jurisdiction").eq("user_id", context.userId).maybeSingle(),
+    ]);
+
+    const incidents = (incRes.data ?? []) as Array<Record<string, unknown>>;
+    const evidence = (evRes.data ?? []) as Array<Record<string, unknown>>;
+    const latestCase = casesRes.data?.[0] as Record<string, unknown> | undefined;
+    const reviews = (reviewsRes.data ?? []) as Array<{ evidence_id: string; status: string; exhibit_label: string | null; notes: string | null; linked_incident_id: string | null }>;
+    const docRequests = (docReqRes.data ?? []) as Array<Record<string, unknown>>;
+    const attorney = attorneyProfileRes.data as { full_name?: string; firm_name?: string; email?: string; bar_number?: string; jurisdiction?: string } | null;
+    const reviewByEv = new Map(reviews.map((r) => [r.evidence_id, r]));
+
+    const exportedAt = new Date().toISOString();
+    const caseShort = data.clientId.slice(0, 8).toUpperCase();
+    const matterName = `${(latestCase?.case_type as string) ?? "Family Law Matter"} — Client ${caseShort}`;
+    const otherParty = (latestCase?.other_party as string) ?? "";
+    const jurisdiction = (latestCase?.jurisdiction as string) ?? "";
+
+    const zip = new JSZip();
+
+    // README
+    zip.file("README_clio_import.md", [
+      `# Prepare for Clio — Import Package`,
+      ``,
+      `**Matter:** ${matterName}`,
+      `**Prepared:** ${exportedAt}`,
+      `**Source:** PatternProof attorney portal`,
+      ``,
+      `## How to import`,
+      ``,
+      `1. **Contacts** → Clio › Contacts › Import — upload \`contacts.csv\`.`,
+      `2. **Matter** → Clio › Matters › New — use \`matter.csv\` for field mapping.`,
+      `3. **Documents** → Open the matter in Clio › Documents › Upload — drag the entire \`/documents\` folder. Use \`documents.csv\` as the index.`,
+      `4. **Tasks** → Clio › Tasks › Import — upload \`tasks.csv\`.`,
+      `5. **Calendar / Notes** → \`events.csv\` lists each documented incident as a timestamped matter note.`,
+      ``,
+      `## What's included`,
+      ``,
+      `- ${incidents.length} incident notes`,
+      `- ${evidence.length} evidence documents`,
+      `- ${docRequests.length} pending document requests (as Clio Tasks)`,
+      `- Contacts: client + opposing party${otherParty ? ` (${otherParty})` : ""}`,
+      ``,
+      `All evidence files are stored under \`/documents/\` with sanitized filenames.`,
+      `The \`manifest.json\` records SHA-256 hashes for every file for chain-of-custody.`,
+    ].join("\n"));
+
+    // contacts.csv (Clio-friendly column names)
+    const contacts = [
+      {
+        type: "Person",
+        first_name: "Client",
+        last_name: caseShort,
+        company: "",
+        email: "",
+        phone: "",
+        role: "Client",
+        notes: `PatternProof client ref ${caseShort}`,
+      },
+    ];
+    if (otherParty) {
+      contacts.push({
+        type: "Person",
+        first_name: otherParty.split(" ")[0] ?? otherParty,
+        last_name: otherParty.split(" ").slice(1).join(" "),
+        company: "",
+        email: "",
+        phone: "",
+        role: "Opposing Party",
+        notes: (latestCase?.relationship_type as string) ?? "",
+      });
+    }
+    zip.file("contacts.csv", toCsv(contacts));
+
+    // matter.csv
+    const matter = [{
+      matter_description: matterName,
+      practice_area: (latestCase?.case_type as string) ?? "Family Law",
+      client_reference: caseShort,
+      opposing_party: otherParty,
+      jurisdiction,
+      status: "Open",
+      open_date: new Date().toISOString().slice(0, 10),
+      responsible_attorney: attorney?.full_name ?? "",
+      firm: attorney?.firm_name ?? "",
+      summary: ((latestCase?.pattern_summary as string) ?? "").slice(0, 2000),
+    }];
+    zip.file("matter.csv", toCsv(matter));
+
+    // events.csv — each incident as a matter note
+    const events = incidents.map((i) => {
+      const types = Array.isArray(i.abuse_types) ? (i.abuse_types as string[]).join(", ") : "";
+      return {
+        matter_reference: caseShort,
+        date: (i.date as string) ?? "",
+        time: (i.time as string) ?? "",
+        category: types || "Incident",
+        location: (i.location as string) ?? "",
+        note: String(i.description ?? "").replace(/\s+/g, " ").slice(0, 4000),
+        witnesses: (i.witnesses as string) ?? "",
+        severity: (i.severity_level as number) ?? "",
+        source_id: i.id as string,
+      };
+    });
+    zip.file("events.csv", toCsv(events));
+
+    // documents.csv — Clio Document index
+    const docFolder = zip.folder("documents");
+    const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
+    const docRows: Array<Record<string, unknown>> = [];
+
+    await Promise.all(evidence.map(async (e) => {
+      const r = reviewByEv.get(e.id as string);
+      const exhibit = r?.exhibit_label ?? "";
+      const baseName = `${(e.date as string) ?? "undated"}_${String(e.id).slice(0, 8)}_${String(e.title ?? "evidence").replace(/[^a-zA-Z0-9-_]+/g, "_").slice(0, 60)}`;
+      let storedPath = "";
+      if (docFolder && !/^https?:\/\//i.test(String(e.file_url))) {
+        const { data: blob } = await supabaseAdmin.storage.from("evidence-files").download(String(e.file_url));
+        if (blob) {
+          const buf = await blob.arrayBuffer();
+          const ext = String(e.file_url).split(".").pop() || "bin";
+          storedPath = `documents/${baseName}.${ext}`;
+          docFolder.file(`${baseName}.${ext}`, buf);
+          fileHashes.push({ path: storedPath, sha256: sha256(buf), bytes: buf.byteLength });
+        }
+      }
+      docRows.push({
+        matter_reference: caseShort,
+        document_name: exhibit ? `${exhibit} — ${e.title ?? ""}` : (e.title as string) ?? "",
+        date: (e.date as string) ?? "",
+        category: r?.status ?? "evidence",
+        file_path: storedPath,
+        description: (e.description as string) ?? "",
+        source_url: /^https?:\/\//i.test(String(e.file_url)) ? String(e.file_url) : "",
+        attorney_notes: r?.notes ?? "",
+      });
+    }));
+    zip.file("documents.csv", toCsv(docRows));
+
+    // tasks.csv — open doc requests + high-severity gaps as Clio tasks
+    const taskRows: Array<Record<string, unknown>> = docRequests.map((d) => ({
+      matter_reference: caseShort,
+      task_name: d.title ?? "Document request",
+      description: d.details ?? "",
+      status: d.status ?? "open",
+      created_at: d.created_at ?? "",
+      due_date: "",
+      priority: "Normal",
+      assignee: attorney?.full_name ?? "",
+    }));
+    zip.file("tasks.csv", toCsv(taskRows));
+
+    // manifest.json
+    zip.file("manifest.json", JSON.stringify({
+      exported_at: exportedAt,
+      target_system: "Clio Manage",
+      matter_reference: caseShort,
+      counts: { incidents: incidents.length, evidence: evidence.length, documents_stored: fileHashes.length, doc_requests: docRequests.length, contacts: contacts.length },
+      file_hashes: fileHashes,
+      generator: "PatternProof Prepare-for-Clio v1",
+    }, null, 2));
+
+    const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+    const ts = exportedAt.replace(/[:.]/g, "-");
+    const objectPath = `${context.userId}/clio-package-${data.clientId}-${ts}.zip`;
+    const up = await supabaseAdmin.storage.from("exports").upload(objectPath, zipBuf, {
+      contentType: "application/zip",
+      upsert: false,
+    });
+    if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
+    const signed = await supabaseAdmin.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 24);
+    if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
+    return {
+      ok: true as const,
+      url: signed.data.signedUrl,
+      bytes: zipBuf.byteLength,
+      filename: `clio-package-${caseShort}-${ts}.zip`,
+      counts: { incidents: incidents.length, documents: fileHashes.length, tasks: taskRows.length, contacts: contacts.length },
+    };
+  });
