@@ -1145,7 +1145,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
         {first && last ? <> spanning <strong>{new Date(first).toLocaleDateString()}</strong> to <strong>{new Date(last).toLocaleDateString()}</strong></> : null},
         with <strong>{data.evidence.length} evidence file{data.evidence.length === 1 ? "" : "s"}</strong> attached.
         Current risk profile is <strong style={{ textTransform: "uppercase" }}>{data.risk_level}</strong>.
-        {c?.case_type ? <> Matter type: <strong>{c.case_type}</strong>.</> : null}
+        {c?.case_types && c.case_types.length > 0 ? <> Matter type: <strong>{c.case_types.join(", ")}</strong>.</> : null}
       </p>
     },
     { title: "Facts of the case", body:
