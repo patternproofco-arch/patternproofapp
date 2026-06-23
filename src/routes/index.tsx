@@ -5,6 +5,7 @@ import { Hero } from "@/components/landing/Hero";
 import { SurvivorSection } from "@/components/landing/SurvivorSection";
 import { AttorneySection } from "@/components/landing/AttorneySection";
 import { OrgSection } from "@/components/landing/OrgSection";
+import { SocialProofSection } from "@/components/landing/SocialProofSection";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 
 export const Route = createFileRoute("/")({
@@ -64,6 +65,7 @@ function Index() {
       <SurvivorSection />
       <AttorneySection />
       <OrgSection />
+      <SocialProofSection />
       <FinalCTA />
     </div>
   );
