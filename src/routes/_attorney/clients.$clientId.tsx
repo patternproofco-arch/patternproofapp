@@ -153,6 +153,254 @@ function ClientCaseView() {
   );
 }
 
+/* ---------------- Word (.docx) export ---------------- */
+
+const NAVY = "1B2A4A";
+const TEAL = "2F8D85";
+const BODY = "2B2640";
+const FONT = "Calibri";
+
+function p(text: string, opts: { bold?: boolean; italic?: boolean; size?: number; color?: string; align?: (typeof AlignmentType)[keyof typeof AlignmentType]; heading?: (typeof HeadingLevel)[keyof typeof HeadingLevel]; spacingAfter?: number } = {}) {
+  return new Paragraph({
+    alignment: opts.align,
+    heading: opts.heading,
+    spacing: { after: opts.spacingAfter ?? 120 },
+    children: [new TextRun({ text, bold: opts.bold, italics: opts.italic, size: opts.size ?? 20, color: opts.color ?? BODY, font: FONT })],
+  });
+}
+function h1(text: string) { return p(text, { size: 64, bold: true, color: NAVY, align: AlignmentType.LEFT, heading: HeadingLevel.HEADING_1, spacingAfter: 240 }); }
+function h2(text: string) { return p(text, { size: 48, bold: true, color: NAVY, heading: HeadingLevel.HEADING_2, spacingAfter: 200 }); }
+function h3(text: string) { return p(text, { size: 36, bold: true, color: TEAL, heading: HeadingLevel.HEADING_3, spacingAfter: 160 }); }
+function pageBreak() { return new Paragraph({ children: [new PageBreak()] }); }
+
+function kvTable(rows: Array<[string, string]>) {
+  const noBorder = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+  const rowBorder = { style: BorderStyle.SINGLE, size: 4, color: "E5E7EB" };
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: rows.map(([k, v]) => new TableRow({
+      children: [
+        new TableCell({
+          width: { size: 35, type: WidthType.PERCENTAGE },
+          borders: { top: noBorder, left: noBorder, right: noBorder, bottom: rowBorder },
+          children: [new Paragraph({ children: [new TextRun({ text: k, bold: true, size: 20, color: TEAL, font: FONT })] })],
+        }),
+        new TableCell({
+          width: { size: 65, type: WidthType.PERCENTAGE },
+          borders: { top: noBorder, left: noBorder, right: noBorder, bottom: rowBorder },
+          children: [new Paragraph({ children: [new TextRun({ text: v, size: 20, color: BODY, font: FONT })] })],
+        }),
+      ],
+    })),
+  });
+}
+
+function dataTable(headers: string[], rows: string[][]) {
+  const border = { style: BorderStyle.SINGLE, size: 4, color: "D1D5DB" };
+  const borders = { top: border, bottom: border, left: border, right: border };
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        tableHeader: true,
+        children: headers.map((h) => new TableCell({
+          borders,
+          shading: { fill: "F1F5F9", type: "clear", color: "auto" },
+          children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: 20, color: NAVY, font: FONT })] })],
+        })),
+      }),
+      ...rows.map((r) => new TableRow({
+        children: r.map((c) => new TableCell({
+          borders,
+          children: [new Paragraph({ children: [new TextRun({ text: c, size: 20, color: BODY, font: FONT })] })],
+        })),
+      })),
+    ],
+  });
+}
+
+async function generateWordDoc(args: {
+  data: CaseData; caseId: string;
+  include: { overview: boolean; timeline: boolean; patterns: boolean; checklist: boolean; gaps: boolean; evidence: boolean };
+  certify: boolean; attorneyNotes: boolean;
+}) {
+  const { data, caseId, include, certify, attorneyNotes } = args;
+  const children: Array<Paragraph | Table> = [];
+
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  // Cover
+  children.push(p("P4TTERN PR00F", { size: 64, bold: true, color: NAVY, align: AlignmentType.CENTER, spacingAfter: 200 }));
+  children.push(p("COURT PACKET", { size: 64, bold: true, color: NAVY, align: AlignmentType.CENTER, spacingAfter: 600 }));
+  children.push(p(`Case Reference: ${caseId}`, { align: AlignmentType.CENTER, spacingAfter: 120 }));
+  children.push(p(today, { align: AlignmentType.CENTER, spacingAfter: 600 }));
+  children.push(p(
+    "This document contains confidential survivor documentation. Handle in accordance with applicable privilege and professional responsibility rules.",
+    { size: 32, italic: true, align: AlignmentType.CENTER },
+  ));
+  children.push(pageBreak());
+
+  // 1. Overview
+  if (include.overview) {
+    children.push(h2("1. Case Overview"));
+    children.push(kvTable([
+      ["Case ref", caseId],
+      ["Incidents on file", String(data.incidents.length)],
+      ["Evidence files", String(data.evidence.length)],
+      ["Risk level", (data.risk_level ?? "—").toString().toUpperCase()],
+      ["Active flags", String((data.flags ?? []).filter((f: any) => !f.dismissed_at).length)],
+      ["Avg severity", (data.avg_severity ?? 0).toFixed(1)],
+      ["Incidents (last 30 days)", String(data.last_30_days ?? 0)],
+      ["Other party", data.case?.other_party ?? "—"],
+      ["Jurisdiction", data.case?.jurisdiction ?? "—"],
+      ["Relationship", data.case?.relationship_type ?? "—"],
+    ]));
+    if (data.case?.pattern_summary) {
+      children.push(p("", { spacingAfter: 100 }));
+      children.push(h3("Client Summary"));
+      children.push(p(data.case.pattern_summary));
+    }
+  }
+
+  // 2. Timeline
+  if (include.timeline) {
+    children.push(h2("2. Incident Timeline"));
+    children.push(p(`${data.incidents.length} incidents documented.`));
+    const byMonth: Record<string, typeof data.incidents> = {};
+    for (const inc of data.incidents) {
+      const key = (inc.date ?? "").slice(0, 7) || "Undated";
+      (byMonth[key] = byMonth[key] || []).push(inc);
+    }
+    const months = Object.keys(byMonth).sort().reverse();
+    for (const key of months) {
+      const list = byMonth[key];
+      const label = key === "Undated" ? "Undated" : new Date(key + "-01").toLocaleDateString("en-US", { year: "numeric", month: "long" });
+      children.push(h3(`${label} — ${list.length} incident(s)`));
+      for (const inc of list) {
+        const head = `${inc.date ?? "—"}${inc.time ? " · " + inc.time : ""} · Severity ${inc.severity_level ?? "—"}`;
+        children.push(p(head, { bold: true }));
+        if (inc.abuse_types && inc.abuse_types.length > 0) children.push(p(`Types: ${inc.abuse_types.join(", ")}`, { italic: true }));
+        if (inc.location) children.push(p(`Location: ${inc.location}`));
+        if (inc.description) children.push(p(inc.description));
+        if ((inc as any).witnesses) children.push(p(`Witnesses: ${(inc as any).witnesses}`));
+        children.push(p("", { spacingAfter: 120 }));
+      }
+    }
+  }
+
+  // 3. Patterns
+  if (include.patterns) {
+    children.push(h2("3. Pattern Analysis"));
+    const cats = [...(data.categories ?? [])].sort((a, b) => b.count - a.count);
+    children.push(dataTable(["Behavior type", "Incident count"], cats.map((c) => [c.type, String(c.count)])));
+    children.push(p("", { spacingAfter: 120 }));
+    children.push(dataTable(
+      ["Month", "Incidents", "Avg severity"],
+      (data.timeline ?? []).map((m: any) => [m.month, String(m.count), (m.avg_severity ?? 0).toFixed(1)]),
+    ));
+    children.push(p("", { spacingAfter: 120 }));
+    children.push(p(
+      "The frequency, breadth, and escalation pattern above is consistent with the coercive-control framework recognized in many jurisdictions. This analysis may be used to demonstrate systematic control rather than isolated incidents of conflict.",
+      { italic: true },
+    ));
+  }
+
+  // 4. Checklist
+  if (include.checklist) {
+    children.push(h2("4. Coercive Control Checklist"));
+    const docCount = (data.checklist ?? []).filter((r: any) => r.documented).length;
+    children.push(p(`Stark Framework — ${docCount} of ${(data.checklist ?? []).length} mechanisms documented.`));
+    children.push(dataTable(
+      ["Control mechanism", "Status", "Incidents"],
+      (data.checklist ?? []).map((r: any) => [r.item, r.documented ? "Documented" : "Not documented", r.count != null ? String(r.count) : "—"]),
+    ));
+  }
+
+  // 5. Gaps
+  if (include.gaps) {
+    children.push(h2("5. Evidence Gaps"));
+    children.push(p(`${(data.gaps ?? []).length} gap(s) identified.`));
+    const order: Array<"high" | "moderate" | "low"> = ["high", "moderate", "low"];
+    for (const sev of order) {
+      const group = (data.gaps ?? []).filter((g: any) => (g.severity ?? "moderate") === sev);
+      if (group.length === 0) continue;
+      children.push(h3(`${sev.toUpperCase()} SEVERITY`));
+      for (const g of group) {
+        children.push(p(g.kind, { bold: true }));
+        if (g.detail) children.push(p(g.detail));
+        if (g.why_it_matters) children.push(p(`Why it matters: ${g.why_it_matters}`, { italic: true }));
+        if (g.suggested_fix) children.push(p(`Suggested fix: ${g.suggested_fix}`));
+        children.push(p("", { spacingAfter: 100 }));
+      }
+    }
+  }
+
+  // 6. Evidence
+  if (include.evidence) {
+    children.push(h2("6. Evidence Index"));
+    children.push(p(`${data.evidence.length} authenticated file(s) on record.`));
+    children.push(dataTable(
+      ["Title", "Date", "Type", "Linked to incident"],
+      data.evidence.map((e: any) => [
+        e.title ?? "—", e.date ?? "—", e.file_type ?? "—", e.linked_incident_id ? "Yes" : "No",
+      ]),
+    ));
+    children.push(p("", { spacingAfter: 120 }));
+    children.push(p(
+      "Raw evidence files are included in the full court packet ZIP. This index provides a chain-of-custody reference for each file.",
+      { italic: true },
+    ));
+  }
+
+  // Certification
+  if (certify) {
+    children.push(h2("Attorney Certification"));
+    const lines = [
+      "I, _________________________________, hereby certify that I have reviewed the materials contained in this court packet and that they accurately represent the documentation provided by my client.",
+      "",
+      "Bar Number: _____________________________",
+      "",
+      "Jurisdiction: ___________________________",
+      "",
+      "Signature: ______________________________",
+      "",
+      "Date: __________________________________",
+      "",
+      "Firm: __________________________________",
+    ];
+    for (const line of lines) children.push(p(line, { spacingAfter: 200 }));
+  }
+
+  // Attorney notes placeholder
+  if (attorneyNotes) {
+    children.push(h2("Attorney Notes"));
+    children.push(p(
+      "Attorney notes are available in the full court packet ZIP download as 07_attorney_notes.md. They are excluded from this Word document to prevent accidental disclosure. Remove that file before filing or sharing the ZIP with opposing counsel.",
+      { italic: true },
+    ));
+  }
+
+  const doc = new Document({
+    creator: "P4TTERN PR00F",
+    title: `Court Packet ${caseId}`,
+    styles: { default: { document: { run: { font: FONT, size: 20, color: BODY } } } },
+    sections: [{
+      properties: { page: { margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
+      children,
+    }],
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `court-packet-${caseId}-${new Date().toISOString().slice(0, 10)}.docx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 /* ---------------- New unified Dashboard tab ---------------- */
 
 function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
