@@ -19,6 +19,10 @@ import {
 import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateClioPackage } from "@/lib/payments.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { toast } from "sonner";
+import {
+  Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
+  BorderStyle, Table, TableRow, TableCell, WidthType, PageBreak,
+} from "docx";
 
 export const Route = createFileRoute("/_attorney/clients/$clientId")({
   component: ClientCaseView,
