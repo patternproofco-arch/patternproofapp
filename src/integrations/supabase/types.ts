@@ -1349,21 +1349,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_active_subscription: {
-        Args: { check_env?: string; user_uuid: string }
-        Returns: boolean
-      }
-      has_attorney_access: {
-        Args: { _attorney_id: string; _client_id: string }
-        Returns: boolean
-      }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       access_level:
