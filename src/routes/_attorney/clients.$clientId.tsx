@@ -1102,7 +1102,14 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
 
   const generate = async () => {
     if (format === "word") {
-      toast("Word export coming soon — use Print → Save as PDF for now.");
+      setDownloading(true);
+      try {
+        await generateWordDoc({ data, caseId, include, certify, attorneyNotes });
+        toast("Word document downloaded.");
+      } catch (e) {
+        console.error("Word export failed", e);
+        toast("Couldn't generate Word document — try Print / Save as PDF instead.");
+      } finally { setDownloading(false); }
       return;
     }
     setDownloading(true);
