@@ -1,0 +1,5 @@
+Contact: mailto:gracieburns200@gmail.com
+Preferred-Languages: en
+Expires: 2027-01-01T00:00:00.000Z
+Policy: https://pattern-proof.tech/privacy
+Acknowledgments: https://pattern-proof.tech/security

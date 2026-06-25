@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /attorney/
 
-Sitemap: https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/sitemap.xml
+Sitemap: https://pattern-proof.tech/sitemap.xml
