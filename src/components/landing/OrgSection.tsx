@@ -70,11 +70,49 @@ export function OrgSection() {
             color: "#2E3340",
             fontWeight: 500,
             maxWidth: 660,
-            marginBottom: 56,
+            marginBottom: 28,
           }}
         >
           Survivors document before intake. Advocates see the pattern faster.
         </p>
+
+        {/* DocuSafe replacement callout */}
+        <div
+          style={{
+            maxWidth: 480,
+            marginBottom: 56,
+            padding: "24px 28px",
+            borderRadius: 16,
+            background: "#FFFFFF",
+            borderLeft: "4px solid #3D72B8",
+            boxShadow: "0 8px 32px -12px rgba(30,58,95,0.18)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "#3D72B8",
+              fontWeight: 700,
+              marginBottom: 12,
+            }}
+          >
+            DocuSafe replacement
+          </div>
+          <p style={{ fontSize: 15, lineHeight: 1.65, color: "#2E3340", marginBottom: 12, fontWeight: 500 }}>
+            DocuSafe closed in October 2023 when DOJ funding ended. The tool that hundreds of DV organizations relied on to help survivors document evidence is gone.
+          </p>
+          <p style={{ fontSize: 15, lineHeight: 1.65, color: "#2E3340", marginBottom: 12, fontWeight: 600 }}>
+            Pattern Proof is what comes next.
+          </p>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: "#3D3832" }}>
+            Everything DocuSafe did — incident logging, timeline building, evidence organization — plus AI-powered pattern detection, mobile-first design, and court-ready export. No grant dependency. No sunset date.
+          </p>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: "#3D3832", marginTop: 8, fontWeight: 600 }}>
+            If your organization used DocuSafe, this is your replacement. Free for every survivor you serve.
+          </p>
+        </div>
 
         {/* Benefits */}
         <div className="org-benefits-grid" style={{ marginBottom: 80 }}>
