@@ -44,7 +44,7 @@ export function SurvivorSection() {
         position: "relative",
         padding: "clamp(80px, 10vw, 140px) 24px",
         background:
-          "radial-gradient(ellipse 70% 50% at 10% 0%, rgba(196,176,232,0.18), transparent 60%), radial-gradient(ellipse 60% 50% at 90% 100%, rgba(158,216,208,0.18), transparent 60%), linear-gradient(180deg, #FAFBFF 0%, #F4F1FB 100%)",
+          "radial-gradient(ellipse 70% 50% at 10% 0%, rgba(230,139,214,0.18), transparent 60%), radial-gradient(ellipse 60% 50% at 90% 100%, rgba(111,214,224,0.15), transparent 60%), linear-gradient(180deg, #F4EEE2 0%, #EDE5D6 100%)",
         overflow: "hidden",
       }}
     >
@@ -52,50 +52,55 @@ export function SurvivorSection() {
         {/* Eyebrow */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
           <Logo variant="survivor" size={36} />
-          <span style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "#7C5CC4", fontWeight: 700 }}>
+          <span style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9B7BE8", fontWeight: 700 }}>
             For survivors
           </span>
         </div>
 
         {/* Emotional hero */}
-        <h2
-          style={{
-            fontSize: "clamp(2rem, 5vw, 4rem)",
-            fontWeight: 800,
-            letterSpacing: "-0.025em",
-            lineHeight: 1.08,
-            marginBottom: 24,
-            maxWidth: 900,
-          }}
-        >
-          The incident you remember.
-          <br />
-          The screenshot you saved.
-          <br />
-          The voice note you almost deleted.
-          <br />
-          <span
-            style={{
-              background: "linear-gradient(90deg,#7C5CC4,#2F8D85)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            It all matters.
+        <h2 style={{
+          fontSize: "clamp(2rem, 5vw, 4rem)",
+          fontFamily: "'Newsreader', Georgia, serif",
+          fontWeight: 300,
+          fontStyle: "italic",
+          letterSpacing: "-0.02em",
+          lineHeight: 1.1,
+          marginBottom: 24,
+          maxWidth: 820,
+          color: "#2A2218",
+        }}>
+          We can't just hope the truth will prevail.{" "}
+          <span style={{
+            background: "linear-gradient(100deg, #E68BD6 0%, #9B7BE8 45%, #6FD6E0 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            fontStyle: "normal",
+          }}>
+            We have to arm ourselves.
           </span>
         </h2>
-        <p
-          style={{
-            fontSize: 20,
-            lineHeight: 1.6,
-            color: "#3D3832",
-            fontWeight: 500,
-            maxWidth: 640,
-            marginBottom: 64,
-          }}
-        >
-          Abuse creates hundreds of moments that rarely make sense alone. P4TTERN PR00F helps reveal the pattern.
+
+        <p style={{
+          fontSize: 20,
+          lineHeight: 1.7,
+          color: "#6B5D4F",
+          fontWeight: 500,
+          maxWidth: 600,
+          marginBottom: 28,
+        }}>
+          Document every text. Every call. Every email. Every false accusation. Every single interaction — everything.
+        </p>
+        <p style={{
+          fontSize: 18,
+          lineHeight: 1.7,
+          color: "#6B5D4F",
+          fontWeight: 500,
+          maxWidth: 600,
+          marginBottom: 64,
+        }}>
+          Pattern Proof extracts the pattern from all of it. Builds your timeline. Generates a court-ready summary backed by the actual texts, calls, and incidents that prove what you already knew.
+          <strong style={{ color: "#2A2218", fontWeight: 700 }}> They can lie. The pattern can't.</strong>
         </p>
 
         {/* Transformation visual */}
@@ -129,7 +134,7 @@ export function SurvivorSection() {
 
         {/* Use case grid */}
         <div style={{ marginTop: 96 }}>
-          <div style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "#7C5CC4", fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9B7BE8", fontWeight: 700, marginBottom: 12 }}>
             Built for
           </div>
           <h3 style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 32 }}>
@@ -159,7 +164,7 @@ export function SurvivorSection() {
 
         {/* Before / After */}
         <div style={{ marginTop: 96 }}>
-          <div style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "#7C5CC4", fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9B7BE8", fontWeight: 700, marginBottom: 12 }}>
             Before vs After
           </div>
           <h3 style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 32 }}>
@@ -189,12 +194,12 @@ export function SurvivorSection() {
               gap: 8,
               padding: "16px 28px",
               borderRadius: 999,
-              background: "linear-gradient(90deg,#2F8D85,#7C5CC4)",
+              background: "linear-gradient(135deg, #E68BD6, #9B7BE8, #6FD6E0)",
               color: "#FFFFFF",
               fontWeight: 700,
               fontSize: 15,
               textDecoration: "none",
-              boxShadow: "0 12px 32px -8px rgba(124,92,196,0.45)",
+              boxShadow: "0 12px 32px -8px rgba(155,123,232,0.45)",
             }}
           >
             Enter Survivor Portal <ArrowRight size={16} />
