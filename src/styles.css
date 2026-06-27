@@ -439,25 +439,25 @@ textarea.input-pp { min-height: 130px; resize: vertical; line-height: 1.95; font
    ============================================================ */
 :root {
   /* Brand */
-  --pp-bg:        #FAFBFF;
-  --pp-fg:        #14171F;
-  --pp-card:      #FFFFFF;
-  --pp-border:    #E2E8F0;
-  --pp-border-strong: #CBD5E1;
-  --pp-muted-fg:  #475569;
+  --pp-bg:        #F4EEE2;
+  --pp-fg:        #2A2218;
+  --pp-card:      #FBF6EB;
+  --pp-border:    rgba(42,34,24,0.10);
+  --pp-border-strong: rgba(42,34,24,0.18);
+  --pp-muted-fg:  #6B5D4F;
 
-  --pp-teal:      #2F8D85;
-  --pp-navy:      #1B2A4A;
-  --pp-navy-deep: #071426;
-  --pp-blue:      #2D4A8A;
+  --pp-teal:      #6FD6E0;
+  --pp-navy:      #2A2218;
+  --pp-navy-deep: #1A1410;
+  --pp-blue:      #9B7BE8;
 
   /* Iridescent accents */
-  --pp-purple:    #C4B0E8;
+  --pp-purple:    #9B7BE8;
   --pp-mint:      #BDE6D4;
   --pp-sblue:     #B5C7F0;
-  --pp-lilac:     #D8C8F0;
-  --pp-pink:      #E8C4DD;
-  --pp-gold:      #F2E6B8;
+  --pp-lilac:     #C4B0E8;
+  --pp-pink:      #E68BD6;
+  --pp-gold:      #C9A86A;
 
   /* Status */
   --pp-success:     #10B981;
