@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Lock } from "lucide-react";
+import { Lock, Fingerprint } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { getMyRole } from "@/lib/attorney-portal.functions";
@@ -30,18 +30,20 @@ function LoginPage() {
   const navigate = useNavigate();
   const fetchRole = useServerFn(getMyRole);
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const [welcome, setWelcome] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [passkeyAvailable, setPasskeyAvailable] = useState(
+    typeof window !== "undefined" && typeof window.PublicKeyCredential !== "undefined",
+  );
 
   useEffect(() => {
-    if (!loading && user && !welcome) {
+    if (!loading && user) {
       fetchRole()
         .then((r) => navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true }))
         .catch(() => navigate({ to: "/dashboard", replace: true }));
     }
-  }, [user, loading, welcome, navigate, fetchRole]);
+  }, [user, loading, navigate, fetchRole]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,8 +56,7 @@ function LoginPage() {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        setWelcome(true);
-        setTimeout(() => navigate({ to: "/dashboard", replace: true }), 2400);
+        navigate({ to: "/dashboard", replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -70,23 +71,35 @@ function LoginPage() {
     }
   };
 
-  if (welcome) {
-    return (
-      <div className="flex min-h-screen items-center justify-center px-6">
-        <div className="card-pp max-w-md text-center">
-          <Lock size={28} style={{ color: "var(--safe)" }} className="mx-auto mb-4" />
-          <h1 className="font-serif text-[28px] leading-tight">
-            This is your space.
-            <br />
-            <em>Private, safe, and organized.</em>
-          </h1>
-          <p className="mt-4 text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            Taking you in…
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const signInWithGoogle = async () => {
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin + "/dashboard" },
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Try again in a moment.";
+      toast("We couldn't reach Google. " + msg);
+    }
+  };
+
+  const signInWithPasskey = async () => {
+    try {
+      const credential = await navigator.credentials.get({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          rpId: window.location.hostname,
+          userVerification: "preferred",
+          timeout: 60000,
+        },
+      });
+      if (credential) {
+        toast("Use your saved password with biometrics in your browser's password manager.");
+      }
+    } catch {
+      setPasskeyAvailable(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center px-5 py-10">
@@ -107,6 +120,42 @@ function LoginPage() {
               ? "\n"
               : "Create an account. Only you can see what you write here."}
           </p>
+
+          <div className="space-y-3 mb-4">
+            <button
+              type="button"
+              onClick={signInWithGoogle}
+              className="input-pp w-full flex items-center justify-center gap-2"
+              style={{ background: "#fff", color: "#2A1A10", fontWeight: 600 }}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.17-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.71-1.58 2.68-3.9 2.68-6.62z"/>
+                <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.32A9 9 0 0 0 9 18z"/>
+                <path fill="#FBBC05" d="M3.97 10.72A5.41 5.41 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.82.96 4.04l3.01-2.32z"/>
+                <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l3.01 2.32C4.68 5.16 6.66 3.58 9 3.58z"/>
+              </svg>
+              Continue with Google
+            </button>
+
+            {passkeyAvailable && (
+              <button
+                type="button"
+                onClick={signInWithPasskey}
+                className="input-pp w-full flex items-center justify-center gap-2"
+                style={{ background: "transparent", borderWidth: 1, borderStyle: "solid" }}
+              >
+                <Fingerprint size={18} />
+                Sign in with Face ID / Touch ID
+              </button>
+            )}
+          </div>
+
+          <div className="my-4 flex items-center gap-3 text-[11px]" style={{ color: "var(--muted-foreground)", letterSpacing: 1.5 }}>
+            <div className="flex-1 h-px" style={{ background: "var(--border, #B57E60)" }} />
+            OR
+            <div className="flex-1 h-px" style={{ background: "var(--border, #B57E60)" }} />
+          </div>
+
           <form onSubmit={submit} className="space-y-3">
             <input
               type="email"
