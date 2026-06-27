@@ -32,71 +32,103 @@
   --color-type-custody: #C9A84C;
   --color-type-other: #8E8678;
 
-  --font-serif: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-sans: "Hanken Grotesk", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Newsreader", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 :root {
-  /* P4TTERN PR00F — Survivor: iridescent pastel teal + purple on soft white */
-  --background: #FAFBFF;          /* soft white */
-  --foreground: #14171F;          /* near-black */
-  --charcoal-mid: #2E3340;
-  --warm-gray: #C5C9D4;
-  --card: #FFFFFF;
-  --panel: #14171F;
-  --sidebar: #14171F;
-  --sidebar-active: #F2F4FB;
-  --sidebar-inactive: #B8BFD0;
-  /* Iridescent pastel accents */
-  --pastel-teal:   #9ED8D0;
-  --pastel-purple: #C4B0E8;
+  /* Warm cream canvas */
+  --background: #F4EEE2;
+  --foreground: #2A2218;
+  --charcoal-mid: #6B5D4F;
+  --warm-gray: #C5B8A8;
+  --card: #FBF6EB;
+  --panel: #2A2218;
+  --sidebar: #2A2218;
+  --sidebar-active: #F4EEE2;
+  --sidebar-inactive: #9A8E80;
+
+  /* Iridescent triad */
+  --pastel-teal:   #6FD6E0;
+  --pastel-purple: #9B7BE8;
   --pastel-blue:   #B5C7F0;
   --pastel-mint:   #BDE6D4;
-  --pastel-lilac:  #D8C8F0;
-  --pastel-pink:   #E8C4DD;       /* legacy alias retained */
-  --pastel-yellow: #F2E6B8;       /* legacy alias retained */
-  --pastel-sage:   #C8D4C0;       /* legacy alias retained */
-  --teal-dark:     #2F8D85;       /* primary CTA */
-  --purple-dark:   #7C5CC4;       /* accent */
-  --primary: #2F8D85;
+  --pastel-lilac:  #C4B0E8;
+  --pastel-pink:   #E68BD6;
+  --pastel-yellow: #F2E6B8;
+  --pastel-sage:   #A8C4A0;
+
+  /* Primary actions */
+  --primary: #9B7BE8;
   --primary-foreground: #FFFFFF;
-  --accent: #C4B0E8;
-  --safe: #BDE6D4;
-  --gold: #F2E6B8;
-  --brand-pink: #2F8D85;          /* alias kept; now teal */
-  --brand-pink-strong: #7C5CC4;   /* alias kept; now purple emphasis */
-  --brand-pink-soft: #DDEFF0;
-  --brand-pink-tint: rgba(47, 141, 133, 0.08);
-  --muted-foreground: #3D3832;
-  --border: rgba(20, 23, 31, 0.10);
-  --input: rgba(255, 255, 255, 0.7);
-  --ring: #2F8D85;
+  --accent: #E68BD6;
+  --safe: #6FD6E0;
+  --gold: #C9A86A;
+
+  /* Legacy aliases */
+  --brand-pink: #9B7BE8;
+  --brand-pink-strong: #7A5BC8;
+  --brand-pink-soft: #EDE6F8;
+  --brand-pink-tint: rgba(155,123,232,0.08);
+  --teal-dark: #4ABAC6;
+  --purple-dark: #7A5BC8;
+
+  --muted-foreground: #6B5D4F;
+  --border: rgba(42,34,24,0.10);
+  --input: rgba(251,246,235,0.85);
+  --ring: #9B7BE8;
   --destructive: #C45670;
   --destructive-foreground: #FFFFFF;
-  --popover: #FFFFFF;
-  --popover-foreground: #14171F;
-  --secondary: #EEF1F8;
-  --secondary-foreground: #14171F;
-  --muted: rgba(20, 23, 31, 0.05);
+  --popover: #FBF6EB;
+  --popover-foreground: #2A2218;
+  --secondary: #EDE6D8;
+  --secondary-foreground: #2A2218;
+  --muted: rgba(42,34,24,0.05);
+
   /* Tinted card surfaces */
-  --tint-teal:   rgba(158, 216, 208, 0.10);
-  --tint-purple: rgba(196, 176, 232, 0.10);
-  --tint-blue:   rgba(181, 199, 240, 0.10);
-  --tint-mint:   rgba(189, 230, 212, 0.10);
-  --tint-lilac:  rgba(216, 200, 240, 0.10);
-  --tint-pink:   rgba(232, 196, 221, 0.08); /* legacy alias */
-  --tint-gold:   rgba(242, 230, 184, 0.08); /* legacy alias */
-  --tint-sage:   rgba(189, 230, 212, 0.10); /* legacy alias */
-  --linen: rgba(250, 251, 255, 0.70);
+  --tint-teal:   rgba(111,214,224,0.12);
+  --tint-purple: rgba(155,123,232,0.10);
+  --tint-blue:   rgba(181,199,240,0.10);
+  --tint-mint:   rgba(189,230,212,0.10);
+  --tint-lilac:  rgba(196,176,232,0.10);
+  --tint-pink:   rgba(230,139,214,0.10);
+  --tint-gold:   rgba(201,168,106,0.10);
+  --tint-sage:   rgba(168,196,160,0.10);
+  --linen: rgba(251,246,235,0.80);
+
+  /* Accent pairs */
   --accent-butter: #F0DFA0;
   --accent-butter-ink: #5A4A1A;
-  --accent-powder: #A8CCE0;
-  --accent-powder-ink: #234A60;
-  --accent-blush: #E8A0B4;
-  --accent-blush-ink: #7A2A40;
-  --accent-sage-soft: #C8D4C0;
+  --accent-powder: #6FD6E0;
+  --accent-powder-ink: #1A4A50;
+  --accent-blush: #E68BD6;
+  --accent-blush-ink: #5A1A4A;
+  --accent-sage-soft: #A8C4A0;
   --accent-sage-soft-ink: #2E4A2A;
+
+  /* Unified design tokens — keep these in sync */
+  --pp-bg:        #F4EEE2;
+  --pp-fg:        #2A2218;
+  --pp-card:      #FBF6EB;
+  --pp-border:    rgba(42,34,24,0.10);
+  --pp-border-strong: rgba(42,34,24,0.18);
+  --pp-muted-fg:  #6B5D4F;
+  --pp-teal:      #6FD6E0;
+  --pp-purple:    #9B7BE8;
+  --pp-mint:      #BDE6D4;
+  --pp-sblue:     #B5C7F0;
+  --pp-lilac:     #C4B0E8;
+  --pp-pink:      #E68BD6;
+  --pp-gold:      #C9A86A;
+  --pp-navy:      #2A2218;
+  --pp-navy-deep: #1A1410;
+  --pp-blue:      #9B7BE8;
+  --pp-success:   #10B981;
+  --pp-warning:   #F59E0B;
+  --pp-danger:    #EF4444;
+  --pp-destructive: #C45670;
 }
 
 @layer base {
