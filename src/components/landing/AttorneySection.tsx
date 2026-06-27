@@ -34,6 +34,8 @@ export function AttorneySection() {
             For attorneys
           </span>
         </div>
+
+        {/* Headline */}
         <h2
           style={{
             fontSize: "clamp(2.2rem, 5vw, 4rem)",
@@ -45,7 +47,7 @@ export function AttorneySection() {
             maxWidth: 900,
           }}
         >
-          The associate that{" "}
+          Every hour sorting screenshots is an hour{" "}
           <span
             style={{
               background: "linear-gradient(90deg,#9ED8D0,#B5C7F0)",
@@ -54,9 +56,30 @@ export function AttorneySection() {
               backgroundClip: "text",
             }}
           >
-            never sleeps.
+            you're not getting paid for.
           </span>
         </h2>
+
+        {/* Pain statement */}
+        <div
+          style={{
+            fontSize: 20,
+            lineHeight: 1.65,
+            color: "rgba(226,232,240,0.85)",
+            maxWidth: 680,
+            marginBottom: 24,
+            fontWeight: 500,
+          }}
+        >
+          <p style={{ margin: "0 0 12px" }}>
+            Your client's 4 months of texts arrive as 600 screenshots. Her incident log lives in three different apps. Your paralegal spends 8–12 hours building the timeline you need — at rates that eat the file.
+          </p>
+          <p style={{ margin: 0 }}>
+            Disorganized evidence doesn't just waste time. Gaps in a timeline gap credibility. Judges notice.
+          </p>
+        </div>
+
+        {/* Intro paragraph */}
         <p
           style={{
             fontSize: 20,
@@ -70,46 +93,9 @@ export function AttorneySection() {
           Transform disorganized client evidence into structured case intelligence before it reaches your desk.
         </p>
 
-        {/* Calculator — moved up */}
+        {/* Calculator */}
         <div id="att-calc" style={{ marginBottom: 72 }}>
           <AttorneyROICalculator />
-        </div>
-
-        {/* Value prop card */}
-        <div
-          style={{
-            padding: "clamp(32px,4vw,56px)",
-            borderRadius: 28,
-            background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
-            border: "1px solid rgba(181,199,240,0.18)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            boxShadow: "0 20px 60px -20px rgba(0,0,0,0.5)",
-            marginBottom: 72,
-            textAlign: "center",
-          }}
-        >
-          <div style={{ fontSize: 12, letterSpacing: "0.22em", textTransform: "uppercase", color: "#9CB3E8", fontWeight: 700, marginBottom: 16 }}>
-            Pricing
-          </div>
-          <div
-            style={{
-              fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              color: "#FFFFFF",
-              lineHeight: 1.05,
-              marginBottom: 12,
-            }}
-          >
-            $297<span style={{ fontSize: "0.4em", color: "#9CB3E8", fontWeight: 600 }}>/month</span>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>
-            Less than one billable hour.
-          </div>
-          <p style={{ fontSize: 16, lineHeight: 1.6, color: "rgba(226,232,240,0.78)", maxWidth: 560, margin: "0 auto" }}>
-            Recover hours of administrative work, accelerate case preparation, and spend more time practicing law.
-          </p>
         </div>
 
         {/* Benefits grid */}
@@ -173,7 +159,7 @@ export function AttorneySection() {
         </blockquote>
 
         {/* Comparison */}
-        <div style={{ marginBottom: 64 }}>
+        <div style={{ marginBottom: 72 }}>
           <div style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9CB3E8", fontWeight: 700, marginBottom: 12 }}>
             The math
           </div>
@@ -218,6 +204,37 @@ export function AttorneySection() {
               </ul>
             </div>
           </div>
+        </div>
+
+        {/* Pricing — bottom of section, reduced weight */}
+        <div
+          style={{
+            padding: "28px 32px",
+            borderRadius: 20,
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(181,199,240,0.14)",
+            marginBottom: 56,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 16,
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 12, letterSpacing: "0.22em", textTransform: "uppercase", color: "#9CB3E8", fontWeight: 700, marginBottom: 8 }}>
+              Pricing
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#FFFFFF", lineHeight: 1.1 }}>
+              $297<span style={{ fontSize: 14, color: "#9CB3E8", fontWeight: 600 }}>/month</span>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#E2E8F0", marginTop: 4 }}>
+              Less than one billable hour.
+            </div>
+          </div>
+          <p style={{ fontSize: 15, lineHeight: 1.6, color: "rgba(226,232,240,0.78)", maxWidth: 400, margin: 0 }}>
+            Recover hours of administrative work, accelerate case preparation, and spend more time practicing law.
+          </p>
         </div>
 
         {/* CTA */}
