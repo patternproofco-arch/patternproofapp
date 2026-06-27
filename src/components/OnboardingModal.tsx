@@ -122,6 +122,17 @@ export function OnboardingModal() {
           >
             {busy ? "One moment…" : "I agree — take me in"}
           </button>
+          {!ready && !busy && (
+            <p className="text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              {(() => {
+                const missing: string[] = [];
+                if (!agreePrivacy) missing.push("Privacy Policy");
+                if (!agreeTerms) missing.push("Terms of Service");
+                if (!state) missing.push("your state");
+                return `Still needed: ${missing.join(", ")}.`;
+              })()}
+            </p>
+          )}
         </div>
       </div>
     </div>
