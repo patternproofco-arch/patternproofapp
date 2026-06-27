@@ -134,33 +134,31 @@
 @layer base {
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); }
-  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-size: 19px; line-height: 1.85; font-weight: 500; color: #1A1714; }
-  h1, h2, h3, h4, h5, h6, p, li, span, div, a, button, input, textarea, select, label { font-family: var(--font-sans); }
-  h1 { color: #1A1714; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
-  h2 { color: #1A1714; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; }
-  h3 { color: #3D3832; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
-  h4, h5 { color: #1A1714; font-weight: 700; letter-spacing: -0.005em; line-height: 1.25; }
+  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-size: 19px; line-height: 1.85; font-weight: 500; color: #2A2218; }
+  p, li, span, div, a, button, input, textarea, select, label { font-family: var(--font-sans); }
+  h1, h2, h3 { font-family: 'Newsreader', Georgia, serif; font-weight: 300; color: #2A2218; letter-spacing: -0.02em; line-height: 1.1; }
+  h4, h5, h6 { font-family: 'Hanken Grotesk', system-ui, sans-serif; font-weight: 700; color: #2A2218; letter-spacing: -0.005em; line-height: 1.25; }
   h1 { font-size: clamp(2.25rem, 4.4vw, 3.1rem); }
   h2 { font-size: clamp(1.75rem, 2.8vw, 2.35rem); }
   h3 { font-size: clamp(1.4rem, 2.1vw, 1.7rem); }
   h4 { font-size: clamp(1.15rem, 1.6vw, 1.35rem); }
-  p, li { font-size: 18px; line-height: 1.85; font-weight: 500; color: #3D3832; }
-  small { font-size: 14px; font-weight: 500; color: #3D3832; }
-  label { font-weight: 700; color: #1A1714; font-size: 15px; }
-  button, a { font-weight: 600; color: #1A1714; }
+  p, li { font-size: 18px; line-height: 1.85; font-weight: 500; color: #6B5D4F; }
+  small { font-size: 14px; font-weight: 500; color: #6B5D4F; }
+  label { font-weight: 700; color: #2A2218; font-size: 15px; }
+  button, a { font-weight: 600; color: #2A2218; }
   nav a, nav button { font-size: 15px; font-weight: 600; letter-spacing: 0.01em; }
 }
 
 @layer base {
   /* Page titles */
-  h1 { font-weight: 800; color: #0E0C0A; }
-  h2 { font-weight: 800; color: #0E0C0A; }
-  h3 { font-weight: 700; color: #1A1714; }
-  h4, h5, h6 { font-weight: 700; color: #1A1714; }
+  h1 { font-weight: 300; color: #2A2218; }
+  h2 { font-weight: 300; color: #2A2218; }
+  h3 { font-weight: 300; color: #2A2218; }
+  h4, h5, h6 { font-weight: 700; color: #2A2218; }
 
   /* Body & secondary text — nothing lighter than #2E2A26 */
   p, span, li, div, .body-text, .description, .helper-text {
-    color: #3D3832;
+    color: #6B5D4F;
     font-weight: 500;
   }
 
