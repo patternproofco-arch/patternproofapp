@@ -29,7 +29,7 @@ export function AttorneySection() {
       <div style={{ maxWidth: 1180, margin: "0 auto" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-          <Logo variant="attorney" size={36} onDark />
+          <Logo variant="attorney" size={44} onDark />
           <span style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9CB3E8", fontWeight: 700 }}>
             For attorneys
           </span>
