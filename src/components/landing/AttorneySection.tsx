@@ -21,7 +21,7 @@ export function AttorneySection() {
         position: "relative",
         padding: "clamp(80px, 10vw, 140px) 24px",
         background:
-          "radial-gradient(ellipse 80% 60% at 20% 0%, rgba(59,130,246,0.18), transparent 60%), radial-gradient(ellipse 60% 50% at 90% 100%, rgba(196,176,232,0.10), transparent 60%), linear-gradient(180deg, #071426 0%, #0F1B3D 50%, #1B2A4A 100%)",
+          "radial-gradient(ellipse 90% 65% at 20% 0%, rgba(80,140,255,0.38), transparent 60%), radial-gradient(ellipse 70% 55% at 90% 100%, rgba(120,160,255,0.28), transparent 60%), radial-gradient(ellipse 50% 40% at 50% 50%, rgba(60,110,230,0.18), transparent 70%), linear-gradient(180deg, #061227 0%, #0F1B3D 50%, #14254F 100%)",
         color: "#E2E8F0",
         overflow: "hidden",
       }}
