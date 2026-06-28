@@ -227,26 +227,11 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
           : `0 8px 26px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255,255,255,0.7)`,
       }}
     >
-      {/* iridescent glow on hover */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-80"
-        style={{
-          background: `radial-gradient(120% 80% at 0% 0%, ${card.tint} 0%, transparent 55%)`,
-        }}
-      />
-      <div className={`relative flex h-full ${compact ? "flex-row items-center gap-4" : "flex-col"} opacity-80 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100`}>
+      <div className={`relative flex h-full ${compact ? "flex-row items-center gap-4" : "flex-col"}`}>
         <div className={`flex ${compact ? "items-center" : "items-start justify-between"} gap-3`}>
           <div
-            className={`grid ${compact ? "h-11 w-11" : "h-14 w-14"} shrink-0 place-items-center rounded-2xl ${
-              card.luminous ? "shadow-[0_8px_24px_rgba(91,124,196,0.35)]" : "shadow-[0_6px_18px_rgba(15,23,42,0.18)]"
-            }`}
-            style={{
-              background: card.luminous
-                ? "conic-gradient(from 140deg, #cfe8ff, #d8c8ff, #b9eee2, #cfe8ff)"
-                : card.iconBg,
-              color: card.iconFg,
-            }}
+            className={`grid ${compact ? "h-11 w-11" : "h-14 w-14"} shrink-0 place-items-center rounded-2xl`}
+            style={{ background: card.iconBg, color: card.iconFg }}
             aria-hidden
           >
             {card.icon}

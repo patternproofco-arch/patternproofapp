@@ -12,51 +12,42 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
-type Step =
-  | "device"
-  | "emergency"
-  | "exit"
-  | "notifications"
-  | "pin"
-  | "scope"
-  | "state";
-
-const ORDER: Step[] = ["device", "emergency", "exit", "notifications", "pin", "scope", "state"];
-
 function Onboarding() {
   const navigate = useNavigate();
   const { update } = useSettings();
   const { setRealPin } = usePinLock();
-  const [step, setStep] = useState<Step>("device");
   const [pin, setPin] = useState("");
   const [state, setState] = useState("NJ");
+  const [busy, setBusy] = useState(false);
 
-  const next = () => {
-    const i = ORDER.indexOf(step);
-    if (i < ORDER.length - 1) setStep(ORDER[i + 1]);
-  };
-
-  const finishPin = async () => {
-    if (pin.length === 4) await setRealPin(pin);
-    next();
-  };
-
-  const finishAll = () => {
-    update({ state, onboarded: true });
-    navigate({ to: "/dashboard", replace: true });
+  const finishAll = async () => {
+    setBusy(true);
+    try {
+      if (pin.length === 4) await setRealPin(pin);
+      update({ state, onboarded: true });
+      navigate({ to: "/dashboard", replace: true });
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <div className="relative mx-auto max-w-2xl px-5 py-10 md:py-14">
-      {/* Quick Exit visible from the very first screen */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <Logo variant="survivor" size={40} />
         <QuickExitButton />
       </div>
 
-      <Progress step={ORDER.indexOf(step) + 1} total={ORDER.length} />
+      <div className="mb-6 text-center">
+        <h1 className="font-serif text-[28px] leading-tight md:text-[34px]" style={{ color: "var(--foreground)" }}>
+          Welcome — a few things first
+        </h1>
+        <p className="mt-2 text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+          Read through, set your code and state, then open your space.
+        </p>
+      </div>
 
-      {step === "device" && (
+      <div className="space-y-4">
         <StepCard icon={<Smartphone size={20} />} title="Is this device safe?">
           <p>
             P4TTERN PR00F works best on a device <strong>only you</strong> use — a personal phone or
@@ -64,13 +55,10 @@ function Onboarding() {
           </p>
           <p>
             If you share this device, use a private/incognito window and tap <em>Quick Exit</em> the
-            moment anyone walks in. We'll show you that next.
+            moment anyone walks in.
           </p>
-          <Actions onNext={next} nextLabel="My device is safe enough" />
         </StepCard>
-      )}
 
-      {step === "emergency" && (
         <StepCard icon={<AlertTriangle size={20} />} title="If you are in danger right now">
           <div className="rounded-2xl p-4" style={{ background: "var(--tint-purple)", border: "1px solid var(--border)" }}>
             <div className="mb-2 inline-flex items-center gap-2 text-[14px]" style={{ color: "var(--foreground)" }}>
@@ -82,55 +70,33 @@ function Onboarding() {
             P4TTERN PR00F is <strong>not a crisis service</strong> and not a law firm. We help you
             document patterns over time. If you need help right now, please reach a real person.
           </p>
-          <Actions onNext={next} nextLabel="I understand" />
         </StepCard>
-      )}
 
-      {step === "exit" && (
         <StepCard icon={<DoorOpen size={20} />} title="The Quick Exit button">
           <p>
             At the top of every screen there's a <strong>Quick Exit</strong> button. Tap it and the
             app instantly replaces itself with a normal-looking page (weather, by default).
           </p>
           <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            Try it now if you'd like — you can come right back to this onboarding. You can change the cover page in Settings.
+            You can change the cover page in Settings.
           </p>
-          <Actions onNext={next} nextLabel="Got it" />
         </StepCard>
-      )}
 
-      {step === "notifications" && (
         <StepCard icon={<BellOff size={20} />} title="No surprise notifications">
           <p>
             We <strong>never</strong> send push notifications that could appear on your lock screen.
             Email is opt-in only and we use a neutral sender name and subject line.
           </p>
-          <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            You stay in control of what shows up on this device.
-          </p>
-          <Actions onNext={next} nextLabel="Continue" />
         </StepCard>
-      )}
 
-      {step === "pin" && (
-        <StepCard icon={<ShieldCheck size={20} />} title="Set a 4-digit code">
+        <StepCard icon={<ShieldCheck size={20} />} title="Set a 4-digit code (optional)">
           <p>
             This locks the app the moment you close it. Pick four digits no one would guess —
-            not your birthday, not your kids' birthdays.
+            not your birthday, not your kids' birthdays. Leave blank to skip.
           </p>
           <PinField value={pin} onChange={setPin} />
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <button onClick={next} className="btn-ghost text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Skip for now
-            </button>
-            <button onClick={finishPin} className="btn-primary" disabled={pin.length !== 4}>
-              Set my code
-            </button>
-          </div>
         </StepCard>
-      )}
 
-      {step === "scope" && (
         <StepCard icon={<ShieldCheck size={20} />} title="What P4TTERN PR00F is — and isn't">
           <p>
             P4TTERN PR00F helps you <strong>document patterns</strong> so a court, attorney, or
@@ -140,34 +106,28 @@ function Onboarding() {
             We are <strong>not a law firm</strong>, we don't give legal advice, and we are not a
             crisis service. Use us alongside a DV-trained attorney or advocate when you can.
           </p>
-          <Actions onNext={next} nextLabel="Makes sense" />
         </StepCard>
-      )}
 
-      {step === "state" && (
-        <StepCard icon={<ShieldCheck size={20} />} title="One last thing — which state?">
+        <StepCard icon={<ShieldCheck size={20} />} title="Which state are you in?">
           <p className="text-[14px]">
             So we can show you the right legal resources and recording-consent rules.
           </p>
-          <select value={state} onChange={(e) => setState(e.target.value)} className="input-pp">
+          <select value={state} onChange={(e) => setState(e.target.value)} className="input-pp w-full">
             {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <div className="flex justify-end">
-            <button onClick={finishAll} className="btn-primary">Open my space</button>
-          </div>
         </StepCard>
-      )}
-    </div>
-  );
-}
+      </div>
 
-function Progress({ step, total }: { step: number; total: number }) {
-  return (
-    <div className="mb-5 flex items-center gap-2">
-      {Array.from({ length: total }).map((_, i) => (
-        <span key={i} className="block h-1.5 flex-1 rounded-full"
-          style={{ background: i < step ? "var(--primary)" : "rgba(20,23,31,0.08)" }} />
-      ))}
+      <div className="sticky bottom-4 z-10 mt-6">
+        <button
+          onClick={finishAll}
+          disabled={busy}
+          className="btn-primary w-full"
+          style={{ opacity: busy ? 0.6 : 1 }}
+        >
+          {busy ? "One moment…" : "Open my space"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -182,14 +142,6 @@ function StepCard({ icon, title, children }: { icon: React.ReactNode; title: str
         <h1 className="font-serif text-[24px] leading-tight" style={{ margin: 0 }}>{title}</h1>
       </div>
       <div className="space-y-3 text-[15px] leading-relaxed">{children}</div>
-    </div>
-  );
-}
-
-function Actions({ onNext, nextLabel }: { onNext: () => void; nextLabel: string }) {
-  return (
-    <div className="flex justify-end pt-1">
-      <button onClick={onNext} className="btn-primary">{nextLabel}</button>
     </div>
   );
 }
