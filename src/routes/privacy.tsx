@@ -26,21 +26,33 @@ function PrivacyPage() {
       }}
     >
       <div style={{ maxWidth: 680, margin: "0 auto" }}>
-        <Link
-          to="/"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: 13,
-            color: "#6B5FA4",
-            textDecoration: "none",
-            marginBottom: 28,
-            fontWeight: 500,
-          }}
-        >
-          <ArrowLeft size={14} /> Back to home
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
+          <Link
+            to="/"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 13,
+              color: "#6B5FA4",
+              textDecoration: "none",
+              fontWeight: 500,
+            }}
+          >
+            <ArrowLeft size={14} /> Back to home
+          </Link>
+          <Link
+            to="/pricing"
+            style={{
+              fontSize: 13,
+              color: "#6B5FA4",
+              textDecoration: "underline",
+              fontWeight: 500,
+            }}
+          >
+            Pricing
+          </Link>
+        </div>
 
         <header style={{ marginBottom: 36 }}>
           <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#7C5CC4", fontWeight: 700, marginBottom: 12 }}>
