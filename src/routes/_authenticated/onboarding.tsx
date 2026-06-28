@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AlertTriangle, BellOff, DoorOpen, Phone, ShieldCheck, Smartphone } from "lucide-react";
 import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
+import { supabase } from "@/integrations/supabase/client";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { Logo } from "@/components/Logo";
 
@@ -25,6 +26,9 @@ function Onboarding() {
     try {
       if (pin.length === 4) await setRealPin(pin);
       update({ state, onboarded: true });
+      await supabase.auth.updateUser({
+        data: { onboarding_complete: true, state },
+      });
       navigate({ to: "/dashboard", replace: true });
     } finally {
       setBusy(false);
