@@ -1,6 +1,6 @@
-import attorneyLogo from "@/assets/patternproof-logo-attorney.png.asset.json";
-import survivorLogo from "@/assets/patternproof-logo-survivor.png.asset.json";
-import orgLogo from "@/assets/patternproof-logo-org.png.asset.json";
+import attorneyLogo from "@/assets/logo-attorney-navy.png.asset.json";
+import survivorLogo from "@/assets/logo-survivor-iridescent.png.asset.json";
+import orgLogo from "@/assets/logo-org-sage.png.asset.json";
 
 export type LogoVariant = "attorney" | "survivor" | "org";
 
@@ -18,9 +18,12 @@ const sources: Record<LogoVariant, { url: string }> = {
 };
 
 const filters: Record<LogoVariant, string> = {
-  survivor: "drop-shadow(0 0 12px rgba(180,160,255,0.35))",
-  attorney: "drop-shadow(0 1px 2px rgba(15,27,61,0.25))",
-  org: "drop-shadow(0 1px 1px rgba(0,0,0,0.08))",
+  survivor:
+    "drop-shadow(0 0 14px rgba(196,138,232,0.55)) drop-shadow(0 0 28px rgba(120,200,232,0.40))",
+  attorney:
+    "drop-shadow(0 0 14px rgba(120,160,255,0.55)) drop-shadow(0 0 32px rgba(60,110,230,0.40))",
+  org:
+    "drop-shadow(0 0 14px rgba(140,180,120,0.55)) drop-shadow(0 0 30px rgba(110,150,90,0.38))",
 };
 
 export function Logo({ variant, size = 40, className, onDark = false }: LogoProps) {
