@@ -26,6 +26,9 @@ function Onboarding() {
     try {
       if (pin.length === 4) await setRealPin(pin);
       update({ state, onboarded: true });
+      await supabase.auth.updateUser({
+        data: { onboarding_complete: true, state },
+      });
       navigate({ to: "/dashboard", replace: true });
     } finally {
       setBusy(false);
