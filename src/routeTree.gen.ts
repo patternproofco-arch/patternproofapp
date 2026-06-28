@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
 import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
@@ -77,6 +78,11 @@ const RequestOrgAccessRoute = RequestOrgAccessRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -355,6 +361,7 @@ export interface FileRoutesByFullPath {
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -409,6 +416,7 @@ export interface FileRoutesByTo {
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -464,6 +472,7 @@ export interface FileRoutesById {
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -520,6 +529,7 @@ export interface FileRouteTypes {
     | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
+    | '/pricing'
     | '/privacy'
     | '/request-org-access'
     | '/sitemap.xml'
@@ -574,6 +584,7 @@ export interface FileRouteTypes {
     | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
+    | '/pricing'
     | '/privacy'
     | '/request-org-access'
     | '/sitemap.xml'
@@ -628,6 +639,7 @@ export interface FileRouteTypes {
     | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
+    | '/pricing'
     | '/privacy'
     | '/request-org-access'
     | '/sitemap.xml'
@@ -685,6 +697,7 @@ export interface RootRouteChildren {
   ForOrganizationsRoute: typeof ForOrganizationsRoute
   LawyerSignupRoute: typeof LawyerSignupRoute
   LoginRoute: typeof LoginRoute
+  PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -716,6 +729,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1202,6 +1222,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForOrganizationsRoute: ForOrganizationsRoute,
   LawyerSignupRoute: LawyerSignupRoute,
   LoginRoute: LoginRoute,
+  PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   RequestOrgAccessRoute: RequestOrgAccessRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -1214,13 +1235,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

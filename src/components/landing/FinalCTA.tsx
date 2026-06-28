@@ -93,6 +93,10 @@ export function FinalCTA() {
           Not an emergency service. In immediate danger, call 911.
         </p>
         <p style={{ marginTop: 16, fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+          <Link to="/pricing" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "underline" }}>
+            Pricing
+          </Link>
+          <span style={{ margin: "0 10px", opacity: 0.5 }}>·</span>
           <Link to="/privacy" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "underline" }}>
             Privacy Policy
           </Link>
