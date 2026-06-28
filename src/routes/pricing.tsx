@@ -1,0 +1,506 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Check, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react";
+import { Logo, type LogoVariant } from "@/components/Logo";
+
+export const Route = createFileRoute("/pricing")({
+  head: () => ({
+    meta: [
+      { title: "Pricing — PatternProof | Evidence Documentation for Survivors & Attorneys" },
+      { name: "description", content: "PatternProof pricing: Free for survivors. $99/month for attorneys. $299/month for organizations. Private, encrypted documentation for domestic violence and custody cases." },
+      { property: "og:title", content: "Pricing — PatternProof" },
+      { property: "og:description", content: "Free for survivors. Attorney and organization plans that pay for themselves." },
+      { property: "og:url", content: "https://pattern-proof.tech/pricing" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/pricing" }],
+  }),
+  component: PricingPage,
+});
+
+const TIERS: Array<{
+  key: string;
+  name: string;
+  price: string;
+  sub: string;
+  logoVariant: LogoVariant;
+  quote: string;
+  features: string[];
+  cta: string;
+  ctaTo: string;
+  featured?: boolean;
+}> = [
+  {
+    key: "survivor",
+    name: "Survivor",
+    price: "Free",
+    sub: "forever",
+    logoVariant: "survivor",
+    quote: "Built by a survivor, for survivors. Always free.",
+    features: [
+      "Unlimited incident logging",
+      "Photo, document & audio evidence upload",
+      "Timeline view",
+      "Pattern detection",
+      "Basic court packet PDF export",
+      "Secure encrypted storage",
+    ],
+    cta: "Start Documenting Free",
+    ctaTo: "/login",
+  },
+  {
+    key: "attorney",
+    name: "Attorney",
+    price: "$99",
+    sub: "/month or $899/year",
+    logoVariant: "attorney",
+    quote: "Replaces 10+ hours of evidence prep per case. Pays for itself in one client.",
+    features: [
+      "Everything in Survivor",
+      "Up to 25 active client cases",
+      "Attorney review portal",
+      "Court packet export (ZIP + DOCX + PDF)",
+      "Pattern analysis summaries",
+      "Clio-compatible export",
+      "Priority email support",
+    ],
+    cta: "Start 30-Day Free Trial",
+    ctaTo: "/lawyer-signup",
+    featured: true,
+  },
+  {
+    key: "organization",
+    name: "Organization",
+    price: "$299",
+    sub: "/month",
+    logoVariant: "org",
+    quote: "Zero cost to your clients. Measurable outcomes for your funders.",
+    features: [
+      "Everything in Attorney",
+      "Unlimited client seats",
+      "Advocate dashboard",
+      "Grant-reportable outcome tracking",
+      "Custom intake forms",
+      "Staff onboarding call included",
+      "Co-branded survivor experience",
+    ],
+    cta: "Request a Pilot",
+    ctaTo: "mailto:patternproofco@gmail.com?subject=Organization%20Pilot%20Request",
+  },
+];
+
+const FAQS = [
+  {
+    q: "Is it really free for survivors?",
+    a: "Yes. Always. No credit card, no trial, no catch. Survivors never pay.",
+  },
+  {
+    q: "Do you integrate with Clio?",
+    a: "Yes. Attorney and Organization tiers include Clio-compatible export. Full Clio Marketplace integration is coming soon.",
+  },
+  {
+    q: "Is my data safe?",
+    a: "All data is encrypted at rest and in transit. PatternProof is built on Supabase with enterprise-grade security.",
+  },
+  {
+    q: "Can my organization get a demo?",
+    a: 'Yes — email patternproofco@gmail.com or click "Request a Pilot" above.',
+  },
+];
+
+function PricingPage() {
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--background)" }}>
+      <header
+        style={{
+          padding: "20px 24px",
+          maxWidth: 1200,
+          margin: "0 auto",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Link
+          to="/"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            color: "var(--muted-foreground)",
+            textDecoration: "none",
+            fontSize: 14,
+            fontWeight: 600,
+          }}
+        >
+          <ArrowLeft size={16} /> Home
+        </Link>
+        <Logo variant="survivor" size={40} />
+      </header>
+
+      <main className="app-surface" style={{ maxWidth: 1180, margin: "0 auto", padding: "40px 24px 120px" }}>
+        {/* Trust line */}
+        <div style={{ textAlign: "center", marginBottom: 56 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 14px",
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.6)",
+              border: "1px solid rgba(20,23,31,0.08)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              color: "#3D3832",
+              marginBottom: 28,
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 999,
+                background: "linear-gradient(90deg,#9ED8D0,#C4B0E8)",
+              }}
+            />
+            Simple, transparent pricing
+          </div>
+          <h1
+            style={{
+              fontSize: "clamp(2.2rem, 5vw, 3.4rem)",
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.05,
+              marginBottom: 16,
+            }}
+          >
+            Pattern is evidence.
+            <br />
+            <span
+              style={{
+                background: "linear-gradient(90deg,#2F8D85,#7C5CC4)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Pricing should never be a barrier to safety.
+            </span>
+          </h1>
+          <p
+            style={{
+              fontSize: 17,
+              color: "#6B5D4F",
+              maxWidth: 520,
+              margin: "0 auto",
+              fontWeight: 500,
+            }}
+          >
+            Choose the plan that fits your role. Every tier is built with the same privacy-first architecture.
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: 24,
+            marginBottom: 100,
+            alignItems: "start",
+          }}
+        >
+          {TIERS.map((tier) => (
+            <TierCard key={tier.key} tier={tier} />
+          ))}
+        </div>
+
+        {/* FAQ */}
+        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 40 }}>
+            <h2
+              style={{
+                fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                marginBottom: 8,
+              }}
+            >
+              Frequently asked questions
+            </h2>
+            <p style={{ fontSize: 15, color: "var(--muted-foreground)" }}>
+              The questions we hear most.
+            </p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {FAQS.map((faq, i) => (
+              <FAQItem key={i} {...faq} />
+            ))}
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer
+        style={{
+          borderTop: "1px solid var(--border)",
+          padding: "32px 24px",
+          textAlign: "center",
+        }}
+      >
+        <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
+          <Link
+            to="/"
+            style={{
+              color: "var(--foreground)",
+              textDecoration: "none",
+              fontWeight: 600,
+            }}
+          >
+            Home
+          </Link>
+          <span style={{ margin: "0 12px", opacity: 0.4 }}>·</span>
+          <Link
+            to="/privacy"
+            style={{
+              color: "var(--foreground)",
+              textDecoration: "none",
+              fontWeight: 600,
+            }}
+          >
+            Privacy Policy
+          </Link>
+          <span style={{ margin: "0 12px", opacity: 0.4 }}>·</span>
+          <span>© {new Date().getFullYear()} PatternProof</span>
+        </p>
+      </footer>
+    </div>
+  );
+}
+
+function TierCard({ tier }: { tier: (typeof TIERS)[0] }) {
+  const isAttorney = tier.key === "attorney";
+  const isOrg = tier.key === "organization";
+
+  const cardBg = isAttorney
+    ? "radial-gradient(ellipse 90% 70% at 80% 0%, rgba(80,130,230,0.30), transparent 60%), linear-gradient(160deg, #0F1B3D 0%, #1B2A4A 100%)"
+    : isOrg
+      ? "radial-gradient(ellipse 90% 70% at 80% 0%, rgba(140,180,120,0.28), transparent 60%), linear-gradient(160deg, #EEF3E8 0%, #DCE7D2 100%)"
+      : "linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(248,243,255,0.88) 100%)";
+
+  const border = isAttorney
+    ? "1px solid rgba(181,199,240,0.18)"
+    : isOrg
+      ? "1px solid rgba(122,155,110,0.30)"
+      : "1px solid rgba(196,176,232,0.45)";
+
+  const glow = isAttorney
+    ? "0 20px 60px -20px rgba(60,110,230,0.55), 0 0 80px -30px rgba(120,160,255,0.45), 0 0 0 1px rgba(181,199,240,0.18)"
+    : isOrg
+      ? "0 20px 60px -20px rgba(90,122,79,0.35), 0 0 70px -30px rgba(140,180,120,0.45), 0 0 0 1px rgba(122,155,110,0.18)"
+      : "0 20px 60px -20px rgba(124,92,196,0.35), 0 0 0 1px rgba(196,176,232,0.30)";
+
+  const textColor = isAttorney ? "#FFFFFF" : isOrg ? "#1F2D1A" : "#2A2218";
+  const mutedColor = isAttorney ? "rgba(226,232,240,0.78)" : isOrg ? "#36422F" : "#6B5D4F";
+  const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#7C5CC4";
+  const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#7C5CC4";
+
+  const ctaBg = isAttorney
+    ? "#FFFFFF"
+    : isOrg
+      ? "linear-gradient(90deg,#5A7A4F,#7A9B6E)"
+      : "linear-gradient(90deg,#2F8D85,#7C5CC4)";
+  const ctaColor = isAttorney ? "#0F1B3D" : "#FFFFFF";
+
+  return (
+    <div
+      style={{
+        background: cardBg,
+        border,
+        borderRadius: 24,
+        padding: 36,
+        boxShadow: tier.featured ? glow : "0 8px 32px rgba(26,23,20,0.08)",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+      }}
+      className="card-lift"
+    >
+      {tier.featured && (
+        <div
+          style={{
+            position: "absolute",
+            top: -12,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "linear-gradient(90deg,#B5C7F0,#9CB3E8)",
+            color: "#0F1B3D",
+            padding: "6px 16px",
+            borderRadius: 999,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Recommended
+        </div>
+      )}
+
+      <div style={{ marginBottom: 20 }}>
+        <Logo variant={tier.logoVariant} size={48} onDark={isAttorney} />
+      </div>
+
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: eyebrowColor,
+          marginBottom: 10,
+        }}
+      >
+        {tier.name}
+      </div>
+
+      <div style={{ marginBottom: 8 }}>
+        <span
+          style={{
+            fontSize: "clamp(2rem, 3.5vw, 2.6rem)",
+            fontWeight: 800,
+            color: textColor,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {tier.price}
+        </span>
+        <span
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: mutedColor,
+            marginLeft: 4,
+          }}
+        >
+          {tier.sub}
+        </span>
+      </div>
+
+      <p
+        style={{
+          fontSize: 14,
+          lineHeight: 1.6,
+          color: mutedColor,
+          marginBottom: 28,
+          fontStyle: "italic",
+        }}
+      >
+        &ldquo;{tier.quote}&rdquo;
+      </p>
+
+      <ul
+        style={{
+          listStyle: "none",
+          padding: 0,
+          margin: "0 0 32px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          flex: 1,
+        }}
+      >
+        {tier.features.map((f) => (
+          <li
+            key={f}
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              fontSize: 14,
+              color: mutedColor,
+              lineHeight: 1.5,
+            }}
+          >
+            <Check
+              size={16}
+              style={{ color: checkColor, flexShrink: 0, marginTop: 2 }}
+            />
+            {f}
+          </li>
+        ))}
+      </ul>
+
+      {tier.ctaTo.startsWith("mailto") ? (
+        <a
+          href={tier.ctaTo}
+          className="btn-primary"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            textDecoration: "none",
+            width: "100%",
+            background: ctaBg,
+            color: ctaColor,
+          }}
+        >
+          {tier.cta} <ArrowRight size={14} />
+        </a>
+      ) : (
+        <Link
+          to={tier.ctaTo}
+          className="btn-primary"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            textDecoration: "none",
+            width: "100%",
+            background: ctaBg,
+            color: ctaColor,
+          }}
+        >
+          {tier.cta} <ArrowRight size={14} />
+        </Link>
+      )}
+    </div>
+  );
+}
+
+function FAQItem({ q, a }: { q: string; a: string }) {
+  return (
+    <div
+      className="card-pp"
+      style={{
+        padding: "24px 28px",
+      }}
+    >
+      <h4
+        style={{
+          fontSize: 15,
+          fontWeight: 700,
+          color: "#2A2218",
+          marginBottom: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <HelpCircle size={16} style={{ color: "var(--primary)", flexShrink: 0 }} />
+        {q}
+      </h4>
+      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6B5D4F", margin: 0 }}>
+        {a}
+      </p>
+    </div>
+  );
+}
