@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Heart, Scale, Users } from "lucide-react";
-import { Logo } from "@/components/Logo";
+import { ArrowRight } from "lucide-react";
+import { Logo, type LogoVariant } from "@/components/Logo";
 import { ParticleField } from "./ParticleField";
 
 export function Hero() {
@@ -122,7 +122,6 @@ export function Hero() {
             onClick={() => scrollTo("survivors", "survivor")}
             active={active === "survivor"}
             tone="survivor"
-            icon={<Heart size={20} />}
             eyebrow="Survivor Portal"
             title="Document. Organize. Reclaim your story."
             desc="Turn incidents, screenshots, photos, voice notes, and court documents into a clear, searchable timeline."
@@ -132,7 +131,6 @@ export function Hero() {
             onClick={() => scrollTo("attorneys", "attorney")}
             active={active === "attorney"}
             tone="attorney"
-            icon={<Scale size={20} />}
             eyebrow="Attorney Portal"
             title="Recover hours before the case begins."
             desc="Transform disorganized evidence into structured case intelligence and attorney-ready summaries."
@@ -142,7 +140,6 @@ export function Hero() {
             onClick={() => scrollTo("organizations", "org")}
             active={active === "org"}
             tone="org"
-            icon={<Users size={20} />}
             eyebrow="Organization Portal"
             title="Increase capacity without increasing staff."
             desc="Help more survivors while reducing intake and documentation workload."
@@ -155,12 +152,11 @@ export function Hero() {
 }
 
 function AudienceCard({
-  onClick, active, tone, icon, eyebrow, title, desc, cta,
+  onClick, active, tone, eyebrow, title, desc, cta,
 }: {
   onClick: () => void;
   active: boolean;
   tone: "survivor" | "attorney" | "org";
-  icon: React.ReactNode;
   eyebrow: string;
   title: string;
   desc: string;
@@ -171,42 +167,38 @@ function AudienceCard({
       bg: "linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(248,243,255,0.88) 100%)",
       border: "1px solid rgba(196,176,232,0.45)",
       glow: "0 20px 60px -20px rgba(124,92,196,0.35), 0 0 0 1px rgba(196,176,232,0.30)",
-      iconBg: "linear-gradient(135deg,#9ED8D0,#C4B0E8)",
-      iconColor: "#14171F",
       ctaBg: "linear-gradient(90deg,#2F8D85,#7C5CC4)",
       ctaColor: "#FFFFFF",
       eyebrowColor: "#7C5CC4",
     },
     attorney: {
-      bg: "linear-gradient(160deg, #0F1B3D 0%, #1B2A4A 100%)",
+      bg: "radial-gradient(ellipse 90% 70% at 80% 0%, rgba(80,130,230,0.30), transparent 60%), linear-gradient(160deg, #0F1B3D 0%, #1B2A4A 100%)",
       border: "1px solid rgba(181,199,240,0.18)",
-      glow: "0 20px 60px -20px rgba(15,27,61,0.55), 0 0 0 1px rgba(181,199,240,0.18)",
-      iconBg: "rgba(181,199,240,0.18)",
-      iconColor: "#E2E8F0",
+      glow: "0 20px 60px -20px rgba(60,110,230,0.55), 0 0 80px -30px rgba(120,160,255,0.45), 0 0 0 1px rgba(181,199,240,0.18)",
       ctaBg: "#FFFFFF",
       ctaColor: "#0F1B3D",
       eyebrowColor: "#9CB3E8",
     },
     org: {
-      bg: "linear-gradient(160deg, #F2F5FA 0%, #E4ECF5 100%)",
-      border: "1px solid rgba(61,114,184,0.18)",
-      glow: "0 20px 60px -20px rgba(61,114,184,0.30), 0 0 0 1px rgba(61,114,184,0.12)",
-      iconBg: "rgba(61,114,184,0.14)",
-      iconColor: "#1E3A5F",
-      ctaBg: "#3D72B8",
+      bg: "radial-gradient(ellipse 90% 70% at 80% 0%, rgba(140,180,120,0.28), transparent 60%), linear-gradient(160deg, #EEF3E8 0%, #DCE7D2 100%)",
+      border: "1px solid rgba(122,155,110,0.30)",
+      glow: "0 20px 60px -20px rgba(90,122,79,0.35), 0 0 70px -30px rgba(140,180,120,0.45), 0 0 0 1px rgba(122,155,110,0.18)",
+      ctaBg: "linear-gradient(90deg,#5A7A4F,#7A9B6E)",
       ctaColor: "#FFFFFF",
-      eyebrowColor: "#1E3A5F",
+      eyebrowColor: "#3E5A33",
     },
   }[tone];
 
-  const titleColor = tone === "attorney" ? "#FFFFFF" : "#14171F";
-  const descColor = tone === "attorney" ? "rgba(226,232,240,0.78)" : "#3D3832";
+  const titleColor = tone === "attorney" ? "#FFFFFF" : tone === "org" ? "#1F2D1A" : "#14171F";
+  const descColor = tone === "attorney" ? "rgba(226,232,240,0.78)" : tone === "org" ? "#36422F" : "#3D3832";
 
   const activeRing = {
     survivor: "0 0 0 2px #7C5CC4, 0 24px 70px -18px rgba(124,92,196,0.55)",
-    attorney: "0 0 0 2px #9CB3E8, 0 24px 70px -18px rgba(15,27,61,0.7)",
-    org: "0 0 0 2px #3D72B8, 0 24px 70px -18px rgba(61,114,184,0.45)",
+    attorney: "0 0 0 2px #9CB3E8, 0 24px 80px -18px rgba(80,130,230,0.65)",
+    org: "0 0 0 2px #7A9B6E, 0 24px 70px -18px rgba(122,155,110,0.55)",
   }[tone];
+
+  const logoVariant: LogoVariant = tone;
 
   return (
     <button
@@ -223,21 +215,11 @@ function AudienceCard({
         textAlign: "left",
         cursor: "pointer",
         font: "inherit",
+        position: "relative",
       }}
     >
-      <div
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: 14,
-          background: styles.iconBg,
-          color: styles.iconColor,
-          display: "grid",
-          placeItems: "center",
-          marginBottom: 18,
-        }}
-      >
-        {icon}
+      <div style={{ marginBottom: 18 }}>
+        <Logo variant={logoVariant} size={56} onDark={tone === "attorney"} />
       </div>
       <div
         style={{
