@@ -2,8 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Sparkles, RefreshCw, AlertCircle } from "lucide-react";
+import { Sparkles, RefreshCw, AlertCircle, Printer, ShieldAlert, CalendarClock, Square } from "lucide-react";
 import { analyzePatterns, getLatestPatternAnalysis, type PatternAnalysisResult } from "@/lib/pattern-analysis.functions";
+
+function confidenceColor(level?: string) {
+  if (level === "Strong") return { bg: "#DCEFD9", fg: "#1F5132", border: "#7FB97A" };
+  if (level === "Moderate") return { bg: "#DCE7F2", fg: "#1F3A5C", border: "#7FA3CC" };
+  return { bg: "#F5E2BE", fg: "#5C4318", border: "#C99B45" };
+}
 
 export const Route = createFileRoute("/_authenticated/patterns")({
   component: PatternsPage,
@@ -65,24 +71,30 @@ function PatternsPage() {
             Quiet, calm trends from your own entries. Not a diagnosis. Not a legal conclusion. Just what's there.
           </p>
         </div>
-        <div className="flex flex-col items-stretch gap-2 md:items-end">
+        <div className="flex flex-col items-stretch gap-2 md:items-end no-print">
           <span className="text-[12px] font-semibold md:text-right" style={{ color: "var(--muted-foreground)" }}>
             Ready to see what your patterns reveal?
           </span>
-          <button
-            onClick={() => run(true)}
-            disabled={busy}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-[14px] font-bold transition-all hover:-translate-y-px disabled:opacity-60"
-            style={{
-              background: "var(--sidebar)",
-              color: "var(--sidebar-active)",
-              letterSpacing: "0.02em",
-              boxShadow: "0 6px 18px rgba(26,20,14,0.22)",
-            }}
-          >
-            {busy ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
-            {busy ? "Analyzing…" : analysis ? "Refresh Analysis" : "Analyze My Patterns"}
-          </button>
+          <div className="flex flex-wrap gap-2 md:justify-end">
+            <button
+              onClick={() => run(true)}
+              disabled={busy}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-[14px] font-bold transition-all hover:-translate-y-px disabled:opacity-60"
+              style={{ background: "var(--sidebar)", color: "var(--sidebar-active)", letterSpacing: "0.02em", boxShadow: "0 6px 18px rgba(26,20,14,0.22)" }}
+            >
+              {busy ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
+              {busy ? "Analyzing…" : analysis ? "Refresh Analysis" : "Analyze My Patterns"}
+            </button>
+            {analysis && (
+              <button
+                onClick={() => window.print()}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border px-4 text-[13px] font-semibold"
+                style={{ borderColor: "var(--border)", background: "transparent" }}
+              >
+                <Printer size={15} /> Print / PDF
+              </button>
+            )}
+          </div>
           {createdAt && (
             <span className="text-[11px] md:text-right" style={{ color: "var(--muted-foreground)" }}>
               Last updated {new Date(createdAt).toLocaleString()}
@@ -115,10 +127,113 @@ function PatternsPage() {
 
       {analysis && (
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          {/* 1. Report header bar */}
+          {(analysis.main_pattern_label || analysis.confidence_level) && (() => {
+            const c = confidenceColor(analysis.confidence_level);
+            return (
+              <div className="card-pp lg:col-span-2 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="label-eyebrow">Primary pattern detected</div>
+                  <h2 className="mt-1 font-serif text-[26px] leading-tight">{analysis.main_pattern_label}</h2>
+                  {analysis.secondary_patterns && analysis.secondary_patterns.length > 0 && (
+                    <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+                      Also detected: {analysis.secondary_patterns.join(" · ")}
+                    </p>
+                  )}
+                </div>
+                {analysis.confidence_level && (
+                  <span className="inline-flex items-center rounded-full px-4 py-2 text-[12px] font-bold uppercase tracking-wide" style={{ background: c.bg, color: c.fg, border: `1px solid ${c.border}` }}>
+                    {analysis.confidence_level} confidence
+                  </span>
+                )}
+              </div>
+            );
+          })()}
+
           <div className="card-pp lg:col-span-2">
             <div className="label-eyebrow">Summary</div>
             <p className="mt-2 font-serif text-[18px] leading-relaxed">{analysis.pattern_summary}</p>
           </div>
+
+          {/* 2. What This Pattern May Be Showing */}
+          {analysis.what_pattern_may_show && (
+            <div className="card-pp lg:col-span-2">
+              <div className="label-eyebrow">What this pattern may be showing</div>
+              <p className="mt-2 font-serif text-[17px] leading-relaxed">{analysis.what_pattern_may_show}</p>
+            </div>
+          )}
+
+          {/* 3. Evidence Supporting This Pattern */}
+          {analysis.evidence_list && analysis.evidence_list.length > 0 && (
+            <div className="card-pp lg:col-span-2">
+              <div className="label-eyebrow">Evidence supporting this pattern</div>
+              <ul className="mt-3 space-y-3">
+                {analysis.evidence_list.map((e, i) => (
+                  <li key={i} className="text-[14px] leading-relaxed">
+                    <span className="font-bold">{e.date}</span> — {e.description}{" "}
+                    <span className="ml-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide" style={{ background: "var(--input)", color: "var(--muted-foreground)" }}>
+                      {e.category}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* 4. Pattern Timeline */}
+          {analysis.pattern_timeline_text && (
+            <div className="card-pp lg:col-span-2">
+              <div className="label-eyebrow">Pattern timeline</div>
+              <div className="mt-3 flex flex-wrap items-center gap-2 font-serif text-[15px]">
+                {analysis.pattern_timeline_text.split(/→|->/).map((seg, i, arr) => (
+                  <span key={i} className="flex items-center gap-2">
+                    <span className="rounded-md px-3 py-1.5" style={{ background: "var(--input)" }}>{seg.trim()}</span>
+                    {i < arr.length - 1 && <span style={{ color: "var(--muted-foreground)" }}>→</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 5. Triggers + Escalation phases */}
+          {analysis.common_triggers && analysis.common_triggers.length > 0 && (
+            <div className="card-pp" style={{ borderLeft: "3px solid var(--accent)" }}>
+              <div className="label-eyebrow">Common triggers</div>
+              <ul className="mt-2 space-y-1 text-[14px]">
+                {analysis.common_triggers.map((t, i) => <li key={i}>· {t}</li>)}
+              </ul>
+            </div>
+          )}
+          {(analysis.escalation_before || analysis.escalation_during || analysis.escalation_after) && (
+            <div className="card-pp">
+              <div className="label-eyebrow">Escalation cycle</div>
+              <div className="mt-2 space-y-2 text-[14px] leading-relaxed">
+                {analysis.escalation_before && <p><span className="font-bold">Before: </span>{analysis.escalation_before}</p>}
+                {analysis.escalation_during && <p><span className="font-bold">During: </span>{analysis.escalation_during}</p>}
+                {analysis.escalation_after && <p><span className="font-bold">After: </span>{analysis.escalation_after}</p>}
+              </div>
+            </div>
+          )}
+
+          {/* 6. 30-Day Forecast */}
+          {analysis.forecast_30_day && (
+            <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#FBEFD3", border: "1px solid #E2C381" }}>
+              <div className="flex items-center gap-2">
+                <CalendarClock size={18} style={{ color: "#7A5A1B" }} />
+                <div className="label-eyebrow" style={{ color: "#7A5A1B" }}>30-day pattern forecast</div>
+              </div>
+              <div className="mt-3 font-serif text-[22px]" style={{ color: "#3F2E0E" }}>
+                {analysis.forecast_30_day.window_start} <span style={{ color: "#7A5A1B" }}>→</span> {analysis.forecast_30_day.window_end}
+              </div>
+              <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "#3F2E0E" }}>{analysis.forecast_30_day.summary}</p>
+              {analysis.forecast_30_day.rationale && (
+                <p className="mt-2 text-[13px] italic" style={{ color: "#7A5A1B" }}>{analysis.forecast_30_day.rationale}</p>
+              )}
+              <p className="mt-3 text-[12px]" style={{ color: "#7A5A1B" }}>
+                This is not a guarantee. This is a risk-pattern projection based on past documented behavior.
+              </p>
+            </div>
+          )}
 
           <div className="card-pp" style={{ borderLeft: "3px solid var(--primary)" }}>
             <div className="label-eyebrow">Escalation arc · {analysis.severity_trajectory}</div>
@@ -180,6 +295,45 @@ function PatternsPage() {
               </ul>
             </div>
           )}
+
+          {/* 8. Risk Indicators */}
+          {analysis.risk_indicators && analysis.risk_indicators.length > 0 && (
+            <div className="card-pp lg:col-span-2" style={{ borderLeft: "3px solid var(--primary)" }}>
+              <div className="flex items-center gap-2"><ShieldAlert size={16} style={{ color: "var(--primary)" }} /><div className="label-eyebrow">Risk indicators to watch next</div></div>
+              <ul className="mt-3 space-y-2 text-[14px]">
+                {analysis.risk_indicators.map((r, i) => <li key={i}>· {r}</li>)}
+              </ul>
+            </div>
+          )}
+
+          {/* 9. What to Document Next */}
+          {analysis.what_to_document_next && analysis.what_to_document_next.length > 0 && (
+            <div className="card-pp lg:col-span-2">
+              <div className="label-eyebrow">What to document next</div>
+              <ul className="mt-3 space-y-2 text-[14px]">
+                {analysis.what_to_document_next.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <Square size={16} className="mt-0.5 flex-shrink-0" style={{ color: "var(--muted-foreground)" }} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* 10. Attorney Summary */}
+          {analysis.attorney_summary && (
+            <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#EEF2F7", border: "1px solid #C8D3E2" }}>
+              <div className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#3A4A66" }}>For legal review</div>
+              <h3 className="mt-1 font-serif text-[20px]" style={{ color: "#1F2A3D" }}>Attorney summary</h3>
+              <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "#1F2A3D" }}>{analysis.attorney_summary}</p>
+            </div>
+          )}
+
+          {/* 11. Safety Note — always */}
+          <div className="lg:col-span-2 rounded-xl p-5 text-[12px] leading-relaxed" style={{ background: "var(--input)", color: "var(--muted-foreground)" }}>
+            Pattern forecasts are based only on the evidence uploaded into PatternProof. They are not guarantees, legal advice, or safety plans. If you believe you are in immediate danger, contact emergency services, a domestic violence advocate, or your attorney.
+          </div>
         </div>
       )}
     </div>
