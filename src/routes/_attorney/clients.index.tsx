@@ -63,9 +63,33 @@ function ClientsIndex() {
         <div className="att-card">Loading clients…</div>
       )}
 
-      {clients && clients.length > 0 && (
-        <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))" }}>
-          {clients.map((c) => {
+      {clients && clients.length > 0 && (() => {
+        const owned = clients.filter((c) => (c as any).access_kind !== "granted" && (c as any).access_kind !== "collaborator");
+        const shared = clients.filter((c) => (c as any).access_kind === "granted" || (c as any).access_kind === "collaborator");
+        return (
+          <>
+            <ClientGrid clients={owned} />
+            {shared.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <div className="att-eyebrow" style={{ marginBottom: 6 }}>Shared with you</div>
+                <h2 style={{ fontSize: 22, margin: "0 0 12px", fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>
+                  Cases a firm colleague granted you
+                </h2>
+                <ClientGrid clients={shared} sharedBadge />
+              </div>
+            )}
+          </>
+        );
+      })()}
+    </div>
+  );
+}
+
+function ClientGrid({ clients, sharedBadge }: { clients: ClientRow[]; sharedBadge?: boolean }) {
+  if (!clients.length) return null;
+  return (
+    <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))" }}>
+      {clients.map((c) => {
             const risk = RISK[c.risk_level];
             const caseId = `PP-${c.client_user_id.slice(0, 4).toUpperCase()}`;
             return (
@@ -86,6 +110,9 @@ function ClientsIndex() {
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
                     <span className="att-tag" style={{ background: `${risk.color}1A`, color: risk.color }}>{risk.label}</span>
+                    {sharedBadge && (
+                      <span className="att-tag" style={{ background: "#EEF2FF", color: "#3730A3" }}>Shared</span>
+                    )}
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginTop: 16 }}>
@@ -107,8 +134,6 @@ function ClientsIndex() {
               </Link>
             );
           })}
-        </div>
-      )}
     </div>
   );
 }
