@@ -108,14 +108,20 @@ export const getMyRole = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId);
-    const roles = (data ?? []).map((r) => r.role as string);
-    let role: "attorney" | "survivor" = "survivor";
+    const [{ data: rolesData }, { count: collabCount }] = await Promise.all([
+      supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId),
+      supabaseAdmin
+        .from("case_collaborators")
+        .select("id", { count: "exact", head: true })
+        .eq("collaborator_user_id", context.userId)
+        .eq("status", "active"),
+    ]);
+    const roles = (rolesData ?? []).map((r) => r.role as string);
+    const hasCollaborations = (collabCount ?? 0) > 0;
+    let role: "attorney" | "collaborator" | "survivor" = "survivor";
     if (roles.includes("attorney")) role = "attorney";
-    return { role, roles };
+    else if (hasCollaborations) role = "collaborator";
+    return { role, roles, hasCollaborations };
   });
 
 export const upsertAttorneyProfile = createServerFn({ method: "POST" })
@@ -196,14 +202,38 @@ export const getAttorneyProfile = createServerFn({ method: "GET" })
 export const listMyClients = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAttorney(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: links } = await supabaseAdmin
+
+    // Owner attorney's own client links
+    const ownerQ = supabaseAdmin
       .from("attorney_client_links")
       .select("id,client_user_id,created_at,status")
       .eq("attorney_user_id", context.userId)
-      .eq("status", "active")
-      .order("created_at", { ascending: false });
+      .eq("status", "active");
+
+    // Cases where the caller is an active collaborator
+    const collabQ = supabaseAdmin
+      .from("case_collaborators")
+      .select("link_id")
+      .eq("collaborator_user_id", context.userId)
+      .eq("status", "active");
+
+    const [{ data: ownerLinks }, { data: collabRows }] = await Promise.all([ownerQ, collabQ]);
+    const collabLinkIds = (collabRows ?? []).map((r) => r.link_id);
+    let collabLinks: typeof ownerLinks = [];
+    if (collabLinkIds.length) {
+      const { data } = await supabaseAdmin
+        .from("attorney_client_links")
+        .select("id,client_user_id,created_at,status")
+        .in("id", collabLinkIds)
+        .eq("status", "active");
+      collabLinks = data ?? [];
+    }
+    const linksMap = new Map<string, NonNullable<typeof ownerLinks>[number]>();
+    for (const l of (ownerLinks ?? []).concat(collabLinks ?? [])) linksMap.set(l.id, l);
+    const links = Array.from(linksMap.values()).sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
 
     const clients = await Promise.all(
       (links ?? []).map(async (l) => {

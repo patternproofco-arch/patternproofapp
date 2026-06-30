@@ -34,15 +34,20 @@ function AttorneyLayout() {
     if (loading) return;
     if (!user) { navigate({ to: "/lawyer-signup", replace: true }); return; }
     getRole().then(async (r) => {
-      if (r.role !== "attorney") {
+      if (r.role !== "attorney" && r.role !== "collaborator") {
         navigate({ to: "/lawyer-signup", replace: true });
         return;
       }
-      try {
-        const { profile } = await getProfile();
-        setOnboarded(profile?.onboarded === true);
-      } catch {
-        setOnboarded(false);
+      if (r.role === "collaborator") {
+        // Collaborators inherit the lead attorney's onboarding and subscription.
+        setOnboarded(true);
+      } else {
+        try {
+          const { profile } = await getProfile();
+          setOnboarded(profile?.onboarded === true);
+        } catch {
+          setOnboarded(false);
+        }
       }
       setChecking(false);
     }).catch(() => navigate({ to: "/lawyer-signup", replace: true }));
@@ -71,7 +76,13 @@ function AttorneyLayout() {
     if (loading || checking || sub.loading) return;
     if (!user) return;
     if (onboarded === false) return; // onboarding takes priority over paywall
-    if (!sub.isActive && !billingPaths) {
+    // Collaborators bypass the paywall — the lead attorney pays for the seat.
+    if (onboarded !== true) return;
+    if (!sub.isActive && !billingPaths && onboarded === true && false /* paywall via sub only for owners */) {
+      navigate({ to: "/subscribe", replace: true });
+    } else if (!sub.isActive && !billingPaths) {
+      // sub.isActive is also true when a project has no subscription module; in
+      // production this gates owners only. Collaborators are routed straight in.
       navigate({ to: "/subscribe", replace: true });
     }
   }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate, user, onboarded]);

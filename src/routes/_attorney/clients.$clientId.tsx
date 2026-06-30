@@ -516,6 +516,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
       </div>
 
       <CaseNotesCard clientId={clientId} />
+      <TeamCard clientId={clientId} />
     </div>
   );
 }
