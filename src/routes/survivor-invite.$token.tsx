@@ -41,7 +41,7 @@ function SurvivorInvitePage() {
   const [sharePatterns, setSharePatterns] = useState(true);
   const [scopeItemsLoaded, setScopeItemsLoaded] = useState(false);
   const [scopeItemsLoading, setScopeItemsLoading] = useState(false);
-  const [incidentOptions, setIncidentOptions] = useState<Array<{ id: string; date: string; description: string; abuse_types?: string[] | null }>>([]);
+  const [incidentOptions, setIncidentOptions] = useState<Array<{ id: string; date: string; description: string | null; abuse_types?: string[] | null }>>([]);
   const [evidenceOptions, setEvidenceOptions] = useState<Array<{ id: string; title: string; date: string; file_type: string }>>([]);
   const [selectedIncidents, setSelectedIncidents] = useState<string[]>([]);
   const [selectedEvidence, setSelectedEvidence] = useState<string[]>([]);
@@ -259,7 +259,7 @@ function SurvivorInvitePage() {
                     checked={selectedIncidents.includes(item.id)}
                     onChange={(checked) => setSelectedIncidents((prev) => checked ? [...new Set([...prev, item.id])] : prev.filter((id) => id !== item.id))}
                     title={new Date(item.date).toLocaleDateString()}
-                    subtitle={item.description}
+                    subtitle={item.description || "No description added"}
                   />
                 ))}
               </SelectionList>
