@@ -238,19 +238,31 @@ export const listMyClients = createServerFn({ method: "GET" })
       .eq("collaborator_user_id", context.userId)
       .eq("status", "active");
 
-    const [{ data: ownerLinks }, { data: collabRows }] = await Promise.all([ownerQ, collabQ]);
-    const collabLinkIds = (collabRows ?? []).map((r) => r.link_id);
+    // Cases where the caller has been granted firm-level access
+    const grantQ = supabaseAdmin
+      .from("case_grants")
+      .select("client_link_id,granted_by,granted_at")
+      .eq("attorney_user_id", context.userId)
+      .is("revoked_at", null);
+
+    const [{ data: ownerLinks }, { data: collabRows }, { data: grantRows }] = await Promise.all([ownerQ, collabQ, grantQ]);
+    const sharedLinkIds = Array.from(new Set([
+      ...(collabRows ?? []).map((r) => r.link_id),
+      ...(grantRows ?? []).map((r) => r.client_link_id),
+    ]));
+    const grantedSet = new Set((grantRows ?? []).map((r) => r.client_link_id));
     let collabLinks: typeof ownerLinks = [];
-    if (collabLinkIds.length) {
+    if (sharedLinkIds.length) {
       const { data } = await supabaseAdmin
         .from("attorney_client_links")
         .select("id,client_user_id,created_at,status")
-        .in("id", collabLinkIds)
+        .in("id", sharedLinkIds)
         .eq("status", "active");
       collabLinks = data ?? [];
     }
     const linksMap = new Map<string, NonNullable<typeof ownerLinks>[number]>();
     for (const l of (ownerLinks ?? []).concat(collabLinks ?? [])) linksMap.set(l.id, l);
+    const ownerSet = new Set((ownerLinks ?? []).map((l) => l.id));
     const links = Array.from(linksMap.values()).sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
@@ -295,6 +307,7 @@ export const listMyClients = createServerFn({ method: "GET" })
           risk_level: riskLevel,
           has_pattern_analysis: !!pat.data,
           pattern_updated_at: pat.data?.created_at ?? null,
+          access_kind: ownerSet.has(l.id) ? ("owner" as const) : grantedSet.has(l.id) ? ("granted" as const) : ("collaborator" as const),
         };
       }),
     );
