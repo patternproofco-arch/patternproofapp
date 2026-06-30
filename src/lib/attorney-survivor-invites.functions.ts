@@ -42,9 +42,11 @@ export const createSurvivorInvitesBulk = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({
       rows: z.array(z.object({
-        survivor_email: z.string().max(255),
-        survivor_name: z.string().max(120).optional().nullable(),
-        personal_note: z.string().max(2000).optional().nullable(),
+        // Keep this outer schema permissive so bad rows can be reported in the
+        // per-row results instead of failing the whole batch before processing.
+        survivor_email: z.string().max(1000),
+        survivor_name: z.string().max(1000).optional().nullable(),
+        personal_note: z.string().max(5000).optional().nullable(),
       })).min(1).max(100),
       expires_days: z.number().int().min(1).max(365).default(30),
     }).parse(input),
@@ -259,6 +261,26 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
       scope_incidents: [],
       scope_evidence: [],
     };
+    if (!scope.include_all_incidents && (scope.scope_incidents ?? []).length) {
+      const { data: ownedIncidents } = await supabaseAdmin
+        .from("incidents")
+        .select("id")
+        .eq("user_id", context.userId)
+        .in("id", scope.scope_incidents ?? []);
+      if ((ownedIncidents ?? []).length !== (scope.scope_incidents ?? []).length) {
+        throw new Error("One or more selected incidents couldn't be shared.");
+      }
+    }
+    if (!scope.include_all_evidence && (scope.scope_evidence ?? []).length) {
+      const { data: ownedEvidence } = await supabaseAdmin
+        .from("evidence")
+        .select("id")
+        .eq("user_id", context.userId)
+        .in("id", scope.scope_evidence ?? []);
+      if ((ownedEvidence ?? []).length !== (scope.scope_evidence ?? []).length) {
+        throw new Error("One or more selected evidence files couldn't be shared.");
+      }
+    }
     const { error: linkErr } = await supabaseAdmin
       .from("attorney_client_links")
       .insert({
