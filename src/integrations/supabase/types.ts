@@ -463,6 +463,7 @@ export type Database = {
           confidentiality_accepted_at: string | null
           created_at: string
           email: string
+          firm_id: string | null
           firm_name: string | null
           full_name: string
           jurisdiction: string | null
@@ -476,6 +477,7 @@ export type Database = {
           confidentiality_accepted_at?: string | null
           created_at?: string
           email: string
+          firm_id?: string | null
           firm_name?: string | null
           full_name: string
           jurisdiction?: string | null
@@ -489,6 +491,7 @@ export type Database = {
           confidentiality_accepted_at?: string | null
           created_at?: string
           email?: string
+          firm_id?: string | null
           firm_name?: string | null
           full_name?: string
           jurisdiction?: string | null
@@ -497,7 +500,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "attorney_profiles_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "firms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       attorney_survivor_invites: {
         Row: {
@@ -668,6 +679,47 @@ export type Database = {
           {
             foreignKeyName: "case_collaborators_link_id_fkey"
             columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      case_grants: {
+        Row: {
+          attorney_user_id: string
+          client_link_id: string
+          created_at: string
+          granted_at: string
+          granted_by: string
+          id: string
+          revoked_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          attorney_user_id: string
+          client_link_id: string
+          created_at?: string
+          granted_at?: string
+          granted_by: string
+          id?: string
+          revoked_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          client_link_id?: string
+          created_at?: string
+          granted_at?: string
+          granted_by?: string
+          id?: string
+          revoked_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_grants_client_link_id_fkey"
+            columns: ["client_link_id"]
             isOneToOne: false
             referencedRelation: "attorney_client_links"
             referencedColumns: ["id"]
@@ -900,6 +952,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      firms: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       incidents: {
         Row: {
