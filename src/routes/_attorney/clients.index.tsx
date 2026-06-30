@@ -274,11 +274,12 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
   };
 
   const send = async () => {
-    const valid = rows.filter((r) => EMAIL_RE.test(r.survivor_email));
-    if (valid.length === 0) { toast("No valid email rows to send."); return; }
+    if (rows.length === 0) { toast("Add rows to preview before sending."); return; }
     setBusy(true);
     try {
-      const r = await bulkFn({ data: { rows: valid, expires_days: 30 } });
+      // Send the same rows shown in preview so server results map back to the
+      // exact original row numbers, including invalid rows that should fail.
+      const r = await bulkFn({ data: { rows, expires_days: 30 } });
       setResults(r.results as BulkOutcome[]);
       toast(`${r.sent} invite${r.sent === 1 ? "" : "s"} sent. ${r.failed} failed.`);
       onDone();
@@ -349,10 +350,12 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
                       {outcome
                         ? outcome.ok
                           ? <span style={{ color: "#065F46" }}>✓ Sent</span>
-                          : <span style={{ color: "#991B1B" }}>✗ {outcome.error}</span>
-                        : r.invalid
-                          ? <span style={{ color: "#991B1B" }}>{r.invalid}</span>
-                          : <span style={{ color: "var(--att-text-2)" }}>Ready</span>}
+                          : <span style={{ color: "#991B1B" }}>✗ Failed · {outcome.error}</span>
+                        : results
+                          ? <span style={{ color: "#92400E" }}>Pending</span>
+                          : r.invalid
+                            ? <span style={{ color: "#991B1B" }}>{r.invalid}</span>
+                            : <span style={{ color: "#92400E" }}>Pending</span>}
                     </td>
                   </tr>
                 );
@@ -364,12 +367,12 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>
-          {previewRows.length > 0 ? `${previewRows.filter((r) => !r.invalid).length} of ${previewRows.length} ready to send.` : "Add rows to preview."}
+          {previewRows.length > 0 ? `${previewRows.length} row${previewRows.length === 1 ? "" : "s"} pending. Invalid rows will be returned as failed.` : "Add rows to preview."}
         </span>
         <button
           type="button"
           className="att-btn-primary"
-          disabled={busy || previewRows.filter((r) => !r.invalid).length === 0}
+          disabled={busy || previewRows.length === 0}
           onClick={send}
         >
           <Send size={13} /> {busy ? "Sending…" : "Send batch"}

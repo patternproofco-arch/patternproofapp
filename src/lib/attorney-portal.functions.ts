@@ -15,6 +15,37 @@ async function assertAttorney(userId: string) {
   if (!data) throw new Error("Attorney role required");
 }
 
+async function resolveFirmId(firmName: string | null | undefined, createdBy: string): Promise<string | null> {
+  const name = firmName?.trim();
+  if (!name) return null;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: existing } = await supabaseAdmin
+    .from("firms")
+    .select("id")
+    .ilike("name", name)
+    .limit(1)
+    .maybeSingle();
+  if (existing?.id) return existing.id;
+  const { data: created, error } = await supabaseAdmin
+    .from("firms")
+    .insert({ name, created_by: createdBy })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return created.id;
+}
+
+async function assertSameFirm(attorneyA: string, attorneyB: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("attorney_profiles")
+    .select("user_id,firm_id")
+    .in("user_id", [attorneyA, attorneyB]);
+  const a = (data ?? []).find((p) => p.user_id === attorneyA)?.firm_id;
+  const b = (data ?? []).find((p) => p.user_id === attorneyB)?.firm_id;
+  if (!a || !b || a !== b) throw new Error("No active firm-level access");
+}
+
 async function assertLink(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
@@ -35,6 +66,7 @@ async function assertLink(attorneyId: string, clientId: string) {
 async function assertCaseAccess(userId: string, clientId: string): Promise<{
   link: {
     id: string;
+    attorney_user_id?: string;
     status: string;
     include_all_incidents: boolean;
     include_all_evidence: boolean;
@@ -75,7 +107,7 @@ async function assertCaseAccess(userId: string, clientId: string): Promise<{
 
   const { data: link } = await supabaseAdmin
     .from("attorney_client_links")
-    .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,client_user_id")
+    .select("id,attorney_user_id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,client_user_id")
     .in("id", candidateLinkIds)
     .eq("client_user_id", clientId)
     .eq("status", "active")
@@ -83,6 +115,9 @@ async function assertCaseAccess(userId: string, clientId: string): Promise<{
   if (!link) throw new Error("No active access");
   const collabRole = (collabRows ?? []).find((c) => c.link_id === link.id)?.role as
     | "paralegal" | "associate" | "attorney" | undefined;
+  if (!collabRole && (grantRows ?? []).some((g) => g.client_link_id === link.id)) {
+    await assertSameFirm(userId, link.attorney_user_id);
+  }
   return { link, role: "collaborator", collabRole };
 }
 
@@ -118,7 +153,10 @@ async function assertLinkParticipant(linkId: string, userId: string): Promise<{
     .eq("attorney_user_id", userId)
     .is("revoked_at", null)
     .maybeSingle();
-  if (grant) return { link, role: "collaborator" };
+  if (grant) {
+    await assertSameFirm(userId, link.attorney_user_id);
+    return { link, role: "collaborator" };
+  }
   throw new Error("Not a participant");
 }
 
@@ -128,16 +166,21 @@ export const getMyRole = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [{ data: rolesData }, { count: collabCount }] = await Promise.all([
+    const [{ data: rolesData }, { count: collabCount }, { count: grantCount }] = await Promise.all([
       supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId),
       supabaseAdmin
         .from("case_collaborators")
         .select("id", { count: "exact", head: true })
         .eq("collaborator_user_id", context.userId)
         .eq("status", "active"),
+      supabaseAdmin
+        .from("case_grants")
+        .select("id", { count: "exact", head: true })
+        .eq("attorney_user_id", context.userId)
+        .is("revoked_at", null),
     ]);
     const roles = (rolesData ?? []).map((r) => r.role as string);
-    const hasCollaborations = (collabCount ?? 0) > 0;
+    const hasCollaborations = (collabCount ?? 0) > 0 || (grantCount ?? 0) > 0;
     let role: "attorney" | "collaborator" | "survivor" = "survivor";
     if (roles.includes("attorney")) role = "attorney";
     else if (hasCollaborations) role = "collaborator";
@@ -157,13 +200,14 @@ export const upsertAttorneyProfile = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const firm_id = await resolveFirmId(data.firm_name, context.userId);
     await supabaseAdmin.from("user_roles").upsert(
       { user_id: context.userId, role: "attorney" },
       { onConflict: "user_id,role" },
     );
     const { error } = await supabaseAdmin
       .from("attorney_profiles")
-      .upsert({ user_id: context.userId, ...data, updated_at: new Date().toISOString() });
+      .upsert({ user_id: context.userId, ...data, firm_id, updated_at: new Date().toISOString() });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -183,6 +227,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const firm_id = await resolveFirmId(data.firm_name, context.userId);
     await supabaseAdmin.from("user_roles").upsert(
       { user_id: context.userId, role: "attorney" },
       { onConflict: "user_id,role" },
@@ -194,6 +239,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
         full_name: data.full_name,
         email: data.email,
         firm_name: data.firm_name ?? null,
+        firm_id,
         bar_number: data.bar_number ?? null,
         jurisdiction: data.jurisdiction ?? null,
         role: data.role,
@@ -227,7 +273,7 @@ export const listMyClients = createServerFn({ method: "GET" })
     // Owner attorney's own client links
     const ownerQ = supabaseAdmin
       .from("attorney_client_links")
-      .select("id,client_user_id,created_at,status")
+      .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
       .eq("attorney_user_id", context.userId)
       .eq("status", "active");
 
@@ -255,7 +301,7 @@ export const listMyClients = createServerFn({ method: "GET" })
     if (sharedLinkIds.length) {
       const { data } = await supabaseAdmin
         .from("attorney_client_links")
-        .select("id,client_user_id,created_at,status")
+        .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
         .in("id", sharedLinkIds)
         .eq("status", "active");
       collabLinks = data ?? [];
@@ -269,11 +315,30 @@ export const listMyClients = createServerFn({ method: "GET" })
 
     const clients = await Promise.all(
       (links ?? []).map(async (l) => {
+        const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
+        const scopedEvidenceIds = (l.scope_evidence ?? []) as string[];
+        const incidentsQ = l.include_all_incidents
+          ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id)
+          : scopedIncidentIds.length
+            ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).in("id", scopedIncidentIds)
+            : Promise.resolve({ data: [], count: 0 });
+        const evidenceQ = l.include_all_evidence
+          ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id)
+          : scopedEvidenceIds.length
+            ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id).in("id", scopedEvidenceIds)
+            : Promise.resolve({ data: null, count: 0 });
+        const flagsQ = l.include_all_incidents
+          ? supabaseAdmin.from("escalation_flags").select("severity_tier", { count: "exact" }).eq("user_id", l.client_user_id).is("dismissed_at", null)
+          : scopedIncidentIds.length
+            ? supabaseAdmin.from("escalation_flags").select("severity_tier", { count: "exact" }).eq("user_id", l.client_user_id).is("dismissed_at", null).in("incident_id", scopedIncidentIds)
+            : Promise.resolve({ data: [], count: 0 });
         const [inc, ev, pat, esc, msg, doc] = await Promise.all([
-          supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id),
-          supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id),
-          supabaseAdmin.from("pattern_analyses").select("analysis,created_at").eq("user_id", l.client_user_id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-          supabaseAdmin.from("escalation_flags").select("severity_tier", { count: "exact" }).eq("user_id", l.client_user_id).is("dismissed_at", null),
+          incidentsQ,
+          evidenceQ,
+          l.include_patterns
+            ? supabaseAdmin.from("pattern_analyses").select("analysis,created_at").eq("user_id", l.client_user_id).order("created_at", { ascending: false }).limit(1).maybeSingle()
+            : Promise.resolve({ data: null }),
+          flagsQ,
           supabaseAdmin.from("attorney_messages").select("id", { count: "exact", head: true }).eq("link_id", l.id).is("read_at", null).neq("sender_user_id", context.userId),
           supabaseAdmin.from("attorney_document_requests").select("id", { count: "exact", head: true }).eq("link_id", l.id).eq("status", "open"),
         ]);
@@ -327,18 +392,28 @@ export const getClientCase = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { link } = await assertCaseAccess(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const scopedIncidentIds = link.scope_incidents ?? [];
+    const scopedEvidenceIds = link.scope_evidence ?? [];
 
     const [incQ, evQ, patQ, escQ, voiceQ, comsQ, legalQ, caseQ] = await Promise.all([
       link.include_all_incidents
         ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).order("date", { ascending: true })
-        : supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", link.scope_incidents ?? []).order("date", { ascending: true }),
+        : scopedIncidentIds.length
+          ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopedIncidentIds).order("date", { ascending: true })
+          : Promise.resolve({ data: [] }),
       link.include_all_evidence
         ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).order("date", { ascending: true })
-        : supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", link.scope_evidence ?? []).order("date", { ascending: true }),
+        : scopedEvidenceIds.length
+          ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopedEvidenceIds).order("date", { ascending: true })
+          : Promise.resolve({ data: [] }),
       link.include_patterns
         ? supabaseAdmin.from("pattern_analyses").select("*").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1).maybeSingle()
         : Promise.resolve({ data: null }),
-      supabaseAdmin.from("escalation_flags").select("*").eq("user_id", data.clientId).order("created_at", { ascending: false }),
+      link.include_all_incidents
+        ? supabaseAdmin.from("escalation_flags").select("*").eq("user_id", data.clientId).order("created_at", { ascending: false })
+        : scopedIncidentIds.length
+          ? supabaseAdmin.from("escalation_flags").select("*").eq("user_id", data.clientId).in("incident_id", scopedIncidentIds).order("created_at", { ascending: false })
+          : Promise.resolve({ data: [] }),
       supabaseAdmin.from("voice_notes").select("id,title,date,transcript,duration_seconds").eq("user_id", data.clientId).order("date", { ascending: false }),
       supabaseAdmin.from("communications").select("id,date,time,direction,channel,from_party,content,harassment_flag,linked_incident_id").eq("user_id", data.clientId).order("date", { ascending: false }),
       supabaseAdmin.from("legal_documents").select("id,title,document_type,effective_date,expiration_date,case_number,court_name").eq("user_id", data.clientId).order("effective_date", { ascending: false }),
@@ -498,13 +573,23 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
-    await assertLink(context.userId, data.clientId);
+    const link = await assertLink(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [{ data: incidents }, { data: evidence }, { data: pattern }] = await Promise.all([
-      supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses").eq("user_id", data.clientId).order("date"),
-      supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId),
-      supabaseAdmin.from("pattern_analyses").select("analysis").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      link.include_all_incidents
+        ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses").eq("user_id", data.clientId).order("date")
+        : (link.scope_incidents ?? []).length
+          ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses").eq("user_id", data.clientId).in("id", link.scope_incidents ?? []).order("date")
+          : Promise.resolve({ data: [] }),
+      link.include_all_evidence
+        ? supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId)
+        : (link.scope_evidence ?? []).length
+          ? supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId).in("id", link.scope_evidence ?? [])
+          : Promise.resolve({ data: [] }),
+      link.include_patterns
+        ? supabaseAdmin.from("pattern_analyses").select("analysis").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1).maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
 
     if (!incidents || incidents.length < 3) {
@@ -812,7 +897,10 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
     z.object({ clientId: z.string().uuid(), evidenceId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertCaseAccess(context.userId, data.clientId);
+    const { link } = await assertCaseAccess(context.userId, data.clientId);
+    if (!link.include_all_evidence && !(link.scope_evidence ?? []).includes(data.evidenceId)) {
+      throw new Error("Evidence not shared for this case");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: ev } = await supabaseAdmin
       .from("evidence")

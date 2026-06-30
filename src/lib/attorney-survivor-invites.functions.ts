@@ -42,9 +42,11 @@ export const createSurvivorInvitesBulk = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({
       rows: z.array(z.object({
-        survivor_email: z.string().max(255),
-        survivor_name: z.string().max(120).optional().nullable(),
-        personal_note: z.string().max(2000).optional().nullable(),
+        // Keep this outer schema permissive so bad rows can be reported in the
+        // per-row results instead of failing the whole batch before processing.
+        survivor_email: z.string(),
+        survivor_name: z.string().optional().nullable(),
+        personal_note: z.string().optional().nullable(),
       })).min(1).max(100),
       expires_days: z.number().int().min(1).max(365).default(30),
     }).parse(input),
@@ -259,19 +261,55 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
       scope_incidents: [],
       scope_evidence: [],
     };
+    if (!scope.include_all_incidents && (scope.scope_incidents ?? []).length) {
+      const { data: ownedIncidents } = await supabaseAdmin
+        .from("incidents")
+        .select("id")
+        .eq("user_id", context.userId)
+        .in("id", scope.scope_incidents ?? []);
+      if ((ownedIncidents ?? []).length !== (scope.scope_incidents ?? []).length) {
+        throw new Error("One or more selected incidents couldn't be shared.");
+      }
+    }
+    if (!scope.include_all_evidence && (scope.scope_evidence ?? []).length) {
+      const { data: ownedEvidence } = await supabaseAdmin
+        .from("evidence")
+        .select("id")
+        .eq("user_id", context.userId)
+        .in("id", scope.scope_evidence ?? []);
+      if ((ownedEvidence ?? []).length !== (scope.scope_evidence ?? []).length) {
+        throw new Error("One or more selected evidence files couldn't be shared.");
+      }
+    }
+    const linkPayload = {
+      attorney_user_id: inv.attorney_user_id,
+      client_user_id: context.userId,
+      include_all_incidents: scope.include_all_incidents,
+      include_all_evidence: scope.include_all_evidence,
+      include_patterns: scope.include_patterns,
+      scope_incidents: scope.include_all_incidents ? [] : (scope.scope_incidents ?? []),
+      scope_evidence: scope.include_all_evidence ? [] : (scope.scope_evidence ?? []),
+      status: "active",
+    };
     const { error: linkErr } = await supabaseAdmin
       .from("attorney_client_links")
-      .insert({
-        attorney_user_id: inv.attorney_user_id,
-        client_user_id: context.userId,
-        include_all_incidents: scope.include_all_incidents,
-        include_all_evidence: scope.include_all_evidence,
-        include_patterns: scope.include_patterns,
-        scope_incidents: scope.include_all_incidents ? [] : (scope.scope_incidents ?? []),
-        scope_evidence: scope.include_all_evidence ? [] : (scope.scope_evidence ?? []),
-        status: "active",
-      });
-    if (linkErr && !String(linkErr.message).includes("duplicate")) throw new Error(linkErr.message);
+      .insert(linkPayload);
+    if (linkErr) {
+      if (!String(linkErr.message).toLowerCase().includes("duplicate")) throw new Error(linkErr.message);
+      const { error: updateErr } = await supabaseAdmin
+        .from("attorney_client_links")
+        .update({
+          include_all_incidents: linkPayload.include_all_incidents,
+          include_all_evidence: linkPayload.include_all_evidence,
+          include_patterns: linkPayload.include_patterns,
+          scope_incidents: linkPayload.scope_incidents,
+          scope_evidence: linkPayload.scope_evidence,
+          status: "active",
+        })
+        .eq("attorney_user_id", inv.attorney_user_id)
+        .eq("client_user_id", context.userId);
+      if (updateErr) throw new Error(updateErr.message);
+    }
 
     await supabaseAdmin
       .from("attorney_survivor_invites")
