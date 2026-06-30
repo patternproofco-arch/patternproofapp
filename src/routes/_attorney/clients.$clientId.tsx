@@ -16,6 +16,9 @@ import {
 import {
   listEvidenceReviews, upsertEvidenceReview,
 } from "@/lib/attorney-evidence-reviews.functions";
+import {
+  listCaseCollaborators, inviteCaseCollaborator, revokeCaseCollaborator,
+} from "@/lib/attorney-collaborators.functions";
 import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateClioPackage } from "@/lib/payments.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { toast } from "sonner";
@@ -516,6 +519,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
       </div>
 
       <CaseNotesCard clientId={clientId} />
+      <TeamCard clientId={clientId} />
     </div>
   );
 }
@@ -578,6 +582,159 @@ function Metric({ label, v, help }: { label: string; v: number | string; help?: 
         {label}{help && <HelpCircle size={10} style={{ opacity: 0.6 }} />}
       </div>
       <div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>{v}</div>
+    </div>
+  );
+}
+
+/* ---------------- Case team / collaborators ---------------- */
+
+type Collab = {
+  id: string;
+  collaborator_email: string;
+  collaborator_name: string | null;
+  role: "paralegal" | "associate" | "attorney";
+  status: "pending" | "active" | "revoked";
+  invite_token: string;
+  created_at: string;
+  accepted_at: string | null;
+};
+
+function TeamCard({ clientId }: { clientId: string }) {
+  const listFn = useServerFn(listCaseCollaborators);
+  const inviteFn = useServerFn(inviteCaseCollaborator);
+  const revokeFn = useServerFn(revokeCaseCollaborator);
+
+  const [rows, setRows] = useState<Collab[] | null>(null);
+  const [allowed, setAllowed] = useState<boolean>(true);
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState<"paralegal" | "associate" | "attorney">("paralegal");
+  const [busy, setBusy] = useState(false);
+
+  const reload = () => {
+    listFn({ data: { clientId } })
+      .then((r) => { setRows(r.collaborators as Collab[]); setAllowed(true); })
+      .catch(() => setAllowed(false));
+  };
+  useEffect(reload, [listFn, clientId]);
+
+  if (!allowed) return null;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await inviteFn({ data: { clientId, email: email.trim(), name: name.trim() || null, role } });
+      toast("Collaborator invite created. Share the link with them.");
+      setEmail(""); setName(""); setRole("paralegal"); setOpen(false);
+      reload();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Couldn't create invite.");
+    } finally { setBusy(false); }
+  };
+
+  const copyLink = (token: string) => {
+    const url = `${window.location.origin}/collaborator-invite/${token}`;
+    navigator.clipboard.writeText(url).then(() => toast("Invite link copied."));
+  };
+
+  const STATUS: Record<string, { bg: string; fg: string; label: string }> = {
+    pending: { bg: "#FEF3C7", fg: "#92400E", label: "Pending" },
+    active: { bg: "#D1FAE5", fg: "#065F46", label: "Active" },
+    revoked: { bg: "#FEE2E2", fg: "#991B1B", label: "Revoked" },
+  };
+
+  return (
+    <div className="att-card">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+        <SectionTitle icon={<Briefcase size={16} />}>Case team</SectionTitle>
+        <button className="att-btn-primary" onClick={() => setOpen((v) => !v)} style={{ fontSize: 12 }}>
+          <Send size={12} /> {open ? "Hide form" : "Invite collaborator"}
+        </button>
+      </div>
+      <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: -6, marginBottom: 12 }}>
+        Grant per-case access to a paralegal, associate, or co-counsel. They get read &amp; messaging access. Private attorney notes stay with you.
+      </p>
+
+      {open && (
+        <form onSubmit={submit} style={{ display: "grid", gap: 10, padding: 12, background: "#F8FAFC", border: "1px solid var(--att-border)", borderRadius: 8, marginBottom: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 160px", gap: 10 }}>
+            <label style={{ display: "grid", gap: 4 }}>
+              <span className="att-eyebrow">Email *</span>
+              <input className="att-input" type="email" required maxLength={255} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="colleague@firm.com" />
+            </label>
+            <label style={{ display: "grid", gap: 4 }}>
+              <span className="att-eyebrow">Name</span>
+              <input className="att-input" maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="Optional" />
+            </label>
+            <label style={{ display: "grid", gap: 4 }}>
+              <span className="att-eyebrow">Role</span>
+              <select className="att-input" value={role} onChange={(e) => setRole(e.target.value as typeof role)}>
+                <option value="paralegal">Paralegal</option>
+                <option value="associate">Associate</option>
+                <option value="attorney">Co-counsel</option>
+              </select>
+            </label>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button type="submit" disabled={busy} className="att-btn-primary"><Send size={12} /> {busy ? "Creating…" : "Create invite"}</button>
+          </div>
+        </form>
+      )}
+
+      {rows === null ? (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>Loading team…</p>
+      ) : rows.length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No collaborators yet. You're the only one with access to this case file.</p>
+      ) : (
+        <div style={{ display: "grid", gap: 8 }}>
+          {rows.map((c) => {
+            const s = STATUS[c.status] ?? STATUS.pending;
+            const link = `${typeof window === "undefined" ? "" : window.location.origin}/collaborator-invite/${c.invite_token}`;
+            return (
+              <div key={c.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: 10, border: "1px solid var(--att-border)", borderRadius: 8 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <strong style={{ fontSize: 14 }}>{c.collaborator_name || c.collaborator_email}</strong>
+                    <span className="att-tag" style={{ background: s.bg, color: s.fg }}>{s.label}</span>
+                    <span className="att-tag" style={{ background: "#EEF2FF", color: "#3730A3", textTransform: "capitalize" }}>{c.role}</span>
+                    {c.collaborator_name && (
+                      <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>{c.collaborator_email}</span>
+                    )}
+                  </div>
+                  {c.status === "pending" && (
+                    <div className="att-mono" style={{ marginTop: 4, fontSize: 11, color: "var(--att-slate)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {link}
+                    </div>
+                  )}
+                  {c.accepted_at && (
+                    <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 4 }}>
+                      Accepted {new Date(c.accepted_at).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                  {c.status === "pending" && (
+                    <button className="att-btn-ghost" onClick={() => copyLink(c.invite_token)}>Copy link</button>
+                  )}
+                  {c.status !== "revoked" && (
+                    <button
+                      className="att-btn-ghost"
+                      style={{ color: "var(--att-red)" }}
+                      onClick={async () => {
+                        if (!confirm("Revoke this collaborator's access?")) return;
+                        try { await revokeFn({ data: { id: c.id } }); toast("Access revoked."); reload(); }
+                        catch (e) { toast(e instanceof Error ? e.message : "Couldn't revoke."); }
+                      }}
+                    >Revoke</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -3,12 +3,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import {
   AlertTriangle, FileText, MessageSquare, TrendingUp, ArrowRight, CheckCircle2,
-  Send, Copy, RotateCw, X, Mail, Plus,
+  Send, Copy, RotateCw, X, Mail, Plus, Upload, Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { listMyClients } from "@/lib/attorney-portal.functions";
 import {
-  listSurvivorInvites, createSurvivorInvite, revokeSurvivorInvite, resendSurvivorInvite,
+  listSurvivorInvites, createSurvivorInvite, createSurvivorInvitesBulk,
+  revokeSurvivorInvite, resendSurvivorInvite,
 } from "@/lib/attorney-survivor-invites.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -160,8 +161,204 @@ function Stat({ icon, label, v }: { icon: React.ReactNode; label: string; v: num
 
 /* ---------------- Invite panel ---------------- */
 
+/* ------- Bulk invite panel (CSV upload or paste) ------- */
+
+type BulkRow = {
+  survivor_email: string;
+  survivor_name?: string | null;
+  personal_note?: string | null;
+};
+type BulkOutcome =
+  | { index: number; ok: true; email: string; invite_token: string; id: string }
+  | { index: number; ok: false; email: string; error: string };
+
+const MAX_BULK = 100;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function parseCsv(text: string): { rows: BulkRow[]; errors: string[] } {
+  const errors: string[] = [];
+  const lines = text.replace(/\r\n?/g, "\n").split("\n").map((l) => l.trim()).filter(Boolean);
+  if (!lines.length) return { rows: [], errors: ["File is empty."] };
+
+  const splitLine = (line: string): string[] => {
+    const out: string[] = [];
+    let cur = ""; let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else { inQ = !inQ; }
+      } else if (ch === "," && !inQ) { out.push(cur); cur = ""; }
+      else { cur += ch; }
+    }
+    out.push(cur);
+    return out.map((s) => s.trim());
+  };
+
+  let header: string[] | null = null;
+  const firstCells = splitLine(lines[0]).map((c) => c.toLowerCase());
+  const hasHeader = firstCells.includes("survivor_email") || firstCells.includes("email");
+  let dataLines = lines;
+  if (hasHeader) { header = firstCells; dataLines = lines.slice(1); }
+
+  const idx = (name: string, alt?: string) => {
+    if (!header) return name === "survivor_email" ? 0 : name === "survivor_name" ? 1 : 2;
+    let i = header.indexOf(name);
+    if (i === -1 && alt) i = header.indexOf(alt);
+    return i;
+  };
+  const iEmail = idx("survivor_email", "email");
+  const iName = idx("survivor_name", "name");
+  const iNote = idx("personal_note", "note");
+
+  const rows: BulkRow[] = [];
+  for (const line of dataLines) {
+    const cells = splitLine(line);
+    const email = (iEmail >= 0 ? cells[iEmail] : cells[0]) ?? "";
+    const name = iName >= 0 ? cells[iName] : cells[1];
+    const note = iNote >= 0 ? cells[iNote] : cells[2];
+    rows.push({
+      survivor_email: String(email ?? "").trim(),
+      survivor_name: name ? String(name).trim() : null,
+      personal_note: note ? String(note).trim() : null,
+    });
+  }
+  if (rows.length > MAX_BULK) errors.push(`Only the first ${MAX_BULK} rows will be sent (you provided ${rows.length}).`);
+  return { rows: rows.slice(0, MAX_BULK), errors };
+}
+
+function BulkInvitePanel({ onDone }: { onDone: () => void }) {
+  const [text, setText] = useState("");
+  const [rows, setRows] = useState<BulkRow[]>([]);
+  const [parseErrors, setParseErrors] = useState<string[]>([]);
+  const [results, setResults] = useState<BulkOutcome[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const bulkFn = useServerFn(createSurvivorInvitesBulk);
+
+  const preview = () => {
+    const { rows, errors } = parseCsv(text);
+    setRows(rows); setParseErrors(errors); setResults(null);
+  };
+
+  const onFile = async (f: File | null) => {
+    if (!f) return;
+    if (f.size > 1024 * 1024) { toast("CSV is too large (max 1 MB)."); return; }
+    const t = await f.text();
+    setText(t);
+    const { rows, errors } = parseCsv(t);
+    setRows(rows); setParseErrors(errors); setResults(null);
+  };
+
+  const send = async () => {
+    const valid = rows.filter((r) => EMAIL_RE.test(r.survivor_email));
+    if (valid.length === 0) { toast("No valid email rows to send."); return; }
+    setBusy(true);
+    try {
+      const r = await bulkFn({ data: { rows: valid, expires_days: 30 } });
+      setResults(r.results as BulkOutcome[]);
+      toast(`${r.sent} invite${r.sent === 1 ? "" : "s"} sent. ${r.failed} failed.`);
+      onDone();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Bulk invite failed.");
+    } finally { setBusy(false); }
+  };
+
+  const previewRows = rows.map((r) => ({
+    ...r,
+    invalid: !EMAIL_RE.test(r.survivor_email) ? "Invalid email" : null,
+  }));
+
+  return (
+    <div className="att-card" style={{ display: "grid", gap: 12, marginBottom: 14 }}>
+      <div>
+        <div className="att-eyebrow">Bulk invite</div>
+        <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
+          Paste CSV rows or upload a .csv. Columns: <code>survivor_email, survivor_name, personal_note</code>. Header row optional. Max {MAX_BULK} rows per batch.
+        </p>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <label className="att-btn-ghost" style={{ cursor: "pointer" }}>
+          <Upload size={12} /> Upload CSV
+          <input type="file" accept=".csv,text/csv" hidden onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
+        </label>
+        <button className="att-btn-ghost" onClick={preview} type="button">Preview pasted rows</button>
+      </div>
+
+      <textarea
+        className="att-textarea"
+        rows={5}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder={"survivor_email,survivor_name,personal_note\njane@example.com,Jane Doe,Looking forward to working with you\n..."}
+        style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 12 }}
+      />
+
+      {parseErrors.length > 0 && (
+        <div style={{ background: "#FEF3C7", color: "#92400E", padding: 8, borderRadius: 6, fontSize: 12 }}>
+          {parseErrors.map((e, i) => <div key={i}>• {e}</div>)}
+        </div>
+      )}
+
+      {previewRows.length > 0 && (
+        <div style={{ overflowX: "auto", border: "1px solid var(--att-border)", borderRadius: 8 }}>
+          <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
+            <thead style={{ background: "#F8FAFC" }}>
+              <tr>
+                <th style={{ textAlign: "left", padding: 8 }}>#</th>
+                <th style={{ textAlign: "left", padding: 8 }}>Email</th>
+                <th style={{ textAlign: "left", padding: 8 }}>Name</th>
+                <th style={{ textAlign: "left", padding: 8 }}>Note</th>
+                <th style={{ textAlign: "left", padding: 8 }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {previewRows.map((r, i) => {
+                const outcome = results?.find((o) => o.index === i);
+                return (
+                  <tr key={i} style={{ borderTop: "1px solid var(--att-border)", background: r.invalid ? "#FEF2F2" : undefined }}>
+                    <td style={{ padding: 8, color: "var(--att-text-2)" }}>{i + 1}</td>
+                    <td style={{ padding: 8 }}>{r.survivor_email || <em style={{ color: "#991B1B" }}>missing</em>}</td>
+                    <td style={{ padding: 8 }}>{r.survivor_name ?? ""}</td>
+                    <td style={{ padding: 8, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.personal_note ?? ""}</td>
+                    <td style={{ padding: 8 }}>
+                      {outcome
+                        ? outcome.ok
+                          ? <span style={{ color: "#065F46" }}>✓ Sent</span>
+                          : <span style={{ color: "#991B1B" }}>✗ {outcome.error}</span>
+                        : r.invalid
+                          ? <span style={{ color: "#991B1B" }}>{r.invalid}</span>
+                          : <span style={{ color: "var(--att-text-2)" }}>Ready</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+          {previewRows.length > 0 ? `${previewRows.filter((r) => !r.invalid).length} of ${previewRows.length} ready to send.` : "Add rows to preview."}
+        </span>
+        <button
+          type="button"
+          className="att-btn-primary"
+          disabled={busy || previewRows.filter((r) => !r.invalid).length === 0}
+          onClick={send}
+        >
+          <Send size={13} /> {busy ? "Sending…" : "Send batch"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ------- Single invite panel below ------- */
+
 function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onChange: () => void }) {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"single" | "bulk">("single");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
@@ -206,12 +403,28 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
             Invite a survivor to share their case
           </h2>
         </div>
-        <button className="att-btn-primary" onClick={() => setOpen((v) => !v)}>
-          <Plus size={14} /> {open ? "Hide form" : "New invite"}
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            className={mode === "single" && open ? "att-btn-primary" : "att-btn-ghost"}
+            onClick={() => { setMode("single"); setOpen(true); }}
+          >
+            <Plus size={14} /> Single invite
+          </button>
+          <button
+            className={mode === "bulk" && open ? "att-btn-primary" : "att-btn-ghost"}
+            onClick={() => { setMode("bulk"); setOpen(true); }}
+          >
+            <Users size={14} /> Bulk invite
+          </button>
+          {open && (
+            <button className="att-btn-ghost" onClick={() => setOpen(false)}>
+              <X size={12} /> Close
+            </button>
+          )}
+        </div>
       </div>
 
-      {open && (
+      {open && mode === "single" && (
         <form onSubmit={submit} className="att-card" style={{ display: "grid", gap: 12, marginBottom: 14 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <label style={{ display: "grid", gap: 6 }}>
@@ -258,6 +471,8 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
           </div>
         </form>
       )}
+
+      {open && mode === "bulk" && <BulkInvitePanel onDone={() => { onChange(); }} />}
 
       {invites === null ? null : invites.length === 0 ? (
         <div className="att-card" style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--att-text-2)", fontSize: 13 }}>

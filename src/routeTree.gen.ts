@@ -22,6 +22,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
+import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
@@ -126,6 +127,11 @@ const IndexRoute = IndexRouteImport.update({
 const SurvivorInviteTokenRoute = SurvivorInviteTokenRouteImport.update({
   id: '/survivor-invite/$token',
   path: '/survivor-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CollaboratorInviteTokenRoute = CollaboratorInviteTokenRouteImport.update({
+  id: '/collaborator-invite/$token',
+  path: '/collaborator-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
@@ -402,6 +408,7 @@ export interface FileRoutesByFullPath {
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
@@ -455,6 +462,7 @@ export interface FileRoutesByTo {
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
@@ -513,6 +521,7 @@ export interface FileRoutesById {
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
@@ -570,6 +579,7 @@ export interface FileRouteTypes {
     | '/accept-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
+    | '/collaborator-invite/$token'
     | '/survivor-invite/$token'
     | '/clients/$clientId'
     | '/agent/$threadId'
@@ -623,6 +633,7 @@ export interface FileRouteTypes {
     | '/accept-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
+    | '/collaborator-invite/$token'
     | '/survivor-invite/$token'
     | '/clients/$clientId'
     | '/agent/$threadId'
@@ -680,6 +691,7 @@ export interface FileRouteTypes {
     | '/accept-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
+    | '/collaborator-invite/$token'
     | '/survivor-invite/$token'
     | '/_attorney/clients/$clientId'
     | '/_authenticated/agent/$threadId'
@@ -704,6 +716,7 @@ export interface RootRouteChildren {
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
   ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
+  CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -799,6 +812,13 @@ declare module '@tanstack/react-router' {
       path: '/survivor-invite/$token'
       fullPath: '/survivor-invite/$token'
       preLoaderRoute: typeof SurvivorInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/collaborator-invite/$token': {
+      id: '/collaborator-invite/$token'
+      path: '/collaborator-invite/$token'
+      fullPath: '/collaborator-invite/$token'
+      preLoaderRoute: typeof CollaboratorInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attorney/$token': {
@@ -1229,19 +1249,10 @@ const rootRouteChildren: RootRouteChildren = {
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,
   ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,
+  CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

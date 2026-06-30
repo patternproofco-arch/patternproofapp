@@ -624,6 +624,56 @@ export type Database = {
         }
         Relationships: []
       }
+      case_collaborators: {
+        Row: {
+          accepted_at: string | null
+          collaborator_email: string
+          collaborator_name: string | null
+          collaborator_user_id: string | null
+          created_at: string
+          id: string
+          invite_token: string
+          link_id: string
+          owner_attorney_user_id: string
+          role: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          collaborator_email: string
+          collaborator_name?: string | null
+          collaborator_user_id?: string | null
+          created_at?: string
+          id?: string
+          invite_token?: string
+          link_id: string
+          owner_attorney_user_id: string
+          role: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          collaborator_email?: string
+          collaborator_name?: string | null
+          collaborator_user_id?: string | null
+          created_at?: string
+          id?: string
+          invite_token?: string
+          link_id?: string
+          owner_attorney_user_id?: string
+          role?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_collaborators_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cases: {
         Row: {
           attached_evidence_ids: string[]

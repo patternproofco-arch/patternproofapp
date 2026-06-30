@@ -27,6 +27,7 @@ function AttorneyLayout() {
   const getProfile = useServerFn(getAttorneyProfile);
   const [checking, setChecking] = useState(true);
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
+  const [userRole, setUserRole] = useState<"attorney" | "collaborator" | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sub = useSubscription();
 
@@ -34,15 +35,21 @@ function AttorneyLayout() {
     if (loading) return;
     if (!user) { navigate({ to: "/lawyer-signup", replace: true }); return; }
     getRole().then(async (r) => {
-      if (r.role !== "attorney") {
+      if (r.role !== "attorney" && r.role !== "collaborator") {
         navigate({ to: "/lawyer-signup", replace: true });
         return;
       }
-      try {
-        const { profile } = await getProfile();
-        setOnboarded(profile?.onboarded === true);
-      } catch {
-        setOnboarded(false);
+      setUserRole(r.role);
+      if (r.role === "collaborator") {
+        // Collaborators inherit the lead attorney's onboarding and subscription.
+        setOnboarded(true);
+      } else {
+        try {
+          const { profile } = await getProfile();
+          setOnboarded(profile?.onboarded === true);
+        } catch {
+          setOnboarded(false);
+        }
       }
       setChecking(false);
     }).catch(() => navigate({ to: "/lawyer-signup", replace: true }));
@@ -71,10 +78,12 @@ function AttorneyLayout() {
     if (loading || checking || sub.loading) return;
     if (!user) return;
     if (onboarded === false) return; // onboarding takes priority over paywall
+    // Collaborators bypass the paywall — the lead attorney pays for the seat.
+    if (userRole === "collaborator") return;
     if (!sub.isActive && !billingPaths) {
       navigate({ to: "/subscribe", replace: true });
     }
-  }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate, user, onboarded]);
+  }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate, user, onboarded, userRole]);
 
   if (loading || checking || sub.loading) {
     return (

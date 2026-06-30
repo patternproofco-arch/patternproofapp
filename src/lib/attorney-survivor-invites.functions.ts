@@ -32,6 +32,107 @@ export const createSurvivorInvite = createServerFn({ method: "POST" })
     return { invite: row };
   });
 
+/**
+ * Bulk version of createSurvivorInvite. Validates each row independently and
+ * returns a per-row outcome so the UI can show which rows succeeded or failed
+ * without blocking the valid ones. Capped at 100 rows per batch.
+ */
+export const createSurvivorInvitesBulk = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      rows: z.array(z.object({
+        survivor_email: z.string().max(255),
+        survivor_name: z.string().max(120).optional().nullable(),
+        personal_note: z.string().max(2000).optional().nullable(),
+      })).min(1).max(100),
+      expires_days: z.number().int().min(1).max(365).default(30),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
+
+    type Outcome =
+      | { index: number; ok: true; email: string; invite_token: string; id: string }
+      | { index: number; ok: false; email: string; error: string };
+    const results: Outcome[] = [];
+
+    const rowSchema = z.object({
+      survivor_email: z.string().trim().toLowerCase().email().max(255),
+      survivor_name: z.string().trim().max(120).optional().nullable(),
+      personal_note: z.string().trim().max(2000).optional().nullable(),
+    });
+
+    const seenEmails = new Set<string>();
+
+    for (let i = 0; i < data.rows.length; i++) {
+      const raw = data.rows[i];
+      const rawEmail = String(raw.survivor_email ?? "").trim();
+      const parsed = rowSchema.safeParse({
+        survivor_email: rawEmail,
+        survivor_name: raw.survivor_name ?? null,
+        personal_note: raw.personal_note ?? null,
+      });
+      if (!parsed.success) {
+        results.push({
+          index: i,
+          ok: false,
+          email: rawEmail,
+          error: parsed.error.issues[0]?.message ?? "Invalid row",
+        });
+        continue;
+      }
+      const row = parsed.data;
+      if (seenEmails.has(row.survivor_email)) {
+        results.push({
+          index: i,
+          ok: false,
+          email: row.survivor_email,
+          error: "Duplicate email in this batch",
+        });
+        continue;
+      }
+      seenEmails.add(row.survivor_email);
+
+      const { data: inserted, error } = await supabaseAdmin
+        .from("attorney_survivor_invites")
+        .insert({
+          attorney_user_id: context.userId,
+          survivor_email: row.survivor_email,
+          survivor_name: row.survivor_name ?? null,
+          personal_note: row.personal_note ?? null,
+          expires_at: expires,
+        })
+        .select("id,invite_token,survivor_email")
+        .single();
+      if (error) {
+        results.push({
+          index: i,
+          ok: false,
+          email: row.survivor_email,
+          error: String(error.message).toLowerCase().includes("duplicate")
+            ? "Already invited"
+            : error.message,
+        });
+      } else {
+        results.push({
+          index: i,
+          ok: true,
+          email: inserted.survivor_email,
+          invite_token: inserted.invite_token,
+          id: inserted.id,
+        });
+      }
+    }
+
+    return {
+      results,
+      sent: results.filter((r) => r.ok).length,
+      failed: results.filter((r) => !r.ok).length,
+    };
+  });
+
 export const listSurvivorInvites = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -121,7 +222,18 @@ export const peekSurvivorInvite = createServerFn({ method: "POST" })
 
 export const acceptSurvivorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ token: z.string().min(8).max(128) }).parse(input))
+  .inputValidator((input) =>
+    z.object({
+      token: z.string().min(8).max(128),
+      scope: z.object({
+        include_all_incidents: z.boolean(),
+        include_all_evidence: z.boolean(),
+        include_patterns: z.boolean(),
+        scope_incidents: z.array(z.string().uuid()).max(2000).optional().default([]),
+        scope_evidence: z.array(z.string().uuid()).max(2000).optional().default([]),
+      }).optional(),
+    }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: inv } = await supabaseAdmin
@@ -138,15 +250,25 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
       throw new Error("This invite was sent to a different email address.");
     }
 
-    // Create the attorney→client link as if the survivor invited the attorney.
+    // Apply survivor-chosen share scope, defaulting to "share everything" when
+    // the survivor didn't opt into the granular flow.
+    const scope = data.scope ?? {
+      include_all_incidents: true,
+      include_all_evidence: true,
+      include_patterns: true,
+      scope_incidents: [],
+      scope_evidence: [],
+    };
     const { error: linkErr } = await supabaseAdmin
       .from("attorney_client_links")
       .insert({
         attorney_user_id: inv.attorney_user_id,
         client_user_id: context.userId,
-        include_all_incidents: true,
-        include_all_evidence: true,
-        include_patterns: true,
+        include_all_incidents: scope.include_all_incidents,
+        include_all_evidence: scope.include_all_evidence,
+        include_patterns: scope.include_patterns,
+        scope_incidents: scope.include_all_incidents ? [] : (scope.scope_incidents ?? []),
+        scope_evidence: scope.include_all_evidence ? [] : (scope.scope_evidence ?? []),
         status: "active",
       });
     if (linkErr && !String(linkErr.message).includes("duplicate")) throw new Error(linkErr.message);
