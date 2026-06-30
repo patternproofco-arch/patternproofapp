@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { ShieldCheck, Lock, Heart, CheckCircle2, SlidersHorizontal } from "lucide-react";
+import { ShieldCheck, Lock, Heart, CheckCircle2, FileText, Paperclip } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -36,10 +36,15 @@ function SurvivorInvitePage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [step, setStep] = useState<"auth" | "scope">("auth");
-  const [scopeChoice, setScopeChoice] = useState<"all" | "custom">("all");
-  const [shareIncidents, setShareIncidents] = useState(true);
-  const [shareEvidence, setShareEvidence] = useState(true);
+  const [incidentMode, setIncidentMode] = useState<"all" | "specific">("all");
+  const [evidenceMode, setEvidenceMode] = useState<"all" | "specific">("all");
   const [sharePatterns, setSharePatterns] = useState(true);
+  const [scopeItemsLoaded, setScopeItemsLoaded] = useState(false);
+  const [scopeItemsLoading, setScopeItemsLoading] = useState(false);
+  const [incidentOptions, setIncidentOptions] = useState<Array<{ id: string; date: string; description: string; abuse_types?: string[] | null }>>([]);
+  const [evidenceOptions, setEvidenceOptions] = useState<Array<{ id: string; title: string; date: string; file_type: string }>>([]);
+  const [selectedIncidents, setSelectedIncidents] = useState<string[]>([]);
+  const [selectedEvidence, setSelectedEvidence] = useState<string[]>([]);
 
   // If the user is already signed in when they land here, skip straight to scope.
   useEffect(() => {
@@ -55,6 +60,26 @@ function SurvivorInvitePage() {
       setEmail(peeked.invite.survivor_email);
     }
   }, [peeked, email]);
+
+  useEffect(() => {
+    if (!user || step !== "scope" || scopeItemsLoaded || scopeItemsLoading) return;
+    setScopeItemsLoading(true);
+    Promise.all([
+      supabase.from("incidents").select("id,date,description,abuse_types").eq("user_id", user.id).order("date", { ascending: false }),
+      supabase.from("evidence").select("id,title,date,file_type").eq("user_id", user.id).order("created_at", { ascending: false }),
+    ])
+      .then(([inc, ev]) => {
+        const incidents = inc.data ?? [];
+        const evidence = ev.data ?? [];
+        setIncidentOptions(incidents);
+        setEvidenceOptions(evidence);
+        setSelectedIncidents(incidents.map((i) => i.id));
+        setSelectedEvidence(evidence.map((e) => e.id));
+        setScopeItemsLoaded(true);
+      })
+      .catch(() => toast("Couldn't load your incidents and evidence for scope selection."))
+      .finally(() => setScopeItemsLoading(false));
+  }, [user, step, scopeItemsLoaded, scopeItemsLoading]);
 
   const submitAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,9 +109,13 @@ function SurvivorInvitePage() {
   const confirmScope = async () => {
     setBusy(true);
     try {
-      const scope = scopeChoice === "all"
-        ? { include_all_incidents: true, include_all_evidence: true, include_patterns: true }
-        : { include_all_incidents: shareIncidents, include_all_evidence: shareEvidence, include_patterns: sharePatterns };
+      const scope = {
+        include_all_incidents: incidentMode === "all",
+        include_all_evidence: evidenceMode === "all",
+        include_patterns: sharePatterns,
+        scope_incidents: incidentMode === "all" ? [] : selectedIncidents,
+        scope_evidence: evidenceMode === "all" ? [] : selectedEvidence,
+      };
       await accept({ data: { token, scope } });
       setDone(true);
       toast("Connected. Your attorney now has access to your case.");
@@ -203,54 +232,76 @@ function SurvivorInvitePage() {
           <div>
             <h2 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 22, margin: 0 }}>What would you like to share?</h2>
             <p style={{ fontSize: 13, color: "#475569", marginTop: 6 }}>
-              Most survivors share everything with their attorney so nothing important is missed. You can change this any time from Settings.
+              Everything is selected by default so you can continue in one click, but you can narrow what this attorney sees before accepting.
             </p>
           </div>
 
-          <label
-            onClick={() => setScopeChoice("all")}
-            style={{
-              display: "grid", gap: 4, padding: 14, borderRadius: 12, cursor: "pointer",
-              border: scopeChoice === "all" ? "2px solid #2F8D85" : "1px solid #E2E8F0",
-              background: scopeChoice === "all" ? "#EAF7EF" : "#fff",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="radio" name="scope" checked={scopeChoice === "all"} onChange={() => setScopeChoice("all")} />
-              <strong style={{ fontSize: 14 }}>Share everything with {attorneyDisplay}</strong>
-              <span style={{ fontSize: 10, fontWeight: 700, color: "#065F46", background: "#D1FAE5", padding: "2px 6px", borderRadius: 4 }}>RECOMMENDED</span>
-            </div>
-            <p style={{ fontSize: 12, color: "#475569", marginLeft: 24 }}>
-              All incidents, evidence, and pattern analysis. The fullest picture for your case.
-            </p>
-          </label>
-
-          <label
-            onClick={() => setScopeChoice("custom")}
-            style={{
-              display: "grid", gap: 4, padding: 14, borderRadius: 12, cursor: "pointer",
-              border: scopeChoice === "custom" ? "2px solid #2F8D85" : "1px solid #E2E8F0",
-              background: scopeChoice === "custom" ? "#EAF7EF" : "#fff",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="radio" name="scope" checked={scopeChoice === "custom"} onChange={() => setScopeChoice("custom")} />
-              <SlidersHorizontal size={14} />
-              <strong style={{ fontSize: 14 }}>Choose what to share</strong>
-            </div>
-            <p style={{ fontSize: 12, color: "#475569", marginLeft: 24 }}>Pick categories below.</p>
-
-            {scopeChoice === "custom" && (
-              <div style={{ display: "grid", gap: 8, marginTop: 10, marginLeft: 24 }}>
-                <Toggle checked={shareIncidents} onChange={setShareIncidents} label="All incidents" />
-                <Toggle checked={shareEvidence} onChange={setShareEvidence} label="All evidence files" />
-                <Toggle checked={sharePatterns} onChange={setSharePatterns} label="Pattern analysis" />
-                <p style={{ fontSize: 11, color: "#667085" }}>
-                  Per-item selection (specific incidents or files) is available in Settings → Sharing after you connect.
-                </p>
-              </div>
+          <ScopeBox icon={<FileText size={15} />} title="Incidents" description="Dates, descriptions, abuse types, witnesses, severity, and impact notes.">
+            <ScopeModeCard
+              name="incidents-mode"
+              checked={incidentMode === "all"}
+              onChange={() => setIncidentMode("all")}
+              title={`Share all incidents (${incidentOptions.length})`}
+              helper="Recommended if you want your attorney to see the full timeline."
+            />
+            <ScopeModeCard
+              name="incidents-mode"
+              checked={incidentMode === "specific"}
+              onChange={() => setIncidentMode("specific")}
+              title="Select specific incidents"
+              helper={scopeItemsLoading ? "Loading your incidents…" : `${selectedIncidents.length} selected`}
+            />
+            {incidentMode === "specific" && (
+              <SelectionList empty="No incidents found in your account yet.">
+                {incidentOptions.map((item) => (
+                  <SelectableItem
+                    key={item.id}
+                    checked={selectedIncidents.includes(item.id)}
+                    onChange={(checked) => setSelectedIncidents((prev) => checked ? [...new Set([...prev, item.id])] : prev.filter((id) => id !== item.id))}
+                    title={new Date(item.date).toLocaleDateString()}
+                    subtitle={item.description}
+                  />
+                ))}
+              </SelectionList>
             )}
-          </label>
+          </ScopeBox>
+
+          <ScopeBox icon={<Paperclip size={15} />} title="Evidence" description="Uploaded files, titles, dates, file types, and linked incident information.">
+            <ScopeModeCard
+              name="evidence-mode"
+              checked={evidenceMode === "all"}
+              onChange={() => setEvidenceMode("all")}
+              title={`Share all evidence (${evidenceOptions.length})`}
+              helper="Recommended so important exhibits are not missed."
+            />
+            <ScopeModeCard
+              name="evidence-mode"
+              checked={evidenceMode === "specific"}
+              onChange={() => setEvidenceMode("specific")}
+              title="Select specific evidence"
+              helper={scopeItemsLoading ? "Loading your evidence…" : `${selectedEvidence.length} selected`}
+            />
+            {evidenceMode === "specific" && (
+              <SelectionList empty="No evidence files found in your account yet.">
+                {evidenceOptions.map((item) => (
+                  <SelectableItem
+                    key={item.id}
+                    checked={selectedEvidence.includes(item.id)}
+                    onChange={(checked) => setSelectedEvidence((prev) => checked ? [...new Set([...prev, item.id])] : prev.filter((id) => id !== item.id))}
+                    title={item.title || item.file_type}
+                    subtitle={`${new Date(item.date).toLocaleDateString()} · ${item.file_type}`}
+                  />
+                ))}
+              </SelectionList>
+            )}
+          </ScopeBox>
+
+          <div style={{ padding: 14, borderRadius: 12, border: "1px solid #E2E8F0", background: "#fff" }}>
+            <Toggle checked={sharePatterns} onChange={setSharePatterns} label="Share pattern analysis" />
+            <p style={{ margin: "8px 0 0 24px", fontSize: 12, color: "#475569" }}>
+              Includes PatternProof analysis, forecasts, attorney summaries, and safety notes when available.
+            </p>
+          </div>
 
           <button
             type="button"
@@ -282,6 +333,51 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
   );
 }
 
+function ScopeBox({ icon, title, description, children }: { icon: React.ReactNode; title: string; description: string; children: React.ReactNode }) {
+  return (
+    <div style={{ padding: 14, borderRadius: 12, border: "1px solid #E2E8F0", background: "#fff", display: "grid", gap: 10 }}>
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 14 }}>{icon}{title}</div>
+        <p style={{ fontSize: 12, color: "#475569", margin: "4px 0 0" }}>{description}</p>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function ScopeModeCard({ name, checked, onChange, title, helper }: { name: string; checked: boolean; onChange: () => void; title: string; helper: string }) {
+  return (
+    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, padding: 10, borderRadius: 10, cursor: "pointer", border: checked ? "1px solid #2F8D85" : "1px solid #E2E8F0", background: checked ? "#EAF7EF" : "#FBFEFC" }}>
+      <input type="radio" name={name} checked={checked} onChange={onChange} style={{ marginTop: 2 }} />
+      <span>
+        <strong style={{ display: "block", fontSize: 13 }}>{title}</strong>
+        <span style={{ display: "block", fontSize: 11, color: "#667085", marginTop: 2 }}>{helper}</span>
+      </span>
+    </label>
+  );
+}
+
+function SelectionList({ children, empty }: { children: React.ReactNode; empty: string }) {
+  const hasChildren = Array.isArray(children) ? children.length > 0 : !!children;
+  return (
+    <div style={{ display: "grid", gap: 6, maxHeight: 190, overflowY: "auto", padding: 8, borderRadius: 10, border: "1px solid #E2E8F0", background: "#F8FAFC" }}>
+      {hasChildren ? children : <p style={{ fontSize: 12, color: "#667085", margin: 0 }}>{empty}</p>}
+    </div>
+  );
+}
+
+function SelectableItem({ checked, onChange, title, subtitle }: { checked: boolean; onChange: (checked: boolean) => void; title: string; subtitle: string }) {
+  return (
+    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, alignItems: "start", padding: 8, borderRadius: 8, background: "#fff", border: "1px solid #E2E8F0", cursor: "pointer" }}>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} style={{ marginTop: 2 }} />
+      <span style={{ minWidth: 0 }}>
+        <strong style={{ display: "block", fontSize: 12 }}>{title}</strong>
+        <span style={{ display: "block", fontSize: 11, color: "#667085", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{subtitle}</span>
+      </span>
+    </label>
+  );
+}
+
 const inputStyle: React.CSSProperties = {
   padding: "10px 12px",
   borderRadius: 8,
@@ -294,7 +390,7 @@ const inputStyle: React.CSSProperties = {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ minHeight: "100vh", background: "#FBFEFC", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ maxWidth: 520, width: "100%", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 28, boxShadow: "0 4px 24px rgba(15,23,42,0.06)" }}>
+      <div style={{ maxWidth: 680, width: "100%", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 28, boxShadow: "0 4px 24px rgba(15,23,42,0.06)" }}>
         {children}
       </div>
     </div>
