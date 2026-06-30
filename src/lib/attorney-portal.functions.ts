@@ -35,6 +35,17 @@ async function resolveFirmId(firmName: string | null | undefined, createdBy: str
   return created.id;
 }
 
+async function assertSameFirm(attorneyA: string, attorneyB: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("attorney_profiles")
+    .select("user_id,firm_id")
+    .in("user_id", [attorneyA, attorneyB]);
+  const a = (data ?? []).find((p) => p.user_id === attorneyA)?.firm_id;
+  const b = (data ?? []).find((p) => p.user_id === attorneyB)?.firm_id;
+  if (!a || !b || a !== b) throw new Error("No active firm-level access");
+}
+
 async function assertLink(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
@@ -55,6 +66,7 @@ async function assertLink(attorneyId: string, clientId: string) {
 async function assertCaseAccess(userId: string, clientId: string): Promise<{
   link: {
     id: string;
+    attorney_user_id?: string;
     status: string;
     include_all_incidents: boolean;
     include_all_evidence: boolean;
@@ -95,7 +107,7 @@ async function assertCaseAccess(userId: string, clientId: string): Promise<{
 
   const { data: link } = await supabaseAdmin
     .from("attorney_client_links")
-    .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,client_user_id")
+    .select("id,attorney_user_id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,client_user_id")
     .in("id", candidateLinkIds)
     .eq("client_user_id", clientId)
     .eq("status", "active")
@@ -103,6 +115,9 @@ async function assertCaseAccess(userId: string, clientId: string): Promise<{
   if (!link) throw new Error("No active access");
   const collabRole = (collabRows ?? []).find((c) => c.link_id === link.id)?.role as
     | "paralegal" | "associate" | "attorney" | undefined;
+  if (!collabRole && (grantRows ?? []).some((g) => g.client_link_id === link.id)) {
+    await assertSameFirm(userId, link.attorney_user_id);
+  }
   return { link, role: "collaborator", collabRole };
 }
 
@@ -138,7 +153,10 @@ async function assertLinkParticipant(linkId: string, userId: string): Promise<{
     .eq("attorney_user_id", userId)
     .is("revoked_at", null)
     .maybeSingle();
-  if (grant) return { link, role: "collaborator" };
+  if (grant) {
+    await assertSameFirm(userId, link.attorney_user_id);
+    return { link, role: "collaborator" };
+  }
   throw new Error("Not a participant");
 }
 
