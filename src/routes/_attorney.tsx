@@ -27,6 +27,7 @@ function AttorneyLayout() {
   const getProfile = useServerFn(getAttorneyProfile);
   const [checking, setChecking] = useState(true);
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
+  const [userRole, setUserRole] = useState<"attorney" | "collaborator" | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sub = useSubscription();
 
@@ -38,6 +39,7 @@ function AttorneyLayout() {
         navigate({ to: "/lawyer-signup", replace: true });
         return;
       }
+      setUserRole(r.role);
       if (r.role === "collaborator") {
         // Collaborators inherit the lead attorney's onboarding and subscription.
         setOnboarded(true);
@@ -77,15 +79,11 @@ function AttorneyLayout() {
     if (!user) return;
     if (onboarded === false) return; // onboarding takes priority over paywall
     // Collaborators bypass the paywall — the lead attorney pays for the seat.
-    if (onboarded !== true) return;
-    if (!sub.isActive && !billingPaths && onboarded === true && false /* paywall via sub only for owners */) {
-      navigate({ to: "/subscribe", replace: true });
-    } else if (!sub.isActive && !billingPaths) {
-      // sub.isActive is also true when a project has no subscription module; in
-      // production this gates owners only. Collaborators are routed straight in.
+    if (userRole === "collaborator") return;
+    if (!sub.isActive && !billingPaths) {
       navigate({ to: "/subscribe", replace: true });
     }
-  }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate, user, onboarded]);
+  }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate, user, onboarded, userRole]);
 
   if (loading || checking || sub.loading) {
     return (
