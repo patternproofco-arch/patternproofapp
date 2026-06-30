@@ -44,9 +44,9 @@ export const createSurvivorInvitesBulk = createServerFn({ method: "POST" })
       rows: z.array(z.object({
         // Keep this outer schema permissive so bad rows can be reported in the
         // per-row results instead of failing the whole batch before processing.
-        survivor_email: z.string().max(1000),
-        survivor_name: z.string().max(1000).optional().nullable(),
-        personal_note: z.string().max(5000).optional().nullable(),
+        survivor_email: z.string(),
+        survivor_name: z.string().optional().nullable(),
+        personal_note: z.string().optional().nullable(),
       })).min(1).max(100),
       expires_days: z.number().int().min(1).max(365).default(30),
     }).parse(input),
