@@ -374,18 +374,28 @@ export const getClientCase = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { link } = await assertCaseAccess(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const scopedIncidentIds = link.scope_incidents ?? [];
+    const scopedEvidenceIds = link.scope_evidence ?? [];
 
     const [incQ, evQ, patQ, escQ, voiceQ, comsQ, legalQ, caseQ] = await Promise.all([
       link.include_all_incidents
         ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).order("date", { ascending: true })
-        : supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", link.scope_incidents ?? []).order("date", { ascending: true }),
+        : scopedIncidentIds.length
+          ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopedIncidentIds).order("date", { ascending: true })
+          : Promise.resolve({ data: [] }),
       link.include_all_evidence
         ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).order("date", { ascending: true })
-        : supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", link.scope_evidence ?? []).order("date", { ascending: true }),
+        : scopedEvidenceIds.length
+          ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopedEvidenceIds).order("date", { ascending: true })
+          : Promise.resolve({ data: [] }),
       link.include_patterns
         ? supabaseAdmin.from("pattern_analyses").select("*").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1).maybeSingle()
         : Promise.resolve({ data: null }),
-      supabaseAdmin.from("escalation_flags").select("*").eq("user_id", data.clientId).order("created_at", { ascending: false }),
+      link.include_all_incidents
+        ? supabaseAdmin.from("escalation_flags").select("*").eq("user_id", data.clientId).order("created_at", { ascending: false })
+        : scopedIncidentIds.length
+          ? supabaseAdmin.from("escalation_flags").select("*").eq("user_id", data.clientId).in("incident_id", scopedIncidentIds).order("created_at", { ascending: false })
+          : Promise.resolve({ data: [] }),
       supabaseAdmin.from("voice_notes").select("id,title,date,transcript,duration_seconds").eq("user_id", data.clientId).order("date", { ascending: false }),
       supabaseAdmin.from("communications").select("id,date,time,direction,channel,from_party,content,harassment_flag,linked_incident_id").eq("user_id", data.clientId).order("date", { ascending: false }),
       supabaseAdmin.from("legal_documents").select("id,title,document_type,effective_date,expiration_date,case_number,court_name").eq("user_id", data.clientId).order("effective_date", { ascending: false }),
