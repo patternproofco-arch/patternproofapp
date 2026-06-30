@@ -148,16 +148,21 @@ export const getMyRole = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [{ data: rolesData }, { count: collabCount }] = await Promise.all([
+    const [{ data: rolesData }, { count: collabCount }, { count: grantCount }] = await Promise.all([
       supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId),
       supabaseAdmin
         .from("case_collaborators")
         .select("id", { count: "exact", head: true })
         .eq("collaborator_user_id", context.userId)
         .eq("status", "active"),
+      supabaseAdmin
+        .from("case_grants")
+        .select("id", { count: "exact", head: true })
+        .eq("attorney_user_id", context.userId)
+        .is("revoked_at", null),
     ]);
     const roles = (rolesData ?? []).map((r) => r.role as string);
-    const hasCollaborations = (collabCount ?? 0) > 0;
+    const hasCollaborations = (collabCount ?? 0) > 0 || (grantCount ?? 0) > 0;
     let role: "attorney" | "collaborator" | "survivor" = "survivor";
     if (roles.includes("attorney")) role = "attorney";
     else if (hasCollaborations) role = "collaborator";
@@ -540,13 +545,23 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
-    await assertLink(context.userId, data.clientId);
+    const link = await assertLink(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [{ data: incidents }, { data: evidence }, { data: pattern }] = await Promise.all([
-      supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses").eq("user_id", data.clientId).order("date"),
-      supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId),
-      supabaseAdmin.from("pattern_analyses").select("analysis").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      link.include_all_incidents
+        ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses").eq("user_id", data.clientId).order("date")
+        : (link.scope_incidents ?? []).length
+          ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses").eq("user_id", data.clientId).in("id", link.scope_incidents ?? []).order("date")
+          : Promise.resolve({ data: [] }),
+      link.include_all_evidence
+        ? supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId)
+        : (link.scope_evidence ?? []).length
+          ? supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId).in("id", link.scope_evidence ?? [])
+          : Promise.resolve({ data: [] }),
+      link.include_patterns
+        ? supabaseAdmin.from("pattern_analyses").select("analysis").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1).maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
 
     if (!incidents || incidents.length < 3) {
@@ -854,7 +869,10 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
     z.object({ clientId: z.string().uuid(), evidenceId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertCaseAccess(context.userId, data.clientId);
+    const { link } = await assertCaseAccess(context.userId, data.clientId);
+    if (!link.include_all_evidence && !(link.scope_evidence ?? []).includes(data.evidenceId)) {
+      throw new Error("Evidence not shared for this case");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: ev } = await supabaseAdmin
       .from("evidence")
