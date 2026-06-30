@@ -884,14 +884,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
   );
 }
 
-function SectionTitleOld({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-      {icon}
-      <h2 style={{ fontSize: 20 }}>{children}</h2>
-    </div>
-  );
-}
+
 
 function IntegrityStat({ label, value, tone }: { label: string; value: number | string; tone?: "green" | "amber" | "red" }) {
   const color = tone === "green" ? "#10B981" : tone === "amber" ? "#F59E0B" : tone === "red" ? "#EF4444" : "var(--att-text)";
