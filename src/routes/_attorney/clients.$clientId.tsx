@@ -16,6 +16,9 @@ import {
 import {
   listEvidenceReviews, upsertEvidenceReview,
 } from "@/lib/attorney-evidence-reviews.functions";
+import {
+  listCaseCollaborators, inviteCaseCollaborator, revokeCaseCollaborator,
+} from "@/lib/attorney-collaborators.functions";
 import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateClioPackage } from "@/lib/payments.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { toast } from "sonner";
