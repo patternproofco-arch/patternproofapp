@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { ShieldCheck, Lock, Heart } from "lucide-react";
+import { ShieldCheck, Lock, Heart, CheckCircle2, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -35,6 +35,16 @@ function SurvivorInvitePage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [step, setStep] = useState<"auth" | "scope">("auth");
+  const [scopeChoice, setScopeChoice] = useState<"all" | "custom">("all");
+  const [shareIncidents, setShareIncidents] = useState(true);
+  const [shareEvidence, setShareEvidence] = useState(true);
+  const [sharePatterns, setSharePatterns] = useState(true);
+
+  // If the user is already signed in when they land here, skip straight to scope.
+  useEffect(() => {
+    if (user && peeked?.status === "ok" && step === "auth") setStep("scope");
+  }, [user, peeked, step]);
 
   useEffect(() => {
     peek({ data: { token } }).then(setPeeked).catch(() => setPeeked({ status: "not-found" }));
@@ -46,7 +56,7 @@ function SurvivorInvitePage() {
     }
   }, [peeked, email]);
 
-  const submit = async (e: React.FormEvent) => {
+  const submitAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     try {
@@ -63,7 +73,21 @@ function SurvivorInvitePage() {
           if (error) throw error;
         }
       }
-      await accept({ data: { token } });
+      setStep("scope");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Couldn't sign you in.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const confirmScope = async () => {
+    setBusy(true);
+    try {
+      const scope = scopeChoice === "all"
+        ? { include_all_incidents: true, include_all_evidence: true, include_patterns: true }
+        : { include_all_incidents: shareIncidents, include_all_evidence: shareEvidence, include_patterns: sharePatterns };
+      await accept({ data: { token, scope } });
       setDone(true);
       toast("Connected. Your attorney now has access to your case.");
       setTimeout(() => navigate({ to: "/dashboard", replace: true }), 1500);
@@ -121,8 +145,8 @@ function SurvivorInvitePage() {
           <ShieldCheck size={16} style={{ verticalAlign: "-3px", marginRight: 6 }} />
           Connected. Taking you to your dashboard…
         </div>
-      ) : (
-        <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
+      ) : step === "auth" ? (
+        <form onSubmit={submitAuth} style={{ display: "grid", gap: 12 }}>
           {!user && (
             <div style={{ display: "flex", gap: 4, fontSize: 12 }}>
               <button type="button" onClick={() => setMode("signup")} style={{ padding: "6px 12px", borderRadius: 6, border: mode === "signup" ? "1px solid #2F8D85" : "1px solid #E2E8F0", background: mode === "signup" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>Create account</button>
@@ -168,14 +192,93 @@ function SurvivorInvitePage() {
               opacity: busy ? 0.6 : 1,
             }}
           >
-            {busy ? "Connecting…" : user ? "Accept invite" : mode === "signup" ? "Create account & connect" : "Sign in & connect"}
+            {busy ? "Connecting…" : mode === "signup" ? "Create account & continue" : "Sign in & continue"}
           </button>
           <div style={{ fontSize: 11, color: "#667085", display: "inline-flex", alignItems: "center", gap: 6 }}>
             <Lock size={11} /> Encrypted. You can revoke access at any time from Settings.
           </div>
         </form>
+      ) : (
+        <div style={{ display: "grid", gap: 14 }}>
+          <div>
+            <h2 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 22, margin: 0 }}>What would you like to share?</h2>
+            <p style={{ fontSize: 13, color: "#475569", marginTop: 6 }}>
+              Most survivors share everything with their attorney so nothing important is missed. You can change this any time from Settings.
+            </p>
+          </div>
+
+          <label
+            onClick={() => setScopeChoice("all")}
+            style={{
+              display: "grid", gap: 4, padding: 14, borderRadius: 12, cursor: "pointer",
+              border: scopeChoice === "all" ? "2px solid #2F8D85" : "1px solid #E2E8F0",
+              background: scopeChoice === "all" ? "#EAF7EF" : "#fff",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="radio" name="scope" checked={scopeChoice === "all"} onChange={() => setScopeChoice("all")} />
+              <strong style={{ fontSize: 14 }}>Share everything with {attorneyDisplay}</strong>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#065F46", background: "#D1FAE5", padding: "2px 6px", borderRadius: 4 }}>RECOMMENDED</span>
+            </div>
+            <p style={{ fontSize: 12, color: "#475569", marginLeft: 24 }}>
+              All incidents, evidence, and pattern analysis. The fullest picture for your case.
+            </p>
+          </label>
+
+          <label
+            onClick={() => setScopeChoice("custom")}
+            style={{
+              display: "grid", gap: 4, padding: 14, borderRadius: 12, cursor: "pointer",
+              border: scopeChoice === "custom" ? "2px solid #2F8D85" : "1px solid #E2E8F0",
+              background: scopeChoice === "custom" ? "#EAF7EF" : "#fff",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="radio" name="scope" checked={scopeChoice === "custom"} onChange={() => setScopeChoice("custom")} />
+              <SlidersHorizontal size={14} />
+              <strong style={{ fontSize: 14 }}>Choose what to share</strong>
+            </div>
+            <p style={{ fontSize: 12, color: "#475569", marginLeft: 24 }}>Pick categories below.</p>
+
+            {scopeChoice === "custom" && (
+              <div style={{ display: "grid", gap: 8, marginTop: 10, marginLeft: 24 }}>
+                <Toggle checked={shareIncidents} onChange={setShareIncidents} label="All incidents" />
+                <Toggle checked={shareEvidence} onChange={setShareEvidence} label="All evidence files" />
+                <Toggle checked={sharePatterns} onChange={setSharePatterns} label="Pattern analysis" />
+                <p style={{ fontSize: 11, color: "#667085" }}>
+                  Per-item selection (specific incidents or files) is available in Settings → Sharing after you connect.
+                </p>
+              </div>
+            )}
+          </label>
+
+          <button
+            type="button"
+            onClick={confirmScope}
+            disabled={busy}
+            style={{
+              padding: "12px 18px", background: "#2F8D85", color: "#fff", border: 0, borderRadius: 8,
+              fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? 0.6 : 1,
+              display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
+            }}
+          >
+            <CheckCircle2 size={14} /> {busy ? "Connecting…" : "Connect with my attorney"}
+          </button>
+          <div style={{ fontSize: 11, color: "#667085", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Lock size={11} /> You can revoke or change scope any time from Settings.
+          </div>
+        </div>
       )}
     </Shell>
+  );
+}
+
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      {label}
+    </label>
   );
 }
 
