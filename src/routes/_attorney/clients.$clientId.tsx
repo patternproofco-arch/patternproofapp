@@ -19,6 +19,9 @@ import {
 import {
   listCaseCollaborators, inviteCaseCollaborator, revokeCaseCollaborator,
 } from "@/lib/attorney-collaborators.functions";
+import {
+  listFirmColleagues, listCaseGrants, grantCaseAccess, revokeCaseGrant,
+} from "@/lib/firm-grants.functions";
 import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateClioPackage } from "@/lib/payments.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { toast } from "sonner";
@@ -520,6 +523,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
 
       <CaseNotesCard clientId={clientId} />
       <TeamCard clientId={clientId} />
+      <FirmShareCard clientId={clientId} />
     </div>
   );
 }
