@@ -3,12 +3,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import {
   AlertTriangle, FileText, MessageSquare, TrendingUp, ArrowRight, CheckCircle2,
-  Send, Copy, RotateCw, X, Mail, Plus,
+  Send, Copy, RotateCw, X, Mail, Plus, Upload, Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { listMyClients } from "@/lib/attorney-portal.functions";
 import {
-  listSurvivorInvites, createSurvivorInvite, revokeSurvivorInvite, resendSurvivorInvite,
+  listSurvivorInvites, createSurvivorInvite, createSurvivorInvitesBulk,
+  revokeSurvivorInvite, resendSurvivorInvite,
 } from "@/lib/attorney-survivor-invites.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -162,6 +163,7 @@ function Stat({ icon, label, v }: { icon: React.ReactNode; label: string; v: num
 
 function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onChange: () => void }) {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"single" | "bulk">("single");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
@@ -206,12 +208,28 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
             Invite a survivor to share their case
           </h2>
         </div>
-        <button className="att-btn-primary" onClick={() => setOpen((v) => !v)}>
-          <Plus size={14} /> {open ? "Hide form" : "New invite"}
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            className={mode === "single" && open ? "att-btn-primary" : "att-btn-ghost"}
+            onClick={() => { setMode("single"); setOpen(true); }}
+          >
+            <Plus size={14} /> Single invite
+          </button>
+          <button
+            className={mode === "bulk" && open ? "att-btn-primary" : "att-btn-ghost"}
+            onClick={() => { setMode("bulk"); setOpen(true); }}
+          >
+            <Users size={14} /> Bulk invite
+          </button>
+          {open && (
+            <button className="att-btn-ghost" onClick={() => setOpen(false)}>
+              <X size={12} /> Close
+            </button>
+          )}
+        </div>
       </div>
 
-      {open && (
+      {open && mode === "single" && (
         <form onSubmit={submit} className="att-card" style={{ display: "grid", gap: 12, marginBottom: 14 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <label style={{ display: "grid", gap: 6 }}>
@@ -258,6 +276,8 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
           </div>
         </form>
       )}
+
+      {open && mode === "bulk" && <BulkInvitePanel onDone={() => { onChange(); }} />}
 
       {invites === null ? null : invites.length === 0 ? (
         <div className="att-card" style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--att-text-2)", fontSize: 13 }}>
