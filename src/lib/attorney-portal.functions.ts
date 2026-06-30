@@ -292,8 +292,8 @@ export const listMyClients = createServerFn({ method: "GET" })
 
     const clients = await Promise.all(
       (links ?? []).map(async (l) => {
-        const scopedIncidentIds = l.include_all_incidents ? null : (l.scope_incidents ?? []);
-        const scopedEvidenceIds = l.include_all_evidence ? null : (l.scope_evidence ?? []);
+        const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
+        const scopedEvidenceIds = (l.scope_evidence ?? []) as string[];
         const incidentsQ = l.include_all_incidents
           ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id)
           : scopedIncidentIds.length
