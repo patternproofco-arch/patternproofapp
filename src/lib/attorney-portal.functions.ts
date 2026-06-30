@@ -27,6 +27,81 @@ async function assertLink(attorneyId: string, clientId: string) {
   return data;
 }
 
+/**
+ * Allow either the owning attorney OR an active case collaborator to access a
+ * client case file. Read-only data + messaging only; private attorney notes
+ * remain owner-only because their server fns scope by attorney_user_id.
+ */
+async function assertCaseAccess(userId: string, clientId: string): Promise<{
+  link: {
+    id: string;
+    status: string;
+    include_all_incidents: boolean;
+    include_all_evidence: boolean;
+    include_patterns: boolean;
+    scope_incidents: string[] | null;
+    scope_evidence: string[] | null;
+  };
+  role: "owner" | "collaborator";
+  collabRole?: "paralegal" | "associate" | "attorney";
+}> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: owner } = await supabaseAdmin
+    .from("attorney_client_links")
+    .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
+    .eq("attorney_user_id", userId)
+    .eq("client_user_id", clientId)
+    .maybeSingle();
+  if (owner && owner.status === "active") return { link: owner, role: "owner" };
+
+  const { data: collabRows } = await supabaseAdmin
+    .from("case_collaborators")
+    .select("role,link_id")
+    .eq("collaborator_user_id", userId)
+    .eq("status", "active");
+  if (!collabRows?.length) throw new Error("No active access");
+
+  const { data: link } = await supabaseAdmin
+    .from("attorney_client_links")
+    .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,client_user_id")
+    .in("id", collabRows.map((r) => r.link_id))
+    .eq("client_user_id", clientId)
+    .eq("status", "active")
+    .maybeSingle();
+  if (!link) throw new Error("No active access");
+  const collabRole = collabRows.find((c) => c.link_id === link.id)?.role as
+    | "paralegal" | "associate" | "attorney" | undefined;
+  return { link, role: "collaborator", collabRole };
+}
+
+/**
+ * Same idea but keyed by link_id (used by message + doc-request fns). Allows
+ * the owning attorney, the survivor, or an active collaborator.
+ */
+async function assertLinkParticipant(linkId: string, userId: string): Promise<{
+  link: { id: string; attorney_user_id: string; client_user_id: string; status: string };
+  role: "owner" | "survivor" | "collaborator";
+}> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: link } = await supabaseAdmin
+    .from("attorney_client_links")
+    .select("id,attorney_user_id,client_user_id,status")
+    .eq("id", linkId)
+    .maybeSingle();
+  if (!link || link.status !== "active") throw new Error("No active link");
+  if (link.attorney_user_id === userId) return { link, role: "owner" };
+  if (link.client_user_id === userId) return { link, role: "survivor" };
+  const { data: collab } = await supabaseAdmin
+    .from("case_collaborators")
+    .select("id")
+    .eq("link_id", linkId)
+    .eq("collaborator_user_id", userId)
+    .eq("status", "active")
+    .maybeSingle();
+  if (collab) return { link, role: "collaborator" };
+  throw new Error("Not a participant");
+}
+
 /* ------------------------- role + profile ------------------------- */
 
 export const getMyRole = createServerFn({ method: "GET" })
@@ -187,8 +262,7 @@ export const getClientCase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertAttorney(context.userId);
-    const link = await assertLink(context.userId, data.clientId);
+    const { link } = await assertCaseAccess(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [incQ, evQ, patQ, escQ, voiceQ, comsQ, legalQ, caseQ] = await Promise.all([
@@ -431,17 +505,9 @@ export const sendMessage = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { role } = await assertLinkParticipant(data.link_id, context.userId);
+    const sender_role = role === "survivor" ? "survivor" : "attorney";
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: link } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("attorney_user_id,client_user_id,status")
-      .eq("id", data.link_id)
-      .maybeSingle();
-    if (!link || link.status !== "active") throw new Error("No active link");
-    if (link.attorney_user_id !== context.userId && link.client_user_id !== context.userId) {
-      throw new Error("Not a participant");
-    }
-    const sender_role = link.attorney_user_id === context.userId ? "attorney" : "survivor";
     const { error } = await supabaseAdmin.from("attorney_messages").insert({
       link_id: data.link_id,
       sender_user_id: context.userId,
@@ -456,16 +522,8 @@ export const listMessages = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ link_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    await assertLinkParticipant(data.link_id, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: link } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("attorney_user_id,client_user_id")
-      .eq("id", data.link_id)
-      .maybeSingle();
-    if (!link) throw new Error("Link not found");
-    if (link.attorney_user_id !== context.userId && link.client_user_id !== context.userId) {
-      throw new Error("Not a participant");
-    }
     const { data: messages } = await supabaseAdmin
       .from("attorney_messages")
       .select("*")
@@ -508,16 +566,8 @@ export const listDocRequests = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ link_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    await assertLinkParticipant(data.link_id, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: link } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("attorney_user_id,client_user_id")
-      .eq("id", data.link_id)
-      .maybeSingle();
-    if (!link) throw new Error("Link not found");
-    if (link.attorney_user_id !== context.userId && link.client_user_id !== context.userId) {
-      throw new Error("Not a participant");
-    }
     const { data: requests } = await supabaseAdmin
       .from("attorney_document_requests")
       .select("*")
@@ -699,8 +749,7 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
     z.object({ clientId: z.string().uuid(), evidenceId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAttorney(context.userId);
-    await assertLink(context.userId, data.clientId);
+    await assertCaseAccess(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: ev } = await supabaseAdmin
       .from("evidence")
@@ -744,8 +793,7 @@ export const listClientThreads = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertAttorney(context.userId);
-    await assertLink(context.userId, data.clientId);
+    await assertCaseAccess(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows } = await supabaseAdmin
       .from("message_threads")
@@ -761,8 +809,7 @@ export const getClientThread = createServerFn({ method: "POST" })
     z.object({ clientId: z.string().uuid(), threadId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAttorney(context.userId);
-    await assertLink(context.userId, data.clientId);
+    await assertCaseAccess(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: thread } = await supabaseAdmin
       .from("message_threads")
