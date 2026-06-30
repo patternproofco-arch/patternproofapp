@@ -59,17 +59,29 @@ async function assertCaseAccess(userId: string, clientId: string): Promise<{
     .select("role,link_id")
     .eq("collaborator_user_id", userId)
     .eq("status", "active");
-  if (!collabRows?.length) throw new Error("No active access");
+
+  // Firm-level case grants: owner granted this attorney access to a specific link.
+  const { data: grantRows } = await supabaseAdmin
+    .from("case_grants")
+    .select("client_link_id")
+    .eq("attorney_user_id", userId)
+    .is("revoked_at", null);
+
+  const candidateLinkIds = [
+    ...(collabRows ?? []).map((r) => r.link_id),
+    ...(grantRows ?? []).map((r) => r.client_link_id),
+  ];
+  if (!candidateLinkIds.length) throw new Error("No active access");
 
   const { data: link } = await supabaseAdmin
     .from("attorney_client_links")
     .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,client_user_id")
-    .in("id", collabRows.map((r) => r.link_id))
+    .in("id", candidateLinkIds)
     .eq("client_user_id", clientId)
     .eq("status", "active")
     .maybeSingle();
   if (!link) throw new Error("No active access");
-  const collabRole = collabRows.find((c) => c.link_id === link.id)?.role as
+  const collabRole = (collabRows ?? []).find((c) => c.link_id === link.id)?.role as
     | "paralegal" | "associate" | "attorney" | undefined;
   return { link, role: "collaborator", collabRole };
 }
@@ -99,6 +111,14 @@ async function assertLinkParticipant(linkId: string, userId: string): Promise<{
     .eq("status", "active")
     .maybeSingle();
   if (collab) return { link, role: "collaborator" };
+  const { data: grant } = await supabaseAdmin
+    .from("case_grants")
+    .select("id")
+    .eq("client_link_id", linkId)
+    .eq("attorney_user_id", userId)
+    .is("revoked_at", null)
+    .maybeSingle();
+  if (grant) return { link, role: "collaborator" };
   throw new Error("Not a participant");
 }
 
