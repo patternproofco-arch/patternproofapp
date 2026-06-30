@@ -752,6 +752,147 @@ function SectionTitle({ icon, children }: { icon?: React.ReactNode; children: Re
   );
 }
 
+/* ---------------- Firm: share single case with a colleague ---------------- */
+
+type Colleague = { user_id: string; full_name: string; email: string; role?: string | null };
+type Grant = {
+  id: string; attorney_user_id: string; granted_at: string; revoked_at: string | null;
+  full_name: string | null; email: string | null;
+};
+
+function FirmShareCard({ clientId }: { clientId: string }) {
+  const listCol = useServerFn(listFirmColleagues);
+  const listGr = useServerFn(listCaseGrants);
+  const grantFn = useServerFn(grantCaseAccess);
+  const revokeFn = useServerFn(revokeCaseGrant);
+
+  const [colleagues, setColleagues] = useState<Colleague[] | null>(null);
+  const [grants, setGrants] = useState<Grant[] | null>(null);
+  const [pick, setPick] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  const [allowed, setAllowed] = useState(true);
+  const [firmSet, setFirmSet] = useState<boolean>(true);
+
+  const reload = () => {
+    Promise.all([listCol({ data: { clientId } }), listGr({ data: { clientId } })])
+      .then(([c, g]) => {
+        setColleagues(c.colleagues as Colleague[]);
+        setFirmSet(!!c.firm_id);
+        setGrants(g.grants as Grant[]);
+        setAllowed(true);
+      })
+      .catch(() => setAllowed(false));
+  };
+  useEffect(reload, [listCol, listGr, clientId]);
+
+  if (!allowed) return null;
+
+  const activeGrants = (grants ?? []).filter((g) => !g.revoked_at);
+  const grantedIds = new Set(activeGrants.map((g) => g.attorney_user_id));
+  const available = (colleagues ?? []).filter((c) => !grantedIds.has(c.user_id));
+
+  const submit = async () => {
+    if (!pick) return;
+    setBusy(true);
+    try {
+      await grantFn({ data: { clientId, attorney_user_id: pick } });
+      toast("Colleague granted access to this case.");
+      setPick("");
+      reload();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Couldn't share case.");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="att-card">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+        <SectionTitle icon={<Shield size={16} />}>Share with a firm colleague</SectionTitle>
+      </div>
+      <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: -6, marginBottom: 12 }}>
+        Grant a single named attorney at your firm read access to this case file. Private attorney notes still stay with you. Revoke any time.
+      </p>
+
+      {!firmSet ? (
+        <div className="att-card" style={{ background: "#FFFBEB", borderColor: "#FCD34D" }}>
+          <div style={{ fontSize: 13 }}>
+            Set your firm in <Link to="/settings" style={{ color: "#1D4ED8", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "end", marginBottom: 12 }}>
+          <label style={{ display: "grid", gap: 4 }}>
+            <span className="att-eyebrow">Colleague</span>
+            <select
+              className="att-input"
+              value={pick}
+              onChange={(e) => setPick(e.target.value)}
+              disabled={!available.length}
+            >
+              <option value="">
+                {available.length ? "Select a firm colleague…" : "No eligible colleagues at your firm"}
+              </option>
+              {available.map((c) => (
+                <option key={c.user_id} value={c.user_id}>
+                  {c.full_name || c.email}{c.full_name ? ` · ${c.email}` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="att-btn-primary" disabled={!pick || busy} onClick={submit}>
+            <Send size={12} /> {busy ? "Sharing…" : "Share case"}
+          </button>
+        </div>
+      )}
+
+      {grants === null ? (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>Loading shared access…</p>
+      ) : activeGrants.length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>This case isn't shared with any firm colleague.</p>
+      ) : (
+        <div style={{ display: "grid", gap: 8 }}>
+          {activeGrants.map((g) => (
+            <div key={g.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: 10, border: "1px solid var(--att-border)", borderRadius: 8 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <strong style={{ fontSize: 14 }}>{g.full_name || g.email || "Colleague"}</strong>
+                  <span className="att-tag" style={{ background: "#D1FAE5", color: "#065F46" }}>Granted</span>
+                  {g.full_name && g.email && (
+                    <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>{g.email}</span>
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 4 }}>
+                  Shared {new Date(g.granted_at).toLocaleDateString()}
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                <button
+                  className="att-btn-ghost"
+                  style={{ color: "var(--att-red)" }}
+                  onClick={async () => {
+                    if (!confirm("Revoke this colleague's access to the case?")) return;
+                    try { await revokeFn({ data: { id: g.id } }); toast("Access revoked."); reload(); }
+                    catch (e) { toast(e instanceof Error ? e.message : "Couldn't revoke."); }
+                  }}
+                >Revoke</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectionTitleOld({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+      {icon}
+      <h2 style={{ fontSize: 20 }}>{children}</h2>
+    </div>
+  );
+}
+
 function IntegrityStat({ label, value, tone }: { label: string; value: number | string; tone?: "green" | "amber" | "red" }) {
   const color = tone === "green" ? "#10B981" : tone === "amber" ? "#F59E0B" : tone === "red" ? "#EF4444" : "var(--att-text)";
   return (
