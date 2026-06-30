@@ -15,6 +15,26 @@ async function assertAttorney(userId: string) {
   if (!data) throw new Error("Attorney role required");
 }
 
+async function resolveFirmId(firmName: string | null | undefined, createdBy: string): Promise<string | null> {
+  const name = firmName?.trim();
+  if (!name) return null;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: existing } = await supabaseAdmin
+    .from("firms")
+    .select("id")
+    .ilike("name", name)
+    .limit(1)
+    .maybeSingle();
+  if (existing?.id) return existing.id;
+  const { data: created, error } = await supabaseAdmin
+    .from("firms")
+    .insert({ name, created_by: createdBy })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return created.id;
+}
+
 async function assertLink(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
@@ -157,13 +177,14 @@ export const upsertAttorneyProfile = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const firm_id = await resolveFirmId(data.firm_name, context.userId);
     await supabaseAdmin.from("user_roles").upsert(
       { user_id: context.userId, role: "attorney" },
       { onConflict: "user_id,role" },
     );
     const { error } = await supabaseAdmin
       .from("attorney_profiles")
-      .upsert({ user_id: context.userId, ...data, updated_at: new Date().toISOString() });
+      .upsert({ user_id: context.userId, ...data, firm_id, updated_at: new Date().toISOString() });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -183,6 +204,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const firm_id = await resolveFirmId(data.firm_name, context.userId);
     await supabaseAdmin.from("user_roles").upsert(
       { user_id: context.userId, role: "attorney" },
       { onConflict: "user_id,role" },
@@ -194,6 +216,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
         full_name: data.full_name,
         email: data.email,
         firm_name: data.firm_name ?? null,
+        firm_id,
         bar_number: data.bar_number ?? null,
         jurisdiction: data.jurisdiction ?? null,
         role: data.role,
@@ -227,7 +250,7 @@ export const listMyClients = createServerFn({ method: "GET" })
     // Owner attorney's own client links
     const ownerQ = supabaseAdmin
       .from("attorney_client_links")
-      .select("id,client_user_id,created_at,status")
+      .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
       .eq("attorney_user_id", context.userId)
       .eq("status", "active");
 
@@ -255,7 +278,7 @@ export const listMyClients = createServerFn({ method: "GET" })
     if (sharedLinkIds.length) {
       const { data } = await supabaseAdmin
         .from("attorney_client_links")
-        .select("id,client_user_id,created_at,status")
+        .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
         .in("id", sharedLinkIds)
         .eq("status", "active");
       collabLinks = data ?? [];
@@ -269,11 +292,30 @@ export const listMyClients = createServerFn({ method: "GET" })
 
     const clients = await Promise.all(
       (links ?? []).map(async (l) => {
+        const scopedIncidentIds = l.include_all_incidents ? null : (l.scope_incidents ?? []);
+        const scopedEvidenceIds = l.include_all_evidence ? null : (l.scope_evidence ?? []);
+        const incidentsQ = l.include_all_incidents
+          ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id)
+          : scopedIncidentIds.length
+            ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).in("id", scopedIncidentIds)
+            : Promise.resolve({ data: [], count: 0 });
+        const evidenceQ = l.include_all_evidence
+          ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id)
+          : scopedEvidenceIds.length
+            ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id).in("id", scopedEvidenceIds)
+            : Promise.resolve({ data: null, count: 0 });
+        const flagsQ = l.include_all_incidents
+          ? supabaseAdmin.from("escalation_flags").select("severity_tier", { count: "exact" }).eq("user_id", l.client_user_id).is("dismissed_at", null)
+          : scopedIncidentIds.length
+            ? supabaseAdmin.from("escalation_flags").select("severity_tier", { count: "exact" }).eq("user_id", l.client_user_id).is("dismissed_at", null).in("incident_id", scopedIncidentIds)
+            : Promise.resolve({ data: [], count: 0 });
         const [inc, ev, pat, esc, msg, doc] = await Promise.all([
-          supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id),
-          supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id),
-          supabaseAdmin.from("pattern_analyses").select("analysis,created_at").eq("user_id", l.client_user_id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-          supabaseAdmin.from("escalation_flags").select("severity_tier", { count: "exact" }).eq("user_id", l.client_user_id).is("dismissed_at", null),
+          incidentsQ,
+          evidenceQ,
+          l.include_patterns
+            ? supabaseAdmin.from("pattern_analyses").select("analysis,created_at").eq("user_id", l.client_user_id).order("created_at", { ascending: false }).limit(1).maybeSingle()
+            : Promise.resolve({ data: null }),
+          flagsQ,
           supabaseAdmin.from("attorney_messages").select("id", { count: "exact", head: true }).eq("link_id", l.id).is("read_at", null).neq("sender_user_id", context.userId),
           supabaseAdmin.from("attorney_document_requests").select("id", { count: "exact", head: true }).eq("link_id", l.id).eq("status", "open"),
         ]);
