@@ -193,9 +193,24 @@ function ShareWithAttorney() {
                     linked {new Date(l.created_at).toLocaleDateString()}
                   </div>
                 </div>
-                <button onClick={async () => { if (confirm("Revoke this attorney's access?")) { await revokeLk({ data: { id: l.id } }); toast("Access revoked."); load(); } }} className="btn-ghost inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--primary)" }}>
-                  <Trash2 size={13} /> Revoke
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setMessagingLinkId(l.id)}
+                    className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                    style={{ position: "relative" }}
+                  >
+                    <MessageSquare size={13} /> Message
+                    {(unread[l.id] ?? 0) > 0 && (
+                      <span style={{
+                        marginLeft: 4, background: "var(--primary)", color: "#fff",
+                        borderRadius: 999, fontSize: 10, padding: "1px 6px", fontWeight: 600,
+                      }}>{unread[l.id]}</span>
+                    )}
+                  </button>
+                  <button onClick={async () => { if (confirm("Revoke this attorney's access?")) { await revokeLk({ data: { id: l.id } }); toast("Access revoked."); load(); } }} className="btn-ghost inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--primary)" }}>
+                    <Trash2 size={13} /> Revoke
+                  </button>
+                </div>
               </div>
             ))}
       </div>
