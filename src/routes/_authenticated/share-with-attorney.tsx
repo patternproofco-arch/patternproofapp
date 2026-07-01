@@ -236,6 +236,92 @@ function ShareWithAttorney() {
               </div>
             ))}
       </div>
+      {messagingLinkId && (
+        <MessagePanel
+          linkId={messagingLinkId}
+          onClose={() => { setMessagingLinkId(null); load(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function MessagePanel({ linkId, onClose }: { linkId: string; onClose: () => void }) {
+  const listFn = useServerFn(listMessages);
+  const sendFn = useServerFn(sendMessage);
+  const markFn = useServerFn(markMessagesRead);
+  const [messages, setMessages] = useState<Array<{ id: string; sender_role: string; content: string; created_at: string; read_at: string | null }> | null>(null);
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const load = useCallback(() => {
+    listFn({ data: { link_id: linkId } })
+      .then((r) => setMessages(r.messages as typeof messages extends null ? never : Exclude<typeof messages, null>))
+      .catch(() => setMessages([]));
+  }, [listFn, linkId]);
+
+  useEffect(() => {
+    load();
+    markFn({ data: { link_id: linkId } }).catch(() => {});
+    const t = setInterval(load, 15000);
+    return () => clearInterval(t);
+  }, [load, markFn, linkId]);
+
+  const submit = async () => {
+    const text = body.trim();
+    if (!text) return;
+    setSending(true);
+    try {
+      await sendFn({ data: { link_id: linkId, content: text } });
+      setBody("");
+      await load();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Couldn't send.");
+    } finally { setSending(false); }
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(15,12,10,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60, padding: 16 }} onClick={onClose}>
+      <div className="card-pp" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 620, width: "100%", maxHeight: "85vh", display: "flex", flexDirection: "column", background: "var(--background)" }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="label-eyebrow">Messages</div>
+            <div className="font-serif text-[20px] mt-1">Conversation with your attorney</div>
+          </div>
+          <button className="btn-ghost" onClick={onClose}><X size={16} /></button>
+        </div>
+        <div style={{ flex: 1, overflowY: "auto", marginTop: 12, display: "grid", gap: 8, padding: 4 }}>
+          {messages === null && <div className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>Loading…</div>}
+          {messages?.length === 0 && <div className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>No messages yet.</div>}
+          {messages?.map((m) => {
+            const mine = m.sender_role === "survivor";
+            return (
+              <div key={m.id} style={{ display: "flex", justifyContent: mine ? "flex-end" : "flex-start" }}>
+                <div style={{ maxWidth: "80%", padding: "8px 12px", borderRadius: 10, background: mine ? "#A8CCE0" : "var(--input)", color: "#1A1714" }}>
+                  <div className="text-[13px]" style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{m.content}</div>
+                  <div className="text-[10px] mt-1" style={{ opacity: 0.7, display: "flex", justifyContent: "space-between", gap: 8 }}>
+                    <span>{mine ? "You" : "Attorney"}</span>
+                    <span>
+                      {new Date(m.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                      {mine && (m.read_at ? " · Read" : " · Sent")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ marginTop: 12, display: "grid", gap: 6 }}>
+          <textarea className="input-pp" rows={3} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Write a message to your attorney…"
+            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(); }} />
+          <div className="flex items-center justify-between">
+            <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>⌘/Ctrl + Enter to send · Do not use for evidence.</span>
+            <button className="btn-primary inline-flex items-center gap-1" style={{ background: "#A8CCE0", color: "#1A1714" }} onClick={submit} disabled={sending || !body.trim()}>
+              <Send size={13} /> {sending ? "Sending…" : "Send"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
