@@ -563,6 +563,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       avg_severity: avgSeverity,
       last_30_days: last30,
       timeline,
+      link_id: link.id,
     };
   });
 
