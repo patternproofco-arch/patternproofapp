@@ -717,3 +717,35 @@ textarea.input-pp { min-height: 130px; resize: vertical; line-height: 1.95; font
   display: grid; grid-template-columns: 1fr; gap: 20px; text-align: left;
 }
 @media (min-width: 800px)  { .final-cta-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
+
+/* ─────────────────────────────────────────────────────────────
+   Survivor app density scale
+   Scoped to the authenticated survivor shell only (not attorney
+   portal, not marketing). Reduces base rem so every Tailwind
+   spacing / typography utility scales together without a CSS
+   transform hack. Attorney portal uses its own layout root and
+   is unaffected.
+   ───────────────────────────────────────────────────────────── */
+[data-density="survivor"] {
+  font-size: 13px;                 /* ~81% of 16px on phones */
+  line-height: 1.5;
+}
+@media (min-width: 640px) {
+  [data-density="survivor"] { font-size: 14px; }   /* ~87% on small tablets */
+}
+@media (min-width: 1024px) {
+  [data-density="survivor"] { font-size: 15px; }   /* ~94% on laptops */
+}
+@media (min-width: 1440px) {
+  [data-density="survivor"] { font-size: 16px; }   /* full size on large desktop */
+}
+/* Guard body copy from becoming unreadable when text-xs / text-[11px]
+   render inside a shrunken root. */
+[data-density="survivor"] p,
+[data-density="survivor"] li,
+[data-density="survivor"] input,
+[data-density="survivor"] textarea,
+[data-density="survivor"] select,
+[data-density="survivor"] button {
+  font-size: max(0.875em, 12px);
+}
