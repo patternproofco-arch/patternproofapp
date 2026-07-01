@@ -12,7 +12,11 @@ import {
   listAttorneyNotes, upsertAttorneyNote, createDocRequest,
   getCaseNote, saveCaseNote,
   listClientThreads, getClientThread,
+  listMessages, sendMessage, markMessagesRead,
 } from "@/lib/attorney-portal.functions";
+import {
+  listTimeEntries, createTimeEntry, updateTimeEntry, deleteTimeEntry,
+} from "@/lib/time-entries.functions";
 import {
   listEvidenceReviews, upsertEvidenceReview,
 } from "@/lib/attorney-evidence-reviews.functions";
@@ -39,7 +43,7 @@ type DepoResult = Awaited<ReturnType<typeof generateDepositionPrep>>;
 type NoteRow = { incident_id: string; note: string | null; flagged: boolean; reviewed: boolean };
 
 const TABS = [
-  "Dashboard", "Intake", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Threads", "Deposition", "Export",
+  "Dashboard", "Intake", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Threads", "Messages", "Time", "Deposition", "Export",
 ] as const;
 type Tab = (typeof TABS)[number];
 
@@ -152,6 +156,8 @@ function ClientCaseView() {
         {tab === "Gaps" && <Gaps data={data} />}
         {tab === "Evidence" && <EvidenceTab data={data} clientId={clientId} />}
         {tab === "Threads" && <ThreadsTab clientId={clientId} />}
+        {tab === "Messages" && <MessagesTab linkId={data.link_id} />}
+        {tab === "Time" && <TimeTab clientId={clientId} />}
         {tab === "Deposition" && <DepoTab depo={depo} loading={depoLoading} onRun={runDepo} />}
         {tab === "Export" && <ExportTab data={data} caseId={caseId} />}
       </div>
