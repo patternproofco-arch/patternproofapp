@@ -103,7 +103,12 @@ export const updateTimeEntry = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      description?: string;
+      minutes?: number;
+      billable?: boolean;
+      entry_date?: string;
+    } = {};
     if (data.description !== undefined) patch.description = data.description;
     if (data.minutes !== undefined) patch.minutes = data.minutes;
     if (data.billable !== undefined) patch.billable = data.billable;
