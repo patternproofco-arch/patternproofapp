@@ -28,6 +28,8 @@ function ShareWithAttorney() {
 
   const [data, setData] = useState<Listing | null>(null);
   const [open, setOpen] = useState(false);
+  const [unread, setUnread] = useState<Record<string, number>>({});
+  const [messagingLinkId, setMessagingLinkId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [firm, setFirm] = useState("");
@@ -41,8 +43,18 @@ function ShareWithAttorney() {
   const [busy, setBusy] = useState(false);
   const [justCreated, setJustCreated] = useState<{ url: string; email: string } | null>(null);
 
-  const load = useCallback(() => { list().then(setData); }, [list]);
+  const unreadFn = useServerFn(getMyUnreadCounts);
+  const load = useCallback(() => {
+    list().then(setData);
+    unreadFn().then((r) => setUnread(r.counts ?? {})).catch(() => setUnread({}));
+  }, [list, unreadFn]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const t = setInterval(() => {
+      unreadFn().then((r) => setUnread(r.counts ?? {})).catch(() => {});
+    }, 30000);
+    return () => clearInterval(t);
+  }, [unreadFn]);
 
   const submit = async () => {
     if (!email.trim()) { toast("Add an email."); return; }
