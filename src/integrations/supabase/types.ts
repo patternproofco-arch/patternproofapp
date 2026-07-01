@@ -771,6 +771,39 @@ export type Database = {
         }
         Relationships: []
       }
+      clio_connections: {
+        Row: {
+          access_token: string | null
+          attorney_user_id: string
+          clio_account_id: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          refresh_token: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          attorney_user_id: string
+          clio_account_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          refresh_token?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          attorney_user_id?: string
+          clio_account_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          refresh_token?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       communications: {
         Row: {
           channel: string
@@ -1406,6 +1439,50 @@ export type Database = {
             columns: ["thread_id"]
             isOneToOne: false
             referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entries: {
+        Row: {
+          attorney_user_id: string
+          billable: boolean
+          case_link_id: string
+          created_at: string
+          description: string
+          entry_date: string
+          id: string
+          minutes: number
+          updated_at: string
+        }
+        Insert: {
+          attorney_user_id: string
+          billable?: boolean
+          case_link_id: string
+          created_at?: string
+          description: string
+          entry_date?: string
+          id?: string
+          minutes: number
+          updated_at?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          billable?: boolean
+          case_link_id?: string
+          created_at?: string
+          description?: string
+          entry_date?: string
+          id?: string
+          minutes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_case_link_id_fkey"
+            columns: ["case_link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
             referencedColumns: ["id"]
           },
         ]

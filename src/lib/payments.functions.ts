@@ -485,6 +485,35 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     const legalFolder = zip.folder("legal");
     legalFolder?.file("doc_requests.csv", toCsv(docRequests));
 
+    // time_summary.csv — attorney-logged time entries (billable + total)
+    const { data: timeRows } = await supabaseAdmin
+      .from("time_entries")
+      .select("entry_date,minutes,billable,description,attorney_user_id,created_at")
+      .eq("case_link_id", link.id)
+      .order("entry_date", { ascending: true });
+    const timeEntries = (timeRows ?? []) as Array<{ entry_date: string; minutes: number; billable: boolean; description: string; attorney_user_id: string; created_at: string }>;
+    const totalMinutes = timeEntries.reduce((s, r) => s + (r.minutes ?? 0), 0);
+    const billableMinutes = timeEntries.filter((r) => r.billable).reduce((s, r) => s + (r.minutes ?? 0), 0);
+    const summaryRows: Array<Record<string, unknown>> = timeEntries.map((r) => ({
+      entry_date: r.entry_date,
+      minutes: r.minutes,
+      hours: (r.minutes / 60).toFixed(2),
+      billable: r.billable ? "yes" : "no",
+      description: r.description,
+      attorney_user_id: r.attorney_user_id,
+      logged_at: r.created_at,
+    }));
+    summaryRows.push({
+      entry_date: "TOTAL",
+      minutes: totalMinutes,
+      hours: (totalMinutes / 60).toFixed(2),
+      billable: `billable: ${(billableMinutes / 60).toFixed(2)}h`,
+      description: `${timeEntries.length} entries`,
+      attorney_user_id: "",
+      logged_at: "",
+    });
+    zip.file("time_summary.csv", toCsv(summaryRows));
+
     // 07_attorney_notes.md (optional)
     if (data.includeAttorneyNotes) {
       const notesLines: string[] = [`# Attorney Notes`, ``, `_For internal use only. Strip this file before filing or sharing._`, ``];

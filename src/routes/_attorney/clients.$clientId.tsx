@@ -12,7 +12,11 @@ import {
   listAttorneyNotes, upsertAttorneyNote, createDocRequest,
   getCaseNote, saveCaseNote,
   listClientThreads, getClientThread,
+  listMessages, sendMessage, markMessagesRead,
 } from "@/lib/attorney-portal.functions";
+import {
+  listTimeEntries, createTimeEntry, updateTimeEntry, deleteTimeEntry,
+} from "@/lib/time-entries.functions";
 import {
   listEvidenceReviews, upsertEvidenceReview,
 } from "@/lib/attorney-evidence-reviews.functions";
@@ -39,7 +43,7 @@ type DepoResult = Awaited<ReturnType<typeof generateDepositionPrep>>;
 type NoteRow = { incident_id: string; note: string | null; flagged: boolean; reviewed: boolean };
 
 const TABS = [
-  "Dashboard", "Intake", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Threads", "Deposition", "Export",
+  "Dashboard", "Intake", "Overview", "Timeline", "Patterns", "Checklist", "Gaps", "Evidence", "Threads", "Messages", "Time", "Deposition", "Export",
 ] as const;
 type Tab = (typeof TABS)[number];
 
@@ -152,6 +156,8 @@ function ClientCaseView() {
         {tab === "Gaps" && <Gaps data={data} />}
         {tab === "Evidence" && <EvidenceTab data={data} clientId={clientId} />}
         {tab === "Threads" && <ThreadsTab clientId={clientId} />}
+        {tab === "Messages" && <MessagesTab linkId={data.link_id} />}
+        {tab === "Time" && <TimeTab clientId={clientId} />}
         {tab === "Deposition" && <DepoTab depo={depo} loading={depoLoading} onRun={runDepo} />}
         {tab === "Export" && <ExportTab data={data} caseId={caseId} />}
       </div>
@@ -2174,6 +2180,279 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Messages tab (attorney ↔ survivor in-app chat) ---------------- */
+
+type ChatMessage = {
+  id: string;
+  link_id: string;
+  sender_user_id: string;
+  sender_role: "attorney" | "survivor";
+  content: string;
+  read_at: string | null;
+  created_at: string;
+};
+
+function MessagesTab({ linkId }: { linkId: string }) {
+  const listFn = useServerFn(listMessages);
+  const sendFn = useServerFn(sendMessage);
+  const markFn = useServerFn(markMessagesRead);
+  const [messages, setMessages] = useState<ChatMessage[] | null>(null);
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const load = () => listFn({ data: { link_id: linkId } })
+    .then((r) => setMessages(r.messages as ChatMessage[]))
+    .catch(() => setMessages([]));
+
+  useEffect(() => {
+    if (!linkId) return;
+    load();
+    markFn({ data: { link_id: linkId } }).catch(() => {});
+    const t = setInterval(() => load(), 15000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkId]);
+
+  const submit = async () => {
+    const text = body.trim();
+    if (!text) return;
+    setSending(true);
+    try {
+      await sendFn({ data: { link_id: linkId, content: text } });
+      setBody("");
+      await load();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="att-card" style={{ display: "grid", gap: 12, maxWidth: 780 }}>
+      <div>
+        <div className="att-eyebrow">Messages</div>
+        <h3 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 22, marginTop: 4 }}>Attorney ↔ client conversation</h3>
+        <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
+          Private thread between you and your client. Do not use for evidence — upload evidence in the Evidence tab.
+        </p>
+      </div>
+
+      <div style={{ display: "grid", gap: 8, maxHeight: 480, overflowY: "auto", padding: 4 }}>
+        {messages === null && <div style={{ fontSize: 13, color: "var(--att-text-2)" }}>Loading…</div>}
+        {messages?.length === 0 && (
+          <div style={{ fontSize: 13, color: "var(--att-text-2)", padding: "18px 0" }}>No messages yet. Start the conversation below.</div>
+        )}
+        {messages?.map((m) => {
+          const mine = m.sender_role === "attorney";
+          return (
+            <div key={m.id} style={{ display: "flex", justifyContent: mine ? "flex-end" : "flex-start" }}>
+              <div style={{
+                maxWidth: "78%",
+                padding: "9px 12px",
+                borderRadius: 10,
+                background: mine ? "var(--att-navy)" : "#F1F5F9",
+                color: mine ? "#fff" : "var(--att-text)",
+                border: mine ? "none" : "1px solid var(--att-border)",
+              }}>
+                <div style={{ fontSize: 13, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{m.content}</div>
+                <div style={{ fontSize: 10, marginTop: 4, opacity: 0.75, display: "flex", gap: 6, justifyContent: "space-between" }}>
+                  <span>{mine ? "You" : "Client"}</span>
+                  <span>
+                    {new Date(m.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                    {mine && (m.read_at ? " · Read" : " · Sent")}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "grid", gap: 6 }}>
+        <textarea
+          className="att-input"
+          rows={3}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Write a message to your client…"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
+          }}
+        />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 11, color: "var(--att-text-2)" }}>⌘/Ctrl + Enter to send</span>
+          <button className="att-btn-primary" onClick={submit} disabled={sending || !body.trim()}>
+            <Send size={13} style={{ marginRight: 6 }} /> {sending ? "Sending…" : "Send"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Time tab (billable / non-billable entries) ---------------- */
+
+type TimeEntryRow = {
+  id: string;
+  case_link_id: string;
+  attorney_user_id: string;
+  description: string;
+  minutes: number;
+  billable: boolean;
+  entry_date: string;
+  created_at: string;
+  updated_at: string;
+};
+
+function fmtHrs(mins: number) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (!h) return `${m}m`;
+  if (!m) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+function TimeTab({ clientId }: { clientId: string }) {
+  const listFn = useServerFn(listTimeEntries);
+  const createFn = useServerFn(createTimeEntry);
+  const updateFn = useServerFn(updateTimeEntry);
+  const deleteFn = useServerFn(deleteTimeEntry);
+
+  const [rows, setRows] = useState<TimeEntryRow[] | null>(null);
+  const [total, setTotal] = useState(0);
+  const [billable, setBillable] = useState(0);
+  const today = new Date().toISOString().slice(0, 10);
+  const [entryDate, setEntryDate] = useState(today);
+  const [description, setDescription] = useState("");
+  const [hours, setHours] = useState("0");
+  const [mins, setMins] = useState("30");
+  const [isBillable, setIsBillable] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<{ description: string; minutes: number; billable: boolean; entry_date: string } | null>(null);
+
+  const load = () => listFn({ data: { clientId } })
+    .then((r) => {
+      setRows(r.entries as TimeEntryRow[]);
+      setTotal(r.total_minutes);
+      setBillable(r.billable_minutes);
+    })
+    .catch(() => setRows([]));
+
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [clientId]);
+
+  const submit = async () => {
+    const totalMin = (parseInt(hours || "0", 10) || 0) * 60 + (parseInt(mins || "0", 10) || 0);
+    if (totalMin < 1) return toast.error("Duration must be at least 1 minute.");
+    if (!description.trim()) return toast.error("Add a description.");
+    setSaving(true);
+    try {
+      await createFn({ data: { clientId, description: description.trim(), minutes: totalMin, billable: isBillable, entry_date: entryDate } });
+      setDescription(""); setHours("0"); setMins("30");
+      await load();
+      toast.success("Time logged.");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally { setSaving(false); }
+  };
+
+  const startEdit = (r: TimeEntryRow) => {
+    setEditingId(r.id);
+    setEditDraft({ description: r.description, minutes: r.minutes, billable: r.billable, entry_date: r.entry_date });
+  };
+  const saveEdit = async () => {
+    if (!editingId || !editDraft) return;
+    try {
+      await updateFn({ data: { id: editingId, ...editDraft } });
+      setEditingId(null); setEditDraft(null);
+      await load();
+    } catch (e) { toast.error((e as Error).message); }
+  };
+  const remove = async (id: string) => {
+    if (!confirm("Delete this time entry?")) return;
+    try {
+      await deleteFn({ data: { id } });
+      await load();
+    } catch (e) { toast.error((e as Error).message); }
+  };
+
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 12 }}>
+        <div className="att-card"><div className="att-eyebrow">Total logged</div><div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>{fmtHrs(total)}</div></div>
+        <div className="att-card"><div className="att-eyebrow">Billable</div><div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4, color: "var(--att-navy)" }}>{fmtHrs(billable)}</div></div>
+        <div className="att-card"><div className="att-eyebrow">Non-billable</div><div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4, color: "var(--att-text-2)" }}>{fmtHrs(total - billable)}</div></div>
+      </div>
+
+      <div className="att-card" style={{ display: "grid", gap: 10 }}>
+        <div className="att-eyebrow">Log time</div>
+        <div style={{ display: "grid", gridTemplateColumns: "140px 90px 90px 1fr auto", gap: 8, alignItems: "end" }}>
+          <div>
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Date</label>
+            <input className="att-input" type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Hours</label>
+            <input className="att-input" type="number" min={0} max={24} value={hours} onChange={(e) => setHours(e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Minutes</label>
+            <input className="att-input" type="number" min={0} max={59} value={mins} onChange={(e) => setMins(e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Description</label>
+            <input className="att-input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Reviewed evidence timeline" />
+          </div>
+          <button className="att-btn-primary" onClick={submit} disabled={saving}>{saving ? "Saving…" : "Add entry"}</button>
+        </div>
+        <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+          <input type="checkbox" checked={isBillable} onChange={(e) => setIsBillable(e.target.checked)} /> Billable
+        </label>
+      </div>
+
+      <div className="att-card">
+        <div className="att-eyebrow" style={{ marginBottom: 8 }}>Entries</div>
+        {rows === null && <div style={{ fontSize: 13, color: "var(--att-text-2)" }}>Loading…</div>}
+        {rows?.length === 0 && <div style={{ fontSize: 13, color: "var(--att-text-2)" }}>No time entries yet.</div>}
+        <div style={{ display: "grid", gap: 6 }}>
+          {rows?.map((r) => (
+            <div key={r.id} style={{ display: "grid", gridTemplateColumns: "110px 90px 90px 1fr auto", gap: 8, padding: "8px 10px", border: "1px solid var(--att-border)", borderRadius: 6, alignItems: "center", background: "#fff" }}>
+              {editingId === r.id && editDraft ? (
+                <>
+                  <input className="att-input" type="date" value={editDraft.entry_date} onChange={(e) => setEditDraft({ ...editDraft, entry_date: e.target.value })} />
+                  <input className="att-input" type="number" min={1} max={24 * 60} value={editDraft.minutes} onChange={(e) => setEditDraft({ ...editDraft, minutes: parseInt(e.target.value || "0", 10) || 0 })} />
+                  <label style={{ fontSize: 12, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <input type="checkbox" checked={editDraft.billable} onChange={(e) => setEditDraft({ ...editDraft, billable: e.target.checked })} /> Bill
+                  </label>
+                  <input className="att-input" value={editDraft.description} onChange={(e) => setEditDraft({ ...editDraft, description: e.target.value })} />
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button className="att-btn-primary" onClick={saveEdit}>Save</button>
+                    <button className="att-btn-ghost" onClick={() => { setEditingId(null); setEditDraft(null); }}>Cancel</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>{r.entry_date}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{fmtHrs(r.minutes)}</span>
+                  <span className="att-tag" style={{ background: r.billable ? "var(--att-navy)" : "#F1F5F9", color: r.billable ? "#fff" : "var(--att-text-2)", justifySelf: "start" }}>
+                    {r.billable ? "Billable" : "Non-bill"}
+                  </span>
+                  <span style={{ fontSize: 13 }}>{r.description}</span>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button className="att-btn-ghost" onClick={() => startEdit(r)}>Edit</button>
+                    <button className="att-btn-ghost" onClick={() => remove(r.id)} style={{ color: "#B91C1C" }}>Delete</button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
