@@ -681,6 +681,47 @@ export const listMessages = createServerFn({ method: "POST" })
     return { messages: messages ?? [] };
   });
 
+export const markMessagesRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ link_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertLinkParticipant(data.link_id, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("attorney_messages")
+      .update({ read_at: new Date().toISOString() })
+      .eq("link_id", data.link_id)
+      .is("read_at", null)
+      .neq("sender_user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/** Returns unread message counts for the survivor viewing their attorney list. */
+export const getMyUnreadCounts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: links } = await supabaseAdmin
+      .from("attorney_client_links")
+      .select("id")
+      .eq("client_user_id", context.userId)
+      .eq("status", "active");
+    const ids = (links ?? []).map((l) => l.id);
+    if (!ids.length) return { counts: {} as Record<string, number> };
+    const counts: Record<string, number> = {};
+    await Promise.all(ids.map(async (id) => {
+      const { count } = await supabaseAdmin
+        .from("attorney_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("link_id", id)
+        .is("read_at", null)
+        .neq("sender_user_id", context.userId);
+      counts[id] = count ?? 0;
+    }));
+    return { counts };
+  });
+
 export const createDocRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
