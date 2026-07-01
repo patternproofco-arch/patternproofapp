@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback } from "react";
-import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check } from "lucide-react";
+import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check, MessageSquare, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } from "@/lib/attorney-invitations.functions";
+import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 
 export const Route = createFileRoute("/_authenticated/share-with-attorney")({
