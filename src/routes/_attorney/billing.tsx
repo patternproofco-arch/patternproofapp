@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Check, ExternalLink, Lock, Star } from "lucide-react";
+import { Check, ExternalLink, Lock, Star, Plug, Clock } from "lucide-react";
 import { createPortalSession } from "@/lib/payments.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
@@ -130,6 +130,33 @@ function BillingPage() {
 
       <div className="att-card" style={{ background: "#F8FAFC", display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--att-text-2)" }}>
         <Lock size={14} /> Cards never touch our servers. Billing handled end-to-end by Stripe.
+      </div>
+
+      <div className="att-card" style={{ marginTop: 16 }}>
+        <div className="att-eyebrow">Integrations</div>
+        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 14, alignItems: "center", marginTop: 10 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 10, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
+            <Plug size={20} />
+          </div>
+          <div>
+            <div style={{ fontFamily: '"Instrument Serif", serif', fontSize: 20, color: "var(--att-navy)" }}>Clio Manage</div>
+            <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
+              Push court packet exports and matter metadata into Clio Manage. Local ZIP
+              exports keep working today; live sync unlocks once approval clears.
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+            <button
+              disabled
+              title="Pending Clio app approval"
+              className="att-btn-secondary"
+              style={{ cursor: "not-allowed", opacity: 0.55, display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              <Clock size={13} /> Connect Clio
+            </button>
+            <span style={{ fontSize: 11, color: "var(--att-text-2)" }}>Pending Clio app approval</span>
+          </div>
+        </div>
       </div>
     </div>
   );

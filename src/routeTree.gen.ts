@@ -62,6 +62,7 @@ import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/bi
 import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
+import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -342,6 +343,12 @@ const AttorneyClientsIndexRoute = AttorneyClientsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AttorneyClientsRoute,
 } as any)
+const IntegrationsClioCallbackRoute =
+  IntegrationsClioCallbackRouteImport.update({
+    id: '/integrations/clio/callback',
+    path: '/integrations/clio/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAgentThreadIdRoute =
   AuthenticatedAgentThreadIdRouteImport.update({
     id: '/$threadId',
@@ -412,6 +419,7 @@ export interface FileRoutesByFullPath {
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
+  '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/clients/': typeof AttorneyClientsIndexRoute
   '/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -466,6 +474,7 @@ export interface FileRoutesByTo {
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
+  '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/clients': typeof AttorneyClientsIndexRoute
   '/agent': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -525,6 +534,7 @@ export interface FileRoutesById {
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
+  '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
   '/_authenticated/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -583,6 +593,7 @@ export interface FileRouteTypes {
     | '/survivor-invite/$token'
     | '/clients/$clientId'
     | '/agent/$threadId'
+    | '/integrations/clio/callback'
     | '/clients/'
     | '/agent/'
     | '/api/public/payments/webhook'
@@ -637,6 +648,7 @@ export interface FileRouteTypes {
     | '/survivor-invite/$token'
     | '/clients/$clientId'
     | '/agent/$threadId'
+    | '/integrations/clio/callback'
     | '/clients'
     | '/agent'
     | '/api/public/payments/webhook'
@@ -695,6 +707,7 @@ export interface FileRouteTypes {
     | '/survivor-invite/$token'
     | '/_attorney/clients/$clientId'
     | '/_authenticated/agent/$threadId'
+    | '/integrations/clio/callback'
     | '/_attorney/clients/'
     | '/_authenticated/agent/'
     | '/api/public/payments/webhook'
@@ -718,6 +731,7 @@ export interface RootRouteChildren {
   AttorneyTokenRoute: typeof AttorneyTokenRoute
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
+  IntegrationsClioCallbackRoute: typeof IntegrationsClioCallbackRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
@@ -1094,6 +1108,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyClientsIndexRouteImport
       parentRoute: typeof AttorneyClientsRoute
     }
+    '/integrations/clio/callback': {
+      id: '/integrations/clio/callback'
+      path: '/integrations/clio/callback'
+      fullPath: '/integrations/clio/callback'
+      preLoaderRoute: typeof IntegrationsClioCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/agent/$threadId': {
       id: '/_authenticated/agent/$threadId'
       path: '/$threadId'
@@ -1251,6 +1272,7 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneyTokenRoute: AttorneyTokenRoute,
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
+  IntegrationsClioCallbackRoute: IntegrationsClioCallbackRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
