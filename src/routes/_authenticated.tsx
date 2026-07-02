@@ -26,7 +26,7 @@ function AuthLayout() {
 function Gate() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { settings } = useSettings();
+  const { settings, update } = useSettings();
   const { hasPin, isLocked } = usePinLock();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -34,9 +34,23 @@ function Gate() {
     if (!loading && !user) navigate({ to: "/login", replace: true });
   }, [user, loading, navigate]);
 
+  // Seed local onboarded flag from server-side user metadata so returning
+  // users on a new device / private browser / cleared storage don't get
+  // pushed back through onboarding.
+  useEffect(() => {
+    if (loading || !user || settings.onboarded) return;
+    const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; state?: string };
+    if (meta.onboarding_complete) {
+      update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
+    }
+  }, [loading, user, settings.onboarded, update]);
+
   useEffect(() => {
     if (!loading && user && !settings.onboarded && pathname !== "/onboarding") {
-      navigate({ to: "/onboarding", replace: true });
+      const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean };
+      if (!meta.onboarding_complete) {
+        navigate({ to: "/onboarding", replace: true });
+      }
     }
   }, [loading, user, settings.onboarded, pathname, navigate]);
 

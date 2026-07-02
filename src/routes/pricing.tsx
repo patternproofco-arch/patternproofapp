@@ -6,7 +6,7 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — PatternProof | Evidence Documentation for Survivors & Attorneys" },
-      { name: "description", content: "PatternProof pricing: Free for survivors. $99/month for attorneys. $299/month for organizations. Private, encrypted documentation for domestic violence and custody cases." },
+      { name: "description", content: "PatternProof pricing: Free for survivors. Attorney plans from $297/month. Organizations from $299/month. Private, encrypted documentation for domestic violence and custody cases." },
       { property: "og:title", content: "Pricing — PatternProof" },
       { property: "og:description", content: "Free for survivors. Attorney and organization plans that pay for themselves." },
       { property: "og:url", content: "https://pattern-proof.tech/pricing" },
@@ -50,20 +50,20 @@ const TIERS: Array<{
   {
     key: "attorney",
     name: "Attorney",
-    price: "$99",
-    sub: "/month or $899/year",
+    price: "$297",
+    sub: "/month · Solo",
     logoVariant: "attorney",
     quote: "Replaces 10+ hours of evidence prep per case. Pays for itself in one client.",
     features: [
       "Everything in Survivor",
-      "Up to 25 active client cases",
+      "Up to 5 active client cases (Solo) · Firm & Enterprise tiers available",
       "Attorney review portal",
       "Court packet export (ZIP + DOCX + PDF)",
       "Pattern analysis summaries",
       "Clio-compatible export",
       "Priority email support",
     ],
-    cta: "Start 30-Day Free Trial",
+    cta: "Your first client is free",
     ctaTo: "/lawyer-signup",
     featured: true,
   },
