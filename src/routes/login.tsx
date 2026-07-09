@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Lock, Fingerprint } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { lovable } from "@/integrations/lovable";
 import { getMyRole } from "@/lib/attorney-portal.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -73,10 +74,13 @@ function LoginPage() {
 
   const signInWithGoogle = async () => {
     try {
-      await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: window.location.origin + "/dashboard" },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
       });
+      if (result.error) {
+        const msg = result.error instanceof Error ? result.error.message : "Try again in a moment.";
+        toast("We couldn't reach Google. " + msg);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Try again in a moment.";
       toast("We couldn't reach Google. " + msg);
