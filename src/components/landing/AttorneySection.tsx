@@ -175,7 +175,7 @@ export function AttorneySection() {
               }}
             >
               <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(226,232,240,0.6)", fontWeight: 700, marginBottom: 16 }}>
-                Without P4TTERN PR00F
+                Without PatternProof
               </div>
               <div style={{ display: "grid", gap: 18 }}>
                 <BigStat n="5" label="Clients" />
@@ -192,7 +192,7 @@ export function AttorneySection() {
               }}
             >
               <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9ED8D0", fontWeight: 700, marginBottom: 16 }}>
-                With P4TTERN PR00F
+                With PatternProof
               </div>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 14 }}>
                 {["Organized timeline", "Evidence index", "Pattern summary", "Attorney-ready packet"].map((x) => (

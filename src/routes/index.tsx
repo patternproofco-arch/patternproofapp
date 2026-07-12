@@ -11,13 +11,13 @@ import { FinalCTA } from "@/components/landing/FinalCTA";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "P4TTERN PR00F — Turn scattered evidence into structured patterns" },
-      { name: "description", content: "P4TTERN PR00F turns scattered incidents, evidence, and timelines into organized patterns survivors can document, attorneys can review, and advocates can understand faster." },
-      { property: "og:title", content: "P4TTERN PR00F — The proof is in the patterns." },
+      { title: "PatternProof — Turn scattered evidence into structured patterns" },
+      { name: "description", content: "PatternProof turns scattered incidents, evidence, and timelines into organized patterns survivors can document, attorneys can review, and advocates can understand faster." },
+      { property: "og:title", content: "PatternProof — The proof is in the patterns." },
       { property: "og:description", content: "Pattern infrastructure for DV, custody, and coercive control documentation." },
       { property: "og:url", content: "https://pattern-proof.tech/" },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "P4TTERN PR00F — The proof is in the patterns." },
+      { name: "twitter:title", content: "PatternProof — The proof is in the patterns." },
       { name: "twitter:description", content: "Turn scattered evidence into structured patterns." },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/" }],
@@ -27,10 +27,10 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Product",
-          name: "P4TTERN PR00F",
+          name: "PatternProof",
           description:
             "Pattern infrastructure for survivors, attorneys, and DV organizations. Turn scattered incidents, evidence, and timelines into organized patterns.",
-          brand: { "@type": "Brand", name: "P4TTERN PR00F" },
+          brand: { "@type": "Brand", name: "PatternProof" },
           url: "https://pattern-proof.tech/",
           offers: [
             { "@type": "Offer", name: "Survivor — Free", price: "0", priceCurrency: "USD", url: "https://pattern-proof.tech/login", availability: "https://schema.org/InStock" },

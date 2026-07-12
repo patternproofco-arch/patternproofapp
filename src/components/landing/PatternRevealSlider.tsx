@@ -223,7 +223,7 @@ export function PatternRevealSlider({ value, onChange }: Props) {
       </div>
       <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 16 }}>
         <span style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700, whiteSpace: "nowrap" }}>
-          Without P4TTERN PR00F
+          Without PatternProof
         </span>
         <Slider
           value={[value]}
@@ -234,7 +234,7 @@ export function PatternRevealSlider({ value, onChange }: Props) {
           aria-label="Reveal the pattern"
         />
         <span style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--foreground)", fontWeight: 700, whiteSpace: "nowrap" }}>
-          With P4TTERN PR00F
+          With PatternProof
         </span>
       </div>
     </div>

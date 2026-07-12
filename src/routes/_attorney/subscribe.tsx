@@ -55,7 +55,7 @@ const TIERS: Record<TierKey, {
       "Full firm access. No attorney cap.",
       "White-label survivor portal",
       "SSO + dedicated chain-of-custody audits",
-      "Direct line to the P4TTERN PR00F team",
+      "Direct line to the PatternProof team",
     ],
     close: "For firms that move volume.",
   },
@@ -75,7 +75,7 @@ function SubscribePage() {
         <Check size={32} style={{ color: "var(--att-green)", margin: "0 auto 12px" }} />
         <h1 style={{ fontSize: 30, marginBottom: 8, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>You're subscribed.</h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 14, marginBottom: 16 }}>
-          Plan: P4TTERN PR00F {sub.tier === "firm" ? "Firm" : sub.tier === "enterprise" ? "Enterprise" : "Solo"} · {sub.status}
+          Plan: PatternProof {sub.tier === "firm" ? "Firm" : sub.tier === "enterprise" ? "Enterprise" : "Solo"} · {sub.status}
           {sub.currentPeriodEnd && <> · renews {new Date(sub.currentPeriodEnd).toLocaleDateString()}</>}
         </p>
         <Link to="/clients" className="att-btn-secondary" style={{ display: "inline-block" }}>
@@ -104,7 +104,7 @@ function SubscribePage() {
       <div className="att-card" style={{ marginBottom: 28, background: "#FFFBEB", borderColor: "#FCD34D" }}>
         <div className="att-eyebrow" style={{ color: "#92400E" }}>From Grace, founder</div>
         <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.65, color: "var(--att-text)", fontStyle: "italic" }}>
-          "I documented everything. Nobody believed me anyway. I walked into that courtroom with folders of notes and screenshots and I still couldn't show the pattern. The judge couldn't see it. I built P4TTERN PR00F because the evidence was always there — I just needed something that could show it."
+          "I documented everything. Nobody believed me anyway. I walked into that courtroom with folders of notes and screenshots and I still couldn't show the pattern. The judge couldn't see it. I built PatternProof because the evidence was always there — I just needed something that could show it."
         </p>
       </div>
 

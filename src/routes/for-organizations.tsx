@@ -7,9 +7,9 @@ import { FinalCTA } from "@/components/landing/FinalCTA";
 export const Route = createFileRoute("/for-organizations")({
   head: () => ({
     meta: [
-      { title: "For DV organizations — P4TTERN PR00F" },
-      { name: "description", content: "Reduce intake and documentation burden. P4TTERN PR00F helps advocates serve more survivors with cleaner, pattern-aware case files." },
-      { property: "og:title", content: "P4TTERN PR00F for DV organizations" },
+      { title: "For DV organizations — PatternProof" },
+      { name: "description", content: "Reduce intake and documentation burden. PatternProof helps advocates serve more survivors with cleaner, pattern-aware case files." },
+      { property: "og:title", content: "PatternProof for DV organizations" },
       { property: "og:description", content: "Capacity is care. Cleaner intake. Faster referrals. More survivors served." },
       { property: "og:url", content: "https://pattern-proof.tech/for-organizations" },
     ],

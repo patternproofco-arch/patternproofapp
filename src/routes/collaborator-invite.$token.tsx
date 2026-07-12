@@ -15,7 +15,7 @@ export const Route = createFileRoute("/collaborator-invite/$token")({
   head: () => ({
     links: [{ rel: "stylesheet", href: attorneyCss }],
     meta: [
-      { title: "Case collaborator invite — P4TTERN PR00F" },
+      { title: "Case collaborator invite — PatternProof" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -100,12 +100,12 @@ function CollaboratorInvitePage() {
   const inv = peeked.invite!;
   const attorneyDisplay = inv.attorney_name
     ? `${inv.attorney_name}${inv.firm_name ? ` · ${inv.firm_name}` : ""}`
-    : "An attorney on P4TTERN PR00F";
+    : "An attorney on PatternProof";
 
   return (
     <Frame>
       <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <div className="att-eyebrow">P4TTERN PR00F · Case collaborator</div>
+        <div className="att-eyebrow">PatternProof · Case collaborator</div>
         <h1 style={{ fontSize: 30, marginTop: 8, marginBottom: 6, fontFamily: '"Instrument Serif", serif' }}>
           {attorneyDisplay} invited you to collaborate
         </h1>

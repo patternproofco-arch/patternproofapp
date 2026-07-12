@@ -9,9 +9,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/demo")({
   head: () => ({
     meta: [
-      { title: "Interactive Demo — P4TTERN PR00F" },
-      { name: "description", content: "Explore P4TTERN PR00F with a sample survivor case. No signup required — click through the journal, timeline, pattern analysis, and court packet." },
-      { property: "og:title", content: "Interactive Demo — P4TTERN PR00F" },
+      { title: "Interactive Demo — PatternProof" },
+      { name: "description", content: "Explore PatternProof with a sample survivor case. No signup required — click through the journal, timeline, pattern analysis, and court packet." },
+      { property: "og:title", content: "Interactive Demo — PatternProof" },
       { property: "og:description", content: "See how survivors document incidents and generate court-ready evidence. Sample case, no signup." },
     ],
   }),

@@ -6,9 +6,9 @@ import { Logo } from "@/components/Logo";
 export const Route = createFileRoute("/request-org-access")({
   head: () => ({
     meta: [
-      { title: "Request DV organization access — P4TTERN PR00F" },
-      { name: "description", content: "Request invite-only access to P4TTERN PR00F for your domestic violence organization." },
-      { property: "og:title", content: "Request DV organization access — P4TTERN PR00F" },
+      { title: "Request DV organization access — PatternProof" },
+      { name: "description", content: "Request invite-only access to PatternProof for your domestic violence organization." },
+      { property: "og:title", content: "Request DV organization access — PatternProof" },
       { property: "og:description", content: "Invite-only access for DV organizations and advocates." },
       { property: "og:url", content: "https://pattern-proof.tech/request-org-access" },
       { name: "robots", content: "noindex" },
@@ -36,7 +36,7 @@ function RequestOrgAccess() {
     <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #F2F4F8, #E8EEF5)", padding: "60px 24px" }}>
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
         <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted-foreground)", textDecoration: "none", marginBottom: 24 }}>
-          <ArrowLeft size={14} /> Back to P4TTERN PR00F
+          <ArrowLeft size={14} /> Back to PatternProof
         </Link>
         <div style={{ background: "#FFFFFF", borderRadius: 24, padding: 36, border: "1px solid var(--border)" }}>
           <Logo variant="org" size={56} />

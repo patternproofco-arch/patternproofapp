@@ -155,7 +155,7 @@ export function OrgSection() {
             Built for grant-funded programs.
           </h3>
           <p style={{ fontSize: 17, lineHeight: 1.6, color: "#36422F", maxWidth: 680, marginBottom: 36 }}>
-            P4TTERN PR00F helps organizations demonstrate measurable outcomes to funders and stakeholders.
+            PatternProof helps organizations demonstrate measurable outcomes to funders and stakeholders.
           </p>
           <div className="org-metrics-grid">
             {GRANT_METRICS.map((m) => (

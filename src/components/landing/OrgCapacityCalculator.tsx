@@ -57,7 +57,7 @@ export function OrgCapacityCalculator() {
         <Field label="Advocate hourly cost" v={usd(rate)}>
           <Slider value={[rate]} min={20} max={120} step={5} onValueChange={(v) => setRate(v[0] ?? 20)} />
         </Field>
-        <Field label="Estimated time saved with P4TTERN PR00F" v={`${saved}%`}>
+        <Field label="Estimated time saved with PatternProof" v={`${saved}%`}>
           <Slider value={[saved]} min={20} max={90} step={5} onValueChange={(v) => setSaved(v[0] ?? 20)} />
         </Field>
       </div>

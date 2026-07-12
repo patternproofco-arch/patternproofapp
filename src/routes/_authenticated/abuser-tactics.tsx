@@ -8,7 +8,7 @@ import { analyzePatterns, getLatestPatternAnalysis, type PatternAnalysisResult }
 export const Route = createFileRoute("/_authenticated/abuser-tactics")({
   head: () => ({
     meta: [
-      { title: "Abuser tactics — P4TTERN PR00F" },
+      { title: "Abuser tactics — PatternProof" },
       { name: "description", content: "Recurring tactics the other party is using, drawn from your own records." },
       { name: "robots", content: "noindex, nofollow" },
     ],
@@ -160,7 +160,7 @@ function AbuserTacticsPage() {
       {tactics.length > 0 && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--accent)" }}>
           <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            This is pattern recognition, not a diagnosis of the other person. P4TTERN PR00F
+            This is pattern recognition, not a diagnosis of the other person. PatternProof
             does not label individuals — it surfaces recurring behaviors that show up across
             your own entries.
           </p>

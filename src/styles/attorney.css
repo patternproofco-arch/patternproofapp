@@ -1,5 +1,5 @@
 /* ============================================================
-   P4TTERN PR00F — Attorney Portal Design System
+   PatternProof — Attorney Portal Design System
    Isolated from the survivor app's warm/pastel system.
    Loaded only by routes under /_attorney/* and /accept-invite.
    Scope everything under .att-root so survivor pages aren't

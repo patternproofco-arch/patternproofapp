@@ -10,7 +10,7 @@ const SLOTS: { audience: string; quote: string; cite: string; tone: "survivor" |
   {
     audience: "Survivor",
     quote: "Testimonial coming soon — survivors describe finally being able to show, not just tell.",
-    cite: "P4TTERN PR00F user",
+    cite: "PatternProof user",
     tone: "survivor",
   },
   {

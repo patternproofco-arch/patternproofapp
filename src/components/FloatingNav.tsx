@@ -15,7 +15,7 @@ import {
 } from "@/components/icons/PpIcons";
 
 /**
- * PrismIcon — custom mark for the P4TTERN PR00F Agent.
+ * PrismIcon — custom mark for the PatternProof Agent.
  * Translucent prism silhouette with a hidden "PP" inside and small
  * pattern nodes around it. Inherits stroke color from currentColor.
  */

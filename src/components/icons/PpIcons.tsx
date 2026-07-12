@@ -76,7 +76,7 @@ export function DotCirclePatternIcon({ size = 24, strokeWidth = 1.75, color = "c
   );
 }
 
-/** P4TTERN PR00F Agent — triangle outline with "PP" inside. */
+/** PatternProof Agent — triangle outline with "PP" inside. */
 export function PpTriangleIcon({ size = 24, strokeWidth = 1.75, color = "currentColor", className }: IconProps): ReactElement {
   return (
     <svg {...base(size, color, strokeWidth, className)}>
