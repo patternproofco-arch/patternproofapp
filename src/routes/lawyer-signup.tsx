@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/lawyer-signup")({
   head: () => ({
     meta: [
-      { title: "Attorney sign-in — P4TTERN PR00F" },
+      { title: "Attorney sign-in — PatternProof" },
       { name: "description", content: "Litigation intelligence portal for family-law attorneys handling DV and coercive control cases." },
       { name: "robots", content: "noindex" },
     ],

@@ -119,7 +119,7 @@ export function AiSidekick() {
           style={{ background: "var(--card)", border: "1px solid var(--border)" }}
         >
           <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: "var(--border)" }}>
-            <div className="font-serif text-[16px]">P4TTERN PR00F Assistant</div>
+            <div className="font-serif text-[16px]">PatternProof Assistant</div>
             <button onClick={() => setOpen(false)} aria-label="Close"><X size={18} /></button>
           </div>
           <div className="border-b" style={{ borderColor: "var(--border)" }}>

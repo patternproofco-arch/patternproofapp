@@ -242,7 +242,7 @@ async function generateWordDoc(args: {
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   // Cover
-  children.push(p("P4TTERN PR00F", { size: 64, bold: true, color: NAVY, align: AlignmentType.CENTER, spacingAfter: 200 }));
+  children.push(p("PatternProof", { size: 64, bold: true, color: NAVY, align: AlignmentType.CENTER, spacingAfter: 200 }));
   children.push(p("COURT PACKET", { size: 64, bold: true, color: NAVY, align: AlignmentType.CENTER, spacingAfter: 600 }));
   children.push(p(`Case Reference: ${caseId}`, { align: AlignmentType.CENTER, spacingAfter: 120 }));
   children.push(p(today, { align: AlignmentType.CENTER, spacingAfter: 600 }));
@@ -393,7 +393,7 @@ async function generateWordDoc(args: {
   }
 
   const doc = new Document({
-    creator: "P4TTERN PR00F",
+    creator: "PatternProof",
     title: `Court Packet ${caseId}`,
     styles: { default: { document: { run: { font: FONT, size: 20, color: BODY } } } },
     sections: [{

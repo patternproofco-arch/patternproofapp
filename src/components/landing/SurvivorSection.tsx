@@ -172,12 +172,12 @@ export function SurvivorSection() {
           </h3>
           <div className="surv-ba-grid">
             <BeforeAfterCard
-              title="Without P4TTERN PR00F"
+              title="Without PatternProof"
               tone="without"
               items={WITHOUT}
             />
             <BeforeAfterCard
-              title="With P4TTERN PR00F"
+              title="With PatternProof"
               tone="with"
               items={WITH}
             />

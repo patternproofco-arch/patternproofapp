@@ -51,7 +51,7 @@ function ClientsIndex() {
       <div className="att-eyebrow">Case Files</div>
       <h1 style={{ fontSize: 36, marginTop: 6, marginBottom: 6, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>Your clients</h1>
       <p style={{ color: "var(--att-text-2)", maxWidth: 640, marginBottom: 24 }}>
-        Every survivor who has shared their P4TTERN PR00F case file with you. Read-only. Chain-of-custody logged.
+        Every survivor who has shared their PatternProof case file with you. Read-only. Chain-of-custody logged.
       </p>
 
       {/* Diagnosis card — never shows a raw empty grid */}
@@ -153,7 +153,7 @@ function DiagnosisCard({ clientCount, tier }: { clientCount: number | null; tier
             {status === "active" && `${clientCount} client case file${clientCount === 1 ? "" : "s"} active.`}
           </h2>
           <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
-            Plan: <strong>P4TTERN PR00F {tierLabel}</strong> · Client cap: {cap}
+            Plan: <strong>PatternProof {tierLabel}</strong> · Client cap: {cap}
           </p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 220 }}>

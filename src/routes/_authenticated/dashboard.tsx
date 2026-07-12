@@ -78,12 +78,12 @@ function Dashboard() {
     },
     {
       to: "/agent", step: "Step 5 · Ask the agent",
-      title: "P4TTERN PR00F Agent",
+      title: "PatternProof Agent",
       blurb: "Ask the agent to organize, explain, or summarize your evidence.",
       status: "Ask for help",
       icon: <PpTriangleIcon size={26} strokeWidth={1.9} color="#FFFFFF" />,
       tint: "rgba(180, 220, 240, 0.65)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
-      ariaLabel: "Open the P4TTERN PR00F agent",
+      ariaLabel: "Open the PatternProof agent",
       luminous: true,
     },
     {
@@ -115,7 +115,7 @@ function Dashboard() {
             Your workspace
           </span>
           <h1 className="mt-2 font-serif text-[34px] leading-[1.15] md:text-[44px]" style={{ color: "var(--foreground)" }}>
-            Your <em>P4TTERN PR00F</em> workspace
+            Your <em>PatternProof</em> workspace
           </h1>
           <p className="mt-3 text-[15px] md:text-[16px]" style={{ color: "var(--muted-foreground)" }}>
             Organize evidence, track court dates, find patterns, and prepare summaries.
@@ -131,10 +131,10 @@ function Dashboard() {
             </Link>
             <Link
               to="/agent"
-              aria-label="Ask P4TTERN PR00F Agent"
+              aria-label="Ask PatternProof Agent"
               className="inline-flex items-center gap-2 rounded-full border border-[#5B7CC4]/40 bg-white/60 px-6 py-3 text-[15px] font-semibold text-[#5B7CC4] backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4] focus-visible:ring-offset-2"
             >
-              <Sparkles size={16} /> Ask P4TTERN PR00F Agent
+              <Sparkles size={16} /> Ask PatternProof Agent
             </Link>
           </div>
         </header>
@@ -162,7 +162,7 @@ function Dashboard() {
               Start with evidence.
             </div>
             <p className="mt-0.5 text-[13px]" style={{ color: "#2A1A10" }}>
-              P4TTERN PR00F will help organize it into timelines, patterns, court dates, and summaries.
+              PatternProof will help organize it into timelines, patterns, court dates, and summaries.
             </p>
           </div>
         </div>

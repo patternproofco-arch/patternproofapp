@@ -54,7 +54,7 @@ function Onboarding() {
       <div className="space-y-4">
         <StepCard icon={<Smartphone size={20} />} title="Is this device safe?">
           <p>
-            P4TTERN PR00F works best on a device <strong>only you</strong> use — a personal phone or
+            PatternProof works best on a device <strong>only you</strong> use — a personal phone or
             a private browser the other person can't open.
           </p>
           <p>
@@ -71,7 +71,7 @@ function Onboarding() {
             <div className="text-[14px]"><strong>National DV Hotline:</strong> 1-800-799-7233 · text START to 88788</div>
           </div>
           <p>
-            P4TTERN PR00F is <strong>not a crisis service</strong> and not a law firm. We help you
+            PatternProof is <strong>not a crisis service</strong> and not a law firm. We help you
             document patterns over time. If you need help right now, please reach a real person.
           </p>
         </StepCard>
@@ -101,9 +101,9 @@ function Onboarding() {
           <PinField value={pin} onChange={setPin} />
         </StepCard>
 
-        <StepCard icon={<ShieldCheck size={20} />} title="What P4TTERN PR00F is — and isn't">
+        <StepCard icon={<ShieldCheck size={20} />} title="What PatternProof is — and isn't">
           <p>
-            P4TTERN PR00F helps you <strong>document patterns</strong> so a court, attorney, or
+            PatternProof helps you <strong>document patterns</strong> so a court, attorney, or
             advocate can see what's actually happening over time.
           </p>
           <p>

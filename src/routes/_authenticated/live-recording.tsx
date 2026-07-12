@@ -120,7 +120,7 @@ function LiveRecording() {
       {!warned && (
         <div className="mt-4 rounded-2xl p-4" style={{ background: "var(--tint-purple)", border: "1px solid var(--border)" }}>
           <p className="text-[13px] leading-relaxed">
-            Recording-consent laws vary by state. In NJ you can record any conversation you're part of; other states may require consent. P4TTERN PR00F can't give legal advice — if you're unsure, ask an attorney. Your safety comes first.
+            Recording-consent laws vary by state. In NJ you can record any conversation you're part of; other states may require consent. PatternProof can't give legal advice — if you're unsure, ask an attorney. Your safety comes first.
           </p>
           <button onClick={() => setWarned(true)} className="mt-3 text-[13px] font-bold underline-offset-4 hover:underline" style={{ color: "var(--primary)" }}>
             Got it

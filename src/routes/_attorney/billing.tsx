@@ -53,7 +53,7 @@ function BillingPage() {
             </div>
             <div style={{ fontSize: 22, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>
               {sub.isActive
-                ? `P4TTERN PR00F ${currentTier === "firm" ? "Firm" : currentTier === "enterprise" ? "Enterprise" : currentTier === "solo" ? "Solo" : "Plan"}`
+                ? `PatternProof ${currentTier === "firm" ? "Firm" : currentTier === "enterprise" ? "Enterprise" : currentTier === "solo" ? "Solo" : "Plan"}`
                 : "Pick a plan to unlock case files"}
             </div>
             {sub.isActive && (

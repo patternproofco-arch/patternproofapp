@@ -54,7 +54,7 @@ export function FirstTimeEducationModal() {
         {/* Warm dark header */}
         <div className="px-8 py-8 md:px-10 md:py-10" style={{ background: HEADER_BG, color: WHITE }}>
           <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[3px]" style={{ color: "rgba(255,255,255,0.75)" }}>
-            <Scale size={14} /> Welcome to P4TTERN PR00F
+            <Scale size={14} /> Welcome to PatternProof
           </div>
           <h2 className="text-[26px] font-bold md:text-[30px]" style={{ letterSpacing: "-0.01em", color: WHITE }}>
             You're building a legal record. Here's how it works.

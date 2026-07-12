@@ -4,10 +4,10 @@ import { ArrowLeft } from "lucide-react";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — P4TTERN PR00F" },
-      { name: "description", content: "How P4TTERN PR00F collects, uses, stores, and protects your information. Privacy-by-design documentation platform for survivors of domestic violence and coercive control." },
-      { property: "og:title", content: "Privacy Policy — P4TTERN PR00F" },
-      { property: "og:description", content: "Privacy-by-design protections for survivors. Read how P4TTERN PR00F handles your documentation, AI processing, and data sharing." },
+      { title: "Privacy Policy — PatternProof" },
+      { name: "description", content: "How PatternProof collects, uses, stores, and protects your information. Privacy-by-design documentation platform for survivors of domestic violence and coercive control." },
+      { property: "og:title", content: "Privacy Policy — PatternProof" },
+      { property: "og:description", content: "Privacy-by-design protections for survivors. Read how PatternProof handles your documentation, AI processing, and data sharing." },
     ],
   }),
   component: PrivacyPage,
@@ -56,7 +56,7 @@ function PrivacyPage() {
 
         <header style={{ marginBottom: 36 }}>
           <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#7C5CC4", fontWeight: 700, marginBottom: 12 }}>
-            P4TTERN PR00F
+            PatternProof
           </div>
           <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.02em", margin: 0, color: "#1F1A2E" }}>
             Privacy Policy
@@ -68,7 +68,7 @@ function PrivacyPage() {
 
         <Prose>
           <p>
-            PatternProof, operating as P4TTERN PR00F ("P4TTERN PR00F," "we," "us," or "our"),
+            PatternProof, operating as PatternProof ("PatternProof," "we," "us," or "our"),
             is committed to protecting the privacy and safety of our users. This Privacy Policy
             explains how we collect, use, store, and protect your information when you use our
             platform and associated services (collectively, the "Services").
@@ -82,7 +82,7 @@ function PrivacyPage() {
 
           <H2>1. Who We Are</H2>
           <p>
-            P4TTERN PR00F is a documentation and pattern analysis platform built for survivors
+            PatternProof is a documentation and pattern analysis platform built for survivors
             of domestic violence, coercive control, and post-separation abuse, and the
             attorneys and advocates who support them.
           </p>
@@ -113,7 +113,7 @@ function PrivacyPage() {
           </ul>
           <H3>Information From Third-Party Integrations</H3>
           <p>
-            If you connect P4TTERN PR00F to a third-party service such as Clio (legal practice
+            If you connect PatternProof to a third-party service such as Clio (legal practice
             management software), we may receive information from that service as authorized
             by you. We only request access to the data necessary for the integration to function.
           </p>
@@ -136,7 +136,7 @@ function PrivacyPage() {
 
           <H2>4. AI Processing</H2>
           <p>
-            P4TTERN PR00F uses AI to analyze documentation and identify patterns. AI processing
+            PatternProof uses AI to analyze documentation and identify patterns. AI processing
             occurs in real time and is used only to generate outputs for you or your authorized
             attorney. Your documentation content is not stored by third-party AI providers for
             training purposes. We use API-based AI services that process data transiently and
@@ -229,7 +229,7 @@ function PrivacyPage() {
 
           <H2>9. Minimum Age Requirement</H2>
           <p>
-            P4TTERN PR00F is intended for adults aged 18 and older. The platform is a legal
+            PatternProof is intended for adults aged 18 and older. The platform is a legal
             documentation tool designed to support adult survivors navigating family court,
             custody, and domestic violence proceedings. We do not knowingly collect personal
             information from anyone under the age of 18. If we learn we have collected
@@ -256,7 +256,7 @@ function PrivacyPage() {
           <H2>12. Contact Us</H2>
           <p>
             Grace Burns, Founder<br />
-            P4TTERN PR00F<br />
+            PatternProof<br />
             gracieburns200@gmail.com<br />
             Philadelphia, PA, United States
           </p>

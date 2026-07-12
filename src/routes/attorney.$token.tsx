@@ -8,12 +8,12 @@ import { typeLabel } from "@/lib/abuse-types";
 export const Route = createFileRoute("/attorney/$token")({
   head: ({ params }) => ({
     meta: [
-      { title: "Shared case bundle — P4TTERN PR00F" },
-      { name: "description", content: "Read-only attorney access to a case bundle shared by a P4TTERN PR00F user." },
-      { property: "og:title", content: "Shared case bundle — P4TTERN PR00F" },
+      { title: "Shared case bundle — PatternProof" },
+      { name: "description", content: "Read-only attorney access to a case bundle shared by a PatternProof user." },
+      { property: "og:title", content: "Shared case bundle — PatternProof" },
       { property: "og:description", content: "Private, time-limited access to a survivor's case documentation." },
       { property: "og:url", content: `https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/attorney/${params.token}` },
-      { name: "twitter:title", content: "Shared case bundle — P4TTERN PR00F" },
+      { name: "twitter:title", content: "Shared case bundle — PatternProof" },
       { name: "twitter:description", content: "Private, time-limited access to a survivor's case documentation." },
       { name: "robots", content: "noindex, nofollow" },
     ],

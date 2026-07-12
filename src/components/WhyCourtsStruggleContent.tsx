@@ -92,7 +92,7 @@ export function WhyCourtsStruggleContent() {
       <Section
         num="03"
         icon={Sparkles}
-        title="What P4TTERN PR00F does differently"
+        title="What PatternProof does differently"
         accent="var(--safe)"
       >
         <ul className="ml-1 space-y-2">
@@ -145,7 +145,7 @@ export function WhyCourtsStruggleContent() {
             post-separation abuse, not only divorce mechanics.
           </Bullet>
           <Bullet>
-            <strong>Use P4TTERN PR00F's exported timelines as evidence exhibits</strong>{" "}
+            <strong>Use PatternProof's exported timelines as evidence exhibits</strong>{" "}
             — dated, sourced, and ready to attach.
           </Bullet>
         </ul>

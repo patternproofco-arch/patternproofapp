@@ -1,17 +1,17 @@
-# SECURITY.md — P4TTERN PR00F
+# SECURITY.md — PatternProof
 
 ## Overview
 
-P4TTERN PR00F handles sensitive documentation for survivors of domestic violence, coercive control, and post-separation abuse. Security is not a checkbox — it is a core requirement of this platform. This document defines our vulnerability management process, remediation timelines, and security practices.
+PatternProof handles sensitive documentation for survivors of domestic violence, coercive control, and post-separation abuse. Security is not a checkbox — it is a core requirement of this platform. This document defines our vulnerability management process, remediation timelines, and security practices.
 
 ---
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in P4TTERN PR00F, please report it responsibly.
+If you discover a security vulnerability in PatternProof, please report it responsibly.
 
 **Contact:** gracieburns200@gmail.com  
-**Subject line:** `[SECURITY] Vulnerability Report — P4TTERN PR00F`
+**Subject line:** `[SECURITY] Vulnerability Report — PatternProof`
 
 Please include:
 - Description of the vulnerability

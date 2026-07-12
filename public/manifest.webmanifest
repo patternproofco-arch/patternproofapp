@@ -1,6 +1,6 @@
 {
-  "name": "P4TTERN",
-  "short_name": "P4TTERN",
+  "name": "PatternProof",
+  "short_name": "PatternProof",
   "description": "Evidence documentation",
   "start_url": "/dashboard",
   "scope": "/",

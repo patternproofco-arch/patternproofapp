@@ -7,9 +7,9 @@ export const Route = createFileRoute("/for-attorneys")({
   head: () => ({
     links: [{ rel: "stylesheet", href: attorneyCss }],
     meta: [
-      { title: "For attorneys — P4TTERN PR00F" },
-      { name: "description", content: "Your clients are already documented before they walk in the door. P4TTERN PR00F for family-law attorneys handling DV and coercive control cases." },
-      { property: "og:title", content: "P4TTERN PR00F for Attorneys" },
+      { title: "For attorneys — PatternProof" },
+      { name: "description", content: "Your clients are already documented before they walk in the door. PatternProof for family-law attorneys handling DV and coercive control cases." },
+      { property: "og:title", content: "PatternProof for Attorneys" },
       { property: "og:description", content: "Your clients are already documented before they walk in the door." },
     ],
   }),
@@ -52,7 +52,7 @@ function ForAttorneys() {
             See the pattern before the hearing.
           </h1>
           <p style={{ fontSize: 17, color: "var(--att-text-2)", maxWidth: 640, margin: "0 auto" }}>
-            Your clients arrive already documented. P4TTERN PR00F gives you the timeline, evidence vault, pattern flags, and court-ready packet on day one of representation.
+            Your clients arrive already documented. PatternProof gives you the timeline, evidence vault, pattern flags, and court-ready packet on day one of representation.
           </p>
           <Link to="/lawyer-signup" className="att-btn-primary" style={{ marginTop: 28, display: "inline-flex" }}>
             Start with The Pilot <ArrowRight size={14} />
@@ -66,7 +66,7 @@ function ForAttorneys() {
         <div className="att-card" style={{ marginBottom: 56, background: "#FFFBEB", borderColor: "#FCD34D", maxWidth: 760, margin: "0 auto 56px" }}>
           <div className="att-eyebrow" style={{ color: "#92400E" }}>From Grace Burns, founder</div>
           <p style={{ marginTop: 10, fontSize: 16, lineHeight: 1.7, fontFamily: '"Instrument Serif", serif', fontStyle: "italic" }}>
-            "I documented everything. Nobody believed me anyway. I walked into that courtroom with folders of notes and screenshots and I still couldn't show the pattern. The judge couldn't see it. I built P4TTERN PR00F because the evidence was always there — I just needed something that could show it."
+            "I documented everything. Nobody believed me anyway. I walked into that courtroom with folders of notes and screenshots and I still couldn't show the pattern. The judge couldn't see it. I built PatternProof because the evidence was always there — I just needed something that could show it."
           </p>
         </div>
 
