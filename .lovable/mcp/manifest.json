@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://muynotmkcmehxnkhffzl.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "patternproof-mcp",
+      "version": "0.1.0",
+      "title": "PatternProof"
+    },
+    "tools": [
+      {
+        "name": "list_incidents",
+        "title": "List incidents",
+        "description": "List the signed-in survivor's documented incidents, most recent first. Returns date, description, location, abuse types, and severity.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "Maximum incidents to return (default 25).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "since": {
+              "description": "Optional ISO date (YYYY-MM-DD). Only incidents on or after this date.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_incident",
+        "title": "Log an incident",
+        "description": "Document a new incident in the signed-in survivor's private journal. Use this to help the user log what happened.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "description": "Date the incident occurred (YYYY-MM-DD)."
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "description": "What happened, in the survivor's words."
+            },
+            "time": {
+              "description": "Approximate time (HH:MM, 24h).",
+              "type": "string"
+            },
+            "location": {
+              "description": "Where it happened.",
+              "type": "string"
+            },
+            "abuse_types": {
+              "description": "Types of abuse (e.g. emotional, financial, coercive control).",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "severity_level": {
+              "description": "1 (mild) to 5 (severe).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "witnesses": {
+              "description": "Anyone who saw or heard it.",
+              "type": "string"
+            },
+            "emotional_impact": {
+              "description": "How it affected the survivor.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "date",
+            "description"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_evidence",
+        "title": "List evidence",
+        "description": "List evidence items in the signed-in survivor's private vault. Returns title, description, date, file type, and any linked incident.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "Maximum items to return (default 25).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "linked_incident_id": {
+              "description": "Only evidence linked to this incident.",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_case",
+        "title": "Search the case",
+        "description": "Search the signed-in survivor's incidents, evidence, and voice notes for a keyword or phrase.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Text to search for."
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
