@@ -34,9 +34,13 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [passkeyAvailable, setPasskeyAvailable] = useState(
-    typeof window !== "undefined" && typeof window.PublicKeyCredential !== "undefined",
-  );
+  const [passkeyAvailable, setPasskeyAvailable] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof window.PublicKeyCredential !== "undefined") {
+      setPasskeyAvailable(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!loading && user) {
