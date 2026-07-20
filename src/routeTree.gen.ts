@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
 import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
@@ -60,11 +61,15 @@ import { Route as AttorneySetupRouteImport } from './routes/_attorney/setup'
 import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
 import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -85,6 +90,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -333,6 +343,18 @@ const AttorneyBillingRoute = AttorneyBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAgentIndexRoute = AuthenticatedAgentIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -360,6 +382,17 @@ const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
   path: '/$clientId',
   getParentRoute: () => AttorneyClientsRoute,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -374,10 +407,13 @@ export interface FileRoutesByFullPath {
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/clients': typeof AttorneyClientsRouteWithChildren
@@ -417,6 +453,8 @@ export interface FileRoutesByFullPath {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -431,10 +469,13 @@ export interface FileRoutesByTo {
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/setup': typeof AttorneySetupRoute
@@ -472,6 +513,8 @@ export interface FileRoutesByTo {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -489,10 +532,13 @@ export interface FileRoutesById {
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_attorney/billing': typeof AttorneyBillingRoute
   '/_attorney/billing-return': typeof AttorneyBillingReturnRoute
   '/_attorney/clients': typeof AttorneyClientsRouteWithChildren
@@ -532,6 +578,8 @@ export interface FileRoutesById {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -548,10 +596,13 @@ export interface FileRouteTypes {
     | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
+    | '/mcp'
     | '/pricing'
     | '/privacy'
     | '/request-org-access'
     | '/sitemap.xml'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/billing'
     | '/billing-return'
     | '/clients'
@@ -591,6 +642,8 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/collaborator-invite/$token'
     | '/survivor-invite/$token'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
@@ -605,10 +658,13 @@ export interface FileRouteTypes {
     | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
+    | '/mcp'
     | '/pricing'
     | '/privacy'
     | '/request-org-access'
     | '/sitemap.xml'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/billing'
     | '/billing-return'
     | '/setup'
@@ -646,6 +702,8 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/collaborator-invite/$token'
     | '/survivor-invite/$token'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
@@ -662,10 +720,13 @@ export interface FileRouteTypes {
     | '/for-organizations'
     | '/lawyer-signup'
     | '/login'
+    | '/mcp'
     | '/pricing'
     | '/privacy'
     | '/request-org-access'
     | '/sitemap.xml'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/_attorney/billing'
     | '/_attorney/billing-return'
     | '/_attorney/clients'
@@ -705,6 +766,8 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/collaborator-invite/$token'
     | '/survivor-invite/$token'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/_attorney/clients/$clientId'
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
@@ -722,15 +785,20 @@ export interface RootRouteChildren {
   ForOrganizationsRoute: typeof ForOrganizationsRoute
   LawyerSignupRoute: typeof LawyerSignupRoute
   LoginRoute: typeof LoginRoute
+  McpRoute: typeof McpRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
   ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   IntegrationsClioCallbackRoute: typeof IntegrationsClioCallbackRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -763,6 +831,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1094,6 +1169,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyBillingRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/agent/': {
       id: '/_authenticated/agent/'
       path: '/'
@@ -1128,6 +1217,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/clients/$clientId'
       preLoaderRoute: typeof AttorneyClientsClientIdRouteImport
       parentRoute: typeof AttorneyClientsRoute
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -1263,15 +1366,21 @@ const rootRouteChildren: RootRouteChildren = {
   ForOrganizationsRoute: ForOrganizationsRoute,
   LawyerSignupRoute: LawyerSignupRoute,
   LoginRoute: LoginRoute,
+  McpRoute: McpRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   RequestOrgAccessRoute: RequestOrgAccessRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,
   ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   IntegrationsClioCallbackRoute: IntegrationsClioCallbackRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
