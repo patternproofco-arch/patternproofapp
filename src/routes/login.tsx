@@ -10,6 +10,9 @@ import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    redirect: typeof s.redirect === "string" ? s.redirect : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — PatternProof" },
@@ -29,6 +32,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { redirect: redirectTo } = Route.useSearch();
   const fetchRole = useServerFn(getMyRole);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
@@ -44,11 +48,15 @@ function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
+      if (redirectTo && redirectTo.startsWith("/")) {
+        navigate({ to: redirectTo, replace: true });
+        return;
+      }
       fetchRole()
         .then((r) => navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true }))
         .catch(() => navigate({ to: "/dashboard", replace: true }));
     }
-  }, [user, loading, navigate, fetchRole]);
+  }, [user, loading, navigate, fetchRole, redirectTo]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,13 +66,26 @@ function LoginPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo:
+              redirectTo && redirectTo.startsWith("/")
+                ? window.location.origin + redirectTo
+                : window.location.origin,
+          },
         });
         if (error) throw error;
-        navigate({ to: "/dashboard", replace: true });
+        if (redirectTo && redirectTo.startsWith("/")) {
+          navigate({ to: redirectTo, replace: true });
+        } else {
+          navigate({ to: "/dashboard", replace: true });
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (redirectTo && redirectTo.startsWith("/")) {
+          navigate({ to: redirectTo, replace: true });
+          return;
+        }
         const r = await fetchRole().catch(() => ({ role: "survivor" as const }));
         navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true });
       }
@@ -78,8 +99,12 @@ function LoginPage() {
 
   const signInWithGoogle = async () => {
     try {
+      const returnTo =
+        redirectTo && redirectTo.startsWith("/")
+          ? window.location.origin + redirectTo
+          : window.location.origin;
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: returnTo,
       });
       if (result.error) {
         const msg = result.error instanceof Error ? result.error.message : "Try again in a moment.";
