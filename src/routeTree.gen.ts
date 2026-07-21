@@ -22,6 +22,7 @@ import { Route as ForOrganizationsRouteImport } from './routes/for-organizations
 import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
 import { Route as EvidenceIntegrityRouteImport } from './routes/evidence-integrity'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as AiTransparencyRouteImport } from './routes/ai-transparency'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as IndexRouteImport } from './routes/index'
@@ -139,6 +140,11 @@ const EvidenceIntegrityRoute = EvidenceIntegrityRouteImport.update({
 const DemoRoute = DemoRouteImport.update({
   id: '/demo',
   path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiTransparencyRoute = AiTransparencyRouteImport.update({
+  id: '/ai-transparency',
+  path: '/ai-transparency',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -427,6 +433,7 @@ const ApiPublicPaymentsWebhookRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-transparency': typeof AiTransparencyRoute
   '/demo': typeof DemoRoute
   '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
@@ -493,6 +500,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-transparency': typeof AiTransparencyRoute
   '/demo': typeof DemoRoute
   '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
@@ -560,6 +568,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_attorney': typeof AttorneyRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/ai-transparency': typeof AiTransparencyRoute
   '/demo': typeof DemoRoute
   '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
@@ -628,6 +637,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ai-transparency'
     | '/demo'
     | '/evidence-integrity'
     | '/for-attorneys'
@@ -694,6 +704,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ai-transparency'
     | '/demo'
     | '/evidence-integrity'
     | '/for-attorneys'
@@ -760,6 +771,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_attorney'
     | '/_authenticated'
+    | '/ai-transparency'
     | '/demo'
     | '/evidence-integrity'
     | '/for-attorneys'
@@ -829,6 +841,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AttorneyRoute: typeof AttorneyRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AiTransparencyRoute: typeof AiTransparencyRoute
   DemoRoute: typeof DemoRoute
   EvidenceIntegrityRoute: typeof EvidenceIntegrityRoute
   ForAttorneysRoute: typeof ForAttorneysRoute
@@ -947,6 +960,13 @@ declare module '@tanstack/react-router' {
       path: '/demo'
       fullPath: '/demo'
       preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-transparency': {
+      id: '/ai-transparency'
+      path: '/ai-transparency'
+      fullPath: '/ai-transparency'
+      preLoaderRoute: typeof AiTransparencyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -1442,6 +1462,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AttorneyRoute: AttorneyRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AiTransparencyRoute: AiTransparencyRoute,
   DemoRoute: DemoRoute,
   EvidenceIntegrityRoute: EvidenceIntegrityRoute,
   ForAttorneysRoute: ForAttorneysRoute,
