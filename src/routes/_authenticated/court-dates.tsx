@@ -12,6 +12,7 @@ import {
   deleteCourtDate,
 } from "@/lib/court-dates.functions";
 import { syncCourtDateToGoogle } from "@/lib/google-calendar.functions";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/court-dates")({
   component: CourtDatesPage,
