@@ -62,7 +62,7 @@ function ClientsLayout() {
                     {locked ? <Lock size={11} style={{ opacity: 0.8 }} /> : free && !sub.isActive ? <span style={{ fontSize: 10, opacity: 0.8 }}>FREE</span> : null}
                   </div>
                   <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>
-                    {c.incident_count} incidents · {c.risk_level}
+                    {c.incident_count} incidents · {c.documentation_density} density
                   </div>
                 </Link>
               </li>
