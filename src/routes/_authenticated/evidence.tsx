@@ -476,6 +476,15 @@ function EvidencePage() {
         cta="Go to journal"
         to="/journal"
       />
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Remove this evidence?"
+        body="It will be hidden from your library right away. You'll see an Undo option for a few seconds after. The file stays in secure storage until a later cleanup step."
+        confirmLabel="Remove"
+        cancelLabel="Keep"
+        onConfirm={doRemove}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 }

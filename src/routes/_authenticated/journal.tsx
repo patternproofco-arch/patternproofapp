@@ -92,9 +92,12 @@ function JournalPage() {
       witnesses: sanitizeLine(form.witnesses) || null,
       emotional_impact: form.emotional_impact || null,
     };
+    const insertPayload = aiFilled
+      ? { ...payload, source: "ai_extracted" as const, confirmed_at: null }
+      : { ...payload, source: "survivor" as const, confirmed_at: new Date().toISOString() };
     const { error } = editingId
       ? await supabase.from("incidents").update(payload).eq("id", editingId).eq("user_id", user.id)
-      : await supabase.from("incidents").insert(payload);
+      : await supabase.from("incidents").insert(insertPayload);
     setBusy(false);
     if (error) { toast("We couldn't save that. Try again in a moment."); return; }
     toast("Saved. Your record is safe.");
