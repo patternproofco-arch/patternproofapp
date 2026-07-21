@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Sparkles, RefreshCw, AlertCircle, Printer, ShieldAlert, CalendarClock, Square } from "lucide-react";
+import { Sparkles, RefreshCw, AlertCircle, Printer, Square } from "lucide-react";
 import { analyzePatterns, getLatestPatternAnalysis, type PatternAnalysisResult } from "@/lib/pattern-analysis.functions";
 
 function confidenceColor(level?: string) {
@@ -215,26 +215,6 @@ function PatternsPage() {
             </div>
           )}
 
-          {/* 6. 30-Day Forecast */}
-          {analysis.forecast_30_day && (
-            <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#FBEFD3", border: "1px solid #E2C381" }}>
-              <div className="flex items-center gap-2">
-                <CalendarClock size={18} style={{ color: "#7A5A1B" }} />
-                <div className="label-eyebrow" style={{ color: "#7A5A1B" }}>30-day pattern forecast</div>
-              </div>
-              <div className="mt-3 font-serif text-[22px]" style={{ color: "#3F2E0E" }}>
-                {analysis.forecast_30_day.window_start} <span style={{ color: "#7A5A1B" }}>→</span> {analysis.forecast_30_day.window_end}
-              </div>
-              <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "#3F2E0E" }}>{analysis.forecast_30_day.summary}</p>
-              {analysis.forecast_30_day.rationale && (
-                <p className="mt-2 text-[13px] italic" style={{ color: "#7A5A1B" }}>{analysis.forecast_30_day.rationale}</p>
-              )}
-              <p className="mt-3 text-[12px]" style={{ color: "#7A5A1B" }}>
-                This is not a guarantee. This is a risk-pattern projection based on past documented behavior.
-              </p>
-            </div>
-          )}
-
           <div className="card-pp" style={{ borderLeft: "3px solid var(--primary)" }}>
             <div className="label-eyebrow">Escalation arc · {analysis.severity_trajectory}</div>
             <p className="mt-2 text-[14px] leading-relaxed">{analysis.escalation_arc}</p>
@@ -292,16 +272,6 @@ function PatternsPage() {
               <div className="label-eyebrow">Next documentation steps</div>
               <ul className="mt-3 space-y-2 text-[14px]">
                 {analysis.suggested_followups.map((s, i) => <li key={i}>· {s}</li>)}
-              </ul>
-            </div>
-          )}
-
-          {/* 8. Risk Indicators */}
-          {analysis.risk_indicators && analysis.risk_indicators.length > 0 && (
-            <div className="card-pp lg:col-span-2" style={{ borderLeft: "3px solid var(--primary)" }}>
-              <div className="flex items-center gap-2"><ShieldAlert size={16} style={{ color: "var(--primary)" }} /><div className="label-eyebrow">Risk indicators to watch next</div></div>
-              <ul className="mt-3 space-y-2 text-[14px]">
-                {analysis.risk_indicators.map((r, i) => <li key={i}>· {r}</li>)}
               </ul>
             </div>
           )}
