@@ -318,9 +318,9 @@ export const listMyClients = createServerFn({ method: "GET" })
         const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
         const scopedEvidenceIds = (l.scope_evidence ?? []) as string[];
         const incidentsQ = l.include_all_incidents
-          ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).is("deleted_at", null)
+          ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null")
           : scopedIncidentIds.length
-            ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null)
+            ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null")
             : Promise.resolve({ data: [], count: 0 });
         const evidenceQ = l.include_all_evidence
           ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id).is("deleted_at", null)
@@ -397,9 +397,9 @@ export const getClientCase = createServerFn({ method: "POST" })
 
     const [incQ, evQ, patQ, escQ, voiceQ, comsQ, legalQ, caseQ] = await Promise.all([
       link.include_all_incidents
-        ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).order("date", { ascending: true })
+        ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
         : scopedIncidentIds.length
-          ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopedIncidentIds).is("deleted_at", null).order("date", { ascending: true })
+          ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopedIncidentIds).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
           : Promise.resolve({ data: [] }),
       link.include_all_evidence
         ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).is("deleted_at", null).order("date", { ascending: true })
@@ -579,9 +579,9 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
 
     const [{ data: incidents }, { data: evidence }, { data: pattern }] = await Promise.all([
       link.include_all_incidents
-        ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at").eq("user_id", data.clientId).is("deleted_at", null).order("date")
+        ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at").eq("user_id", data.clientId).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date")
         : (link.scope_incidents ?? []).length
-          ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at").eq("user_id", data.clientId).in("id", link.scope_incidents ?? []).is("deleted_at", null).order("date")
+          ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at").eq("user_id", data.clientId).in("id", link.scope_incidents ?? []).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date")
           : Promise.resolve({ data: [] }),
       link.include_all_evidence
         ? supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId).is("deleted_at", null)
@@ -899,15 +899,14 @@ export const getCaseNote = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
+    const { link } = await assertCaseAccess(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: link } = await supabaseAdmin
+    const { data: row } = await supabaseAdmin
       .from("attorney_client_links")
       .select("attorney_case_notes")
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .eq("status", "active")
+      .eq("id", link.id)
       .maybeSingle();
-    return { note: (link as { attorney_case_notes: string | null } | null)?.attorney_case_notes ?? "" };
+    return { note: (row as { attorney_case_notes: string | null } | null)?.attorney_case_notes ?? "" };
   });
 
 export const saveCaseNote = createServerFn({ method: "POST" })
@@ -920,13 +919,12 @@ export const saveCaseNote = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
+    const { link } = await assertCaseAccess(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("attorney_client_links")
       .update({ attorney_case_notes: data.note })
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .eq("status", "active");
+      .eq("id", link.id);
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
