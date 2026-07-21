@@ -89,7 +89,9 @@ export const generateExportZip = createServerFn({ method: "POST" })
     lines.push("## Chronology", "");
     type ChronEntry = { date: string; kind: string; text: string };
     const chrono: ChronEntry[] = [
-      ...incidents.map((i) => ({ date: i.date, kind: "Incident", text: `[${(i.abuse_types ?? []).join(", ")}]${i.location ? ` at ${i.location}` : ""} — ${i.description}` })),
+      ...incidents
+        .filter((i): i is typeof i & { date: string } => !!i.date)
+        .map((i) => ({ date: i.date, kind: "Incident", text: `[${(i.abuse_types ?? []).join(", ")}]${i.location ? ` at ${i.location}` : ""} — ${i.description}` })),
       ...comms.filter((c) => c.harassment_flag).map((c) => ({ date: c.date, kind: `Communication (${c.channel})`, text: `${c.direction}${c.from_party ? ` from ${c.from_party}` : ""}: ${c.content ?? ""}` })),
       ...evidence.map((e) => ({ date: e.date, kind: `Evidence (${e.file_type})`, text: `${e.title}${e.description ? ` — ${e.description}` : ""}` })),
     ].sort((a, b) => a.date.localeCompare(b.date));

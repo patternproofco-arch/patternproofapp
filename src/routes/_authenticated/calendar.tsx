@@ -21,7 +21,7 @@ function CalendarPage() {
         .select("date,severity_level,has_escalation_flag")
         .eq("user_id", user.id)
         .is("deleted_at", null);
-      setIncidents(data ?? []);
+      setIncidents((data ?? []).filter((r): r is { date: string; severity_level: number | null; has_escalation_flag: boolean } => !!r.date));
     })();
   }, [user]);
 

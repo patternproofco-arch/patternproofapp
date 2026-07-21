@@ -3,14 +3,20 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
+import { formatIncidentDate } from "@/lib/dates";
 import { FileText } from "lucide-react";
 import { CognitiveClose } from "@/components/CognitiveClose";
 
 interface Item {
   id: string;
-  date: string;
+  date: string | null;
   description: string;
   abuse_types: string[];
+  date_precision?: string | null;
+  date_range_start?: string | null;
+  date_range_end?: string | null;
+  anchor_incident_id?: string | null;
+  anchor_label?: string | null;
 }
 interface EvItem { id: string; title: string; file_type: string; file_url: string; linked_incident_id: string | null }
 interface LegalItem {
@@ -56,10 +62,10 @@ function TimelinePage() {
     (async () => {
       const { data } = await supabase
         .from("incidents")
-        .select("id,date,description,abuse_types")
+        .select("id,date,description,abuse_types,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label")
         .eq("user_id", user.id)
         .is("deleted_at", null)
-        .order("date", { ascending: false });
+        .order("date", { ascending: false, nullsFirst: false });
       setItems((data as Item[] | null) ?? []);
       const { data: ev } = await supabase
         .from("evidence")
@@ -93,10 +99,10 @@ function TimelinePage() {
   const filtered = useMemo<Row[]>(() => {
     const inc: Row[] = items.filter((i) => {
       if (types.length && !i.abuse_types.some((t) => types.includes(t))) return false;
-      if (from && i.date < from) return false;
-      if (to && i.date > to) return false;
+      if (from && (i.date ?? "") < from) return false;
+      if (to && (i.date ?? "9999") > to) return false;
       return true;
-    }).map((i) => ({ kind: "incident", date: i.date, item: i } as Row));
+    }).map((i) => ({ kind: "incident", date: i.date ?? "", item: i } as Row));
     const leg: Row[] = showLegal
       ? legal
           .map((l) => ({ ...l, _date: l.effective_date || l.incident_date || "" }))
@@ -187,6 +193,8 @@ function TimelinePage() {
                 );
               }
               const i = row.item;
+              // Build anchor lookup so "Before/After [linked incident]" can render.
+              const anchor = i.anchor_incident_id ? items.find((x) => x.id === i.anchor_incident_id) : null;
               const open = expanded[i.id];
               const primary = i.abuse_types[0] ?? "other";
               const long = i.description.length > 160;
@@ -195,7 +203,7 @@ function TimelinePage() {
                   <span className="absolute -left-[26px] top-3 h-3.5 w-3.5 rounded-full ring-4" style={{ background: typeColor(primary), boxShadow: "0 0 0 4px var(--background)" }} />
                   <div className="card-pp" style={{ borderLeft: `3px solid ${typeColor(primary)}` }}>
                     <div className="font-serif italic text-[16px]">
-                      {new Date(i.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
+                      {formatIncidentDate({ ...i, anchor_incident: anchor ? { date: anchor.date, description: anchor.description } : null })}
                     </div>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {i.abuse_types.map((t) => (

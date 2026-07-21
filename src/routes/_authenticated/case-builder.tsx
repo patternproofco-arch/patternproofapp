@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
+import { formatIncidentDate } from "@/lib/dates";
 
 export const Route = createFileRoute("/_authenticated/case-builder")({
   component: CaseBuilder,
@@ -12,7 +13,17 @@ export const Route = createFileRoute("/_authenticated/case-builder")({
 const RELATIONSHIPS = ["Ex-partner", "Co-parent", "Current partner", "Family member", "Other"];
 const CASE_TYPES = ["Domestic Violence", "Custody", "Divorce", "Protective Order", "Other"];
 
-interface IncRow { id: string; date: string; description: string; abuse_types: string[] }
+interface IncRow {
+  id: string;
+  date: string | null;
+  description: string;
+  abuse_types: string[];
+  date_precision?: string | null;
+  date_range_start?: string | null;
+  date_range_end?: string | null;
+  anchor_incident_id?: string | null;
+  anchor_label?: string | null;
+}
 interface EvRow { id: string; title: string; date: string; file_type: string }
 interface LegalRow { id: string; document_type: string; title: string; effective_date: string | null; case_number: string | null }
 interface CaseRow {
@@ -48,7 +59,7 @@ function CaseBuilder() {
     if (!user) return;
     const [c, inc, ev, ld] = await Promise.all([
       supabase.from("cases").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1),
-      supabase.from("incidents").select("id,date,description,abuse_types").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }),
+     supabase.from("incidents").select("id,date,description,abuse_types,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false, nullsFirst: false }),
       supabase.from("evidence").select("id,title,date,file_type").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("legal_documents").select("id,document_type,title,effective_date,case_number").eq("user_id", user.id).order("created_at", { ascending: false }),
     ]);
@@ -204,7 +215,7 @@ function CaseBuilder() {
                     <input type="checkbox" checked={on} disabled={disabled}
                       onChange={() => toggle(highlighted, i.id, setHighlighted)} className="mt-1" />
                     <div className="min-w-0 flex-1">
-                      <div className="label-eyebrow">{i.date} · {i.abuse_types.map(typeLabel).join(", ")}</div>
+                      <div className="label-eyebrow">{formatIncidentDate(i)} · {i.abuse_types.map(typeLabel).join(", ")}</div>
                       <div className="mt-1 line-clamp-2 text-[13px]">{i.description}</div>
                     </div>
                   </label>

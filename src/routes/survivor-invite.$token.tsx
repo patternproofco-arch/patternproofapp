@@ -70,7 +70,7 @@ function SurvivorInvitePage() {
       supabase.from("evidence").select("id,title,date,file_type").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
     ])
       .then(([inc, ev]) => {
-        const incidents = inc.data ?? [];
+        const incidents = (inc.data ?? []).filter((r): r is typeof r & { date: string } => !!r.date);
         const evidence = ev.data ?? [];
         setIncidentOptions(incidents);
         setEvidenceOptions(evidence);
