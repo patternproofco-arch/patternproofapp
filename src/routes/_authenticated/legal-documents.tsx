@@ -126,7 +126,7 @@ function LegalDocumentsPage() {
     if (!user) return;
     const [d, i] = await Promise.all([
       supabase.from("legal_documents").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("incidents").select("id,date,description").eq("user_id", user.id).order("date", { ascending: false }),
+      supabase.from("incidents").select("id,date,description").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }),
     ]);
     setDocs((d.data as LegalDoc[] | null) ?? []);
     setIncidents((i.data as Incident[] | null) ?? []);

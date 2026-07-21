@@ -49,8 +49,8 @@ function AttorneyPortal() {
     if (!user || !name.trim() || !email.trim()) { toast("Add a name and email first."); return; }
     setBusy(true);
     const [{ data: incs }, { data: evs }] = await Promise.all([
-      supabase.from("incidents").select("id").eq("user_id", user.id),
-      supabase.from("evidence").select("id").eq("user_id", user.id),
+      supabase.from("incidents").select("id").eq("user_id", user.id).is("deleted_at", null),
+      supabase.from("evidence").select("id").eq("user_id", user.id).is("deleted_at", null),
     ]);
     const expires = expiresDays > 0
       ? new Date(Date.now() + expiresDays * 86400000).toISOString()

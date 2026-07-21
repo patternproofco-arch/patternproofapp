@@ -66,8 +66,8 @@ function SurvivorInvitePage() {
     if (!user || step !== "scope" || scopeItemsLoaded || scopeItemsLoading) return;
     setScopeItemsLoading(true);
     Promise.all([
-      supabase.from("incidents").select("id,date,description,abuse_types").eq("user_id", user.id).order("date", { ascending: false }),
-      supabase.from("evidence").select("id,title,date,file_type").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("incidents").select("id,date,description,abuse_types").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }),
+      supabase.from("evidence").select("id,title,date,file_type").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
     ])
       .then(([inc, ev]) => {
         const incidents = inc.data ?? [];
