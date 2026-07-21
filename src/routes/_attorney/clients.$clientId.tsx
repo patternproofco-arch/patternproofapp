@@ -28,6 +28,7 @@ import {
 } from "@/lib/firm-grants.functions";
 import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateClioPackage } from "@/lib/payments.functions";
 import { typeLabel } from "@/lib/abuse-types";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
