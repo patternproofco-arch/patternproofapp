@@ -212,6 +212,7 @@ function RecCard({ r, onChanged }: { r: Rec; onChanged: () => void }) {
           {r.transcript}
         </div>
       )}
+      {dialog}
     </div>
   );
 }
