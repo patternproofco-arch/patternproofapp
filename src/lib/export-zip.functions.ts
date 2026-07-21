@@ -162,24 +162,31 @@ export const generateExportZip = createServerFn({ method: "POST" })
       file_hashes: fileHashes,
       hash_of_hashes: hashOfHashes,
       generator: "PatternProof Export v1",
-      integrity_note: "Each file in evidence/ and voice-notes/ has a SHA-256 hash listed above. Re-hash any file with `shasum -a 256 <file>` to verify it has not been altered since export.",
+      integrity_note: "Each file in evidence/ and voice-notes/ has a SHA-256 hash listed above. Re-hash any file with `shasum -a 256 <file>` to verify the stored bytes match the preserved version. A hash does not prove truth, authorship, creation date, or admissibility.",
+      disclaimer: "PatternProof helps organize and preserve documentation for professional review. It does not determine admissibility, make legal findings, or replace professional judgment.",
     }, null, 2));
 
-    // Chain-of-custody certificate (Markdown — renders cleanly in any viewer)
+    // Provenance & integrity report (Markdown — renders cleanly in any viewer)
     const coc: string[] = [
-      "# Chain of Custody Certificate",
+      "# Provenance & Integrity Report",
       "",
       `**Export generated:** ${exportedAt}`,
       `**Custodian (account holder ID):** ${userId}`,
       `**Generator:** PatternProof Export v1`,
       `**Root hash (SHA-256 of all file hashes):** \`${hashOfHashes}\``,
       "",
-      "This certificate attests that the files listed below were exported from the",
-      "custodian's PatternProof account at the timestamp above. Each file's SHA-256",
-      "fingerprint is recorded. To verify integrity, re-compute the SHA-256 of any",
-      "file in this archive (e.g. `shasum -a 256 <file>`) and confirm it matches the",
-      "value recorded here and in `manifest.json`. Run `bash verify.sh` from the",
-      "archive root to verify every file at once.",
+      "This report lists the files exported from the account holder's PatternProof",
+      "account at the timestamp above and their SHA-256 fingerprints. Re-compute the",
+      "SHA-256 of any file in this archive (e.g. `shasum -a 256 <file>`) and confirm",
+      "it matches the value recorded here and in `manifest.json`. Run `bash verify.sh`",
+      "from the archive root to verify every file at once.",
+      "",
+      "A SHA-256 hash proves that the stored bytes match the preserved version. It",
+      "does not prove truth, authorship, creation date, or admissibility.",
+      "",
+      "**PatternProof helps organize and preserve documentation for professional",
+      "review. It does not determine admissibility, make legal findings, or replace",
+      "professional judgment.**",
       "",
       "## Evidence files",
       "",
@@ -205,10 +212,12 @@ export const generateExportZip = createServerFn({ method: "POST" })
       `- Voice notes: ${voiceNotes.length}`,
       `- Legal documents: ${legalDocs.length}`,
       "",
-      "_End of certificate._",
+      "_End of report._",
       "",
     ];
-    zip.file("chain-of-custody.md", coc.join("\n"));
+    zip.file("provenance-and-integrity.md", coc.join("\n"));
+    // Back-compat alias so older docs / attorneys expecting the previous filename still find it.
+    zip.file("chain-of-custody.md", "This file has been renamed to provenance-and-integrity.md. See that file for the same content and clearer language about what a SHA-256 hash does and does not prove.\n");
 
     // Verification helper — re-hashes every file and diffs against manifest.json
     const verifySh = `#!/usr/bin/env bash
@@ -239,7 +248,7 @@ echo "Done."
     const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE", compressionOptions: { level: 6 } });
 
     const ts = exportedAt.replace(/[:.]/g, "-");
-    const objectPath = `${userId}/patternproof-export-${ts}.zip`;
+    const objectPath = `${userId}/patternproof-professional-review-${ts}.zip`;
     const up = await supabase.storage.from("exports").upload(objectPath, zipBuf, {
       contentType: "application/zip",
       upsert: false,
@@ -253,7 +262,7 @@ echo "Done."
       ok: true as const,
       url: signed.data.signedUrl,
       bytes: zipBuf.byteLength,
-      filename: `patternproof-export-${ts}.zip`,
+      filename: `patternproof-professional-review-${ts}.zip`,
       counts: {
         incidents: incidents.length,
         evidence: evidence.length,
