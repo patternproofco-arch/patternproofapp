@@ -11,7 +11,6 @@ type To =
   | "/court-packet"
   | "/communications"
   | "/calendar"
-  | "/escalation-detector"
   | "/share-with-attorney"
   | "/court-ready"
   | "/resources";
