@@ -31,13 +31,6 @@ export interface PatternAnalysisResult {
   escalation_before?: string;
   escalation_during?: string;
   escalation_after?: string;
-  forecast_30_day?: {
-    summary: string;
-    window_start: string;
-    window_end: string;
-    rationale: string;
-  };
-  risk_indicators?: string[];
   what_to_document_next?: string[];
   attorney_summary?: string;
   generated_at: string;
@@ -89,21 +82,10 @@ const TOOL_SCHEMA = {
     escalation_before: { type: "string" },
     escalation_during: { type: "string" },
     escalation_after: { type: "string" },
-    forecast_30_day: {
-      type: "object",
-      properties: {
-        summary: { type: "string" },
-        window_start: { type: "string", description: "ISO date (YYYY-MM-DD)." },
-        window_end: { type: "string", description: "ISO date (YYYY-MM-DD)." },
-        rationale: { type: "string" },
-      },
-      required: ["summary", "window_start", "window_end", "rationale"],
-    },
-    risk_indicators: { type: "array", items: { type: "string" } },
     what_to_document_next: { type: "array", items: { type: "string" } },
     attorney_summary: { type: "string", description: "Professional, neutral, evidence-based restatement suitable for legal review. Reference specific dates and frequencies. Do not editorialize." },
   },
-  required: ["pattern_summary", "escalation_arc", "frequency_trends", "abuse_type_breakdown", "severity_trajectory", "gaps", "suggested_followups", "abuser_tactics", "main_pattern_label", "confidence_level", "secondary_patterns", "what_pattern_may_show", "evidence_list", "pattern_timeline_text", "common_triggers", "escalation_before", "escalation_during", "escalation_after", "forecast_30_day", "risk_indicators", "what_to_document_next", "attorney_summary"],
+  required: ["pattern_summary", "escalation_arc", "frequency_trends", "abuse_type_breakdown", "severity_trajectory", "gaps", "suggested_followups", "abuser_tactics", "main_pattern_label", "confidence_level", "secondary_patterns", "what_pattern_may_show", "evidence_list", "pattern_timeline_text", "common_triggers", "escalation_before", "escalation_during", "escalation_after", "what_to_document_next", "attorney_summary"],
   additionalProperties: false,
 };
 
@@ -165,7 +147,7 @@ export const analyzePatterns = createServerFn({ method: "POST" })
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: "You are a pattern analyst for a domestic-abuse documentation app. You read the survivor's own records and identify trends, escalation, gaps in documentation, and useful next steps. You are NOT a lawyer, therapist, or diagnostician. You never label the other party, never diagnose, never rate the legal strength of the case. You speak in the survivor's voice — calm, factual, plain language. You always call the survivor 'you' or 'the user'. Always return your analysis via the record_pattern_analysis tool.\n\nIn addition to your existing analysis, you must now also generate:\n- main_pattern_label: a short label for the primary detected pattern (e.g. 'Escalation After Boundary-Setting', 'Custody Exchange Conflict Cycle', 'Post-Silence Explosive Contact').\n- confidence_level: 'Low' if fewer than 5 corroborating incidents, 'Moderate' if 5-10, 'Strong' if 10+.\n- secondary_patterns: any additional cycles you detect beyond the main one.\n- what_pattern_may_show: 2-3 sentences in calm, plain language explaining what this behavioral pattern may indicate. Do NOT diagnose. Do NOT use the words narcissist, sociopath, or abuser unless those words appear in the survivor's own notes. Focus on behavior, timing, and impact only.\n- evidence_list: a structured list of the most significant supporting incidents with date, description, and category.\n- pattern_timeline_text: a simple left-to-right text representation of the repeating cycle using arrows.\n- common_triggers: list of what typically precedes escalation.\n- escalation_before / escalation_during / escalation_after: describe the three phases.\n- forecast_30_day: based on the detected interval between past escalations, calculate window_start and window_end as ISO dates from today (" + new Date().toISOString().slice(0,10) + "). Write a summary paragraph using language like 'Based on the documented pattern so far… the next likely escalation window may occur between [date] and [date]. This is not a guarantee, but a risk-pattern projection based on past behavior.'\n- risk_indicators: specific behaviors the survivor should watch for and document next.\n- what_to_document_next: a checklist of evidence types to capture going forward.\n- attorney_summary: restate the full pattern in professional, neutral, evidence-based language suitable for legal review. Reference specific dates and frequencies. Use language like 'The documented evidence suggests a recurring escalation cycle...' Do not editorialize.\n\nLanguage rules: Never use the words narcissist, sociopath, or abuser unless the survivor wrote them. Never state predictions as certainties. Always hedge with 'may', 'based on documented evidence', 'if this pattern continues'. Survivor-facing sections: warm, calm, validating. Attorney sections: neutral, professional, evidence-based." },
+          { role: "system", content: "You are a pattern analyst for a domestic-abuse documentation app. You read the survivor's own records and identify trends, escalation, gaps in documentation, and useful next steps. You are NOT a lawyer, therapist, or diagnostician. You never label the other party, never diagnose, never rate the legal strength of the case. You never predict or forecast future incidents. You describe what the documented record shows, not what may happen next. You speak in the survivor's voice — calm, factual, plain language. You always call the survivor 'you' or 'the user'. Always return your analysis via the record_pattern_analysis tool.\n\nIn addition to your existing analysis, you must now also generate:\n- main_pattern_label: a short label for the primary detected pattern (e.g. 'Escalation After Boundary-Setting', 'Custody Exchange Conflict Cycle', 'Post-Silence Explosive Contact').\n- confidence_level: 'Low' if fewer than 5 corroborating incidents, 'Moderate' if 5-10, 'Strong' if 10+.\n- secondary_patterns: any additional cycles you detect beyond the main one.\n- what_pattern_may_show: 2-3 sentences in calm, plain language explaining what this behavioral pattern may indicate. Do NOT diagnose. Do NOT use the words narcissist, sociopath, or abuser unless those words appear in the survivor's own notes. Focus on behavior, timing, and impact only.\n- evidence_list: a structured list of the most significant supporting incidents with date, description, and category.\n- pattern_timeline_text: a simple left-to-right text representation of the repeating cycle using arrows.\n- common_triggers: list of what typically precedes escalation in the documented record.\n- escalation_before / escalation_during / escalation_after: describe the three phases as they appear in the record.\n- what_to_document_next: a checklist of evidence types to capture going forward. This is descriptive guidance about documentation gaps, not a prediction of future behavior.\n- attorney_summary: restate the full pattern in professional, neutral, evidence-based language suitable for legal review. Reference specific dates and frequencies. Use language like 'The documented evidence suggests a recurring escalation cycle...' Do not editorialize.\n\nLanguage rules: Never use the words narcissist, sociopath, or abuser unless the survivor wrote them. Never state predictions as certainties. Never forecast dates, windows, or timelines for future incidents. Always hedge with 'may', 'based on documented evidence', 'if this pattern continues'. Survivor-facing sections: warm, calm, validating. Attorney sections: neutral, professional, evidence-based." },
           { role: "user", content: `Today is ${new Date().toISOString().slice(0,10)}. Analyze the following records and call record_pattern_analysis with your findings:\n\n${JSON.stringify(summary)}` },
         ],
         tools: [{ type: "function", function: { name: "record_pattern_analysis", description: "Record the pattern analysis", parameters: TOOL_SCHEMA } }],
