@@ -2463,6 +2463,7 @@ function TimeTab({ clientId }: { clientId: string }) {
           ))}
         </div>
       </div>
+      {dialog}
     </div>
   );
 }
