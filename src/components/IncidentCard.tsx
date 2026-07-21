@@ -1,14 +1,20 @@
 import { typeColor, typeLabel } from "@/lib/abuse-types";
-import { formatDateLocal } from "@/lib/dates";
+import { formatIncidentDate } from "@/lib/dates";
 
 export interface IncidentLite {
   id: string;
-  date: string;
+  date: string | null;
   abuse_types: string[];
   description: string;
   location?: string | null;
   source?: string | null;
   confirmed_at?: string | null;
+  date_precision?: string | null;
+  date_range_start?: string | null;
+  date_range_end?: string | null;
+  anchor_incident_id?: string | null;
+  anchor_label?: string | null;
+  anchor_incident?: { date?: string | null; description?: string | null } | null;
 }
 
 export function IncidentCard({
@@ -32,7 +38,7 @@ export function IncidentCard({
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <span className="label-eyebrow">
-              {formatDateLocal(incident.date, { month: "short", day: "numeric", year: "numeric" })}
+              {formatIncidentDate(incident)}
             </span>
             {needsConfirmation && (
               <span
