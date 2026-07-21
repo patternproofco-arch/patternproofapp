@@ -59,7 +59,7 @@ function CaseBuilder() {
     if (!user) return;
     const [c, inc, ev, ld] = await Promise.all([
       supabase.from("cases").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1),
-      supabase.from("incidents").select("id,date,description,abuse_types").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }),
+     supabase.from("incidents").select("id,date,description,abuse_types,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false, nullsFirst: false }),
       supabase.from("evidence").select("id,title,date,file_type").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("legal_documents").select("id,document_type,title,effective_date,case_number").eq("user_id", user.id).order("created_at", { ascending: false }),
     ]);
