@@ -210,7 +210,8 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
     };
     await supabase
       .from("import_batches")
-      .update({ finished_at: finishedAt, receipt: receipt as unknown as Record<string, unknown> })
+      // JSON round-trip strips class instances and satisfies Supabase's Json type.
+      .update({ finished_at: finishedAt, receipt: JSON.parse(JSON.stringify(receipt)) })
       .eq("id", batchId)
       .eq("user_id", userId);
 
