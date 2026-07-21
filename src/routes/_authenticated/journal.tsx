@@ -28,6 +28,29 @@ export const Route = createFileRoute("/_authenticated/journal")({
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+type Precision = "exact" | "approximate_month" | "range" | "before_anchor" | "after_anchor" | "unknown";
+
+const PRECISION_OPTIONS: { value: Precision; label: string }[] = [
+  { value: "exact", label: "Exact date" },
+  { value: "approximate_month", label: "Approximate (month/year)" },
+  { value: "range", label: "Date range" },
+  { value: "before_anchor", label: "Before another event" },
+  { value: "after_anchor", label: "After another event" },
+  { value: "unknown", label: "Not sure — skip for now" },
+];
+
+// Best-effort sortable date derived from a non-exact entry, so timeline
+// ordering still works. Never displayed as a bare date — UI always uses the
+// precision-aware label.
+function deriveSortDate(p: Precision, form: { date: string; date_range_start: string; date_range_end: string; approx_month: string; anchor_date: string }): string | null {
+  if (p === "exact") return form.date || null;
+  if (p === "approximate_month") return form.approx_month ? `${form.approx_month}-15` : null;
+  if (p === "range") return form.date_range_start || form.date_range_end || null;
+  if (p === "before_anchor") return form.anchor_date ? form.anchor_date : null;
+  if (p === "after_anchor") return form.anchor_date ? form.anchor_date : null;
+  return null;
+}
+
 function JournalPage() {
   const { user } = useAuth();
   const extractIncident = useServerFn(extractIncidentFromImage);
@@ -43,6 +66,12 @@ function JournalPage() {
     abuse_types: [] as string[],
     witnesses: "",
     emotional_impact: "",
+    date_precision: "exact" as Precision,
+    approx_month: "",
+    date_range_start: "",
+    date_range_end: "",
+    anchor_incident_id: "",
+    anchor_label: "",
   });
   const [busy, setBusy] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
@@ -55,17 +84,21 @@ function JournalPage() {
     if (!user) return;
     const { data } = await supabase
       .from("incidents")
-      .select("id,date,time,location,description,abuse_types,witnesses,emotional_impact,source,confirmed_at")
+      .select("id,date,time,location,description,abuse_types,witnesses,emotional_impact,source,confirmed_at,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label")
       .eq("user_id", user.id)
       .is("deleted_at", null)
-      .order("date", { ascending: false });
+      .order("date", { ascending: false, nullsFirst: false });
     setList((data as FullIncident[] | null) ?? []);
   }, [user]);
 
   useEffect(() => { load(); }, [load]);
 
   const reset = () => {
-    setForm({ date: today(), time: "", location: "", description: "", abuse_types: [], witnesses: "", emotional_impact: "" });
+    setForm({
+      date: today(), time: "", location: "", description: "", abuse_types: [], witnesses: "", emotional_impact: "",
+      date_precision: "exact", approx_month: "", date_range_start: "", date_range_end: "",
+      anchor_incident_id: "", anchor_label: "",
+    });
     setEditingId(null);
     setAiFilled(false);
   };
@@ -82,15 +115,31 @@ function JournalPage() {
       return;
     }
     setBusy(true);
+    // Anchor incident lookup: if the user picked an existing incident, capture
+    // its date so we can order this record chronologically near the anchor.
+    const anchor = form.anchor_incident_id ? list.find((i) => i.id === form.anchor_incident_id) : null;
+    const anchorDate = anchor?.date ?? "";
+    const sortDate = deriveSortDate(form.date_precision, {
+      date: form.date,
+      date_range_start: form.date_range_start,
+      date_range_end: form.date_range_end,
+      approx_month: form.approx_month,
+      anchor_date: anchorDate,
+    });
     const payload = {
       user_id: user.id,
-      date: form.date,
+      date: sortDate, // sort helper; UI renders precision-aware label instead
       time: form.time || null,
       location: sanitizeLine(form.location) || null,
       description: form.description,
       abuse_types: form.abuse_types,
       witnesses: sanitizeLine(form.witnesses) || null,
       emotional_impact: form.emotional_impact || null,
+      date_precision: form.date_precision,
+      date_range_start: form.date_precision === "range" ? (form.date_range_start || null) : null,
+      date_range_end: form.date_precision === "range" ? (form.date_range_end || null) : null,
+      anchor_incident_id: (form.date_precision === "before_anchor" || form.date_precision === "after_anchor") ? (form.anchor_incident_id || null) : null,
+      anchor_label: (form.date_precision === "before_anchor" || form.date_precision === "after_anchor") ? (sanitizeLine(form.anchor_label) || null) : null,
     };
     const insertPayload = {
       ...payload,
@@ -120,14 +169,21 @@ function JournalPage() {
   const edit = (i: FullIncident) => {
     setEditingId(i.id);
     setLogOpen(true);
+    const p = (i.date_precision as Precision | null | undefined) ?? "exact";
     setForm({
-      date: i.date,
+      date: i.date ?? today(),
       time: i.time ?? "",
       location: i.location ?? "",
       description: i.description,
       abuse_types: i.abuse_types,
       witnesses: i.witnesses ?? "",
       emotional_impact: i.emotional_impact ?? "",
+      date_precision: p,
+      approx_month: p === "approximate_month" && i.date ? i.date.slice(0, 7) : "",
+      date_range_start: i.date_range_start ?? "",
+      date_range_end: i.date_range_end ?? "",
+      anchor_incident_id: i.anchor_incident_id ?? "",
+      anchor_label: i.anchor_label ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
