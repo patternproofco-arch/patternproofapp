@@ -425,6 +425,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
   };
 
   return (
+    <>
     <section style={{ marginBottom: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 12, flexWrap: "wrap" }}>
         <div>
@@ -581,6 +582,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
         </div>
       )}
     </section>
-    {/* dialog rendered as sibling below via fragment would break structure; use portal-like inline */}
+    {dialog}
+    </>
   );
 }
