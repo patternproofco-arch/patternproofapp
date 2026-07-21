@@ -19,7 +19,7 @@ function CourtReadyThanks() {
     const finish = () => {
       if (cancelled) return;
       clearInterval(poll);
-      toast.success("Court Ready is unlocked.", {
+      toast.success("Professional Review is unlocked.", {
         description: "Your full packet, exports, and pattern analysis are ready.",
       });
       navigate({ to: "/court-packet", replace: true });

@@ -609,7 +609,7 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
 - cross_warnings: string[]  — questions opposing counsel is likely to ask; brief recommended framing.
 - contradictions: { topic: string; conflicting_accounts: string; how_to_reconcile: string }[]  — internal contradictions across incidents, dates, or descriptions that opposing counsel will exploit; explain how to reconcile or frame.
 - strongest_evidence: { item: string; why_it_helps: string; tied_to_incident: string }[]  — 3-6 evidence items (by title/date) that most strongly support the pattern.
-- weakest_evidence: { item: string; risk: string; recommended_action: string }[]  — evidence items most vulnerable to challenge (authenticity, hearsay, chain of custody, prejudicial value).
+- weakest_evidence: { item: string; risk: string; recommended_action: string }[]  — evidence items most vulnerable to challenge (authenticity, hearsay, provenance & integrity, prejudicial value).
 - talking_points: string[]  — 5-8 concise, court-safe themes the attorney can return to repeatedly (the case's narrative spine).
 - court_safe_phrasing: { instead_of: string; say: string }[]  — therapeutic, emotional, or accusatory phrases the client tends to use, rewritten in measured, judicial register.
 

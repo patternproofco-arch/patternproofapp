@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_attorney/billing")({
 
 type TierKey = "solo" | "firm" | "enterprise";
 const TIERS: Array<{ key: TierKey; name: string; price: string; per: string; bullets: string[]; recommended?: boolean }> = [
-  { key: "solo", name: "Solo", price: "$297", per: "/mo", bullets: ["5 active client files", "Court-ready ZIP exports", "Pattern + deposition prep", "Private attorney notes"] },
+  { key: "solo", name: "Solo", price: "$297", per: "/mo", bullets: ["5 active client files", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"] },
   { key: "firm", name: "Firm", price: "$697", per: "/mo", recommended: true, bullets: ["Up to 3 attorneys", "Unlimited client files", "Priority intake support", "Shared deposition prep"] },
   { key: "enterprise", name: "Enterprise", price: "$1,497", per: "/mo", bullets: ["Unlimited attorneys", "White-label survivor portal", "SSO + dedicated audits", "Direct line to our team"] },
 ];

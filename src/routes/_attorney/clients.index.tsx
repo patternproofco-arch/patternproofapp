@@ -52,7 +52,7 @@ function ClientsIndex() {
       <div className="att-eyebrow">Case Files</div>
       <h1 style={{ fontSize: 36, marginTop: 6, marginBottom: 6, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>Your clients</h1>
       <p style={{ color: "var(--att-text-2)", maxWidth: 640, marginBottom: 24 }}>
-        Every survivor who has shared their PatternProof case file with you. Read-only. Chain-of-custody logged.
+        Every survivor who has shared their PatternProof case file with you. Read-only. Provenance & integrity logged.
       </p>
 
       {/* Diagnosis card — never shows a raw empty grid */}

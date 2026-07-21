@@ -60,7 +60,7 @@ export function FirstTimeEducationModal() {
             You're building a legal record. Here's how it works.
           </h2>
           <p className="mt-3 text-[15px] leading-relaxed" style={{ color: "rgba(255,255,255,0.92)" }}>
-            This isn't a journal. Every entry, photo, and voice memo you add becomes potential evidence — organized, timestamped, and court-ready.
+            This isn't a journal. Every entry, photo, and voice memo you add becomes potential evidence — organized, timestamped, and professional-review ready.
           </p>
         </div>
 

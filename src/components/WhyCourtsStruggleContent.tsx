@@ -106,7 +106,7 @@ export function WhyCourtsStruggleContent() {
             them.
           </Bullet>
           <Bullet>
-            Produces <strong>court-ready summaries</strong> that show escalation and
+            Produces <strong>professional-review summaries</strong> that show escalation and
             repetition rather than asking a judge to assemble them in real time.
           </Bullet>
           <Bullet>

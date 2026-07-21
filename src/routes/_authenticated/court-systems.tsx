@@ -118,7 +118,7 @@ function CourtSystemsPage() {
       >
         <h2 className="text-xl font-extrabold" style={{ color: BROWN }}>Ready to put this into practice?</h2>
         <p className="mt-2 text-[16px] font-medium" style={{ color: "var(--foreground)" }}>
-          PatternProof builds court-ready documentation from your daily entries. Start with one of these:
+          PatternProof builds professional-review documentation from your daily entries. Start with one of these:
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link to="/patterns" className="btn-primary inline-flex items-center gap-2">

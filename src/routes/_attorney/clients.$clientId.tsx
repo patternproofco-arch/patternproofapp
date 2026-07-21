@@ -360,7 +360,7 @@ async function generateWordDoc(args: {
     ));
     children.push(p("", { spacingAfter: 120 }));
     children.push(p(
-      "Raw evidence files are included in the full court packet ZIP. This index provides a chain-of-custody reference for each file.",
+      "Raw evidence files are included in the full court packet ZIP. This index provides a provenance & integrity reference for each file.",
       { italic: true },
     ));
   }
@@ -446,7 +446,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div className="att-eyebrow">Court packet</div>
-            <h2 style={{ fontSize: 20, marginTop: 4 }}>Download court-ready ZIP</h2>
+            <h2 style={{ fontSize: 20, marginTop: 4 }}>Download professional-review ZIP</h2>
             <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 4 }}>
               Includes incidents, evidence files, communications, pattern summary, and a tamper-evident manifest.
             </p>
@@ -1213,7 +1213,7 @@ function GapsTab({ data }: { data: CaseData }) {
   const closedGaps = sentIdx.size;
   const readinessPct = totalGaps === 0 ? 100 : Math.round(((totalGaps - (totalGaps - closedGaps)) / totalGaps) * 100);
   const readinessLabel = totalGaps === 0
-    ? "Court-ready"
+    ? "Professional-review"
     : counts.high > 0 ? "Not trial-ready — close high-severity gaps first"
     : counts.moderate > 0 ? "Filing-ready, trial work remains"
     : "Polish — low-priority items only";
@@ -1700,7 +1700,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   return (
     <div style={{ display: "grid", gap: 16, gridTemplateColumns: "minmax(0,2fr) minmax(0,1fr)" }}>
       <div className="att-card">
-        <SectionTitle icon={<Printer size={16} />}>Court-ready export</SectionTitle>
+        <SectionTitle icon={<Printer size={16} />}>Professional-review export</SectionTitle>
         <div style={{ display: "grid", gap: 8 }}>
           <Item k="overview" label="Case overview & summary" note="Hero stats, client summary, jurisdiction." />
           <Item k="timeline" label="Full incident timeline" note={`${data.incidents.length} incidents grouped by month.`} />
@@ -1741,7 +1741,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         </button>
       </div>
       <div className="att-card" style={{ background: "#F8FAFC" }}>
-        <div className="att-eyebrow">Chain of custody</div>
+        <div className="att-eyebrow">Provenance & integrity</div>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 8, lineHeight: 1.6 }}>
           Every generated report carries case ID <span className="att-mono">{caseId}</span>, the generating attorney's
           identity, and the export timestamp. All access is logged.

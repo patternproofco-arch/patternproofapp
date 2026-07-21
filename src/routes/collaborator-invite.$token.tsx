@@ -127,7 +127,7 @@ function CollaboratorInvitePage() {
             {mode === "signup" ? "Create your collaborator account" : "Sign in to accept"}
           </h2>
           <p style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 16 }}>
-            Use your own login — distinct from the lead attorney. All access is logged for chain of custody.
+            Use your own login — distinct from the lead attorney. All access is logged for provenance & integrity.
           </p>
           <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
             {mode === "signup" && (

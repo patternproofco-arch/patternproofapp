@@ -114,7 +114,7 @@ export function Hero() {
           }}
         >
           Turn incidents, screenshots, messages, photos, and documents into organized timelines,
-          pattern analysis, and court-ready reports.
+          pattern analysis, and professional-review packets.
         </p>
 
         <div className="hero-audience-grid">

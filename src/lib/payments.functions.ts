@@ -112,7 +112,7 @@ export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
         line_items: [{
           price_data: {
             currency: "usd",
-            product_data: { name: "PatternProof Court Ready — Pay What You Can" },
+            product_data: { name: "PatternProof Professional Review — Pay What You Can" },
             unit_amount: data.amountInCents,
           },
           quantity: 1,
@@ -121,7 +121,7 @@ export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
         ui_mode: "embedded_page",
         return_url: data.returnUrl,
         customer: customerId,
-        payment_intent_data: { description: "PatternProof Court Ready — Pay What You Can" },
+        payment_intent_data: { description: "PatternProof Professional Review — Pay What You Can" },
         metadata: { userId, tier: "court_ready_pwyc" },
       } as Parameters<typeof stripe.checkout.sessions.create>[0]);
       return { clientSecret: session.client_secret ?? "" };
@@ -220,7 +220,7 @@ export const getAttorneyEntitlement = createServerFn({ method: "POST" })
   });
 
 /**
- * Build a court-ready ZIP packet for a specific client (attorney-scoped).
+ * Build a professional-review ZIP packet for a specific client (attorney-scoped).
  * Reuses the survivor exporter shape but scoped to one client via the admin client.
  */
 function toCsv(rows: Array<Record<string, unknown>>): string {
@@ -380,7 +380,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       ``,
       `This packet has been compiled from the survivor's documented record. All`,
       `evidence files included in the /evidence directory are hashed in manifest.json`,
-      `for chain-of-custody verification.`,
+      `for provenance & integrity verification.`,
     ].join("\n"));
 
     // 01_table_of_contents.md
@@ -676,7 +676,7 @@ export const generateClioPackage = createServerFn({ method: "POST" })
       `- Contacts: client + opposing party${otherParty ? ` (${otherParty})` : ""}`,
       ``,
       `All evidence files are stored under \`/documents/\` with sanitized filenames.`,
-      `The \`manifest.json\` records SHA-256 hashes for every file for chain-of-custody.`,
+      `The \`manifest.json\` records SHA-256 hashes for every file for provenance & integrity.`,
     ].join("\n"));
 
     // contacts.csv (Clio-friendly column names)
