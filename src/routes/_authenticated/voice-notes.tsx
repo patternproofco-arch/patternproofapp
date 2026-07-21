@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
 import { transcribeVoiceNote } from "@/lib/transcribe-voice-note.functions";
 import { CognitiveClose } from "@/components/CognitiveClose";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/voice-notes")({
   component: VoiceNotesPage,
@@ -17,6 +18,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 function VoiceNotesPage() {
   const { user } = useAuth();
+  const { confirm, dialog } = useConfirm();
   const [notes, setNotes] = useState<Note[]>([]);
   const [search, setSearch] = useState("");
   const [transcribingId, setTranscribingId] = useState<string | null>(null);
@@ -96,7 +98,13 @@ function VoiceNotesPage() {
 
   const remove = async (n: Note) => {
     if (!user) return;
-    if (!confirm("Remove this voice note permanently?")) return;
+    const ok = await confirm({
+      title: "Remove this voice note?",
+      body: "The recording and any transcript will be permanently removed.",
+      confirmLabel: "Remove",
+      cancelLabel: "Keep",
+    });
+    if (!ok) return;
     await supabase.storage.from("voice-notes").remove([n.audio_url]);
     await supabase.from("voice_notes").delete().eq("id", n.id).eq("user_id", user.id);
     toast("Removed.");
@@ -217,6 +225,7 @@ function VoiceNotesPage() {
         cta="Open journal"
         to="/journal"
       />
+      {dialog}
     </div>
   );
 }
