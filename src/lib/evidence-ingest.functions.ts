@@ -150,8 +150,6 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
             preserved_at: nowIso,
             integrity_verified_at: nowIso,
             import_batch_id: batchId,
-            source: "survivor",
-            confirmed_at: nowIso,
           })
           .select("id")
           .single();
@@ -212,7 +210,7 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
     };
     await supabase
       .from("import_batches")
-      .update({ finished_at: finishedAt, receipt_json: receipt })
+      .update({ finished_at: finishedAt, receipt: receipt as unknown as Record<string, unknown> })
       .eq("id", batchId)
       .eq("user_id", userId);
 
