@@ -154,7 +154,8 @@ function JournalPage() {
     if (!user) return;
     const { error } = await supabase
       .from("incidents")
-      .update({ confirmed_at: new Date().toISOString(), source: "survivor" })
+      // Preserve provenance: keep source = 'ai_extracted', only mark confirmed.
+      .update({ confirmed_at: new Date().toISOString() })
       .eq("id", id)
       .eq("user_id", user.id);
     if (error) { toast("We couldn't confirm that. Try again in a moment."); return; }

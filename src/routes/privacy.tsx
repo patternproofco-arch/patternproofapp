@@ -205,9 +205,13 @@ function PrivacyPage() {
           <p>You may access and update your account information at any time through the platform.</p>
           <H3>Deletion</H3>
           <p>
-            You may request deletion of your account and all associated data at any time. We
-            will fulfill deletion requests within 5 business days. To request deletion, contact
+            Automated in-app account deletion is not yet available. To request
+            deletion of your account and associated data, email
             gracieburns200@gmail.com with the subject line "Data Deletion Request."
+            We aim to process requests within a reasonable time and will confirm
+            when the deletion is complete. Until we can offer an automated
+            deletion flow, this manual request process is the only supported
+            method.
           </p>
           <H3>Data Export</H3>
           <p>
@@ -229,9 +233,11 @@ function PrivacyPage() {
 
           <H2>8. Data Retention</H2>
           <p>
-            We retain your account and documentation data for as long as your account is active
-            or as needed to provide the Services. If you delete your account, we will delete
-            your data within 5 business days, except where retention is required by law.
+            We retain your account and documentation data for as long as your
+            account is active or as needed to provide the Services. When you
+            email us a deletion request (see "Deletion" above), we will remove
+            your data as promptly as our current manual process allows, except
+            where retention is required by law.
           </p>
 
           <H2>9. Minimum Age Requirement</H2>

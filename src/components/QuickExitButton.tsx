@@ -13,12 +13,25 @@ export function QuickExitButton() {
 
   const exit = () => {
     const url = settings.exitUrl || "https://weather.com";
+    // Best-effort cleanup: clear session-unlock state and neutralize the tab
+    // title before navigating away. We do NOT and cannot clear browser history,
+    // downloads, notifications, or artifacts outside this document.
+    try {
+      window.sessionStorage.removeItem("pp.pinUnlocked");
+      window.sessionStorage.removeItem("pp.session.unlocked");
+      // Clear any transient PP session state.
+      Object.keys(window.sessionStorage).forEach((k) => {
+        if (k.startsWith("pp.")) window.sessionStorage.removeItem(k);
+      });
+    } catch { /* ignore */ }
+    try { document.title = "Weather"; } catch { /* ignore */ }
     try {
       window.history.replaceState(null, "", "/");
     } catch {
       /* ignore */
     }
-    window.location.replace(url);
+    // Full-page navigation, not SPA.
+    window.location.href = url;
   };
 
   useEffect(() => {
