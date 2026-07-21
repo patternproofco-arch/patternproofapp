@@ -12,11 +12,14 @@ import { sanitizeLine } from "@/lib/dates";
 import { AddFromJournalModal } from "@/components/AddFromJournalModal";
 import { BulkPastIncidentsModal } from "@/components/BulkPastIncidentsModal";
 import { CognitiveClose } from "@/components/CognitiveClose";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
   witnesses: string | null;
   emotional_impact: string | null;
+  source?: string | null;
+  confirmed_at?: string | null;
 }
 
 export const Route = createFileRoute("/_authenticated/journal")({
@@ -46,13 +49,15 @@ function JournalPage() {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
   const [listOpen, setListOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from("incidents")
-      .select("id,date,time,location,description,abuse_types,witnesses,emotional_impact")
+      .select("id,date,time,location,description,abuse_types,witnesses,emotional_impact,source,confirmed_at")
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .order("date", { ascending: false });
     setList((data as FullIncident[] | null) ?? []);
   }, [user]);
@@ -112,12 +117,43 @@ function JournalPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const remove = async (id: string) => {
-    if (!user) return;
-    if (!confirm("Remove this record permanently?")) return;
-    const { error } = await supabase.from("incidents").delete().eq("id", id).eq("user_id", user.id);
+  const remove = (id: string) => {
+    setConfirmDelete(id);
+  };
+
+  const doRemove = async () => {
+    if (!user || !confirmDelete) return;
+    const id = confirmDelete;
+    setConfirmDelete(null);
+    const { error } = await supabase
+      .from("incidents")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("user_id", user.id);
     if (error) { toast("We couldn't remove that. Try again in a moment."); return; }
-    toast("Removed.");
+    // Optimistically hide
+    setList((prev) => prev.filter((i) => i.id !== id));
+    toast("Removed.", {
+      action: {
+        label: "Undo",
+        onClick: async () => {
+          await supabase.from("incidents").update({ deleted_at: null }).eq("id", id).eq("user_id", user.id);
+          load();
+        },
+      },
+      duration: 8000,
+    });
+  };
+
+  const confirmRecord = async (id: string) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("incidents")
+      .update({ confirmed_at: new Date().toISOString(), source: "survivor" })
+      .eq("id", id)
+      .eq("user_id", user.id);
+    if (error) { toast("We couldn't confirm that. Try again in a moment."); return; }
+    toast("Confirmed.");
     load();
   };
 
@@ -322,6 +358,7 @@ function JournalPage() {
                 <IncidentCard
                   key={i.id}
                   incident={i}
+                   onConfirm={confirmRecord}
                   actions={
                     <>
                       <button onClick={() => edit(i)} aria-label="Edit" className="rounded-lg p-2 hover:bg-black/5"><Pencil size={15} /></button>
@@ -338,6 +375,15 @@ function JournalPage() {
       <div className="hidden">{typeLabel("other")}{typeColor("other")}</div>
       <AddFromJournalModal open={journalOpen} onClose={() => setJournalOpen(false)} onSaved={load} />
       <BulkPastIncidentsModal open={bulkOpen} onClose={() => setBulkOpen(false)} onSaved={load} />
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Remove this record?"
+        body="It will be hidden right away. You'll see an Undo option for a few seconds after."
+        confirmLabel="Remove"
+        cancelLabel="Keep"
+        onConfirm={doRemove}
+        onCancel={() => setConfirmDelete(null)}
+      />
       <CognitiveClose
         title="See your entries on a timeline"
         body="One date next to another is where the pattern starts to show. Take a look when you're ready."
