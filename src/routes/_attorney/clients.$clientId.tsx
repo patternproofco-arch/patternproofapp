@@ -614,6 +614,7 @@ function TeamCard({ clientId }: { clientId: string }) {
   const listFn = useServerFn(listCaseCollaborators);
   const inviteFn = useServerFn(inviteCaseCollaborator);
   const revokeFn = useServerFn(revokeCaseCollaborator);
+  const { confirm, dialog } = useConfirm();
 
   const [rows, setRows] = useState<Collab[] | null>(null);
   const [allowed, setAllowed] = useState<boolean>(true);
@@ -734,7 +735,8 @@ function TeamCard({ clientId }: { clientId: string }) {
                       className="att-btn-ghost"
                       style={{ color: "var(--att-red)" }}
                       onClick={async () => {
-                        if (!confirm("Revoke this collaborator's access?")) return;
+                        const ok = await confirm({ title: "Revoke this collaborator's access?", body: "They will lose access to this case immediately.", confirmLabel: "Revoke", cancelLabel: "Keep" });
+                        if (!ok) return;
                         try { await revokeFn({ data: { id: c.id } }); toast("Access revoked."); reload(); }
                         catch (e) { toast(e instanceof Error ? e.message : "Couldn't revoke."); }
                       }}
@@ -746,6 +748,7 @@ function TeamCard({ clientId }: { clientId: string }) {
           })}
         </div>
       )}
+      {dialog}
     </div>
   );
 }
@@ -772,6 +775,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
   const listGr = useServerFn(listCaseGrants);
   const grantFn = useServerFn(grantCaseAccess);
   const revokeFn = useServerFn(revokeCaseGrant);
+  const { confirm, dialog } = useConfirm();
 
   const [colleagues, setColleagues] = useState<Colleague[] | null>(null);
   const [grants, setGrants] = useState<Grant[] | null>(null);
@@ -877,7 +881,8 @@ function FirmShareCard({ clientId }: { clientId: string }) {
                   className="att-btn-ghost"
                   style={{ color: "var(--att-red)" }}
                   onClick={async () => {
-                    if (!confirm("Revoke this colleague's access to the case?")) return;
+                  const ok = await confirm({ title: "Revoke this colleague's access?", body: "They will lose access to this case immediately.", confirmLabel: "Revoke", cancelLabel: "Keep" });
+                  if (!ok) return;
                     try { await revokeFn({ data: { id: g.id } }); toast("Access revoked."); reload(); }
                     catch (e) { toast(e instanceof Error ? e.message : "Couldn't revoke."); }
                   }}
@@ -887,6 +892,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
           ))}
         </div>
       )}
+      {dialog}
     </div>
   );
 }
@@ -2324,6 +2330,7 @@ function TimeTab({ clientId }: { clientId: string }) {
   const createFn = useServerFn(createTimeEntry);
   const updateFn = useServerFn(updateTimeEntry);
   const deleteFn = useServerFn(deleteTimeEntry);
+  const { confirm, dialog } = useConfirm();
 
   const [rows, setRows] = useState<TimeEntryRow[] | null>(null);
   const [total, setTotal] = useState(0);
@@ -2376,7 +2383,8 @@ function TimeTab({ clientId }: { clientId: string }) {
     } catch (e) { toast.error((e as Error).message); }
   };
   const remove = async (id: string) => {
-    if (!confirm("Delete this time entry?")) return;
+    const ok = await confirm({ title: "Delete this time entry?", body: "This entry will be permanently removed.", confirmLabel: "Delete", cancelLabel: "Keep" });
+    if (!ok) return;
     try {
       await deleteFn({ data: { id } });
       await load();
