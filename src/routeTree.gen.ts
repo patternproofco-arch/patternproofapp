@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
+import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as McpRouteImport } from './routes/mcp'
@@ -19,7 +21,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
 import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
 import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
+import { Route as EvidenceIntegrityRouteImport } from './routes/evidence-integrity'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as AiTransparencyRouteImport } from './routes/ai-transparency'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as IndexRouteImport } from './routes/index'
@@ -84,9 +88,19 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RequestOrgAccessRoute = RequestOrgAccessRouteImport.update({
   id: '/request-org-access',
   path: '/request-org-access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfessionalAccessRoute = ProfessionalAccessRouteImport.update({
+  id: '/professional-access',
+  path: '/professional-access',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -124,9 +138,19 @@ const ForAttorneysRoute = ForAttorneysRouteImport.update({
   path: '/for-attorneys',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EvidenceIntegrityRoute = EvidenceIntegrityRouteImport.update({
+  id: '/evidence-integrity',
+  path: '/evidence-integrity',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoRoute = DemoRouteImport.update({
   id: '/demo',
   path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiTransparencyRoute = AiTransparencyRouteImport.update({
+  id: '/ai-transparency',
+  path: '/ai-transparency',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -415,7 +439,9 @@ const ApiPublicPaymentsWebhookRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-transparency': typeof AiTransparencyRoute
   '/demo': typeof DemoRoute
+  '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
@@ -423,7 +449,9 @@ export interface FileRoutesByFullPath {
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
+  '/safety': typeof SafetyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -479,7 +507,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-transparency': typeof AiTransparencyRoute
   '/demo': typeof DemoRoute
+  '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
@@ -487,7 +517,9 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
+  '/safety': typeof SafetyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -544,7 +576,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_attorney': typeof AttorneyRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/ai-transparency': typeof AiTransparencyRoute
   '/demo': typeof DemoRoute
+  '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
@@ -552,7 +586,9 @@ export interface FileRoutesById {
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
+  '/safety': typeof SafetyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -610,7 +646,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ai-transparency'
     | '/demo'
+    | '/evidence-integrity'
     | '/for-attorneys'
     | '/for-organizations'
     | '/lawyer-signup'
@@ -618,7 +656,9 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/pricing'
     | '/privacy'
+    | '/professional-access'
     | '/request-org-access'
+    | '/safety'
     | '/sitemap.xml'
     | '/terms'
     | '/.mcp/list-tools'
@@ -674,7 +714,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ai-transparency'
     | '/demo'
+    | '/evidence-integrity'
     | '/for-attorneys'
     | '/for-organizations'
     | '/lawyer-signup'
@@ -682,7 +724,9 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/pricing'
     | '/privacy'
+    | '/professional-access'
     | '/request-org-access'
+    | '/safety'
     | '/sitemap.xml'
     | '/terms'
     | '/.mcp/list-tools'
@@ -738,7 +782,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_attorney'
     | '/_authenticated'
+    | '/ai-transparency'
     | '/demo'
+    | '/evidence-integrity'
     | '/for-attorneys'
     | '/for-organizations'
     | '/lawyer-signup'
@@ -746,7 +792,9 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/pricing'
     | '/privacy'
+    | '/professional-access'
     | '/request-org-access'
+    | '/safety'
     | '/sitemap.xml'
     | '/terms'
     | '/.mcp/list-tools'
@@ -805,7 +853,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AttorneyRoute: typeof AttorneyRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AiTransparencyRoute: typeof AiTransparencyRoute
   DemoRoute: typeof DemoRoute
+  EvidenceIntegrityRoute: typeof EvidenceIntegrityRoute
   ForAttorneysRoute: typeof ForAttorneysRoute
   ForOrganizationsRoute: typeof ForOrganizationsRoute
   LawyerSignupRoute: typeof LawyerSignupRoute
@@ -813,7 +863,9 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
+  ProfessionalAccessRoute: typeof ProfessionalAccessRoute
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
+  SafetyRoute: typeof SafetyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -846,11 +898,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/request-org-access': {
       id: '/request-org-access'
       path: '/request-org-access'
       fullPath: '/request-org-access'
       preLoaderRoute: typeof RequestOrgAccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/professional-access': {
+      id: '/professional-access'
+      path: '/professional-access'
+      fullPath: '/professional-access'
+      preLoaderRoute: typeof ProfessionalAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -902,11 +968,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForAttorneysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/evidence-integrity': {
+      id: '/evidence-integrity'
+      path: '/evidence-integrity'
+      fullPath: '/evidence-integrity'
+      preLoaderRoute: typeof EvidenceIntegrityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo': {
       id: '/demo'
       path: '/demo'
       fullPath: '/demo'
       preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-transparency': {
+      id: '/ai-transparency'
+      path: '/ai-transparency'
+      fullPath: '/ai-transparency'
+      preLoaderRoute: typeof AiTransparencyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -1402,7 +1482,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AttorneyRoute: AttorneyRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AiTransparencyRoute: AiTransparencyRoute,
   DemoRoute: DemoRoute,
+  EvidenceIntegrityRoute: EvidenceIntegrityRoute,
   ForAttorneysRoute: ForAttorneysRoute,
   ForOrganizationsRoute: ForOrganizationsRoute,
   LawyerSignupRoute: LawyerSignupRoute,
@@ -1410,7 +1492,9 @@ const rootRouteChildren: RootRouteChildren = {
   McpRoute: McpRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
+  ProfessionalAccessRoute: ProfessionalAccessRoute,
   RequestOrgAccessRoute: RequestOrgAccessRoute,
+  SafetyRoute: SafetyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,

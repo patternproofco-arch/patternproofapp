@@ -602,6 +602,42 @@ export type Database = {
           },
         ]
       }
+      audit_events: {
+        Row: {
+          actor_id: string | null
+          actor_kind: string
+          created_at: string
+          event_type: string
+          id: string
+          meta: Json | null
+          subject_id: string | null
+          subject_kind: string | null
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_kind?: string
+          created_at?: string
+          event_type: string
+          id?: string
+          meta?: Json | null
+          subject_id?: string | null
+          subject_kind?: string | null
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_kind?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          meta?: Json | null
+          subject_id?: string | null
+          subject_kind?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action_type: string
@@ -1021,41 +1057,77 @@ export type Database = {
       }
       evidence: {
         Row: {
+          bytes: number | null
           created_at: string
           date: string
           deleted_at: string | null
+          derivative_kind: string | null
           description: string | null
+          family_id: string | null
           file_type: string
           file_url: string
           id: string
+          import_batch_id: string | null
+          integrity_verified_at: string | null
           linked_incident_id: string | null
           linked_recording_id: string | null
+          mime: string | null
+          original_filename: string | null
+          parent_evidence_id: string | null
+          preservation_status: string | null
+          preserved_at: string | null
+          raw_metadata: Json | null
+          sha256: string | null
           title: string
           user_id: string
         }
         Insert: {
+          bytes?: number | null
           created_at?: string
           date: string
           deleted_at?: string | null
+          derivative_kind?: string | null
           description?: string | null
+          family_id?: string | null
           file_type: string
           file_url: string
           id?: string
+          import_batch_id?: string | null
+          integrity_verified_at?: string | null
           linked_incident_id?: string | null
           linked_recording_id?: string | null
+          mime?: string | null
+          original_filename?: string | null
+          parent_evidence_id?: string | null
+          preservation_status?: string | null
+          preserved_at?: string | null
+          raw_metadata?: Json | null
+          sha256?: string | null
           title: string
           user_id: string
         }
         Update: {
+          bytes?: number | null
           created_at?: string
           date?: string
           deleted_at?: string | null
+          derivative_kind?: string | null
           description?: string | null
+          family_id?: string | null
           file_type?: string
           file_url?: string
           id?: string
+          import_batch_id?: string | null
+          integrity_verified_at?: string | null
           linked_incident_id?: string | null
           linked_recording_id?: string | null
+          mime?: string | null
+          original_filename?: string | null
+          parent_evidence_id?: string | null
+          preservation_status?: string | null
+          preserved_at?: string | null
+          raw_metadata?: Json | null
+          sha256?: string | null
           title?: string
           user_id?: string
         }
@@ -1074,7 +1146,41 @@ export type Database = {
             referencedRelation: "recordings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "evidence_parent_evidence_id_fkey"
+            columns: ["parent_evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      evidence_families: {
+        Row: {
+          canonical_evidence_id: string | null
+          created_at: string
+          id: string
+          note: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canonical_evidence_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canonical_evidence_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       firms: {
         Row: {
@@ -1097,6 +1203,39 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      import_batches: {
+        Row: {
+          created_at: string
+          finished_at: string | null
+          id: string
+          receipt: Json | null
+          source_kind: string | null
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          receipt?: Json | null
+          source_kind?: string | null
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          receipt?: Json | null
+          source_kind?: string | null
+          started_at?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1714,6 +1853,18 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      record_audit_event: {
+        Args: {
+          p_actor_id?: string
+          p_actor_kind?: string
+          p_event_type: string
+          p_meta?: Json
+          p_subject_id?: string
+          p_subject_kind?: string
+          p_user_id: string
+        }
+        Returns: string
       }
     }
     Enums: {
