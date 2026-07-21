@@ -112,7 +112,7 @@ export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
         line_items: [{
           price_data: {
             currency: "usd",
-            product_data: { name: "PatternProof Court Ready — Pay What You Can" },
+            product_data: { name: "PatternProof Professional Review — Pay What You Can" },
             unit_amount: data.amountInCents,
           },
           quantity: 1,
@@ -121,7 +121,7 @@ export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
         ui_mode: "embedded_page",
         return_url: data.returnUrl,
         customer: customerId,
-        payment_intent_data: { description: "PatternProof Court Ready — Pay What You Can" },
+        payment_intent_data: { description: "PatternProof Professional Review — Pay What You Can" },
         metadata: { userId, tier: "court_ready_pwyc" },
       } as Parameters<typeof stripe.checkout.sessions.create>[0]);
       return { clientSecret: session.client_secret ?? "" };

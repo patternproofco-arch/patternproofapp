@@ -18,7 +18,7 @@ function CourtReadyPage() {
     return (
       <div className="card-pp space-y-3" style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}>
         <Check size={32} style={{ color: "var(--accent)", margin: "0 auto" }} />
-        <h1 className="font-serif text-[28px]">You have Court Ready.</h1>
+        <h1 className="font-serif text-[28px]">You have Professional Review.</h1>
         <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
           Court packets, attorney exports, and full pattern analysis are unlocked for your account.
         </p>
@@ -31,12 +31,12 @@ function CourtReadyPage() {
     <div className="mx-auto max-w-3xl px-2 py-6">
       <PaymentTestModeBanner />
       <div className="mb-6 mt-4">
-        <p className="label-eyebrow">Court Ready</p>
+        <p className="label-eyebrow">Professional Review</p>
         <h1 className="font-serif text-[32px] leading-tight mt-1">
           When you're ready to put it in front of someone.
         </h1>
         <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "var(--foreground)" }}>
-          The core app stays free, always. Court Ready adds what you need when you're going to court or working with an attorney: AI-built court packets, attorney exports, and the full pattern view.
+          The core app stays free, always. Professional Review adds what you need when you're going to court or working with an attorney: AI-built court packets, attorney exports, and the full pattern view.
         </p>
       </div>
 
@@ -89,7 +89,7 @@ function CourtReadyPage() {
               />
             </div>
             <p className="text-[12px] mt-2" style={{ color: "var(--muted-foreground)" }}>
-              One-time payment unlocks Court Ready features. Whatever you can give helps keep the core app free for everyone.
+              One-time payment unlocks Professional Review features. Whatever you can give helps keep the core app free for everyone.
             </p>
           </div>
         )}
