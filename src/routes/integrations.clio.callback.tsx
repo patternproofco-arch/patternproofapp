@@ -14,6 +14,7 @@ import { Link } from "@tanstack/react-router";
  * when connecting in dev.
  */
 export const Route = createFileRoute("/integrations/clio/callback")({
+  // Accept but ignore query params — we do not echo authorization codes.
   validateSearch: (search) =>
     z.object({
       code: z.string().optional(),
@@ -24,27 +25,18 @@ export const Route = createFileRoute("/integrations/clio/callback")({
 });
 
 function ClioCallback() {
-  const { code, error } = Route.useSearch();
   return (
     <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 20, background: "#F8FAFC" }}>
       <div className="att-card" style={{ maxWidth: 520, textAlign: "center" }}>
         <Clock size={28} style={{ color: "var(--att-navy)", margin: "0 auto 10px" }} />
         <h1 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 28, color: "var(--att-navy)" }}>
-          Clio integration coming soon
+          Native Clio connection is not yet available
         </h1>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 8, lineHeight: 1.6 }}>
-          Thanks for authorizing. The Clio Manage sync is currently in review with Clio's
-          developer team. Once approved, connecting your account here will import matters
-          and push exports directly into Clio — no manual ZIP needed.
+          We do not yet support a native Clio Manage connection. In the
+          meantime, use the <strong>Clio-compatible ZIP export</strong> from any
+          client case file to import records into your Clio matter.
         </p>
-        {error && (
-          <div style={{ marginTop: 12, fontSize: 12, color: "#B91C1C" }}>Clio reported: {error}</div>
-        )}
-        {code && (
-          <div style={{ marginTop: 12, fontSize: 11, color: "var(--att-text-2)", fontFamily: "monospace", wordBreak: "break-all" }}>
-            code received ({code.slice(0, 8)}…) — no token exchange performed
-          </div>
-        )}
         <div style={{ marginTop: 18 }}>
           <Link to="/billing" className="att-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <ArrowLeft size={13} /> Back to attorney portal

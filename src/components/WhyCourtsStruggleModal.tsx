@@ -18,7 +18,7 @@ export function WhyCourtsStruggleModal() {
     let cancelled = false;
     (async () => {
       const [incRes, patRes] = await Promise.all([
-        supabase.from("incidents").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("incidents").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null),
         supabase.from("pattern_analyses").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
       if (cancelled) return;

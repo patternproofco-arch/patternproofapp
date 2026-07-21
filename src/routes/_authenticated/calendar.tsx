@@ -19,7 +19,8 @@ function CalendarPage() {
       const { data } = await supabase
         .from("incidents")
         .select("date,severity_level,has_escalation_flag")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .is("deleted_at", null);
       setIncidents(data ?? []);
     })();
   }, [user]);

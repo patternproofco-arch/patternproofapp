@@ -36,6 +36,7 @@ function CommunicationsPage() {
         .from("incidents")
         .select("id,date,description")
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .order("date", { ascending: false }),
     ]);
     const rows = (commsRes.data as Comm[] | null) ?? [];

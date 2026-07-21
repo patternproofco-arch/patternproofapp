@@ -21,20 +21,45 @@ const TIERS = [
     key: "solo",
     name: "Solo",
     price: "$297",
-    bullets: ["Up to 5 client case files", "Full timeline + pattern analysis", "Court-ready ZIP w/ chain of custody"],
+    priceSub: "/month",
+    bullets: [
+      "One attorney seat",
+      "Up to 10 active client matters",
+      "Structured chronological timeline",
+      "Source-linked supporting records",
+      "Survivor vs. AI-suggested content clearly distinguished",
+      "Exportable case summary (ZIP)",
+      "Controlled client-sharing workflow",
+    ],
   },
   {
-    key: "firm",
-    name: "Firm",
-    price: "$697",
+    key: "pilot",
+    name: "Founding Pilot",
+    price: "$99",
+    priceSub: "/month · 90 days",
     recommended: true,
-    bullets: ["Up to 3 attorneys, unlimited clients", "Shared deposition prep", "Priority onboarding"],
+    bullets: [
+      "For the first 3 qualified family-law attorneys",
+      "One attorney seat",
+      "Up to 5 active matters",
+      "Onboarding session included",
+      "Weekly feedback expected",
+      "Conversion discussion before pilot ends",
+      "Application required",
+    ],
   },
   {
     key: "enterprise",
-    name: "Enterprise",
+    name: "Firm / Enterprise",
     price: "$1,497",
-    bullets: ["Full firm. No attorney cap.", "White-label survivor portal", "SSO + dedicated audits"],
+    priceSub: "/month",
+    bullets: [
+      "Multiple attorney seats",
+      "Unlimited active matters",
+      "Priority onboarding",
+      "Direct line to the PatternProof team",
+      "Contact us for scoping",
+    ],
   },
 ];
 
@@ -52,13 +77,15 @@ function ForAttorneys() {
             See the pattern before the hearing.
           </h1>
           <p style={{ fontSize: 17, color: "var(--att-text-2)", maxWidth: 640, margin: "0 auto" }}>
-            Your clients arrive already documented. PatternProof gives you the timeline, evidence vault, pattern flags, and court-ready packet on day one of representation.
+            Your clients arrive already documented. PatternProof gives you a structured
+            chronological timeline, source-linked supporting records, pattern flags, and
+            an exportable case summary on day one of representation.
           </p>
           <Link to="/lawyer-signup" className="att-btn-primary" style={{ marginTop: 28, display: "inline-flex" }}>
-            Start with The Pilot <ArrowRight size={14} />
+            Apply for the Founding Pilot <ArrowRight size={14} />
           </Link>
           <p style={{ fontSize: 12, color: "var(--att-muted)", marginTop: 10 }}>
-            Your first client is free.
+            First 3 qualified family-law attorneys · application required
           </p>
         </div>
 
@@ -96,7 +123,7 @@ function ForAttorneys() {
               )}
               <div className="att-eyebrow">{t.name}</div>
               <div style={{ fontSize: 40, fontFamily: '"Instrument Serif", serif', marginTop: 6 }}>
-                {t.price}<span style={{ fontSize: 14, color: "var(--att-text-2)" }}>/mo</span>
+                {t.price}<span style={{ fontSize: 14, color: "var(--att-text-2)" }}>{t.priceSub}</span>
               </div>
               <ul style={{ listStyle: "none", padding: 0, marginTop: 14, display: "grid", gap: 8, fontSize: 13 }}>
                 {t.bullets.map((b) => (
@@ -113,10 +140,10 @@ function ForAttorneys() {
         {/* Close */}
         <div style={{ textAlign: "center", padding: "40px 0", borderTop: "1px solid var(--att-border)" }}>
           <h2 style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif' }}>
-            $297/month. One billable hour.
+            $297/month — one attorney seat, up to 10 active matters.
           </h2>
           <p style={{ fontSize: 14, color: "var(--att-text-2)", marginTop: 8 }}>
-            Your first client is free — The Pilot.
+            Or apply for the Founding Pilot: $99/month for 90 days, capped at 5 matters.
           </p>
           <Link to="/lawyer-signup" className="att-btn-primary" style={{ marginTop: 18, display: "inline-flex" }}>
             Create your attorney account <ArrowRight size={14} />

@@ -116,13 +116,17 @@ export const analyzePatterns = createServerFn({ method: "POST" })
     if (!apiKey) return { ok: false as const, reason: "missing-key" };
 
     const [incidentsRes, commsRes, flagsRes, cachedRes] = await Promise.all([
-      supabase.from("incidents").select("date,time,location,description,abuse_types,witnesses,emotional_impact,severity_level").eq("user_id", userId).order("date", { ascending: true }),
+      supabase.from("incidents").select("date,time,location,description,abuse_types,witnesses,emotional_impact,severity_level,source,confirmed_at").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true }),
       supabase.from("communications").select("date,channel,direction,from_party,content,harassment_flag").eq("user_id", userId).order("date", { ascending: true }),
       supabase.from("escalation_flags").select("flag_type,severity_tier,details,created_at").eq("user_id", userId).is("dismissed_at", null),
       supabase.from("pattern_analyses").select("id,analysis,incident_count_at_time,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1),
     ]);
 
-    const incidents = incidentsRes.data ?? [];
+    const rawIncidents = incidentsRes.data ?? [];
+    // Exclude unconfirmed AI-extracted drafts from pattern conclusions.
+    const incidents = rawIncidents.filter(
+      (i) => !(i.source === "ai_extracted" && !i.confirmed_at),
+    );
     if (incidents.length < 2) {
       return { ok: false as const, reason: "not-enough-data", incidentCount: incidents.length };
     }

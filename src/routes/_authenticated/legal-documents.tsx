@@ -8,6 +8,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { extractLegalDocument } from "@/lib/legal-extract.functions";
 import { listDriveFiles, downloadDriveFile } from "@/lib/drive-import.functions";
 import { logAudit } from "@/lib/audit.functions";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/legal-documents")({
   component: LegalDocumentsPage,
@@ -102,6 +103,7 @@ function emptyExtracted(): Extracted {
 
 function LegalDocumentsPage() {
   const { user } = useAuth();
+  const { confirm, dialog } = useConfirm();
   const extract = useServerFn(extractLegalDocument);
   const driveList = useServerFn(listDriveFiles);
   const driveDownload = useServerFn(downloadDriveFile);
@@ -126,7 +128,7 @@ function LegalDocumentsPage() {
     if (!user) return;
     const [d, i] = await Promise.all([
       supabase.from("legal_documents").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("incidents").select("id,date,description").eq("user_id", user.id).order("date", { ascending: false }),
+      supabase.from("incidents").select("id,date,description").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }),
     ]);
     setDocs((d.data as LegalDoc[] | null) ?? []);
     setIncidents((i.data as Incident[] | null) ?? []);
@@ -262,7 +264,8 @@ function LegalDocumentsPage() {
 
   const remove = async (d: LegalDoc) => {
     if (!user) return;
-    if (!confirm("Remove this legal document?")) return;
+    const ok = await confirm({ title: "Remove this legal document?", body: "The document file will be removed from your record room.", confirmLabel: "Remove", cancelLabel: "Keep" });
+    if (!ok) return;
     await supabase.storage.from("evidence-files").remove([d.file_url]);
     await supabase.from("legal_documents").delete().eq("id", d.id).eq("user_id", user.id);
     await log({ data: { action_type: "legal_document_deleted", record_reference: d.id } });
@@ -468,6 +471,7 @@ function LegalDocumentsPage() {
           })
         )}
       </div>
+      {dialog}
     </div>
   );
 }

@@ -266,6 +266,7 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
         .from("incidents")
         .select("id")
         .eq("user_id", context.userId)
+        .is("deleted_at", null)
         .in("id", scope.scope_incidents ?? []);
       if ((ownedIncidents ?? []).length !== (scope.scope_incidents ?? []).length) {
         throw new Error("One or more selected incidents couldn't be shared.");
@@ -276,6 +277,7 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
         .from("evidence")
         .select("id")
         .eq("user_id", context.userId)
+        .is("deleted_at", null)
         .in("id", scope.scope_evidence ?? []);
       if ((ownedEvidence ?? []).length !== (scope.scope_evidence ?? []).length) {
         throw new Error("One or more selected evidence files couldn't be shared.");

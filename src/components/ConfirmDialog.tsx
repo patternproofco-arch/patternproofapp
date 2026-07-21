@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * On-brand confirmation dialog. Replaces native window.confirm for destructive
@@ -72,4 +72,58 @@ export function ConfirmDialog({
       </div>
     </div>
   );
+}
+
+/**
+ * useConfirm — hook version. Returns [dialogElement, confirmAsync].
+ * Call `await confirm({ title, body, ... })` in event handlers; it resolves
+ * true if the user confirms, false otherwise. Render the returned element
+ * once in your component tree.
+ */
+export function useConfirm() {
+  const [state, setState] = useState<null | {
+    title: string;
+    body?: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    destructive?: boolean;
+  }>(null);
+  const resolverRef = useRef<((v: boolean) => void) | null>(null);
+
+  const confirm = useCallback(
+    (opts: {
+      title: string;
+      body?: string;
+      confirmLabel?: string;
+      cancelLabel?: string;
+      destructive?: boolean;
+    }) => {
+      setState(opts);
+      return new Promise<boolean>((resolve) => {
+        resolverRef.current = resolve;
+      });
+    },
+    [],
+  );
+
+  const close = (result: boolean) => {
+    setState(null);
+    resolverRef.current?.(result);
+    resolverRef.current = null;
+  };
+
+  const element = (
+    <ConfirmDialog
+      open={!!state}
+      title={state?.title ?? ""}
+      body={state?.body}
+      confirmLabel={state?.confirmLabel}
+      cancelLabel={state?.cancelLabel}
+      destructive={state?.destructive ?? true}
+      onConfirm={() => close(true)}
+      onCancel={() => close(false)}
+    />
+  );
+
+  return { confirm, dialog: element };
 }

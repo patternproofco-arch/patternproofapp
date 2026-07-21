@@ -22,7 +22,7 @@ function EscalationPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase.from("incidents").select("id,date,description,abuse_types").eq("user_id", user.id).order("date", { ascending: false });
+      const { data } = await supabase.from("incidents").select("id,date,description,abuse_types").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false });
       const inc = (data as Inc[] | null) ?? [];
       setIncidents(inc);
 

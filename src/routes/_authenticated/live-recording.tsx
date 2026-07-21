@@ -8,6 +8,7 @@ import { useSettings } from "@/lib/settings-context";
 import { useRecording, type PendingRecording } from "@/lib/recording-context";
 import { useServerFn } from "@tanstack/react-start";
 import { checkAccidental } from "@/lib/accidental-check.functions";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/live-recording")({
   component: LiveRecording,
@@ -182,12 +183,14 @@ function LiveRecording() {
 }
 
 function RecCard({ r, onChanged }: { r: Rec; onChanged: () => void }) {
+  const { confirm, dialog } = useConfirm();
   const [url, setUrl] = useState<string>("");
   useEffect(() => {
     supabase.storage.from("conversation-recordings").createSignedUrl(r.audio_url, 3600).then(({ data }) => setUrl(data?.signedUrl ?? ""));
   }, [r.audio_url]);
   const del = async () => {
-    if (!confirm("Remove this recording?")) return;
+    const ok = await confirm({ title: "Remove this recording?", body: "The audio file will be permanently deleted.", confirmLabel: "Remove", cancelLabel: "Keep" });
+    if (!ok) return;
     await supabase.storage.from("conversation-recordings").remove([r.audio_url]);
     await supabase.from("recordings").delete().eq("id", r.id);
     onChanged();
@@ -209,6 +212,7 @@ function RecCard({ r, onChanged }: { r: Rec; onChanged: () => void }) {
           {r.transcript}
         </div>
       )}
+      {dialog}
     </div>
   );
 }

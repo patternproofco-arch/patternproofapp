@@ -22,8 +22,14 @@ export function AppShell() {
     let last = 0;
     const exit = () => {
       const url = settings.exitUrl || "https://weather.com";
+      try {
+        Object.keys(window.sessionStorage).forEach((k) => {
+          if (k.startsWith("pp.")) window.sessionStorage.removeItem(k);
+        });
+      } catch { /* ignore */ }
+      try { document.title = "Weather"; } catch { /* ignore */ }
       try { window.history.replaceState(null, "", "/"); } catch { /* ignore */ }
-      window.location.replace(url);
+      window.location.href = url;
     };
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {

@@ -55,10 +55,10 @@ function CourtPacket() {
       if (!row) return;
       const [inc, ev] = await Promise.all([
         row.highlighted_incident_ids.length
-          ? supabase.from("incidents").select("id,date,description,abuse_types").eq("user_id", user.id).in("id", row.highlighted_incident_ids).order("date", { ascending: true })
+          ? supabase.from("incidents").select("id,date,description,abuse_types,source,confirmed_at").eq("user_id", user.id).in("id", row.highlighted_incident_ids).is("deleted_at", null).order("date", { ascending: true })
           : Promise.resolve({ data: [] as Inc[] }),
         row.attached_evidence_ids.length
-          ? supabase.from("evidence").select("id,title,date,file_type,linked_incident_id,file_url").eq("user_id", user.id).in("id", row.attached_evidence_ids)
+          ? supabase.from("evidence").select("id,title,date,file_type,linked_incident_id,file_url").eq("user_id", user.id).in("id", row.attached_evidence_ids).is("deleted_at", null)
           : Promise.resolve({ data: [] as Ev[] }),
       ]);
       setIncidents((inc.data as Inc[] | null) ?? []);

@@ -84,7 +84,7 @@ export function AiSidekick() {
     setBusy(true);
     let recent: string[] = [];
     if (user) {
-      const { data } = await supabase.from("incidents").select("description").eq("user_id", user.id).order("date", { ascending: false }).limit(3);
+      const { data } = await supabase.from("incidents").select("description").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }).limit(3);
       recent = (data ?? []).map((r) => (r.description ?? "").slice(0, 200));
     }
     try {

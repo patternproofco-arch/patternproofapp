@@ -25,12 +25,13 @@ const TIERS: Record<TierKey, {
     cadence: "/month",
     priceId: "attorney_solo_monthly",
     bullets: [
-      "Up to 5 active client case files",
-      "Full timeline + pattern analysis per client",
-      "Court-ready ZIP with chain of custody",
+      "One attorney seat",
+      "Up to 10 active client matters",
+      "Structured chronological timeline + pattern analysis",
+      "Exportable case summary (ZIP) — Clio-compatible",
       "Private attorney notes per incident",
     ],
-    close: "$297/month. One billable hour.",
+    close: "$297/month — one seat, up to 10 active matters.",
   },
   firm: {
     name: "Firm",
@@ -40,11 +41,11 @@ const TIERS: Record<TierKey, {
     recommended: true,
     bullets: [
       "Up to 3 attorneys on the same firm seat",
-      "Unlimited client case files",
-      "Shared deposition prep + escalation arcs",
+      "Unlimited active client matters",
+      "Shared workspace for prep + escalation arcs",
       "Priority client onboarding support",
     ],
-    close: "Two billable hours covers it. The rest is margin.",
+    close: "For small firms working DV and custody caseloads.",
   },
   enterprise: {
     name: "Enterprise",
@@ -54,7 +55,7 @@ const TIERS: Record<TierKey, {
     bullets: [
       "Full firm access. No attorney cap.",
       "White-label survivor portal",
-      "SSO + dedicated chain-of-custody audits",
+      "SSO + dedicated support",
       "Direct line to the PatternProof team",
     ],
     close: "For firms that move volume.",
@@ -96,7 +97,9 @@ function SubscribePage() {
           See the pattern before the hearing.
         </h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 15, maxWidth: 640 }}>
-          Pick the plan that fits the firm. Your first client is free. We call it The Pilot.
+          Pick the plan that fits the firm. Ask us about the application-based
+          Founding Pilot ($99/month for 90 days) if you're one of the first three
+          family-law attorneys onboarding.
         </p>
       </div>
 
@@ -159,7 +162,7 @@ function SubscribePage() {
             {t.close}
           </h2>
           <p style={{ color: "var(--att-text-2)", fontSize: 14 }}>
-            Your first client is free — The Pilot. Cancel any time. Access continues through the paid period.
+            Cancel any time. Access continues through the paid period.
           </p>
           <div style={{ marginTop: 24, fontSize: 12, color: "var(--att-text-2)", display: "flex", alignItems: "center", gap: 6 }}>
             <Lock size={12} /> Secured by Stripe. Card details never touch our servers.

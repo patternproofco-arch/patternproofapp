@@ -19,6 +19,7 @@ export default defineTool({
     let q = sb
       .from("incidents")
       .select("id,date,time,location,description,abuse_types,severity_level,witnesses,emotional_impact,has_escalation_flag")
+      .is("deleted_at", null)
       .order("date", { ascending: false })
       .limit(limit ?? 25);
     if (since) q = q.gte("date", since);

@@ -19,11 +19,13 @@ export default defineTool({
     const [inc, ev, vn] = await Promise.all([
       sb.from("incidents")
         .select("id,date,description,location")
+        .is("deleted_at", null)
         .or(`description.ilike.${like},location.ilike.${like},witnesses.ilike.${like},emotional_impact.ilike.${like}`)
         .order("date", { ascending: false })
         .limit(20),
       sb.from("evidence")
         .select("id,title,date,description,file_type")
+        .is("deleted_at", null)
         .or(`title.ilike.${like},description.ilike.${like}`)
         .order("date", { ascending: false })
         .limit(20),
