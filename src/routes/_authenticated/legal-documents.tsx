@@ -8,6 +8,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { extractLegalDocument } from "@/lib/legal-extract.functions";
 import { listDriveFiles, downloadDriveFile } from "@/lib/drive-import.functions";
 import { logAudit } from "@/lib/audit.functions";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/legal-documents")({
   component: LegalDocumentsPage,

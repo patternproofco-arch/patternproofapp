@@ -189,6 +189,7 @@ function AttorneyPortal() {
           );
         })}
       </div>
+      {dialog}
     </div>
   );
 }
