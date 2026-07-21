@@ -220,7 +220,7 @@ export const getAttorneyEntitlement = createServerFn({ method: "POST" })
   });
 
 /**
- * Build a court-ready ZIP packet for a specific client (attorney-scoped).
+ * Build a professional-review ZIP packet for a specific client (attorney-scoped).
  * Reuses the survivor exporter shape but scoped to one client via the admin client.
  */
 function toCsv(rows: Array<Record<string, unknown>>): string {

@@ -110,7 +110,7 @@ function AttorneyLayout() {
         <span>·</span>
         <span>Session logged · {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
         <span>·</span>
-        <span>All access recorded for chain of custody</span>
+        <span>All access recorded for provenance & integrity</span>
         <span>·</span>
         <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
       </footer>
@@ -201,7 +201,7 @@ function SecurityBanner() {
       <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
         <Lock size={12} />
         This session is encrypted. Case ID: <span className="att-mono">{caseId}</span>.
-        All access is recorded for chain of custody.
+        All access is recorded for provenance & integrity.
       </span>
       <button
         onClick={() => { sessionStorage.setItem("att-security-dismissed", "1"); setDismissed(true); }}

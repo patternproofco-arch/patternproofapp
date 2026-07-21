@@ -28,7 +28,7 @@ function SettingsPage() {
     <div style={{ display: "grid", gap: 20, maxWidth: 1080, margin: "0 auto" }}>
       <div>
         <div className="att-eyebrow">Settings · Trust</div>
-        <h1 style={{ fontSize: 32, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>Security &amp; chain of custody</h1>
+        <h1 style={{ fontSize: 32, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>Security &amp; provenance & integrity</h1>
       </div>
 
       <div className="att-card" style={{ background: "#F0FDF4", borderColor: "#86EFAC", display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -37,7 +37,7 @@ function SettingsPage() {
           <div style={{ fontWeight: 600, fontSize: 14 }}>Read-only access · Survivor-owned data</div>
           <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 4, lineHeight: 1.6 }}>
             You can review and export. You cannot edit, delete, or modify a survivor's incidents, evidence, or
-            communications. Every view, download, and export is logged for chain of custody. Private attorney notes
+            communications. Every view, download, and export is logged for provenance & integrity. Private attorney notes
             never sync back to the survivor.
           </p>
         </div>

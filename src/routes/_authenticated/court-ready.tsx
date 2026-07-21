@@ -59,7 +59,7 @@ function CourtReadyPage() {
         </div>
 
         <ul className="space-y-2 text-[14px] mb-4">
-          <li className="flex gap-2"><FileDown size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Court-ready ZIP packet with chain-of-custody manifest</li>
+          <li className="flex gap-2"><FileDown size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Professional-review ZIP packet with provenance & integrity manifest</li>
           <li className="flex gap-2"><Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Send your case file directly to an attorney</li>
           <li className="flex gap-2"><Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Full pattern analysis + escalation arc</li>
           <li className="flex gap-2"><Heart size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Cancel any time. Keep access through the paid period.</li>

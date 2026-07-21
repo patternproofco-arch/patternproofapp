@@ -31,7 +31,7 @@ const WITH = [
   "Organized timeline",
   "Pattern analysis",
   "Searchable evidence",
-  "Court-ready reports",
+  "Professional-review reports",
   "Stronger documentation",
 ];
 
@@ -99,7 +99,7 @@ export function SurvivorSection() {
           maxWidth: 600,
           marginBottom: 64,
         }}>
-          Pattern Proof extracts the pattern from all of it. Builds your timeline. Generates a court-ready summary backed by the actual texts, calls, and incidents that prove what you already knew.
+          Pattern Proof extracts the pattern from all of it. Builds your timeline. Generates a professional-review summary backed by the actual texts, calls, and incidents that prove what you already knew.
           <strong style={{ color: "#2A2218", fontWeight: 700 }}> They can lie. The pattern can't.</strong>
         </p>
 
@@ -118,7 +118,7 @@ export function SurvivorSection() {
           <div className="surv-transform-outputs">
             <OutputCard icon={<Calendar size={18} />} title="One organized timeline" />
             <OutputCard icon={<Shield size={18} />} title="Pattern summary" />
-            <OutputCard icon={<FileText size={18} />} title="Court-ready packet" />
+            <OutputCard icon={<FileText size={18} />} title="Professional-review packet" />
           </div>
         </div>
 

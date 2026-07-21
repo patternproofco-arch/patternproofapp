@@ -107,7 +107,7 @@ export function OrgSection() {
             Pattern Proof is what comes next.
           </p>
           <p style={{ fontSize: 14, lineHeight: 1.6, color: "#36422F" }}>
-            Everything DocuSafe did — incident logging, timeline building, evidence organization — plus AI-powered pattern detection, mobile-first design, and court-ready export. No grant dependency. No sunset date.
+            Everything DocuSafe did — incident logging, timeline building, evidence organization — plus AI-powered pattern detection, mobile-first design, and professional-review export. No grant dependency. No sunset date.
           </p>
           <p style={{ fontSize: 14, lineHeight: 1.6, color: "#36422F", marginTop: 8, fontWeight: 600 }}>
             If your organization used DocuSafe, this is your replacement. Free for every survivor you serve.

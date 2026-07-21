@@ -190,7 +190,7 @@ function Dashboard() {
           style={{ color: "var(--muted-foreground)" }}
         >
           <Sparkles size={14} style={{ color: "#5B7CC4" }} />
-          Turn scattered evidence into patterns, timelines, and court-ready insight.
+          Turn scattered evidence into patterns, timelines, and professional-review insight.
         </p>
       </div>
 
