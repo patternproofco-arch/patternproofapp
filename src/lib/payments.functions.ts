@@ -380,7 +380,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       ``,
       `This packet has been compiled from the survivor's documented record. All`,
       `evidence files included in the /evidence directory are hashed in manifest.json`,
-      `for chain-of-custody verification.`,
+      `for provenance & integrity verification.`,
     ].join("\n"));
 
     // 01_table_of_contents.md
@@ -676,7 +676,7 @@ export const generateClioPackage = createServerFn({ method: "POST" })
       `- Contacts: client + opposing party${otherParty ? ` (${otherParty})` : ""}`,
       ``,
       `All evidence files are stored under \`/documents/\` with sanitized filenames.`,
-      `The \`manifest.json\` records SHA-256 hashes for every file for chain-of-custody.`,
+      `The \`manifest.json\` records SHA-256 hashes for every file for provenance & integrity.`,
     ].join("\n"));
 
     // contacts.csv (Clio-friendly column names)

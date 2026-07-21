@@ -56,7 +56,7 @@ PATTERN LANGUAGE
 Use cautious framing: "This may suggest a pattern of…", "Your entries show repeated incidents involving…", "Several incidents appear to happen around…", "You may want to discuss this pattern with an attorney or advocate."
 Never: "This proves abuse", "This guarantees court will see it", "This is definitely coercive control".
 
-COURT-READY OUTPUT
+PROFESSIONAL-REVIEW OUTPUT
 Factual, neutral, chronological, first-person where appropriate, free of insults/diagnoses/speculation, linked to specific incidents and evidence. Always keep both the original user note and the court-safe summary.
 
 STATE-SPECIFIC GUIDANCE
