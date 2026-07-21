@@ -430,7 +430,7 @@ export const getClientCase = createServerFn({ method: "POST" })
     const flags = escQ.data ?? [];
     const pattern = (patQ.data ?? null) as { analysis: AnyJson; created_at: string } | null;
 
-    /* ---- categorize ---- */
+    /* ---- categorize documented behaviors (keyword match on incident text) ---- */
     const CATEGORY_MAP: Record<string, RegExp> = {
       "Financial control": /financial|money|bank|wage|account|withhold|debit/i,
       "Isolation": /isolat|cut off|forbid|prevent contact|alienat/i,
@@ -453,7 +453,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       }
     }
 
-    /* ---- coercive control checklist (Stark framework) ---- */
+    /* ---- documented behavior categories (survivor-logged incidents only) ---- */
     const checklist = [
       { item: "Isolation from family / friends / support systems", key: "Isolation" },
       { item: "Microregulation of daily life (rules, routines, surveillance)", key: "Coercive control" },
@@ -525,7 +525,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       });
     }
 
-    /* ---- risk score ---- */
+    /* ---- documentation density (volume + severity + recency) ---- */
     const flagsHigh = flags.filter((f) => (f.severity_tier ?? 0) >= 3 && !f.dismissed_at).length;
     const avgSeverity = incidents.length
       ? incidents.reduce((s, i) => s + (i.severity_level ?? 0), 0) / incidents.length
@@ -534,7 +534,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       const d = new Date(i.date);
       return Date.now() - d.getTime() < 30 * 24 * 60 * 60 * 1000;
     }).length;
-    const risk_level: "low" | "moderate" | "elevated" | "high" =
+    const documentation_density: "low" | "moderate" | "elevated" | "high" =
       flagsHigh >= 2 || avgSeverity >= 4 || last30 >= 4 ? "high"
       : flagsHigh >= 1 || avgSeverity >= 3 || last30 >= 2 ? "elevated"
       : incidents.length >= 5 ? "moderate"
@@ -564,7 +564,9 @@ export const getClientCase = createServerFn({ method: "POST" })
       categories: Object.entries(categoryCounts).map(([type, count]) => ({ type, count })),
       checklist,
       gaps,
-      risk_level,
+      documentation_density,
+      documentation_density_note:
+        "Reflects documentation volume and severity ratings the survivor has logged — not a clinical or forensic risk assessment.",
       avg_severity: avgSeverity,
       last_30_days: last30,
       timeline,
