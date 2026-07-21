@@ -350,8 +350,11 @@ export const listMyClients = createServerFn({ method: "GET" })
           ? incidents.reduce((s, r) => s + (r.severity_level ?? 0), 0) / incidents.length
           : 0;
 
+        // "documentation_density" summarises how much the survivor has logged
+        // (volume of incidents + severity ratings they entered + flags they
+        // set). It is NOT a clinical or forensic risk assessment.
         const flagsHigh = (esc.data ?? []).filter((f) => (f.severity_tier ?? 0) >= 3).length;
-        const riskLevel: "low" | "moderate" | "elevated" | "high" =
+        const documentationDensity: "low" | "moderate" | "elevated" | "high" =
           flagsHigh >= 2 || avgSeverity >= 4 ? "high"
           : flagsHigh >= 1 || avgSeverity >= 3 ? "elevated"
           : incidents.length >= 5 ? "moderate"
@@ -369,7 +372,9 @@ export const listMyClients = createServerFn({ method: "GET" })
           last_incident_date: lastIncident,
           earliest_incident_date: earliestIncident,
           avg_severity: avgSeverity,
-          risk_level: riskLevel,
+          documentation_density: documentationDensity,
+          documentation_density_note:
+            "Reflects documentation volume and severity ratings the survivor has logged — not a clinical or forensic risk assessment.",
           has_pattern_analysis: !!pat.data,
           pattern_updated_at: pat.data?.created_at ?? null,
           access_kind: ownerSet.has(l.id) ? ("owner" as const) : grantedSet.has(l.id) ? ("granted" as const) : ("collaborator" as const),
