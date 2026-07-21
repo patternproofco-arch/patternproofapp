@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Briefcase, Copy, Link2, Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/attorney-portal")({
   component: AttorneyPortal,
@@ -26,6 +27,7 @@ interface AccessRow {
 
 function AttorneyPortal() {
   const { user } = useAuth();
+  const { confirm, dialog } = useConfirm();
   const [rows, setRows] = useState<AccessRow[]>([]);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -75,7 +77,8 @@ function AttorneyPortal() {
 
   const revoke = async (id: string) => {
     if (!user) return;
-    if (!confirm("Revoke this access? The link will stop working.")) return;
+    const ok = await confirm({ title: "Revoke this access?", body: "The share link will stop working immediately.", confirmLabel: "Revoke", cancelLabel: "Keep" });
+    if (!ok) return;
     await supabase.from("attorney_access").update({ revoked_at: new Date().toISOString() }).eq("id", id).eq("user_id", user.id);
     toast("Access revoked.");
     load();

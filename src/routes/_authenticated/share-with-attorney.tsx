@@ -244,6 +244,7 @@ function ShareWithAttorney() {
           onClose={() => { setMessagingLinkId(null); load(); }}
         />
       )}
+      {dialog}
     </div>
   );
 }
