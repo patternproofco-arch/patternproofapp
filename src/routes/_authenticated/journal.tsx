@@ -92,9 +92,11 @@ function JournalPage() {
       witnesses: sanitizeLine(form.witnesses) || null,
       emotional_impact: form.emotional_impact || null,
     };
-    const insertPayload = aiFilled
-      ? { ...payload, source: "ai_extracted" as const, confirmed_at: null }
-      : { ...payload, source: "survivor" as const, confirmed_at: new Date().toISOString() };
+    const insertPayload = {
+      ...payload,
+      source: aiFilled ? "ai_extracted" : "survivor",
+      confirmed_at: aiFilled ? null : new Date().toISOString(),
+    };
     const { error } = editingId
       ? await supabase.from("incidents").update(payload).eq("id", editingId).eq("user_id", user.id)
       : await supabase.from("incidents").insert(insertPayload);
