@@ -97,9 +97,19 @@ function JournalPage() {
       source: aiFilled ? "ai_extracted" : "survivor",
       confirmed_at: aiFilled ? null : new Date().toISOString(),
     };
-    const { error } = editingId
-      ? await supabase.from("incidents").update(payload).eq("id", editingId).eq("user_id", user.id)
-      : await supabase.from("incidents").insert(insertPayload);
+    let error;
+    if (editingId) {
+      const current = list.find((i) => i.id === editingId);
+      const updatePayload: typeof payload & { confirmed_at?: string } = { ...payload };
+      // Editing an unconfirmed AI-extracted record IS an act of confirmation.
+      // Never overwrite `source` on edit.
+      if (current && !current.confirmed_at) {
+        updatePayload.confirmed_at = new Date().toISOString();
+      }
+      ({ error } = await supabase.from("incidents").update(updatePayload).eq("id", editingId).eq("user_id", user.id));
+    } else {
+      ({ error } = await supabase.from("incidents").insert(insertPayload));
+    }
     setBusy(false);
     if (error) { toast("We couldn't save that. Try again in a moment."); return; }
     toast("Saved. Your record is safe.");
