@@ -135,6 +135,7 @@ export type Database = {
           include_all_incidents: boolean
           include_patterns: boolean
           invitation_id: string | null
+          org_id: string | null
           revoked_at: string | null
           scope_evidence: string[]
           scope_incidents: string[]
@@ -150,6 +151,7 @@ export type Database = {
           include_all_incidents?: boolean
           include_patterns?: boolean
           invitation_id?: string | null
+          org_id?: string | null
           revoked_at?: string | null
           scope_evidence?: string[]
           scope_incidents?: string[]
@@ -165,6 +167,7 @@ export type Database = {
           include_all_incidents?: boolean
           include_patterns?: boolean
           invitation_id?: string | null
+          org_id?: string | null
           revoked_at?: string | null
           scope_evidence?: string[]
           scope_incidents?: string[]
@@ -1242,10 +1245,15 @@ export type Database = {
       incidents: {
         Row: {
           abuse_types: string[]
+          anchor_incident_id: string | null
+          anchor_label: string | null
           confidence: number | null
           confirmed_at: string | null
           created_at: string
-          date: string
+          date: string | null
+          date_precision: string
+          date_range_end: string | null
+          date_range_start: string | null
           deleted_at: string | null
           description: string
           emotional_impact: string | null
@@ -1261,10 +1269,15 @@ export type Database = {
         }
         Insert: {
           abuse_types?: string[]
+          anchor_incident_id?: string | null
+          anchor_label?: string | null
           confidence?: number | null
           confirmed_at?: string | null
           created_at?: string
-          date: string
+          date?: string | null
+          date_precision?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
           deleted_at?: string | null
           description: string
           emotional_impact?: string | null
@@ -1280,10 +1293,15 @@ export type Database = {
         }
         Update: {
           abuse_types?: string[]
+          anchor_incident_id?: string | null
+          anchor_label?: string | null
           confidence?: number | null
           confirmed_at?: string | null
           created_at?: string
-          date?: string
+          date?: string | null
+          date_precision?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
           deleted_at?: string | null
           description?: string
           emotional_impact?: string | null
@@ -1298,6 +1316,13 @@ export type Database = {
           witnesses?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "incidents_anchor_incident_id_fkey"
+            columns: ["anchor_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "incidents_source_evidence_id_fkey"
             columns: ["source_evidence_id"]
