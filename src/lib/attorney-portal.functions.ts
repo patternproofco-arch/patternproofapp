@@ -318,9 +318,9 @@ export const listMyClients = createServerFn({ method: "GET" })
         const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
         const scopedEvidenceIds = (l.scope_evidence ?? []) as string[];
         const incidentsQ = l.include_all_incidents
-          ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).is("deleted_at", null)
+          ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null")
           : scopedIncidentIds.length
-            ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null)
+            ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null")
             : Promise.resolve({ data: [], count: 0 });
         const evidenceQ = l.include_all_evidence
           ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id).is("deleted_at", null)
