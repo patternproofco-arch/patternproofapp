@@ -266,7 +266,7 @@ function CaseBuilder() {
         <button disabled={step === 1} onClick={() => setStep((s) => Math.max(1, s - 1))} className="btn-ghost">Back</button>
         {step < 4
           ? <button onClick={() => setStep((s) => Math.min(4, s + 1))} className="btn-primary">Next</button>
-          : <button onClick={finish} className="btn-primary">Build Court Packet</button>}
+          : <button onClick={finish} className="btn-primary">Build Professional-Review Packet</button>}
       </div>
     </div>
   );
