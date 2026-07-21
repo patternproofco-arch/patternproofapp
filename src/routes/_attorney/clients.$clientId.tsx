@@ -936,7 +936,7 @@ function Overview({ data }: { data: CaseData }) {
             {recent.map((i) => (
               <li key={i.id} style={{ borderLeft: "3px solid var(--att-navy)", paddingLeft: 12 }}>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>
-                  {new Date(i.date).toLocaleDateString()}
+                  {i.date ? new Date(i.date).toLocaleDateString() : "Date not documented"}
                   {i.severity_level ? ` · severity ${i.severity_level}` : ""}
                 </div>
                 <div style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 2 }}>{i.description?.slice(0, 220)}</div>
@@ -984,8 +984,8 @@ function TimelineTab({ data, clientId, notes, onNotes }: { data: CaseData; clien
 
   const byMonth = useMemo(() => {
     const m: Record<string, CaseData["incidents"]> = {};
-    for (const i of [...data.incidents].sort((a, b) => b.date.localeCompare(a.date))) {
-      const k = i.date.slice(0, 7);
+    for (const i of [...data.incidents].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))) {
+      const k = i.date ? i.date.slice(0, 7) : "0000-00";
       (m[k] ??= []).push(i);
     }
     return m;
@@ -1025,7 +1025,7 @@ function TimelineTab({ data, clientId, notes, onNotes }: { data: CaseData; clien
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>
-                          {new Date(i.date).toLocaleDateString()}
+                          {i.date ? new Date(i.date).toLocaleDateString() : "Date not documented"}
                           {i.severity_level ? ` · severity ${i.severity_level}` : ""}
                         </div>
                         {i.abuse_types?.length ? (
@@ -1869,7 +1869,7 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
 function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
   const c = data.case;
-  const sortedInc = [...data.incidents].sort((a, b) => a.date.localeCompare(b.date));
+  const sortedInc = [...data.incidents].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
   const first = sortedInc[0]?.date;
   const last = sortedInc[sortedInc.length - 1]?.date;
   const highSev = sortedInc.filter((i) => (i.severity_level ?? 0) >= 4);
@@ -1900,7 +1900,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
         {first && <li>First documented incident: <strong>{new Date(first).toLocaleDateString()}</strong></li>}
         {last && <li>Most recent incident: <strong>{new Date(last).toLocaleDateString()}</strong></li>}
         {highSev.slice(0, 4).map((i) => (
-          <li key={i.id}>{new Date(i.date).toLocaleDateString()} — severity {i.severity_level}: {(i.description ?? "").slice(0, 80)}</li>
+          <li key={i.id}>{i.date ? new Date(i.date).toLocaleDateString() : "Date not documented"} — severity {i.severity_level}: {(i.description ?? "").slice(0, 80)}</li>
         ))}
         {!first && <li style={{ color: "var(--att-text-2)" }}>No dated incidents on file.</li>}
       </ul>
