@@ -235,7 +235,7 @@ function LoginPage() {
           className="mt-5 flex items-center justify-center gap-2 text-[11px]"
           style={{ color: "var(--muted-foreground)", letterSpacing: "2px", fontWeight: 600 }}
         >
-          <Lock size={12} /> END-TO-END ENCRYPTED
+          <Lock size={12} /> PRIVATE BY DEFAULT · ENCRYPTED IN TRANSIT &amp; AT REST
         </div>
       </div>
     </div>

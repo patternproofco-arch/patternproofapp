@@ -46,13 +46,16 @@ export function OnboardingModal() {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pp-onboarding-title"
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto px-5 py-10"
       style={{ background: "rgba(78, 59, 49, 0.55)", backdropFilter: "blur(8px)" }}
     >
       <div className="card-pp w-full max-w-lg">
         <div className="mb-5 flex flex-col items-center text-center">
           <Logo variant="survivor" size={64} />
-          <h1 className="font-serif mt-4" style={{ fontSize: 28, lineHeight: 1.2 }}>
+          <h1 id="pp-onboarding-title" className="font-serif mt-4" style={{ fontSize: 28, lineHeight: 1.2 }}>
             Before you begin
           </h1>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
@@ -61,6 +64,20 @@ export function OnboardingModal() {
         </div>
 
         <div className="space-y-4">
+          <div
+            className="rounded-xl p-3 text-[12.5px]"
+            style={{
+              background: "rgba(255, 200, 120, 0.14)",
+              border: "1px solid rgba(160, 90, 20, 0.25)",
+              color: "#5A3A10",
+              lineHeight: 1.55,
+            }}
+          >
+            <strong>Safety note:</strong> If someone else may see this device, use a private
+            browser window and clear history when you're done. PatternProof has a "Quick Exit"
+            button (top-right) that redirects to Google, but it can't erase browser history or
+            notifications. Consider turning off message previews on your lock screen.
+          </div>
           <div>
             <h2 className="font-serif text-[16px] mb-2">Legal agreements</h2>
             <label className="flex items-start gap-2 text-[14px] cursor-pointer">
