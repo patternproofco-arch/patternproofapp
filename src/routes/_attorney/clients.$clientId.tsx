@@ -267,7 +267,7 @@ async function generateWordDoc(args: {
       ["Case ref", caseId],
       ["Incidents on file", String(data.incidents.length)],
       ["Evidence files", String(data.evidence.length)],
-      ["Risk level", (data.risk_level ?? "—").toString().toUpperCase()],
+      ["Documentation density", (data.documentation_density ?? "—").toString().toUpperCase()],
       ["Active flags", String((data.flags ?? []).filter((f: any) => !f.dismissed_at).length)],
       ["Avg severity", (data.avg_severity ?? 0).toFixed(1)],
       ["Incidents (last 30 days)", String(data.last_30_days ?? 0)],
@@ -327,12 +327,12 @@ async function generateWordDoc(args: {
 
   // 4. Checklist
   if (include.checklist) {
-    children.push(h2("4. Coercive Control Checklist"));
+    children.push(h2("4. Documented Behavior Categories"));
     const docCount = (data.checklist ?? []).filter((r: any) => r.documented).length;
-    children.push(p(`Stark Framework — ${docCount} of ${(data.checklist ?? []).length} mechanisms documented.`));
+    children.push(p(`${docCount} of ${(data.checklist ?? []).length} behavior categories have at least one confirmed incident documented by the survivor. This is a summary of what has been logged, not a clinical or forensic assessment.`));
     children.push(dataTable(
-      ["Control mechanism", "Status", "Incidents"],
-      (data.checklist ?? []).map((r: any) => [r.item, r.documented ? "Documented" : "Not documented", r.count != null ? String(r.count) : "—"]),
+      ["Behavior category", "Status", "Confirmed incidents"],
+      (data.checklist ?? []).map((r: any) => [r.item, r.documented ? "Documented" : "Not documented", r.count != null ? `Based on ${r.count} confirmed incident${r.count === 1 ? "" : "s"}` : "—"]),
     ));
   }
 
