@@ -19,6 +19,7 @@ export default defineTool({
     let q = sb
       .from("evidence")
       .select("id,title,description,date,file_type,linked_incident_id,created_at")
+      .is("deleted_at", null)
       .order("date", { ascending: false })
       .limit(limit ?? 25);
     if (linked_incident_id) q = q.eq("linked_incident_id", linked_incident_id);

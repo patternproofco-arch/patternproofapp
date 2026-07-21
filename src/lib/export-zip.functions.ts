@@ -36,8 +36,8 @@ export const generateExportZip = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     const [incRes, evRes, commsRes, vnRes, ldRes, paRes, casesRes] = await Promise.all([
-      supabase.from("incidents").select("*").eq("user_id", userId).order("date", { ascending: true }),
-      supabase.from("evidence").select("*").eq("user_id", userId).order("date", { ascending: true }),
+      supabase.from("incidents").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true }),
+      supabase.from("evidence").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true }),
       supabase.from("communications").select("*").eq("user_id", userId).order("date", { ascending: true }),
       supabase.from("voice_notes").select("*").eq("user_id", userId).order("date", { ascending: true }),
       supabase.from("legal_documents").select("*").eq("user_id", userId),

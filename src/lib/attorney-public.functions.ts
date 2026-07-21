@@ -49,15 +49,19 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
         ? supabaseAdmin.from("cases").select("other_party,relationship_type,case_types,jurisdiction,pattern_summary").eq("user_id", userId).order("updated_at", { ascending: false }).limit(1).maybeSingle()
         : Promise.resolve({ data: null }),
       wantIncidents && access.shared_incident_ids.length
-        ? supabaseAdmin.from("incidents").select("id,date,time,location,description,abuse_types,witnesses,emotional_impact").eq("user_id", userId).in("id", access.shared_incident_ids).order("date", { ascending: true })
+        ? supabaseAdmin.from("incidents").select("id,date,time,location,description,abuse_types,witnesses,emotional_impact,source,confirmed_at").eq("user_id", userId).in("id", access.shared_incident_ids).is("deleted_at", null).order("date", { ascending: true })
         : Promise.resolve({ data: [] }),
       wantEvidence && access.shared_evidence_ids.length
-        ? supabaseAdmin.from("evidence").select("id,title,date,description,file_type,linked_incident_id,file_url").eq("user_id", userId).in("id", access.shared_evidence_ids)
+        ? supabaseAdmin.from("evidence").select("id,title,date,description,file_type,linked_incident_id,file_url").eq("user_id", userId).in("id", access.shared_evidence_ids).is("deleted_at", null)
         : Promise.resolve({ data: [] }),
       access.include_escalation
         ? supabaseAdmin.from("escalation_flags").select("id,flag_type,severity_tier,details,created_at").eq("user_id", userId).is("dismissed_at", null).order("created_at", { ascending: false })
         : Promise.resolve({ data: [] }),
     ]);
+
+    // Exclude unconfirmed AI-extracted drafts from public/shared attorney views.
+    const incRows = (incR.data ?? []) as Array<{ id: string; date: string; time: string | null; location: string | null; description: string; abuse_types: string[]; witnesses: string | null; emotional_impact: string | null; source?: string | null; confirmed_at?: string | null }>;
+    const filteredIncidents = incRows.filter((i) => !(i.source === "ai_extracted" && !i.confirmed_at));
 
     const evRows = (evR.data ?? []) as Array<{ id: string; title: string; date: string; description: string | null; file_type: string; linked_incident_id: string | null; file_url: string }>;
     const evWithUrls = await Promise.all(evRows.map(async (e) => {
@@ -74,7 +78,7 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
       attorney_type: access.attorney_type,
       access_level: access.access_level,
       case_overview: caseR.data ?? null,
-      incidents: (incR.data ?? []) as SharedBundle["incidents"],
+      incidents: filteredIncidents.map(({ source, confirmed_at, ...rest }) => { void source; void confirmed_at; return rest; }) as SharedBundle["incidents"],
       evidence: evWithUrls,
       escalation_flags: (esR.data ?? []) as SharedBundle["escalation_flags"],
     };

@@ -269,11 +269,11 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     const includePatterns = link.include_patterns !== false;
 
     const incidentsQuery = includeAllIncidents
-      ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).order("date")
-      : supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopeIncidents.length ? scopeIncidents : ["00000000-0000-0000-0000-000000000000"]).order("date");
+      ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).order("date")
+      : supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopeIncidents.length ? scopeIncidents : ["00000000-0000-0000-0000-000000000000"]).is("deleted_at", null).order("date");
     const evidenceQuery = includeAllEvidence
-      ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).order("date")
-      : supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopeEvidence.length ? scopeEvidence : ["00000000-0000-0000-0000-000000000000"]).order("date");
+      ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).is("deleted_at", null).order("date")
+      : supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopeEvidence.length ? scopeEvidence : ["00000000-0000-0000-0000-000000000000"]).is("deleted_at", null).order("date");
 
     const [incRes, evRes, commsRes, paRes, casesRes, flagsRes] = await Promise.all([
       incidentsQuery,
@@ -612,11 +612,11 @@ export const generateClioPackage = createServerFn({ method: "POST" })
     const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];
 
     const incidentsQuery = includeAllIncidents
-      ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).order("date")
-      : supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopeIncidents.length ? scopeIncidents : ["00000000-0000-0000-0000-000000000000"]).order("date");
+      ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).order("date")
+      : supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopeIncidents.length ? scopeIncidents : ["00000000-0000-0000-0000-000000000000"]).is("deleted_at", null).order("date");
     const evidenceQuery = includeAllEvidence
-      ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).order("date")
-      : supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopeEvidence.length ? scopeEvidence : ["00000000-0000-0000-0000-000000000000"]).order("date");
+      ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).is("deleted_at", null).order("date")
+      : supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopeEvidence.length ? scopeEvidence : ["00000000-0000-0000-0000-000000000000"]).is("deleted_at", null).order("date");
 
     const [incRes, evRes, casesRes, reviewsRes, docReqRes, attorneyProfileRes] = await Promise.all([
       incidentsQuery,
