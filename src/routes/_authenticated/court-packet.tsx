@@ -92,7 +92,7 @@ function CourtPacket() {
   if (!caseRow) {
     return (
       <div>
-        <div className="label-eyebrow">Court packet</div>
+          <div className="label-eyebrow">Professional-review packet</div>
         <h1 className="mt-2 font-serif text-[34px] leading-tight">Your packet isn't ready yet.</h1>
         <div className="card-pp mt-6">
           <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
@@ -110,7 +110,7 @@ function CourtPacket() {
     <div>
       <div className="no-print mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="label-eyebrow">Court packet</div>
+          <div className="label-eyebrow">Professional-review packet</div>
           <h1 className="mt-2 font-serif text-[30px] leading-tight">Preview your packet.</h1>
         </div>
         <div className="flex gap-2">
