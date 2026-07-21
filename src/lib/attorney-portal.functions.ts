@@ -344,8 +344,9 @@ export const listMyClients = createServerFn({ method: "GET" })
         ]);
 
         const incidents = inc.data ?? [];
-        const lastIncident = incidents.reduce<string | null>((acc, r) => (!acc || r.date > acc ? r.date : acc), null);
-        const earliestIncident = incidents.reduce<string | null>((acc, r) => (!acc || r.date < acc ? r.date : acc), null);
+        const datedIncidents = incidents.filter((r): r is typeof r & { date: string } => !!r.date);
+        const lastIncident = datedIncidents.reduce<string | null>((acc, r) => (!acc || r.date > acc ? r.date : acc), null);
+        const earliestIncident = datedIncidents.reduce<string | null>((acc, r) => (!acc || r.date < acc ? r.date : acc), null);
         const avgSeverity = incidents.length
           ? incidents.reduce((s, r) => s + (r.severity_level ?? 0), 0) / incidents.length
           : 0;
@@ -531,6 +532,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       ? incidents.reduce((s, i) => s + (i.severity_level ?? 0), 0) / incidents.length
       : 0;
     const last30 = incidents.filter((i) => {
+      if (!i.date) return false;
       const d = new Date(i.date);
       return Date.now() - d.getTime() < 30 * 24 * 60 * 60 * 1000;
     }).length;
