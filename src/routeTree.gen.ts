@@ -20,6 +20,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
 import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
 import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
+import { Route as EvidenceIntegrityRouteImport } from './routes/evidence-integrity'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
@@ -128,6 +129,11 @@ const ForOrganizationsRoute = ForOrganizationsRouteImport.update({
 const ForAttorneysRoute = ForAttorneysRouteImport.update({
   id: '/for-attorneys',
   path: '/for-attorneys',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EvidenceIntegrityRoute = EvidenceIntegrityRouteImport.update({
+  id: '/evidence-integrity',
+  path: '/evidence-integrity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -422,6 +428,7 @@ const ApiPublicPaymentsWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
+  '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
@@ -487,6 +494,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
+  '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
@@ -553,6 +561,7 @@ export interface FileRoutesById {
   '/_attorney': typeof AttorneyRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/demo': typeof DemoRoute
+  '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/lawyer-signup': typeof LawyerSignupRoute
@@ -620,6 +629,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/demo'
+    | '/evidence-integrity'
     | '/for-attorneys'
     | '/for-organizations'
     | '/lawyer-signup'
@@ -685,6 +695,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/demo'
+    | '/evidence-integrity'
     | '/for-attorneys'
     | '/for-organizations'
     | '/lawyer-signup'
@@ -750,6 +761,7 @@ export interface FileRouteTypes {
     | '/_attorney'
     | '/_authenticated'
     | '/demo'
+    | '/evidence-integrity'
     | '/for-attorneys'
     | '/for-organizations'
     | '/lawyer-signup'
@@ -818,6 +830,7 @@ export interface RootRouteChildren {
   AttorneyRoute: typeof AttorneyRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   DemoRoute: typeof DemoRoute
+  EvidenceIntegrityRoute: typeof EvidenceIntegrityRoute
   ForAttorneysRoute: typeof ForAttorneysRoute
   ForOrganizationsRoute: typeof ForOrganizationsRoute
   LawyerSignupRoute: typeof LawyerSignupRoute
@@ -920,6 +933,13 @@ declare module '@tanstack/react-router' {
       path: '/for-attorneys'
       fullPath: '/for-attorneys'
       preLoaderRoute: typeof ForAttorneysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evidence-integrity': {
+      id: '/evidence-integrity'
+      path: '/evidence-integrity'
+      fullPath: '/evidence-integrity'
+      preLoaderRoute: typeof EvidenceIntegrityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -1423,6 +1443,7 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneyRoute: AttorneyRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   DemoRoute: DemoRoute,
+  EvidenceIntegrityRoute: EvidenceIntegrityRoute,
   ForAttorneysRoute: ForAttorneysRoute,
   ForOrganizationsRoute: ForOrganizationsRoute,
   LawyerSignupRoute: LawyerSignupRoute,
