@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { TrustPage, Section, Callout } from "@/components/pp/TrustPageShell";
 
 export const Route = createFileRoute("/safety")({
   head: () => ({
@@ -16,7 +16,8 @@ export const Route = createFileRoute("/safety")({
 });
 
 function SafetyPage() {
-  return <TrustPage title="Survivor Safety" subtitle="What PatternProof does — and does not do — to reduce risk.">
+  return (
+  <TrustPage title="Survivor Safety" subtitle="What PatternProof does — and does not do — to reduce risk.">
     <Section title="Quick Exit">
       <p>Quick Exit immediately replaces the visible page, stops visible media, and requires you to sign in again before returning. It is a fast way to change what is on screen if someone walks in.</p>
       <Callout>Quick Exit does not erase browser history, downloads, network records, or activity visible through a shared account. If you share a device or account with the person you are documenting, please read the safer-use notes below before continuing.</Callout>
@@ -38,11 +39,6 @@ function SafetyPage() {
     <Section title="If you are in immediate danger">
       <p>PatternProof is a documentation tool. It is not an emergency service. If you are in immediate danger, contact local emergency services or a trained advocate.</p>
     </Section>
-  </TrustPage>;
+  </TrustPage>
+  );
 }
-
-// Shared page shell + primitives are defined in ./_trust.tsx-shell.tsx so all four pages match.
-import { TrustPage, Section, Callout } from "@/components/pp/TrustPageShell";
-
-// Reserved for future safer-use tips.
-export const _bare = ArrowLeft; Link;
