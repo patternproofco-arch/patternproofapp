@@ -97,7 +97,7 @@ function ClientCaseView() {
   if (!data) return <div className="att-card">Loading case file…</div>;
 
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
-  const riskColor: Record<string, string> = {
+  const densityColor: Record<string, string> = {
     low: "#10B981", moderate: "#FBBF24", elevated: "#F59E0B", high: "#EF4444",
   };
 
@@ -117,10 +117,17 @@ function ClientCaseView() {
             )}
           </div>
         </div>
-        <span className="att-tag" style={{ background: `${riskColor[data.risk_level]}1A`, color: riskColor[data.risk_level] }}>
-          {data.risk_level.toUpperCase()} RISK
+        <span
+          className="att-tag"
+          style={{ background: `${densityColor[data.documentation_density]}1A`, color: densityColor[data.documentation_density] }}
+          title={data.documentation_density_note}
+        >
+          {data.documentation_density.toUpperCase()} DOCUMENTATION DENSITY
         </span>
       </div>
+      <p style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 6, maxWidth: 640 }}>
+        {data.documentation_density_note}
+      </p>
 
       <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", marginTop: 18 }}>
         <Metric label="Incidents" v={data.incidents.length} />
@@ -260,7 +267,7 @@ async function generateWordDoc(args: {
       ["Case ref", caseId],
       ["Incidents on file", String(data.incidents.length)],
       ["Evidence files", String(data.evidence.length)],
-      ["Risk level", (data.risk_level ?? "—").toString().toUpperCase()],
+      ["Documentation density", (data.documentation_density ?? "—").toString().toUpperCase()],
       ["Active flags", String((data.flags ?? []).filter((f: any) => !f.dismissed_at).length)],
       ["Avg severity", (data.avg_severity ?? 0).toFixed(1)],
       ["Incidents (last 30 days)", String(data.last_30_days ?? 0)],
@@ -320,12 +327,12 @@ async function generateWordDoc(args: {
 
   // 4. Checklist
   if (include.checklist) {
-    children.push(h2("4. Coercive Control Checklist"));
+    children.push(h2("4. Documented Behavior Categories"));
     const docCount = (data.checklist ?? []).filter((r: any) => r.documented).length;
-    children.push(p(`Stark Framework — ${docCount} of ${(data.checklist ?? []).length} mechanisms documented.`));
+    children.push(p(`${docCount} of ${(data.checklist ?? []).length} behavior categories have at least one confirmed incident documented by the survivor. This is a summary of what has been logged, not a clinical or forensic assessment.`));
     children.push(dataTable(
-      ["Control mechanism", "Status", "Incidents"],
-      (data.checklist ?? []).map((r: any) => [r.item, r.documented ? "Documented" : "Not documented", r.count != null ? String(r.count) : "—"]),
+      ["Behavior category", "Status", "Confirmed incidents"],
+      (data.checklist ?? []).map((r: any) => [r.item, r.documented ? "Documented" : "Not documented", r.count != null ? `Based on ${r.count} confirmed incident${r.count === 1 ? "" : "s"}` : "—"]),
     ));
   }
 
@@ -1140,9 +1147,12 @@ function ChecklistTab({ data }: { data: CaseData }) {
   const docCount = data.checklist.filter((r) => r.documented).length;
   return (
     <div className="att-card">
-      <SectionTitle>Coercive control checklist <span style={{ fontSize: 12, color: "var(--att-text-2)", fontFamily: "inherit" }}>· Stark framework</span></SectionTitle>
-      <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 14 }}>
-        {docCount} of {data.checklist.length} mechanisms documented.
+      <SectionTitle>Documented behavior categories</SectionTitle>
+      <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 6 }}>
+        {docCount} of {data.checklist.length} categories have at least one confirmed incident documented by the survivor.
+      </p>
+      <p style={{ fontSize: 11, color: "var(--att-text-2)", marginBottom: 14, fontStyle: "italic" }}>
+        Summary of survivor-logged documentation — not a clinical or forensic assessment.
       </p>
       <ul style={{ display: "grid", gap: 10, listStyle: "none", padding: 0, margin: 0 }}>
         {data.checklist.map((row) => (
@@ -1153,7 +1163,9 @@ function ChecklistTab({ data }: { data: CaseData }) {
             <div>
               <div>{row.item}</div>
               <div style={{ fontSize: 11, color: "var(--att-text-2)" }}>
-                {row.documented ? `${row.count} incident${row.count === 1 ? "" : "s"} documented` : "No documented incidents"}
+                {row.documented
+                  ? `Based on ${row.count} confirmed incident${row.count === 1 ? "" : "s"}`
+                  : "No confirmed incidents in this category"}
               </div>
             </div>
           </li>
@@ -1705,7 +1717,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
           <Item k="overview" label="Case overview & summary" note="Hero stats, client summary, jurisdiction." />
           <Item k="timeline" label="Full incident timeline" note={`${data.incidents.length} incidents grouped by month.`} />
           <Item k="patterns" label="Pattern analysis" note="Behavior categories, monthly frequency." />
-          <Item k="checklist" label="Coercive control checklist" note="Stark framework documentation status." />
+          <Item k="checklist" label="Documented behavior categories" note="Which behavior categories have confirmed incidents logged." />
           <Item k="gaps" label="Evidence gaps" note={`${data.gaps.length} gaps flagged.`} />
           <Item k="evidence" label="Evidence index" note={`${data.evidence.length} authenticated files (titles + metadata).`} />
         </div>
@@ -1874,7 +1886,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
         Client {clientId.slice(0, 8)} has documented <strong>{data.incidents.length} incidents</strong>
         {first && last ? <> spanning <strong>{new Date(first).toLocaleDateString()}</strong> to <strong>{new Date(last).toLocaleDateString()}</strong></> : null},
         with <strong>{data.evidence.length} evidence file{data.evidence.length === 1 ? "" : "s"}</strong> attached.
-        Current risk profile is <strong style={{ textTransform: "uppercase" }}>{data.risk_level}</strong>.
+        Documentation density is <strong style={{ textTransform: "uppercase" }}>{data.documentation_density}</strong> (survivor-logged volume + severity, not a risk assessment).
         {c?.case_types && c.case_types.length > 0 ? <> Matter type: <strong>{c.case_types.join(", ")}</strong>.</> : null}
       </p>
     },
@@ -1949,7 +1961,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
     },
     { title: "Requested relief", body:
       <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
-        To be captured at attorney intake. Suggested relief based on case profile: {data.risk_level === "high" ? "emergency protective order, custody modification, supervised visitation" : "protective order, custody clarification, no-contact terms"}.
+        To be captured at attorney intake. Suggested relief based on case profile: {data.documentation_density === "high" ? "emergency protective order, custody modification, supervised visitation" : "protective order, custody clarification, no-contact terms"}.
       </p>
     },
     { title: "Missing documents", body:

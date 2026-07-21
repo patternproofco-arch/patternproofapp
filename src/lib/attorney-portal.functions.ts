@@ -350,8 +350,11 @@ export const listMyClients = createServerFn({ method: "GET" })
           ? incidents.reduce((s, r) => s + (r.severity_level ?? 0), 0) / incidents.length
           : 0;
 
+        // "documentation_density" summarises how much the survivor has logged
+        // (volume of incidents + severity ratings they entered + flags they
+        // set). It is NOT a clinical or forensic risk assessment.
         const flagsHigh = (esc.data ?? []).filter((f) => (f.severity_tier ?? 0) >= 3).length;
-        const riskLevel: "low" | "moderate" | "elevated" | "high" =
+        const documentationDensity: "low" | "moderate" | "elevated" | "high" =
           flagsHigh >= 2 || avgSeverity >= 4 ? "high"
           : flagsHigh >= 1 || avgSeverity >= 3 ? "elevated"
           : incidents.length >= 5 ? "moderate"
@@ -369,7 +372,9 @@ export const listMyClients = createServerFn({ method: "GET" })
           last_incident_date: lastIncident,
           earliest_incident_date: earliestIncident,
           avg_severity: avgSeverity,
-          risk_level: riskLevel,
+          documentation_density: documentationDensity,
+          documentation_density_note:
+            "Reflects documentation volume and severity ratings the survivor has logged — not a clinical or forensic risk assessment.",
           has_pattern_analysis: !!pat.data,
           pattern_updated_at: pat.data?.created_at ?? null,
           access_kind: ownerSet.has(l.id) ? ("owner" as const) : grantedSet.has(l.id) ? ("granted" as const) : ("collaborator" as const),
@@ -425,7 +430,7 @@ export const getClientCase = createServerFn({ method: "POST" })
     const flags = escQ.data ?? [];
     const pattern = (patQ.data ?? null) as { analysis: AnyJson; created_at: string } | null;
 
-    /* ---- categorize ---- */
+    /* ---- categorize documented behaviors (keyword match on incident text) ---- */
     const CATEGORY_MAP: Record<string, RegExp> = {
       "Financial control": /financial|money|bank|wage|account|withhold|debit/i,
       "Isolation": /isolat|cut off|forbid|prevent contact|alienat/i,
@@ -448,7 +453,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       }
     }
 
-    /* ---- coercive control checklist (Stark framework) ---- */
+    /* ---- documented behavior categories (survivor-logged incidents only) ---- */
     const checklist = [
       { item: "Isolation from family / friends / support systems", key: "Isolation" },
       { item: "Microregulation of daily life (rules, routines, surveillance)", key: "Coercive control" },
@@ -520,7 +525,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       });
     }
 
-    /* ---- risk score ---- */
+    /* ---- documentation density (volume + severity + recency) ---- */
     const flagsHigh = flags.filter((f) => (f.severity_tier ?? 0) >= 3 && !f.dismissed_at).length;
     const avgSeverity = incidents.length
       ? incidents.reduce((s, i) => s + (i.severity_level ?? 0), 0) / incidents.length
@@ -529,7 +534,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       const d = new Date(i.date);
       return Date.now() - d.getTime() < 30 * 24 * 60 * 60 * 1000;
     }).length;
-    const risk_level: "low" | "moderate" | "elevated" | "high" =
+    const documentation_density: "low" | "moderate" | "elevated" | "high" =
       flagsHigh >= 2 || avgSeverity >= 4 || last30 >= 4 ? "high"
       : flagsHigh >= 1 || avgSeverity >= 3 || last30 >= 2 ? "elevated"
       : incidents.length >= 5 ? "moderate"
@@ -559,7 +564,9 @@ export const getClientCase = createServerFn({ method: "POST" })
       categories: Object.entries(categoryCounts).map(([type, count]) => ({ type, count })),
       checklist,
       gaps,
-      risk_level,
+      documentation_density,
+      documentation_density_note:
+        "Reflects documentation volume and severity ratings the survivor has logged — not a clinical or forensic risk assessment.",
       avg_severity: avgSeverity,
       last_30_days: last30,
       timeline,
