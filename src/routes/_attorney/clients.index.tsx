@@ -21,11 +21,11 @@ export const Route = createFileRoute("/_attorney/clients/")({
 type ClientRow = Awaited<ReturnType<typeof listMyClients>>["clients"][number];
 type InviteRow = Awaited<ReturnType<typeof listSurvivorInvites>>["invites"][number];
 
-const RISK: Record<string, { color: string; label: string }> = {
-  low: { color: "#10B981", label: "Low" },
-  moderate: { color: "#FBBF24", label: "Moderate" },
-  elevated: { color: "#F59E0B", label: "Elevated" },
-  high: { color: "#EF4444", label: "High" },
+const DENSITY: Record<string, { color: string; label: string }> = {
+  low: { color: "#10B981", label: "Low density" },
+  moderate: { color: "#FBBF24", label: "Moderate density" },
+  elevated: { color: "#F59E0B", label: "Elevated density" },
+  high: { color: "#EF4444", label: "High density" },
 };
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
@@ -91,7 +91,7 @@ function ClientGrid({ clients, sharedBadge }: { clients: ClientRow[]; sharedBadg
   return (
     <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))" }}>
       {clients.map((c) => {
-            const risk = RISK[c.risk_level];
+            const density = DENSITY[c.documentation_density];
             const caseId = `PP-${c.client_user_id.slice(0, 4).toUpperCase()}`;
             return (
               <Link
@@ -99,7 +99,7 @@ function ClientGrid({ clients, sharedBadge }: { clients: ClientRow[]; sharedBadg
                 to="/clients/$clientId"
                 params={{ clientId: c.client_user_id }}
                 className="att-card att-hover"
-                style={{ borderLeft: `3px solid ${risk.color}`, textDecoration: "none", color: "inherit", display: "block" }}
+                style={{ borderLeft: `3px solid ${density.color}`, textDecoration: "none", color: "inherit", display: "block" }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                   <div>
@@ -110,7 +110,13 @@ function ClientGrid({ clients, sharedBadge }: { clients: ClientRow[]; sharedBadg
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
-                    <span className="att-tag" style={{ background: `${risk.color}1A`, color: risk.color }}>{risk.label}</span>
+                    <span
+                      className="att-tag"
+                      style={{ background: `${density.color}1A`, color: density.color }}
+                      title="Documentation density reflects volume + severity ratings the survivor has logged — not a clinical or forensic risk assessment."
+                    >
+                      {density.label}
+                    </span>
                     {sharedBadge && (
                       <span className="att-tag" style={{ background: "#EEF2FF", color: "#3730A3" }}>Shared</span>
                     )}
