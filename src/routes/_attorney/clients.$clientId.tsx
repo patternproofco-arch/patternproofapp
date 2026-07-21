@@ -97,7 +97,7 @@ function ClientCaseView() {
   if (!data) return <div className="att-card">Loading case file…</div>;
 
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
-  const riskColor: Record<string, string> = {
+  const densityColor: Record<string, string> = {
     low: "#10B981", moderate: "#FBBF24", elevated: "#F59E0B", high: "#EF4444",
   };
 
@@ -117,10 +117,17 @@ function ClientCaseView() {
             )}
           </div>
         </div>
-        <span className="att-tag" style={{ background: `${riskColor[data.risk_level]}1A`, color: riskColor[data.risk_level] }}>
-          {data.risk_level.toUpperCase()} RISK
+        <span
+          className="att-tag"
+          style={{ background: `${densityColor[data.documentation_density]}1A`, color: densityColor[data.documentation_density] }}
+          title={data.documentation_density_note}
+        >
+          {data.documentation_density.toUpperCase()} DOCUMENTATION DENSITY
         </span>
       </div>
+      <p style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 6, maxWidth: 640 }}>
+        {data.documentation_density_note}
+      </p>
 
       <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", marginTop: 18 }}>
         <Metric label="Incidents" v={data.incidents.length} />
