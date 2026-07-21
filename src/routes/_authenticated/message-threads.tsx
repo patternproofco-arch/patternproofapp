@@ -94,6 +94,7 @@ function typeForFile(file: File, hint: SourceType): SourceType {
 
 function MessageThreadsPage() {
   const { user } = useAuth();
+  const { confirm, dialog } = useConfirm();
   const parseFn = useServerFn(parseMessageThread);
   const [threads, setThreads] = useState<ThreadRow[]>([]);
   const [busyType, setBusyType] = useState<SourceType | null>(null);
@@ -174,7 +175,13 @@ function MessageThreadsPage() {
   };
 
   const removeThread = async (id: string) => {
-    if (!confirm("Delete this conversation? Parsed messages and the original file will be removed.")) return;
+    const ok = await confirm({
+      title: "Delete this conversation?",
+      body: "Parsed messages and the original file will be removed.",
+      confirmLabel: "Delete",
+      cancelLabel: "Keep",
+    });
+    if (!ok) return;
     const t = threads.find((x) => x.id === id);
     await supabase.from("message_threads").delete().eq("id", id);
     if (t) await supabase.storage.from("message-exports").remove([t["file_url" as keyof ThreadRow] as unknown as string]).catch(() => null);
@@ -295,6 +302,7 @@ function MessageThreadsPage() {
           threads.map((t) => <ThreadCard key={t.id} t={t} onDelete={() => removeThread(t.id)} />)
         )}
       </section>
+      {dialog}
     </div>
   );
 }
