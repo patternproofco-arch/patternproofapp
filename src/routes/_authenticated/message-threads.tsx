@@ -6,6 +6,7 @@ import { Upload, FileText, FileSpreadsheet, FileCode2, FileArchive, FileType2, S
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { parseMessageThread } from "@/lib/message-threads.functions";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/message-threads")({
   component: MessageThreadsPage,

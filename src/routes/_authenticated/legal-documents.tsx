@@ -103,6 +103,7 @@ function emptyExtracted(): Extracted {
 
 function LegalDocumentsPage() {
   const { user } = useAuth();
+  const { confirm, dialog } = useConfirm();
   const extract = useServerFn(extractLegalDocument);
   const driveList = useServerFn(listDriveFiles);
   const driveDownload = useServerFn(downloadDriveFile);
@@ -263,7 +264,8 @@ function LegalDocumentsPage() {
 
   const remove = async (d: LegalDoc) => {
     if (!user) return;
-    if (!confirm("Remove this legal document?")) return;
+    const ok = await confirm({ title: "Remove this legal document?", body: "The document file will be removed from your record room.", confirmLabel: "Remove", cancelLabel: "Keep" });
+    if (!ok) return;
     await supabase.storage.from("evidence-files").remove([d.file_url]);
     await supabase.from("legal_documents").delete().eq("id", d.id).eq("user_id", user.id);
     await log({ data: { action_type: "legal_document_deleted", record_reference: d.id } });
@@ -469,6 +471,7 @@ function LegalDocumentsPage() {
           })
         )}
       </div>
+      {dialog}
     </div>
   );
 }
