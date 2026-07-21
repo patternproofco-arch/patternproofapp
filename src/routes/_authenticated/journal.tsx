@@ -422,7 +422,7 @@ function JournalPage() {
                   value={form.anchor_label}
                   onChange={(e) => setForm({ ...form, anchor_label: e.target.value })}
                   className="input-pp mt-1"
-                  placeholder='e.g. "my son\'s second birthday" or "the move to the new house"'
+                  placeholder={`e.g. "before my son's second birthday" or "after the move"`}
                 />
                 <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
                   Use either a logged incident above, this description, or both.
