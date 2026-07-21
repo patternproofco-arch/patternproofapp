@@ -243,6 +243,7 @@ function JournalPage() {
     if (!r.ok) { toast("We couldn't pull details from that image. You can still type it out."); return; }
     const e = r.extracted as Partial<typeof form> & { abuse_types?: string[] };
     setForm((prev) => ({
+      ...prev,
       date: e.date || prev.date,
       time: e.time || prev.time,
       location: e.location || prev.location,
