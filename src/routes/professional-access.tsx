@@ -32,7 +32,7 @@ export const Route = createFileRoute("/professional-access")({
       <Section title="Revocation is not deletion">
         <Callout>Revoking access prevents future access through PatternProof. It cannot delete copies someone has already downloaded or saved.</Callout>
       </Section>
-      <Section title="Professional-review exports, not "court-ready" packets">
+      <Section title={`Professional-review exports, not "court-ready" packets`}>
         <p>What you send is a <strong>professional-review packet</strong> with a source-linked chronology and a provenance and integrity report. PatternProof does not determine admissibility, make legal findings, or replace professional judgment.</p>
       </Section>
     </TrustPage>

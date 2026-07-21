@@ -13,6 +13,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
+import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as McpRouteImport } from './routes/mcp'
@@ -95,6 +96,11 @@ const SafetyRoute = SafetyRouteImport.update({
 const RequestOrgAccessRoute = RequestOrgAccessRouteImport.update({
   id: '/request-org-access',
   path: '/request-org-access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfessionalAccessRoute = ProfessionalAccessRouteImport.update({
+  id: '/professional-access',
+  path: '/professional-access',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -443,6 +449,7 @@ export interface FileRoutesByFullPath {
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -510,6 +517,7 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -578,6 +586,7 @@ export interface FileRoutesById {
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -647,6 +656,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/pricing'
     | '/privacy'
+    | '/professional-access'
     | '/request-org-access'
     | '/safety'
     | '/sitemap.xml'
@@ -714,6 +724,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/pricing'
     | '/privacy'
+    | '/professional-access'
     | '/request-org-access'
     | '/safety'
     | '/sitemap.xml'
@@ -781,6 +792,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/pricing'
     | '/privacy'
+    | '/professional-access'
     | '/request-org-access'
     | '/safety'
     | '/sitemap.xml'
@@ -851,6 +863,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
+  ProfessionalAccessRoute: typeof ProfessionalAccessRoute
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   SafetyRoute: typeof SafetyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -897,6 +910,13 @@ declare module '@tanstack/react-router' {
       path: '/request-org-access'
       fullPath: '/request-org-access'
       preLoaderRoute: typeof RequestOrgAccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/professional-access': {
+      id: '/professional-access'
+      path: '/professional-access'
+      fullPath: '/professional-access'
+      preLoaderRoute: typeof ProfessionalAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -1472,6 +1492,7 @@ const rootRouteChildren: RootRouteChildren = {
   McpRoute: McpRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
+  ProfessionalAccessRoute: ProfessionalAccessRoute,
   RequestOrgAccessRoute: RequestOrgAccessRoute,
   SafetyRoute: SafetyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -1493,3 +1514,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
