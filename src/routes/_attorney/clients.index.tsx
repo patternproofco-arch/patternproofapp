@@ -12,6 +12,7 @@ import {
   revokeSurvivorInvite, resendSurvivorInvite,
 } from "@/lib/attorney-survivor-invites.functions";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_attorney/clients/")({
   component: ClientsIndex,
@@ -385,6 +386,7 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
 /* ------- Single invite panel below ------- */
 
 function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onChange: () => void }) {
+  const { confirm, dialog } = useConfirm();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"single" | "bulk">("single");
   const [email, setEmail] = useState("");
@@ -559,7 +561,8 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
                     <button
                       className="att-btn-ghost"
                       onClick={async () => {
-                        if (!confirm("Revoke this invite?")) return;
+                        const ok = await confirm({ title: "Revoke this invite?", body: "The survivor will no longer be able to accept.", confirmLabel: "Revoke", cancelLabel: "Keep" });
+                        if (!ok) return;
                         try {
                           await revoke({ data: { id: inv.id } });
                           toast("Invite revoked.");
