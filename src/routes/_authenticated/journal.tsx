@@ -347,16 +347,95 @@ function JournalPage() {
             </div>
           )}
 
+          <div>
+            <label className="label-eyebrow">Date precision</label>
+            <select
+              value={form.date_precision}
+              onChange={(e) => setForm({ ...form, date_precision: e.target.value as Precision })}
+              className="input-pp mt-1"
+            >
+              {PRECISION_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+              Pick what you actually remember. It's fine not to be certain.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label-eyebrow">Date</label>
-              <input type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="input-pp mt-1" />
-            </div>
+            {form.date_precision === "exact" && (
+              <div>
+                <label className="label-eyebrow">Date</label>
+                <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="input-pp mt-1" />
+              </div>
+            )}
+            {form.date_precision === "approximate_month" && (
+              <div>
+                <label className="label-eyebrow">Month</label>
+                <input type="month" value={form.approx_month} onChange={(e) => setForm({ ...form, approx_month: e.target.value })} className="input-pp mt-1" />
+              </div>
+            )}
+            {form.date_precision === "range" && (
+              <>
+                <div>
+                  <label className="label-eyebrow">From</label>
+                  <input type="date" value={form.date_range_start} onChange={(e) => setForm({ ...form, date_range_start: e.target.value })} className="input-pp mt-1" />
+                </div>
+                <div>
+                  <label className="label-eyebrow">To</label>
+                  <input type="date" value={form.date_range_end} onChange={(e) => setForm({ ...form, date_range_end: e.target.value })} className="input-pp mt-1" />
+                </div>
+              </>
+            )}
             <div>
               <label className="label-eyebrow">Time</label>
               <input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className="input-pp mt-1" />
             </div>
           </div>
+
+          {(form.date_precision === "before_anchor" || form.date_precision === "after_anchor") && (
+            <div className="space-y-2 rounded-xl p-3" style={{ background: "rgba(168,216,185,0.15)", border: "1px solid rgba(78,59,49,0.08)" }}>
+              <div>
+                <label className="label-eyebrow">
+                  {form.date_precision === "before_anchor" ? "Before which event?" : "After which event?"}
+                </label>
+                <select
+                  value={form.anchor_incident_id}
+                  onChange={(e) => setForm({ ...form, anchor_incident_id: e.target.value })}
+                  className="input-pp mt-1"
+                >
+                  <option value="">— pick one of your logged incidents —</option>
+                  {list
+                    .filter((i) => i.id !== editingId && i.date)
+                    .map((i) => (
+                      <option key={i.id} value={i.id}>
+                        {i.date} — {i.description.slice(0, 60)}{i.description.length > 60 ? "…" : ""}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label className="label-eyebrow">Or describe the anchor in your own words</label>
+                <input
+                  type="text"
+                  value={form.anchor_label}
+                  onChange={(e) => setForm({ ...form, anchor_label: e.target.value })}
+                  className="input-pp mt-1"
+                  placeholder='e.g. "my son\'s second birthday" or "the move to the new house"'
+                />
+                <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                  Use either a logged incident above, this description, or both.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {form.date_precision === "unknown" && (
+            <p className="rounded-xl p-3 text-[12px]" style={{ background: "rgba(106,146,214,0.10)", color: "var(--foreground)" }}>
+              That's okay. Save it now — you can come back and add a date if it comes to you later.
+            </p>
+          )}
 
           <div>
             <label className="label-eyebrow">Location</label>
