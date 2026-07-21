@@ -53,6 +53,7 @@ function toLocalInput(iso: string) {
 }
 
 function CourtDatesPage() {
+  const { confirm, dialog } = useConfirm();
   const listFn = useServerFn(listCourtDates);
   const upsertFn = useServerFn(upsertCourtDate);
   const deleteFn = useServerFn(deleteCourtDate);
@@ -152,7 +153,8 @@ function CourtDatesPage() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Remove this court date?")) return;
+    const ok = await confirm({ title: "Remove this court date?", body: "This hearing will be removed from your calendar.", confirmLabel: "Remove", cancelLabel: "Keep" });
+    if (!ok) return;
     try {
       await deleteFn({ data: { id } });
       void refresh();
@@ -376,6 +378,7 @@ function CourtDatesPage() {
           </div>
         </div>
       )}
+      {dialog}
     </div>
   );
 }

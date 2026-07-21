@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } from "@/lib/attorney-invitations.functions";
 import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/share-with-attorney")({
   component: ShareWithAttorney,
@@ -16,6 +17,7 @@ type Listing = Awaited<ReturnType<typeof listMyInvitations>>;
 function ShareWithAttorney() {
   const navigate = useNavigate();
   const sub = useSubscription();
+  const { confirm, dialog } = useConfirm();
   useEffect(() => {
     if (!sub.loading && sub.tier === "core") {
       navigate({ to: "/court-ready", replace: true });
@@ -207,7 +209,7 @@ function ShareWithAttorney() {
                       }}>{unread[l.id]}</span>
                     )}
                   </button>
-                  <button onClick={async () => { if (confirm("Revoke this attorney's access?")) { await revokeLk({ data: { id: l.id } }); toast("Access revoked."); load(); } }} className="btn-ghost inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--primary)" }}>
+                  <button onClick={async () => { const ok = await confirm({ title: "Revoke this attorney's access?", body: "The share link will stop working immediately.", confirmLabel: "Revoke", cancelLabel: "Keep" }); if (ok) { await revokeLk({ data: { id: l.id } }); toast("Access revoked."); load(); } }} className="btn-ghost inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--primary)" }}>
                     <Trash2 size={13} /> Revoke
                   </button>
                 </div>
