@@ -36,10 +36,10 @@ function CalendarPage() {
         <IncidentHeatMap incidents={incidents} months={12} />
       </div>
       <CognitiveClose
-        title="A dense cluster usually means escalation"
-        body="If you see one, open the escalation detector — it scans your entries for high-risk language."
-        cta="Run escalation check"
-        to="/escalation-detector"
+        title="A dense cluster is worth a closer look"
+        body="Open your patterns view to see frequency, tactics, and gaps across the record you've built."
+        cta="Open patterns"
+        to="/patterns"
       />
     </div>
   );
