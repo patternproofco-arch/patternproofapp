@@ -84,7 +84,7 @@ const TIERS: Array<{
       "Co-branded survivor experience",
     ],
     cta: "Request a Pilot",
-    ctaTo: "mailto:patternproofco@gmail.com?subject=Organization%20Pilot%20Request",
+    ctaTo: "/request-org-access",
   },
 ];
 
@@ -95,15 +95,15 @@ const FAQS = [
   },
   {
     q: "Do you integrate with Clio?",
-    a: "Yes. Attorney and Organization tiers include Clio-compatible export. Full Clio Marketplace integration is coming soon.",
+    a: "Not yet natively. Attorney and Organization tiers include Clio-compatible ZIP export today; a native Clio Marketplace integration is in development.",
   },
   {
     q: "Is my data safe?",
-    a: "All data is encrypted at rest and in transit. PatternProof is built on Supabase with enterprise-grade security.",
+    a: "All data is encrypted in transit (HTTPS/TLS) and at rest via our infrastructure provider (Supabase). Row-level security scopes each record to its owning account. We do not currently offer end-to-end (zero-knowledge) encryption — if that's a hard requirement for you, tell us.",
   },
   {
     q: "Can my organization get a demo?",
-    a: 'Yes — email patternproofco@gmail.com or click "Request a Pilot" above.',
+    a: 'Yes — use the "Request a Pilot" button above and we\'ll be in touch within one business day.',
   },
 ];
 

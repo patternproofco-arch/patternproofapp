@@ -183,11 +183,18 @@ function PrivacyPage() {
           <p>We take the security of your data seriously. Measures we have implemented include:</p>
           <ul>
             <li>HTTPS/TLS encryption for all data in transit</li>
-            <li>Encryption of data at rest</li>
-            <li>PIN-based and credential-based account protection</li>
-            <li>Access controls limiting who can view your data</li>
-            <li>Regular security monitoring and patching</li>
+            <li>Encryption at rest provided by our infrastructure hosts (Supabase / Postgres and object storage)</li>
+            <li>Row-level security policies scoping data access to the owning account</li>
+            <li>Optional client-side screen lock (PIN or biometric) on your device</li>
+            <li>Regular security monitoring, dependency patching, and access review</li>
           </ul>
+          <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
+            <strong>What we do not currently offer:</strong> end-to-end (zero-knowledge) encryption
+            where PatternProof staff cannot technically read your data. We will clearly announce this
+            capability if and when we ship it. Until then, please assume authorized PatternProof
+            engineers can technically access account contents in order to operate and support the
+            service.
+          </p>
           <p>
             No system is 100% secure. If you believe your account has been compromised, contact
             us immediately at gracieburns200@gmail.com.

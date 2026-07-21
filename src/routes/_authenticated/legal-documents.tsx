@@ -442,7 +442,11 @@ function LegalDocumentsPage() {
                                 ))}
                               </div>
                             </details>
-                            <button onClick={() => alert("Edit form will open in a future update.")} className="btn-ghost inline-flex items-center gap-1 text-[12px]">
+                            <button
+                              onClick={() => toast("Editing legal documents is coming soon. For now, delete and re-add if you need changes.")}
+                              className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                              title="Coming soon"
+                            >
                               <Pencil size={13} /> Edit
                             </button>
                             <button onClick={() => remove(d)} className="btn-ghost inline-flex items-center gap-1 text-[12px]">

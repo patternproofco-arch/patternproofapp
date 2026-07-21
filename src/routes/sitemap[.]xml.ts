@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 
-// TODO: replace with your custom domain once one is set.
-const BASE_URL = "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app";
+const BASE_URL = "https://pattern-proof.tech";
 
 interface SitemapEntry {
   path: string;
@@ -16,7 +15,14 @@ export const Route = createFileRoute("/sitemap.xml")({
       GET: async () => {
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
-          { path: "/login", changefreq: "monthly", priority: "0.6" },
+          { path: "/pricing", changefreq: "monthly", priority: "0.9" },
+          { path: "/for-attorneys", changefreq: "monthly", priority: "0.9" },
+          { path: "/for-organizations", changefreq: "monthly", priority: "0.9" },
+          { path: "/demo", changefreq: "monthly", priority: "0.7" },
+          { path: "/privacy", changefreq: "yearly", priority: "0.4" },
+          { path: "/terms", changefreq: "yearly", priority: "0.4" },
+          { path: "/login", changefreq: "monthly", priority: "0.5" },
+          { path: "/lawyer-signup", changefreq: "monthly", priority: "0.6" },
         ];
 
         const urls = entries.map((e) =>

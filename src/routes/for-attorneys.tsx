@@ -71,7 +71,14 @@ function ForAttorneys() {
         </div>
 
         {/* Pricing */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16, marginBottom: 40 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: 16,
+            marginBottom: 40,
+          }}
+        >
           {TIERS.map((t) => (
             <div
               key={t.key}
