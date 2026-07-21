@@ -8,7 +8,6 @@ import { AmbientBackground } from "@/components/AmbientBackground";
 import { FloatingNav } from "@/components/FloatingNav";
 import { Logo } from "@/components/Logo";
 import { NotificationBanner } from "@/components/NotificationBanner";
-import { OnboardingModal } from "@/components/OnboardingModal";
 
 /**
  * AppShell — Living Canvas edition.
@@ -67,7 +66,6 @@ export function AppShell() {
       <AiSidekick />
       <FloatingRecordButton />
       <QuickExitButton />
-      <OnboardingModal />
     </div>
   );
 }

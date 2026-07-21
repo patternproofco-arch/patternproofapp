@@ -58,12 +58,14 @@ function TimelinePage() {
         .from("incidents")
         .select("id,date,description,abuse_types")
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .order("date", { ascending: false });
       setItems((data as Item[] | null) ?? []);
       const { data: ev } = await supabase
         .from("evidence")
         .select("id,title,file_type,file_url,linked_incident_id")
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .not("linked_incident_id", "is", null);
       const rows = (ev as EvItem[] | null) ?? [];
       const withUrls = await Promise.all(rows.map(async (r) => {

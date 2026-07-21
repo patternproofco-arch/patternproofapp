@@ -1023,6 +1023,7 @@ export type Database = {
         Row: {
           created_at: string
           date: string
+          deleted_at: string | null
           description: string | null
           file_type: string
           file_url: string
@@ -1035,6 +1036,7 @@ export type Database = {
         Insert: {
           created_at?: string
           date: string
+          deleted_at?: string | null
           description?: string | null
           file_type: string
           file_url: string
@@ -1047,6 +1049,7 @@ export type Database = {
         Update: {
           created_at?: string
           date?: string
+          deleted_at?: string | null
           description?: string | null
           file_type?: string
           file_url?: string
@@ -1100,47 +1103,70 @@ export type Database = {
       incidents: {
         Row: {
           abuse_types: string[]
+          confidence: number | null
+          confirmed_at: string | null
           created_at: string
           date: string
+          deleted_at: string | null
           description: string
           emotional_impact: string | null
           has_escalation_flag: boolean
           id: string
           location: string | null
           severity_level: number | null
+          source: string
+          source_evidence_id: string | null
           time: string | null
           user_id: string
           witnesses: string | null
         }
         Insert: {
           abuse_types?: string[]
+          confidence?: number | null
+          confirmed_at?: string | null
           created_at?: string
           date: string
+          deleted_at?: string | null
           description: string
           emotional_impact?: string | null
           has_escalation_flag?: boolean
           id?: string
           location?: string | null
           severity_level?: number | null
+          source?: string
+          source_evidence_id?: string | null
           time?: string | null
           user_id: string
           witnesses?: string | null
         }
         Update: {
           abuse_types?: string[]
+          confidence?: number | null
+          confirmed_at?: string | null
           created_at?: string
           date?: string
+          deleted_at?: string | null
           description?: string
           emotional_impact?: string | null
           has_escalation_flag?: boolean
           id?: string
           location?: string | null
           severity_level?: number | null
+          source?: string
+          source_evidence_id?: string | null
           time?: string | null
           user_id?: string
           witnesses?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "incidents_source_evidence_id_fkey"
+            columns: ["source_evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       legal_documents: {
         Row: {

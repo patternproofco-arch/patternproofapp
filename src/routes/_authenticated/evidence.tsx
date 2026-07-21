@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { useServerFn } from "@tanstack/react-start";
 import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/evidence")({
   component: EvidencePage,
@@ -71,12 +72,13 @@ function EvidencePage() {
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [draft, setDraft] = useState<ExtractedDraft | null>(null);
   const [savingIncident, setSavingIncident] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<EvidenceRow | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
     const [ev, inc] = await Promise.all([
-      supabase.from("evidence").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("incidents").select("id,date,description").eq("user_id", user.id).order("date", { ascending: false }),
+      supabase.from("evidence").select("*").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
+      supabase.from("incidents").select("id,date,description").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }),
     ]);
     const rows = (ev.data as EvidenceRow[] | null) ?? [];
     setItems(rows);
@@ -195,6 +197,9 @@ function EvidencePage() {
       abuse_types: draft.abuse_types ?? [],
       witnesses: draft.witnesses,
       emotional_impact: draft.emotional_impact,
+      source: "ai_extracted",
+      source_evidence_id: reviewFor.id,
+      confirmed_at: null,
     }).select("id").single();
     if (ins.error || !ins.data) {
       setSavingIncident(false);
@@ -213,12 +218,30 @@ function EvidencePage() {
 
   const remove = async (item: EvidenceRow) => {
     if (!user) return;
-    if (!confirm("Remove this evidence permanently?")) return;
-    await supabase.storage.from("evidence-files").remove([item.file_url]);
-    const { error } = await supabase.from("evidence").delete().eq("id", item.id).eq("user_id", user.id);
+    setConfirmDelete(item);
+  };
+
+  const doRemove = async () => {
+    if (!user || !confirmDelete) return;
+    const item = confirmDelete;
+    setConfirmDelete(null);
+    const { error } = await supabase
+      .from("evidence")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", item.id)
+      .eq("user_id", user.id);
     if (error) { toast("We couldn't remove that. Try again in a moment."); return; }
-    toast("Removed.");
-    load();
+    setItems((prev) => prev.filter((r) => r.id !== item.id));
+    toast("Removed.", {
+      action: {
+        label: "Undo",
+        onClick: async () => {
+          await supabase.from("evidence").update({ deleted_at: null }).eq("id", item.id).eq("user_id", user.id);
+          load();
+        },
+      },
+      duration: 8000,
+    });
   };
 
   return (
@@ -452,6 +475,15 @@ function EvidencePage() {
         body="A screenshot becomes much stronger when it sits next to the day it happened. Open the journal to link them up."
         cta="Go to journal"
         to="/journal"
+      />
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Remove this evidence?"
+        body="It will be hidden from your library right away. You'll see an Undo option for a few seconds after. The file stays in secure storage until a later cleanup step."
+        confirmLabel="Remove"
+        cancelLabel="Keep"
+        onConfirm={doRemove}
+        onCancel={() => setConfirmDelete(null)}
       />
     </div>
   );

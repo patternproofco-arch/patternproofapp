@@ -171,7 +171,7 @@ export function FloatingNav() {
             WebkitBackdropFilter: "blur(10px)",
           }}
         >
-          🔒 END-TO-END ENCRYPTED
+          🔒 ENCRYPTED IN TRANSIT & AT REST
         </div>
         <div
           data-nav-island

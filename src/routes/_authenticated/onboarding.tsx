@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { AlertTriangle, BellOff, DoorOpen, Phone, ShieldCheck, Smartphone } from "lucide-react";
+import { AlertTriangle, BellOff, DoorOpen, FileCheck, Phone, ShieldCheck, Smartphone } from "lucide-react";
 import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { Logo } from "@/components/Logo";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
@@ -20,14 +21,27 @@ function Onboarding() {
   const [pin, setPin] = useState("");
   const [state, setState] = useState("NJ");
   const [busy, setBusy] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+
+  const ready = agreePrivacy && agreeTerms;
 
   const finishAll = async () => {
+    if (!ready) {
+      toast("Please agree to the Privacy Policy and Terms to continue.");
+      return;
+    }
     setBusy(true);
     try {
       if (pin.length === 4) await setRealPin(pin);
       update({ state, onboarded: true });
       await supabase.auth.updateUser({
-        data: { onboarding_complete: true, state },
+        data: {
+          onboarding_complete: true,
+          state,
+          agreed_privacy_at: new Date().toISOString(),
+          agreed_terms_at: new Date().toISOString(),
+        },
       });
       navigate({ to: "/dashboard", replace: true });
     } finally {
@@ -120,16 +134,50 @@ function Onboarding() {
             {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </StepCard>
+
+        <StepCard icon={<FileCheck size={20} />} title="Agree to continue">
+          <p className="text-[14px]">
+            Two boxes to check before we open your space.
+          </p>
+          <label className="flex items-start gap-2 text-[14px] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreePrivacy}
+              onChange={(e) => setAgreePrivacy(e.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              I have read and agree to the{" "}
+              <a href="/privacy" target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
+                Privacy Policy
+              </a>.
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-[14px] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreeTerms}
+              onChange={(e) => setAgreeTerms(e.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              I agree to the{" "}
+              <a href="/terms" target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
+                Terms of Service
+              </a>.
+            </span>
+          </label>
+        </StepCard>
       </div>
 
       <div className="sticky bottom-4 z-10 mt-6">
         <button
           onClick={finishAll}
-          disabled={busy}
+          disabled={busy || !ready}
           className="btn-primary w-full"
-          style={{ opacity: busy ? 0.6 : 1 }}
+          style={{ opacity: busy || !ready ? 0.6 : 1 }}
         >
-          {busy ? "One moment…" : "Open my space"}
+          {busy ? "One moment…" : ready ? "Open my space" : "Agree to the two items above to continue"}
         </button>
       </div>
     </div>
