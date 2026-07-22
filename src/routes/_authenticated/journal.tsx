@@ -469,6 +469,15 @@ function JournalPage() {
                 );
               })}
             </div>
+            {form.abuse_types.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {ABUSE_TYPES.filter((t) => form.abuse_types.includes(t.value)).map((t) => (
+                  <li key={t.value} className="text-[11px] leading-snug" style={{ color: "var(--muted-foreground)" }}>
+                    <span className="font-semibold" style={{ color: t.color }}>{t.label}:</span> {t.helper}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div>

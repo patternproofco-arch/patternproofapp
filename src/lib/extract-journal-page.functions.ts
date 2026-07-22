@@ -15,7 +15,7 @@ Return JSON only, no markdown, no preamble. Schema:
       "time": "HH:MM (24h) or null",
       "location": "string or null",
       "description": "Calm, factual first-person description of what happened. 1-4 sentences in the user's voice. No interpretation, no legal jargon.",
-      "abuse_types": ["physical"|"emotional"|"financial"|"coercive"|"custody"|"other"],
+      "abuse_types": ["physical"|"emotional"|"financial"|"coercive"|"custody"|"surveillance"|"location_tracking"|"account_control"|"smart_home"|"impersonation"|"digital_intimidation"|"other"],
       "witnesses": "string or null",
       "emotional_impact": "string or null"
     }
@@ -26,7 +26,8 @@ Rules:
 - If the entry clearly describes only one incident, return a single-item array.
 - If different dates, locations, or distinct events are mentioned, split them.
 - Never invent facts. If a date isn't in the text, use null.
-- abuse_types must reflect only what's actually described.`;
+- abuse_types must reflect only what's actually described.
+- Digital/tech-facilitated categories: surveillance (hidden cameras, spyware, monitoring apps); location_tracking (AirTags, GPS, Find My, Life360); account_control (password changes, lockouts, forced logins); smart_home (remote control of thermostats/locks/cameras, Alexa/Ring/Nest); impersonation (fake profiles, deepfakes, edited photos/videos); digital_intimidation (relentless texts/calls/DMs, monitoring online status, cross-platform harassment or new accounts after being blocked).`;
 
 export const ocrJournalImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

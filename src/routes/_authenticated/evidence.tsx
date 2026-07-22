@@ -11,6 +11,7 @@ import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { BatchDropzone } from "@/components/evidence/BatchDropzone";
+import { ABUSE_TYPES } from "@/lib/abuse-types";
 
 export const Route = createFileRoute("/_authenticated/evidence")({
   component: EvidencePage,
@@ -444,7 +445,8 @@ function EvidencePage() {
                 <div className="md:col-span-2">
                   <Field label="Type">
                     <div className="flex flex-wrap gap-2">
-                      {["physical","emotional","financial","coercive","custody","other"].map((t) => {
+                      {ABUSE_TYPES.map((opt) => {
+                        const t = opt.value;
                         const active = draft.abuse_types?.includes(t) ?? false;
                         return (
                           <button key={t} type="button"
@@ -455,16 +457,25 @@ function EvidencePage() {
                             }}
                             className="rounded-full px-3 py-1 text-[12px] font-semibold"
                             style={{
-                              background: active ? "#5B7CC4" : "rgba(255,255,255,0.55)",
+                              background: active ? opt.color : "rgba(255,255,255,0.55)",
                               color: active ? "#FFFFFF" : "#2A1A10",
-                              border: active ? "1px solid #5B7CC4" : "1px solid rgba(0,0,0,0.10)",
+                              border: active ? `1px solid ${opt.color}` : "1px solid rgba(0,0,0,0.10)",
                             }}
                           >
-                            {t}
+                            {opt.label}
                           </button>
                         );
                       })}
                     </div>
+                    {(draft.abuse_types?.length ?? 0) > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {ABUSE_TYPES.filter((opt) => draft.abuse_types?.includes(opt.value)).map((opt) => (
+                          <li key={opt.value} className="text-[11px] leading-snug" style={{ color: "#5C4A3E" }}>
+                            <span className="font-semibold" style={{ color: opt.color }}>{opt.label}:</span> {opt.helper}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </Field>
                 </div>
                 <div className="md:col-span-2">
