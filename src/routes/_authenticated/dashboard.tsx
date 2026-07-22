@@ -325,7 +325,7 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
           )}
         </div>
         <div className={compact ? "flex-1 min-w-0" : ""}>
-          {!compact && (
+          {!compact && card.step && (
             <div className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>
               {card.step}
             </div>
@@ -408,7 +408,7 @@ function CourtCalendarCard() {
         </span>
       </div>
       <div className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>
-        Step 3 · Court calendar
+        Court calendar
       </div>
       <h3 className="mt-1 font-serif text-[22px] leading-tight" style={{ color: "var(--foreground)" }}>
         Court Calendar
