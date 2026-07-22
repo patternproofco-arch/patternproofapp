@@ -27,7 +27,25 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
   const periodStart = item?.current_period_start ?? subscription.current_period_start;
   const periodEnd = item?.current_period_end ?? subscription.current_period_end;
 
-  await getSupabase().from("subscriptions").upsert(
+  // Charter Firm — locked rate for 12 months from first activation.
+  const isCharter = priceId === "attorney_firm_charter_monthly"
+    || subscription.metadata?.plan_tier === "charter";
+  const planTier = isCharter ? "charter" : null;
+  // Preserve an existing expiry rather than resetting on every webhook.
+  const supabase = getSupabase();
+  let charterExpiresAt: string | null = null;
+  if (isCharter) {
+    const { data: existing } = await supabase
+      .from("subscriptions")
+      .select("charter_rate_expires_at")
+      .eq("stripe_subscription_id", subscription.id)
+      .maybeSingle();
+    const existingExpiry = (existing as { charter_rate_expires_at: string | null } | null)?.charter_rate_expires_at;
+    charterExpiresAt = existingExpiry
+      ?? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+  }
+
+  await supabase.from("subscriptions").upsert(
     {
       user_id: userId,
       stripe_subscription_id: subscription.id,
@@ -38,6 +56,8 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
       current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
       current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
       environment: env,
+      plan_tier: planTier,
+      charter_rate_expires_at: charterExpiresAt,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "stripe_subscription_id" },
@@ -52,17 +72,25 @@ async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
   const productId = item?.price?.product;
   const periodStart = item?.current_period_start ?? subscription.current_period_start;
   const periodEnd = item?.current_period_end ?? subscription.current_period_end;
-  await getSupabase()
+  const isCharter = priceId === "attorney_firm_charter_monthly";
+  const supabase = getSupabase();
+  const update: Record<string, unknown> = {
+    status: subscription.status,
+    product_id: productId,
+    price_id: priceId,
+    current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
+    current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+    cancel_at_period_end: subscription.cancel_at_period_end || false,
+    updated_at: new Date().toISOString(),
+  };
+  // If the price moved off the charter price, clear the flag; otherwise leave
+  // plan_tier / charter_rate_expires_at untouched (never reset the locked window).
+  if (!isCharter && priceId) {
+    update.plan_tier = null;
+  }
+  await supabase
     .from("subscriptions")
-    .update({
-      status: subscription.status,
-      product_id: productId,
-      price_id: priceId,
-      current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
-      current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
-      cancel_at_period_end: subscription.cancel_at_period_end || false,
-      updated_at: new Date().toISOString(),
-    })
+    .update(update)
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
   if (["canceled", "unpaid", "incomplete_expired"].includes(subscription.status)) {

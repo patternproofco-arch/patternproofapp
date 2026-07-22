@@ -63,6 +63,20 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       const { data: { user } } = await supabase.auth.getUser();
       const email = user?.email ?? undefined;
 
+      // Charter Firm cap — refuse checkout if the cohort is full.
+      if (data.priceId === "attorney_firm_charter_monthly") {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { count } = await supabaseAdmin
+          .from("subscriptions")
+          .select("id", { count: "exact", head: true })
+          .eq("environment", data.environment)
+          .eq("plan_tier", "charter")
+          .in("status", ["active", "trialing", "past_due"]);
+        if ((count ?? 0) >= 15) {
+          return { error: "The Charter Firm cohort is full. Please choose the standard Firm plan." };
+        }
+      }
+
       const stripe = createStripeClient(data.environment);
       const prices = await stripe.prices.list({ lookup_keys: [data.priceId] });
       if (!prices.data.length) throw new Error("Price not found");
@@ -71,14 +85,24 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
       const customerId = await resolveOrCreateCustomer(stripe, { email, userId });
 
+      const isCharter = data.priceId === "attorney_firm_charter_monthly";
+
       const session = await stripe.checkout.sessions.create({
         line_items: [{ price: stripePrice.id, quantity: 1 }],
         mode: isRecurring ? "subscription" : "payment",
         ui_mode: "embedded_page",
         return_url: data.returnUrl,
         customer: customerId,
-        metadata: { userId, managed_payments: "true" },
-        ...(isRecurring && { subscription_data: { metadata: { userId } } }),
+        metadata: {
+          userId,
+          managed_payments: "true",
+          ...(isCharter && { plan_tier: "charter" }),
+        },
+        ...(isRecurring && {
+          subscription_data: {
+            metadata: { userId, ...(isCharter && { plan_tier: "charter" }) },
+          },
+        }),
         // managed_payments enabled via cast — SDK types don't yet include it
         ...({ managed_payments: { enabled: true } } as Record<string, unknown>),
       } as Parameters<typeof stripe.checkout.sessions.create>[0]);
@@ -170,6 +194,56 @@ export const getMySubscription = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
     return { subscription: (row as SubRow) ?? null };
+  });
+
+/**
+ * Charter Firm cohort — capped at 15 active seats. Publicly readable so the
+ * marketing pricing page can show remaining spots without requiring auth.
+ */
+export const getCharterAvailability = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z.object({ environment: z.enum(["sandbox", "live"]) }).parse(input),
+  )
+  .handler(async ({ data }): Promise<{ used: number; cap: number; remaining: number }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count } = await supabaseAdmin
+      .from("subscriptions")
+      .select("id", { count: "exact", head: true })
+      .eq("environment", data.environment)
+      .eq("plan_tier", "charter")
+      .in("status", ["active", "trialing", "past_due"]);
+    const used = count ?? 0;
+    const cap = 15;
+    return { used, cap, remaining: Math.max(0, cap - used) };
+  });
+
+/**
+ * Record which DV organization referred the current survivor. Idempotent —
+ * the first captured referral wins (do not overwrite on re-signin).
+ */
+export const recordOrgReferral = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      org_slug: z.string().min(1).max(120).regex(/^[a-z0-9-]+$/),
+      referred_by_org_name: z.string().min(1).max(200),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { supabase, userId } = context;
+    // Insert only if absent — RLS allows self-insert.
+    const { data: existing } = await supabase
+      .from("user_referrals")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existing) return { ok: true };
+    await supabase.from("user_referrals").insert({
+      user_id: userId,
+      org_slug: data.org_slug,
+      referred_by_org_name: data.referred_by_org_name,
+    });
+    return { ok: true };
   });
 
 /**

@@ -1,23 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Lock, Star } from "lucide-react";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { useSubscription } from "@/hooks/useSubscription";
+import { getCharterAvailability } from "@/lib/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 
 export const Route = createFileRoute("/_attorney/subscribe")({
   component: SubscribePage,
 });
 
-type TierKey = "solo" | "firm" | "enterprise";
+type TierKey = "solo" | "firm_charter" | "firm";
 const TIERS: Record<TierKey, {
   name: string;
   price: string;
+  priceStrike?: string;
   cadence: string;
   priceId: string;
   recommended?: boolean;
   bullets: string[];
   close: string;
+  note?: string;
 }> = {
   solo: {
     name: "Solo",
@@ -33,38 +37,55 @@ const TIERS: Record<TierKey, {
     ],
     close: "$297/month — one seat, up to 10 active matters.",
   },
-  firm: {
-    name: "Firm",
-    price: "$697",
-    cadence: "/month",
-    priceId: "attorney_firm_monthly",
+  firm_charter: {
+    name: "Charter Firm",
+    price: "$597",
+    priceStrike: "$897",
+    cadence: "/month · locked 12 months",
+    priceId: "attorney_firm_charter_monthly",
     recommended: true,
     bullets: [
-      "Up to 3 attorneys on the same firm seat",
+      "Up to 15 attorney seats in one firm workspace",
       "Unlimited active client matters",
-      "Shared workspace for prep + escalation arcs",
-      "Priority client onboarding support",
-    ],
-    close: "For small firms working DV and custody caseloads.",
-  },
-  enterprise: {
-    name: "Enterprise",
-    price: "$1,497",
-    cadence: "/month",
-    priceId: "attorney_enterprise_monthly",
-    bullets: [
-      "Full firm access. No attorney cap.",
-      "White-label survivor portal",
-      "SSO + dedicated support",
+      "Firm-wide conflict-of-interest detection",
+      "Shared prep and escalation workspace",
+      "Charter rate locked for 12 months, then $897/month list",
       "Direct line to the PatternProof team",
     ],
-    close: "For firms that move volume.",
+    close: "For the first 15 firms building this with us.",
+    note: "Charter cohort — limited to 15 firms.",
+  },
+  firm: {
+    name: "Firm",
+    price: "$897",
+    cadence: "/month",
+    priceId: "attorney_firm_monthly",
+    bullets: [
+      "Up to 15 attorney seats in one firm workspace",
+      "Unlimited active client matters",
+      "Firm-wide conflict-of-interest detection",
+      "Shared prep and escalation workspace",
+      "Priority client onboarding support",
+    ],
+    close: "For firms taking on volume DV and custody work.",
   },
 };
 
 function SubscribePage() {
   const sub = useSubscription();
-  const [selected, setSelected] = useState<TierKey>("firm");
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [selected, setSelected] = useState<TierKey>("firm_charter");
+
+  useEffect(() => {
+    let env: ReturnType<typeof getStripeEnvironment>;
+    try { env = getStripeEnvironment(); } catch { return; }
+    getCharterAvailability({ data: { environment: env } })
+      .then((r) => {
+        setRemaining(r.remaining);
+        if (r.remaining <= 0) setSelected("firm");
+      })
+      .catch(() => {});
+  }, []);
 
   if (sub.loading) {
     return <div className="att-card">Loading subscription…</div>;
@@ -86,6 +107,10 @@ function SubscribePage() {
     );
   }
 
+  const charterFull = remaining !== null && remaining <= 0;
+  const visibleKeys: TierKey[] = charterFull
+    ? ["solo", "firm"]
+    : ["solo", "firm_charter", "firm"];
   const t = TIERS[selected];
 
   return (
@@ -97,9 +122,12 @@ function SubscribePage() {
           See the pattern before the hearing.
         </h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 15, maxWidth: 640 }}>
-          Pick the plan that fits the firm. Ask us about the application-based
-          Founding Pilot ($99/month for 90 days) if you're one of the first three
-          family-law attorneys onboarding.
+          Pick the plan that fits the firm.{" "}
+          {charterFull
+            ? "The Charter Firm cohort is full — thank you to the founding 15."
+            : remaining !== null
+              ? `Charter Firm rate is locked for 12 months — ${remaining} of 15 spots remaining.`
+              : "Charter Firm rate is locked for 12 months — first 15 firms only."}
         </p>
       </div>
 
@@ -111,8 +139,8 @@ function SubscribePage() {
         </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
-        {(Object.keys(TIERS) as TierKey[]).map((k) => {
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${visibleKeys.length}, minmax(0, 1fr))`, gap: 16 }}>
+        {visibleKeys.map((k) => {
           const tier = TIERS[k];
           const active = selected === k;
           return (
@@ -139,9 +167,19 @@ function SubscribePage() {
               )}
               <div className="att-eyebrow">{tier.name}</div>
               <div style={{ fontSize: 36, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>
+                {tier.priceStrike && (
+                  <span style={{ fontSize: 18, color: "var(--att-text-2)", textDecoration: "line-through", marginRight: 8, fontFamily: "inherit" }}>
+                    {tier.priceStrike}
+                  </span>
+                )}
                 {tier.price}
                 <span style={{ fontSize: 14, color: "var(--att-text-2)" }}>{tier.cadence}</span>
               </div>
+              {tier.note && (
+                <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 4, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  {tier.note}
+                </div>
+              )}
               <ul style={{ listStyle: "none", padding: 0, marginTop: 14, display: "grid", gap: 8, fontSize: 13 }}>
                 {tier.bullets.map((b) => (
                   <li key={b} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
