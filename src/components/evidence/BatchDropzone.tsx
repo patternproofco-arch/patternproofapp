@@ -38,7 +38,16 @@ function StatusChip({ item }: { item: PreservationReceiptItem }) {
     failed: { label: "Not preserved", bg: "rgba(231,123,86,0.35)", fg: "#5a1e0c", Icon: AlertTriangle },
     upload_incomplete: { label: "Upload incomplete", bg: "rgba(231,123,86,0.35)", fg: "#5a1e0c", Icon: AlertTriangle },
   };
-  const m = map[item.status] ?? map.preserved;
+  const base = map[item.status] ?? map.preserved;
+  const isDup = !!item.duplicate_of;
+  const m = isDup
+    ? {
+        ...base,
+        label: item.duplicate_of_title
+          ? `Preserved · exact duplicate of "${item.duplicate_of_title}"`
+          : "Preserved · exact duplicate of an existing file",
+      }
+    : base;
   const Icon = m.Icon;
   return (
     <span
