@@ -13,6 +13,41 @@ export const Route = createFileRoute("/_authenticated/case-builder")({
 const RELATIONSHIPS = ["Ex-partner", "Co-parent", "Current partner", "Family member", "Other"];
 const CASE_TYPES = ["Domestic Violence", "Custody", "Divorce", "Protective Order", "Other"];
 
+// Small edits (typo fixes, adding a last initial) shouldn't warn; a full
+// name swap should. Uses normalized Levenshtein distance.
+function normalize(s: string) {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
+function editDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  const m = a.length, n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  const prev = new Array(n + 1).fill(0).map((_, i) => i);
+  const curr = new Array(n + 1).fill(0);
+  for (let i = 1; i <= m; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+    }
+    for (let j = 0; j <= n; j++) prev[j] = curr[j];
+  }
+  return prev[n];
+}
+function isMaterialOtherPartyChange(saved: string, next: string): boolean {
+  const a = normalize(saved);
+  const b = normalize(next);
+  if (!a || !b) return false;
+  if (a === b) return false;
+  // Substring either way = adding/removing an initial or suffix — not material.
+  if (a.includes(b) || b.includes(a)) return false;
+  const dist = editDistance(a, b);
+  const longer = Math.max(a.length, b.length);
+  // >40% of characters changed => treat as a different person.
+  return dist / longer > 0.4;
+}
+
 interface IncRow {
   id: string;
   date: string | null;
@@ -44,6 +79,8 @@ function CaseBuilder() {
   const [step, setStep] = useState(1);
   const [caseId, setCaseId] = useState<string | null>(null);
   const [other, setOther] = useState("");
+  const [savedOther, setSavedOther] = useState("");
+  const [hasExistingCase, setHasExistingCase] = useState(false);
   const [rel, setRel] = useState("");
   const [types, setTypes] = useState<string[]>([]);
   const [jurisdiction, setJurisdiction] = useState("");
@@ -70,6 +107,16 @@ function CaseBuilder() {
     if (row) {
       setCaseId(row.id);
       setOther(row.other_party ?? "");
+      setSavedOther(row.other_party ?? "");
+      // "Existing" = the saved case has meaningful data, not just an empty stub.
+      setHasExistingCase(Boolean(
+        (row.other_party && row.other_party.trim()) ||
+        (row.relationship_type && row.relationship_type.trim()) ||
+        (row.case_types && row.case_types.length > 0) ||
+        (row.pattern_summary && row.pattern_summary.trim()) ||
+        (row.highlighted_incident_ids && row.highlighted_incident_ids.length > 0) ||
+        (row.attached_evidence_ids && row.attached_evidence_ids.length > 0),
+      ));
       setRel(row.relationship_type ?? "");
       setTypes(row.case_types ?? []);
       setJurisdiction(row.jurisdiction ?? "");
@@ -84,6 +131,24 @@ function CaseBuilder() {
 
   const persist = useCallback(async () => {
     if (!user) return;
+    // Guard against silently overwriting an existing case file when the
+    // survivor is (probably) trying to document a different situation.
+    if (
+      caseId &&
+      hasExistingCase &&
+      isMaterialOtherPartyChange(savedOther, other)
+    ) {
+      const ok = window.confirm(
+        `This will update your existing case file for ${savedOther}. ` +
+        `If you're documenting a different situation, this isn't the way to do it yet — ` +
+        `multiple cases aren't supported. Continuing will overwrite what's here.`,
+      );
+      if (!ok) {
+        // Revert the field so nothing else in this save cycle uses the new value.
+        setOther(savedOther);
+        return;
+      }
+    }
     const payload = {
       user_id: user.id,
       other_party: other || null,
@@ -97,11 +162,16 @@ function CaseBuilder() {
     };
     if (caseId) {
       await supabase.from("cases").update(payload).eq("id", caseId).eq("user_id", user.id);
+      setSavedOther(other);
     } else {
       const { data } = await supabase.from("cases").insert(payload).select("id").single();
-      if (data?.id) setCaseId(data.id);
+      if (data?.id) {
+        setCaseId(data.id);
+        setSavedOther(other);
+        setHasExistingCase(Boolean(other || rel || types.length || summary));
+      }
     }
-  }, [user, caseId, other, rel, types, jurisdiction, summary, highlighted, attached, legalAttached]);
+  }, [user, caseId, hasExistingCase, savedOther, other, rel, types, jurisdiction, summary, highlighted, attached, legalAttached]);
 
   // auto-save when step changes
   useEffect(() => { const t = setTimeout(persist, 500); return () => clearTimeout(t); }, [persist, step]);
@@ -125,6 +195,14 @@ function CaseBuilder() {
     <div>
       <div className="label-eyebrow">Case builder</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">Shape your case, <em>step by step.</em></h1>
+
+      <div
+        className="mt-4 rounded-xl p-3 text-[13px]"
+        style={{ background: "var(--input)", borderLeft: "3px solid var(--accent)" }}
+      >
+        PatternProof currently supports one case file per account. If you need to
+        document a separate legal matter, let us know.
+      </div>
 
       {/* Progress */}
       <div className="mt-6 flex items-center gap-2">
