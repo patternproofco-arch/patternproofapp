@@ -586,6 +586,17 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
     const link = await assertLink(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    // Survivor-controlled consent to have her own words AI-rephrased into
+    // "court-safe" language. Off by default; the rest of deposition prep
+    // (contradictions, credibility_gaps, weak_spots, cross_warnings, etc.)
+    // runs without this consent because those items don't rephrase her words.
+    const { data: linkFull } = await supabaseAdmin
+      .from("attorney_client_links")
+      .select("deposition_prep_consent")
+      .eq("id", link.id)
+      .maybeSingle();
+    const phrasingConsent = !!linkFull?.deposition_prep_consent;
+
     const [{ data: incidents }, { data: evidence }, { data: pattern }] = await Promise.all([
       link.include_all_incidents
         ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at").eq("user_id", data.clientId).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date")
@@ -619,10 +630,10 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
 - contradictions: { topic: string; conflicting_accounts: string; how_to_reconcile: string }[]  — internal contradictions across incidents, dates, or descriptions that opposing counsel will exploit; explain how to reconcile or frame.
 - strongest_evidence: { item: string; why_it_helps: string; tied_to_incident: string }[]  — 3-6 evidence items (by title/date) that most strongly support the pattern.
 - weakest_evidence: { item: string; risk: string; recommended_action: string }[]  — evidence items most vulnerable to challenge (authenticity, hearsay, provenance & integrity, prejudicial value).
-- talking_points: string[]  — 5-8 concise, court-safe themes the attorney can return to repeatedly (the case's narrative spine).
-- court_safe_phrasing: { instead_of: string; say: string }[]  — therapeutic, emotional, or accusatory phrases the client tends to use, rewritten in measured, judicial register.
+- talking_points: string[]  — 5-8 concise, court-safe themes the attorney can return to repeatedly (the case's narrative spine).${phrasingConsent ? `
+- court_safe_phrasing: { instead_of: string; say: string }[]  — therapeutic, emotional, or accusatory phrases the client tends to use, rewritten in measured, judicial register. This is AI-suggested phrasing for the attorney's prep, NOT the client's own words.` : ""}
 
-Be forensic, legal-register, not therapeutic. Return ONLY the JSON object.
+Be forensic, legal-register, not therapeutic. Return ONLY the JSON object.${phrasingConsent ? "" : "\nDo NOT include a court_safe_phrasing field."}
 
 INCIDENTS (${incidents.length}):
 ${incidents.map((i, idx) => `${idx + 1}. ${i.date} — severity ${i.severity_level ?? "n/a"} — ${(i.abuse_types ?? []).join(", ")} — witnesses: ${i.witnesses ?? "none"} — ${i.description}`).join("\n")}
@@ -649,7 +660,37 @@ EXISTING PATTERN ANALYSIS: ${pattern?.analysis ? JSON.stringify(pattern.analysis
     const content = json?.choices?.[0]?.message?.content ?? "{}";
     let parsed: AnyJson;
     try { parsed = JSON.parse(content); } catch { return { ok: false as const, reason: "parse" as const }; }
-    return { ok: true as const, prep: parsed };
+    if (!phrasingConsent) {
+      delete parsed.court_safe_phrasing;
+    }
+    return {
+      ok: true as const,
+      prep: parsed,
+      phrasing_consent: phrasingConsent,
+      phrasing_consent_note: phrasingConsent
+        ? "Court-safe phrasing is AI-suggested language for your prep — not the client's own words. Never export or attribute it as her statement."
+        : "Court-safe phrasing is disabled. Your client has not consented to have her statements AI-rephrased. Ask her to enable it from her Share-with-attorney settings if you need it.",
+    };
+  });
+
+/* Survivor grants/revokes consent for AI-rephrased "court-safe" statements */
+export const setDepositionPrepConsent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ link_id: z.string().uuid(), consent: z.boolean() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("attorney_client_links")
+      .update({
+        deposition_prep_consent: data.consent,
+        deposition_prep_consent_at: data.consent ? new Date().toISOString() : null,
+      })
+      .eq("id", data.link_id)
+      .eq("client_user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
   });
 
 /* ------------------------- messages + doc requests ------------------------- */
