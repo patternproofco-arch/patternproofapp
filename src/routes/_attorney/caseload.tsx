@@ -1,0 +1,163 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
+import { AlertTriangle, Users, Clock, FileWarning, ChevronRight } from "lucide-react";
+import { getCaseloadOverview } from "@/lib/attorney-portal.functions";
+
+export const Route = createFileRoute("/_attorney/caseload")({
+  head: () => ({
+    meta: [
+      { title: "Caseload capacity — PatternProof" },
+      { name: "description", content: "Aggregate view of clients needing attention across your active caseload." },
+      { property: "og:title", content: "Caseload capacity — PatternProof" },
+      { property: "og:description", content: "Aggregate view of clients needing attention across your active caseload." },
+    ],
+  }),
+  component: CaseloadPage,
+});
+
+type Overview = Awaited<ReturnType<typeof getCaseloadOverview>>;
+
+function CaseloadPage() {
+  const fetcher = useServerFn(getCaseloadOverview);
+  const [data, setData] = useState<Overview | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetcher().then(setData).catch((e) => setErr(e?.message ?? "Could not load caseload."));
+  }, [fetcher]);
+
+  if (err) return <div style={{ padding: 16, fontSize: 13, color: "var(--att-text-2)" }}>{err}</div>;
+  if (!data) return <div style={{ padding: 16, fontSize: 13, color: "var(--att-text-2)" }}>Loading caseload…</div>;
+
+  const { totals, clients, disengaged_clients } = data;
+
+  return (
+    <div style={{ display: "grid", gap: 20 }}>
+      <div>
+        <div className="att-eyebrow">Overview</div>
+        <h1 style={{ fontFamily: "Georgia, 'Palatino Linotype', serif", fontSize: 28, margin: "4px 0 0" }}>
+          Caseload capacity
+        </h1>
+        <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 6, maxWidth: 640 }}>
+          Aggregate view across every active client — clients needing attention appear first.
+          Counts reflect documentation activity only; they are not clinical or forensic assessments.
+        </p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
+        <Kpi icon={<Users size={14} />} label="Active clients" value={totals.active_client_count} />
+        <Kpi icon={<FileWarning size={14} />} label="Unconfirmed AI drafts" value={totals.total_unconfirmed_ai_drafts} tone={totals.total_unconfirmed_ai_drafts ? "warn" : undefined} />
+        <Kpi icon={<Clock size={14} />} label="Disengaged (30d)" value={totals.disengaged_client_count} tone={totals.disengaged_client_count ? "warn" : undefined} />
+        <Kpi icon={<AlertTriangle size={14} />} label="Clients w/ unreviewed severity" value={totals.clients_with_unreviewed_severity_indicators} tone={totals.clients_with_unreviewed_severity_indicators ? "warn" : undefined} />
+      </div>
+
+      {disengaged_clients.length > 0 && (
+        <div style={{ border: "1px solid var(--att-border)", borderRadius: 8, padding: 14 }}>
+          <div className="att-eyebrow" style={{ marginBottom: 6 }}>Disengaged clients — no incident or evidence added in 30 days</div>
+          <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 4 }}>
+            {disengaged_clients.map((c) => (
+              <li key={c.link_id} style={{ fontSize: 13 }}>
+                <Link to="/clients/$clientId" params={{ clientId: c.client_user_id }} style={{ color: "var(--att-navy)", textDecoration: "none" }}>
+                  Client {c.client_user_id.slice(0, 8)}
+                </Link>
+                <span style={{ color: "var(--att-text-2)", marginLeft: 8 }}>
+                  {c.last_activity_at ? `last activity ${formatDate(c.last_activity_at)}` : "no recorded activity"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div style={{ border: "1px solid var(--att-border)", borderRadius: 8, overflow: "hidden" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(140px,1.4fr) 1fr 0.8fr 0.8fr 0.8fr 32px", gap: 8, padding: "10px 14px", background: "var(--att-surface-2, #f7f7f5)", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--att-text-2)" }}>
+          <div>Client</div>
+          <div>Last activity</div>
+          <div>Unconfirmed AI</div>
+          <div>Disengaged</div>
+          <div>Unreviewed severity</div>
+          <div />
+        </div>
+        {clients.length === 0 && (
+          <div style={{ padding: 20, fontSize: 13, color: "var(--att-text-2)" }}>No active clients yet.</div>
+        )}
+        {clients.map((c) => {
+          const attention = c.unconfirmed_ai_draft_count > 0 || c.disengaged_30d || c.unreviewed_severity_indicator_count > 0;
+          return (
+            <Link
+              key={c.link_id}
+              to="/clients/$clientId"
+              params={{ clientId: c.client_user_id }}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(140px,1.4fr) 1fr 0.8fr 0.8fr 0.8fr 32px",
+                gap: 8,
+                padding: "12px 14px",
+                borderTop: "1px solid var(--att-border)",
+                alignItems: "center",
+                fontSize: 13,
+                textDecoration: "none",
+                color: "inherit",
+                background: attention ? "rgba(231, 123, 86, 0.05)" : "transparent",
+                borderLeft: attention ? "3px solid var(--accent, #E77B56)" : "3px solid transparent",
+              }}
+            >
+              <div style={{ fontWeight: 600 }}>Client {c.client_user_id.slice(0, 8)}</div>
+              <div style={{ color: "var(--att-text-2)" }}>{c.last_activity_at ? formatDate(c.last_activity_at) : "—"}</div>
+              <Chip value={c.unconfirmed_ai_draft_count} warn={c.unconfirmed_ai_draft_count > 0} />
+              <Chip value={c.disengaged_30d ? "Yes" : "—"} warn={c.disengaged_30d} />
+              <Chip value={c.unreviewed_severity_indicator_count} warn={c.unreviewed_severity_indicator_count > 0} />
+              <ChevronRight size={14} style={{ opacity: 0.5 }} />
+            </Link>
+          );
+        })}
+      </div>
+
+      <p style={{ fontSize: 11, color: "var(--att-text-2)", maxWidth: 640 }}>
+        Documentation activity is a workflow signal, not a legal or clinical assessment. "Disengaged" means
+        no incidents or evidence were added by the survivor in the last 30 days — it does not imply anything
+        about their situation.
+      </p>
+    </div>
+  );
+}
+
+function Kpi({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number | string; tone?: "warn" }) {
+  return (
+    <div style={{
+      border: "1px solid var(--att-border)",
+      borderRadius: 8,
+      padding: 14,
+      background: tone === "warn" ? "rgba(231, 123, 86, 0.06)" : "transparent",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--att-text-2)" }}>
+        {icon}<span>{label}</span>
+      </div>
+      <div style={{ fontFamily: "Georgia, 'Palatino Linotype', serif", fontSize: 26, marginTop: 6 }}>{value}</div>
+    </div>
+  );
+}
+
+function Chip({ value, warn }: { value: number | string; warn?: boolean }) {
+  return (
+    <div style={{
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: 32,
+      padding: "2px 8px",
+      borderRadius: 999,
+      fontSize: 12,
+      fontWeight: 600,
+      background: warn ? "rgba(231, 123, 86, 0.15)" : "transparent",
+      color: warn ? "var(--accent, #E77B56)" : "var(--att-text-2)",
+      width: "fit-content",
+    }}>{value}</div>
+  );
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
