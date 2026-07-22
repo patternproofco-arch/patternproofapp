@@ -774,6 +774,7 @@ export type Database = {
       cases: {
         Row: {
           attached_evidence_ids: string[]
+          case_name: string | null
           case_types: string[]
           created_at: string
           highlighted_incident_ids: string[]
@@ -788,6 +789,7 @@ export type Database = {
         }
         Insert: {
           attached_evidence_ids?: string[]
+          case_name?: string | null
           case_types?: string[]
           created_at?: string
           highlighted_incident_ids?: string[]
@@ -802,6 +804,7 @@ export type Database = {
         }
         Update: {
           attached_evidence_ids?: string[]
+          case_name?: string | null
           case_types?: string[]
           created_at?: string
           highlighted_incident_ids?: string[]
