@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   UploadCloud, ShieldCheck, ArrowRight,
-  Sparkles, ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarClock, ShieldAlert,
+  Sparkles, ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarClock, ShieldAlert, GitCompare,
 } from "lucide-react";
 import {
   UploadDocIcon, TimelineDotsIcon, CalendarGridIcon,
@@ -152,6 +152,18 @@ function Dashboard() {
         icon: <CalendarClock size={26} strokeWidth={1.9} />,
         tint: "rgba(180, 200, 230, 0.5)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
         ariaLabel: "Resolve uncertain dates",
+      });
+    }
+    if (stats.contradiction_count > 0) {
+      const n = stats.contradiction_count;
+      contextualCards.push({
+        to: "/journal",
+        title: "A few same-day entries don't match",
+        blurb: `${n} ${n === 1 ? "pair of entries has" : "pairs of entries have"} different times or locations on the same day. Worth a look when you have a moment.`,
+        status: "Worth a look",
+        icon: <GitCompare size={26} strokeWidth={1.9} />,
+        tint: "rgba(200, 210, 230, 0.5)", iconBg: "#6A7FA8", iconFg: "#FFFFFF",
+        ariaLabel: "Review same-day entries with different details",
       });
     }
     if (stats.unreviewed_severity_indicator_count > 0) {
