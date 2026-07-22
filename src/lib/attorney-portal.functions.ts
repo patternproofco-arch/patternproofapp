@@ -1340,3 +1340,127 @@ export type ConflictFlag = {
   my_matched_name: string;
   other_matched_name: string;
 };
+
+/* --------------------- missing-evidence checklist --------------------- */
+
+export const listMissingEvidenceChecklist = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { clientId: string }) => z.object({ clientId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertCaseAccess(context.userId, data.clientId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows } = await supabaseAdmin
+      .from("attorney_missing_evidence_checklist")
+      .select("id,item_label,notes,is_resolved,resolved_at,source,created_at")
+      .eq("attorney_user_id", context.userId)
+      .eq("client_user_id", data.clientId)
+      .order("created_at", { ascending: true });
+    return { items: rows ?? [] };
+  });
+
+export const addMissingEvidenceItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { clientId: string; itemLabel: string; notes?: string }) =>
+    z.object({ clientId: z.string().uuid(), itemLabel: z.string().min(1).max(500), notes: z.string().max(2000).optional() }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertCaseAccess(context.userId, data.clientId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("attorney_missing_evidence_checklist")
+      .insert({
+        attorney_user_id: context.userId,
+        client_user_id: data.clientId,
+        item_label: data.itemLabel.trim(),
+        notes: data.notes?.trim() || null,
+        source: "manual",
+      })
+      .select("id,item_label,notes,is_resolved,resolved_at,source,created_at")
+      .single();
+    if (error) throw new Error(error.message);
+    return { item: row };
+  });
+
+export const setMissingEvidenceResolved = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string; resolved: boolean }) =>
+    z.object({ id: z.string().uuid(), resolved: z.boolean() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("attorney_missing_evidence_checklist")
+      .update({ is_resolved: data.resolved, resolved_at: data.resolved ? new Date().toISOString() : null })
+      .eq("id", data.id)
+      .eq("attorney_user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// Idempotent: pulls the latest pattern-analysis gaps for this client and inserts
+// any missing 'ai_gap' rows. Existing resolved/unresolved 'ai_gap' rows with the
+// same item_label are left untouched. A unique index on
+// (attorney_user_id, client_user_id, item_label) WHERE source='ai_gap' backs the
+// no-duplicate guarantee even under concurrent syncs.
+export const syncMissingEvidenceChecklistFromGaps = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { clientId: string }) => z.object({ clientId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertCaseAccess(context.userId, data.clientId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: pat } = await supabaseAdmin
+      .from("pattern_analyses")
+      .select("analysis")
+      .eq("user_id", data.clientId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const analysis = (pat?.analysis ?? {}) as { gaps?: unknown };
+    const rawGaps = Array.isArray(analysis.gaps) ? analysis.gaps : [];
+    const labels = new Set<string>();
+    for (const g of rawGaps) {
+      let label: string | null = null;
+      if (typeof g === "string") label = g;
+      else if (g && typeof g === "object") {
+        const o = g as Record<string, unknown>;
+        const cand = o.gap ?? o.kind ?? o.title ?? o.label;
+        if (typeof cand === "string") label = cand;
+      }
+      const trimmed = label?.trim();
+      if (trimmed) labels.add(trimmed);
+    }
+    if (labels.size === 0) return { added: 0, skipped: 0 };
+
+    const { data: existing } = await supabaseAdmin
+      .from("attorney_missing_evidence_checklist")
+      .select("item_label")
+      .eq("attorney_user_id", context.userId)
+      .eq("client_user_id", data.clientId)
+      .eq("source", "ai_gap");
+    const have = new Set((existing ?? []).map((r) => r.item_label));
+
+    const toInsert = Array.from(labels)
+      .filter((l) => !have.has(l))
+      .map((l) => ({
+        attorney_user_id: context.userId,
+        client_user_id: data.clientId,
+        item_label: l,
+        source: "ai_gap" as const,
+      }));
+
+    let added = 0;
+    if (toInsert.length) {
+      // Insert one-by-one so a rare concurrent duplicate (23505 against the
+      // partial unique index missing_evidence_ai_gap_unique) is skipped
+      // instead of failing the whole batch. Sequential repeat clicks are
+      // already handled by the pre-fetch existence check above.
+      for (const row of toInsert) {
+        const { error } = await supabaseAdmin
+          .from("attorney_missing_evidence_checklist")
+          .insert(row);
+        if (!error) added += 1;
+        else if (!/duplicate key|23505/i.test(error.message)) throw new Error(error.message);
+      }
+    }
+    return { added, skipped: labels.size - added };
+  });

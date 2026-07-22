@@ -440,6 +440,7 @@ export type Database = {
           item_label: string
           notes: string | null
           resolved_at: string | null
+          source: string
           updated_at: string
         }
         Insert: {
@@ -451,6 +452,7 @@ export type Database = {
           item_label: string
           notes?: string | null
           resolved_at?: string | null
+          source?: string
           updated_at?: string
         }
         Update: {
@@ -462,6 +464,7 @@ export type Database = {
           item_label?: string
           notes?: string | null
           resolved_at?: string | null
+          source?: string
           updated_at?: string
         }
         Relationships: []
