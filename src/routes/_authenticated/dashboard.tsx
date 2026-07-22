@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   UploadCloud, ShieldCheck, ArrowRight,
-  Sparkles, Info, ChevronLeft, ChevronRight, Plus,
+  Sparkles, ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarClock,
 } from "lucide-react";
 import {
   UploadDocIcon, TimelineDotsIcon, CalendarGridIcon,
@@ -15,16 +15,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { listCourtDates, upsertCourtDate } from "@/lib/court-dates.functions";
+import { getDashboardStats, type DashboardStats } from "@/lib/dashboard.functions";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-type CardTo = "/evidence" | "/timeline" | "/patterns" | "/court-packet" | "/agent" | "/settings";
+type CardTo = "/evidence" | "/timeline" | "/patterns" | "/court-packet" | "/agent" | "/settings" | "/journal";
 
 interface DashCard {
   to: CardTo;
-  step: string;
+  step?: string;
   title: string;
   blurb: string;
   status: string;
@@ -47,9 +49,15 @@ interface CourtDate {
 }
 
 function Dashboard() {
-  const cards: DashCard[] = [
-    {
-      to: "/evidence", step: "Step 1 · Upload",
+  const statsFn = useServerFn(getDashboardStats);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  useEffect(() => {
+    statsFn().then(setStats).catch(() => setStats(null));
+  }, [statsFn]);
+
+  const allCards: Record<CardTo, DashCard> = {
+    "/evidence": {
+      to: "/evidence",
       title: "Upload Evidence",
       blurb: "Add screenshots, texts, documents, photos, or recordings.",
       status: "Start here",
@@ -58,26 +66,26 @@ function Dashboard() {
       ariaLabel: "Upload evidence — start here",
       featured: true,
     },
-    {
-      to: "/timeline", step: "Step 2 · Review",
+    "/timeline": {
+      to: "/timeline",
       title: "Timeline",
       blurb: "See incidents organized by date and pattern.",
-      status: "Builds as you add evidence",
+      status: "Review",
       icon: <TimelineDotsIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(170, 160, 230, 0.45)", iconBg: "#7C5CC4", iconFg: "#FFFFFF",
       ariaLabel: "Open timeline",
     },
-    {
-      to: "/patterns", step: "Step 4 · Patterns",
+    "/patterns": {
+      to: "/patterns",
       title: "Pattern Detection",
       blurb: "View repeated behaviors, escalation, and abuse patterns.",
-      status: "Pattern detection",
+      status: "Patterns",
       icon: <DotCirclePatternIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(140, 210, 200, 0.45)", iconBg: "#3FA89D", iconFg: "#FFFFFF",
       ariaLabel: "Open pattern report",
     },
-    {
-      to: "/agent", step: "Step 5 · Ask the agent",
+    "/agent": {
+      to: "/agent",
       title: "PatternProof Agent",
       blurb: "Ask the agent to organize, explain, or summarize your evidence.",
       status: "Ask for help",
@@ -86,17 +94,17 @@ function Dashboard() {
       ariaLabel: "Open the PatternProof agent",
       luminous: true,
     },
-    {
-      to: "/court-packet", step: "Step 6 · Court summary",
+    "/court-packet": {
+      to: "/court-packet",
       title: "Court Summary",
       blurb: "Generate an attorney-ready court overview.",
-      status: "Attorney-ready",
+      status: "For review",
       icon: <CourtSummaryIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(160, 180, 230, 0.45)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
       ariaLabel: "Build court summary",
     },
-    {
-      to: "/settings", step: "Always on",
+    "/settings": {
+      to: "/settings",
       title: "Safety & Settings",
       blurb: "Manage PIN, privacy, and account safety.",
       status: "Private & secure",
@@ -104,7 +112,73 @@ function Dashboard() {
       tint: "rgba(170, 220, 200, 0.45)", iconBg: "#2F8D85", iconFg: "#FFFFFF",
       ariaLabel: "Open safety and settings",
     },
-  ];
+    "/journal": {
+      to: "/journal",
+      title: "Journal",
+      blurb: "Log or edit incidents in your own words.",
+      status: "Your words",
+      icon: <TimelineDotsIcon size={26} strokeWidth={1.9} />,
+      tint: "rgba(170, 160, 230, 0.45)", iconBg: "#7C5CC4", iconFg: "#FFFFFF",
+      ariaLabel: "Open journal",
+    },
+  };
+
+  const isFirstTime =
+    !!stats &&
+    stats.incident_count === 0 &&
+    stats.evidence_count === 0 &&
+    stats.unconfirmed_ai_count === 0;
+
+  const contextualCards: DashCard[] = [];
+  if (stats && !isFirstTime) {
+    if (stats.unconfirmed_ai_count > 0) {
+      contextualCards.push({
+        to: "/journal",
+        title: "Review AI-extracted incidents",
+        blurb: `${stats.unconfirmed_ai_count} ${stats.unconfirmed_ai_count === 1 ? "record needs" : "records need"} your confirmation before they appear in patterns or exports.`,
+        status: "Needs review",
+        icon: <AlertCircle size={26} strokeWidth={1.9} />,
+        tint: "rgba(230, 170, 120, 0.5)", iconBg: "#B5523A", iconFg: "#FFFFFF",
+        ariaLabel: "Review AI-extracted incidents",
+        featured: true,
+      });
+    }
+    if (stats.uncertain_date_count > 0) {
+      contextualCards.push({
+        to: "/journal",
+        title: "Resolve uncertain dates",
+        blurb: `${stats.uncertain_date_count} ${stats.uncertain_date_count === 1 ? "incident has" : "incidents have"} approximate or missing dates you can refine when you're ready.`,
+        status: "When you're ready",
+        icon: <CalendarClock size={26} strokeWidth={1.9} />,
+        tint: "rgba(180, 200, 230, 0.5)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
+        ariaLabel: "Resolve uncertain dates",
+      });
+    }
+    const byLast: Record<string, CardTo> = {
+      evidence: "/timeline",
+      timeline: "/patterns",
+      patterns: "/court-packet",
+      journal: "/timeline",
+    };
+    const preferred: CardTo = stats.last_activity ? byLast[stats.last_activity] ?? "/timeline" : "/timeline";
+    const fillers: DashCard[] = [
+      allCards[preferred],
+      allCards["/patterns"],
+      allCards["/timeline"],
+      allCards["/court-packet"],
+      allCards["/agent"],
+      allCards["/evidence"],
+    ];
+    for (const c of fillers) {
+      if (contextualCards.length >= 3) break;
+      if (!c) continue;
+      if (contextualCards.some((existing) => existing.to === c.to && existing.title === c.title)) continue;
+      contextualCards.push(c);
+    }
+  }
+
+  const showCourtCalendar = !!stats && (stats.upcoming_court_dates > 0 || stats.ever_had_court_date);
+  const statusLine = stats ? buildStatusLine(stats) : null;
 
   return (
     <div className="relative min-h-[calc(100vh-5rem)] overflow-hidden px-5 py-10 pb-28 md:px-10 md:py-14 md:pb-14">
@@ -118,7 +192,9 @@ function Dashboard() {
             Your <em>PatternProof</em> workspace
           </h1>
           <p className="mt-3 text-[15px] md:text-[16px]" style={{ color: "var(--muted-foreground)" }}>
-            Organize evidence, track court dates, find patterns, and prepare summaries.
+            {isFirstTime
+              ? "Take it at your pace. This is a safe place to start."
+              : "Organize evidence, track court dates, find patterns, and prepare summaries."}
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link
@@ -129,69 +205,54 @@ function Dashboard() {
             >
               <UploadCloud size={18} /> Upload Evidence
             </Link>
-            <Link
-              to="/agent"
-              aria-label="Ask PatternProof Agent"
-              className="inline-flex items-center gap-2 rounded-full border border-[#5B7CC4]/40 bg-white/60 px-6 py-3 text-[15px] font-semibold text-[#5B7CC4] backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4] focus-visible:ring-offset-2"
-            >
-              <Sparkles size={16} /> Ask PatternProof Agent
-            </Link>
+            {!isFirstTime && (
+              <Link
+                to="/agent"
+                aria-label="Ask PatternProof Agent"
+                className="inline-flex items-center gap-2 rounded-full border border-[#5B7CC4]/40 bg-white/60 px-6 py-3 text-[15px] font-semibold text-[#5B7CC4] backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4] focus-visible:ring-offset-2"
+              >
+                <Sparkles size={16} /> Ask PatternProof Agent
+              </Link>
+            )}
           </div>
         </header>
 
-        {/* Helper strip */}
-        <div
-          role="note"
-          className="mb-8 flex items-start gap-3 rounded-2xl px-5 py-4"
-          style={{
-            background: "rgba(255,255,255,0.2)",
-            backdropFilter: "blur(14px) saturate(140%)",
-            border: "1px solid rgba(255,255,255,0.45)",
-            boxShadow: "0 6px 20px rgba(15,23,42,0.05)",
-          }}
-        >
-          <span
-            aria-hidden
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white"
-            style={{ background: "linear-gradient(135deg, #2F8D85, #5B7CC4)" }}
+        {statusLine && !isFirstTime && (
+          <p
+            className="mb-6 rounded-2xl px-5 py-4 text-[13px]"
+            style={{
+              background: "rgba(255,255,255,0.35)",
+              backdropFilter: "blur(12px) saturate(140%)",
+              border: "1px solid rgba(255,255,255,0.45)",
+              color: "#2A1A10",
+            }}
           >
-            <Info size={18} />
-          </span>
-          <div className="min-w-0">
-            <div className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
-              Start with evidence.
+            {statusLine}
+          </p>
+        )}
+
+        {isFirstTime ? (
+          <OnboardingChecklist
+            counts={{
+              incidents: stats?.incident_count ?? 0,
+              evidence: stats?.evidence_count ?? 0,
+              voiceNotes: stats?.voice_note_count ?? 0,
+              hasCase: stats?.has_case ?? false,
+            }}
+          />
+        ) : (
+          stats && (
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {contextualCards.map((c, i) => (
+                <div key={`${c.to}-${i}`}><GlassCard card={c} /></div>
+              ))}
+              {showCourtCalendar && (
+                <div className="md:col-span-2 lg:col-span-1"><CourtCalendarCard /></div>
+              )}
+              <div className="md:col-span-2 lg:col-span-3"><GlassCard card={allCards["/settings"]} compact /></div>
             </div>
-            <p className="mt-0.5 text-[13px]" style={{ color: "#2A1A10" }}>
-              PatternProof will help organize it into timelines, patterns, court dates, and summaries.
-            </p>
-          </div>
-        </div>
-
-        <ol aria-label="Dashboard steps" className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {/* Step 1 */}
-          <li><GlassCard card={cards[0]} /></li>
-          {/* Step 2 */}
-          <li><GlassCard card={cards[1]} /></li>
-          {/* Step 3 — Court Calendar (inline) */}
-          <li className="md:col-span-2 lg:col-span-1"><CourtCalendarCard /></li>
-          {/* Step 4 */}
-          <li><GlassCard card={cards[2]} /></li>
-          {/* Step 5 — Agent */}
-          <li><GlassCard card={cards[3]} /></li>
-          {/* Step 6 */}
-          <li><GlassCard card={cards[4]} /></li>
-          {/* Settings — small */}
-          <li className="md:col-span-2 lg:col-span-3"><GlassCard card={cards[5]} compact /></li>
-        </ol>
-
-        {/* Agent supporting line */}
-        <p
-          className="mt-6 flex items-center justify-center gap-2 text-center text-[13px]"
-          style={{ color: "var(--muted-foreground)" }}
-        >
-          <Sparkles size={14} style={{ color: "#5B7CC4" }} />
-          Turn scattered evidence into patterns, timelines, and professional-review insight.
-        </p>
+          )
+        )}
       </div>
 
       {/* Sticky mobile CTA */}
@@ -207,6 +268,20 @@ function Dashboard() {
       </div>
     </div>
   );
+}
+
+function buildStatusLine(s: DashboardStats): string {
+  const parts: string[] = [];
+  if (s.incident_count > 0) parts.push(`${s.incident_count} ${s.incident_count === 1 ? "incident" : "incidents"} logged`);
+  if (s.evidence_count > 0) parts.push(`${s.evidence_count} evidence ${s.evidence_count === 1 ? "file" : "files"} preserved`);
+  if (s.unconfirmed_ai_count > 0) parts.push(`${s.unconfirmed_ai_count} awaiting your confirmation`);
+  if (s.uncertain_date_count > 0) parts.push(`${s.uncertain_date_count} ${s.uncertain_date_count === 1 ? "date" : "dates"} still uncertain`);
+  if (s.upcoming_court_dates > 0) parts.push(`${s.upcoming_court_dates} court ${s.upcoming_court_dates === 1 ? "date" : "dates"} in the next 30 days`);
+  if (parts.length === 0) return "Nothing else needs attention today.";
+  if (s.unconfirmed_ai_count === 0 && s.uncertain_date_count === 0) {
+    return parts.join(" · ") + " · Nothing else needs attention today.";
+  }
+  return parts.join(" · ") + ".";
 }
 
 function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolean }) {
@@ -250,7 +325,7 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
           )}
         </div>
         <div className={compact ? "flex-1 min-w-0" : ""}>
-          {!compact && (
+          {!compact && card.step && (
             <div className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>
               {card.step}
             </div>
@@ -333,7 +408,7 @@ function CourtCalendarCard() {
         </span>
       </div>
       <div className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>
-        Step 3 · Court calendar
+        Court calendar
       </div>
       <h3 className="mt-1 font-serif text-[22px] leading-tight" style={{ color: "var(--foreground)" }}>
         Court Calendar
