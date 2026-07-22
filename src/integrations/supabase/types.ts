@@ -1549,6 +1549,7 @@ export type Database = {
           id: string
           incident_count_at_time: number
           model_used: string | null
+          reviewed_status: Json
           user_id: string
         }
         Insert: {
@@ -1557,6 +1558,7 @@ export type Database = {
           id?: string
           incident_count_at_time?: number
           model_used?: string | null
+          reviewed_status?: Json
           user_id: string
         }
         Update: {
@@ -1565,6 +1567,7 @@ export type Database = {
           id?: string
           incident_count_at_time?: number
           model_used?: string | null
+          reviewed_status?: Json
           user_id?: string
         }
         Relationships: []
