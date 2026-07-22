@@ -1614,7 +1614,18 @@ function DepoTab({ depo, loading, onRun }: { depo: DepoResult | null; loading: b
           <DepoComplex title="Credibility gaps" items={depo.prep.credibility_gaps} keys={["gap", "address_before_testimony"]} />
           <DepoSection title="Direct examination questions" items={depo.prep.prep_questions} ordered />
           <DepoSection title="Cross-examination warnings" items={depo.prep.cross_warnings} />
-          <DepoComplex title="Court-safe phrasing" items={depo.prep.court_safe_phrasing} keys={["instead_of", "say"]} accent="#2D4A8A" />
+          {depo.phrasing_consent && depo.prep.court_safe_phrasing?.length ? (
+            <div>
+              <div style={{ background: "#FEF3C7", border: "1px solid #F59E0B", borderRadius: 8, padding: "8px 12px", marginBottom: 10, fontSize: 12, color: "#78350F" }}>
+                <strong>AI-suggested phrasing for deposition prep — not the survivor's own words.</strong> Do not export or attribute to your client as her statement. This is internal work product only.
+              </div>
+              <DepoComplex title="Court-safe phrasing (AI-suggested — not client's words)" items={depo.prep.court_safe_phrasing} keys={["instead_of", "say"]} accent="#2D4A8A" />
+            </div>
+          ) : !depo.phrasing_consent ? (
+            <div style={{ background: "var(--att-surface-2)", border: "1px dashed var(--att-border)", borderRadius: 8, padding: 12, fontSize: 12, color: "var(--att-text-2)" }}>
+              <strong>Court-safe phrasing unavailable.</strong> {depo.phrasing_consent_note}
+            </div>
+          ) : null}
         </div>
       )}
     </div>
