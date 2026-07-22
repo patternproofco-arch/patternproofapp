@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useParams, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Users, CreditCard, Lock } from "lucide-react";
+import { Users, CreditCard, Lock, LayoutGrid } from "lucide-react";
 import { listMyClients } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -33,6 +33,17 @@ function ClientsLayout() {
           <Users size={14} />
           <div className="att-eyebrow" style={{ margin: 0 }}>Clients</div>
         </div>
+        <Link
+          to="/caseload"
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "6px 10px", marginBottom: 8,
+            borderRadius: 6, border: "1px solid var(--att-border)",
+            fontSize: 12, textDecoration: "none", color: "inherit",
+          }}
+        >
+          <LayoutGrid size={12} /> Caseload capacity
+        </Link>
         {clients === null && <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>Loading…</div>}
         {clients && clients.length === 0 && (
           <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>No clients yet. When a survivor invites you, they appear here.</div>

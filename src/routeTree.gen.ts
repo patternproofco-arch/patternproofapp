@@ -64,6 +64,7 @@ import { Route as AttorneyTrustRouteImport } from './routes/_attorney/trust'
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
 import { Route as AttorneySetupRouteImport } from './routes/_attorney/setup'
 import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
+import { Route as AttorneyCaseloadRouteImport } from './routes/_attorney/caseload'
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
 import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -364,6 +365,11 @@ const AttorneyClientsRoute = AttorneyClientsRouteImport.update({
   path: '/clients',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AttorneyCaseloadRoute = AttorneyCaseloadRouteImport.update({
+  id: '/caseload',
+  path: '/caseload',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AttorneyBillingReturnRoute = AttorneyBillingReturnRouteImport.update({
   id: '/billing-return',
   path: '/billing-return',
@@ -458,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
+  '/caseload': typeof AttorneyCaseloadRoute
   '/clients': typeof AttorneyClientsRouteWithChildren
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
@@ -526,6 +533,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
+  '/caseload': typeof AttorneyCaseloadRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
   '/trust': typeof AttorneyTrustRoute
@@ -595,6 +603,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_attorney/billing': typeof AttorneyBillingRoute
   '/_attorney/billing-return': typeof AttorneyBillingReturnRoute
+  '/_attorney/caseload': typeof AttorneyCaseloadRoute
   '/_attorney/clients': typeof AttorneyClientsRouteWithChildren
   '/_attorney/setup': typeof AttorneySetupRoute
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
@@ -665,6 +674,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/billing'
     | '/billing-return'
+    | '/caseload'
     | '/clients'
     | '/setup'
     | '/subscribe'
@@ -733,6 +743,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/billing'
     | '/billing-return'
+    | '/caseload'
     | '/setup'
     | '/subscribe'
     | '/trust'
@@ -801,6 +812,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_attorney/billing'
     | '/_attorney/billing-return'
+    | '/_attorney/caseload'
     | '/_attorney/clients'
     | '/_attorney/setup'
     | '/_attorney/subscribe'
@@ -1269,6 +1281,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyClientsRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_attorney/caseload': {
+      id: '/_attorney/caseload'
+      path: '/caseload'
+      fullPath: '/caseload'
+      preLoaderRoute: typeof AttorneyCaseloadRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/_attorney/billing-return': {
       id: '/_attorney/billing-return'
       path: '/billing-return'
@@ -1380,6 +1399,7 @@ const AttorneyClientsRouteWithChildren = AttorneyClientsRoute._addFileChildren(
 interface AttorneyRouteChildren {
   AttorneyBillingRoute: typeof AttorneyBillingRoute
   AttorneyBillingReturnRoute: typeof AttorneyBillingReturnRoute
+  AttorneyCaseloadRoute: typeof AttorneyCaseloadRoute
   AttorneyClientsRoute: typeof AttorneyClientsRouteWithChildren
   AttorneySetupRoute: typeof AttorneySetupRoute
   AttorneySubscribeRoute: typeof AttorneySubscribeRoute
@@ -1389,6 +1409,7 @@ interface AttorneyRouteChildren {
 const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneyBillingRoute: AttorneyBillingRoute,
   AttorneyBillingReturnRoute: AttorneyBillingReturnRoute,
+  AttorneyCaseloadRoute: AttorneyCaseloadRoute,
   AttorneyClientsRoute: AttorneyClientsRouteWithChildren,
   AttorneySetupRoute: AttorneySetupRoute,
   AttorneySubscribeRoute: AttorneySubscribeRoute,
