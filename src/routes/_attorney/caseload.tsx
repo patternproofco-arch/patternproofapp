@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { AlertTriangle, Users, Clock, FileWarning, ChevronRight } from "lucide-react";
-import { getCaseloadOverview } from "@/lib/attorney-portal.functions";
+import { getCaseloadOverview, getFirmConflictFlags } from "@/lib/attorney-portal.functions";
 
 export const Route = createFileRoute("/_attorney/caseload")({
   head: () => ({
@@ -17,15 +17,19 @@ export const Route = createFileRoute("/_attorney/caseload")({
 });
 
 type Overview = Awaited<ReturnType<typeof getCaseloadOverview>>;
+type Conflicts = Awaited<ReturnType<typeof getFirmConflictFlags>>;
 
 function CaseloadPage() {
   const fetcher = useServerFn(getCaseloadOverview);
+  const conflictFetcher = useServerFn(getFirmConflictFlags);
   const [data, setData] = useState<Overview | null>(null);
+  const [conflicts, setConflicts] = useState<Conflicts | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     fetcher().then(setData).catch((e) => setErr(e?.message ?? "Could not load caseload."));
-  }, [fetcher]);
+    conflictFetcher().then(setConflicts).catch(() => setConflicts({ firm_id: null, flags: [] }));
+  }, [fetcher, conflictFetcher]);
 
   if (err) return <div style={{ padding: 16, fontSize: 13, color: "var(--att-text-2)" }}>{err}</div>;
   if (!data) return <div style={{ padding: 16, fontSize: 13, color: "var(--att-text-2)" }}>Loading caseload…</div>;
@@ -64,6 +68,30 @@ function CaseloadPage() {
                 <span style={{ color: "var(--att-text-2)", marginLeft: 8 }}>
                   {c.last_activity_at ? `last activity ${formatDate(c.last_activity_at)}` : "no recorded activity"}
                 </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {conflicts?.firm_id && conflicts.flags.length > 0 && (
+        <div style={{ border: "1px solid var(--att-border)", borderRadius: 8, padding: 14, background: "rgba(231, 123, 86, 0.05)", borderLeft: "3px solid var(--accent, #E77B56)" }}>
+          <div className="att-eyebrow" style={{ marginBottom: 6 }}>Possible name overlap — worth a firm conflict check</div>
+          <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
+            {conflicts.flags.map((f, i) => (
+              <li key={i} style={{ fontSize: 13, lineHeight: 1.5 }}>
+                <Link to="/clients/$clientId" params={{ clientId: f.my_client_id }} style={{ color: "var(--att-navy)", textDecoration: "none", fontWeight: 600 }}>
+                  Client {f.my_client_id.slice(0, 8)}
+                </Link>
+                {" and "}
+                <span style={{ fontWeight: 600 }}>Client {f.other_client_id.slice(0, 8)}</span>
+                {" (represented by "}
+                <span style={{ fontWeight: 600 }}>{f.other_attorney_name}</span>
+                {") both reference someone with a similar name — "}
+                <span style={{ color: "var(--att-text-2)" }}>
+                  "{f.my_matched_name}" vs "{f.other_matched_name}"
+                </span>
+                {". This may or may not be a conflict — worth checking directly with your firm before proceeding."}
               </li>
             ))}
           </ul>
