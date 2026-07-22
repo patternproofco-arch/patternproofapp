@@ -130,6 +130,8 @@ export type Database = {
           attorney_user_id: string
           client_user_id: string
           created_at: string
+          deposition_prep_consent: boolean
+          deposition_prep_consent_at: string | null
           id: string
           include_all_evidence: boolean
           include_all_incidents: boolean
@@ -146,6 +148,8 @@ export type Database = {
           attorney_user_id: string
           client_user_id: string
           created_at?: string
+          deposition_prep_consent?: boolean
+          deposition_prep_consent_at?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
@@ -162,6 +166,8 @@ export type Database = {
           attorney_user_id?: string
           client_user_id?: string
           created_at?: string
+          deposition_prep_consent?: boolean
+          deposition_prep_consent_at?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
