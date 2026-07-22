@@ -64,18 +64,20 @@ export const getDashboardStats = createServerFn({ method: "GET" })
 
     const { data: latestAnalysis } = await supabase
       .from("pattern_analyses")
-      .select("analysis")
+      .select("analysis, reviewed_status")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
     let unreviewed_severity_indicator_count = 0;
-    const indicators = (latestAnalysis?.analysis as { severity_indicators?: Array<{ reviewed_status?: string }> } | null)
+    const indicators = (latestAnalysis?.analysis as { severity_indicators?: unknown[] } | null)
       ?.severity_indicators;
+    const reviewedStatus = (latestAnalysis?.reviewed_status ?? {}) as Record<string, { status?: string }>;
     if (Array.isArray(indicators)) {
-      unreviewed_severity_indicator_count = indicators.filter(
-        (i) => !i?.reviewed_status || i.reviewed_status === "unsure",
-      ).length;
+      unreviewed_severity_indicator_count = indicators.reduce<number>((count, _item, index) => {
+        const entry = reviewedStatus[`sev:${index}`];
+        return !entry || entry.status === "unsure" ? count + 1 : count;
+      }, 0);
     }
 
     // Determine last-used surface (roughly)
