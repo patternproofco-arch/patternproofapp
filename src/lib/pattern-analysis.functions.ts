@@ -209,6 +209,9 @@ export const analyzePatterns = createServerFn({ method: "POST" })
     (parsed.severity_indicators ?? []).forEach((_s, i) => {
       seededStatus[`sev:${i}`] = { status: "unsure" };
     });
+    if (parsed.main_pattern_label) seededStatus["main_pattern"] = { status: "unsure" };
+    if (parsed.what_pattern_may_show) seededStatus["interpretation"] = { status: "unsure" };
+    if (parsed.attorney_summary) seededStatus["attorney_summary"] = { status: "unsure" };
 
     const insertRes = await supabase.from("pattern_analyses").insert({
       user_id: userId,

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Sparkles, RefreshCw, AlertCircle, Printer, Square, ShieldAlert, ArrowRight } from "lucide-react";
-import { analyzePatterns, getLatestPatternAnalysis, type PatternAnalysisResult } from "@/lib/pattern-analysis.functions";
+import { analyzePatterns, getLatestPatternAnalysis, setPatternClaimStatus, type PatternAnalysisResult, type ClaimReviewState } from "@/lib/pattern-analysis.functions";
 
 function confidenceColor(level?: string) {
   if (level === "Strong") return { bg: "#DCEFD9", fg: "#1F5132", border: "#7FB97A" };
@@ -18,8 +18,11 @@ export const Route = createFileRoute("/_authenticated/patterns")({
 function PatternsPage() {
   const fetchLatest = useServerFn(getLatestPatternAnalysis);
   const runAnalysis = useServerFn(analyzePatterns);
+  const setClaimStatus = useServerFn(setPatternClaimStatus);
   const [analysis, setAnalysis] = useState<PatternAnalysisResult | null>(null);
   const [createdAt, setCreatedAt] = useState<string | null>(null);
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
+  const [reviewed, setReviewed] = useState<Record<string, ClaimReviewState>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [notEnough, setNotEnough] = useState(false);
@@ -31,6 +34,8 @@ function PatternsPage() {
         if (r.found) {
           setAnalysis(r.analysis);
           setCreatedAt(r.createdAt);
+          setAnalysisId(r.id);
+          setReviewed(r.reviewed_status ?? {});
         }
       } finally {
         setLoading(false);
@@ -46,6 +51,8 @@ function PatternsPage() {
       if (r.ok) {
         setAnalysis(r.analysis);
         setCreatedAt(new Date().toISOString());
+        setAnalysisId(r.id);
+        setReviewed(r.reviewed_status ?? {});
         if (!r.cached) toast("New analysis ready.");
       } else if (r.reason === "not-enough-data") {
         setNotEnough(true);
@@ -58,6 +65,19 @@ function PatternsPage() {
       }
     } finally {
       setBusy(false);
+    }
+  };
+
+  const updateClaim = async (key: string, status: ClaimReviewState["status"], edited_note?: string) => {
+    if (!analysisId) return;
+    const prev = reviewed;
+    setReviewed({ ...prev, [key]: { status, edited_note: edited_note ?? prev[key]?.edited_note } });
+    try {
+      const r = await setClaimStatus({ data: { analysis_id: analysisId, claim_key: key, status, edited_note } });
+      if (r.ok) setReviewed(r.reviewed_status);
+    } catch {
+      setReviewed(prev);
+      toast("Couldn't save your review. Try again.");
     }
   };
 
@@ -149,8 +169,10 @@ function PatternsPage() {
           {/* 1. Report header bar */}
           {(analysis.main_pattern_label || analysis.confidence_level) && (() => {
             const c = confidenceColor(analysis.confidence_level);
+            const rejected = reviewed["main_pattern"]?.status === "rejected";
             return (
-              <div className="card-pp lg:col-span-2 flex flex-wrap items-center justify-between gap-3">
+              <div className="card-pp lg:col-span-2" style={rejected ? { opacity: 0.5 } : undefined}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="label-eyebrow">Primary pattern detected</div>
                   <h2 className="mt-1 font-serif text-[26px] leading-tight">{analysis.main_pattern_label}</h2>
@@ -165,6 +187,14 @@ function PatternsPage() {
                     {analysis.confidence_level} confidence
                   </span>
                 )}
+                </div>
+                {analysis.main_pattern_label && (
+                  <ClaimReview
+                    claimKey="main_pattern"
+                    state={reviewed["main_pattern"]}
+                    onUpdate={updateClaim}
+                  />
+                )}
               </div>
             );
           })()}
@@ -176,9 +206,14 @@ function PatternsPage() {
 
           {/* 2. What This Pattern May Be Showing */}
           {analysis.what_pattern_may_show && (
-            <div className="card-pp lg:col-span-2">
+            <div className="card-pp lg:col-span-2" style={reviewed["interpretation"]?.status === "rejected" ? { opacity: 0.5 } : undefined}>
               <div className="label-eyebrow">What this pattern may be showing</div>
               <p className="mt-2 font-serif text-[17px] leading-relaxed">{analysis.what_pattern_may_show}</p>
+              <ClaimReview
+                claimKey="interpretation"
+                state={reviewed["interpretation"]}
+                onUpdate={updateClaim}
+              />
             </div>
           )}
 
@@ -312,17 +347,101 @@ function PatternsPage() {
 
           {/* 10. Attorney Summary */}
           {analysis.attorney_summary && (
-            <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#EEF2F7", border: "1px solid #C8D3E2" }}>
+            <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#EEF2F7", border: "1px solid #C8D3E2", opacity: reviewed["attorney_summary"]?.status === "rejected" ? 0.5 : 1 }}>
               <div className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#3A4A66" }}>For legal review</div>
               <h3 className="mt-1 font-serif text-[20px]" style={{ color: "#1F2A3D" }}>Attorney summary</h3>
               <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "#1F2A3D" }}>{analysis.attorney_summary}</p>
+              <ClaimReview
+                claimKey="attorney_summary"
+                state={reviewed["attorney_summary"]}
+                onUpdate={updateClaim}
+                tone="dark"
+              />
             </div>
           )}
 
           {/* 11. Safety Note — always */}
           <div className="lg:col-span-2 rounded-xl p-5 text-[12px] leading-relaxed" style={{ background: "var(--input)", color: "var(--muted-foreground)" }}>
-            Pattern forecasts are based only on the evidence uploaded into PatternProof. They are not guarantees, legal advice, or safety plans. If you believe you are in immediate danger, contact emergency services, a domestic violence advocate, or your attorney.
+            Pattern analysis is based only on the evidence uploaded into PatternProof. It is not a guarantee, legal advice, or a safety plan. If you believe you are in immediate danger, contact emergency services, a domestic violence advocate, or your attorney.
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Claim review control (Confirm / Edit / Reject / Unsure) ---------- */
+
+const STATUS_LABEL: Record<ClaimReviewState["status"], string> = {
+  unsure: "Unsure",
+  confirmed: "Confirmed",
+  rejected: "Rejected",
+  edited: "Edited",
+};
+
+function ClaimReview({
+  claimKey,
+  state,
+  onUpdate,
+  tone = "light",
+}: {
+  claimKey: string;
+  state: ClaimReviewState | undefined;
+  onUpdate: (key: string, status: ClaimReviewState["status"], edited_note?: string) => Promise<void>;
+  tone?: "light" | "dark";
+}) {
+  const status = state?.status ?? "unsure";
+  const editedNote = state?.edited_note;
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(editedNote ?? "");
+  const [busy, setBusy] = useState(false);
+
+  const call = async (s: ClaimReviewState["status"], note?: string) => {
+    setBusy(true);
+    try { await onUpdate(claimKey, s, note); }
+    finally { setBusy(false); setEditing(false); }
+  };
+
+  const mutedColor = tone === "dark" ? "#3A4A66" : "var(--muted-foreground)";
+
+  return (
+    <div className="mt-4 no-print">
+      {status === "rejected" && (
+        <div className="mb-2 text-[12px] italic" style={{ color: mutedColor }}>
+          You marked this as not accurate.
+        </div>
+      )}
+      {editedNote && !editing && (
+        <div className="mb-2 rounded-md px-3 py-2 text-[12px]" style={{ background: tone === "dark" ? "#DCE3EE" : "var(--input)" }}>
+          <span className="label-eyebrow" style={{ display: "block", marginBottom: 4 }}>Your note</span>
+          {editedNote}
+        </div>
+      )}
+      {editing ? (
+        <div className="space-y-2">
+          <textarea
+            className="input-pp"
+            rows={3}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Rewrite this in your own words. Your note is stored alongside the original."
+          />
+          <div className="flex gap-2">
+            <button className="btn-primary" disabled={busy || !text.trim()} onClick={() => call("edited", text.trim())}>Save note</button>
+            <button className="btn-ghost" onClick={() => { setEditing(false); setText(editedNote ?? ""); }}>Cancel</button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] uppercase tracking-wide" style={{ color: mutedColor, fontWeight: 600 }}>
+            {STATUS_LABEL[status]}
+          </span>
+          <button className="btn-ghost text-[12px]" disabled={busy} onClick={() => call("confirmed")}>Confirm</button>
+          <button className="btn-ghost text-[12px]" disabled={busy} onClick={() => { setEditing(true); setText(editedNote ?? ""); }}>Edit</button>
+          <button className="btn-ghost text-[12px]" disabled={busy} onClick={() => call("rejected")} style={{ color: "var(--primary)" }}>
+            {status === "rejected" ? "Un-reject" : "Reject"}
+          </button>
+          <button className="btn-ghost text-[12px]" disabled={busy} onClick={() => call("unsure")}>Unsure</button>
         </div>
       )}
     </div>
