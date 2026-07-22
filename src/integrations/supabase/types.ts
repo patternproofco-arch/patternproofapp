@@ -1634,11 +1634,13 @@ export type Database = {
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
+          charter_rate_expires_at: string | null
           created_at: string | null
           current_period_end: string | null
           current_period_start: string | null
           environment: string
           id: string
+          plan_tier: string | null
           price_id: string
           product_id: string
           status: string
@@ -1649,11 +1651,13 @@ export type Database = {
         }
         Insert: {
           cancel_at_period_end?: boolean | null
+          charter_rate_expires_at?: string | null
           created_at?: string | null
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
           id?: string
+          plan_tier?: string | null
           price_id: string
           product_id: string
           status?: string
@@ -1664,11 +1668,13 @@ export type Database = {
         }
         Update: {
           cancel_at_period_end?: boolean | null
+          charter_rate_expires_at?: string | null
           created_at?: string | null
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
           id?: string
+          plan_tier?: string | null
           price_id?: string
           product_id?: string
           status?: string
@@ -1802,6 +1808,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_referrals: {
+        Row: {
+          created_at: string
+          org_slug: string
+          referred_by_org_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          org_slug: string
+          referred_by_org_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          org_slug?: string
+          referred_by_org_name?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
