@@ -20,6 +20,12 @@ export const ABUSE_TYPES = [
   { value: "property",  label: "Property damage",     helper: "Breaking, taking, or destroying your things.",                color: "#8E6240" },
   { value: "digital",   label: "Digital abuse",       helper: "Hacking accounts, fake profiles, spyware, deepfakes.",        color: "#5C9C9C" },
   { value: "coercive",  label: "Coercive control",    helper: "Isolation, monitoring, rules, micromanagement of your life.", color: "#8BB8D4" },
+  { value: "surveillance",         label: "Surveillance",          helper: "Examples: hidden cameras or listening devices in your home or car, spyware or monitoring apps installed on your phone or computer, someone reading your messages or accounts without permission.", color: "#6B7C93" },
+  { value: "location_tracking",    label: "Location tracking",     helper: "Examples: an AirTag, Tile, or GPS tracker hidden in your bag, car, or child's belongings. Someone using Find My, Life360, or a shared account to watch where you go.", color: "#4A8B9C" },
+  { value: "account_control",      label: "Account control",       helper: "Examples: passwords changed without you, being locked out of your email, bank, or social accounts, forced to hand over logins, or shared accounts used to control what you can reach.", color: "#8B6BA8" },
+  { value: "smart_home",           label: "Smart-home abuse",      helper: "Examples: someone remotely changing thermostats, locks, lights, or cameras in your home. Alexa, Ring, or Nest devices used to listen, watch, or unsettle you.", color: "#9C7B5A" },
+  { value: "impersonation",        label: "Impersonation",         helper: "Examples: fake profiles made in your name, edited or fake photos or videos of you shared online, someone pretending to be you in messages to family, work, or courts.", color: "#A85C7C" },
+  { value: "digital_intimidation", label: "Digital intimidation",  helper: "Examples: floods of texts, calls, or DMs that don't stop, watching your online status to time contact, harassing you across multiple platforms or through new accounts after being blocked.", color: "#C9744C" },
 ] as const;
 
 /**
