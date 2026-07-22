@@ -39,13 +39,6 @@ type ExtractedDraft = {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-function fileKind(mime: string): "image" | "audio" | "video" | "document" {
-  if (mime.startsWith("image/")) return "image";
-  if (mime.startsWith("audio/")) return "audio";
-  if (mime.startsWith("video/")) return "video";
-  return "document";
-}
-
 function KindIcon({ kind, size = 22 }: { kind: string; size?: number }) {
   const c = { color: "var(--foreground)" };
   if (kind === "image") return <ImageIcon size={size} style={c} />;
