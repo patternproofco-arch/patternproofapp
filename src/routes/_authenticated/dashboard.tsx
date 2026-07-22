@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   UploadCloud, ShieldCheck, ArrowRight,
-  Sparkles, Info, ChevronLeft, ChevronRight, Plus,
+  Sparkles, ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarClock,
 } from "lucide-react";
 import {
   UploadDocIcon, TimelineDotsIcon, CalendarGridIcon,
@@ -15,16 +15,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { listCourtDates, upsertCourtDate } from "@/lib/court-dates.functions";
+import { getDashboardStats, type DashboardStats } from "@/lib/dashboard.functions";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-type CardTo = "/evidence" | "/timeline" | "/patterns" | "/court-packet" | "/agent" | "/settings";
+type CardTo = "/evidence" | "/timeline" | "/patterns" | "/court-packet" | "/agent" | "/settings" | "/journal";
 
 interface DashCard {
   to: CardTo;
-  step: string;
+  step?: string;
   title: string;
   blurb: string;
   status: string;
