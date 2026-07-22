@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   UploadCloud, ShieldCheck, ArrowRight,
-  Sparkles, ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarClock,
+  Sparkles, ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarClock, ShieldAlert,
 } from "lucide-react";
 import {
   UploadDocIcon, TimelineDotsIcon, CalendarGridIcon,
@@ -152,6 +152,18 @@ function Dashboard() {
         icon: <CalendarClock size={26} strokeWidth={1.9} />,
         tint: "rgba(180, 200, 230, 0.5)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
         ariaLabel: "Resolve uncertain dates",
+      });
+    }
+    if (stats.unreviewed_severity_indicator_count > 0) {
+      const n = stats.unreviewed_severity_indicator_count;
+      contextualCards.push({
+        to: "/escalation-detector" as CardTo,
+        title: `${n} documented ${n === 1 ? "item needs" : "items need"} your review`,
+        blurb: "Severity indicators drawn from your confirmed records. Confirm or dismiss each so your documentation reflects what actually happened.",
+        status: "Review",
+        icon: <ShieldAlert size={26} strokeWidth={1.9} />,
+        tint: "rgba(230, 170, 120, 0.5)", iconBg: "#B5523A", iconFg: "#FFFFFF",
+        ariaLabel: "Review documented severity indicators",
       });
     }
     const byLast: Record<string, CardTo> = {

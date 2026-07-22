@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Sparkles, RefreshCw, AlertCircle, Printer, Square } from "lucide-react";
+import { Sparkles, RefreshCw, AlertCircle, Printer, Square, ShieldAlert, ArrowRight } from "lucide-react";
 import { analyzePatterns, getLatestPatternAnalysis, type PatternAnalysisResult } from "@/lib/pattern-analysis.functions";
 
 function confidenceColor(level?: string) {
@@ -109,6 +109,25 @@ function PatternsPage() {
       </div>
 
       {loading && <p className="mt-6 text-[14px]" style={{ color: "var(--muted-foreground)" }}>Loading…</p>}
+
+      <Link
+        to="/escalation-detector"
+        className="mt-6 flex items-start gap-4 rounded-xl p-4 transition-all hover:-translate-y-px no-print"
+        style={{ background: "var(--input)", border: "1px solid var(--border)" }}
+      >
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg" style={{ background: "#B5523A", color: "#FFFFFF" }} aria-hidden>
+          <ShieldAlert size={20} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-serif text-[16px] leading-tight" style={{ color: "var(--foreground)" }}>
+            Documented Severity Indicators
+          </div>
+          <p className="mt-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            Specific behaviors your confirmed records document, with source citations.
+          </p>
+        </div>
+        <ArrowRight size={16} className="mt-1 shrink-0" style={{ color: "var(--muted-foreground)" }} />
+      </Link>
 
       {notEnough && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--accent)" }}>

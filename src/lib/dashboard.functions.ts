@@ -12,6 +12,7 @@ export interface DashboardStats {
   upcoming_court_dates: number;
   ever_had_court_date: boolean;
   last_activity: "evidence" | "timeline" | "patterns" | "journal" | null;
+  unreviewed_severity_indicator_count: number;
 }
 
 export const getDashboardStats = createServerFn({ method: "GET" })
@@ -61,6 +62,22 @@ export const getDashboardStats = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
 
+    const { data: latestAnalysis } = await supabase
+      .from("pattern_analyses")
+      .select("analysis")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    let unreviewed_severity_indicator_count = 0;
+    const indicators = (latestAnalysis?.analysis as { severity_indicators?: Array<{ reviewed_status?: string }> } | null)
+      ?.severity_indicators;
+    if (Array.isArray(indicators)) {
+      unreviewed_severity_indicator_count = indicators.filter(
+        (i) => !i?.reviewed_status || i.reviewed_status === "unsure",
+      ).length;
+    }
+
     // Determine last-used surface (roughly)
     const times: Array<{ key: DashboardStats["last_activity"]; t: number }> = [];
     const push = (key: DashboardStats["last_activity"], v?: string | null) => {
@@ -83,5 +100,6 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       upcoming_court_dates: upcomingCourt.count ?? 0,
       ever_had_court_date: !!anyCourt.data,
       last_activity,
+      unreviewed_severity_indicator_count,
     };
   });
