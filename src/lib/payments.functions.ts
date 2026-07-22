@@ -72,7 +72,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
           .eq("environment", data.environment)
           .eq("plan_tier", "charter")
           .in("status", ["active", "trialing", "past_due"]);
-        if ((count ?? 0) >= 15) {
+        if ((count ?? 0) >= 10) {
           return { error: "The Charter Firm cohort is full. Please choose the standard Firm plan." };
         }
       }
@@ -213,7 +213,7 @@ export const getCharterAvailability = createServerFn({ method: "POST" })
       .eq("plan_tier", "charter")
       .in("status", ["active", "trialing", "past_due"]);
     const used = count ?? 0;
-    const cap = 15;
+    const cap = 10;
     return { used, cap, remaining: Math.max(0, cap - used) };
   });
 

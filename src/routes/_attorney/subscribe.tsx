@@ -38,7 +38,7 @@ const TIERS: Record<TierKey, {
     close: "$297/month — one seat, up to 10 active matters.",
   },
   firm_charter: {
-    name: "Charter Firm",
+    name: "Firm",
     price: "$597",
     priceStrike: "$897",
     cadence: "/month · locked 12 months",
@@ -46,14 +46,16 @@ const TIERS: Record<TierKey, {
     recommended: true,
     bullets: [
       "Up to 15 attorney seats in one firm workspace",
+      "Everything in Solo Attorney",
       "Unlimited active client matters",
+      "Multi-attorney collaboration and shared case notes",
+      "Caseload and capacity view across the firm",
       "Firm-wide conflict-of-interest detection",
-      "Shared prep and escalation workspace",
-      "Charter rate locked for 12 months, then $897/month list",
-      "Direct line to the PatternProof team",
+      "Charter program: personal setup, case import, and staff training",
+      "$597/month rate locked for 12 months, then $897/month list",
     ],
-    close: "For the first 15 firms building this with us.",
-    note: "Charter cohort — limited to 15 firms.",
+    close: "Charter program — personal setup and locked rate for 12 months.",
+    note: "Charter program — limited to 10 firms.",
   },
   firm: {
     name: "Firm",
@@ -62,12 +64,14 @@ const TIERS: Record<TierKey, {
     priceId: "attorney_firm_monthly",
     bullets: [
       "Up to 15 attorney seats in one firm workspace",
+      "Everything in Solo Attorney",
       "Unlimited active client matters",
+      "Multi-attorney collaboration and shared case notes",
+      "Caseload and capacity view across the firm",
       "Firm-wide conflict-of-interest detection",
-      "Shared prep and escalation workspace",
       "Priority client onboarding support",
     ],
-    close: "For firms taking on volume DV and custody work.",
+    close: "Built for 3–15 attorney family-law firms.",
   },
 };
 
@@ -124,10 +128,10 @@ function SubscribePage() {
         <p style={{ color: "var(--att-text-2)", fontSize: 15, maxWidth: 640 }}>
           Pick the plan that fits the firm.{" "}
           {charterFull
-            ? "The Charter Firm cohort is full — thank you to the founding 15."
+            ? "The Charter Firm cohort is full — thank you to the founding 10."
             : remaining !== null
-              ? `Charter Firm rate is locked for 12 months — ${remaining} of 15 spots remaining.`
-              : "Charter Firm rate is locked for 12 months — first 15 firms only."}
+              ? `Charter program: personal setup and $597/month locked for 12 months — ${remaining} of 10 spots remaining.`
+              : "Charter program: personal setup and $597/month locked for 12 months — first 10 firms only."}
         </p>
       </div>
 
