@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { useServerFn } from "@tanstack/react-start";
 import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
+import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { BatchDropzone } from "@/components/evidence/BatchDropzone";
 
@@ -38,13 +39,6 @@ type ExtractedDraft = {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-function fileKind(mime: string): "image" | "audio" | "video" | "document" {
-  if (mime.startsWith("image/")) return "image";
-  if (mime.startsWith("audio/")) return "audio";
-  if (mime.startsWith("video/")) return "video";
-  return "document";
-}
-
 function KindIcon({ kind, size = 22 }: { kind: string; size?: number }) {
   const c = { color: "var(--foreground)" };
   if (kind === "image") return <ImageIcon size={size} style={c} />;
@@ -56,6 +50,7 @@ function KindIcon({ kind, size = 22 }: { kind: string; size?: number }) {
 function EvidencePage() {
   const { user } = useAuth();
   const extractFn = useServerFn(extractIncidentFromImage);
+  const ingestFn = useServerFn(ingestEvidenceBatch);
   const [items, setItems] = useState<EvidenceRow[]>([]);
   const [incidents, setIncidents] = useState<IncOption[]>([]);
   const [pending, setPending] = useState<File | null>(null);
@@ -108,15 +103,41 @@ function EvidencePage() {
     const key = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
     const up = await supabase.storage.from("evidence-files").upload(key, pending);
     if (up.error) { setBusy(false); toast("We couldn't upload that. Try again in a moment."); return; }
-    const fileType = fileKind(pending.type);
-    const inserted = await supabase.from("evidence").insert({
-      user_id: user.id, title: title.trim(), date, description: description || null,
-      file_url: key, file_type: fileType, linked_incident_id: linkedId || null,
-    }).select("*").single();
+
+    let receiptItem;
+    try {
+      const receipt = await ingestFn({ data: { files: [{
+        storage_key: key,
+        original_filename: pending.name,
+        mime: pending.type || "application/octet-stream",
+        bytes: pending.size,
+      }] } });
+      receiptItem = receipt.items[0];
+    } catch {
+      setBusy(false);
+      toast("Saved the file but couldn't record the details.");
+      return;
+    }
+    if (!receiptItem || !receiptItem.evidence_id) {
+      setBusy(false);
+      toast(receiptItem?.message ?? "Saved the file but couldn't record the details.");
+      return;
+    }
+    // Apply form-supplied fields on top of the freshly-preserved row.
+    const upd = await supabase.from("evidence").update({
+      title: title.trim(),
+      date,
+      description: description || null,
+      linked_incident_id: linkedId || null,
+    }).eq("id", receiptItem.evidence_id).eq("user_id", user.id).select("*").single();
     setBusy(false);
-    if (inserted.error || !inserted.data) { toast("Saved the file but couldn't record the details."); return; }
-    const newRow = inserted.data as EvidenceRow;
-    toast("Saved. Your record is safe.");
+    if (upd.error || !upd.data) { toast("Saved the file but couldn't record the details."); return; }
+    const newRow = upd.data as EvidenceRow;
+    if (receiptItem.duplicate_of) {
+      toast(`Exact duplicate of "${receiptItem.duplicate_of_title ?? "an earlier file"}" — preserved and grouped.`);
+    } else {
+      toast("Saved. Your record is safe.");
+    }
 
     // Reset form + reload
     const wasImageOrPdf = pending.type.startsWith("image/") || pending.type === "application/pdf";

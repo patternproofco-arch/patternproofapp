@@ -55,7 +55,7 @@ export const listMyInvitations = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     const { data: links } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id,attorney_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns")
+      .select("id,attorney_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,deposition_prep_consent,deposition_prep_consent_at")
       .eq("client_user_id", context.userId)
       .order("created_at", { ascending: false });
     const attorneyIds = (links ?? []).map((l) => l.attorney_user_id);
