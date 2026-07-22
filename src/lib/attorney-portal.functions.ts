@@ -1450,14 +1450,17 @@ export const syncMissingEvidenceChecklistFromGaps = createServerFn({ method: "PO
 
     let added = 0;
     if (toInsert.length) {
-      // upsert on the partial unique index; if a concurrent sync raced us,
-      // ignoreDuplicates keeps the operation idempotent.
-      const { data: inserted, error } = await supabaseAdmin
-        .from("attorney_missing_evidence_checklist")
-        .upsert(toInsert, { onConflict: "attorney_user_id,client_user_id,item_label", ignoreDuplicates: true })
-        .select("id");
-      if (error) throw new Error(error.message);
-      added = inserted?.length ?? 0;
+      // Insert one-by-one so a rare concurrent duplicate (23505 against the
+      // partial unique index missing_evidence_ai_gap_unique) is skipped
+      // instead of failing the whole batch. Sequential repeat clicks are
+      // already handled by the pre-fetch existence check above.
+      for (const row of toInsert) {
+        const { error } = await supabaseAdmin
+          .from("attorney_missing_evidence_checklist")
+          .insert(row);
+        if (!error) added += 1;
+        else if (!/duplicate key|23505/i.test(error.message)) throw new Error(error.message);
+      }
     }
     return { added, skipped: labels.size - added };
   });
