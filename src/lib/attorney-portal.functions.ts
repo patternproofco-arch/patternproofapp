@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { isPossibleNameOverlap } from "@/lib/name-match";
 
 /* ------------------------- shared helpers ------------------------- */
 
@@ -1240,3 +1241,102 @@ export const getClientThread = createServerFn({ method: "POST" })
       .limit(2000);
     return { thread, messages: messages ?? [] };
   });
+/* ------------------------- firm conflict check ------------------------- */
+
+// Surfaces possible same-name overlaps between clients across attorneys in the
+// same firm. Returns an empty result for solo practitioners (no firm_id).
+// Threshold: substring match OR ≥60% similarity (dist/longer ≤ 0.4) — slightly
+// looser than case-builder's material-change threshold since a false positive
+// here is just a prompt to double-check, not an auto-action.
+export const getFirmConflictFlags = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: me } = await supabaseAdmin
+      .from("attorney_profiles")
+      .select("firm_id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (!me?.firm_id) return { firm_id: null as string | null, flags: [] as ConflictFlag[] };
+
+    const { data: colleagues } = await supabaseAdmin
+      .from("attorney_profiles")
+      .select("user_id,full_name")
+      .eq("firm_id", me.firm_id);
+    const others = (colleagues ?? []).filter((c) => c.user_id !== context.userId);
+    if (others.length === 0) return { firm_id: me.firm_id, flags: [] as ConflictFlag[] };
+
+    const allAttorneyIds = [context.userId, ...others.map((o) => o.user_id)];
+    const nameByAttorney = new Map<string, string>();
+    for (const c of colleagues ?? []) nameByAttorney.set(c.user_id, c.full_name);
+
+    // Active client links per attorney.
+    const { data: links } = await supabaseAdmin
+      .from("attorney_client_links")
+      .select("attorney_user_id,client_user_id")
+      .in("attorney_user_id", allAttorneyIds)
+      .eq("status", "active");
+    if (!links || links.length === 0) return { firm_id: me.firm_id, flags: [] as ConflictFlag[] };
+
+    const clientIds = Array.from(new Set(links.map((l) => l.client_user_id)));
+    const { data: cases } = await supabaseAdmin
+      .from("cases")
+      .select("user_id,other_party")
+      .in("user_id", clientIds);
+    const otherPartyByClient = new Map<string, string>();
+    for (const c of cases ?? []) {
+      if (c.other_party && c.other_party.trim()) otherPartyByClient.set(c.user_id, c.other_party);
+    }
+
+    // My clients (with other_party) vs colleagues' clients (with other_party).
+    type Row = { attorney_id: string; client_id: string; other_party: string };
+    const rowsByAttorney = new Map<string, Row[]>();
+    for (const l of links) {
+      const op = otherPartyByClient.get(l.client_user_id);
+      if (!op) continue;
+      if (!rowsByAttorney.has(l.attorney_user_id)) rowsByAttorney.set(l.attorney_user_id, []);
+      rowsByAttorney.get(l.attorney_user_id)!.push({
+        attorney_id: l.attorney_user_id,
+        client_id: l.client_user_id,
+        other_party: op,
+      });
+    }
+
+    const mine = rowsByAttorney.get(context.userId) ?? [];
+    if (mine.length === 0) return { firm_id: me.firm_id, flags: [] as ConflictFlag[] };
+
+    const flags: ConflictFlag[] = [];
+    const seen = new Set<string>();
+    for (const other of others) {
+      const theirs = rowsByAttorney.get(other.user_id) ?? [];
+      for (const a of mine) {
+        for (const b of theirs) {
+          if (a.client_id === b.client_id) continue;
+          if (!isPossibleNameOverlap(a.other_party, b.other_party)) continue;
+          const key = [a.client_id, b.client_id, other.user_id].sort().join("|");
+          if (seen.has(key)) continue;
+          seen.add(key);
+          flags.push({
+            my_client_id: a.client_id,
+            other_client_id: b.client_id,
+            other_attorney_id: other.user_id,
+            other_attorney_name: nameByAttorney.get(other.user_id) ?? "Colleague",
+            my_matched_name: a.other_party,
+            other_matched_name: b.other_party,
+          });
+        }
+      }
+    }
+
+    return { firm_id: me.firm_id, flags };
+  });
+
+export type ConflictFlag = {
+  my_client_id: string;
+  other_client_id: string;
+  other_attorney_id: string;
+  other_attorney_name: string;
+  my_matched_name: string;
+  other_matched_name: string;
+};
