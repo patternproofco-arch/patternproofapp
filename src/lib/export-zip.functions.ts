@@ -53,13 +53,35 @@ export const generateExportZip = createServerFn({ method: "POST" })
     const latestAnalysis = paRes.data?.[0];
     const latestCase = casesRes.data?.[0];
 
+    // Fetch evidence_families to identify canonical rows for grouping.
+    const familyIds = Array.from(new Set(evidence.map((e) => e.family_id).filter((v): v is string => !!v)));
+    const familyCanonical = new Map<string, string>();
+    if (familyIds.length > 0) {
+      const famRes = await supabase
+        .from("evidence_families")
+        .select("id, canonical_evidence_id")
+        .in("id", familyIds);
+      for (const f of famRes.data ?? []) {
+        if (f.canonical_evidence_id) familyCanonical.set(f.id, f.canonical_evidence_id);
+      }
+    }
+    const isCanonical = (e: { id: string; family_id: string | null }) =>
+      !e.family_id ? true : familyCanonical.get(e.family_id) === e.id;
+
+    // Augment evidence CSV rows with family_id and is_canonical.
+    const evidenceCsvRows = evidence.map((e) => ({
+      ...e,
+      family_id: e.family_id ?? null,
+      is_canonical: isCanonical(e),
+    }));
+
     const zip = new JSZip();
     const exportedAt = new Date().toISOString();
     const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
 
     // CSV exports
     zip.file("incidents.csv", toCsv(incidents as Array<Record<string, unknown>>));
-    zip.file("evidence.csv", toCsv(evidence as Array<Record<string, unknown>>));
+    zip.file("evidence.csv", toCsv(evidenceCsvRows as Array<Record<string, unknown>>));
     zip.file("communications.csv", toCsv(comms as Array<Record<string, unknown>>));
     zip.file("voice_notes.csv", toCsv(voiceNotes as Array<Record<string, unknown>>));
     zip.file("legal_documents.csv", toCsv(legalDocs as Array<Record<string, unknown>>));
@@ -109,7 +131,7 @@ export const generateExportZip = createServerFn({ method: "POST" })
     };
 
     const evidenceFolder = zip.folder("evidence");
-    const evidenceCustody: Array<{ id: string; title: string; date: string; linked_incident_id: string | null; uploaded_at: string; safe_name: string; original_path: string; bytes: number; sha256: string }> = [];
+    const evidenceCustody: Array<{ id: string; title: string; date: string; linked_incident_id: string | null; uploaded_at: string; safe_name: string; original_path: string; bytes: number; sha256: string; family_id: string | null; is_canonical: boolean }> = [];
     await Promise.all(evidence.map(async (e) => {
       if (!evidenceFolder) return;
       const buf = await downloadFile("evidence-files", e.file_url);
@@ -122,12 +144,14 @@ export const generateExportZip = createServerFn({ method: "POST" })
         id: e.id, title: e.title, date: e.date, description: e.description,
         file_type: e.file_type, linked_incident_id: e.linked_incident_id,
         sha256: hash, original_path: e.file_url,
+        family_id: e.family_id ?? null, is_canonical: isCanonical(e),
       }, null, 2));
       fileHashes.push({ path: `evidence/${safeName}`, sha256: hash, bytes: buf.byteLength });
       evidenceCustody.push({
         id: e.id, title: e.title, date: e.date, linked_incident_id: e.linked_incident_id ?? null,
         uploaded_at: e.created_at, safe_name: safeName, original_path: e.file_url,
         bytes: buf.byteLength, sha256: hash,
+        family_id: e.family_id ?? null, is_canonical: isCanonical(e),
       });
     }));
 
@@ -192,11 +216,36 @@ export const generateExportZip = createServerFn({ method: "POST" })
       "",
       "## Evidence files",
       "",
-      "| Date | Title | File | Bytes | SHA-256 | Linked incident | Uploaded |",
-      "|------|-------|------|------:|---------|-----------------|----------|",
+      "Every uploaded file is listed and hash-verifiable. Files that share the",
+      "same SHA-256 are grouped into a family — the earliest preserved copy is",
+      "the canonical record; later byte-identical copies are duplicates of that",
+      "record, not independent corroboration.",
+      "",
+      "| Date | Title | File | Bytes | SHA-256 | Family | Canonical | Linked incident | Uploaded |",
+      "|------|-------|------|------:|---------|--------|-----------|-----------------|----------|",
       ...evidenceCustody
         .sort((a, b) => a.date.localeCompare(b.date))
-        .map((c) => `| ${c.date} | ${c.title.replace(/\|/g, "\\|")} | \`evidence/${c.safe_name}\` | ${c.bytes} | \`${c.sha256}\` | ${c.linked_incident_id ?? "—"} | ${c.uploaded_at} |`),
+        .map((c) => `| ${c.date} | ${c.title.replace(/\|/g, "\\|")} | \`evidence/${c.safe_name}\` | ${c.bytes} | \`${c.sha256}\` | ${c.family_id ? `\`${c.family_id.slice(0, 8)}\`` : "—"} | ${c.family_id ? (c.is_canonical ? "yes" : "no") : "—"} | ${c.linked_incident_id ?? "—"} | ${c.uploaded_at} |`),
+      "",
+      "### Duplicate groupings",
+      "",
+      ...(() => {
+        const groups = new Map<string, typeof evidenceCustody>();
+        for (const c of evidenceCustody) {
+          if (!c.family_id) continue;
+          const arr = groups.get(c.family_id) ?? [];
+          arr.push(c);
+          groups.set(c.family_id, arr);
+        }
+        const notes: string[] = [];
+        for (const [fid, members] of groups) {
+          if (members.length < 2) continue;
+          const canon = members.find((m) => m.is_canonical) ?? members[0];
+          notes.push(`- Family \`${fid.slice(0, 8)}\`: ${members.length} files represent 1 underlying record — see canonical \`evidence/${canon.safe_name}\`.`);
+        }
+        return notes.length > 0 ? notes : ["_No duplicate groupings in this export._"];
+      })(),
+      "",
       "",
       "## Voice notes & other artifacts",
       "",
