@@ -11,10 +11,18 @@ Schema (use null when unsure):
   "time": "HH:MM (24h) or null",
   "location": "string or null",
   "description": "string — a calm, factual first-person description of what appears to have happened. 1-4 sentences. Use the user's voice, not legal jargon.",
-  "abuse_types": ["physical"|"emotional"|"financial"|"coercive"|"custody"|"other"],
+  "abuse_types": ["physical"|"emotional"|"financial"|"coercive"|"custody"|"surveillance"|"location_tracking"|"account_control"|"smart_home"|"impersonation"|"digital_intimidation"|"other"],
   "witnesses": "string or null",
   "emotional_impact": "string or null"
 }
+
+Category guidance (use only what's clearly shown):
+- surveillance: hidden cameras, listening devices, spyware, or monitoring apps on phones/computers/accounts.
+- location_tracking: AirTags, Tiles, GPS trackers, Find My / Life360 / shared-account tracking of where the person goes.
+- account_control: forced password changes, account lockouts, forced login sharing, control over email/bank/social accounts.
+- smart_home: remote control of thermostats, locks, lights, cameras, or voice assistants (Alexa/Ring/Nest) used to watch or unsettle.
+- impersonation: fake profiles, deepfakes, edited photos/videos, someone pretending to be the person online or in messages.
+- digital_intimidation: relentless texting/calling/DMs, monitoring online status, harassment across multiple platforms or through new accounts after being blocked.
 
 Be conservative. If you only see a single text message, the abuse_types should reflect what is actually shown (often "emotional" or "coercive"). Never invent facts.`;
 
