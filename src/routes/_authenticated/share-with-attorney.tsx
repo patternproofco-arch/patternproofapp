@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check, MessageSquare, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } from "@/lib/attorney-invitations.functions";
-import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts } from "@/lib/attorney-portal.functions";
+import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts, setDepositionPrepConsent } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useConfirm } from "@/components/ConfirmDialog";
 
@@ -27,6 +27,7 @@ function ShareWithAttorney() {
   const create = useServerFn(createInvitation);
   const revokeInv = useServerFn(revokeInvitation);
   const revokeLk = useServerFn(revokeLink);
+  const setPhrasingConsent = useServerFn(setDepositionPrepConsent);
 
   const [data, setData] = useState<Listing | null>(null);
   const [open, setOpen] = useState(false);
@@ -186,7 +187,7 @@ function ShareWithAttorney() {
            ? <div className="card-pp text-[13px]" style={{ color: "var(--muted-foreground)" }}>No attorneys connected yet.</div>
            : data.links.filter((l) => l.status === "active").map((l) => (
               <div key={l.id} className="card-pp flex items-start justify-between gap-3" style={{ borderLeft: "3px solid var(--safe)" }}>
-                <div>
+                <div style={{ flex: 1 }}>
                   <div className="flex items-center gap-2"><ShieldCheck size={14} style={{ color: "var(--safe)" }} /><div className="font-serif text-[16px]">{l.profile?.full_name ?? "Attorney"}</div></div>
                   <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
                     {l.profile?.firm_name && `${l.profile.firm_name} · `}{l.profile?.email}
@@ -194,6 +195,26 @@ function ShareWithAttorney() {
                   <div className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
                     linked {new Date(l.created_at).toLocaleDateString()}
                   </div>
+                  <label className="mt-3 flex items-start gap-2 text-[12px]" style={{ color: "var(--foreground)", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      style={{ marginTop: 3 }}
+                      checked={!!l.deposition_prep_consent}
+                      onChange={async (e) => {
+                        try {
+                          await setPhrasingConsent({ data: { link_id: l.id, consent: e.target.checked } });
+                          toast(e.target.checked ? "AI-rephrased prep enabled for this attorney." : "AI-rephrased prep turned off.");
+                          load();
+                        } catch { toast("Couldn't update. Try again in a moment."); }
+                      }}
+                    />
+                    <span>
+                      Allow {l.profile?.full_name ?? "this attorney"} to see an AI-rephrased, court-appropriate version of your statements for deposition prep.
+                      <span style={{ display: "block", color: "var(--muted-foreground)", marginTop: 2 }}>
+                        Your original words are never changed — this creates a separate document for your attorney only. Off by default.
+                      </span>
+                    </span>
+                  </label>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
