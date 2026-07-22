@@ -1346,6 +1346,7 @@ function GapsTab({ data }: { data: CaseData }) {
           );
         })
       )}
+      <MissingEvidenceChecklistSection clientId={clientId} />
     </div>
   );
 }
