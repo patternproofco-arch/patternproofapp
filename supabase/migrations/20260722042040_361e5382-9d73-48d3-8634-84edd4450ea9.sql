@@ -1,0 +1,1 @@
+ALTER TABLE public.pattern_analyses ADD COLUMN IF NOT EXISTS reviewed_status JSONB NOT NULL DEFAULT '{}'::jsonb;
