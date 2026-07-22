@@ -297,6 +297,60 @@ function JournalPage() {
         </p>
       </div>
 
+      {contradictions.length > 0 && (
+        <section
+          className="card-pp mt-6"
+          style={{ background: "#F4EFE4", borderLeft: "4px solid #6A7FA8" }}
+          aria-label="Same-day entries with different details"
+        >
+          <h2 className="font-serif text-[18px]" style={{ color: "var(--foreground)" }}>
+            A few entries on the same day have different details — worth a look
+          </h2>
+          <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            Nothing has been changed. Review each one and edit whichever feels right — or leave them as they are.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {contradictions.map((c, idx) => {
+              const a = list.find((i) => i.id === c.incident_a_id);
+              const b = list.find((i) => i.id === c.incident_b_id);
+              if (!a || !b) return null;
+              return (
+                <li
+                  key={`${c.incident_a_id}-${c.incident_b_id}-${c.conflict_type}-${idx}`}
+                  className="rounded-xl p-3"
+                  style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(42,37,32,0.08)" }}
+                >
+                  <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "#6A7FA8" }}>
+                    {c.date} · {c.conflict_type === "time" ? "Different times" : "Different locations"}
+                  </div>
+                  <div className="mt-1 text-[13px]" style={{ color: "var(--foreground)" }}>{c.detail}</div>
+                  <div className="mt-2 grid gap-2 md:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => edit(a)}
+                      className="rounded-lg p-2 text-left text-[12px] hover:bg-black/5"
+                      style={{ border: "1px solid rgba(42,37,32,0.10)" }}
+                    >
+                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review entry A</div>
+                      <div className="mt-0.5 line-clamp-2">{a.description}</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => edit(b)}
+                      className="rounded-lg p-2 text-left text-[12px] hover:bg-black/5"
+                      style={{ border: "1px solid rgba(42,37,32,0.10)" }}
+                    >
+                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review entry B</div>
+                      <div className="mt-0.5 line-clamp-2">{b.description}</div>
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
       {/* Primary CTAs — single-button entry points. Form/list stay concealed until tapped. */}
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <button
