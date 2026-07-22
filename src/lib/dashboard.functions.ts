@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { detectContradictions, type ContradictionInput } from "@/lib/contradictions.functions";
 
 export interface DashboardStats {
   incident_count: number;
@@ -13,6 +14,7 @@ export interface DashboardStats {
   ever_had_court_date: boolean;
   last_activity: "evidence" | "timeline" | "patterns" | "journal" | null;
   unreviewed_severity_indicator_count: number;
+  contradiction_count: number;
 }
 
 export const getDashboardStats = createServerFn({ method: "GET" })
@@ -36,6 +38,7 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       lastIncident,
       lastEvidence,
       lastPattern,
+      contradictionRows,
     ] = await Promise.all([
       supabase.from("incidents").select("id", { count: "exact", head: true })
         .eq("user_id", userId).is("deleted_at", null)
@@ -60,6 +63,10 @@ export const getDashboardStats = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("pattern_analyses").select("created_at").eq("user_id", userId)
         .order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("incidents")
+        .select("id,date,time,location,date_precision,source,confirmed_at")
+        .eq("user_id", userId).is("deleted_at", null)
+        .eq("date_precision", "exact").not("date", "is", null),
     ]);
 
     const { data: latestAnalysis } = await supabase
@@ -91,6 +98,10 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     times.sort((a, b) => b.t - a.t);
     const last_activity = times[0]?.key ?? null;
 
+    const contradiction_count = detectContradictions(
+      (contradictionRows.data ?? []) as ContradictionInput[],
+    ).length;
+
     return {
       incident_count: incidentsConfirmed.count ?? 0,
       unconfirmed_ai_count: unconfirmedAi.count ?? 0,
@@ -103,5 +114,6 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       ever_had_court_date: !!anyCourt.data,
       last_activity,
       unreviewed_severity_indicator_count,
+      contradiction_count,
     };
   });
