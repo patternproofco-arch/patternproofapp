@@ -1,14 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Logo, type LogoVariant } from "@/components/Logo";
+import { getCharterAvailability } from "@/lib/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — PatternProof | Evidence Documentation for Survivors & Attorneys" },
-      { name: "description", content: "PatternProof pricing: Free for survivors. Attorney plans from $297/month. Organizations from $299/month. Private, encrypted documentation for domestic violence and custody cases." },
+      { name: "description", content: "PatternProof pricing: free forever for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 15 firms." },
       { property: "og:title", content: "Pricing — PatternProof" },
-      { property: "og:description", content: "Free for survivors. Attorney and organization plans that pay for themselves." },
+      { property: "og:description", content: "Free forever for survivors. Real multi-seat pricing for family-law firms. DV organizations partner with us at no cost." },
       { property: "og:url", content: "https://pattern-proof.tech/pricing" },
       { property: "og:type", content: "website" },
     ],
@@ -17,18 +20,22 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
-const TIERS: Array<{
+type Tier = {
   key: string;
   name: string;
   price: string;
+  priceStrike?: string;
   sub: string;
+  eyebrowNote?: string;
   logoVariant: LogoVariant;
   quote: string;
   features: string[];
   cta: string;
   ctaTo: string;
   featured?: boolean;
-}> = [
+};
+
+const BASE_TIERS: Tier[] = [
   {
     key: "survivor",
     name: "Survivor",
@@ -48,46 +55,93 @@ const TIERS: Array<{
     ctaTo: "/login",
   },
   {
-    key: "attorney",
-    name: "Attorney",
+    key: "attorney_solo",
+    name: "Solo Attorney",
     price: "$297",
     sub: "/month · Solo",
     logoVariant: "attorney",
-    quote: "The structured intake and timeline your clients wish they arrived with.",
+    quote: "For solo practitioners taking DV and custody cases one at a time.",
     features: [
       "One attorney seat",
       "Up to 10 active client matters",
       "Structured chronological timeline",
       "Source-linked supporting records",
-      "Survivor vs. AI-suggested content clearly distinguished",
       "Exportable case summary (ZIP) — Clio-compatible",
-      "Controlled client-sharing workflow",
-      "Priority email support",
+      "Survivor vs. AI-suggested content clearly distinguished",
     ],
-    cta: "Create your attorney account",
+    cta: "Start with Solo",
     ctaTo: "/lawyer-signup",
-    featured: true,
   },
+  // The Firm tier is inserted at runtime (see buildTiers below) so the
+  // Charter rate + remaining-seat copy stays in sync with live cohort state.
   {
     key: "organization",
-    name: "Organization",
-    price: "$299",
-    sub: "/month",
+    name: "DV Organization",
+    price: "Free",
+    sub: "for every survivor you refer",
     logoVariant: "org",
-    quote: "Zero cost to your clients. Measurable outcomes for your funders.",
+    quote: "You are a partner, not a customer. Your survivors never pay.",
     features: [
-      "Everything in Attorney",
-      "Unlimited client seats",
-      "Advocate dashboard",
-      "Grant-reportable outcome tracking",
-      "Custom intake forms",
-      "Staff onboarding call included",
-      "Co-branded survivor experience",
+      "Free forever for every survivor your organization refers",
+      "Referral link so we can attribute outcomes back to your advocacy",
+      "Priority support for your intake team",
+      "Direct line to the PatternProof team",
+      "We onboard a limited number of organizations at a time",
     ],
-    cta: "Request a Pilot",
+    cta: "Partner with us",
     ctaTo: "/request-org-access",
   },
 ];
+
+function buildTiers(remainingCharter: number | null): Tier[] {
+  const charterFull = remainingCharter !== null && remainingCharter <= 0;
+  const firm: Tier = charterFull
+    ? {
+        key: "attorney_firm",
+        name: "Firm",
+        price: "$897",
+        sub: "/month · up to 15 seats",
+        eyebrowNote: "Charter cohort is full — thank you.",
+        logoVariant: "attorney",
+        quote: "For the family-law firms that move volume.",
+        features: [
+          "Up to 15 attorney seats in one firm workspace",
+          "Unlimited active client matters",
+          "Shared prep and escalation workspace",
+          "Firm-wide conflict-of-interest detection",
+          "Priority client onboarding + Clio-compatible exports",
+        ],
+        cta: "Start with Firm",
+        ctaTo: "/lawyer-signup",
+        featured: true,
+      }
+    : {
+        key: "attorney_firm",
+        name: "Charter Firm",
+        price: "$597",
+        priceStrike: "$897",
+        sub: "/month · locked for 12 months",
+        eyebrowNote:
+          remainingCharter === null
+            ? "Launch program — limited to 15 firms"
+            : `${remainingCharter} of 15 Charter spots remaining`,
+        logoVariant: "attorney",
+        quote: "For the first 15 firms building this with us.",
+        features: [
+          "Up to 15 attorney seats in one firm workspace",
+          "Unlimited active client matters",
+          "Shared prep and escalation workspace",
+          "Firm-wide conflict-of-interest detection",
+          "Charter rate locked for 12 months — then $897/month list",
+          "Direct line to the PatternProof team",
+        ],
+        cta: "Claim a Charter seat",
+        ctaTo: "/lawyer-signup",
+        featured: true,
+      };
+  // Order: Survivor · Solo · Firm (featured, middle) · DV Organization
+  return [BASE_TIERS[0], BASE_TIERS[1], firm, BASE_TIERS[2]];
+}
 
 const FAQS = [
   {
@@ -95,24 +149,37 @@ const FAQS = [
     a: "Yes. Always. No credit card, no trial, no catch. Survivors never pay.",
   },
   {
-    q: "Do you integrate with Clio?",
-    a: "Not natively. Attorney and Organization plans include a Clio-compatible ZIP export you can import into a Clio matter today. A native Clio Manage connection is not yet available.",
+    q: "What happens after the Charter Firm rate ends?",
+    a: "After 12 months, your firm moves to the standard Firm rate of $897/month. We'll notify you at least 60 days in advance — no surprise bill.",
   },
   {
-    q: "What's the Founding Pilot?",
-    a: "An application-based program for the first 3 qualified family-law attorneys: $99/month for 90 days, one attorney seat, up to 5 active matters, onboarding session included, weekly feedback expected, and a conversion discussion before the pilot ends.",
+    q: "How is the Firm tier different from Solo?",
+    a: "Firm gives you up to 15 attorney seats in one shared workspace, unlimited active matters, and firm-wide conflict-of-interest detection across the seats. Solo is a single-attorney seat capped at 10 matters.",
+  },
+  {
+    q: "Why is the DV Organization plan free?",
+    a: "Organizations are our referral partners, not our customers. Every survivor your organization sends to PatternProof stays free — forever. We onboard a limited number of organizations at a time so we can support your advocates properly.",
+  },
+  {
+    q: "Do you integrate with Clio?",
+    a: "Not natively. Attorney and Organization plans include a Clio-compatible ZIP export you can import into a Clio matter today. A native Clio Manage connection is not yet available.",
   },
   {
     q: "Is my data safe?",
     a: "All data is encrypted in transit (HTTPS/TLS) and at rest via our infrastructure provider (Supabase). Row-level security scopes each record to its owning account. We do not currently offer end-to-end (zero-knowledge) encryption — if that's a hard requirement for you, tell us.",
   },
-  {
-    q: "Can my organization get a demo?",
-    a: 'Yes — use the "Request a Pilot" button above and we\'ll be in touch within one business day.',
-  },
 ];
 
 function PricingPage() {
+  const [remaining, setRemaining] = useState<number | null>(null);
+  useEffect(() => {
+    let env: ReturnType<typeof getStripeEnvironment>;
+    try { env = getStripeEnvironment(); } catch { return; }
+    getCharterAvailability({ data: { environment: env } })
+      .then((r) => setRemaining(r.remaining))
+      .catch(() => setRemaining(null));
+  }, []);
+  const tiers = buildTiers(remaining);
   return (
     <div style={{ minHeight: "100vh", background: "var(--background)" }}>
       <header
@@ -219,7 +286,7 @@ function PricingPage() {
             alignItems: "start",
           }}
         >
-          {TIERS.map((tier) => (
+          {tiers.map((tier) => (
             <TierCard key={tier.key} tier={tier} />
           ))}
         </div>
@@ -287,8 +354,8 @@ function PricingPage() {
   );
 }
 
-function TierCard({ tier }: { tier: (typeof TIERS)[0] }) {
-  const isAttorney = tier.key === "attorney";
+function TierCard({ tier }: { tier: Tier }) {
+  const isAttorney = tier.key === "attorney_solo" || tier.key === "attorney_firm";
   const isOrg = tier.key === "organization";
 
   const cardBg = isAttorney
@@ -376,6 +443,20 @@ function TierCard({ tier }: { tier: (typeof TIERS)[0] }) {
       </div>
 
       <div style={{ marginBottom: 8 }}>
+        {tier.priceStrike && (
+          <span
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: mutedColor,
+              textDecoration: "line-through",
+              marginRight: 8,
+              opacity: 0.7,
+            }}
+          >
+            {tier.priceStrike}
+          </span>
+        )}
         <span
           style={{
             fontSize: "clamp(2rem, 3.5vw, 2.6rem)",
@@ -396,6 +477,20 @@ function TierCard({ tier }: { tier: (typeof TIERS)[0] }) {
         >
           {tier.sub}
         </span>
+        {tier.eyebrowNote && (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: eyebrowColor,
+            }}
+          >
+            {tier.eyebrowNote}
+          </div>
+        )}
       </div>
 
       <p
