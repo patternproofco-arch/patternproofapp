@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { formatIncidentDate } from "@/lib/dates";
+import { isMaterialOtherPartyChange } from "@/lib/name-match";
 
 export const Route = createFileRoute("/_authenticated/case-builder")({
   component: CaseBuilder,
@@ -13,40 +14,8 @@ export const Route = createFileRoute("/_authenticated/case-builder")({
 const RELATIONSHIPS = ["Ex-partner", "Co-parent", "Current partner", "Family member", "Other"];
 const CASE_TYPES = ["Domestic Violence", "Custody", "Divorce", "Protective Order", "Other"];
 
-// Small edits (typo fixes, adding a last initial) shouldn't warn; a full
-// name swap should. Uses normalized Levenshtein distance.
-function normalize(s: string) {
-  return s.trim().toLowerCase().replace(/\s+/g, " ");
-}
-function editDistance(a: string, b: string): number {
-  if (a === b) return 0;
-  const m = a.length, n = b.length;
-  if (!m) return n;
-  if (!n) return m;
-  const prev = new Array(n + 1).fill(0).map((_, i) => i);
-  const curr = new Array(n + 1).fill(0);
-  for (let i = 1; i <= m; i++) {
-    curr[0] = i;
-    for (let j = 1; j <= n; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
-    }
-    for (let j = 0; j <= n; j++) prev[j] = curr[j];
-  }
-  return prev[n];
-}
-function isMaterialOtherPartyChange(saved: string, next: string): boolean {
-  const a = normalize(saved);
-  const b = normalize(next);
-  if (!a || !b) return false;
-  if (a === b) return false;
-  // Substring either way = adding/removing an initial or suffix — not material.
-  if (a.includes(b) || b.includes(a)) return false;
-  const dist = editDistance(a, b);
-  const longer = Math.max(a.length, b.length);
-  // >40% of characters changed => treat as a different person.
-  return dist / longer > 0.4;
-}
+// Fuzzy name-comparison helpers live in src/lib/name-match.ts so the
+// conflict-of-interest check reuses the same normalization + threshold.
 
 interface IncRow {
   id: string;
