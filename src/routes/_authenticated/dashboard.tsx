@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-type CardTo = "/evidence" | "/timeline" | "/patterns" | "/court-packet" | "/agent" | "/settings" | "/journal" | "/escalation-detector";
+type CardTo = "/evidence" | "/timeline" | "/patterns" | "/court-packet" | "/agent" | "/settings" | "/journal";
 
 interface DashCard {
   to: CardTo;
@@ -157,7 +157,7 @@ function Dashboard() {
     if (stats.unreviewed_severity_indicator_count > 0) {
       const n = stats.unreviewed_severity_indicator_count;
       contextualCards.push({
-        to: "/escalation-detector",
+        to: "/escalation-detector" as CardTo,
         title: `${n} documented ${n === 1 ? "item needs" : "items need"} your review`,
         blurb: "Severity indicators drawn from your confirmed records. Confirm or dismiss each so your documentation reflects what actually happened.",
         status: "Review",
