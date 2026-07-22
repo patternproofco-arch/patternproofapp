@@ -2493,3 +2493,125 @@ function TimeTab({ clientId }: { clientId: string }) {
     </div>
   );
 }
+/* ---------------- Missing-evidence checklist ---------------- */
+
+type ChecklistItem = {
+  id: string;
+  item_label: string;
+  notes: string | null;
+  is_resolved: boolean;
+  resolved_at: string | null;
+  source: string;
+  created_at: string;
+};
+
+function MissingEvidenceChecklistSection({ clientId }: { clientId: string }) {
+  const listFn = useServerFn(listMissingEvidenceChecklist);
+  const addFn = useServerFn(addMissingEvidenceItem);
+  const toggleFn = useServerFn(setMissingEvidenceResolved);
+  const syncFn = useServerFn(syncMissingEvidenceChecklistFromGaps);
+  const [items, setItems] = useState<ChecklistItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [newLabel, setNewLabel] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const reload = useMemo(() => async () => {
+    try {
+      const r = await listFn({ data: { clientId } });
+      setItems(r.items as ChecklistItem[]);
+    } catch { /* ignore */ }
+    finally { setLoaded(true); }
+  }, [listFn, clientId]);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  const onAdd = async () => {
+    const label = newLabel.trim();
+    if (!label) return;
+    setBusy(true);
+    try {
+      await addFn({ data: { clientId, itemLabel: label } });
+      setNewLabel("");
+      await reload();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Couldn't add item.");
+    } finally { setBusy(false); }
+  };
+
+  const onToggle = async (it: ChecklistItem) => {
+    setItems((prev) => prev.map((x) => x.id === it.id ? { ...x, is_resolved: !x.is_resolved } : x));
+    try { await toggleFn({ data: { id: it.id, resolved: !it.is_resolved } }); }
+    catch { toast("Couldn't update item."); reload(); }
+  };
+
+  const onSync = async () => {
+    setBusy(true);
+    try {
+      const r = await syncFn({ data: { clientId } });
+      toast(r.added > 0
+        ? `Added ${r.added} item${r.added === 1 ? "" : "s"} from AI-detected gaps.`
+        : "No new AI-detected gaps to add.");
+      await reload();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Couldn't sync from gaps.");
+    } finally { setBusy(false); }
+  };
+
+  if (!loaded) return null;
+
+  return (
+    <div className="att-card" style={{ marginTop: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
+        <div>
+          <SectionTitle>Missing-evidence checklist</SectionTitle>
+          <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
+            Working list of what still needs to be collected. AI-detected gaps can be pulled in; you can also add your own.
+          </p>
+        </div>
+        <button onClick={onSync} disabled={busy} className="att-btn" style={{ fontSize: 12 }}>
+          <Sparkles size={12} style={{ marginRight: 6 }} />
+          Sync from AI-detected gaps
+        </button>
+      </div>
+
+      {items.length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>Nothing here yet.</p>
+      ) : (
+        <ul style={{ display: "grid", gap: 6, listStyle: "none", padding: 0, margin: 0 }}>
+          {items.map((it) => (
+            <li key={it.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, padding: "6px 0", borderBottom: "1px solid var(--att-border)" }}>
+              <input
+                type="checkbox"
+                checked={it.is_resolved}
+                onChange={() => onToggle(it)}
+                style={{ marginTop: 4 }}
+              />
+              <div style={{ flex: 1 }}>
+                <div style={{ textDecoration: it.is_resolved ? "line-through" : "none", color: it.is_resolved ? "var(--att-text-2)" : "inherit" }}>
+                  {it.item_label}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 2 }}>
+                  {it.source === "ai_gap" ? "AI-detected gap" : "Added manually"}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <input
+          value={newLabel}
+          onChange={(e) => setNewLabel(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") onAdd(); }}
+          placeholder="Add a checklist item…"
+          disabled={busy}
+          style={{ flex: 1, padding: "6px 10px", border: "1px solid var(--att-border)", borderRadius: 6, fontSize: 13 }}
+        />
+        <button onClick={onAdd} disabled={busy || !newLabel.trim()} className="att-btn" style={{ fontSize: 12 }}>
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
