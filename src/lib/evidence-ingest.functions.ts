@@ -29,6 +29,9 @@ export type PreservationReceiptItem = {
   bytes: number | null;
   mime: string | null;
   message?: string;
+  duplicate_of?: string | null;
+  duplicate_of_title?: string | null;
+  family_id?: string | null;
 };
 
 export type PreservationReceipt = {
@@ -133,6 +136,41 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
         const status = classify(f.mime);
         const nowIso = new Date().toISOString();
 
+        // Exact-duplicate detection: earliest non-deleted evidence row for this
+        // user with the same sha256. We still preserve the new file — dedupe
+        // only records the relationship via evidence_families.
+        const dupRes = await supabase
+          .from("evidence")
+          .select("id, title, family_id, created_at")
+          .eq("user_id", userId)
+          .eq("sha256", sha256)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        const existing = dupRes.data ?? null;
+
+        let familyId: string | null = existing?.family_id ?? null;
+        let canonicalId: string | null = existing?.id ?? null;
+        let canonicalTitle: string | null = existing?.title ?? null;
+
+        if (existing && !familyId) {
+          // Neither row has a family yet — create one anchored on the existing (earlier) row.
+          const famIns = await supabase
+            .from("evidence_families")
+            .insert({ user_id: userId, canonical_evidence_id: existing.id })
+            .select("id")
+            .single();
+          if (!famIns.error && famIns.data) {
+            familyId = famIns.data.id as string;
+            await supabase
+              .from("evidence")
+              .update({ family_id: familyId })
+              .eq("id", existing.id)
+              .eq("user_id", userId);
+          }
+        }
+
         const insert = await supabase
           .from("evidence")
           .insert({
@@ -150,6 +188,7 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
             preserved_at: nowIso,
             integrity_verified_at: nowIso,
             import_batch_id: batchId,
+            family_id: familyId,
           })
           .select("id")
           .single();
@@ -179,6 +218,23 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
           p_meta: { sha256, bytes, mime: f.mime, batch_id: batchId },
         });
 
+        if (existing) {
+          await supabaseAdmin.rpc("record_audit_event", {
+            p_user_id: userId,
+            p_event_type: "evidence.duplicate_detected",
+            p_subject_kind: "evidence",
+            p_subject_id: insert.data.id,
+            p_actor_kind: "user",
+            p_actor_id: userId,
+            p_meta: {
+              sha256,
+              duplicate_of: canonicalId,
+              family_id: familyId,
+              batch_id: batchId,
+            },
+          });
+        }
+
         items.push({
           storage_key: f.storage_key,
           original_filename: f.original_filename,
@@ -187,6 +243,9 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
           sha256,
           bytes,
           mime: f.mime,
+          duplicate_of: canonicalId,
+          duplicate_of_title: existing ? canonicalTitle : null,
+          family_id: familyId,
         });
       } catch (err) {
         items.push({
