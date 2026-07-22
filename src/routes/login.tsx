@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { lovable } from "@/integrations/lovable";
 import { getMyRole } from "@/lib/attorney-portal.functions";
+import { recordOrgReferral } from "@/lib/payments.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
@@ -12,6 +13,7 @@ import { Logo } from "@/components/Logo";
 export const Route = createFileRoute("/login")({
   validateSearch: (s: Record<string, unknown>) => ({
     redirect: typeof s.redirect === "string" ? s.redirect : undefined,
+    ref: typeof s.ref === "string" ? s.ref : undefined,
   }),
   head: () => ({
     meta: [
@@ -32,8 +34,9 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { redirect: redirectTo } = Route.useSearch();
+  const { redirect: redirectTo, ref: refSlug } = Route.useSearch();
   const fetchRole = useServerFn(getMyRole);
+  const recordReferral = useServerFn(recordOrgReferral);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,6 +51,13 @@ function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
+      // Best-effort: capture the org-referral slug once, after auth. RLS makes
+      // this a no-op if the row already exists.
+      if (refSlug && /^[a-z0-9-]{1,120}$/.test(refSlug)) {
+        recordReferral({
+          data: { org_slug: refSlug, referred_by_org_name: refSlug.replace(/-/g, " ") },
+        }).catch(() => {});
+      }
       if (redirectTo && redirectTo.startsWith("/")) {
         navigate({ to: redirectTo, replace: true });
         return;
@@ -56,7 +66,7 @@ function LoginPage() {
         .then((r) => navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true }))
         .catch(() => navigate({ to: "/dashboard", replace: true }));
     }
-  }, [user, loading, navigate, fetchRole, redirectTo]);
+  }, [user, loading, navigate, fetchRole, redirectTo, refSlug, recordReferral]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

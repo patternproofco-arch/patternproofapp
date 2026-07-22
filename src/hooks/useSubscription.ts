@@ -82,6 +82,7 @@ function deriveTier(
     case "attorney_portal_monthly_297":
       return "solo";
     case "attorney_firm_monthly":
+    case "attorney_firm_charter_monthly":
       return "firm";
     case "attorney_enterprise_monthly":
       return "enterprise";
