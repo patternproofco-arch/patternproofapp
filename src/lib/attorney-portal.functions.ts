@@ -387,6 +387,178 @@ export const listMyClients = createServerFn({ method: "GET" })
 
 /* ------------------------- single-client case ------------------------- */
 
+/* ------------------------- caseload overview ------------------------- */
+
+export const getCaseloadOverview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Reuse the same access model as listMyClients: owner links + collaborator + firm-granted links.
+    const [{ data: ownerLinks }, { data: collabRows }, { data: grantRows }] = await Promise.all([
+      supabaseAdmin
+        .from("attorney_client_links")
+        .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
+        .eq("attorney_user_id", context.userId)
+        .eq("status", "active"),
+      supabaseAdmin
+        .from("case_collaborators")
+        .select("link_id")
+        .eq("collaborator_user_id", context.userId)
+        .eq("status", "active"),
+      supabaseAdmin
+        .from("case_grants")
+        .select("client_link_id")
+        .eq("attorney_user_id", context.userId)
+        .is("revoked_at", null),
+    ]);
+
+    const sharedLinkIds = Array.from(new Set([
+      ...(collabRows ?? []).map((r) => r.link_id),
+      ...(grantRows ?? []).map((r) => r.client_link_id),
+    ]));
+    let sharedLinks: NonNullable<typeof ownerLinks> = [];
+    if (sharedLinkIds.length) {
+      const { data } = await supabaseAdmin
+        .from("attorney_client_links")
+        .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
+        .in("id", sharedLinkIds)
+        .eq("status", "active");
+      sharedLinks = data ?? [];
+    }
+    const linksMap = new Map<string, NonNullable<typeof ownerLinks>[number]>();
+    for (const l of (ownerLinks ?? []).concat(sharedLinks)) linksMap.set(l.id, l);
+    const links = Array.from(linksMap.values());
+
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const rows = await Promise.all(
+      links.map(async (l) => {
+        const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
+        const scopedEvidenceIds = (l.scope_evidence ?? []) as string[];
+
+        // Confirmed-only incident count (matches getClientCase / listMyClients filter).
+        const confirmedIncidentsQ = l.include_all_incidents
+          ? supabaseAdmin.from("incidents").select("id,date,created_at", { count: "exact" })
+              .eq("user_id", l.client_user_id).is("deleted_at", null)
+              .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+          : scopedIncidentIds.length
+            ? supabaseAdmin.from("incidents").select("id,date,created_at", { count: "exact" })
+                .eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null)
+                .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+            : Promise.resolve({ data: [] as { id: string; date: string | null; created_at: string }[], count: 0 });
+
+        // Unconfirmed AI drafts count.
+        const unconfirmedQ = l.include_all_incidents
+          ? supabaseAdmin.from("incidents").select("id", { count: "exact", head: true })
+              .eq("user_id", l.client_user_id).is("deleted_at", null)
+              .eq("source", "ai_extracted").is("confirmed_at", null)
+          : scopedIncidentIds.length
+            ? supabaseAdmin.from("incidents").select("id", { count: "exact", head: true })
+                .eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null)
+                .eq("source", "ai_extracted").is("confirmed_at", null)
+            : Promise.resolve({ data: null, count: 0 });
+
+        // Evidence: total + most recent created_at.
+        const evidenceTotalQ = l.include_all_evidence
+          ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true })
+              .eq("user_id", l.client_user_id).is("deleted_at", null)
+          : scopedEvidenceIds.length
+            ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true })
+                .eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null)
+            : Promise.resolve({ data: null, count: 0 });
+        const evidenceRecentQ = l.include_all_evidence
+          ? supabaseAdmin.from("evidence").select("created_at")
+              .eq("user_id", l.client_user_id).is("deleted_at", null)
+              .order("created_at", { ascending: false }).limit(1).maybeSingle()
+          : scopedEvidenceIds.length
+            ? supabaseAdmin.from("evidence").select("created_at")
+                .eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null)
+                .order("created_at", { ascending: false }).limit(1).maybeSingle()
+            : Promise.resolve({ data: null as { created_at: string } | null });
+
+        // Latest pattern analysis (for severity-indicator review counting).
+        const patternQ = l.include_patterns
+          ? supabaseAdmin.from("pattern_analyses")
+              .select("analysis,reviewed_status,created_at")
+              .eq("user_id", l.client_user_id)
+              .order("created_at", { ascending: false }).limit(1).maybeSingle()
+          : Promise.resolve({ data: null as { analysis: AnyJson; reviewed_status: AnyJson | null; created_at: string } | null });
+
+        const [confirmedInc, unconfirmed, evTotal, evRecent, pattern] = await Promise.all([
+          confirmedIncidentsQ, unconfirmedQ, evidenceTotalQ, evidenceRecentQ, patternQ,
+        ]);
+
+        const incRows = confirmedInc.data ?? [];
+        // "Last activity" = most recent of (incident created_at, evidence created_at, incident date).
+        const lastIncidentCreated = incRows.reduce<string | null>((acc, r) => (!acc || r.created_at > acc ? r.created_at : acc), null);
+        const lastEvidenceCreated = evRecent.data?.created_at ?? null;
+        const lastActivity = [lastIncidentCreated, lastEvidenceCreated]
+          .filter((v): v is string => !!v)
+          .reduce<string | null>((acc, v) => (!acc || v > acc ? v : acc), null);
+
+        // Disengagement: no incident OR no evidence added in the last 30 days.
+        const recentIncidentAdded = incRows.some((r) => r.created_at >= thirtyDaysAgo);
+        const recentEvidenceAdded = lastEvidenceCreated ? lastEvidenceCreated >= thirtyDaysAgo : false;
+        const disengaged = !recentIncidentAdded && !recentEvidenceAdded;
+
+        // Unreviewed severity indicators — same "sev:<index>" keying as the survivor dashboard.
+        const indicators = (pattern.data?.analysis as { severity_indicators?: unknown[] } | null)?.severity_indicators;
+        const reviewedStatus = (pattern.data?.reviewed_status ?? {}) as Record<string, { status?: string }>;
+        let unreviewedSeverityIndicatorCount = 0;
+        if (Array.isArray(indicators)) {
+          unreviewedSeverityIndicatorCount = indicators.reduce<number>((count, _item, index) => {
+            const entry = reviewedStatus[`sev:${index}`];
+            return !entry || entry.status === "unsure" ? count + 1 : count;
+          }, 0);
+        }
+
+        return {
+          link_id: l.id,
+          client_user_id: l.client_user_id,
+          linked_at: l.created_at,
+          confirmed_incident_count: confirmedInc.count ?? 0,
+          unconfirmed_ai_draft_count: unconfirmed.count ?? 0,
+          evidence_count: evTotal.count ?? 0,
+          last_activity_at: lastActivity,
+          disengaged_30d: disengaged,
+          unreviewed_severity_indicator_count: unreviewedSeverityIndicatorCount,
+        };
+      }),
+    );
+
+    const needs_attention = (r: typeof rows[number]) =>
+      r.unconfirmed_ai_draft_count > 0 || r.disengaged_30d || r.unreviewed_severity_indicator_count > 0;
+
+    rows.sort((a, b) => {
+      const aa = needs_attention(a), bb = needs_attention(b);
+      if (aa !== bb) return aa ? -1 : 1;
+      const aScore = a.unconfirmed_ai_draft_count + a.unreviewed_severity_indicator_count + (a.disengaged_30d ? 1 : 0);
+      const bScore = b.unconfirmed_ai_draft_count + b.unreviewed_severity_indicator_count + (b.disengaged_30d ? 1 : 0);
+      if (aScore !== bScore) return bScore - aScore;
+      return (b.last_activity_at ?? "").localeCompare(a.last_activity_at ?? "");
+    });
+
+    const disengaged_clients = rows.filter((r) => r.disengaged_30d).map((r) => ({
+      client_user_id: r.client_user_id,
+      link_id: r.link_id,
+      last_activity_at: r.last_activity_at,
+    }));
+
+    return {
+      totals: {
+        active_client_count: rows.length,
+        total_unconfirmed_ai_drafts: rows.reduce((s, r) => s + r.unconfirmed_ai_draft_count, 0),
+        disengaged_client_count: disengaged_clients.length,
+        clients_with_unreviewed_severity_indicators: rows.filter((r) => r.unreviewed_severity_indicator_count > 0).length,
+      },
+      disengaged_clients,
+      clients: rows,
+    };
+  });
+
+/* ------------------------- single-client case ------------------------- */
+
 // Use `any` here — TanStack server fn serializer rejects `unknown` index signatures,
 // and these payloads are arbitrary JSON returned to the client untyped.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
