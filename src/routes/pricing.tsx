@@ -103,11 +103,13 @@ function buildTiers(remainingCharter: number | null): Tier[] {
         sub: "/month · up to 15 seats",
         eyebrowNote: "Charter cohort is full — thank you.",
         logoVariant: "attorney",
-        quote: "For the family-law firms that move volume.",
+        quote: "Built for 3–15 attorney family-law firms.",
         features: [
           "Up to 15 attorney seats in one firm workspace",
+          "Everything in Solo Attorney",
           "Unlimited active client matters",
-          "Shared prep and escalation workspace",
+          "Multi-attorney collaboration and shared case notes",
+          "Caseload and capacity view across the firm",
           "Firm-wide conflict-of-interest detection",
           "Priority client onboarding + Clio-compatible exports",
         ],
@@ -117,25 +119,27 @@ function buildTiers(remainingCharter: number | null): Tier[] {
       }
     : {
         key: "attorney_firm",
-        name: "Charter Firm",
+        name: "Firm",
         price: "$597",
         priceStrike: "$897",
         sub: "/month · locked for 12 months",
         eyebrowNote:
           remainingCharter === null
-            ? "Launch program — limited to 15 firms"
-            : `${remainingCharter} of 15 Charter spots remaining`,
+            ? "Charter program — limited to 10 firms"
+            : `${remainingCharter} of 10 Charter spots remaining`,
         logoVariant: "attorney",
-        quote: "For the first 15 firms building this with us.",
+        quote: "Built for 3–15 attorney family-law firms.",
         features: [
           "Up to 15 attorney seats in one firm workspace",
+          "Everything in Solo Attorney",
           "Unlimited active client matters",
-          "Shared prep and escalation workspace",
+          "Multi-attorney collaboration and shared case notes",
+          "Caseload and capacity view across the firm",
           "Firm-wide conflict-of-interest detection",
-          "Charter rate locked for 12 months — then $897/month list",
-          "Direct line to the PatternProof team",
+          "Charter program: personal setup, case import, and staff training",
+          "$597/month rate locked for 12 months, then $897/month list",
         ],
-        cta: "Claim a Charter seat",
+        cta: "Apply for the Charter program",
         ctaTo: "/lawyer-signup",
         featured: true,
       };
@@ -149,16 +153,16 @@ const FAQS = [
     a: "Yes. Always. No credit card, no trial, no catch. Survivors never pay.",
   },
   {
-    q: "What happens after the Charter Firm rate ends?",
-    a: "After 12 months, your firm moves to the standard Firm rate of $897/month. We'll notify you at least 60 days in advance — no surprise bill.",
+    q: "What's the Charter Firm program?",
+    a: "We're onboarding the first 10 Charter Firms personally — full setup, case import, and staff training. Every Charter Firm gets the same terms: $597/month, locked for 12 months. After 12 months, the rate moves to the standard Firm price of $897/month and we'll notify you at least 60 days in advance.",
   },
   {
     q: "How is the Firm tier different from Solo?",
-    a: "Firm gives you up to 15 attorney seats in one shared workspace, unlimited active matters, and firm-wide conflict-of-interest detection across the seats. Solo is a single-attorney seat capped at 10 matters.",
+    a: "Firm gives you up to 15 attorney seats in one shared workspace, unlimited active matters, multi-attorney collaboration, a caseload view across the firm, and firm-wide conflict-of-interest detection. Solo is a single-attorney seat capped at 10 matters.",
   },
   {
-    q: "Why is the DV Organization plan free?",
-    a: "Organizations are our referral partners, not our customers. Every survivor your organization sends to PatternProof stays free — forever. We onboard a limited number of organizations at a time so we can support your advocates properly.",
+    q: "Why don't you sell to DV organizations?",
+    a: "Organizations are our referral partners, not our customers. Every survivor a partner organization refers to PatternProof gets full access, free forever — no cost to the organization or the survivor. We work directly with a small number of organizations at a time so we can support your advocates properly.",
   },
   {
     q: "Do you integrate with Clio?",
