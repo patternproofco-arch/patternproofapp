@@ -74,7 +74,7 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       ?.severity_indicators;
     const reviewedStatus = (latestAnalysis?.reviewed_status ?? {}) as Record<string, { status?: string }>;
     if (Array.isArray(indicators)) {
-      unreviewed_severity_indicator_count = indicators.reduce((count, _item, index) => {
+      unreviewed_severity_indicator_count = indicators.reduce<number>((count, _item, index) => {
         const entry = reviewedStatus[`sev:${index}`];
         return !entry || entry.status === "unsure" ? count + 1 : count;
       }, 0);
