@@ -197,6 +197,56 @@ export const getMySubscription = createServerFn({ method: "POST" })
   });
 
 /**
+ * Charter Firm cohort — capped at 15 active seats. Publicly readable so the
+ * marketing pricing page can show remaining spots without requiring auth.
+ */
+export const getCharterAvailability = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z.object({ environment: z.enum(["sandbox", "live"]) }).parse(input),
+  )
+  .handler(async ({ data }): Promise<{ used: number; cap: number; remaining: number }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count } = await supabaseAdmin
+      .from("subscriptions")
+      .select("id", { count: "exact", head: true })
+      .eq("environment", data.environment)
+      .eq("plan_tier", "charter")
+      .in("status", ["active", "trialing", "past_due"]);
+    const used = count ?? 0;
+    const cap = 15;
+    return { used, cap, remaining: Math.max(0, cap - used) };
+  });
+
+/**
+ * Record which DV organization referred the current survivor. Idempotent —
+ * the first captured referral wins (do not overwrite on re-signin).
+ */
+export const recordOrgReferral = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      org_slug: z.string().min(1).max(120).regex(/^[a-z0-9-]+$/),
+      referred_by_org_name: z.string().min(1).max(200),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { supabase, userId } = context;
+    // Insert only if absent — RLS allows self-insert.
+    const { data: existing } = await supabase
+      .from("user_referrals")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existing) return { ok: true };
+    await supabase.from("user_referrals").insert({
+      user_id: userId,
+      org_slug: data.org_slug,
+      referred_by_org_name: data.referred_by_org_name,
+    });
+    return { ok: true };
+  });
+
+/**
  * Entitlement: attorney needs an active PatternProof attorney subscription.
  * "The Pilot" (first client free) is marketing copy on the pricing page —
  * full app access requires an active Solo/Firm/Enterprise subscription.
