@@ -1,6 +1,6 @@
 # PatternProof
 
-> Private documentation app for survivors of domestic abuse and high-conflict custody cases. Helps log incidents, organize evidence, and generate court-ready packets.
+> Private documentation app for survivors of domestic abuse and high-conflict custody cases. Helps log incidents, organize evidence, and generate source-linked evidence exports for professional review.
 
 PatternProof is a private, encrypted journal and case-building tool. All data is per-user and protected by row-level security. Most pages live behind authentication.
 
