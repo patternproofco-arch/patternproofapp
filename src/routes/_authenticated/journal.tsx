@@ -8,6 +8,7 @@ import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { IncidentCard, type IncidentLite } from "@/components/IncidentCard";
 import { useServerFn } from "@tanstack/react-start";
 import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
+import { findPossibleContradictions, type ContradictionPair } from "@/lib/contradictions.functions";
 import { sanitizeLine } from "@/lib/dates";
 import { AddFromJournalModal } from "@/components/AddFromJournalModal";
 import { BulkPastIncidentsModal } from "@/components/BulkPastIncidentsModal";
@@ -54,7 +55,9 @@ function deriveSortDate(p: Precision, form: { date: string; date_range_start: st
 function JournalPage() {
   const { user } = useAuth();
   const extractIncident = useServerFn(extractIncidentFromImage);
+  const findContradictions = useServerFn(findPossibleContradictions);
   const [list, setList] = useState<FullIncident[]>([]);
+  const [contradictions, setContradictions] = useState<ContradictionPair[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiFilled, setAiFilled] = useState(false);
@@ -89,7 +92,10 @@ function JournalPage() {
       .is("deleted_at", null)
       .order("date", { ascending: false, nullsFirst: false });
     setList((data as FullIncident[] | null) ?? []);
-  }, [user]);
+    findContradictions()
+      .then((r) => setContradictions(r.contradictions ?? []))
+      .catch(() => setContradictions([]));
+  }, [user, findContradictions]);
 
   useEffect(() => { load(); }, [load]);
 
