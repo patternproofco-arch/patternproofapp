@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/escalation-detector")({
   component: SeverityIndicatorsPage,
 });
 
-type IncMap = Record<string, { date: string; description: string }>;
+type IncMap = Record<string, { date: string | null; description: string }>;
 type Status = ClaimReviewState["status"];
 
 function SeverityIndicatorsPage() {
@@ -138,7 +138,7 @@ function SeverityIndicatorsPage() {
                         return (
                           <span key={id}>
                             {idx > 0 && ", "}
-                            {inc ? (
+                            {inc && inc.date ? (
                               <Link
                                 to="/journal"
                                 search={{ focus: id }}
