@@ -13,6 +13,8 @@ import {
   getCaseNote, saveCaseNote,
   listClientThreads, getClientThread,
   listMessages, sendMessage, markMessagesRead,
+  listMissingEvidenceChecklist, addMissingEvidenceItem,
+  setMissingEvidenceResolved, syncMissingEvidenceChecklistFromGaps,
 } from "@/lib/attorney-portal.functions";
 import {
   listTimeEntries, createTimeEntry, updateTimeEntry, deleteTimeEntry,
