@@ -438,6 +438,7 @@ export type Database = {
           id: string
           is_resolved: boolean
           item_label: string
+          link_id: string | null
           notes: string | null
           resolved_at: string | null
           source: string
@@ -450,6 +451,7 @@ export type Database = {
           id?: string
           is_resolved?: boolean
           item_label: string
+          link_id?: string | null
           notes?: string | null
           resolved_at?: string | null
           source?: string
@@ -462,12 +464,21 @@ export type Database = {
           id?: string
           is_resolved?: boolean
           item_label?: string
+          link_id?: string | null
           notes?: string | null
           resolved_at?: string | null
           source?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "attorney_missing_evidence_checklist_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       attorney_profiles: {
         Row: {

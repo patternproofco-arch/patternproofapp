@@ -1146,33 +1146,86 @@ function Patterns({ data }: { data: CaseData }) {
 /* ---------------- Checklist ---------------- */
 
 function ChecklistTab({ data }: { data: CaseData }) {
-  const docCount = data.checklist.filter((r) => r.documented).length;
+  const tactics = data.abuser_tactics ?? [];
+  if (!data.pattern_analysis_present) {
+    return <PatternAnalysisEmpty area="abuser tactics" />;
+  }
+  if (tactics.length === 0) {
+    return (
+      <div className="att-card">
+        <SectionTitle>Abuser tactics</SectionTitle>
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
+          The pattern analysis for this client did not surface any recurring tactics with clear evidence in the records.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="att-card">
-      <SectionTitle>Documented behavior categories</SectionTitle>
+      <SectionTitle>Abuser tactics</SectionTitle>
       <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 6 }}>
-        {docCount} of {data.checklist.length} categories have at least one confirmed incident documented by the survivor.
+        {tactics.length} recurring tactic{tactics.length === 1 ? "" : "s"} identified from the survivor's confirmed incidents.
       </p>
       <p style={{ fontSize: 11, color: "var(--att-text-2)", marginBottom: 14, fontStyle: "italic" }}>
-        Summary of survivor-logged documentation — not a clinical or forensic assessment.
+        Generated from the survivor-reviewed pattern analysis. Each item is drawn from cited incidents — not a clinical or forensic assessment.
       </p>
-      <ul style={{ display: "grid", gap: 10, listStyle: "none", padding: 0, margin: 0 }}>
-        {data.checklist.map((row) => (
-          <li key={row.item} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14 }}>
-            {row.documented
-              ? <CheckCircle2 size={16} style={{ color: "var(--att-green)", marginTop: 2 }} />
-              : <Circle size={16} style={{ color: "var(--att-muted)", marginTop: 2 }} />}
-            <div>
-              <div>{row.item}</div>
-              <div style={{ fontSize: 11, color: "var(--att-text-2)" }}>
-                {row.documented
-                  ? `Based on ${row.count} confirmed incident${row.count === 1 ? "" : "s"}`
-                  : "No confirmed incidents in this category"}
+      <ul style={{ display: "grid", gap: 14, listStyle: "none", padding: 0, margin: 0 }}>
+        {tactics.map((t, i) => (
+          <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, paddingBottom: 12, borderBottom: "1px solid var(--att-border)" }}>
+            <CheckCircle2 size={16} style={{ color: "var(--att-green)", marginTop: 3 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <strong>{t.tactic}</strong>
+                <ReviewStatusBadge status={t.review_status?.status ?? "unsure"} />
+                <span style={{ fontSize: 11, color: "var(--att-text-2)" }}>
+                  · {t.examples_count} example{t.examples_count === 1 ? "" : "s"}
+                </span>
               </div>
+              {t.description && (
+                <div style={{ fontSize: 12.5, color: "var(--att-text-2)", marginTop: 4, lineHeight: 1.5 }}>{t.description}</div>
+              )}
+              {t.why_it_matters && (
+                <div style={{ fontSize: 11.5, marginTop: 6 }}>
+                  <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Why it matters</span>
+                  <span style={{ color: "var(--att-text-2)" }}>{t.why_it_matters}</span>
+                </div>
+              )}
+              {t.example_dates && t.example_dates.length > 0 && (
+                <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 6 }}>
+                  Cited from: {t.example_dates.join(", ")}
+                </div>
+              )}
             </div>
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function ReviewStatusBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; bg: string; fg: string }> = {
+    confirmed: { label: "Confirmed", bg: "#DCFCE7", fg: "#166534" },
+    rejected:  { label: "Rejected",  bg: "#FEE2E2", fg: "#991B1B" },
+    edited:    { label: "Edited",    bg: "#DBEAFE", fg: "#1E40AF" },
+    unsure:    { label: "Unreviewed",bg: "#F1F5F9", fg: "#475569" },
+  };
+  const m = map[status] ?? map.unsure;
+  return (
+    <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 999, background: m.bg, color: m.fg, fontWeight: 600, letterSpacing: 0.3 }}>
+      {m.label.toUpperCase()}
+    </span>
+  );
+}
+
+function PatternAnalysisEmpty({ area }: { area: string }) {
+  return (
+    <div className="att-card" style={{ textAlign: "center", padding: 28 }}>
+      <Sparkles size={26} style={{ color: "var(--att-muted)", margin: "0 auto 6px" }} />
+      <h3 style={{ fontSize: 15, margin: 0 }}>Pattern analysis hasn't been run yet</h3>
+      <p style={{ fontSize: 12.5, color: "var(--att-text-2)", marginTop: 6, maxWidth: 480, marginInline: "auto", lineHeight: 1.6 }}>
+        The {area} section pulls from the client's reviewed pattern analysis. Ask the client to run "Analyze patterns" from their Patterns page, or wait until they've added enough confirmed incidents for the analysis to run.
+      </p>
     </div>
   );
 }
@@ -1186,6 +1239,7 @@ function Gaps({ data }: { data: CaseData }) {
 function GapsTab({ data }: { data: CaseData }) {
   const { clientId } = useParams({ from: "/_attorney/clients/$clientId" });
   const reqFn = useServerFn(createDocRequest);
+  const patternMissing = !data.pattern_analysis_present;
   const [sentIdx, setSentIdx] = useState<Set<number>>(new Set());
   const [sendingIdx, setSendingIdx] = useState<number | null>(null);
   const [openBucket, setOpenBucket] = useState<Record<string, boolean>>({ high: true, moderate: true, low: false });
@@ -1272,10 +1326,14 @@ function GapsTab({ data }: { data: CaseData }) {
       </div>
 
       {totalGaps === 0 ? (
-        <div className="att-card" style={{ textAlign: "center", padding: 24 }}>
-          <ShieldCheck size={32} style={{ color: "var(--att-green)", margin: "0 auto" }} />
-          <p style={{ fontSize: 14, color: "var(--att-green)", marginTop: 8 }}>No critical gaps detected. This case file is fully supported.</p>
-        </div>
+        patternMissing ? (
+          <PatternAnalysisEmpty area="AI-detected gaps" />
+        ) : (
+          <div className="att-card" style={{ textAlign: "center", padding: 24 }}>
+            <ShieldCheck size={32} style={{ color: "var(--att-green)", margin: "0 auto" }} />
+            <p style={{ fontSize: 14, color: "var(--att-green)", marginTop: 8 }}>No critical gaps detected. This case file is fully supported.</p>
+          </div>
+        )
       ) : (
         buckets.map((sev) => {
           const gapsInBucket = indexedGaps.filter(({ g }) => (g.severity ?? "moderate") === sev);
@@ -2540,7 +2598,7 @@ function MissingEvidenceChecklistSection({ clientId }: { clientId: string }) {
 
   const onToggle = async (it: ChecklistItem) => {
     setItems((prev) => prev.map((x) => x.id === it.id ? { ...x, is_resolved: !x.is_resolved } : x));
-    try { await toggleFn({ data: { id: it.id, resolved: !it.is_resolved } }); }
+    try { await toggleFn({ data: { id: it.id, clientId, resolved: !it.is_resolved } }); }
     catch { toast("Couldn't update item."); reload(); }
   };
 
