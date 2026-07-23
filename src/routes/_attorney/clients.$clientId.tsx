@@ -1326,10 +1326,14 @@ function GapsTab({ data }: { data: CaseData }) {
       </div>
 
       {totalGaps === 0 ? (
-        <div className="att-card" style={{ textAlign: "center", padding: 24 }}>
-          <ShieldCheck size={32} style={{ color: "var(--att-green)", margin: "0 auto" }} />
-          <p style={{ fontSize: 14, color: "var(--att-green)", marginTop: 8 }}>No critical gaps detected. This case file is fully supported.</p>
-        </div>
+        patternMissing ? (
+          <PatternAnalysisEmpty area="AI-detected gaps" />
+        ) : (
+          <div className="att-card" style={{ textAlign: "center", padding: 24 }}>
+            <ShieldCheck size={32} style={{ color: "var(--att-green)", margin: "0 auto" }} />
+            <p style={{ fontSize: 14, color: "var(--att-green)", marginTop: 8 }}>No critical gaps detected. This case file is fully supported.</p>
+          </div>
+        )
       ) : (
         buckets.map((sev) => {
           const gapsInBucket = indexedGaps.filter(({ g }) => (g.severity ?? "moderate") === sev);
