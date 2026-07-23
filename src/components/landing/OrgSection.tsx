@@ -12,14 +12,6 @@ const BENEFITS = [
   "Increased organizational capacity",
 ];
 
-const GRANT_METRICS = [
-  { icon: <Users size={20} />, label: "Survivors served", desc: "Track active and cumulative reach." },
-  { icon: <Check size={20} />, label: "Documentation completed", desc: "Measure case-readiness output." },
-  { icon: <ArrowRight size={20} />, label: "Referrals made", desc: "Quantify legal and community handoffs." },
-  { icon: <Activity size={20} />, label: "Advocate hours recovered", desc: "Operational time saved per quarter." },
-  { icon: <Award size={20} />, label: "Program outcomes", desc: "Outcome-aligned reporting for funders." },
-  { icon: <Heart size={20} />, label: "Community impact", desc: "Aggregate impact across cohorts." },
-];
 
 export function OrgSection() {
   return (
