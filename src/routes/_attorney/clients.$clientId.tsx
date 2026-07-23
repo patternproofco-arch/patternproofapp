@@ -2022,11 +2022,6 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
         </ul>
       )
     },
-    { title: "Requested relief", body:
-      <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
-        To be captured at attorney intake. Suggested relief based on case profile: {data.documentation_density === "high" ? "emergency protective order, custody modification, supervised visitation" : "protective order, custody clarification, no-contact terms"}.
-      </p>
-    },
     { title: "Missing documents", body:
       missingDocs.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--att-green)" }}>No critical gaps detected.</p>
