@@ -602,49 +602,49 @@ export const getClientCase = createServerFn({ method: "POST" })
     const incidents = incQ.data ?? [];
     const evidence = evQ.data ?? [];
     const flags = escQ.data ?? [];
-    const pattern = (patQ.data ?? null) as { analysis: AnyJson; created_at: string } | null;
+    const pattern = (patQ.data ?? null) as { analysis: AnyJson; created_at: string; reviewed_status?: AnyJson } | null;
 
-    /* ---- categorize documented behaviors (keyword match on incident text) ---- */
-    const CATEGORY_MAP: Record<string, RegExp> = {
-      "Financial control": /financial|money|bank|wage|account|withhold|debit/i,
-      "Isolation": /isolat|cut off|forbid|prevent contact|alienat/i,
-      "Threats": /threat|kill|harm|intimidat|warning/i,
-      "Physical violence": /hit|punch|slap|push|kick|grab|strangl|chok|assault|hair/i,
-      "Stalking": /follow|track|surveil|stalk|monitor|gps|location/i,
-      "Litigation abuse": /court|file|motion|attorney|subpoena|litigat|petition|hearing/i,
-      "Coercive control": /control|demand|rule|punish|silent treat|gaslight|manipulat/i,
-      "Digital monitoring": /phone|messages|spy|app|password|email|social|account/i,
-    };
+    /* ---- behavior categories: derived from structured abuse_types tags,
+       not regex on free-text descriptions. This is a simple survivor-logged
+       tag count, not classification. ---- */
     const categoryCounts: Record<string, number> = {};
-    const categoryEvidence: Record<string, string[]> = {};
     for (const i of incidents) {
-      const text = `${i.description ?? ""} ${(i.abuse_types ?? []).join(" ")}`.toLowerCase();
-      for (const [cat, rx] of Object.entries(CATEGORY_MAP)) {
-        if (rx.test(text)) {
-          categoryCounts[cat] = (categoryCounts[cat] ?? 0) + 1;
-          categoryEvidence[cat] = (categoryEvidence[cat] ?? []).concat(i.id);
-        }
+      for (const t of (i.abuse_types ?? []) as string[]) {
+        if (!t) continue;
+        categoryCounts[t] = (categoryCounts[t] ?? 0) + 1;
       }
     }
 
-    /* ---- documented behavior categories (survivor-logged incidents only) ---- */
-    const checklist = [
-      { item: "Isolation from family / friends / support systems", key: "Isolation" },
-      { item: "Microregulation of daily life (rules, routines, surveillance)", key: "Coercive control" },
-      { item: "Financial deprivation or control", key: "Financial control" },
-      { item: "Threats and intimidation", key: "Threats" },
-      { item: "Physical violence or assault", key: "Physical violence" },
-      { item: "Stalking / surveillance behaviors", key: "Stalking" },
-      { item: "Use of legal system as a tactic", key: "Litigation abuse" },
-      { item: "Digital monitoring / device control", key: "Digital monitoring" },
-    ].map((row) => ({
-      ...row,
-      documented: (categoryCounts[row.key] ?? 0) > 0,
-      count: categoryCounts[row.key] ?? 0,
-      incident_ids: categoryEvidence[row.key] ?? [],
+    /* ---- abuser tactics come from the reviewed AI pattern analysis ---- */
+    const patternAnalysis = pattern?.analysis ?? {};
+    const patternReviewedStatus = (pattern?.reviewed_status ?? {}) as Record<string, AnyJson>;
+    const rawTactics = Array.isArray(patternAnalysis.abuser_tactics) ? patternAnalysis.abuser_tactics : [];
+    const abuser_tactics = rawTactics.map((t: AnyJson, idx: number) => ({
+      tactic: String(t?.tactic ?? ""),
+      description: String(t?.description ?? ""),
+      examples_count: Number(t?.examples_count ?? 0),
+      why_it_matters: String(t?.why_it_matters ?? ""),
+      example_dates: Array.isArray(t?.example_dates) ? (t.example_dates as string[]) : [],
+      review_status: patternReviewedStatus[`tactic:${idx}`] ?? null,
+    }));
+    // Preserve old `checklist` shape for downstream consumers (export/intake/dashboard)
+    // but source it from the AI tactics rather than regex.
+    const checklist = abuser_tactics.map((t) => ({
+      item: t.tactic,
+      key: t.tactic,
+      documented: t.examples_count > 0,
+      count: t.examples_count,
+      incident_ids: [] as string[],
+      description: t.description,
+      why_it_matters: t.why_it_matters,
+      example_dates: t.example_dates,
+      review_status: t.review_status,
     }));
 
-    /* ---- evidence gaps ---- */
+    /* ---- gaps: deterministic checks + AI pattern-analysis gaps.
+       No more regex-derived "Missing category" or "No escalation flags" gaps —
+       those are covered (with citations + Confirm/Edit/Reject/Unsure review)
+       by the pattern-analysis gaps field. ---- */
     const incidentsWithEvidence = new Set(evidence.map((e) => e.linked_incident_id).filter(Boolean));
     const incidentsWithoutEvidence = incidents.filter((i) => !incidentsWithEvidence.has(i.id));
     const gaps: Array<{
@@ -654,6 +654,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       suggested_fix: string;
       severity: "low" | "moderate" | "high";
       suggested_request: string;
+      source?: "deterministic" | "pattern_analysis";
     }> = [];
     if (incidentsWithoutEvidence.length > 0) {
       gaps.push({
@@ -663,28 +664,7 @@ export const getClientCase = createServerFn({ method: "POST" })
         suggested_fix: "Ask the client to attach any photos, screenshots, messages, medical records, police reports, or third-party messages that reference these events — even if indirect.",
         severity: "high",
         suggested_request: "Please review any unlinked incidents and attach any supporting photos, screenshots, messages, or records you can find — even partial corroboration helps.",
-      });
-    }
-    for (const row of checklist) {
-      if (row.count === 0) {
-        gaps.push({
-          kind: "Missing category",
-          detail: `No documented incidents for: ${row.item}`,
-          why_it_matters: "Coercive-control cases rely on the breadth of tactics, not just the worst single event. Missing categories can let opposing counsel argue the conduct was isolated rather than systemic.",
-          suggested_fix: `Ask the client whether this tactic occurred and, if so, to document specific examples for: ${row.item}.`,
-          severity: "moderate",
-          suggested_request: `Have you experienced anything related to "${row.item}"? If so, please log any specific dated examples you can remember.`,
-        });
-      }
-    }
-    if ((flags.length ?? 0) === 0 && incidents.length >= 5) {
-      gaps.push({
-        kind: "No escalation flags",
-        detail: "Five+ incidents documented but no escalation flag set. Review high-risk events.",
-        why_it_matters: "Escalation arcs are a primary judicial concern in protective-order and custody matters. A documented case without any flagged escalation reads as static rather than worsening.",
-        suggested_fix: "Ask the client to flag any incidents involving threats, weapons, violence near children, or behavior that genuinely scared them.",
-        severity: "moderate",
-        suggested_request: "Please review your incident log and flag any events that felt like an escalation — threats, weapons, presence of children, or moments that genuinely frightened you.",
+        source: "deterministic",
       });
     }
     const incidentsWithoutSeverity = incidents.filter((i) => i.severity_level == null).length;
@@ -696,6 +676,23 @@ export const getClientCase = createServerFn({ method: "POST" })
         suggested_fix: "Ask the client to revisit unrated incidents and assign a 1–5 severity based on impact and fear.",
         severity: "low",
         suggested_request: "Some of your incidents don't have a severity rating yet. When you're ready, please open each one and add a 1–5 rating based on how it affected you.",
+        source: "deterministic",
+      });
+    }
+    // AI pattern-analysis gaps: { gap, suggestion } per pattern-analysis schema.
+    const rawPatternGaps = Array.isArray(patternAnalysis.gaps) ? patternAnalysis.gaps : [];
+    for (const g of rawPatternGaps) {
+      const label = typeof g === "string" ? g : String((g as AnyJson)?.gap ?? "").trim();
+      const suggestion = typeof g === "string" ? "" : String((g as AnyJson)?.suggestion ?? "").trim();
+      if (!label) continue;
+      gaps.push({
+        kind: label,
+        detail: label,
+        why_it_matters: "",
+        suggested_fix: suggestion,
+        severity: "moderate",
+        suggested_request: suggestion || `Could you tell me more about: ${label}?`,
+        source: "pattern_analysis",
       });
     }
 
@@ -736,6 +733,9 @@ export const getClientCase = createServerFn({ method: "POST" })
       communications: comsQ.data ?? [],
       legal_documents: legalQ.data ?? [],
       pattern_analysis: pattern,
+      pattern_analysis_present: !!pattern,
+      abuser_tactics,
+      pattern_reviewed_status: patternReviewedStatus,
       categories: Object.entries(categoryCounts).map(([type, count]) => ({ type, count })),
       checklist,
       gaps,
