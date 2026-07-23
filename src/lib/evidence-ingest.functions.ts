@@ -387,3 +387,75 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
 
     return receipt;
   });
+/**
+ * Survivor confirms the flagged near-duplicate is the same underlying record.
+ * Reuses evidence_families: attaches the new row (and its canonical target)
+ * to the same family, so export/court-packet grouping picks it up unchanged.
+ */
+export const confirmNearDuplicate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { evidence_id: string }) => {
+    if (!input?.evidence_id) throw new Error("Missing evidence_id");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const cur = await supabase
+      .from("evidence")
+      .select("id, near_duplicate_of, family_id")
+      .eq("id", data.evidence_id)
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (cur.error || !cur.data) throw new Error("Evidence not found");
+    const target = cur.data.near_duplicate_of as string | null;
+    if (!target) throw new Error("No pending near-duplicate on this item");
+
+    const other = await supabase
+      .from("evidence")
+      .select("id, family_id")
+      .eq("id", target)
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (other.error || !other.data) throw new Error("Similar evidence not found");
+
+    let familyId: string | null = (other.data.family_id as string | null) ?? (cur.data.family_id as string | null);
+    if (!familyId) {
+      const fam = await supabase
+        .from("evidence_families")
+        .insert({ user_id: userId, canonical_evidence_id: other.data.id })
+        .select("id")
+        .single();
+      if (fam.error || !fam.data) throw new Error("Could not create family");
+      familyId = fam.data.id as string;
+      await supabase.from("evidence").update({ family_id: familyId })
+        .eq("id", other.data.id).eq("user_id", userId);
+    }
+
+    await supabase.from("evidence")
+      .update({ family_id: familyId, near_duplicate_status: "confirmed" })
+      .eq("id", cur.data.id).eq("user_id", userId);
+
+    return { ok: true, family_id: familyId };
+  });
+
+/**
+ * Survivor rejects the near-duplicate flag. The row stays fully independent
+ * (no family link), and it won't be flagged again.
+ */
+export const rejectNearDuplicate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { evidence_id: string }) => {
+    if (!input?.evidence_id) throw new Error("Missing evidence_id");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const up = await supabase.from("evidence")
+      .update({ near_duplicate_status: "rejected" })
+      .eq("id", data.evidence_id)
+      .eq("user_id", userId);
+    if (up.error) throw new Error(up.error.message);
+    return { ok: true };
+  });
