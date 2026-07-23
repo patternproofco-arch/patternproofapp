@@ -46,7 +46,7 @@ function SettingsPage() {
     setExporting(true);
     setExportResult(null);
     try {
-      const r = await exportFn();
+      const r = await exportFn({ data: {} });
       if (r.ok) {
         setExportResult({ url: r.url, filename: r.filename, bytes: r.bytes });
         toast("Export ready.");
