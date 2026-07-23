@@ -1239,6 +1239,7 @@ function Gaps({ data }: { data: CaseData }) {
 function GapsTab({ data }: { data: CaseData }) {
   const { clientId } = useParams({ from: "/_attorney/clients/$clientId" });
   const reqFn = useServerFn(createDocRequest);
+  const patternMissing = !data.pattern_analysis_present;
   const [sentIdx, setSentIdx] = useState<Set<number>>(new Set());
   const [sendingIdx, setSendingIdx] = useState<number | null>(null);
   const [openBucket, setOpenBucket] = useState<Record<string, boolean>>({ high: true, moderate: true, low: false });
