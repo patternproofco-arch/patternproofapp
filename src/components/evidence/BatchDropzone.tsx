@@ -1,11 +1,13 @@
 import { useCallback, useRef, useState } from "react";
-import { Upload, Check, AlertTriangle, Clock, ShieldCheck } from "lucide-react";
+import { Upload, Check, AlertTriangle, Clock, ShieldCheck, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import {
   ingestEvidenceBatch,
+  confirmNearDuplicate,
+  rejectNearDuplicate,
   type PreservationReceipt,
   type PreservationReceiptItem,
 } from "@/lib/evidence-ingest.functions";
@@ -40,12 +42,23 @@ function StatusChip({ item }: { item: PreservationReceiptItem }) {
   };
   const base = map[item.status] ?? map.preserved;
   const isDup = !!item.duplicate_of;
+  const isNear = !isDup && !!item.near_duplicate_of;
   const m = isDup
     ? {
         ...base,
         label: item.duplicate_of_title
           ? `Preserved · exact duplicate of "${item.duplicate_of_title}"`
           : "Preserved · exact duplicate of an existing file",
+      }
+    : isNear
+    ? {
+        ...base,
+        bg: "rgba(231,208,163,0.5)",
+        fg: "#5a3a12",
+        Icon: Eye,
+        label: item.near_duplicate_of_title
+          ? `Preserved · looks similar to "${item.near_duplicate_of_title}" — review when you have a moment`
+          : "Preserved · looks similar to an existing file — review when you have a moment",
       }
     : base;
   const Icon = m.Icon;
@@ -71,11 +84,30 @@ function StatusChip({ item }: { item: PreservationReceiptItem }) {
 export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const ingest = useServerFn(ingestEvidenceBatch);
+  const confirmNear = useServerFn(confirmNearDuplicate);
+  const rejectNear = useServerFn(rejectNearDuplicate);
   const [files, setFiles] = useState<FileState[]>([]);
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<PreservationReceipt | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [nearResolved, setNearResolved] = useState<Record<string, "confirmed" | "rejected">>({});
+
+  const resolveNear = async (evidenceId: string, action: "confirm" | "reject") => {
+    try {
+      if (action === "confirm") {
+        await confirmNear({ data: { evidence_id: evidenceId } });
+        setNearResolved((s) => ({ ...s, [evidenceId]: "confirmed" }));
+        toast("Linked with the similar file.");
+      } else {
+        await rejectNear({ data: { evidence_id: evidenceId } });
+        setNearResolved((s) => ({ ...s, [evidenceId]: "rejected" }));
+        toast("Kept as a separate file.");
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Couldn't save that. Try again in a moment.");
+    }
+  };
 
   const addFiles = useCallback((list: FileList | File[]) => {
     const incoming = Array.from(list);
@@ -258,14 +290,37 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           </p>
           <div className="mt-3 space-y-2">
             {receipt.items.map((it) => (
-              <div key={it.storage_key} className="flex items-start justify-between gap-3 rounded-lg p-2" style={{ background: "var(--panel)" }}>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px]" style={{ fontWeight: 600 }}>{it.original_filename}</div>
-                  <div className="mt-0.5 truncate text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                    {it.sha256 ? `sha256 ${it.sha256.slice(0, 16)}… · ${humanBytes(it.bytes)}` : it.message ?? "No fingerprint recorded."}
+              <div key={it.storage_key} className="rounded-lg p-2" style={{ background: "var(--panel)" }}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[13px]" style={{ fontWeight: 600 }}>{it.original_filename}</div>
+                    <div className="mt-0.5 truncate text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                      {it.sha256 ? `sha256 ${it.sha256.slice(0, 16)}… · ${humanBytes(it.bytes)}` : it.message ?? "No fingerprint recorded."}
+                    </div>
                   </div>
+                  <StatusChip item={it} />
                 </div>
-                <StatusChip item={it} />
+                {it.near_duplicate_of && !it.duplicate_of && it.evidence_id && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2 rounded-md p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.35)", color: "#5a3a12" }}>
+                    {nearResolved[it.evidence_id] === "confirmed" ? (
+                      <span>Linked with the similar file — will be grouped together in exports.</span>
+                    ) : nearResolved[it.evidence_id] === "rejected" ? (
+                      <span>Kept as a separate file.</span>
+                    ) : (
+                      <>
+                        <span className="flex-1">
+                          Is this the same as {it.near_duplicate_of_title ? `"${it.near_duplicate_of_title}"` : "the existing file"}?
+                        </span>
+                        <button type="button" className="btn-ghost text-[12px]" onClick={() => resolveNear(it.evidence_id!, "confirm")}>
+                          Yes, same
+                        </button>
+                        <button type="button" className="btn-ghost text-[12px]" onClick={() => resolveNear(it.evidence_id!, "reject")}>
+                          No, different
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
