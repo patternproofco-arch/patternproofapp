@@ -32,6 +32,9 @@ export type PreservationReceiptItem = {
   duplicate_of?: string | null;
   duplicate_of_title?: string | null;
   family_id?: string | null;
+  near_duplicate_of?: string | null;
+  near_duplicate_of_title?: string | null;
+  near_duplicate_distance?: number | null;
 };
 
 export type PreservationReceipt = {
@@ -59,6 +62,57 @@ function classify(mime: string): PreservationStatus {
     return "extraction_pending";
   }
   return "unsupported_but_preserved";
+}
+
+// dHash 8x8 → 64-bit perceptual hash, encoded as 16 hex chars. Compare with
+// Hamming distance. Threshold of 10/64 bits is the conservative default for
+// dHash — tight enough to avoid false positives on genuinely different photos
+// while still catching re-encoded/cropped screenshots of the same source.
+const PHASH_MATCH_MAX_DISTANCE = 10;
+
+const HASHABLE_IMAGE_MIMES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/bmp",
+  "image/gif",
+  "image/tiff",
+]);
+
+async function computeDHash(buf: Buffer): Promise<string | null> {
+  try {
+    const { Jimp } = await import("jimp");
+    const img = await Jimp.read(buf);
+    // 9x8 grayscale — 8 dHash bits per row via horizontal gradient.
+    img.resize({ w: 9, h: 8 }).greyscale();
+    let bits = "";
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        const left = (img.bitmap.data[(y * 9 + x) * 4] ?? 0);
+        const right = (img.bitmap.data[(y * 9 + x + 1) * 4] ?? 0);
+        bits += left < right ? "1" : "0";
+      }
+    }
+    // Pack 64 bits into 16 hex chars.
+    let hex = "";
+    for (let i = 0; i < 64; i += 4) {
+      hex += parseInt(bits.slice(i, i + 4), 2).toString(16);
+    }
+    return hex;
+  } catch {
+    return null;
+  }
+}
+
+function hammingHex(a: string, b: string): number {
+  if (a.length !== b.length) return Number.POSITIVE_INFINITY;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) {
+    let x = parseInt(a[i]!, 16) ^ parseInt(b[i]!, 16);
+    while (x) { d += x & 1; x >>= 1; }
+  }
+  return d;
 }
 
 /**
@@ -171,6 +225,40 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
           }
         }
 
+        // Perceptual-hash (near-duplicate) detection — images only, and only
+        // when this file isn't already an exact duplicate.
+        let perceptualHash: string | null = null;
+        let nearDupId: string | null = null;
+        let nearDupTitle: string | null = null;
+        let nearDupDistance: number | null = null;
+        let nearDupStatus: "unreviewed" | null = null;
+        if (!existing && HASHABLE_IMAGE_MIMES.has(f.mime)) {
+          perceptualHash = await computeDHash(buf);
+          if (perceptualHash) {
+            const candidates = await supabase
+              .from("evidence")
+              .select("id, title, perceptual_hash")
+              .eq("user_id", userId)
+              .is("deleted_at", null)
+              .not("perceptual_hash", "is", null);
+            const rows = candidates.data ?? [];
+            let best: { id: string; title: string | null; d: number } | null = null;
+            for (const r of rows) {
+              if (!r.perceptual_hash) continue;
+              const d = hammingHex(perceptualHash, r.perceptual_hash);
+              if (d <= PHASH_MATCH_MAX_DISTANCE && (!best || d < best.d)) {
+                best = { id: r.id as string, title: (r.title as string | null) ?? null, d };
+              }
+            }
+            if (best) {
+              nearDupId = best.id;
+              nearDupTitle = best.title;
+              nearDupDistance = best.d;
+              nearDupStatus = "unreviewed";
+            }
+          }
+        }
+
         const insert = await supabase
           .from("evidence")
           .insert({
@@ -189,6 +277,9 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
             integrity_verified_at: nowIso,
             import_batch_id: batchId,
             family_id: familyId,
+            perceptual_hash: perceptualHash,
+            near_duplicate_of: nearDupId,
+            near_duplicate_status: nearDupStatus,
           })
           .select("id")
           .single();
@@ -235,6 +326,23 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
           });
         }
 
+        if (nearDupId && insert.data) {
+          await supabaseAdmin.rpc("record_audit_event", {
+            p_user_id: userId,
+            p_event_type: "evidence.near_duplicate_flagged",
+            p_subject_kind: "evidence",
+            p_subject_id: insert.data.id,
+            p_actor_kind: "user",
+            p_actor_id: userId,
+            p_meta: {
+              near_duplicate_of: nearDupId,
+              distance: nearDupDistance,
+              perceptual_hash: perceptualHash,
+              batch_id: batchId,
+            },
+          });
+        }
+
         items.push({
           storage_key: f.storage_key,
           original_filename: f.original_filename,
@@ -246,6 +354,9 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
           duplicate_of: canonicalId,
           duplicate_of_title: existing ? canonicalTitle : null,
           family_id: familyId,
+          near_duplicate_of: nearDupId,
+          near_duplicate_of_title: nearDupTitle,
+          near_duplicate_distance: nearDupDistance,
         });
       } catch (err) {
         items.push({
