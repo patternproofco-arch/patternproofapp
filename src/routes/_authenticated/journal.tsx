@@ -149,8 +149,11 @@ function JournalPage() {
     };
     const insertPayload = {
       ...payload,
+      // Preserve provenance when the draft started from an AI extraction, but
+      // pressing Save after review IS confirmation — otherwise the record is
+      // silently filtered out of attorney shares and pattern analysis.
       source: aiFilled ? "ai_extracted" : "survivor",
-      confirmed_at: aiFilled ? null : new Date().toISOString(),
+      confirmed_at: new Date().toISOString(),
     };
     let error;
     if (editingId) {

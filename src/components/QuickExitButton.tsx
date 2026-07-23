@@ -30,8 +30,9 @@ export function QuickExitButton() {
     } catch {
       /* ignore */
     }
-    // Full-page navigation, not SPA.
-    window.location.href = url;
+    // Full-page navigation that overwrites the current history entry so
+    // pressing Back on the cover site cannot return to PatternProof.
+    window.location.replace(url);
   };
 
   useEffect(() => {
