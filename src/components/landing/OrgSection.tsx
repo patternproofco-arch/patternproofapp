@@ -224,6 +224,12 @@ export function OrgSection() {
           >
             Partner with us <ArrowRight size={16} />
           </Link>
+          <div style={{ marginTop: 20, fontSize: 13, color: "rgba(232,240,222,0.75)" }}>
+            Already partnering with us?{" "}
+            <Link to="/org-feedback" style={{ color: "#FFFFFF", textDecoration: "underline", fontWeight: 600 }}>
+              Share feedback
+            </Link>
+          </div>
         </div>
       </div>
     </section>

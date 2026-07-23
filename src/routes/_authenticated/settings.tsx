@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ShieldCheck, KeyRound, Clock3, ScrollText, AlertTriangle, Mic } from "lucide-react";
+import { MessageCircle } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
@@ -180,6 +182,14 @@ function SettingsPage() {
         <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>
           If you're in immediate danger, call 911 or the National Domestic Violence Hotline at 1-800-799-7233. You're not alone in this.
         </p>
+      </div>
+
+      <div className="card-pp mt-6">
+        <div className="flex items-center gap-2"><MessageCircle size={18} style={{ color: "var(--accent)" }} /><h2 className="font-serif text-[19px]">Share your experience</h2></div>
+        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          Six short questions. Honest answers help us make PatternProof safer and easier for the people who come next.
+        </p>
+        <Link to="/feedback" className="btn-primary mt-4 inline-block">Share feedback</Link>
       </div>
 
       <div className="card-pp mt-6">

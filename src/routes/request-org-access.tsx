@@ -122,6 +122,12 @@ function RequestOrgAccess() {
             </form>
           )}
         </div>
+        <div style={{ marginTop: 20, textAlign: "center", fontSize: 13, color: "var(--muted-foreground)" }}>
+          Already partnering with us?{" "}
+          <Link to="/org-feedback" style={{ color: "#3D72B8", fontWeight: 600, textDecoration: "underline" }}>
+            Share feedback about PatternProof
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -290,6 +290,11 @@ function Dashboard() {
           <UploadCloud size={18} /> Upload Evidence
         </Link>
       </div>
+      <div className="mt-8 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+        <Link to="/feedback" style={{ color: "inherit", textDecoration: "underline" }}>
+          Share how PatternProof is feeling for you
+        </Link>
+      </div>
     </div>
   );
 }

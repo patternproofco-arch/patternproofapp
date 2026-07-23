@@ -167,6 +167,7 @@ function AttorneyTopNav() {
             <Link to="/clients" className={`att-nav-tab ${pathname === "/clients" ? "active" : ""}`}>Clients</Link>
             <Link to="/billing" className={`att-nav-tab ${pathname === "/billing" ? "active" : ""}`}>Billing</Link>
             <Link to="/trust" className={`att-nav-tab ${pathname === "/trust" ? "active" : ""}`}>Trust</Link>
+            <Link to="/feedback" className={`att-nav-tab ${pathname === "/feedback" ? "active" : ""}`}>Feedback</Link>
           </>
         )}
       </div>
