@@ -53,10 +53,8 @@ function LoginPage() {
     if (!loading && user) {
       // Best-effort: capture the org-referral slug once, after auth. RLS makes
       // this a no-op if the row already exists.
-      if (refSlug && /^[a-z0-9-]{1,120}$/.test(refSlug)) {
-        recordReferral({
-          data: { org_slug: refSlug, referred_by_org_name: refSlug.replace(/-/g, " ") },
-        }).catch(() => {});
+      if (refSlug && /^[A-Za-z0-9_-]{1,64}$/.test(refSlug)) {
+        recordReferral({ data: { code: refSlug } }).catch(() => {});
       }
       if (redirectTo && redirectTo.startsWith("/")) {
         navigate({ to: redirectTo, replace: true });

@@ -225,23 +225,31 @@ export const recordOrgReferral = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
     z.object({
-      org_slug: z.string().min(1).max(120).regex(/^[a-z0-9-]+$/),
-      referred_by_org_name: z.string().min(1).max(200),
+      code: z.string().min(1).max(64).regex(/^[A-Za-z0-9_-]+$/),
     }).parse(input),
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const { supabase, userId } = context;
-    // Insert only if absent — RLS allows self-insert.
+    // Idempotent: first captured referral wins.
     const { data: existing } = await supabase
       .from("user_referrals")
       .select("user_id")
       .eq("user_id", userId)
       .maybeSingle();
     if (existing) return { ok: true };
-    await supabase.from("user_referrals").insert({
+    // Validate the code against our internal referral_links registry.
+    // Unknown codes are ignored silently — never fail the signup flow.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: link } = await supabaseAdmin
+      .from("referral_links")
+      .select("code, org_name")
+      .eq("code", data.code)
+      .maybeSingle();
+    if (!link) return { ok: true };
+    await supabaseAdmin.from("user_referrals").insert({
       user_id: userId,
-      org_slug: data.org_slug,
-      referred_by_org_name: data.referred_by_org_name,
+      referred_by_code: link.code,
+      referred_by_org_name: link.org_name,
     });
     return { ok: true };
   });
