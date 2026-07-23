@@ -47,7 +47,7 @@ export function AttorneySection() {
             maxWidth: 900,
           }}
         >
-          Every hour sorting screenshots is an hour{" "}
+          Your client documented the abuse.{" "}
           <span
             style={{
               background: "linear-gradient(90deg,#9ED8D0,#B5C7F0)",
@@ -56,7 +56,7 @@ export function AttorneySection() {
               backgroundClip: "text",
             }}
           >
-            you're not getting paid for.
+            Stop paying your team to rebuild it.
           </span>
         </h2>
 
