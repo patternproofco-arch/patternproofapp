@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import JSZip from "jszip";
 import { createHash } from "crypto";
+import { z } from "zod";
 
 function toCsv(rows: Array<Record<string, unknown>>): string {
   if (rows.length === 0) return "";
@@ -32,26 +33,86 @@ function sha256(buf: ArrayBuffer | Uint8Array): string {
  */
 export const generateExportZip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input) =>
+    z.object({
+      case_id: z.string().uuid().optional().nullable(),
+    }).partial().parse(input ?? {}),
+  )
+  .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const requestedCaseId = data?.case_id ?? null;
 
-    const [incRes, evRes, commsRes, vnRes, ldRes, paRes, casesRes] = await Promise.all([
-      supabase.from("incidents").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true }),
-      supabase.from("evidence").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true }),
+    // Resolve which case (if any) to scope this export to. When the survivor
+    // has more than one case and did not pick one, we export ALL data (legacy
+    // behavior). When they picked one, we scope incidents/evidence/legal to
+    // that case's attached IDs.
+    let scopedCase: Record<string, unknown> | null = null;
+    if (requestedCaseId) {
+      const { data: c } = await supabase
+        .from("cases")
+        .select("*")
+        .eq("id", requestedCaseId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      scopedCase = (c as Record<string, unknown> | null) ?? null;
+      if (!scopedCase) return { ok: false as const, reason: "case-not-found" };
+    }
+    const scopedIncidentIds: string[] | null = scopedCase
+      ? (((scopedCase.highlighted_incident_ids as string[] | null) ?? []))
+      : null;
+    const scopedEvidenceIds: string[] | null = scopedCase
+      ? (((scopedCase.attached_evidence_ids as string[] | null) ?? []))
+      : null;
+    const scopedLegalIds: string[] | null = scopedCase
+      ? (((scopedCase.legal_document_ids as string[] | null) ?? []))
+      : null;
+
+    const incQ = scopedIncidentIds
+      ? (scopedIncidentIds.length
+          ? supabase.from("incidents").select("*").eq("user_id", userId).in("id", scopedIncidentIds).is("deleted_at", null).order("date", { ascending: true })
+          : Promise.resolve({ data: [] as unknown[] }))
+      : supabase.from("incidents").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true });
+    const evQ = scopedEvidenceIds
+      ? (scopedEvidenceIds.length
+          ? supabase.from("evidence").select("*").eq("user_id", userId).in("id", scopedEvidenceIds).is("deleted_at", null).order("date", { ascending: true })
+          : Promise.resolve({ data: [] as unknown[] }))
+      : supabase.from("evidence").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true });
+    const ldQ = scopedLegalIds
+      ? (scopedLegalIds.length
+          ? supabase.from("legal_documents").select("*").eq("user_id", userId).in("id", scopedLegalIds)
+          : Promise.resolve({ data: [] as unknown[] }))
+      : supabase.from("legal_documents").select("*").eq("user_id", userId);
+
+    const [incRes, evRes, commsRes, vnRes, ldRes, paRes, singleCaseRes] = await Promise.all([
+      incQ,
+      evQ,
+      // Communications and voice notes aren't attached per-case; export all when unscoped.
       supabase.from("communications").select("*").eq("user_id", userId).order("date", { ascending: true }),
       supabase.from("voice_notes").select("*").eq("user_id", userId).order("date", { ascending: true }),
-      supabase.from("legal_documents").select("*").eq("user_id", userId),
+      ldQ,
       supabase.from("pattern_analyses").select("analysis,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1),
-      supabase.from("cases").select("*").eq("user_id", userId).order("updated_at", { ascending: false }).limit(1),
+      // Case metadata: use the scoped case if provided, else the most-recently-updated one (legacy).
+      requestedCaseId
+        ? Promise.resolve({ data: scopedCase ? [scopedCase] : [] as Record<string, unknown>[] })
+        : supabase.from("cases").select("*").eq("user_id", userId).order("updated_at", { ascending: false }).limit(1),
     ]);
 
-    const incidents = incRes.data ?? [];
-    const evidence = evRes.data ?? [];
-    const comms = commsRes.data ?? [];
-    const voiceNotes = vnRes.data ?? [];
-    const legalDocs = ldRes.data ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const incidents = (incRes.data ?? []) as any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const evidence = (evRes.data ?? []) as any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const comms = (commsRes.data ?? []) as any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const voiceNotes = (vnRes.data ?? []) as any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const legalDocs = (ldRes.data ?? []) as any[];
     const latestAnalysis = paRes.data?.[0];
-    const latestCase = casesRes.data?.[0];
+    const latestCase = (singleCaseRes.data as Array<Record<string, unknown>> | null)?.[0];
+    const caseLabel = latestCase
+      ? (((latestCase.case_name as string | null)?.trim() || (latestCase.other_party as string | null)?.trim() || "case"))
+      : "case";
+    const caseSlug = caseLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "case";
 
     // Fetch evidence_families to identify canonical rows for grouping.
     const familyIds = Array.from(new Set(evidence.map((e) => e.family_id).filter((v): v is string => !!v)));
@@ -299,7 +360,10 @@ echo "Done."
     const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE", compressionOptions: { level: 6 } });
 
     const ts = exportedAt.replace(/[:.]/g, "-");
-    const objectPath = `${userId}/patternproof-professional-review-${ts}.zip`;
+    const fileStem = requestedCaseId
+      ? `patternproof-professional-review-${caseSlug}-${ts}`
+      : `patternproof-professional-review-${ts}`;
+    const objectPath = `${userId}/${fileStem}.zip`;
     const up = await supabase.storage.from("exports").upload(objectPath, zipBuf, {
       contentType: "application/zip",
       upsert: false,
@@ -313,7 +377,7 @@ echo "Done."
       ok: true as const,
       url: signed.data.signedUrl,
       bytes: zipBuf.byteLength,
-      filename: `patternproof-professional-review-${ts}.zip`,
+      filename: `${fileStem}.zip`,
       counts: {
         incidents: incidents.length,
         evidence: evidence.length,
@@ -321,5 +385,7 @@ echo "Done."
         voice_notes: voiceNotes.length,
         legal_documents: legalDocs.length,
       },
+      case_id: requestedCaseId,
+      case_label: latestCase ? caseLabel : null,
     };
   });

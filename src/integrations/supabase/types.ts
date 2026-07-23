@@ -128,6 +128,7 @@ export type Database = {
         Row: {
           attorney_case_notes: string | null
           attorney_user_id: string
+          case_id: string | null
           client_user_id: string
           created_at: string
           deposition_prep_consent: boolean
@@ -146,6 +147,7 @@ export type Database = {
         Insert: {
           attorney_case_notes?: string | null
           attorney_user_id: string
+          case_id?: string | null
           client_user_id: string
           created_at?: string
           deposition_prep_consent?: boolean
@@ -164,6 +166,7 @@ export type Database = {
         Update: {
           attorney_case_notes?: string | null
           attorney_user_id?: string
+          case_id?: string | null
           client_user_id?: string
           created_at?: string
           deposition_prep_consent?: boolean
@@ -180,6 +183,13 @@ export type Database = {
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "attorney_client_links_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "attorney_client_links_invitation_id_fkey"
             columns: ["invitation_id"]
@@ -332,6 +342,7 @@ export type Database = {
           accepted_by: string | null
           attorney_email: string
           attorney_name: string | null
+          case_id: string | null
           client_user_id: string
           created_at: string
           date_range_end: string | null
@@ -353,6 +364,7 @@ export type Database = {
           accepted_by?: string | null
           attorney_email: string
           attorney_name?: string | null
+          case_id?: string | null
           client_user_id: string
           created_at?: string
           date_range_end?: string | null
@@ -374,6 +386,7 @@ export type Database = {
           accepted_by?: string | null
           attorney_email?: string
           attorney_name?: string | null
+          case_id?: string | null
           client_user_id?: string
           created_at?: string
           date_range_end?: string | null
@@ -390,7 +403,15 @@ export type Database = {
           scope_incidents?: string[]
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "attorney_invitations_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       attorney_messages: {
         Row: {

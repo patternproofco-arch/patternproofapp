@@ -51,12 +51,47 @@ async function assertLink(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("attorney_client_links")
-    .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
+    .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id")
     .eq("attorney_user_id", attorneyId)
     .eq("client_user_id", clientId)
     .maybeSingle();
   if (!data || data.status !== "active") throw new Error("No active access");
+  await applyCaseScope(data, clientId);
   return data;
+}
+
+/**
+ * If the link is scoped to a specific case (`case_id`), fold that case's
+ * highlighted incident / attached evidence / legal-document IDs into the
+ * link's scope fields so downstream query builders (which already understand
+ * scope_incidents / scope_evidence + include_all_*) transparently return
+ * only per-case data. Legacy links with a null case_id keep their previous
+ * "everything the survivor shared" behavior.
+ */
+async function applyCaseScope(
+  link: {
+    case_id?: string | null;
+    include_all_incidents: boolean;
+    include_all_evidence: boolean;
+    scope_incidents: string[] | null;
+    scope_evidence: string[] | null;
+  },
+  clientUserId: string,
+): Promise<void> {
+  if (!link.case_id) return;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: c } = await supabaseAdmin
+    .from("cases")
+    .select("highlighted_incident_ids,attached_evidence_ids,legal_document_ids")
+    .eq("id", link.case_id)
+    .eq("user_id", clientUserId)
+    .maybeSingle();
+  const inc = (c?.highlighted_incident_ids ?? []) as string[];
+  const ev = (c?.attached_evidence_ids ?? []) as string[];
+  link.include_all_incidents = false;
+  link.include_all_evidence = false;
+  link.scope_incidents = inc;
+  link.scope_evidence = ev;
 }
 
 /**
@@ -74,6 +109,7 @@ async function assertCaseAccess(userId: string, clientId: string): Promise<{
     include_patterns: boolean;
     scope_incidents: string[] | null;
     scope_evidence: string[] | null;
+    case_id?: string | null;
   };
   role: "owner" | "collaborator";
   collabRole?: "paralegal" | "associate" | "attorney";
@@ -81,11 +117,14 @@ async function assertCaseAccess(userId: string, clientId: string): Promise<{
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: owner } = await supabaseAdmin
     .from("attorney_client_links")
-    .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
+    .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id")
     .eq("attorney_user_id", userId)
     .eq("client_user_id", clientId)
     .maybeSingle();
-  if (owner && owner.status === "active") return { link: owner, role: "owner" };
+  if (owner && owner.status === "active") {
+    await applyCaseScope(owner, clientId);
+    return { link: owner, role: "owner" };
+  }
 
   const { data: collabRows } = await supabaseAdmin
     .from("case_collaborators")
@@ -108,12 +147,13 @@ async function assertCaseAccess(userId: string, clientId: string): Promise<{
 
   const { data: link } = await supabaseAdmin
     .from("attorney_client_links")
-    .select("id,attorney_user_id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,client_user_id")
+    .select("id,attorney_user_id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,client_user_id,case_id")
     .in("id", candidateLinkIds)
     .eq("client_user_id", clientId)
     .eq("status", "active")
     .maybeSingle();
   if (!link) throw new Error("No active access");
+  await applyCaseScope(link, clientId);
   const collabRole = (collabRows ?? []).find((c) => c.link_id === link.id)?.role as
     | "paralegal" | "associate" | "attorney" | undefined;
   if (!collabRole && (grantRows ?? []).some((g) => g.client_link_id === link.id)) {
@@ -274,7 +314,7 @@ export const listMyClients = createServerFn({ method: "GET" })
     // Owner attorney's own client links
     const ownerQ = supabaseAdmin
       .from("attorney_client_links")
-      .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
+      .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id")
       .eq("attorney_user_id", context.userId)
       .eq("status", "active");
 
@@ -302,7 +342,7 @@ export const listMyClients = createServerFn({ method: "GET" })
     if (sharedLinkIds.length) {
       const { data } = await supabaseAdmin
         .from("attorney_client_links")
-        .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
+        .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id")
         .in("id", sharedLinkIds)
         .eq("status", "active");
       collabLinks = data ?? [];
@@ -316,6 +356,8 @@ export const listMyClients = createServerFn({ method: "GET" })
 
     const clients = await Promise.all(
       (links ?? []).map(async (l) => {
+        // Case-scope the link in place so the queries below stay uniform.
+        await applyCaseScope(l, l.client_user_id);
         const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
         const scopedEvidenceIds = (l.scope_evidence ?? []) as string[];
         const incidentsQ = l.include_all_incidents
@@ -399,7 +441,7 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
     const [{ data: ownerLinks }, { data: collabRows }, { data: grantRows }] = await Promise.all([
       supabaseAdmin
         .from("attorney_client_links")
-        .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
+        .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id")
         .eq("attorney_user_id", context.userId)
         .eq("status", "active"),
       supabaseAdmin
@@ -422,7 +464,7 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
     if (sharedLinkIds.length) {
       const { data } = await supabaseAdmin
         .from("attorney_client_links")
-        .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence")
+        .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id")
         .in("id", sharedLinkIds)
         .eq("status", "active");
       sharedLinks = data ?? [];
@@ -435,6 +477,7 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
 
     const rows = await Promise.all(
       links.map(async (l) => {
+        await applyCaseScope(l, l.client_user_id);
         const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
         const scopedEvidenceIds = (l.scope_evidence ?? []) as string[];
 
