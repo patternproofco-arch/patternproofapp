@@ -1208,6 +1208,33 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_submissions: {
+        Row: {
+          audience: string
+          created_at: string
+          id: string
+          responses: Json
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          audience: string
+          created_at?: string
+          id?: string
+          responses: Json
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          id?: string
+          responses?: Json
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       firms: {
         Row: {
           created_at: string

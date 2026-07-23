@@ -16,6 +16,7 @@ import { Route as RequestOrgAccessRouteImport } from './routes/request-org-acces
 import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as OrgFeedbackRouteImport } from './routes/org-feedback'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
@@ -46,6 +47,7 @@ import { Route as AuthenticatedMessageThreadsRouteImport } from './routes/_authe
 import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authenticated/live-recording'
 import { Route as AuthenticatedLegalDocumentsRouteImport } from './routes/_authenticated/legal-documents'
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
+import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
 import { Route as AuthenticatedEscalationDetectorRouteImport } from './routes/_authenticated/escalation-detector'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -67,6 +69,7 @@ import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
 import { Route as AttorneyCaseloadRouteImport } from './routes/_attorney/caseload'
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
 import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
+import { Route as AttorneyAttorneyFeedbackRouteImport } from './routes/_attorney/attorney-feedback'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
@@ -112,6 +115,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrgFeedbackRoute = OrgFeedbackRouteImport.update({
+  id: '/org-feedback',
+  path: '/org-feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -267,6 +275,11 @@ const AuthenticatedJournalRoute = AuthenticatedJournalRouteImport.update({
   path: '/journal',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedEvidenceRoute = AuthenticatedEvidenceRouteImport.update({
   id: '/evidence',
   path: '/evidence',
@@ -380,6 +393,12 @@ const AttorneyBillingRoute = AttorneyBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AttorneyAttorneyFeedbackRoute =
+  AttorneyAttorneyFeedbackRouteImport.update({
+    id: '/attorney-feedback',
+    path: '/attorney-feedback',
+    getParentRoute: () => AttorneyRoute,
+  } as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
   Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
     id: '/.well-known/oauth-protected-resource',
@@ -453,6 +472,7 @@ export interface FileRoutesByFullPath {
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/org-feedback': typeof OrgFeedbackRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
@@ -462,6 +482,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/caseload': typeof AttorneyCaseloadRoute
@@ -483,6 +504,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
+  '/feedback': typeof AuthenticatedFeedbackRoute
   '/journal': typeof AuthenticatedJournalRoute
   '/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
@@ -522,6 +544,7 @@ export interface FileRoutesByTo {
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/org-feedback': typeof OrgFeedbackRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
@@ -531,6 +554,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/caseload': typeof AttorneyCaseloadRoute
@@ -550,6 +574,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
+  '/feedback': typeof AuthenticatedFeedbackRoute
   '/journal': typeof AuthenticatedJournalRoute
   '/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
@@ -592,6 +617,7 @@ export interface FileRoutesById {
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/org-feedback': typeof OrgFeedbackRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
@@ -601,6 +627,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/_attorney/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/_attorney/billing': typeof AttorneyBillingRoute
   '/_attorney/billing-return': typeof AttorneyBillingReturnRoute
   '/_attorney/caseload': typeof AttorneyCaseloadRoute
@@ -622,6 +649,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
+  '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
   '/_authenticated/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/_authenticated/live-recording': typeof AuthenticatedLiveRecordingRoute
@@ -663,6 +691,7 @@ export interface FileRouteTypes {
     | '/lawyer-signup'
     | '/login'
     | '/mcp'
+    | '/org-feedback'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
@@ -672,6 +701,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/attorney-feedback'
     | '/billing'
     | '/billing-return'
     | '/caseload'
@@ -693,6 +723,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/escalation-detector'
     | '/evidence'
+    | '/feedback'
     | '/journal'
     | '/legal-documents'
     | '/live-recording'
@@ -732,6 +763,7 @@ export interface FileRouteTypes {
     | '/lawyer-signup'
     | '/login'
     | '/mcp'
+    | '/org-feedback'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
@@ -741,6 +773,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/attorney-feedback'
     | '/billing'
     | '/billing-return'
     | '/caseload'
@@ -760,6 +793,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/escalation-detector'
     | '/evidence'
+    | '/feedback'
     | '/journal'
     | '/legal-documents'
     | '/live-recording'
@@ -801,6 +835,7 @@ export interface FileRouteTypes {
     | '/lawyer-signup'
     | '/login'
     | '/mcp'
+    | '/org-feedback'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
@@ -810,6 +845,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/_attorney/attorney-feedback'
     | '/_attorney/billing'
     | '/_attorney/billing-return'
     | '/_attorney/caseload'
@@ -831,6 +867,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/escalation-detector'
     | '/_authenticated/evidence'
+    | '/_authenticated/feedback'
     | '/_authenticated/journal'
     | '/_authenticated/legal-documents'
     | '/_authenticated/live-recording'
@@ -873,6 +910,7 @@ export interface RootRouteChildren {
   LawyerSignupRoute: typeof LawyerSignupRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
+  OrgFeedbackRoute: typeof OrgFeedbackRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
@@ -943,6 +981,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/org-feedback': {
+      id: '/org-feedback'
+      path: '/org-feedback'
+      fullPath: '/org-feedback'
+      preLoaderRoute: typeof OrgFeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -1155,6 +1200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJournalRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/feedback': {
+      id: '/_authenticated/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof AuthenticatedFeedbackRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/evidence': {
       id: '/_authenticated/evidence'
       path: '/evidence'
@@ -1302,6 +1354,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyBillingRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_attorney/attorney-feedback': {
+      id: '/_attorney/attorney-feedback'
+      path: '/attorney-feedback'
+      fullPath: '/attorney-feedback'
+      preLoaderRoute: typeof AttorneyAttorneyFeedbackRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -1397,6 +1456,7 @@ const AttorneyClientsRouteWithChildren = AttorneyClientsRoute._addFileChildren(
 )
 
 interface AttorneyRouteChildren {
+  AttorneyAttorneyFeedbackRoute: typeof AttorneyAttorneyFeedbackRoute
   AttorneyBillingRoute: typeof AttorneyBillingRoute
   AttorneyBillingReturnRoute: typeof AttorneyBillingReturnRoute
   AttorneyCaseloadRoute: typeof AttorneyCaseloadRoute
@@ -1407,6 +1467,7 @@ interface AttorneyRouteChildren {
 }
 
 const AttorneyRouteChildren: AttorneyRouteChildren = {
+  AttorneyAttorneyFeedbackRoute: AttorneyAttorneyFeedbackRoute,
   AttorneyBillingRoute: AttorneyBillingRoute,
   AttorneyBillingReturnRoute: AttorneyBillingReturnRoute,
   AttorneyCaseloadRoute: AttorneyCaseloadRoute,
@@ -1448,6 +1509,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEscalationDetectorRoute: typeof AuthenticatedEscalationDetectorRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
+  AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
   AuthenticatedLegalDocumentsRoute: typeof AuthenticatedLegalDocumentsRoute
   AuthenticatedLiveRecordingRoute: typeof AuthenticatedLiveRecordingRoute
@@ -1479,6 +1541,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEscalationDetectorRoute: AuthenticatedEscalationDetectorRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
+  AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
   AuthenticatedLegalDocumentsRoute: AuthenticatedLegalDocumentsRoute,
   AuthenticatedLiveRecordingRoute: AuthenticatedLiveRecordingRoute,
@@ -1511,6 +1574,7 @@ const rootRouteChildren: RootRouteChildren = {
   LawyerSignupRoute: LawyerSignupRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
+  OrgFeedbackRoute: OrgFeedbackRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProfessionalAccessRoute: ProfessionalAccessRoute,
