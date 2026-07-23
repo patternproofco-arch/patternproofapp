@@ -57,8 +57,8 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       supabase.from("court_dates").select("id", { count: "exact", head: true })
         .eq("user_id", userId).gte("hearing_at", nowIso).lte("hearing_at", in30),
       supabase.from("court_dates").select("id").eq("user_id", userId).limit(1).maybeSingle(),
-      supabase.from("incidents").select("updated_at").eq("user_id", userId).is("deleted_at", null)
-        .order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("incidents").select("created_at").eq("user_id", userId).is("deleted_at", null)
+        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("evidence").select("created_at").eq("user_id", userId).is("deleted_at", null)
         .order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("pattern_analyses").select("created_at").eq("user_id", userId)
@@ -92,7 +92,7 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     const push = (key: DashboardStats["last_activity"], v?: string | null) => {
       if (v) times.push({ key, t: new Date(v).getTime() });
     };
-    push("journal", (lastIncident.data as { updated_at?: string } | null)?.updated_at);
+    push("journal", (lastIncident.data as { created_at?: string } | null)?.created_at);
     push("evidence", (lastEvidence.data as { created_at?: string } | null)?.created_at);
     push("patterns", (lastPattern.data as { created_at?: string } | null)?.created_at);
     times.sort((a, b) => b.t - a.t);
