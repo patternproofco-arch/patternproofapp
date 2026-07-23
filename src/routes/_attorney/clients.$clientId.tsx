@@ -1866,12 +1866,12 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
   const highRisk = data.flags.filter((f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3).length;
 
   const moves: { label: string; why: string }[] = [];
-  if (highRisk > 0) moves.push({ label: "File for protective relief", why: `${highRisk} high-severity flag${highRisk === 1 ? "" : "s"} on record` });
-  if (data.gaps.some((g) => g.severity === "high")) moves.push({ label: "Send evidence request to client", why: "Critical gaps in case file" });
-  if (totalEv > 0 && reviewed < totalEv) moves.push({ label: `Finish reviewing ${totalEv - reviewed} evidence item${totalEv - reviewed === 1 ? "" : "s"}`, why: "Unreviewed items can't be assigned exhibit numbers" });
-  if (exhibits === 0 && useful > 0) moves.push({ label: "Assign exhibit numbers", why: `${useful} useful item${useful === 1 ? "" : "s"} ready for labeling` });
-  if (data.last_30_days >= 2) moves.push({ label: "Document recency in motion practice", why: `${data.last_30_days} incidents in last 30 days` });
-  if (moves.length === 0) moves.push({ label: "Case is ready for export", why: "All review steps complete" });
+  if (highRisk > 0) moves.push({ label: `${highRisk} high-severity flag${highRisk === 1 ? "" : "s"} on record`, why: "Review before next filing." });
+  if (data.gaps.some((g) => g.severity === "high")) moves.push({ label: "Unresolved high-severity gaps in the case file", why: "Consider requesting additional documentation from the client." });
+  if (totalEv > 0 && reviewed < totalEv) moves.push({ label: `${totalEv - reviewed} evidence item${totalEv - reviewed === 1 ? "" : "s"} not yet reviewed`, why: "Unreviewed items can't be assigned exhibit numbers." });
+  if (exhibits === 0 && useful > 0) moves.push({ label: `${useful} useful item${useful === 1 ? "" : "s"} without exhibit labels`, why: "Marked useful but not yet labeled for exhibits." });
+  if (data.last_30_days >= 2) moves.push({ label: `${data.last_30_days} incidents documented in the last 30 days`, why: "Recent activity on record." });
+  if (moves.length === 0) moves.push({ label: "All review steps complete", why: "No outstanding documentation items." });
 
   return (
     <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}>
