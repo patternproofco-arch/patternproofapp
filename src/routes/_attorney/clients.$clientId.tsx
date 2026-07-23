@@ -2593,7 +2593,7 @@ function MissingEvidenceChecklistSection({ clientId }: { clientId: string }) {
 
   const onToggle = async (it: ChecklistItem) => {
     setItems((prev) => prev.map((x) => x.id === it.id ? { ...x, is_resolved: !x.is_resolved } : x));
-    try { await toggleFn({ data: { id: it.id, resolved: !it.is_resolved } }); }
+    try { await toggleFn({ data: { id: it.id, clientId, resolved: !it.is_resolved } }); }
     catch { toast("Couldn't update item."); reload(); }
   };
 
