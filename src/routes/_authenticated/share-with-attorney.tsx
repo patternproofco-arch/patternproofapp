@@ -1,7 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback } from "react";
-import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check, MessageSquare, Send, X } from "lucide-react";
+import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check, MessageSquare, Send, X, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } from "@/lib/attorney-invitations.functions";
 import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts, setDepositionPrepConsent } from "@/lib/attorney-portal.functions";
@@ -98,6 +98,12 @@ function ShareWithAttorney() {
       <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
         Your attorney will only see what you choose to share. You can revoke access at any time.
       </p>
+
+      <div className="mt-4">
+        <Link to="/attorney-billing" className="btn-ghost inline-flex items-center gap-2 text-[12px]">
+          <Clock size={13} /> View attorney time logged on your case
+        </Link>
+      </div>
 
       {justCreated && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--safe)" }}>

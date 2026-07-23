@@ -11,10 +11,12 @@ import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/login")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    redirect: typeof s.redirect === "string" ? s.redirect : undefined,
-    ref: typeof s.ref === "string" ? s.ref : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>) => {
+    const out: { redirect?: string; ref?: string } = {};
+    if (typeof s.redirect === "string") out.redirect = s.redirect;
+    if (typeof s.ref === "string") out.ref = s.ref;
+    return out;
+  },
   head: () => ({
     meta: [
       { title: "Sign in — PatternProof" },

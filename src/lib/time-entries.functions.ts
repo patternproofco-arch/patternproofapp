@@ -135,3 +135,70 @@ export const deleteTimeEntry = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/**
+ * Survivor-side read-only view of billable/non-billable time logged by every
+ * attorney (and their collaborators) currently connected to her case.
+ * Scoped strictly to the caller's own client_user_id.
+ */
+export const listMyAttorneyBilling = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: links, error: linksErr } = await supabaseAdmin
+      .from("attorney_client_links")
+      .select("id,attorney_user_id,status,created_at")
+      .eq("client_user_id", context.userId)
+      .eq("status", "active");
+    if (linksErr) throw new Error(linksErr.message);
+    const linkList = links ?? [];
+    if (linkList.length === 0) {
+      return { attorneys: [] as Array<{
+        link_id: string;
+        primary_attorney: { user_id: string; full_name: string | null; firm_name: string | null; email: string | null } | null;
+        total_minutes: number;
+        billable_minutes: number;
+        non_billable_minutes: number;
+        entries: Array<{ id: string; entry_date: string; minutes: number; billable: boolean; description: string; author_name: string | null }>;
+      }> };
+    }
+    const linkIds = linkList.map((l) => l.id);
+    const [{ data: entries, error: entriesErr }, { data: profiles }] = await Promise.all([
+      supabaseAdmin
+        .from("time_entries")
+        .select("id,case_link_id,attorney_user_id,description,minutes,billable,entry_date,created_at")
+        .in("case_link_id", linkIds)
+        .order("entry_date", { ascending: false })
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("attorney_profiles")
+        .select("user_id,full_name,firm_name,email"),
+    ]);
+    if (entriesErr) throw new Error(entriesErr.message);
+    const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+    return {
+      attorneys: linkList.map((l) => {
+        const rows = (entries ?? []).filter((e) => e.case_link_id === l.id);
+        const total = rows.reduce((s, r) => s + (r.minutes ?? 0), 0);
+        const billable = rows.filter((r) => r.billable).reduce((s, r) => s + (r.minutes ?? 0), 0);
+        const primary = profileMap.get(l.attorney_user_id) ?? null;
+        return {
+          link_id: l.id,
+          primary_attorney: primary
+            ? { user_id: primary.user_id, full_name: primary.full_name, firm_name: primary.firm_name, email: primary.email }
+            : { user_id: l.attorney_user_id, full_name: null, firm_name: null, email: null },
+          total_minutes: total,
+          billable_minutes: billable,
+          non_billable_minutes: total - billable,
+          entries: rows.map((r) => ({
+            id: r.id,
+            entry_date: r.entry_date,
+            minutes: r.minutes,
+            billable: r.billable,
+            description: r.description,
+            author_name: profileMap.get(r.attorney_user_id)?.full_name ?? null,
+          })),
+        };
+      }),
+    };
+  });
