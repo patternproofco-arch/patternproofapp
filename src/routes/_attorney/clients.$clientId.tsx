@@ -253,7 +253,7 @@ async function generateWordDoc(args: {
 
   // Cover
   children.push(p("PatternProof", { size: 64, bold: true, color: NAVY, align: AlignmentType.CENTER, spacingAfter: 200 }));
-  children.push(p("COURT PACKET", { size: 64, bold: true, color: NAVY, align: AlignmentType.CENTER, spacingAfter: 600 }));
+  children.push(p("PROFESSIONAL-REVIEW PACKET", { size: 64, bold: true, color: NAVY, align: AlignmentType.CENTER, spacingAfter: 600 }));
   children.push(p(`Case Reference: ${caseId}`, { align: AlignmentType.CENTER, spacingAfter: 120 }));
   children.push(p(today, { align: AlignmentType.CENTER, spacingAfter: 600 }));
   children.push(p(
@@ -321,10 +321,6 @@ async function generateWordDoc(args: {
       (data.timeline ?? []).map((m: any) => [m.month, String(m.count), (m.avg_severity ?? 0).toFixed(1)]),
     ));
     children.push(p("", { spacingAfter: 120 }));
-    children.push(p(
-      "The frequency, breadth, and escalation pattern above is consistent with the coercive-control framework recognized in many jurisdictions. This analysis may be used to demonstrate systematic control rather than isolated incidents of conflict.",
-      { italic: true },
-    ));
   }
 
   // 4. Checklist
@@ -369,7 +365,7 @@ async function generateWordDoc(args: {
     ));
     children.push(p("", { spacingAfter: 120 }));
     children.push(p(
-      "Raw evidence files are included in the full court packet ZIP. This index provides a provenance & integrity reference for each file.",
+      "Raw evidence files are included in the full professional-review packet ZIP. This index provides a provenance & integrity reference for each file.",
       { italic: true },
     ));
   }
@@ -378,7 +374,7 @@ async function generateWordDoc(args: {
   if (certify) {
     children.push(h2("Attorney Certification"));
     const lines = [
-      "I, _________________________________, hereby certify that I have reviewed the materials contained in this court packet and that they accurately represent the documentation provided by my client.",
+      "I, _________________________________, hereby certify that I have reviewed the materials contained in this professional-review packet and that they accurately represent the documentation provided by my client.",
       "",
       "Bar Number: _____________________________",
       "",
@@ -397,14 +393,14 @@ async function generateWordDoc(args: {
   if (attorneyNotes) {
     children.push(h2("Attorney Notes"));
     children.push(p(
-      "Attorney notes are available in the full court packet ZIP download as 07_attorney_notes.md. They are excluded from this Word document to prevent accidental disclosure. Remove that file before filing or sharing the ZIP with opposing counsel.",
+      "Attorney notes are available in the full professional-review packet ZIP download as 07_attorney_notes.md. They are excluded from this Word document to prevent accidental disclosure. Remove that file before filing or sharing the ZIP with opposing counsel.",
       { italic: true },
     ));
   }
 
   const doc = new Document({
     creator: "PatternProof",
-    title: `Court Packet ${caseId}`,
+    title: `Professional-Review Packet ${caseId}`,
     styles: { default: { document: { run: { font: FONT, size: 20, color: BODY } } } },
     sections: [{
       properties: { page: { margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
@@ -416,7 +412,7 @@ async function generateWordDoc(args: {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `court-packet-${caseId}-${new Date().toISOString().slice(0, 10)}.docx`;
+  a.download = `professional-review-packet-${caseId}-${new Date().toISOString().slice(0, 10)}.docx`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -583,7 +579,7 @@ function CaseNotesCard({ clientId }: { clientId: string }) {
         disabled={!loaded}
         onChange={(e) => setNote(e.target.value)}
         onBlur={(e) => persist(e.target.value)}
-        placeholder="Theory of the case, contradictions to watch, strategy notes. Visible only to you. Included in court packet ZIP only when you toggle Attorney Notes on export."
+        placeholder="Theory of the case, contradictions to watch, strategy notes. Visible only to you. Included in the professional-review packet ZIP only when you toggle Attorney Notes on export."
         rows={6}
         style={{
           width: "100%", padding: 12, fontSize: 13, lineHeight: 1.6,
@@ -1132,13 +1128,6 @@ function Patterns({ data }: { data: CaseData }) {
           })}
         </div>
       </div>
-      <div className="att-card" style={{ background: "#EFF6FF", borderColor: "#BFDBFE" }}>
-        <div className="att-eyebrow" style={{ color: "#1E40AF" }}>Legal framing</div>
-        <p style={{ fontSize: 13, marginTop: 6, color: "#1E3A8A", lineHeight: 1.6 }}>
-          The frequency, breadth, and escalation pattern shown above is consistent with the coercive-control framework
-          recognized in many jurisdictions. Use this to argue systematic control rather than isolated conflict.
-        </p>
-      </div>
     </div>
   );
 }
@@ -1281,12 +1270,15 @@ function GapsTab({ data }: { data: CaseData }) {
   const closedGaps = sentIdx.size;
   const readinessPct = totalGaps === 0 ? 100 : Math.round(((totalGaps - (totalGaps - closedGaps)) / totalGaps) * 100);
   const readinessLabel = totalGaps === 0
-    ? "Professional-review"
-    : counts.high > 0 ? "Not trial-ready — close high-severity gaps first"
-    : counts.moderate > 0 ? "Filing-ready, trial work remains"
-    : "Polish — low-priority items only";
-  const readinessColor = totalGaps === 0 || (counts.high === 0 && counts.moderate === 0) ? "#10B981"
-    : counts.high === 0 ? "#F59E0B" : "#EF4444";
+    ? "No flagged gaps"
+    : closedGaps === totalGaps
+      ? "All flagged gaps addressed"
+      : `${closedGaps} of ${totalGaps} flagged gap${totalGaps === 1 ? "" : "s"} addressed`;
+  const readinessColor = totalGaps === 0 || closedGaps === totalGaps
+    ? "#10B981"
+    : closedGaps > 0
+      ? "#F59E0B"
+      : "#EF4444";
 
   const sendBucket = async (sev: "high" | "moderate" | "low") => {
     setBulkSending(sev);
@@ -1307,11 +1299,10 @@ function GapsTab({ data }: { data: CaseData }) {
       <div className="att-card" style={{ background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div className="att-eyebrow">Court-readiness</div>
+            <div className="att-eyebrow">Documentation completeness</div>
             <h2 style={{ fontSize: 22, marginTop: 4, color: readinessColor }}>{readinessLabel}</h2>
             <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
-              {closedGaps} of {totalGaps} gap{totalGaps === 1 ? "" : "s"} addressed this session.
-              Critical gaps below should be closed before filing.
+              {closedGaps} of {totalGaps} gap{totalGaps === 1 ? "" : "s"} addressed this session. Descriptive status only — not a legal readiness determination.
             </p>
           </div>
           <div style={{ minWidth: 220 }}>
@@ -1821,7 +1812,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         </label>
 
         <button className="att-btn-export" onClick={generate} disabled={downloading} style={{ marginTop: 18, width: "100%", padding: "12px 20px" }}>
-          <Download size={14} /> {downloading ? "Preparing packet…" : "Generate court packet (ZIP)"}
+          <Download size={14} /> {downloading ? "Preparing packet…" : "Generate professional-review packet (ZIP)"}
         </button>
       </div>
       <div className="att-card" style={{ background: "#F8FAFC" }}>
@@ -1911,7 +1902,7 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
       </div>
 
       <div className="att-card" style={{ background: "#F8FAFC" }}>
-        <SectionTitle icon={<Scale size={14} />}>Next legal moves</SectionTitle>
+        <SectionTitle icon={<Scale size={14} />}>Documentation status</SectionTitle>
         <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
           {moves.slice(0, 3).map((m, i) => (
             <li key={i} style={{ fontSize: 12.5 }}>
@@ -2053,7 +2044,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
         <div style={{ fontSize: 10, letterSpacing: 1.4, opacity: 0.75 }}>ATTORNEY INTAKE SUMMARY</div>
         <h2 style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', marginTop: 4, color: "#fff" }}>Case {caseId}</h2>
         <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
-          Auto-generated from survivor-uploaded evidence · Print or include in court packet
+          Auto-generated from survivor-uploaded evidence · Print or include in the professional-review packet
         </div>
         <button className="att-btn-secondary" onClick={() => window.print()} style={{ marginTop: 14, background: "#fff", color: "var(--att-navy)" }}>
           <Printer size={13} /> Print intake summary
