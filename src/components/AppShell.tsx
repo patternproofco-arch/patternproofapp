@@ -29,7 +29,7 @@ export function AppShell() {
       } catch { /* ignore */ }
       try { document.title = "Weather"; } catch { /* ignore */ }
       try { window.history.replaceState(null, "", "/"); } catch { /* ignore */ }
-      window.location.href = url;
+      window.location.replace(url);
     };
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
