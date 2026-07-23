@@ -440,7 +440,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
 
     // 00_cover.md
     zip.file("00_cover.md", [
-      `# Court Packet`,
+      `# Professional-Review Packet`,
       ``,
       `**Case:** ${caseLabel}`,
       `**Client ref:** ${caseShort}`,
@@ -637,12 +637,12 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       include_attorney_notes: !!data.includeAttorneyNotes,
       exhibit_count: exhibits.length,
       doc_request_count: docRequests.length,
-      generator: "PatternProof Attorney Court Packet v1",
+      generator: "PatternProof Attorney Professional-Review Packet v1",
     }, null, 2));
 
     const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
     const ts = exportedAt.replace(/[:.]/g, "-");
-    const objectPath = `${context.userId}/court-packet-${data.clientId}-${ts}.zip`;
+    const objectPath = `${context.userId}/professional-review-packet-${data.clientId}-${ts}.zip`;
     const up = await supabaseAdmin.storage.from("exports").upload(objectPath, zipBuf, {
       contentType: "application/zip",
       upsert: false,
@@ -654,7 +654,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       ok: true as const,
       url: signed.data.signedUrl,
       bytes: zipBuf.byteLength,
-      filename: `court-packet-${data.clientId.slice(0, 8)}-${ts}.zip`,
+      filename: `professional-review-packet-${data.clientId.slice(0, 8)}-${ts}.zip`,
     };
   });
 
