@@ -18,10 +18,24 @@ export const createInvitation = createServerFn({ method: "POST" })
       include_all_evidence: z.boolean().default(true),
       include_patterns: z.boolean().default(true),
       expires_days: z.number().int().min(1).max(365).default(30),
+      case_id: z.string().uuid().optional().nullable(),
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // If a case_id is supplied, verify it belongs to the survivor. Otherwise
+    // treat the invitation as "all cases" for backward compatibility.
+    let scopedCaseId: string | null = null;
+    if (data.case_id) {
+      const { data: c } = await supabaseAdmin
+        .from("cases")
+        .select("id")
+        .eq("id", data.case_id)
+        .eq("user_id", context.userId)
+        .maybeSingle();
+      if (!c) throw new Error("That case isn't on your account.");
+      scopedCaseId = c.id;
+    }
     const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
     const { data: row, error } = await supabaseAdmin
       .from("attorney_invitations")
@@ -37,6 +51,7 @@ export const createInvitation = createServerFn({ method: "POST" })
         include_all_evidence: data.include_all_evidence,
         include_patterns: data.include_patterns,
         expires_at: expires,
+        case_id: scopedCaseId,
       })
       .select("id,invite_token,expires_at")
       .single();
@@ -55,7 +70,7 @@ export const listMyInvitations = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     const { data: links } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id,attorney_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,deposition_prep_consent,deposition_prep_consent_at")
+      .select("id,attorney_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,deposition_prep_consent,deposition_prep_consent_at,case_id")
       .eq("client_user_id", context.userId)
       .order("created_at", { ascending: false });
     const attorneyIds = (links ?? []).map((l) => l.attorney_user_id);
@@ -63,8 +78,32 @@ export const listMyInvitations = createServerFn({ method: "GET" })
       ? await supabaseAdmin.from("attorney_profiles").select("user_id,full_name,firm_name,email").in("user_id", attorneyIds)
       : { data: [] as Array<{ user_id: string; full_name: string; firm_name: string | null; email: string }> };
     const profMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
-    const linksOut = (links ?? []).map((l) => ({ ...l, profile: profMap.get(l.attorney_user_id) ?? null }));
-    return { invitations: invitations ?? [], links: linksOut };
+    // Enrich with case labels so the UI can show "shared: <case name>" per link
+    // and per pending invitation. Missing case_id means "all cases" (legacy).
+    const caseIds = Array.from(new Set([
+      ...(links ?? []).map((l) => l.case_id).filter((v): v is string => !!v),
+      ...(invitations ?? []).map((i) => i.case_id).filter((v): v is string => !!v),
+    ]));
+    const { data: cases } = caseIds.length
+      ? await supabaseAdmin.from("cases").select("id,case_name,other_party").in("id", caseIds)
+      : { data: [] as Array<{ id: string; case_name: string | null; other_party: string | null }> };
+    const caseMap = new Map((cases ?? []).map((c) => [c.id, c]));
+    const labelFor = (id: string | null) => {
+      if (!id) return null;
+      const c = caseMap.get(id);
+      if (!c) return null;
+      return (c.case_name?.trim() || c.other_party?.trim() || "Case") as string;
+    };
+    const linksOut = (links ?? []).map((l) => ({
+      ...l,
+      profile: profMap.get(l.attorney_user_id) ?? null,
+      case_label: labelFor(l.case_id),
+    }));
+    const invitationsOut = (invitations ?? []).map((i) => ({
+      ...i,
+      case_label: labelFor(i.case_id),
+    }));
+    return { invitations: invitationsOut, links: linksOut };
   });
 
 export const revokeInvitation = createServerFn({ method: "POST" })
@@ -103,13 +142,22 @@ export const peekInvitation = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: inv } = await supabaseAdmin
       .from("attorney_invitations")
-      .select("id,attorney_email,attorney_name,status,expires_at,include_all_incidents,include_all_evidence,include_patterns")
+      .select("id,attorney_email,attorney_name,status,expires_at,include_all_incidents,include_all_evidence,include_patterns,case_id")
       .eq("invite_token", data.token)
       .maybeSingle();
     if (!inv) return { status: "not-found" as const };
     if (inv.status !== "pending") return { status: inv.status as "accepted" | "revoked" };
     if (inv.expires_at && new Date(inv.expires_at) < new Date()) return { status: "expired" as const };
-    return { status: "ok" as const, invitation: inv };
+    let case_label: string | null = null;
+    if (inv.case_id) {
+      const { data: c } = await supabaseAdmin
+        .from("cases")
+        .select("case_name,other_party")
+        .eq("id", inv.case_id)
+        .maybeSingle();
+      if (c) case_label = (c.case_name?.trim() || c.other_party?.trim() || "Case") as string;
+    }
+    return { status: "ok" as const, invitation: { ...inv, case_label } };
   });
 
 export const acceptInvitation = createServerFn({ method: "POST" })
@@ -150,6 +198,7 @@ export const acceptInvitation = createServerFn({ method: "POST" })
         include_all_incidents: inv.include_all_incidents,
         include_all_evidence: inv.include_all_evidence,
         include_patterns: inv.include_patterns,
+        case_id: inv.case_id ?? null,
         status: "active",
       })
       .select("id,client_user_id")

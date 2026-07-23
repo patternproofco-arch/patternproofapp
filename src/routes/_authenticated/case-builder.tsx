@@ -32,6 +32,7 @@ interface EvRow { id: string; title: string; date: string; file_type: string }
 interface LegalRow { id: string; document_type: string; title: string; effective_date: string | null; case_number: string | null }
 interface CaseRow {
   id: string;
+  case_name: string | null;
   other_party: string | null;
   relationship_type: string | null;
   case_types: string[];
@@ -40,13 +41,21 @@ interface CaseRow {
   highlighted_incident_ids: string[];
   attached_evidence_ids: string[];
   legal_document_ids: string[];
+  updated_at?: string;
+}
+
+function caseLabel(c: Pick<CaseRow, "case_name" | "other_party">, fallback = "Untitled case") {
+  return (c.case_name?.trim() || c.other_party?.trim() || fallback);
 }
 
 function CaseBuilder() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [cases, setCases] = useState<CaseRow[]>([]);
   const [caseId, setCaseId] = useState<string | null>(null);
+  const [caseName, setCaseName] = useState("");
+  const [savedCaseName, setSavedCaseName] = useState("");
   const [other, setOther] = useState("");
   const [savedOther, setSavedOther] = useState("");
   const [hasExistingCase, setHasExistingCase] = useState(false);
@@ -61,65 +70,109 @@ function CaseBuilder() {
   const [evidence, setEvidence] = useState<EvRow[]>([]);
   const [legalDocs, setLegalDocs] = useState<LegalRow[]>([]);
 
+  const hydrateFromRow = useCallback((row: CaseRow) => {
+    setCaseId(row.id);
+    setCaseName(row.case_name ?? "");
+    setSavedCaseName(row.case_name ?? "");
+    setOther(row.other_party ?? "");
+    setSavedOther(row.other_party ?? "");
+    setHasExistingCase(Boolean(
+      (row.other_party && row.other_party.trim()) ||
+      (row.case_name && row.case_name.trim()) ||
+      (row.relationship_type && row.relationship_type.trim()) ||
+      (row.case_types && row.case_types.length > 0) ||
+      (row.pattern_summary && row.pattern_summary.trim()) ||
+      (row.highlighted_incident_ids && row.highlighted_incident_ids.length > 0) ||
+      (row.attached_evidence_ids && row.attached_evidence_ids.length > 0),
+    ));
+    setRel(row.relationship_type ?? "");
+    setTypes(row.case_types ?? []);
+    setJurisdiction(row.jurisdiction ?? "");
+    setSummary(row.pattern_summary ?? "");
+    setHighlighted(row.highlighted_incident_ids ?? []);
+    setAttached(row.attached_evidence_ids ?? []);
+    setLegalAttached(row.legal_document_ids ?? []);
+  }, []);
+
+  const resetForNewCase = useCallback(() => {
+    setCaseId(null);
+    setCaseName("");
+    setSavedCaseName("");
+    setOther("");
+    setSavedOther("");
+    setHasExistingCase(false);
+    setRel("");
+    setTypes([]);
+    setJurisdiction("");
+    setSummary("");
+    setHighlighted([]);
+    setAttached([]);
+    setLegalAttached([]);
+    setStep(1);
+  }, []);
+
   const loadCase = useCallback(async () => {
     if (!user) return;
     const [c, inc, ev, ld] = await Promise.all([
-      supabase.from("cases").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1),
-     supabase.from("incidents").select("id,date,description,abuse_types,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false, nullsFirst: false }),
+      supabase.from("cases").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
+      supabase.from("incidents").select("id,date,description,abuse_types,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false, nullsFirst: false }),
       supabase.from("evidence").select("id,title,date,file_type").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("legal_documents").select("id,document_type,title,effective_date,case_number").eq("user_id", user.id).order("created_at", { ascending: false }),
     ]);
     setIncidents((inc.data as IncRow[] | null) ?? []);
     setEvidence((ev.data as EvRow[] | null) ?? []);
     setLegalDocs((ld.data as LegalRow[] | null) ?? []);
-    const row = (c.data?.[0] as CaseRow | undefined);
-    if (row) {
-      setCaseId(row.id);
-      setOther(row.other_party ?? "");
-      setSavedOther(row.other_party ?? "");
-      // "Existing" = the saved case has meaningful data, not just an empty stub.
-      setHasExistingCase(Boolean(
-        (row.other_party && row.other_party.trim()) ||
-        (row.relationship_type && row.relationship_type.trim()) ||
-        (row.case_types && row.case_types.length > 0) ||
-        (row.pattern_summary && row.pattern_summary.trim()) ||
-        (row.highlighted_incident_ids && row.highlighted_incident_ids.length > 0) ||
-        (row.attached_evidence_ids && row.attached_evidence_ids.length > 0),
-      ));
-      setRel(row.relationship_type ?? "");
-      setTypes(row.case_types ?? []);
-      setJurisdiction(row.jurisdiction ?? "");
-      setSummary(row.pattern_summary ?? "");
-      setHighlighted(row.highlighted_incident_ids ?? []);
-      setAttached(row.attached_evidence_ids ?? []);
-      setLegalAttached(row.legal_document_ids ?? []);
-    }
-  }, [user]);
+    const list = (c.data as CaseRow[] | null) ?? [];
+    setCases(list);
+    // Prefer currently-selected case, otherwise the most-recently-updated one.
+    const current = caseId ? list.find((r) => r.id === caseId) : list[0];
+    if (current) hydrateFromRow(current);
+  }, [user, caseId, hydrateFromRow]);
 
   useEffect(() => { loadCase(); }, [loadCase]);
 
+  const switchCase = (id: string) => {
+    const row = cases.find((c) => c.id === id);
+    if (row) {
+      hydrateFromRow(row);
+      setStep(1);
+    }
+  };
+
+  const startNewCase = async () => {
+    if (!user) return;
+    // Soft-confirm: only when the current case has meaningful data unsaved
+    // context would be preserved anyway (auto-save runs first).
+    resetForNewCase();
+    toast("Fresh case started. Fill it in on the right.");
+  };
+
   const persist = useCallback(async () => {
     if (!user) return;
-    // Guard against silently overwriting an existing case file when the
-    // survivor is (probably) trying to document a different situation.
+    // Lighter soft-check: only warn if the user is renaming the *other party*
+    // (a material identity change) on a case that already has incidents /
+    // evidence attached. Multiple cases are now supported via the switcher, so
+    // if the survivor wanted a new case she would have used "Start a new case".
+    const hasAttachments = highlighted.length > 0 || attached.length > 0;
     if (
       caseId &&
       hasExistingCase &&
+      hasAttachments &&
       isMaterialOtherPartyChange(savedOther, other)
     ) {
       const ok = window.confirm(
-        `This will update your existing case file for ${savedOther}. ` +
-        `If you're documenting a different situation, this isn't the way to do it yet — ` +
-        `multiple cases aren't supported. Continuing will overwrite what's here.`,
+        `This case already has incidents and evidence attached under "${savedOther}". ` +
+        `Change the other party to "${other}"? If this is actually a different situation, ` +
+        `cancel and click "Start a new case" instead.`,
       );
       if (!ok) {
-        // Revert the field so nothing else in this save cycle uses the new value.
         setOther(savedOther);
         return;
       }
     }
     const payload = {
       user_id: user.id,
+      case_name: caseName || null,
       other_party: other || null,
       relationship_type: rel || null,
       case_types: types,
@@ -132,15 +185,17 @@ function CaseBuilder() {
     if (caseId) {
       await supabase.from("cases").update(payload).eq("id", caseId).eq("user_id", user.id);
       setSavedOther(other);
+      setSavedCaseName(caseName);
     } else {
       const { data } = await supabase.from("cases").insert(payload).select("id").single();
       if (data?.id) {
         setCaseId(data.id);
         setSavedOther(other);
-        setHasExistingCase(Boolean(other || rel || types.length || summary));
+        setSavedCaseName(caseName);
+        setHasExistingCase(Boolean(other || caseName || rel || types.length || summary));
       }
     }
-  }, [user, caseId, hasExistingCase, savedOther, other, rel, types, jurisdiction, summary, highlighted, attached, legalAttached]);
+  }, [user, caseId, hasExistingCase, savedOther, other, caseName, rel, types, jurisdiction, summary, highlighted, attached, legalAttached]);
 
   // auto-save when step changes
   useEffect(() => { const t = setTimeout(persist, 500); return () => clearTimeout(t); }, [persist, step]);
@@ -165,12 +220,32 @@ function CaseBuilder() {
       <div className="label-eyebrow">Case builder</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">Shape your case, <em>step by step.</em></h1>
 
+      {/* Case switcher */}
       <div
-        className="mt-4 rounded-xl p-3 text-[13px]"
+        className="mt-4 flex flex-wrap items-center gap-2 rounded-xl p-3 text-[13px]"
         style={{ background: "var(--input)", borderLeft: "3px solid var(--accent)" }}
       >
-        PatternProof currently supports one case file per account. If you need to
-        document a separate legal matter, let us know.
+        <span className="label-eyebrow">Working on</span>
+        {cases.length > 0 ? (
+          <select
+            className="input-pp"
+            value={caseId ?? ""}
+            onChange={(e) => {
+              if (e.target.value) switchCase(e.target.value);
+            }}
+            style={{ maxWidth: 320 }}
+          >
+            {!caseId && <option value="">— New (unsaved) case —</option>}
+            {cases.map((c) => (
+              <option key={c.id} value={c.id}>{caseLabel(c)}</option>
+            ))}
+          </select>
+        ) : (
+          <span style={{ color: "var(--muted-foreground)" }}>No cases yet — you're starting your first one.</span>
+        )}
+        <button type="button" onClick={startNewCase} className="btn-ghost">
+          + Start a new case
+        </button>
       </div>
 
       {/* Progress */}
@@ -189,6 +264,10 @@ function CaseBuilder() {
           <>
             <h2 className="font-serif text-[20px]">Case overview</h2>
             <div className="grid gap-3 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <label className="label-eyebrow">Case name <span style={{ color: "var(--muted-foreground)" }}>(for you, so you can tell your cases apart)</span></label>
+                <input className="input-pp mt-1" value={caseName} onChange={(e) => setCaseName(e.target.value)} placeholder="e.g. Custody – 2024, Divorce case, Protective order" />
+              </div>
               <div>
                 <label className="label-eyebrow">Other party (name or initials)</label>
                 <input className="input-pp mt-1" value={other} onChange={(e) => setOther(e.target.value)} />

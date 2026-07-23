@@ -7,6 +7,8 @@ import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } fro
 import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts, setDepositionPrepConsent } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_authenticated/share-with-attorney")({
   component: ShareWithAttorney,
@@ -16,6 +18,7 @@ type Listing = Awaited<ReturnType<typeof listMyInvitations>>;
 
 function ShareWithAttorney() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const sub = useSubscription();
   const { confirm, dialog } = useConfirm();
   useEffect(() => {
@@ -45,6 +48,14 @@ function ShareWithAttorney() {
   const [days, setDays] = useState(30);
   const [busy, setBusy] = useState(false);
   const [justCreated, setJustCreated] = useState<{ url: string; email: string } | null>(null);
+  const [cases, setCases] = useState<Array<{ id: string; case_name: string | null; other_party: string | null }>>([]);
+  const [caseId, setCaseId] = useState<string>(""); // "" = all cases (legacy)
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("cases").select("id,case_name,other_party").eq("user_id", user.id).order("updated_at", { ascending: false })
+      .then(({ data }) => setCases((data ?? []) as typeof cases));
+  }, [user]);
 
   const unreadFn = useServerFn(getMyUnreadCounts);
   const load = useCallback(() => {
@@ -74,6 +85,7 @@ function ShareWithAttorney() {
         include_all_evidence: incEvidence,
         include_patterns: incPatterns,
         expires_days: days,
+        case_id: caseId || null,
       } });
       const url = `${window.location.origin}/accept-invite/${r.invitation.invite_token}`;
       setJustCreated({ url, email: email.trim() });
@@ -129,6 +141,17 @@ function ShareWithAttorney() {
         ) : (
           <div className="card-pp space-y-4">
             <div className="grid gap-3 md:grid-cols-2">
+              {cases.length > 0 && (
+                <div className="md:col-span-2">
+                  <label className="label-eyebrow">Which case are you sharing?</label>
+                  <select className="input-pp mt-1" value={caseId} onChange={(e) => setCaseId(e.target.value)}>
+                    <option value="">All cases on my account</option>
+                    {cases.map((c) => (
+                      <option key={c.id} value={c.id}>{(c.case_name?.trim() || c.other_party?.trim() || "Untitled case")}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="label-eyebrow">Attorney email</label>
                 <input className="input-pp mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
