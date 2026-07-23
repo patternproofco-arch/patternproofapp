@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Check, TrendingUp, Users, Activity, Heart, Award, BarChart3 } from "lucide-react";
+import { ArrowRight, Check, Users, Heart } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { OrgCapacityCalculator } from "./OrgCapacityCalculator";
 
@@ -12,14 +12,6 @@ const BENEFITS = [
   "Increased organizational capacity",
 ];
 
-const GRANT_METRICS = [
-  { icon: <Users size={20} />, label: "Survivors served", desc: "Track active and cumulative reach." },
-  { icon: <Check size={20} />, label: "Documentation completed", desc: "Measure case-readiness output." },
-  { icon: <ArrowRight size={20} />, label: "Referrals made", desc: "Quantify legal and community handoffs." },
-  { icon: <Activity size={20} />, label: "Advocate hours recovered", desc: "Operational time saved per quarter." },
-  { icon: <Award size={20} />, label: "Program outcomes", desc: "Outcome-aligned reporting for funders." },
-  { icon: <Heart size={20} />, label: "Community impact", desc: "Aggregate impact across cohorts." },
-];
 
 export function OrgSection() {
   return (
@@ -73,7 +65,7 @@ export function OrgSection() {
             marginBottom: 28,
           }}
         >
-          Survivors document before intake. Advocates see the pattern faster.
+          Refer survivors to PatternProof and they get free, full access to document in their own private account. No cost to your organization. No software to manage.
         </p>
 
         {/* DocuSafe replacement callout */}
@@ -101,7 +93,7 @@ export function OrgSection() {
             DocuSafe replacement
           </div>
           <p style={{ fontSize: 15, lineHeight: 1.65, color: "#2C3826", marginBottom: 12, fontWeight: 500 }}>
-            DocuSafe closed in October 2023 when DOJ funding ended. The tool that hundreds of DV organizations relied on to help survivors document evidence is gone.
+            DocuSafe closed in October 2023 when funding through the DOJ's Office for Victims of Crime ended. The tool that hundreds of DV organizations relied on to help survivors document evidence is gone.
           </p>
           <p style={{ fontSize: 15, lineHeight: 1.65, color: "#2C3826", marginBottom: 12, fontWeight: 600 }}>
             Pattern Proof is what comes next.
@@ -110,7 +102,7 @@ export function OrgSection() {
             Everything DocuSafe did — incident logging, timeline building, evidence organization — plus AI-powered pattern detection, mobile-first design, and professional-review export. No grant dependency. No sunset date.
           </p>
           <p style={{ fontSize: 14, lineHeight: 1.6, color: "#36422F", marginTop: 8, fontWeight: 600 }}>
-            If your organization used DocuSafe, this is your replacement. Free for every survivor you serve.
+            If your organization used DocuSafe, this is your replacement. Free full access for every survivor you refer.
           </p>
         </div>
 
@@ -137,7 +129,7 @@ export function OrgSection() {
           ))}
         </div>
 
-        {/* Grant section */}
+        {/* Partnership model */}
         <div
           style={{
             padding: "clamp(32px, 4vw, 56px)",
@@ -149,18 +141,23 @@ export function OrgSection() {
           }}
         >
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 999, background: "rgba(122,155,110,0.15)", color: "#3E5A33", fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 16 }}>
-            <BarChart3 size={12} /> Grant-funded programs
+            <Heart size={12} /> Partnership, not a product
           </div>
           <h3 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.02em", color: "#1F2D1A", marginBottom: 16 }}>
-            Built for grant-funded programs.
+            Free full access for every survivor you refer.
           </h3>
           <p style={{ fontSize: 17, lineHeight: 1.6, color: "#36422F", maxWidth: 680, marginBottom: 36 }}>
-            PatternProof helps organizations demonstrate measurable outcomes to funders and stakeholders.
+            There is no cost to your organization, no software to manage, and no advocate dashboard to learn. Survivors sign up through your referral link, document in their own private account, and you continue the work you already do.
           </p>
-          <div className="org-metrics-grid">
-            {GRANT_METRICS.map((m) => (
+          <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
+            {[
+              { icon: <Check size={20} />, title: "No cost to your org", desc: "Full access for every survivor you refer, forever free." },
+              { icon: <Users size={20} />, title: "Survivors stay in control", desc: "Their records live in their own account, private and portable." },
+              { icon: <ArrowRight size={20} />, title: "A simple referral link", desc: "We track attribution so you can see your impact." },
+              { icon: <Heart size={20} />, title: "We handle the rest", desc: "Support, onboarding, and security are on us." },
+            ].map((m) => (
               <div
-                key={m.label}
+                key={m.title}
                 style={{
                   padding: 22,
                   borderRadius: 16,
@@ -178,7 +175,7 @@ export function OrgSection() {
                 >
                   {m.icon}
                 </div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#1F2D1A", marginBottom: 6 }}>{m.label}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#1F2D1A", marginBottom: 6 }}>{m.title}</div>
                 <div style={{ fontSize: 14, color: "#36422F", lineHeight: 1.5 }}>{m.desc}</div>
               </div>
             ))}
@@ -202,13 +199,13 @@ export function OrgSection() {
           }}
         >
           <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#C5DBB0", fontWeight: 700, marginBottom: 12 }}>
-            Invite-only
+            Partner with us
           </div>
           <h3 style={{ fontSize: "clamp(1.4rem, 2.6vw, 2rem)", fontWeight: 800, color: "#FFFFFF", marginBottom: 16, letterSpacing: "-0.015em" }}>
-            Org access is invite-only.
+            Become a PatternProof partner organization.
           </h3>
           <p style={{ fontSize: 16, color: "rgba(232,240,222,0.85)", maxWidth: 480, margin: "0 auto 24px" }}>
-            We partner with a small number of DV organizations each quarter.
+            We onboard a small number of DV organizations each quarter so we can support you well.
           </p>
           <Link
             to="/request-org-access"
@@ -225,13 +222,10 @@ export function OrgSection() {
               textDecoration: "none",
             }}
           >
-            Request org access <ArrowRight size={16} />
+            Partner with us <ArrowRight size={16} />
           </Link>
         </div>
       </div>
     </section>
   );
 }
-
-// Compatibility — unused but keep export name TrendingUp import optional
-void TrendingUp;

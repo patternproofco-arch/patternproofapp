@@ -132,8 +132,8 @@ export function Hero() {
             active={active === "attorney"}
             tone="attorney"
             eyebrow="Attorney Portal"
-            title="Recover hours before the case begins."
-            desc="Transform disorganized evidence into structured case intelligence and attorney-ready summaries."
+            title="Your client documents. You get a source-linked chronology."
+            desc="Stop paying staff to rebuild timelines from evidence your client already captured."
             cta="See how it works"
           />
           <AudienceCard
