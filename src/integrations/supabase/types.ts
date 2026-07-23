@@ -1642,6 +1642,30 @@ export type Database = {
           },
         ]
       }
+      referral_links: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          notes: string | null
+          org_name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_name?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -1823,20 +1847,23 @@ export type Database = {
       user_referrals: {
         Row: {
           created_at: string
-          org_slug: string
-          referred_by_org_name: string
+          org_slug: string | null
+          referred_by_code: string | null
+          referred_by_org_name: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
-          org_slug: string
-          referred_by_org_name: string
+          org_slug?: string | null
+          referred_by_code?: string | null
+          referred_by_org_name?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
-          org_slug?: string
-          referred_by_org_name?: string
+          org_slug?: string | null
+          referred_by_code?: string | null
+          referred_by_org_name?: string | null
           user_id?: string
         }
         Relationships: []
