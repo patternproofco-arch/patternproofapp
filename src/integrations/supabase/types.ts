@@ -1098,8 +1098,11 @@ export type Database = {
           linked_incident_id: string | null
           linked_recording_id: string | null
           mime: string | null
+          near_duplicate_of: string | null
+          near_duplicate_status: string | null
           original_filename: string | null
           parent_evidence_id: string | null
+          perceptual_hash: string | null
           preservation_status: string | null
           preserved_at: string | null
           raw_metadata: Json | null
@@ -1123,8 +1126,11 @@ export type Database = {
           linked_incident_id?: string | null
           linked_recording_id?: string | null
           mime?: string | null
+          near_duplicate_of?: string | null
+          near_duplicate_status?: string | null
           original_filename?: string | null
           parent_evidence_id?: string | null
+          perceptual_hash?: string | null
           preservation_status?: string | null
           preserved_at?: string | null
           raw_metadata?: Json | null
@@ -1148,8 +1154,11 @@ export type Database = {
           linked_incident_id?: string | null
           linked_recording_id?: string | null
           mime?: string | null
+          near_duplicate_of?: string | null
+          near_duplicate_status?: string | null
           original_filename?: string | null
           parent_evidence_id?: string | null
+          perceptual_hash?: string | null
           preservation_status?: string | null
           preserved_at?: string | null
           raw_metadata?: Json | null
@@ -1170,6 +1179,13 @@ export type Database = {
             columns: ["linked_recording_id"]
             isOneToOne: false
             referencedRelation: "recordings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_near_duplicate_of_fkey"
+            columns: ["near_duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "evidence"
             referencedColumns: ["id"]
           },
           {
