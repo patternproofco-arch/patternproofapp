@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 
-export const Route = createFileRoute("/_attorney/feedback")({
+export const Route = createFileRoute("/_attorney/attorney-feedback")({
   head: () => ({
     meta: [
       { title: "Attorney feedback — PatternProof" },
