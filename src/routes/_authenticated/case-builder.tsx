@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { formatIncidentDate } from "@/lib/dates";
 import { isMaterialOtherPartyChange } from "@/lib/name-match";
+import { generateCourtPacketPdf } from "@/lib/court-packet.functions";
 
 export const Route = createFileRoute("/_authenticated/case-builder")({
   component: CaseBuilder,
@@ -51,6 +53,8 @@ function caseLabel(c: Pick<CaseRow, "case_name" | "other_party">, fallback = "Un
 function CaseBuilder() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const genPdf = useServerFn(generateCourtPacketPdf);
+  const [pdfBusy, setPdfBusy] = useState(false);
   const [step, setStep] = useState(1);
   const [cases, setCases] = useState<CaseRow[]>([]);
   const [caseId, setCaseId] = useState<string | null>(null);
@@ -210,6 +214,27 @@ function CaseBuilder() {
     await persist();
     toast("Your case is ready to view.");
     navigate({ to: "/court-packet" });
+  };
+
+  const downloadCourtPacket = async () => {
+    await persist();
+    if (!caseId) { toast("Save the case first — try Next."); return; }
+    setPdfBusy(true);
+    try {
+      const { base64, filename } = await genPdf({ data: { case_id: caseId } });
+      const bin = atob(base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      toast("We couldn't build the packet. Try again in a moment.");
+    } finally {
+      setPdfBusy(false);
+    }
   };
 
   const toggle = (list: string[], v: string, set: (x: string[]) => void) =>
@@ -401,9 +426,16 @@ function CaseBuilder() {
 
       <div className="mt-6 flex items-center justify-between">
         <button disabled={step === 1} onClick={() => setStep((s) => Math.max(1, s - 1))} className="btn-ghost">Back</button>
-        {step < 4
-          ? <button onClick={() => setStep((s) => Math.min(4, s + 1))} className="btn-primary">Next</button>
-          : <button onClick={finish} className="btn-primary">Build Professional-Review Packet</button>}
+        {step < 4 ? (
+          <button onClick={() => setStep((s) => Math.min(4, s + 1))} className="btn-primary">Next</button>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={downloadCourtPacket} disabled={pdfBusy} className="btn-ghost">
+              {pdfBusy ? "Generating…" : "Generate court packet (PDF)"}
+            </button>
+            <button onClick={finish} className="btn-primary">Build Professional-Review Packet</button>
+          </div>
+        )}
       </div>
     </div>
   );

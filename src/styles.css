@@ -749,3 +749,141 @@ textarea.input-pp { min-height: 130px; resize: vertical; line-height: 1.95; font
 [data-density="survivor"] button {
   font-size: max(0.875em, 12px);
 }
+
+/* =============================================================
+   Redaction / Exhibit vernacular  (replaces facet/gem motif)
+   Additive utilities used across timeline, case builder,
+   incident/exhibit cards, court-packet preview, etc.
+   ============================================================= */
+:root {
+  --pp-ink:        #14131F;
+  --pp-paper:      #F7F5F0;
+  --pp-thread:     #5B4CD6;       /* iridescent survivor accent */
+  --pp-navy:       #152038;       /* attorney */
+  --pp-navy-ink:   #F4F6FB;
+  --pp-sage:       #2E4A38;       /* org */
+  --pp-clay:       #C5674A;       /* org accent */
+}
+
+.exhibit-card {
+  position: relative;
+  background: var(--pp-paper);
+  color: var(--pp-ink);
+  border: 1px solid rgba(20,19,31,0.14);
+  padding: 22px 24px 22px 24px;
+  /* Clip one corner (top-right) — legal exhibit tag silhouette */
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
+  box-shadow: none;
+  border-radius: 0;
+}
+.exhibit-card + .exhibit-card { margin-top: 14px; }
+
+.exhibit-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pp-ink);
+  background: transparent;
+  border: 1px solid rgba(20,19,31,0.35);
+  padding: 3px 8px;
+  border-radius: 0;
+}
+.exhibit-tag--muted { color: rgba(20,19,31,0.55); border-color: rgba(20,19,31,0.20); }
+
+.mono-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--pp-ink);
+}
+.mono-meta--muted { color: rgba(20,19,31,0.55); }
+
+/* --- Redaction bar (unknown date) --- */
+.redaction-bar {
+  display: inline-block;
+  min-width: 110px;
+  height: 14px;
+  background: #14131F;
+  vertical-align: middle;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  margin: 0 2px;
+}
+.redaction-bar:hover { background: #2a2740; }
+.redaction-bar[aria-label]::after { content: ""; }
+
+/* --- Approximate date "peeled reveal" --- */
+.redaction-approx {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 10px 2px 8px;
+  background: #F1EEE4;
+  color: var(--pp-ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  border-left: 3px solid var(--pp-ink);
+  /* Torn/peeled right edge */
+  clip-path: polygon(
+    0 0, 100% 0, 96% 20%, 100% 40%, 95% 60%, 100% 80%, 97% 100%, 0 100%
+  );
+}
+.redaction-approx small {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: rgba(20,19,31,0.55);
+  font-style: italic;
+}
+
+/* --- Confirmed date: plain printed mono --- */
+.redaction-confirmed {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--pp-ink);
+}
+
+/* --- Highlight: iridescent thread underline (user-applied only) --- */
+.highlight-thread {
+  background-image: linear-gradient(90deg,
+    rgba(91,76,214,0.00) 0%,
+    rgba(91,76,214,0.35) 20%,
+    rgba(150,120,232,0.35) 55%,
+    rgba(91,76,214,0.35) 85%,
+    rgba(91,76,214,0.00) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 8px;
+  background-position: 0 88%;
+  padding-bottom: 2px;
+}
+
+/* --- Cross-reference connector line --- */
+.xref-connector {
+  border-left: 2px solid var(--pp-ink);
+  margin-left: 10px;
+  padding: 6px 0 6px 14px;
+  position: relative;
+}
+.xref-connector::before {
+  content: "";
+  position: absolute;
+  left: -6px; top: 50%;
+  width: 10px; height: 10px;
+  background: var(--pp-ink);
+  transform: translateY(-50%) rotate(45deg);
+}
+.xref-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(20,19,31,0.75);
+  padding: 2px 6px;
+  border: 1px solid rgba(20,19,31,0.35);
+  display: inline-block;
+  margin-right: 6px;
+}

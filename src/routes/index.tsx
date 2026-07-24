@@ -1,12 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { Hero } from "@/components/landing/Hero";
-import { SurvivorSection } from "@/components/landing/SurvivorSection";
-import { AttorneySection } from "@/components/landing/AttorneySection";
-import { OrgSection } from "@/components/landing/OrgSection";
-import { SocialProofSection } from "@/components/landing/SocialProofSection";
-import { FinalCTA } from "@/components/landing/FinalCTA";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -60,13 +55,182 @@ function Index() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <Hero />
-      <SurvivorSection />
-      <AttorneySection />
-      <OrgSection />
-      <SocialProofSection />
-      <FinalCTA />
+    <div
+      className="min-h-screen"
+      style={{ background: "#F7F5F0", color: "#14131F" }}
+    >
+      <section
+        style={{
+          maxWidth: 780,
+          margin: "0 auto",
+          padding: "clamp(64px,10vw,120px) 24px 40px",
+        }}
+      >
+        <div
+          className="mono-meta mono-meta--muted"
+          style={{ marginBottom: 28, textTransform: "uppercase" }}
+        >
+          PatternProof · Private documentation
+        </div>
+
+        <h1
+          style={{
+            fontFamily: "'Newsreader', Georgia, serif",
+            fontWeight: 300,
+            fontSize: "clamp(2.4rem, 5.6vw, 4.2rem)",
+            lineHeight: 1.05,
+            letterSpacing: "-0.02em",
+            color: "#14131F",
+            margin: 0,
+          }}
+        >
+          Write it down while you remember.
+          <br />
+          <em style={{ color: "#14131F" }}>
+            <span className="highlight-thread">Keep it in one place.</span>
+          </em>
+        </h1>
+
+        <p
+          style={{
+            marginTop: 28,
+            fontSize: 18,
+            lineHeight: 1.6,
+            color: "#3A3849",
+            fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+            maxWidth: 640,
+          }}
+        >
+          A quiet, private space to record what happened — with the pacing you need,
+          on infrastructure only you can see.
+        </p>
+
+        <div style={{ marginTop: 40 }}>
+          <Link
+            to="/login"
+            search={{}}
+            style={{
+              display: "inline-block",
+              background: "#14131F",
+              color: "#F7F5F0",
+              padding: "14px 26px",
+              fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+              fontSize: 13,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              borderRadius: 0,
+              textDecoration: "none",
+            }}
+          >
+            Start documenting →
+          </Link>
+        </div>
+
+        <div
+          style={{
+            marginTop: 22,
+            fontSize: 13,
+            fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+            color: "#3A3849",
+          }}
+        >
+          Also here for a case?{" "}
+          <Link
+            to="/for-attorneys"
+            style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3 }}
+          >
+            I'm an attorney
+          </Link>
+          {" · "}
+          <Link
+            to="/for-organizations"
+            style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3 }}
+          >
+            I'm with a DV organization
+          </Link>
+        </div>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 780,
+          margin: "0 auto",
+          padding: "56px 24px 20px",
+          borderTop: "1px solid rgba(20,19,31,0.14)",
+        }}
+      >
+        <ProofRow
+          n="01"
+          title="Every entry is yours."
+          body="Encrypted at rest. Nobody at PatternProof can read it. Export or delete at any time."
+        />
+        <ProofRow
+          n="02"
+          title="Every fact keeps its source."
+          body="A date, a photo, a message — each attaches to the record it came from, so nothing floats loose."
+        />
+        <ProofRow
+          n="03"
+          title="Approximate is a first-class answer."
+          body="You don't have to remember exact dates. Say ‘around April’ or ‘before school let out’ and move on."
+        />
+      </section>
+
+      <footer
+        style={{
+          maxWidth: 780,
+          margin: "0 auto",
+          padding: "44px 24px 96px",
+          fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+          fontSize: 13,
+          color: "#3A3849",
+          lineHeight: 1.7,
+        }}
+      >
+        Work at your own pace — a few minutes today is enough. Only you can see what you write.
+        <div style={{ marginTop: 18 }}>
+          <Link to="/privacy" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>
+          <Link to="/safety" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Safety</Link>
+          <Link to="/terms" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3 }}>Terms</Link>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function ProofRow({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div style={{ display: "flex", gap: 20, padding: "18px 0", borderBottom: "1px solid rgba(20,19,31,0.10)" }}>
+      <div
+        className="mono-meta mono-meta--muted"
+        style={{ minWidth: 44, letterSpacing: "0.14em" }}
+      >
+        {n}
+      </div>
+      <div>
+        <div
+          style={{
+            fontFamily: "'Newsreader', Georgia, serif",
+            fontWeight: 400,
+            fontSize: 20,
+            color: "#14131F",
+            lineHeight: 1.25,
+          }}
+        >
+          {title}
+        </div>
+        <p
+          style={{
+            marginTop: 6,
+            fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+            fontSize: 15,
+            color: "#3A3849",
+            lineHeight: 1.6,
+          }}
+        >
+          {body}
+        </p>
+      </div>
     </div>
   );
 }
