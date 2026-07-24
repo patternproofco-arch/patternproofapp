@@ -1091,6 +1091,7 @@ function Patterns({ data }: { data: CaseData }) {
   const max = Math.max(1, ...data.categories.map((c) => c.count));
   return (
     <div style={{ display: "grid", gap: 16 }}>
+      <CrossReferenceSection clientId={data.client_user_id} />
       <div className="att-card">
         <SectionTitle icon={<TrendingUp size={16} />}>Behavior categories</SectionTitle>
         {data.categories.length === 0 ? (
