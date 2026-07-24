@@ -6,6 +6,8 @@ import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { formatIncidentDate } from "@/lib/dates";
 import { FileText } from "lucide-react";
 import { CognitiveClose } from "@/components/CognitiveClose";
+import { useServerFn } from "@tanstack/react-start";
+import { findCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 
 interface Item {
   id: string;
@@ -56,6 +58,18 @@ function TimelinePage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [xrefs, setXrefs] = useState<XrefCluster[]>([]);
+  const fetchXrefs = useServerFn(findCrossReferences);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const { clusters } = await fetchXrefs();
+        setXrefs(clusters);
+      } catch { /* silent — corroboration is additive */ }
+    })();
+  }, [user, fetchXrefs]);
 
   useEffect(() => {
     if (!user) return;
@@ -120,6 +134,8 @@ function TimelinePage() {
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         The pattern, <em>over time.</em>
       </h1>
+
+      {xrefs.length > 0 && <CorroborationSection clusters={xrefs} />}
 
       <div className="card-pp mt-6">
         <div className="flex flex-wrap items-end gap-4">
