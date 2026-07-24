@@ -48,6 +48,43 @@ export const Route = createFileRoute("/_authenticated/timeline")({
   component: TimelinePage,
 });
 
+function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
+  const label = (t: XrefCluster["anchor_type"]) =>
+    t === "date" ? "SHARED DATE" : t === "location" ? "SHARED PLACE" : "REPEATED PATTERN";
+  return (
+    <section className="mt-6" style={{ background: "#F7F5F0", padding: 20, border: "1px solid rgba(20,19,31,0.14)" }}>
+      <div className="flex items-baseline gap-3">
+        <span className="exhibit-tag">CORROBORATION</span>
+        <span className="mono-meta mono-meta--muted">Records that reinforce each other</span>
+      </div>
+      <p style={{ marginTop: 8, fontSize: 13, color: "rgba(20,19,31,0.65)" }}>
+        These entries share a date, place, or repeated pattern. Nothing is flagged as wrong — this
+        is where your own records line up.
+      </p>
+      <div className="mt-4 space-y-3">
+        {clusters.slice(0, 12).map((c, i) => (
+          <div key={i} className="xref-connector">
+            <div>
+              <span className="xref-tag">{label(c.anchor_type)}</span>
+              <span className="mono-meta">{c.detail}</span>
+            </div>
+            <ul style={{ marginTop: 6, paddingLeft: 14, listStyle: "square" }}>
+              {c.exhibits.map((e) => (
+                <li key={e.kind + e.id} style={{ fontSize: 13, color: "#14131F", lineHeight: 1.5 }}>
+                  <span className="mono-meta mono-meta--muted" style={{ marginRight: 6 }}>
+                    {e.kind.toUpperCase()}
+                  </span>
+                  {e.label}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function TimelinePage() {
   const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
