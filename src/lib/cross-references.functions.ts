@@ -344,3 +344,117 @@ export const findCrossReferences = createServerFn({ method: "GET" })
     );
     return { clusters };
   });
+
+/**
+ * Attorney-facing variant. Same engine, but scoped to a specific client and
+ * respects any per-case scoping via `attorney_client_links`. The frontend
+ * labels this "Cross-reference · Inconsistencies to verify" — never
+ * "Corroboration" (attorneys use it to compare the OTHER party's account
+ * against the record; survivors see the same clusters as "Corroboration"
+ * on their own timeline).
+ */
+export const findClientCrossReferences = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => {
+    const o = (d ?? {}) as { clientId?: unknown };
+    if (typeof o.clientId !== "string" || !o.clientId) throw new Error("clientId required");
+    return { clientId: o.clientId };
+  })
+  .handler(async ({ context, data }): Promise<{ clusters: XrefCluster[] }> => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Reuse the same access rules as the rest of the attorney portal:
+    // owning attorney OR active collaborator OR firm case-grant.
+    const { data: owner } = await supabaseAdmin
+      .from("attorney_client_links")
+      .select("id,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id")
+      .eq("attorney_user_id", userId)
+      .eq("client_user_id", data.clientId)
+      .maybeSingle();
+    let link = owner && owner.status === "active" ? owner : null;
+    if (!link) {
+      const { data: collab } = await supabaseAdmin
+        .from("case_collaborators")
+        .select("link_id")
+        .eq("collaborator_user_id", userId)
+        .eq("status", "active");
+      const { data: grants } = await supabaseAdmin
+        .from("case_grants")
+        .select("client_link_id")
+        .eq("attorney_user_id", userId)
+        .is("revoked_at", null);
+      const ids = [
+        ...(collab ?? []).map((r) => r.link_id),
+        ...(grants ?? []).map((r) => r.client_link_id),
+      ];
+      if (!ids.length) throw new Error("No active access");
+      const { data: l } = await supabaseAdmin
+        .from("attorney_client_links")
+        .select("id,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id")
+        .in("id", ids)
+        .eq("client_user_id", data.clientId)
+        .eq("status", "active")
+        .maybeSingle();
+      if (!l) throw new Error("No active access");
+      link = l;
+    }
+
+    // Case scope: if this link is bound to a specific case, restrict to its
+    // highlighted incidents + attached evidence.
+    let scopeIncIds: string[] | null = null;
+    let scopeEvIds: string[] | null = null;
+    if (link.case_id) {
+      const { data: c } = await supabaseAdmin
+        .from("cases")
+        .select("highlighted_incident_ids,attached_evidence_ids")
+        .eq("id", link.case_id)
+        .eq("user_id", data.clientId)
+        .maybeSingle();
+      scopeIncIds = (c?.highlighted_incident_ids ?? []) as string[];
+      scopeEvIds = (c?.attached_evidence_ids ?? []) as string[];
+    } else {
+      if (!link.include_all_incidents) scopeIncIds = (link.scope_incidents ?? []) as string[];
+      if (!link.include_all_evidence) scopeEvIds = (link.scope_evidence ?? []) as string[];
+    }
+
+    let incQ = supabaseAdmin
+      .from("incidents")
+      .select("id,date,date_range_start,date_range_end,anchor_incident_id,location,abuse_types,description,source,confirmed_at")
+      .eq("user_id", data.clientId)
+      .is("deleted_at", null);
+    if (scopeIncIds) incQ = incQ.in("id", scopeIncIds.length ? scopeIncIds : ["00000000-0000-0000-0000-000000000000"]);
+
+    let evQ = supabaseAdmin
+      .from("evidence")
+      .select("id,title,date,linked_incident_id")
+      .eq("user_id", data.clientId)
+      .is("deleted_at", null);
+    if (scopeEvIds) evQ = evQ.in("id", scopeEvIds.length ? scopeEvIds : ["00000000-0000-0000-0000-000000000000"]);
+
+    const [inc, ev, cm, lg] = await Promise.all([
+      incQ,
+      evQ,
+      supabaseAdmin
+        .from("communications")
+        .select("id,date,content,linked_incident_id")
+        .eq("user_id", data.clientId),
+      supabaseAdmin
+        .from("legal_documents")
+        .select("id,title,effective_date,incident_date")
+        .eq("user_id", data.clientId),
+    ]);
+
+    // Attorney view: also drop unconfirmed AI drafts (matches the rest of the
+    // portal's confirmed-only filter).
+    const incidents = ((inc.data as RawIncident[] | null) ?? []).filter(
+      (i) => !(i.source === "ai_extracted" && !i.confirmed_at),
+    );
+    const clusters = computeCrossReferences(
+      incidents,
+      (ev.data as RawEvidence[] | null) ?? [],
+      (cm.data as RawComm[] | null) ?? [],
+      (lg.data as RawLegal[] | null) ?? [],
+    );
+    return { clusters };
+  });
