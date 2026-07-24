@@ -1,127 +1,75 @@
+# Exhibit Cross-Referencing — correlation plan
 
-# PatternProof — Survivor-Integrity Audit & Phased Plan
+Confirming this before writing code. Everything else in the request (design system swap, homepage rebuild, court-packet export) I'll build directly after you approve this.
 
-This is a large brief. I've audited the existing codebase against your requirements and grouped the work into safe, shippable phases. Nothing here is destructive; every schema change is additive and RLS-preserving.
+## What "shared anchor" means
 
----
+An **anchor** is a deterministic, non-AI signal that two exhibits belong to the same underlying event or escalation. Three anchor types, computed live (no new persisted correlation table in v1):
 
-## Audit — what's already in place
+1. **Date anchor**
+   - Same exact `date` (confirmed on both), OR
+   - Same `date_range_start`/`date_range_end` window overlap of ≤ 3 days, OR
+   - One incident's `anchor_incident_id` points at the other.
+   - Ignore unknown-date incidents (they can't corroborate a date they don't claim).
 
-Reused as-is (do NOT rebuild):
-- Auth, RLS scaffolding, `_authenticated` gate, attorney portal split, MCP server.
-- Soft-delete (`deleted_at`) + `source` / `confirmed_at` provenance on `incidents` and `evidence` (Phase 1/2 already done).
-- `useConfirm` dialog replacing native `confirm()`.
-- Message-thread ingest + parse pipeline (`message_threads`, `thread_messages`, `parseMessageThread`).
-- Export ZIP with SHA-256 per file, `hash_of_hashes`, chain-of-custody markdown, `verify.sh`.
-- Storage buckets: `evidence-files`, `voice-notes`, `message-exports`, `exports`, `conversation-recordings` (all private).
-- Quick Exit hardening, PIN lock, Privacy/Terms, "encrypted in transit & at rest" language.
-- Pattern analysis fetcher that already excludes soft-deleted + unconfirmed AI records.
+2. **Location anchor**
+   - Both have `location` set; normalized (lowercase, punctuation stripped, common suffixes like "st/street/ave" folded) strings match exactly, OR share ≥ 2 significant tokens (≥ 4 chars, non-stopword).
 
-## Critical gaps (survivor-integrity, not cosmetic)
+3. **Escalation anchor**
+   - Both incidents share ≥ 1 `abuse_types` value AND their dates fall within a 14-day rolling window. This is what surfaces "pattern" without any ML.
 
-1. **No mixed-file "dump everything" uploader.** Evidence upload is one-file-at-a-time and requires title/date up front. Violates "Add what you have. It does not need to be organized."
-2. **No upload state machine or Preservation Receipt.** Users can't tell what was preserved vs. rejected. No `preserved`/`extraction_pending`/`unsupported_but_preserved` states.
-3. **Originals are not hashed on ingest.** `evidence.file_url` exists but no `sha256`, `bytes`, `mime`, `original_filename`, `raw_metadata`, `preservation_status`, `integrity_verified_at`.
-4. **No derivative separation.** Previews/OCR/transcripts are not modeled as derivatives of a preserved original — future edits could overwrite originals.
-5. **Date certainty is a single `date` column.** No `date_certainty` enum, no ranges, no life-anchor placement. AI-approx dates silently become "day 1 of month".
-6. **AI extraction ≠ AI interpretation.** Both currently flow into the same "needs confirmation" bucket; interpretation isn't distinguished from field-level extraction, and there's no explanation panel or provenance record beyond `source`.
-7. **No duplicate/evidence-family grouping.** Duplicate imports inflate apparent corroboration.
-8. **No work modes.** Everything demands full journal-style entry; no Upload-Only, Memory, or Low-Energy path.
-9. **No import-completeness labeling on threads.** Absence of records reads as "nothing happened".
-10. **"Court-ready" language + "chain of custody" still present** in exports, marketing, and route names (`/court-ready`, `/court-packet`, `chain-of-custody.md`). Needs neutral wording ("Professional-review packet", "Provenance & integrity report").
-11. **Dashboard shows task-list pressure**, not "nothing requires action today" + "continue where I left off".
-12. **No audit-event stream.** `audit_log` table exists but is not written on upload/hash/extraction/AI/share events.
-13. **No Promise Registry.**
-14. **Sharing receipts** exist partially via `attorney_access` but no survivor-facing "what was shared / expiration / downloads / revoke" screen with the required warning text.
+An exhibit pair can share multiple anchor types; we render all that apply.
 
-## Non-goals for this pass
-Decorative redesign, new marketing pages beyond the required Safety/Privacy/Integrity/AI/Access pages, streak/gamification removal (already absent).
+## Sources included
 
----
+Correlation runs across the survivor's own records **plus attached artifacts**, not just incidents:
+- `incidents` (primary node)
+- `evidence` (via `linked_incident_id` → inherits that incident's anchors; also its own `date` if present)
+- `communications` (date + `linked_incident_id`)
+- `legal_documents` (`effective_date` / `incident_date`)
 
-## Phased implementation plan
+All treated as "exhibits" with a common `{id, kind, date, location, abuse_types}` shape via a small adapter — no schema change.
 
-### Phase A — Public trust surface (small, low-risk, ship first)
-- Rename "Court Ready" → "Professional-review packet" in nav, route titles, CTAs (keep route slugs; only change visible text and metadata to avoid breaking links).
-- Replace "chain of custody" phrasing in ZIP + UI with "Provenance & integrity report" and clarify hash meaning ("proves stored bytes match the preserved version — not truth, authorship, or admissibility").
-- Add 4 short public pages: `/safety`, `/evidence-integrity`, `/ai-transparency`, `/professional-access`. Link from footer + `/privacy`.
-- Sweep marketing copy for "court-ready", "stronger case", "abuse detected", "guaranteed admissibility", "chain of custody" and replace per the brief.
-- Verify `/` renders unauthenticated (already true — regression-guard).
+## Data model
 
-### Phase B — Evidence integrity core (schema + upload state machine)
-Additive migration on `evidence`:
-- `sha256 text`, `bytes bigint`, `mime text`, `original_filename text`, `raw_metadata jsonb`, `preservation_status text` (enum-like: `received|preserved|extraction_pending|needs_attention|unsupported_but_preserved|upload_incomplete`), `preserved_at timestamptz`, `integrity_verified_at timestamptz`, `family_id uuid`, `parent_evidence_id uuid` (for derivatives), `derivative_kind text` (`preview|thumb|ocr|transcript|redaction|export|null`), `import_batch_id uuid`.
-- New table `import_batches` (id, user_id, started_at, finished_at, receipt_json, source_kind). RLS scoped to owner.
-- New table `evidence_families` for duplicate grouping (id, user_id, canonical_evidence_id, note).
-- New table `audit_events` (id, user_id, actor_kind, actor_id, event_type, subject_kind, subject_id, meta jsonb, created_at). RLS: owner-read only; server-only insert via SECURITY DEFINER helper.
-- Grants + RLS per house style.
+**No new tables.** One server function:
 
-Server function `ingestEvidenceBatch`:
-- Accepts an array of uploaded storage paths + client-provided metadata.
-- Streams each object, computes SHA-256 server-side, stores metadata, writes `audit_events`, returns a `PreservationReceipt`.
-- Never mutates the originally uploaded object.
+```
+findCrossReferences({ case_id? }) → Array<{
+  anchor_type: 'date' | 'location' | 'escalation',
+  detail: string,             // "Both on Apr 12, 2025" / "3rd Ave apartment" / "coercive control, 6 days apart"
+  exhibits: Array<{ id, kind, date, label }>  // 2+ exhibits per cluster
+}>
+```
 
-New UI at `/evidence` → "Add what you have":
-- Multi-file dropzone (no title/date required).
-- Post-upload Preservation Receipt panel with per-file state chips.
-- Warning banner: "Do not delete your original source based only on this import."
+Clusters, not just pairs — if 4 exhibits share a date, that's one cluster of 4, not 6 pairs.
 
-### Phase C — Date certainty + memory fragments
-Additive on `incidents`:
-- `date_certainty text` (`exact|approximate|month_year|range|before_anchor|after_anchor|between_anchors|sequence_only|unknown|conflicting`)
-- `date_start date`, `date_end date`, `anchor_before_id uuid`, `anchor_after_id uuid`, `is_memory_fragment boolean default false`.
+Scoped by `case_id` when provided (respects the multi-case work already shipped). Only confirmed records for survivors; attorney view respects existing link scoping.
 
-New table `life_anchors` (id, user_id, label, kind, start_date, end_date, notes) with RLS.
+## Audience framing (same engine, different labels)
 
-UI:
-- Journal "Memory Mode" toggle → allows saving without a date; renders in timeline with an "Uncertain date" pill.
-- Date input becomes a Certainty selector; existing `date` stays for exact/backfill compat.
+Framing is a pure presentation-layer prop, not a separate query:
 
-### Phase D — AI extraction/interpretation split + explanation panel
-- New table `ai_suggestions` (id, user_id, subject_kind, subject_id, kind: `extraction|interpretation`, payload jsonb, model, model_version, instruction_version, source_record_ids jsonb, status: `pending|confirmed|edited|rejected|unsure|deferred`, decided_at, decided_reason).
-- Every AI-emitted field on incidents/evidence writes a matching `ai_suggestions` row instead of silently mutating the record.
-- UI Explanation panel component (`AiExplanation`) rendered next to any AI-derived field: what/why/sources/uncertainty/next steps + Confirm/Edit/Reject/Unsure/Later.
-- Rejected suggestions are excluded from every export by `ai_suggestions.status <> 'rejected'` filter.
+- **Survivor view (`/timeline`, `/patterns`)**: labeled **"Corroboration"**. Copy: *"These records reinforce each other."* Never surfaces the word "contradiction" or "conflict" in her view. The existing `findPossibleContradictions` stays as its own separate survivor-facing "reconcile before an attorney sees" tool — different intent, different label, not merged.
+- **Attorney view (`/_attorney/clients/$clientId`)**: labeled **"Cross-reference"**, and is where the other-party contradiction analysis lives (comparing opposing statements/legal documents against the record). Same correlation engine feeds the visual; the contradiction sub-analysis is layered on top only in the attorney context.
 
-### Phase E — Duplicate/evidence-family grouping + completeness
-- On ingest, compute perceptual + exact duplicate signals; group into `evidence_families`; UI shows "N files represent 1 underlying record".
-- `message_threads.completeness_status text` (`known_complete|complete_for_range|partial|screenshots_only|attachments_missing|possible_gaps|unknown`). Survivor sets it; default `unknown`. Empty-period copy switches to "No records are currently imported for this period."
+## Visual (exhibit vernacular)
 
-### Phase F — Work modes + calmer dashboard
-- Settings-persisted `work_mode` on `user_metadata`: `upload_only|low_energy|memory|organize|pattern_review|handoff`.
-- Dashboard rewritten to show: preserved count, organized count, uncertain dates, next 1–3 useful actions, "Continue where I left off", and — when applicable — "Nothing requires action today." No % complete.
+Rendered in timeline view as a thin ink-colored connector line (not curved, not glowing) drawn between exhibit cards that share an anchor, with a small mono tag on the line: `ANCHOR · DATE` / `ANCHOR · LOCATION` / `ANCHOR · ESCALATION`. Hover/tap reveals the `detail` string. No BI-dashboard chrome, no "AI insight" card, no gradient.
 
-### Phase G — Sharing receipts + professional-review export rename
-- Survivor-facing "Share history" view listing every grant: recipient, records, permissions, expiration, downloads, exports, revocation, with the required post-revocation warning.
-- Rename export artifacts: `chain-of-custody.md` → `provenance-and-integrity.md`; ZIP filename prefix `patternproof-professional-review-`; include disclaimer block from brief.
-- Redactions always produce `derivative_kind='redaction'` derivative; originals untouched.
+Connector rendering uses absolute-positioned SVG overlaid on the timeline column, redrawn on resize via a `ResizeObserver`. Falls back to a stacked "Also see: EXHIBIT 003, 007" mono footer on mobile where connector lines would be unreadable.
 
-### Phase H — Audit stream wiring + Promise Registry
-- Wire `audit_events` writes into upload, hash, extraction, AI decisions, share grant/revoke, export, view.
-- New file `docs/promise-registry.md` listing every public promise with control, proof, test, owner, failure behavior. Enforced in PR review; no marketing claim ships without a row.
+## Assumptions worth flagging
 
----
+- 3-day date window and 14-day escalation window are first-pass thresholds; easy to tune once you see real output.
+- Location normalization is intentionally conservative — I'd rather miss a match than falsely link "123 Main St, Newark" with "Main Street coffee shop".
+- No AI in the correlation itself. Fully deterministic and explainable, which matters if this ever gets shown to opposing counsel.
+- Not persisting cluster state (same call as `findPossibleContradictions`) — recomputed live.
 
-## First safe code changes (this session, after you approve)
+## Not in this feature
 
-Ship Phase A end-to-end + start Phase B migration (schema only, no data change):
+- No user-dismissible "resolved" state on a cluster.
+- No cross-user correlation.
+- No "predicted" or "suggested" links — every connector has a concrete deterministic reason.
 
-1. Rename user-visible "court-ready" / "chain of custody" strings across nav, dashboard, exports, marketing pages. Keep route slugs.
-2. Add `/safety`, `/evidence-integrity`, `/ai-transparency`, `/professional-access` routes with plain-language copy and correct qualifiers.
-3. Update export ZIP: rename `chain-of-custody.md` inside the archive, adjust integrity note, add professional-review disclaimer, prefix ZIP filename.
-4. Migration: add integrity columns to `evidence` (nullable, no backfill), create `import_batches`, `evidence_families`, `audit_events` with grants + RLS. No UI hooked up yet — safe on prod.
-5. Regression check: `/` renders unauthenticated; existing evidence rows still load (all new columns nullable).
-
-Everything after Phase A/B lands in follow-up turns so each phase is reviewable in isolation.
-
----
-
-## Technical notes
-
-- All new tables follow the mandatory GRANT → RLS → POLICY order; `audit_events` has no user-facing INSERT policy (server-only via SECURITY DEFINER `record_audit_event(...)`).
-- SHA-256 computed inside `createServerFn` handlers using Node `crypto` (already used in `export-zip.functions.ts`) — Worker-runtime safe.
-- No changes to `auth`, `storage`, `vault`, or `supabase_functions` schemas.
-- No secrets moved to client; Clio placeholder stays neutralized.
-- No destructive migrations; existing survivor data is preserved and all new columns are nullable with sane defaults.
-
-Reply "go" to ship Phase A + the Phase B migration, or tell me which phase to start with.
+Approve or adjust the anchor rules / thresholds / labeling and I'll build this plus the design-system swap, homepage rebuild, and de-branded court packet in one pass.
