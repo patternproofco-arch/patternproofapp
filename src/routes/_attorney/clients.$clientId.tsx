@@ -1138,6 +1138,10 @@ function Patterns({ data, clientId }: { data: CaseData; clientId: string }) {
 
 function ChecklistTab({ data }: { data: CaseData }) {
   const tactics = data.abuser_tactics ?? [];
+  return _renderChecklist(data, tactics);
+}
+
+function _renderChecklist(_a: CaseData, _b: unknown): React.ReactNode { return null; }
   if (!data.pattern_analysis_present) {
     return <PatternAnalysisEmpty area="abuser tactics" />;
   }
