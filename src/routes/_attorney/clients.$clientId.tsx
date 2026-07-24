@@ -29,6 +29,7 @@ import {
   listFirmColleagues, listCaseGrants, grantCaseAccess, revokeCaseGrant,
 } from "@/lib/firm-grants.functions";
 import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateClioPackage } from "@/lib/payments.functions";
+import { findClientCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
@@ -161,7 +162,7 @@ function ClientCaseView() {
         {tab === "Intake" && <IntakeTab data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
         {tab === "Timeline" && <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} />}
-        {tab === "Patterns" && <Patterns data={data} />}
+        {tab === "Patterns" && <Patterns data={data} clientId={clientId} />}
         {tab === "Checklist" && <ChecklistTab data={data} />}
         {tab === "Gaps" && <Gaps data={data} />}
         {tab === "Evidence" && <EvidenceTab data={data} clientId={clientId} />}
@@ -1086,10 +1087,11 @@ function TimelineTab({ data, clientId, notes, onNotes }: { data: CaseData; clien
 
 /* ---------------- Patterns ---------------- */
 
-function Patterns({ data }: { data: CaseData }) {
+function Patterns({ data, clientId }: { data: CaseData; clientId: string }) {
   const max = Math.max(1, ...data.categories.map((c) => c.count));
   return (
     <div style={{ display: "grid", gap: 16 }}>
+      <CrossReferenceSection clientId={clientId} />
       <div className="att-card">
         <SectionTitle icon={<TrendingUp size={16} />}>Behavior categories</SectionTitle>
         {data.categories.length === 0 ? (
@@ -2656,6 +2658,87 @@ function MissingEvidenceChecklistSection({ clientId }: { clientId: string }) {
           Add
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ---------------- Cross-reference / inconsistency analysis ---------------- */
+/**
+ * Attorney-facing view of the same engine survivors see as "Corroboration".
+ * Framed here for the OTHER party's account — inconsistencies to verify,
+ * repeated locations / dates / tactics to cross-check. Never label this
+ * "contradictions in the client's own record" in the survivor view.
+ */
+function CrossReferenceSection({ clientId }: { clientId: string }) {
+  const fetchXrefs = useServerFn(findClientCrossReferences);
+  const [clusters, setClusters] = useState<XrefCluster[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setErr(null);
+    fetchXrefs({ data: { clientId } })
+      .then((r) => { if (!cancelled) setClusters(r.clusters); })
+      .catch((e) => { if (!cancelled) setErr(String(e?.message ?? e)); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [clientId, fetchXrefs]);
+
+  return (
+    <div className="att-card">
+      <SectionTitle icon={<Hash size={16} />}>
+        Cross-reference · Inconsistencies to verify
+      </SectionTitle>
+      <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
+        Deterministic clusters — exhibits that share a date anchor, location,
+        or repeat tactic. Use these to test the other party's account against
+        the record, not to fact-check the client.
+      </p>
+      {loading && <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 10 }}>Computing…</p>}
+      {err && <p style={{ fontSize: 13, color: "#B45309", marginTop: 10 }}>Could not compute: {err}</p>}
+      {!loading && !err && clusters && clusters.length === 0 && (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 10 }}>
+          No cross-references yet. Add more incidents or link evidence to build shared anchors.
+        </p>
+      )}
+      {!loading && !err && clusters && clusters.length > 0 && (
+        <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+          {clusters.slice(0, 30).map((c, i) => (
+            <div
+              key={i}
+              style={{
+                borderLeft: "2px solid #14131F",
+                padding: "8px 12px",
+                background: "#F7F5F0",
+              }}
+            >
+              <div style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6B6A78" }}>
+                {c.anchor_type} anchor · {c.exhibits.length} exhibits
+              </div>
+              <div style={{ marginTop: 4, fontSize: 13, color: "#14131F" }}>{c.detail}</div>
+              <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0", display: "grid", gap: 4 }}>
+                {c.exhibits.map((e) => (
+                  <li key={`${e.kind}-${e.id}`} style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: 11, color: "#14131F" }}>
+                    <span style={{ color: "#6B6A78" }}>{e.kind.toUpperCase()}</span>
+                    {e.date ? ` · ${e.date}` : " · date unknown"}
+                    {" · "}
+                    <span style={{ fontFamily: "'IBM Plex Sans', system-ui, sans-serif", color: "#14131F" }}>
+                      {e.label}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          {clusters.length > 30 && (
+            <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+              …and {clusters.length - 30} more clusters.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
