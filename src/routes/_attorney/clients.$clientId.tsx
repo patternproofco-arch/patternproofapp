@@ -162,7 +162,7 @@ function ClientCaseView() {
         {tab === "Intake" && <IntakeTab data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
         {tab === "Timeline" && <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} />}
-        {tab === "Patterns" && <Patterns data={data} />}
+        {tab === "Patterns" && <Patterns data={data} clientId={clientId} />}
         {tab === "Checklist" && <ChecklistTab data={data} />}
         {tab === "Gaps" && <Gaps data={data} />}
         {tab === "Evidence" && <EvidenceTab data={data} clientId={clientId} />}
@@ -1087,11 +1087,11 @@ function TimelineTab({ data, clientId, notes, onNotes }: { data: CaseData; clien
 
 /* ---------------- Patterns ---------------- */
 
-function Patterns({ data }: { data: CaseData }) {
+function Patterns({ data, clientId }: { data: CaseData; clientId: string }) {
   const max = Math.max(1, ...data.categories.map((c) => c.count));
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <CrossReferenceSection clientId={data.client_user_id} />
+      <CrossReferenceSection clientId={clientId} />
       <div className="att-card">
         <SectionTitle icon={<TrendingUp size={16} />}>Behavior categories</SectionTitle>
         {data.categories.length === 0 ? (
