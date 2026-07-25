@@ -392,6 +392,13 @@ function MessageThreadsPage() {
 }
 
 function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
+  const captureLabel = t.capture_method === "multi_screenshot"
+    ? `📱 Multi-screenshot · ${t.screenshot_count ?? 0} images`
+    : t.capture_method === "screen_recording"
+      ? `🎬 Screen recording${t.video_duration_sec ? ` · ${Math.round(t.video_duration_sec / 60)} min` : ""}`
+      : t.capture_method === "backup_export"
+        ? "💻 Backup export"
+        : null;
   const statusColor =
     t.parse_status === "parsed" ? "#2F8D85"
     : t.parse_status === "queued" ? "#7C5CC4"
@@ -409,6 +416,22 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
         WebkitBackdropFilter: "blur(16px)",
       }}
     >
+      {captureLabel && (
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11,
+          padding: "4px 10px", borderRadius: 999, marginBottom: 10,
+          background: "rgba(26,23,20,0.06)", color: "#3D3832", fontWeight: 600, letterSpacing: "0.03em",
+        }}>
+          How this was captured · {captureLabel}
+          {t.captured_at && <span style={{ opacity: 0.7 }}> · {new Date(t.captured_at).toLocaleString()}</span>}
+        </div>
+      )}
+      {(t.capture_method === "multi_screenshot" || t.capture_method === "screen_recording") && (
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+          color: "#B0556A", marginBottom: 8 }}>
+          AI-{t.capture_method === "screen_recording" ? "generated" : "extracted"} — unverified
+        </div>
+      )}
       <header className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-start gap-3">
           <div style={{ width: 38, height: 38, borderRadius: 12, background: "linear-gradient(135deg,#E2DCFA,#C7E9E3)", display: "grid", placeItems: "center" }}>
@@ -496,5 +519,47 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
         </div>
       )}
     </article>
+  );
+}
+
+function TierCard({ eyebrow, title, body, hint, accent, Icon, cta, onClick, recommended }: {
+  eyebrow: string; title: string; body: string; hint: string; accent: string;
+  Icon: React.ComponentType<{ size?: number; color?: string }>;
+  cta: string; onClick: () => void; recommended?: boolean;
+}) {
+  return (
+    <button type="button" onClick={onClick}
+      style={{
+        position: "relative", textAlign: "left",
+        borderRadius: 20, padding: 22,
+        background: "rgba(255,255,255,0.8)",
+        border: `1px solid ${accent}44`,
+        boxShadow: recommended ? `0 20px 44px -22px ${accent}80` : `0 12px 32px -22px ${accent}55`,
+        display: "flex", flexDirection: "column", gap: 10,
+      }}>
+      {recommended && (
+        <span style={{ position: "absolute", top: 12, right: 12, fontSize: 10, fontWeight: 800,
+          letterSpacing: "0.1em", textTransform: "uppercase", color: accent,
+          background: `${accent}18`, padding: "3px 8px", borderRadius: 999 }}>Recommended</span>
+      )}
+      <div style={{ width: 44, height: 44, borderRadius: 12, background: `${accent}18`, display: "grid", placeItems: "center" }}>
+        <Icon size={20} color={accent} />
+      </div>
+      <div className="label-eyebrow" style={{ color: accent }}>{eyebrow}</div>
+      <div style={{ fontWeight: 700, fontSize: 17, color: "#1A1714" }}>{title}</div>
+      <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#3D3832" }}>{body}</p>
+      <p style={{ fontSize: 12.5, lineHeight: 1.5, color: "#6B5A4F", fontStyle: "italic" }}>{hint}</p>
+      <span style={{ marginTop: 4, fontSize: 13, fontWeight: 700, color: accent }}>{cta} →</span>
+    </button>
+  );
+}
+
+function StepCard({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div style={{ borderRadius: 14, padding: 14, background: "rgba(255,255,255,0.6)", border: "1px solid rgba(47,141,133,0.2)" }}>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", color: "#2F8D85", marginBottom: 6 }}>STEP {n}</div>
+      <div style={{ fontWeight: 700, color: "#1A1714", fontSize: 14, marginBottom: 4 }}>{title}</div>
+      <p style={{ fontSize: 13, lineHeight: 1.5, color: "#3D3832" }}>{body}</p>
+    </div>
   );
 }
