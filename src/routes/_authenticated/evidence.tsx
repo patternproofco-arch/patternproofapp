@@ -70,6 +70,7 @@ function EvidencePage() {
   const [draft, setDraft] = useState<ExtractedDraft | null>(null);
   const [savingIncident, setSavingIncident] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<EvidenceRow | null>(null);
+  const [tab, setTab] = useState<EvidenceTab>("documentation");
 
   const load = useCallback(async () => {
     if (!user) return;
