@@ -30,6 +30,8 @@ interface EvidenceRow {
   exif_captured_at?: string | null;
   sha256?: string | null;
 }
+  // review_status: "suggested" rows are held back from exports/attorney views
+  // until the survivor confirms the match on /evidence-review.
 interface IncOption { id: string; date: string; description: string }
 
 type EvidenceTab = "documentation" | "evidence";
