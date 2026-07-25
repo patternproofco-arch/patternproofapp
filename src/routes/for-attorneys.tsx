@@ -41,17 +41,15 @@ function ForAttorneys() {
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(56px,9vw,104px) 24px 40px" }}>
         <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, marginBottom: 24 }}>
-          Attorneys · Family law &amp; coercive control
+          For attorneys
         </div>
         <h1 style={{ fontFamily: SERIF, fontWeight: 300, fontSize: "clamp(2.2rem,5.2vw,3.8rem)", lineHeight: 1.05, letterSpacing: "-0.02em", margin: 0 }}>
-          Stop rebuilding what your client
+          Smoother days,
           <br />
-          <em>already lived.</em>
+          <em>not just faster invoices.</em>
         </h1>
         <p style={{ marginTop: 24, fontSize: 18, lineHeight: 1.6, color: "#3A3849", maxWidth: 640 }}>
-          You get a structured, source-linked chronology the day representation begins —
-          not a shoebox of screenshots to sort at 11pm. Every date, every location, every
-          exhibit already traceable to the record it came from.
+          Less time buried in scattered files. More of your day spent on the actual case.
         </p>
         <Link
           to="/lawyer-signup"
@@ -61,7 +59,7 @@ function ForAttorneys() {
             textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
           }}
         >
-          Create your attorney account →
+          See a sample case →
         </Link>
         <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.06em" }}>
           $297 / mo · one seat · up to 10 active matters
@@ -69,59 +67,45 @@ function ForAttorneys() {
       </section>
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 24px 80px" }}>
-        <SectionRule label="How the file arrives" />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 20 }}>
-          <ExhibitCard
-            tag="BEFORE · WHAT INTAKE USUALLY LOOKS LIKE"
-            tagTone="muted"
-            body={
-              <div style={{ fontFamily: SERIF, fontSize: 16, lineHeight: 1.6, color: MUTED }}>
-                &quot;Here&apos;s my phone.&quot; Thousands of photos in reverse-chronological order.
-                A shared Google Doc titled &quot;notes&quot;. Screenshots named
-                <span style={{ fontFamily: MONO, fontSize: 13 }}> IMG_4821.PNG</span>.
-                A spiral notebook with entries out of order. Nothing tied to a date.
-                Nothing tied to anything else.
-              </div>
-            }
+        <SectionRule label="Before / after" />
+        <div style={{ display: "grid", gap: 16 }}>
+          <BeforeAfter
+            label="Getting the records"
+            before="Scattered across email, text exports, and files. Hours of sorting before you can start reading."
+            after="Arrives already organized, timestamped, and sourced."
           />
-          <ExhibitCard
-            tag="AFTER · WHAT PATTERNPROOF HANDS YOU"
-            tagTone="accent"
-            accent={NAVY}
-            body={
-              <div>
-                <div style={{ display: "grid", gap: 10 }}>
-                  <ExhibitRow n="014" date="MAR 12, 2025 · 19:40" summary="Text thread — 47 messages in 90 min, escalating from ‘call me’ to threats." linked="1 screenshot · 1 voice note" />
-                  <ExhibitRow n="015" date="~ APR 2025" anchor="Before school let out" summary="Kids withheld at exchange. Location: Elm St. curb-side handoff." linked="Corroborating: EXHIBIT 011" />
-                  <ExhibitRow n="016" date="Date unknown" summary="Bank account locked. Discovered morning of pediatrician appt." linked="1 statement PDF" />
-                </div>
-                <div style={{ marginTop: 14, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.08em" }}>
-                  Every field is source-linked. Approximate and unknown dates are first-class, not gaps.
-                </div>
-              </div>
-            }
+          <BeforeAfter
+            label="Building the timeline"
+            before="Manually cross-referencing dates across a dozen documents."
+            after="Built automatically from confirmed and approximate dates."
+          />
+          <BeforeAfter
+            label="Starting the real work"
+            before="Days spent organizing before the legal work even begins."
+            after="Review starts the day the file arrives."
           />
         </div>
-      </section>
 
-      <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 80px" }}>
-        <SectionRule label="Day-to-day" />
-        <Relief n="01" title="Less time buried in scattered files." body="No mass-importing screenshots or asking a client to redo a timeline in Excel. It's already structured when you open the matter." />
-        <Relief n="02" title="Dates you can actually cite." body="Confirmed dates stay confirmed. Approximate dates carry the anchor she gave you (‘before school let out’). Unknown stays unknown — never guessed." />
-        <Relief n="03" title="Cross-references you can defend." body="Exhibits that share a date, a location, or a repeat tactic are linked deterministically. No AI hallucinations to walk back on the stand." />
-        <Relief n="04" title="A packet a clerk will accept." body="Export a plain, numbered exhibit packet — no branding, no gradients — that reads like a document a court already recognizes." />
-      </section>
+        <div style={{ marginTop: 40, display: "grid", gap: 14, maxWidth: 720 }}>
+          <p style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 20, lineHeight: 1.55, color: INK, margin: 0 }}>
+            Every entry keeps its original source and metadata. Nothing here replaces your judgment.
+          </p>
+          <p style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 20, lineHeight: 1.55, color: INK, margin: 0 }}>
+            Over time, less time spent sorting means more cases fit into the same week — without changing how you bill.
+          </p>
+        </div>
 
-      <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 80px" }}>
-        <SectionRule label="The math, once the file is clean" />
-        <p style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 22, lineHeight: 1.5, color: INK, margin: 0 }}>
-          Intake and chronology work on a DV or coercive-control matter typically
-          runs 8–14 hours before you can draft anything. A client who arrives
-          already documented saves most of that — hours you can either bill on
-          strategy or reclaim as capacity for another matter.
-        </p>
-        <div style={{ marginTop: 16, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.08em" }}>
-          Ranges from attorney conversations. Your file, your rates, your call.
+        <div style={{ marginTop: 32 }}>
+          <Link
+            to="/lawyer-signup"
+            style={{
+              display: "inline-block", background: NAVY, color: "#F4F6FB",
+              padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
+              textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
+            }}
+          >
+            See a sample case →
+          </Link>
         </div>
       </section>
 
@@ -215,34 +199,32 @@ function ExhibitCard({
   );
 }
 
-function ExhibitRow({ n, date, anchor, summary, linked }: { n: string; date: string; anchor?: string; summary: string; linked?: string }) {
+function BeforeAfter({ label, before, after }: { label: string; before: string; after: string }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "72px 1fr", gap: 14, padding: "10px 0", borderBottom: `1px dashed ${RULE}` }}>
-      <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: MUTED }}>
-        EXHIBIT<br /><span style={{ color: INK, fontSize: 12 }}>{n}</span>
+    <div
+      style={{
+        border: `1px solid ${RULE}`,
+        background: PAPER,
+        padding: "20px 22px",
+        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
+      }}
+    >
+      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: INK, marginBottom: 14 }}>
+        {label}
       </div>
-      <div>
-        <div style={{ fontFamily: MONO, fontSize: 12, color: INK, letterSpacing: "0.03em" }}>
-          {date}{anchor && <span style={{ color: MUTED }}> · anchor: {anchor}</span>}
-        </div>
-        <div style={{ marginTop: 4, fontFamily: SERIF, fontSize: 15, lineHeight: 1.5, color: INK }}>{summary}</div>
-        {linked && (
-          <div style={{ marginTop: 4, fontFamily: MONO, fontSize: 10.5, color: MUTED, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            {linked}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
+        <div style={{ borderLeft: `3px solid rgba(20,19,31,0.25)`, paddingLeft: 14 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: MUTED, textTransform: "uppercase", marginBottom: 4 }}>
+            Before
           </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Relief({ n, title, body }: { n: string; title: string; body: string }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "56px 1fr", gap: 20, padding: "20px 0", borderBottom: `1px solid ${RULE}` }}>
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.16em", color: MUTED }}>{n}</div>
-      <div>
-        <div style={{ fontFamily: SERIF, fontSize: 22, lineHeight: 1.25, color: INK }}>{title}</div>
-        <p style={{ marginTop: 6, fontSize: 15, lineHeight: 1.6, color: "#3A3849" }}>{body}</p>
+          <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: MUTED }}>{before}</div>
+        </div>
+        <div style={{ borderLeft: `3px solid ${NAVY}`, paddingLeft: 14 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: NAVY, textTransform: "uppercase", marginBottom: 4 }}>
+            After
+          </div>
+          <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: INK }}>{after}</div>
+        </div>
       </div>
     </div>
   );
