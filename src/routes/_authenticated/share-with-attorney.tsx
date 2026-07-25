@@ -48,12 +48,12 @@ function ShareWithAttorney() {
   const [days, setDays] = useState(30);
   const [busy, setBusy] = useState(false);
   const [justCreated, setJustCreated] = useState<{ url: string; email: string } | null>(null);
-  const [cases, setCases] = useState<Array<{ id: string; case_name: string | null; other_party: string | null }>>([]);
+  const [cases, setCases] = useState<Array<{ id: string; case_name: string | null; other_party: string | null; highlighted_incident_ids: string[] | null; attached_evidence_ids: string[] | null }>>([]);
   const [caseId, setCaseId] = useState<string>(""); // "" = all cases (legacy)
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("cases").select("id,case_name,other_party").eq("user_id", user.id).order("updated_at", { ascending: false })
+    supabase.from("cases").select("id,case_name,other_party,highlighted_incident_ids,attached_evidence_ids").eq("user_id", user.id).order("updated_at", { ascending: false })
       .then(({ data }) => setCases((data ?? []) as typeof cases));
   }, [user]);
 
@@ -150,6 +150,18 @@ function ShareWithAttorney() {
                       <option key={c.id} value={c.id}>{(c.case_name?.trim() || c.other_party?.trim() || "Untitled case")}</option>
                     ))}
                   </select>
+                  {(() => {
+                    const sel = cases.find((c) => c.id === caseId);
+                    if (!sel) return null;
+                    const empty = (sel.highlighted_incident_ids ?? []).length === 0 && (sel.attached_evidence_ids ?? []).length === 0;
+                    if (!empty) return null;
+                    return (
+                      <div className="mt-2 rounded-lg p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}>
+                        This case doesn't have any incidents or files added to it yet, so your attorney would open an empty file.{" "}
+                        <Link to="/case-builder" style={{ textDecoration: "underline" }}>Add them in Case Builder</Link> first, or share all cases instead.
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
               <div>

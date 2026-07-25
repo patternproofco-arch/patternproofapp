@@ -367,7 +367,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
                 {suggestionCount === 1
                   ? "1 file looks like it might belong to an incident you've already written down."
                   : `${suggestionCount} files look like they might belong to incidents you've already written down.`}
-                {" "}Nothing was attached yet — review the suggestions when you're ready.
+                {" "}Until you review {suggestionCount === 1 ? "it" : "them"}, {suggestionCount === 1 ? "that file stays" : "those files stay"} out of your court packet exports and out of anything an attorney can see. Everything is still safely preserved.
               </div>
               <Link to="/evidence-review" className="btn-ghost text-[12px]">
                 Review suggestions

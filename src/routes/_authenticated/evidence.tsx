@@ -29,7 +29,10 @@ interface EvidenceRow {
   integrity_verified_at?: string | null;
   exif_captured_at?: string | null;
   sha256?: string | null;
+  review_status?: string | null;
 }
+  // review_status: "suggested" rows are held back from exports/attorney views
+  // until the survivor confirms the match on /evidence-review.
 interface IncOption { id: string; date: string; description: string }
 
 type EvidenceTab = "documentation" | "evidence";
@@ -94,7 +97,7 @@ function EvidencePage() {
     if (!user) return;
     const [ev, inc] = await Promise.all([
       supabase.from("evidence")
-        .select("id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256")
+        .select("id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status")
         .eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("incidents").select("id,date,description").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }),
     ]);
@@ -414,6 +417,12 @@ function EvidencePage() {
                     <div className="flex items-center gap-2"><KindIcon kind={it.file_type} /><div className="font-serif text-[15px] leading-tight">{it.title}</div></div>
                   </div>
                   <div className="label-eyebrow mt-2">{new Date(it.date).toLocaleDateString()}</div>
+                  {it.review_status === "suggested" && (
+                    <div className="mt-2 rounded-lg p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}>
+                      Held back from court packets and anything you share with an attorney until you review the suggested match.{" "}
+                      <Link to="/evidence-review" style={{ textDecoration: "underline" }}>Review it now</Link>
+                    </div>
+                  )}
                   {it.file_type === "image" && url && (
                     <img src={url} alt={it.title} className="mt-3 max-h-48 w-full rounded-xl object-cover" />
                   )}
