@@ -52,7 +52,7 @@ function ForAttorneys() {
           Less time buried in scattered files. More of your day spent on the actual case.
         </p>
         <Link
-          to="/lawyer-signup"
+          to="/sample-case"
           style={{
             display: "inline-block", marginTop: 34, background: NAVY, color: "#F4F6FB",
             padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
