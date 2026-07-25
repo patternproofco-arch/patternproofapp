@@ -172,17 +172,19 @@ export const enrichEvidence = createServerFn({ method: "POST" })
 
     // Only flip to 'suggested' when we actually have a candidate; otherwise
     // leave the row alone so direct-uploaded evidence stays confirmed.
-    const update: Record<string, unknown> = {
+    const update = {
       exif_captured_at: exifCapturedAt,
       in_image_timestamp_text: inImageTimestampText,
       gps_lat: gpsLat,
       gps_lon: gpsLon,
+      ...(suggestedId
+        ? {
+            suggested_incident_id: suggestedId,
+            match_reason: matchReason,
+            review_status: "suggested",
+          }
+        : {}),
     };
-    if (suggestedId) {
-      update.suggested_incident_id = suggestedId;
-      update.match_reason = matchReason;
-      update.review_status = "suggested";
-    }
     await supabase
       .from("evidence")
       .update(update)
