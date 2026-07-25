@@ -587,6 +587,103 @@ export const ingestRecordedThread = createServerFn({ method: "POST" })
 
     return { ok: true as const, threadId: inserted.id };
   });
+
+// -----------------------------------------------------------------------------
+// Tier 3 transcription. We deliberately do NOT create a linked evidence row —
+// the recording lives under message_threads (its own surface with capture
+// method, participant hint, primary_artifact_urls). Fabricating an evidence
+// row just to reuse transcribeEvidence would leak the video into the Evidence
+// tabs, require SHA/EXIF plumbing, and couple two features that render very
+// differently. Instead we call the same Lovable AI transcription endpoint
+// directly and store the transcript on the thread's `summary` field, which
+// is already labeled "AI-generated — unverified" by the message-thread UI.
+// -----------------------------------------------------------------------------
+
+export const transcribeRecordedThread = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ threadId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const key = process.env.LOVABLE_API_KEY;
+
+    const rowRes = await supabase
+      .from("message_threads")
+      .select("id, file_url, source_filename, capture_method")
+      .eq("id", data.threadId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (rowRes.error || !rowRes.data) throw new Error("Thread not found");
+    const row = rowRes.data as { id: string; file_url: string; source_filename: string | null; capture_method: string | null };
+    if (row.capture_method !== "screen_recording") {
+      throw new Error("Only screen recordings are transcribed here.");
+    }
+
+    await supabase
+      .from("message_threads")
+      .update({ parse_status: "pending" })
+      .eq("id", row.id)
+      .eq("user_id", userId);
+
+    const failFriendly = async (msg: string) => {
+      await supabase
+        .from("message_threads")
+        .update({
+          parse_status: "failed",
+          parse_error: msg,
+        })
+        .eq("id", row.id)
+        .eq("user_id", userId);
+    };
+
+    if (!key) {
+      await failFriendly("Couldn't generate a transcript automatically. The video is still saved as your evidence.");
+      return { ok: false as const, reason: "no_key" as const };
+    }
+
+    try {
+      const dl = await supabase.storage.from("evidence-files").download(row.file_url);
+      if (dl.error || !dl.data) {
+        await failFriendly("Couldn't generate a transcript automatically. The video is still saved as your evidence.");
+        return { ok: false as const, reason: "download_failed" as const };
+      }
+      const form = new FormData();
+      form.append("file", dl.data, row.source_filename ?? "recording.mp4");
+      form.append("model", "openai/gpt-4o-transcribe");
+      form.append("response_format", "verbose_json");
+
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}` },
+        body: form,
+      });
+      if (!res.ok) {
+        await failFriendly("Couldn't generate a transcript automatically. The video is still saved as your evidence.");
+        return { ok: false as const, reason: "api_failed" as const, status: res.status };
+      }
+      const json = (await res.json()) as { text?: string; segments?: Array<{ text?: string }> };
+      const text = (json.text ?? (json.segments ?? []).map((s) => s.text ?? "").join(" ")).trim();
+      if (!text) {
+        await failFriendly("Couldn't generate a transcript automatically. The video is still saved as your evidence.");
+        return { ok: false as const, reason: "empty" as const };
+      }
+
+      await supabase
+        .from("message_threads")
+        .update({
+          summary: text,
+          parse_status: "parsed",
+          parse_error: null,
+        })
+        .eq("id", row.id)
+        .eq("user_id", userId);
+
+      return { ok: true as const, length: text.length };
+    } catch {
+      await failFriendly("Couldn't generate a transcript automatically. The video is still saved as your evidence.");
+      return { ok: false as const, reason: "exception" as const };
+    }
+  });
+
 // -----------------------------------------------------------------------------
 // Call-log photo import (iPhone + Android — same photo/OCR path).
 // A call log is not a message thread, but survivors need it in the same
