@@ -144,7 +144,12 @@ function TopBar() {
         <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em", color: INK, textDecoration: "none", textTransform: "uppercase" }}>
           ← PatternProof
         </Link>
-        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: MUTED, textTransform: "uppercase" }}>DV organizations</div>
+        <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+          <Link to="/how-it-works" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
+            How it works
+          </Link>
+          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: MUTED, textTransform: "uppercase" }}>DV organizations</div>
+        </div>
       </div>
     </header>
   );
