@@ -29,6 +29,7 @@ interface EvidenceRow {
   integrity_verified_at?: string | null;
   exif_captured_at?: string | null;
   sha256?: string | null;
+  review_status?: string | null;
 }
   // review_status: "suggested" rows are held back from exports/attorney views
   // until the survivor confirms the match on /evidence-review.
