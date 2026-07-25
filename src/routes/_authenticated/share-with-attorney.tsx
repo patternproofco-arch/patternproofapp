@@ -150,6 +150,18 @@ function ShareWithAttorney() {
                       <option key={c.id} value={c.id}>{(c.case_name?.trim() || c.other_party?.trim() || "Untitled case")}</option>
                     ))}
                   </select>
+                  {(() => {
+                    const sel = cases.find((c) => c.id === caseId);
+                    if (!sel) return null;
+                    const empty = (sel.highlighted_incident_ids ?? []).length === 0 && (sel.attached_evidence_ids ?? []).length === 0;
+                    if (!empty) return null;
+                    return (
+                      <div className="mt-2 rounded-lg p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}>
+                        This case doesn't have any incidents or files added to it yet, so your attorney would open an empty file.{" "}
+                        <Link to="/case-builder" style={{ textDecoration: "underline" }}>Add them in Case Builder</Link> first, or share all cases instead.
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
               <div>
