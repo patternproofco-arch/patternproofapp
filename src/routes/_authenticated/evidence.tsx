@@ -362,15 +362,50 @@ function EvidencePage() {
       </form>
 
       <div className="mt-8">
-        {items.length === 0 ? (
+        {(() => {
+          const docItems = items.filter((r) => classifyEvidence(r) === "documentation");
+          const evItems = items.filter((r) => classifyEvidence(r) === "evidence");
+          const shown = tab === "documentation" ? docItems : evItems;
+          return (
+            <>
+              <div className="flex flex-col gap-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={() => setTab("documentation")}
+                    className="rounded-full px-4 py-1.5 text-[13px] font-semibold"
+                    style={{
+                      background: tab === "documentation" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
+                      color: tab === "documentation" ? "#FFFDD0" : "var(--foreground)",
+                      border: tab === "documentation" ? "1px solid var(--foreground)" : "1px solid rgba(0,0,0,0.10)",
+                    }}>
+                    Documentation · {docItems.length}
+                  </button>
+                  <button type="button" onClick={() => setTab("evidence")}
+                    className="rounded-full px-4 py-1.5 text-[13px] font-semibold"
+                    style={{
+                      background: tab === "evidence" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
+                      color: tab === "evidence" ? "#FFFDD0" : "var(--foreground)",
+                      border: tab === "evidence" ? "1px solid var(--foreground)" : "1px solid rgba(0,0,0,0.10)",
+                    }}>
+                    Evidence · {evItems.length}
+                  </button>
+                </div>
+                <p className="text-[12px]" style={{ color: "var(--muted-foreground)", lineHeight: 1.5 }}>
+                  {tab === "documentation"
+                    ? "Your records — screenshots, notes, and message-thread exports. Preserved and searchable, but not yet independently verified. Items move to Evidence automatically when device metadata (EXIF) or an integrity hash is confirmed."
+                    : "Files with intact device metadata, verified integrity hashes, or official-record status. These carry more evidentiary weight in court because their origin and authenticity can be independently checked."}
+                </p>
+              </div>
+              {shown.length === 0 ? (
           <div className="card-pp">
             <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-              Nothing uploaded yet. Screenshots, voice memos, documents — anything that captures what happened belongs here.
+                    {tab === "documentation"
+                      ? "Nothing here yet. Screenshots, voice memos, message exports — anything that captures what happened belongs here first."
+                      : "Nothing here yet. Photos taken directly with your phone camera (EXIF intact) and files with verified integrity checks will show up here."}
             </p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((it) => {
+                  {shown.map((it) => {
               const url = previewUrls[it.id];
               const linked = incidents.find((i) => i.id === it.linked_incident_id);
               return (
@@ -400,6 +435,9 @@ function EvidencePage() {
             })}
           </div>
         )}
+            </>
+          );
+        })()}
       </div>
 
       {/* AI Review Modal */}
