@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Link } from "@tanstack/react-router";
+import { BrandLockup } from "@/components/brand/BrandLockup";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -66,9 +67,11 @@ function Index() {
           padding: "clamp(64px,10vw,120px) 24px 40px",
         }}
       >
+        <BrandLockup size={78} />
+
         <div
           className="mono-meta mono-meta--muted"
-          style={{ marginBottom: 28, textTransform: "uppercase" }}
+          style={{ marginTop: 32, marginBottom: 28, textTransform: "uppercase" }}
         >
           PatternProof · Private documentation
         </div>

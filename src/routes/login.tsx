@@ -8,7 +8,7 @@ import { getMyRole } from "@/lib/attorney-portal.functions";
 import { recordOrgReferral } from "@/lib/payments.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Logo } from "@/components/Logo";
+import { AppMark } from "@/components/brand/AppMark";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (s: Record<string, unknown>) => {
@@ -148,7 +148,7 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center px-5 py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <Logo variant="survivor" size={88} />
+          <AppMark size={76} />
           <p className="font-nunito mt-3 text-[15px]" style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>
             Private documentation for your case.
           </p>

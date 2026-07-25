@@ -33,8 +33,8 @@ interface LegalItem {
 }
 
 const LEGAL_COLOR: Record<string, string> = {
-  tro: "#E77B56", fro: "#E77B56",
-  police_report: "#6A92D6", "911_log": "#6A92D6",
+  tro: "#C5674A", fro: "#C5674A",
+  police_report: "#5B4CD6", "911_log": "#5B4CD6",
   custody_order: "#A8D8B9", court_order: "#A8D8B9",
   cps_report: "#D2B48C", hearing_transcript: "#B57E60", other: "#B57E60",
 };
@@ -223,14 +223,14 @@ function TimelinePage() {
                 return (
                   <div key={`l-${l.id}`} className="relative">
                     <span className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4" style={{ background: color, boxShadow: "0 0 0 4px var(--background)" }}>
-                      <FileText size={10} color="#2A1A10" />
+                      <FileText size={10} color="#14131F" />
                     </span>
                     <div className="card-pp" style={{ borderLeft: `3px solid ${color}` }}>
                       <div className="font-serif italic text-[16px]">
                         {new Date(row.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
                       </div>
                       <div className="mt-1">
-                        <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: color, color: "#2A1A10" }}>
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: color, color: "#14131F" }}>
                           {LEGAL_LABEL[l.document_type] ?? "Document"}
                         </span>
                       </div>

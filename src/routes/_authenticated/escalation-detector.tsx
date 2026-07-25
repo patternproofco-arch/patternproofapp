@@ -212,8 +212,8 @@ function SeverityIndicatorsPage() {
 const STATUS_COLOR: Record<Status, string> = {
   unsure: "#B6A38A",
   confirmed: "#A8D8B9",
-  rejected: "#E77B56",
-  edited: "#6A92D6",
+  rejected: "#C5674A",
+  edited: "#5B4CD6",
 };
 const STATUS_LABEL: Record<Status, string> = {
   unsure: "Unsure",

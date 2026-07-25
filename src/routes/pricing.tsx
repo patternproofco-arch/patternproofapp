@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Logo, type LogoVariant } from "@/components/Logo";
+import { AppMark } from "@/components/brand/AppMark";
+import { BrandLockup } from "@/components/brand/BrandLockup";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 
@@ -27,7 +28,6 @@ type Tier = {
   priceStrike?: string;
   sub: string;
   eyebrowNote?: string;
-  logoVariant: LogoVariant;
   quote: string;
   features: string[];
   cta: string;
@@ -41,7 +41,6 @@ const BASE_TIERS: Tier[] = [
     name: "Survivor",
     price: "Free",
     sub: "forever",
-    logoVariant: "survivor",
     quote: "Built by a survivor, for survivors. Always free.",
     features: [
       "Unlimited incident logging",
@@ -59,7 +58,6 @@ const BASE_TIERS: Tier[] = [
     name: "Solo Attorney",
     price: "$297",
     sub: "/month · Solo",
-    logoVariant: "attorney",
     quote: "For solo practitioners taking DV and custody cases one at a time.",
     features: [
       "One attorney seat",
@@ -79,7 +77,6 @@ const BASE_TIERS: Tier[] = [
     name: "DV Organization",
     price: "Free",
     sub: "for every survivor you refer",
-    logoVariant: "org",
     quote: "You are a partner, not a customer. Your survivors never pay.",
     features: [
       "Free forever for every survivor your organization refers",
@@ -102,7 +99,6 @@ function buildTiers(remainingCharter: number | null): Tier[] {
         price: "$897",
         sub: "/month · up to 15 seats",
         eyebrowNote: "Charter cohort is full — thank you.",
-        logoVariant: "attorney",
         quote: "Built for 3–15 attorney family-law firms.",
         features: [
           "Up to 15 attorney seats in one firm workspace",
@@ -127,7 +123,6 @@ function buildTiers(remainingCharter: number | null): Tier[] {
           remainingCharter === null
             ? "Charter program — limited to 10 firms"
             : `${remainingCharter} of 10 Charter spots remaining`,
-        logoVariant: "attorney",
         quote: "Built for 3–15 attorney family-law firms.",
         features: [
           "Up to 15 attorney seats in one firm workspace",
@@ -210,7 +205,7 @@ function PricingPage() {
         >
           <ArrowLeft size={16} /> Home
         </Link>
-        <Logo variant="survivor" size={40} />
+        <BrandLockup size={36} showTagline={false} />
       </header>
 
       <main className="app-surface" style={{ maxWidth: 1180, margin: "0 auto", padding: "40px 24px 120px" }}>
@@ -430,7 +425,7 @@ function TierCard({ tier }: { tier: Tier }) {
       )}
 
       <div style={{ marginBottom: 20 }}>
-        <Logo variant={tier.logoVariant} size={48} onDark={isAttorney} />
+        <AppMark size={44} onDark={isAttorney} />
       </div>
 
       <div

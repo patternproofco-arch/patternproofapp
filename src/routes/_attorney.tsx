@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, getAttorneyProfile } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
-import { Logo } from "@/components/Logo";
+import { AppMark } from "@/components/brand/AppMark";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -140,7 +140,7 @@ function AttorneyTopNav() {
   return (
     <nav className="att-nav">
       <Link to="/clients" className="att-nav-brand" style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-        <Logo variant="attorney" size={36} onDark />
+        <AppMark size={34} onDark />
         <span style={{ opacity: 0.55, fontSize: 13 }}>· Attorney Portal</span>
       </Link>
 

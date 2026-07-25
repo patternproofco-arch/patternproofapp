@@ -5,7 +5,7 @@ import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
 import { QuickExitButton } from "@/components/QuickExitButton";
-import { Logo } from "@/components/Logo";
+import { AppMark } from "@/components/brand/AppMark";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -52,7 +52,7 @@ function Onboarding() {
   return (
     <div className="relative mx-auto max-w-2xl px-5 py-10 md:py-14">
       <div className="mb-6 flex items-center justify-between">
-        <Logo variant="survivor" size={40} />
+        <AppMark size={40} />
         <QuickExitButton />
       </div>
 

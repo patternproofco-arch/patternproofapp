@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowLeft, Check, Copy } from "lucide-react";
-import { Logo } from "@/components/Logo";
+import { BrandLockup } from "@/components/brand/BrandLockup";
 
 export const Route = createFileRoute("/request-org-access")({
   head: () => ({
@@ -46,7 +46,7 @@ function RequestOrgAccess() {
           <ArrowLeft size={14} /> Back to PatternProof
         </Link>
         <div style={{ background: "#FFFFFF", borderRadius: 24, padding: 36, border: "1px solid var(--border)" }}>
-          <Logo variant="org" size={56} />
+          <BrandLockup size={44} />
           <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700, marginTop: 20 }}>
             DV organizations · invite-only
           </div>

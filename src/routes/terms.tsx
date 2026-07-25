@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { Logo } from "@/components/Logo";
+import { BrandLockup } from "@/components/brand/BrandLockup";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
@@ -29,7 +29,7 @@ function Terms() {
         <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--muted-foreground)", textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
           <ArrowLeft size={16} /> Home
         </Link>
-        <Logo variant="survivor" size={36} />
+        <BrandLockup size={34} showTagline={false} />
       </header>
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "24px 24px 96px" }}>
         <div style={{ fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700 }}>
