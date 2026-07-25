@@ -9,8 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TriageRouteImport } from './routes/triage'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
 import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
@@ -25,6 +27,7 @@ import { Route as ForOrganizationsRouteImport } from './routes/for-organizations
 import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
 import { Route as EvidenceIntegrityRouteImport } from './routes/evidence-integrity'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as ChooseRoleRouteImport } from './routes/choose-role'
 import { Route as AiTransparencyRouteImport } from './routes/ai-transparency'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
@@ -85,6 +88,11 @@ import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
+const TriageRoute = TriageRouteImport.update({
+  id: '/triage',
+  path: '/triage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -93,6 +101,11 @@ const TermsRoute = TermsRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelfHelpGuideRoute = SelfHelpGuideRouteImport.update({
+  id: '/self-help-guide',
+  path: '/self-help-guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SafetyRoute = SafetyRouteImport.update({
@@ -163,6 +176,11 @@ const EvidenceIntegrityRoute = EvidenceIntegrityRouteImport.update({
 const DemoRoute = DemoRouteImport.update({
   id: '/demo',
   path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChooseRoleRoute = ChooseRoleRouteImport.update({
+  id: '/choose-role',
+  path: '/choose-role',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AiTransparencyRoute = AiTransparencyRouteImport.update({
@@ -485,6 +503,7 @@ const ApiPublicPaymentsWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-transparency': typeof AiTransparencyRoute
+  '/choose-role': typeof ChooseRoleRoute
   '/demo': typeof DemoRoute
   '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
@@ -499,8 +518,10 @@ export interface FileRoutesByFullPath {
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
+  '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/triage': typeof TriageRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
@@ -560,6 +581,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-transparency': typeof AiTransparencyRoute
+  '/choose-role': typeof ChooseRoleRoute
   '/demo': typeof DemoRoute
   '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
@@ -574,8 +596,10 @@ export interface FileRoutesByTo {
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
+  '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/triage': typeof TriageRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
@@ -636,6 +660,7 @@ export interface FileRoutesById {
   '/_attorney': typeof AttorneyRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/ai-transparency': typeof AiTransparencyRoute
+  '/choose-role': typeof ChooseRoleRoute
   '/demo': typeof DemoRoute
   '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
@@ -650,8 +675,10 @@ export interface FileRoutesById {
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
+  '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/triage': typeof TriageRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_attorney/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
@@ -713,6 +740,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/ai-transparency'
+    | '/choose-role'
     | '/demo'
     | '/evidence-integrity'
     | '/for-attorneys'
@@ -727,8 +755,10 @@ export interface FileRouteTypes {
     | '/professional-access'
     | '/request-org-access'
     | '/safety'
+    | '/self-help-guide'
     | '/sitemap.xml'
     | '/terms'
+    | '/triage'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/attorney-feedback'
@@ -788,6 +818,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/ai-transparency'
+    | '/choose-role'
     | '/demo'
     | '/evidence-integrity'
     | '/for-attorneys'
@@ -802,8 +833,10 @@ export interface FileRouteTypes {
     | '/professional-access'
     | '/request-org-access'
     | '/safety'
+    | '/self-help-guide'
     | '/sitemap.xml'
     | '/terms'
+    | '/triage'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/attorney-feedback'
@@ -863,6 +896,7 @@ export interface FileRouteTypes {
     | '/_attorney'
     | '/_authenticated'
     | '/ai-transparency'
+    | '/choose-role'
     | '/demo'
     | '/evidence-integrity'
     | '/for-attorneys'
@@ -877,8 +911,10 @@ export interface FileRouteTypes {
     | '/professional-access'
     | '/request-org-access'
     | '/safety'
+    | '/self-help-guide'
     | '/sitemap.xml'
     | '/terms'
+    | '/triage'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_attorney/attorney-feedback'
@@ -941,6 +977,7 @@ export interface RootRouteChildren {
   AttorneyRoute: typeof AttorneyRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AiTransparencyRoute: typeof AiTransparencyRoute
+  ChooseRoleRoute: typeof ChooseRoleRoute
   DemoRoute: typeof DemoRoute
   EvidenceIntegrityRoute: typeof EvidenceIntegrityRoute
   ForAttorneysRoute: typeof ForAttorneysRoute
@@ -955,8 +992,10 @@ export interface RootRouteChildren {
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   SafetyRoute: typeof SafetyRoute
+  SelfHelpGuideRoute: typeof SelfHelpGuideRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  TriageRoute: typeof TriageRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
@@ -973,6 +1012,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/triage': {
+      id: '/triage'
+      path: '/triage'
+      fullPath: '/triage'
+      preLoaderRoute: typeof TriageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -985,6 +1031,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/self-help-guide': {
+      id: '/self-help-guide'
+      path: '/self-help-guide'
+      fullPath: '/self-help-guide'
+      preLoaderRoute: typeof SelfHelpGuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/safety': {
@@ -1083,6 +1136,13 @@ declare module '@tanstack/react-router' {
       path: '/demo'
       fullPath: '/demo'
       preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/choose-role': {
+      id: '/choose-role'
+      path: '/choose-role'
+      fullPath: '/choose-role'
+      preLoaderRoute: typeof ChooseRoleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai-transparency': {
@@ -1631,6 +1691,7 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneyRoute: AttorneyRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AiTransparencyRoute: AiTransparencyRoute,
+  ChooseRoleRoute: ChooseRoleRoute,
   DemoRoute: DemoRoute,
   EvidenceIntegrityRoute: EvidenceIntegrityRoute,
   ForAttorneysRoute: ForAttorneysRoute,
@@ -1645,8 +1706,10 @@ const rootRouteChildren: RootRouteChildren = {
   ProfessionalAccessRoute: ProfessionalAccessRoute,
   RequestOrgAccessRoute: RequestOrgAccessRoute,
   SafetyRoute: SafetyRoute,
+  SelfHelpGuideRoute: SelfHelpGuideRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  TriageRoute: TriageRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
