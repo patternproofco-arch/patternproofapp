@@ -40,17 +40,15 @@ function ForOrganizations() {
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(56px,9vw,104px) 24px 40px" }}>
         <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, marginBottom: 24 }}>
-          Referral partners · DV organizations
+          For DV organizations
         </div>
         <h1 style={{ fontFamily: SERIF, fontWeight: 300, fontSize: "clamp(2.2rem,5.2vw,3.8rem)", lineHeight: 1.05, letterSpacing: "-0.02em", margin: 0 }}>
-          Hand every survivor a place
+          Smoother days.
           <br />
-          <em>to write it down.</em>
+          <em>More people served.</em>
         </h1>
         <p style={{ marginTop: 24, fontSize: 18, lineHeight: 1.6, color: "#3A3849", maxWidth: 640 }}>
-          PatternProof is free for survivors. You can hand it out at intake, at
-          a safety-plan appointment, or at a courtroom accompaniment — no cost
-          to your org, no data flowing back to us, no license to manage.
+          Less time on paperwork no one but your funder sees. More time with the person in front of you.
         </p>
         <Link
           to="/request-org-access"
@@ -60,65 +58,61 @@ function ForOrganizations() {
             textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
           }}
         >
-          Partner with us →
+          See how it fits your program →
         </Link>
-        <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.06em" }}>
-          No contract. No cost. Referral link for attribution only.
-        </div>
       </section>
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 24px 80px" }}>
-        <SectionRule label="What intake feels like" />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 20 }}>
-          <ExhibitCard
-            tag="BEFORE · WITHOUT A TOOL TO HAND OUT"
-            tagTone="muted"
-            body={
-              <div style={{ fontFamily: SERIF, fontSize: 16, lineHeight: 1.6, color: MUTED }}>
-                Advocate takes hand-written notes on legal pads. Survivor tries to
-                remember dates on the spot. Follow-up is a scan of the notes,
-                emailed if she has a safe address. By the time a referral to
-                counsel happens, most of the specifics are already gone.
-              </div>
-            }
+        <SectionRule label="Before / after" />
+        <div style={{ display: "grid", gap: 16 }}>
+          <BeforeAfter
+            label="Intake"
+            before="She repeats her story to multiple staff members. Notes end up inconsistent across the team."
+            after="Her history is documented once. Staff can review it without asking her to repeat it."
           />
-          <ExhibitCard
-            tag="AFTER · WITH PATTERNPROOF ON HER PHONE"
-            tagTone="accent"
-            accent={SAGE}
-            body={
-              <div>
-                <div style={{ display: "grid", gap: 10 }}>
-                  <PartnerRow n="01" label="At intake" body="Advocate walks her through the first 3 entries in her own account. Nothing shared. Nothing stored on org systems." />
-                  <PartnerRow n="02" label="Between visits" body="She adds entries at her own pace. Approximate dates and unknown dates are first-class — she doesn't have to remember exactly." />
-                  <PartnerRow n="03" label="At referral" body="When she's ready to talk to counsel, she shares her structured chronology. The attorney starts on strategy, not sorting screenshots." />
-                </div>
-                <div style={{ marginTop: 14, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                  Your org never touches her records. She controls every share.
-                </div>
-              </div>
-            }
+          <BeforeAfter
+            label="Case files"
+            before="Scattered across paper files, shared drives, and individual caseworkers' notebooks."
+            after="One organized record per survivor, visible to the whole team."
+          />
+          <BeforeAfter
+            label="Serving more people"
+            before="Capacity is capped by hours spent per file — not by how many people are asking for help."
+            after="Same staff, more room for the people already reaching out."
           />
         </div>
       </section>
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 80px" }}>
-        <SectionRule label="How the partnership works" />
-        <Relief n="01" title="Free forever for survivors." body="No trial, no upsell, no card. Survivor accounts stay free — that's the whole point." />
-        <Relief n="02" title="No data-sharing with your org." body="Advocates can't see her records. PatternProof can't see them either. She holds the key to every share." />
-        <Relief n="03" title="A referral code, if you want attribution." body="Optional short code (e.g. ?ref=YOURORG). We use it only so we can tell you how many survivors your team routed our way. Nothing personal." />
-        <Relief n="04" title="Aligned with funder priorities." body="Supports OVC/DOJ-funded outcomes: better documentation, cleaner referrals to legal aid, less re-traumatization at intake." />
+        <SectionRule label="The number that hasn't moved" />
+        <div
+          style={{
+            border: `1px solid ${RULE}`,
+            borderLeft: `3px solid ${SAGE}`,
+            padding: "24px 26px",
+            clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
+          }}
+        >
+          <div style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 22, lineHeight: 1.5, color: INK }}>
+            Nationally, domestic violence programs turned away over{" "}
+            <strong style={{ fontWeight: 500 }}>13,000 requests for help in a single day in 2025</strong> — not for lack of need, but for lack of staff time and resources. Time reclaimed from paperwork isn't spare time. It already has somewhere to go.
+          </div>
+          <div style={{ marginTop: 14, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            Source: NNEDV, 20th Annual Domestic Violence Counts Report, 2025
+          </div>
+        </div>
       </section>
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 96px" }}>
-        <SectionRule label="Talk to us" />
-        <p style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 22, lineHeight: 1.5, color: INK, margin: 0 }}>
-          If your organization refers survivors to family-law counsel — or
-          wishes it could get them to counsel with more of the story intact —
-          we'd like to hear from you. Setup is a short conversation and a
-          referral link.
+        <SectionRule label="What this doesn't do" />
+        <p style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 20, lineHeight: 1.55, color: INK, margin: 0 }}>
+          Caseworkers report spending 45–50% of their time on documentation alone (NASW, Ferguson time-use studies) — reclaiming even part of that is real capacity, though the actual gain depends on your intake process.
         </p>
-        <div style={{ marginTop: 24 }}>
+        <p style={{ marginTop: 18, fontFamily: SERIF, fontWeight: 300, fontSize: 20, lineHeight: 1.55, color: INK }}>
+          Every record stays under the survivor's control. This doesn't replace your judgment, your relationship with her, or your team's expertise — it gives you more of your day back to use it.
+        </p>
+
+        <div style={{ marginTop: 32 }}>
           <Link
             to="/request-org-access"
             style={{
@@ -127,7 +121,28 @@ function ForOrganizations() {
               textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
             }}
           >
-            Partner with us →
+            See how it fits your program →
+          </Link>
+        </div>
+
+        <div style={{ marginTop: 22, display: "grid", gap: 10 }}>
+          <Link
+            to="/request-org-access"
+            style={{
+              fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase",
+              color: INK, textDecoration: "underline", textUnderlineOffset: 4,
+            }}
+          >
+            Wondering if this fits your existing VOCA/FVPSA funding? →
+          </Link>
+          <Link
+            to="/privacy"
+            style={{
+              fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase",
+              color: INK, textDecoration: "underline", textUnderlineOffset: 4,
+            }}
+          >
+            How this handles VAWA confidentiality requirements →
           </Link>
         </div>
       </section>
@@ -203,27 +218,32 @@ function ExhibitCard({
   );
 }
 
-function PartnerRow({ n, label, body }: { n: string; label: string; body: string }) {
+function BeforeAfter({ label, before, after }: { label: string; before: string; after: string }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "72px 1fr", gap: 14, padding: "10px 0", borderBottom: `1px dashed ${RULE}` }}>
-      <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: MUTED }}>
-        STEP<br /><span style={{ color: INK, fontSize: 12 }}>{n}</span>
+    <div
+      style={{
+        border: `1px solid ${RULE}`,
+        background: PAPER,
+        padding: "20px 22px",
+        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
+      }}
+    >
+      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: INK, marginBottom: 14 }}>
+        {label}
       </div>
-      <div>
-        <div style={{ fontFamily: MONO, fontSize: 12, color: INK, letterSpacing: "0.03em" }}>{label}</div>
-        <div style={{ marginTop: 4, fontFamily: SERIF, fontSize: 15, lineHeight: 1.5, color: INK }}>{body}</div>
-      </div>
-    </div>
-  );
-}
-
-function Relief({ n, title, body }: { n: string; title: string; body: string }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "56px 1fr", gap: 20, padding: "20px 0", borderBottom: `1px solid ${RULE}` }}>
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.16em", color: MUTED }}>{n}</div>
-      <div>
-        <div style={{ fontFamily: SERIF, fontSize: 22, lineHeight: 1.25, color: INK }}>{title}</div>
-        <p style={{ marginTop: 6, fontSize: 15, lineHeight: 1.6, color: "#3A3849" }}>{body}</p>
+      <div style={{ display: "grid", gap: 12 }}>
+        <div style={{ borderLeft: `3px solid rgba(20,19,31,0.25)`, paddingLeft: 14 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: MUTED, textTransform: "uppercase", marginBottom: 4 }}>
+            Before
+          </div>
+          <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: MUTED }}>{before}</div>
+        </div>
+        <div style={{ borderLeft: `3px solid ${SAGE}`, paddingLeft: 14 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: SAGE, textTransform: "uppercase", marginBottom: 4 }}>
+            After
+          </div>
+          <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: INK }}>{after}</div>
+        </div>
       </div>
     </div>
   );
