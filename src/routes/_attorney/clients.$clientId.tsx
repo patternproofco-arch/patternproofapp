@@ -1398,6 +1398,90 @@ function GapsTab({ data }: { data: CaseData }) {
         })
       )}
       <MissingEvidenceChecklistSection clientId={clientId} />
+      <UnlinkedIncidentsSection data={data} clientId={clientId} />
+    </div>
+  );
+}
+
+function UnlinkedIncidentsSection({ data, clientId }: { data: CaseData; clientId: string }) {
+  const reqFn = useServerFn(createDocRequest);
+  const [sent, setSent] = useState<Set<string>>(new Set());
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [open, setOpen] = useState(true);
+
+  const evidenceByIncident = new Map<string, number>();
+  for (const e of data.evidence) {
+    if (!e.linked_incident_id) continue;
+    evidenceByIncident.set(e.linked_incident_id, (evidenceByIncident.get(e.linked_incident_id) ?? 0) + 1);
+  }
+  const unlinked = data.incidents.filter((i) => !evidenceByIncident.has(i.id));
+  if (unlinked.length === 0) return null;
+
+  const summary = (i: CaseData["incidents"][number]) =>
+    (i.description ?? "").slice(0, 80).trim() || "Incident on file";
+
+  const request = async (i: CaseData["incidents"][number]) => {
+    setSendingId(i.id);
+    try {
+      await reqFn({
+        data: {
+          clientId,
+          title: `Corroborating evidence — ${i.date ?? "undated incident"}`,
+          details: `The incident on ${i.date ?? "an unspecified date"} ("${summary(i)}") has no linked evidence. If you have anything from that time — a photo, screenshot, message, medical note, receipt — please attach it to this incident in your account.`,
+        },
+      });
+      setSent((s) => new Set(s).add(i.id));
+      toast("Evidence request sent.");
+    } catch {
+      toast("Couldn't send request.");
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+  return (
+    <div className="att-card">
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{ display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center", background: "transparent", border: 0, padding: 0, cursor: "pointer" }}>
+        <div style={{ textAlign: "left" }}>
+          <div className="att-eyebrow">Incidents without evidence</div>
+          <h3 style={{ fontSize: 16, marginTop: 4 }}>{unlinked.length} incident{unlinked.length === 1 ? "" : "s"} have no linked file</h3>
+          <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
+            Descriptive check — the incident is documented but stands on the survivor&apos;s testimony alone.
+          </p>
+        </div>
+        <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>{open ? "Hide" : "Show"}</span>
+      </button>
+      {open && (
+        <ul style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 8 }}>
+          {unlinked.slice(0, 40).map((i) => {
+            const already = sent.has(i.id);
+            return (
+              <li key={i.id} style={{ padding: "10px 12px", background: "#F8FAFC", borderRadius: 6, borderLeft: "3px solid #94A3B8" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{i.date ?? "Undated"}</div>
+                    <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>{summary(i)}{i.description && i.description.length > 80 ? "…" : ""}</div>
+                  </div>
+                  <button
+                    className="att-btn-secondary"
+                    style={{ padding: "5px 10px", fontSize: 11, whiteSpace: "nowrap" }}
+                    disabled={already || sendingId === i.id}
+                    onClick={() => request(i)}
+                  >
+                    {already ? "Requested" : sendingId === i.id ? "Sending…" : "Request evidence"}
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+          {unlinked.length > 40 && (
+            <li style={{ fontSize: 12, color: "var(--att-text-2)", padding: "6px 12px" }}>
+              …and {unlinked.length - 40} more.
+            </li>
+          )}
+        </ul>
+      )}
     </div>
   );
 }
