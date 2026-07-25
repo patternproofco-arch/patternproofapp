@@ -1,43 +1,42 @@
-import attorneyLogo from "@/assets/logo-attorney-navy.png.asset.json";
-import survivorLogo from "@/assets/logo-survivor-iridescent.png.asset.json";
-import orgLogo from "@/assets/logo-org-sage.png.asset.json";
-
+// Standalone ink-line mark — the clipped-45°-corner exhibit-card shape at icon
+// scale, so the brand mark and the exhibit cards throughout the app share one
+// visual source of truth.
 export type LogoVariant = "attorney" | "survivor" | "org";
 
 interface LogoProps {
-  variant: LogoVariant;
+  variant?: LogoVariant;
   size?: number;
   className?: string;
   onDark?: boolean;
 }
 
-const sources: Record<LogoVariant, { url: string }> = {
-  attorney: attorneyLogo,
-  survivor: survivorLogo,
-  org: orgLogo,
-};
-
-const filters: Record<LogoVariant, string> = {
-  survivor:
-    "drop-shadow(0 0 14px rgba(196,138,232,0.55)) drop-shadow(0 0 28px rgba(120,200,232,0.40))",
-  attorney:
-    "drop-shadow(0 0 14px rgba(120,160,255,0.55)) drop-shadow(0 0 32px rgba(60,110,230,0.40))",
-  org:
-    "drop-shadow(0 0 14px rgba(140,180,120,0.55)) drop-shadow(0 0 30px rgba(110,150,90,0.38))",
-};
-
-export function Logo({ variant, size = 40, className, onDark = false }: LogoProps) {
-  const src = sources[variant].url;
-  const filter = onDark && variant === "attorney" ? "none" : filters[variant];
+export function Logo({ size = 40, className, onDark = false }: LogoProps) {
+  const stroke = onDark ? "#F7F5F0" : "#14131F";
   return (
-    <img
-      src={src}
-      alt="PatternProof logo"
+    <svg
+      viewBox="0 0 72 72"
+      width={size}
       height={size}
-      style={{ height: size, width: "auto", filter, display: "block" }}
+      aria-label="PatternProof"
+      role="img"
       className={className}
-      draggable={false}
-    />
+      style={{ display: "block" }}
+    >
+      <path
+        d="M8 8 H50 L64 22 V64 H8 Z"
+        fill="none"
+        stroke={stroke}
+        strokeWidth={2.2}
+        strokeLinejoin="miter"
+      />
+      <path
+        d="M50 8 V22 H64"
+        fill="none"
+        stroke={stroke}
+        strokeWidth={2.2}
+        strokeLinejoin="miter"
+      />
+    </svg>
   );
 }
 

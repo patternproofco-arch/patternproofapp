@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { Upload, Check, AlertTriangle, Clock, ShieldCheck, Eye } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +12,8 @@ import {
   type PreservationReceipt,
   type PreservationReceiptItem,
 } from "@/lib/evidence-ingest.functions";
+import { enrichEvidence } from "@/lib/evidence-enrichment.functions";
+import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
 
 type UploadPhase = "queued" | "uploading" | "preserving" | "done" | "error";
 
@@ -86,12 +89,15 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const ingest = useServerFn(ingestEvidenceBatch);
   const confirmNear = useServerFn(confirmNearDuplicate);
   const rejectNear = useServerFn(rejectNearDuplicate);
+  const enrich = useServerFn(enrichEvidence);
+  const transcribe = useServerFn(transcribeEvidence);
   const [files, setFiles] = useState<FileState[]>([]);
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<PreservationReceipt | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [nearResolved, setNearResolved] = useState<Record<string, "confirmed" | "rejected">>({});
+  const [suggestionCount, setSuggestionCount] = useState<number | null>(null);
 
   const resolveNear = async (evidenceId: string, action: "confirm" | "reject") => {
     try {
@@ -190,6 +196,33 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       const ok = result.items.filter((i) => i.status !== "failed").length;
       toast(`Preserved ${ok} of ${result.items.length} file${result.items.length === 1 ? "" : "s"}.`);
       onDone?.();
+
+      // Background: extract EXIF/GPS (quarantined), propose incident matches,
+      // and transcribe any audio/video. Never blocks; failures leave the
+      // preserved file untouched.
+      const preserved = result.items.filter((it) => it.evidence_id);
+      let suggested = 0;
+      await Promise.all(
+        preserved.map(async (it) => {
+          try {
+            const r = await enrich({ data: { evidence_id: it.evidence_id! } });
+            if (r.ok && "suggested_incident_id" in r && r.suggested_incident_id) {
+              suggested += 1;
+            }
+          } catch {
+            /* leave preserved but un-enriched */
+          }
+          const mime = it.mime ?? "";
+          if (mime.startsWith("audio/") || mime.startsWith("video/")) {
+            try {
+              await transcribe({ data: { evidence_id: it.evidence_id! } });
+            } catch {
+              /* transcript_status stays 'failed' server-side */
+            }
+          }
+        }),
+      );
+      setSuggestionCount(suggested);
     } catch (err) {
       toast(err instanceof Error ? err.message : "We couldn't finish preserving these files.");
       setFiles((prev) => prev.map((f) => (f.phase === "preserving" ? { ...f, phase: "error", message: "Preservation failed." } : f)));
@@ -328,6 +361,19 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
             <AlertTriangle size={12} style={{ display: "inline", marginRight: 4, verticalAlign: "-2px" }} />
             Do not delete your original source (phone photo, screenshot, email) based only on this import. Keep your originals until you are sure the import is complete.
           </p>
+          {suggestionCount !== null && suggestionCount > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg p-3 text-[13px]" style={{ background: "rgba(106,146,214,0.14)", color: "#1f3a68", border: "1px solid rgba(106,146,214,0.35)" }}>
+              <div className="flex-1">
+                {suggestionCount === 1
+                  ? "1 file looks like it might belong to an incident you've already written down."
+                  : `${suggestionCount} files look like they might belong to incidents you've already written down.`}
+                {" "}Nothing was attached yet — review the suggestions when you're ready.
+              </div>
+              <Link to="/evidence-review" className="btn-ghost text-[12px]">
+                Review suggestions
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>

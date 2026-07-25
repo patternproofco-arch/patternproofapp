@@ -48,6 +48,7 @@ import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authen
 import { Route as AuthenticatedLegalDocumentsRouteImport } from './routes/_authenticated/legal-documents'
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
 import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
+import { Route as AuthenticatedEvidenceReviewRouteImport } from './routes/_authenticated/evidence-review'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
 import { Route as AuthenticatedEscalationDetectorRouteImport } from './routes/_authenticated/escalation-detector'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -281,6 +282,12 @@ const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
   path: '/feedback',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedEvidenceReviewRoute =
+  AuthenticatedEvidenceReviewRouteImport.update({
+    id: '/evidence-review',
+    path: '/evidence-review',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedEvidenceRoute = AuthenticatedEvidenceRouteImport.update({
   id: '/evidence',
   path: '/evidence',
@@ -512,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
+  '/evidence-review': typeof AuthenticatedEvidenceReviewRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
   '/journal': typeof AuthenticatedJournalRoute
   '/legal-documents': typeof AuthenticatedLegalDocumentsRoute
@@ -583,6 +591,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
+  '/evidence-review': typeof AuthenticatedEvidenceReviewRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
   '/journal': typeof AuthenticatedJournalRoute
   '/legal-documents': typeof AuthenticatedLegalDocumentsRoute
@@ -659,6 +668,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/escalation-detector': typeof AuthenticatedEscalationDetectorRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
+  '/_authenticated/evidence-review': typeof AuthenticatedEvidenceReviewRoute
   '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
   '/_authenticated/legal-documents': typeof AuthenticatedLegalDocumentsRoute
@@ -734,6 +744,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/escalation-detector'
     | '/evidence'
+    | '/evidence-review'
     | '/feedback'
     | '/journal'
     | '/legal-documents'
@@ -805,6 +816,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/escalation-detector'
     | '/evidence'
+    | '/evidence-review'
     | '/feedback'
     | '/journal'
     | '/legal-documents'
@@ -880,6 +892,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/escalation-detector'
     | '/_authenticated/evidence'
+    | '/_authenticated/evidence-review'
     | '/_authenticated/feedback'
     | '/_authenticated/journal'
     | '/_authenticated/legal-documents'
@@ -1220,6 +1233,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFeedbackRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/evidence-review': {
+      id: '/_authenticated/evidence-review'
+      path: '/evidence-review'
+      fullPath: '/evidence-review'
+      preLoaderRoute: typeof AuthenticatedEvidenceReviewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/evidence': {
       id: '/_authenticated/evidence'
       path: '/evidence'
@@ -1530,6 +1550,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEscalationDetectorRoute: typeof AuthenticatedEscalationDetectorRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
+  AuthenticatedEvidenceReviewRoute: typeof AuthenticatedEvidenceReviewRoute
   AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
   AuthenticatedLegalDocumentsRoute: typeof AuthenticatedLegalDocumentsRoute
@@ -1563,6 +1584,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEscalationDetectorRoute: AuthenticatedEscalationDetectorRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
+  AuthenticatedEvidenceReviewRoute: AuthenticatedEvidenceReviewRoute,
   AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
   AuthenticatedLegalDocumentsRoute: AuthenticatedLegalDocumentsRoute,
