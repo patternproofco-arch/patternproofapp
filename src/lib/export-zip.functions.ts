@@ -74,9 +74,9 @@ export const generateExportZip = createServerFn({ method: "POST" })
       : supabase.from("incidents").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true });
     const evQ = scopedEvidenceIds
       ? (scopedEvidenceIds.length
-          ? supabase.from("evidence").select("*").eq("user_id", userId).in("id", scopedEvidenceIds).is("deleted_at", null).order("date", { ascending: true })
+          ? supabase.from("evidence").select("*").eq("user_id", userId).in("id", scopedEvidenceIds).is("deleted_at", null).neq("review_status", "suggested").order("date", { ascending: true })
           : Promise.resolve({ data: [] as unknown[] }))
-      : supabase.from("evidence").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true });
+      : supabase.from("evidence").select("*").eq("user_id", userId).is("deleted_at", null).neq("review_status", "suggested").order("date", { ascending: true });
     const ldQ = scopedLegalIds
       ? (scopedLegalIds.length
           ? supabase.from("legal_documents").select("*").eq("user_id", userId).in("id", scopedLegalIds)
