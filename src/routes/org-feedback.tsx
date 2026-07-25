@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Check } from "lucide-react";
-import { Logo } from "@/components/Logo";
+import { BrandLockup } from "@/components/brand/BrandLockup";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/org-feedback")({
@@ -75,7 +75,7 @@ function OrgFeedbackPage() {
       <div style={{ maxWidth: 680, margin: "0 auto" }}>
         <Link to="/" style={backLink}><ArrowLeft size={14} /> Back to PatternProof</Link>
         <div style={cardStyle}>
-          <Logo variant="org" size={48} />
+          <BrandLockup size={40} />
           <div style={eyebrow}>DV organizations · your voice matters</div>
 
           {done ? (

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { Logo } from "@/components/Logo";
+import { AppMark } from "@/components/brand/AppMark";
 import { toast } from "sonner";
 
 const US_STATES = [
@@ -54,7 +54,7 @@ export function OnboardingModal() {
     >
       <div className="card-pp w-full max-w-lg">
         <div className="mb-5 flex flex-col items-center text-center">
-          <Logo variant="survivor" size={64} />
+          <AppMark size={58} />
           <h1 id="pp-onboarding-title" className="font-serif mt-4" style={{ fontSize: 28, lineHeight: 1.2 }}>
             Before you begin
           </h1>
