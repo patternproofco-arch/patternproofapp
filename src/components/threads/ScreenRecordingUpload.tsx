@@ -65,7 +65,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
   };
 
   return (
-    <div style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(176,85,106,0.25)" }}>
+    <div style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(197,103,74,0.25)" }}>
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="label-eyebrow" style={{ color: "#C5674A" }}>Tier 3 · Fallback</div>
@@ -75,7 +75,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
       </div>
 
       <div style={{ display: "flex", gap: 12, padding: 14, borderRadius: 0,
-        background: "rgba(176,85,106,0.08)", border: "1px solid rgba(176,85,106,0.2)", marginBottom: 14 }}>
+        background: "rgba(197,103,74,0.08)", border: "1px solid rgba(197,103,74,0.2)", marginBottom: 14 }}>
         <AlertTriangle size={20} color="#C5674A" style={{ flexShrink: 0, marginTop: 2 }} />
         <div style={{ fontSize: 13.5, color: "#3A3849", lineHeight: 1.55 }}>
           <div style={{ fontWeight: 700, marginBottom: 4, color: "#C5674A" }}>Before you record</div>

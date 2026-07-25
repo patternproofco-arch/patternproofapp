@@ -75,7 +75,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
   };
 
   return (
-    <div style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(124,92,196,0.2)" }}>
+    <div style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(91,76,214,0.2)" }}>
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="label-eyebrow" style={{ color: "#5B4CD6" }}>Tier 1 · Fastest</div>
@@ -108,7 +108,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
       {shots.length > 0 && (
         <div className="mt-4 grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))" }}>
           {shots.map((s, idx) => (
-            <div key={s.id} style={{ position: "relative", borderRadius: 0, overflow: "hidden", border: "1px solid rgba(124,92,196,0.2)" }}>
+            <div key={s.id} style={{ position: "relative", borderRadius: 0, overflow: "hidden", border: "1px solid rgba(91,76,214,0.2)" }}>
               <img src={s.url} alt={`screenshot ${idx + 1}`} style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} />
               <div style={{ position: "absolute", top: 4, left: 4, background: "rgba(0,0,0,0.55)", color: "#F7F5F0", fontSize: 11, padding: "2px 6px", borderRadius: 6 }}>#{idx + 1}</div>
               <div style={{ position: "absolute", top: 4, right: 4, display: "flex", gap: 4 }}>

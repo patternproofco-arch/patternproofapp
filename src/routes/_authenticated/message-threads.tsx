@@ -226,7 +226,7 @@ function MessageThreadsPage() {
         style={{
           display: "flex", gap: 14, padding: 18, borderRadius: 0,
           background: "rgba(91,76,214,0.10), rgba(164,255,239,0.18))",
-          border: "1px solid rgba(124,92,196,0.25)",
+          border: "1px solid rgba(91,76,214,0.25)",
           color: "#14131F",
         }}
       >
@@ -294,7 +294,7 @@ function MessageThreadsPage() {
       {tier === "call_log" && <CallLogPhotos onDone={() => { setTier("picker"); load(); }} onCancel={() => setTier("picker")} />}
 
       {tier === "tier2" && (
-        <section style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(47,141,133,0.25)" }} className="flex flex-col gap-4">
+        <section style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(91,76,214,0.25)" }} className="flex flex-col gap-4">
           <div className="flex items-start justify-between">
             <div>
               <div className="label-eyebrow" style={{ color: "#5B4CD6" }}>Tier 2 · Strongest</div>
@@ -331,8 +331,8 @@ function MessageThreadsPage() {
                 borderRadius: 0,
                 padding: 20,
                 background: "rgba(255,255,255,0.7)",
-                border: "1px solid rgba(124,92,196,0.18)",
-                boxShadow: "0 12px 36px -20px rgba(124,92,196,0.35)",
+                border: "1px solid rgba(91,76,214,0.18)",
+                boxShadow: "0 12px 36px -20px rgba(91,76,214,0.35)",
                 backdropFilter: "blur(14px)",
                 WebkitBackdropFilter: "blur(14px)",
                 display: "flex", flexDirection: "column", gap: 12,
@@ -388,7 +388,7 @@ function MessageThreadsPage() {
             style={{
               padding: 28, borderRadius: 0, textAlign: "center",
               background: "rgba(255,255,255,0.6)",
-              border: "1px dashed rgba(124,92,196,0.3)",
+              border: "1px dashed rgba(91,76,214,0.3)",
               color: "#3A3849", fontSize: 14, lineHeight: 1.6,
             }}
           >
@@ -422,8 +422,8 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
       style={{
         borderRadius: 0, padding: 22,
         background: "rgba(255,255,255,0.75)",
-        border: "1px solid rgba(124,92,196,0.18)",
-        boxShadow: "0 16px 40px -24px rgba(47,141,133,0.35)",
+        border: "1px solid rgba(91,76,214,0.18)",
+        boxShadow: "0 16px 40px -24px rgba(91,76,214,0.35)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
       }}
@@ -522,7 +522,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
         <div
           style={{
             marginTop: 14, padding: "10px 14px",
-            borderRadius: 0, background: "rgba(124,92,196,0.08)",
+            borderRadius: 0, background: "rgba(91,76,214,0.08)",
             fontSize: 12.5, color: "#3D2C5C", fontWeight: 600, letterSpacing: "0.02em",
             display: "inline-flex", alignItems: "center", gap: 8,
           }}
@@ -568,7 +568,7 @@ function TierCard({ eyebrow, title, body, hint, accent, Icon, cta, onClick, reco
 
 function StepCard({ n, title, body }: { n: string; title: string; body: string }) {
   return (
-    <div style={{ borderRadius: 0, padding: 14, background: "rgba(255,255,255,0.6)", border: "1px solid rgba(47,141,133,0.2)" }}>
+    <div style={{ borderRadius: 0, padding: 14, background: "rgba(255,255,255,0.6)", border: "1px solid rgba(91,76,214,0.2)" }}>
       <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", color: "#5B4CD6", marginBottom: 6 }}>STEP {n}</div>
       <div style={{ fontWeight: 700, color: "#14131F", fontSize: 14, marginBottom: 4 }}>{title}</div>
       <p style={{ fontSize: 13, lineHeight: 1.5, color: "#3A3849" }}>{body}</p>
