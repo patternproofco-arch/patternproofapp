@@ -25,6 +25,10 @@ interface EvidenceRow {
   file_url: string;
   file_type: string;
   linked_incident_id: string | null;
+  preservation_status?: string | null;
+  integrity_verified_at?: string | null;
+  exif_captured_at?: string | null;
+  sha256?: string | null;
 }
 interface IncOption { id: string; date: string; description: string }
 
