@@ -124,6 +124,23 @@ function Index() {
           >
             Start documenting →
           </Link>
+          <Link
+            to="/how-it-works"
+            style={{
+              display: "inline-block",
+              marginLeft: 20,
+              padding: "14px 4px",
+              fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+              fontSize: 13,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "#14131F",
+              textDecoration: "underline",
+              textUnderlineOffset: 4,
+            }}
+          >
+            See how it works
+          </Link>
         </div>
 
         <div
