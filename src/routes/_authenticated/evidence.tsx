@@ -28,6 +28,20 @@ interface EvidenceRow {
 }
 interface IncOption { id: string; date: string; description: string }
 
+type EvidenceTab = "documentation" | "evidence";
+
+// Documentation vs Evidence classifier. Evidence = anything with device
+// metadata intact (EXIF), a verified integrity hash, or official preservation
+// status. Everything else — screenshots without EXIF, message-thread exports,
+// personal notes — is Documentation: still preserved, still useful, but not
+// yet independently verifiable.
+function classifyEvidence(r: EvidenceRow): EvidenceTab {
+  if (r.integrity_verified_at) return "evidence";
+  if (r.exif_captured_at) return "evidence";
+  if (r.preservation_status && r.preservation_status !== "pending" && r.preservation_status !== "unknown") return "evidence";
+  return "documentation";
+}
+
 type ExtractedDraft = {
   date: string | null;
   time: string | null;
