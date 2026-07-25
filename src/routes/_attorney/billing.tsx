@@ -42,7 +42,7 @@ function BillingPage() {
     <div style={{ display: "grid", gap: 20, maxWidth: 1080, margin: "0 auto" }}>
       <div>
         <div className="att-eyebrow">Billing</div>
-        <h1 style={{ fontSize: 32, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>Plan &amp; payment</h1>
+        <h1 style={{ fontSize: 32, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>Plan &amp; payment</h1>
       </div>
 
       <div className="att-card" style={{ background: sub.isActive ? "#F0FDF4" : "#FEF2F2", borderColor: sub.isActive ? "#86EFAC" : "#FCA5A5" }}>
@@ -51,7 +51,7 @@ function BillingPage() {
             <div className="att-eyebrow" style={{ color: sub.isActive ? "#166534" : "#991B1B" }}>
               {sub.isActive ? "Active subscription" : "No active subscription"}
             </div>
-            <div style={{ fontSize: 22, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>
+            <div style={{ fontSize: 22, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>
               {sub.isActive
                 ? `PatternProof ${currentTier === "firm" ? "Firm" : currentTier === "enterprise" ? "Enterprise" : currentTier === "solo" ? "Solo" : "Plan"}`
                 : "Pick a plan to unlock case files"}
@@ -99,7 +99,7 @@ function BillingPage() {
                   <span className="att-tag" style={{ position: "absolute", top: 12, right: 12, background: "var(--att-navy)", color: "#fff" }}>Current</span>
                 )}
                 <div className="att-eyebrow">{t.name}</div>
-                <div style={{ fontSize: 30, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>
+                <div style={{ fontSize: 30, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>
                   {t.price}<span style={{ fontSize: 13, color: "var(--att-text-2)" }}>{t.per}</span>
                 </div>
                 <ul style={{ listStyle: "none", padding: 0, marginTop: 14, display: "grid", gap: 8, fontSize: 13 }}>
@@ -139,7 +139,7 @@ function BillingPage() {
             <Plug size={20} />
           </div>
           <div>
-            <div style={{ fontFamily: '"Instrument Serif", serif', fontSize: 20, color: "var(--att-navy)" }}>Clio Manage</div>
+            <div style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 20, color: "var(--att-navy)" }}>Clio Manage</div>
             <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
               Push court packet exports and matter metadata into Clio Manage. Local ZIP
               exports keep working today; live sync unlocks once approval clears.

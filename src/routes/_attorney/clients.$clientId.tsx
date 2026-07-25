@@ -112,7 +112,7 @@ function ClientCaseView() {
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginTop: 12 }}>
         <div>
           <div className="att-eyebrow">Case File</div>
-          <h1 style={{ fontSize: 34, marginTop: 4, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>Client {clientId.slice(0, 8)}</h1>
+          <h1 style={{ fontSize: 34, marginTop: 4, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontWeight: 400 }}>Client {clientId.slice(0, 8)}</h1>
           <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
             <span className="att-mono">{caseId}</span>
             {data.incidents.length > 0 && (
@@ -598,7 +598,7 @@ function Metric({ label, v, help }: { label: string; v: number | string; help?: 
       <div className="att-eyebrow" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
         {label}{help && <HelpCircle size={10} style={{ opacity: 0.6 }} />}
       </div>
-      <div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>{v}</div>
+      <div style={{ fontSize: 26, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>{v}</div>
     </div>
   );
 }
@@ -910,7 +910,7 @@ function IntegrityStat({ label, value, tone }: { label: string; value: number | 
   return (
     <div style={{ padding: 10, background: "#fff", border: "1px solid var(--att-border)", borderRadius: 6 }}>
       <div className="att-eyebrow">{label}</div>
-      <div style={{ fontSize: 20, fontFamily: '"Instrument Serif", serif', marginTop: 2, color }}>{value}</div>
+      <div style={{ fontSize: 20, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 2, color }}>{value}</div>
     </div>
   );
 }
@@ -1963,7 +1963,7 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
     <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}>
       <div className="att-card">
         <SectionTitle icon={<Gauge size={14} />}>Evidence strength</SectionTitle>
-        <div style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', color: strengthColor }}>{strengthPct}%</div>
+        <div style={{ fontSize: 28, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", color: strengthColor }}>{strengthPct}%</div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 8 }}>{strengthLabel} · {linked}/{totalEv || 0} linked to incidents</div>
         <div style={{ height: 6, background: "var(--att-border)", borderRadius: 999 }}>
           <div style={{ width: `${strengthPct}%`, height: "100%", background: strengthColor, borderRadius: 999 }} />
@@ -1972,7 +1972,7 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
 
       <div className="att-card">
         <SectionTitle icon={<ListChecks size={14} />}>Review status</SectionTitle>
-        <div style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif' }}>{reviewed}<span style={{ fontSize: 14, color: "var(--att-text-2)" }}> / {totalEv}</span></div>
+        <div style={{ fontSize: 28, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif" }}>{reviewed}<span style={{ fontSize: 14, color: "var(--att-text-2)" }}> / {totalEv}</span></div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 8 }}>{reviewPct}% reviewed · {exhibits} exhibit{exhibits === 1 ? "" : "s"} · {excluded} excluded</div>
         <div style={{ height: 6, background: "var(--att-border)", borderRadius: 999 }}>
           <div style={{ width: `${reviewPct}%`, height: "100%", background: "var(--att-navy)", borderRadius: 999 }} />
@@ -1981,7 +1981,7 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
 
       <div className="att-card">
         <SectionTitle icon={<Shield size={14} />}>Urgent risk flags</SectionTitle>
-        <div style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', color: highRisk > 0 ? "#EF4444" : "var(--att-text)" }}>{highRisk}</div>
+        <div style={{ fontSize: 28, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", color: highRisk > 0 ? "#EF4444" : "var(--att-text)" }}>{highRisk}</div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
           {highRisk === 0 ? "No high-severity flags active" : `High-severity escalation${highRisk === 1 ? "" : "s"} on record`}
         </div>
@@ -2123,7 +2123,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
     <div style={{ display: "grid", gap: 16 }}>
       <div className="att-card" style={{ background: "linear-gradient(135deg,#0F2547,#1E3A6B)", color: "#fff", borderColor: "transparent" }}>
         <div style={{ fontSize: 10, letterSpacing: 1.4, opacity: 0.75 }}>ATTORNEY INTAKE SUMMARY</div>
-        <h2 style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', marginTop: 4, color: "#fff" }}>Case {caseId}</h2>
+        <h2 style={{ fontSize: 28, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4, color: "#fff" }}>Case {caseId}</h2>
         <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
           Auto-generated from survivor-uploaded evidence · Print or include in the professional-review packet
         </div>
@@ -2283,7 +2283,7 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
     <div style={{ display: "grid", gap: 16 }}>
       <div>
         <div className="att-eyebrow">Exhibit</div>
-        <h3 style={{ fontSize: 18, marginTop: 4, fontFamily: '"Instrument Serif", serif' }}>
+        <h3 style={{ fontSize: 18, marginTop: 4, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif" }}>
           {t.exhibit_label || t.conversation_participant || t.source_filename}
         </h3>
         <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 2 }}>
@@ -2400,7 +2400,7 @@ function MessagesTab({ linkId }: { linkId: string }) {
     <div className="att-card" style={{ display: "grid", gap: 12, maxWidth: 780 }}>
       <div>
         <div className="att-eyebrow">Messages</div>
-        <h3 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 22, marginTop: 4 }}>Attorney ↔ client conversation</h3>
+        <h3 style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 22, marginTop: 4 }}>Attorney ↔ client conversation</h3>
         <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
           Private thread between you and your client. Do not use for evidence — upload evidence in the Evidence tab.
         </p>
@@ -2550,9 +2550,9 @@ function TimeTab({ clientId }: { clientId: string }) {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 12 }}>
-        <div className="att-card"><div className="att-eyebrow">Total logged</div><div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>{fmtHrs(total)}</div></div>
-        <div className="att-card"><div className="att-eyebrow">Billable</div><div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4, color: "var(--att-navy)" }}>{fmtHrs(billable)}</div></div>
-        <div className="att-card"><div className="att-eyebrow">Non-billable</div><div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4, color: "var(--att-text-2)" }}>{fmtHrs(total - billable)}</div></div>
+        <div className="att-card"><div className="att-eyebrow">Total logged</div><div style={{ fontSize: 26, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>{fmtHrs(total)}</div></div>
+        <div className="att-card"><div className="att-eyebrow">Billable</div><div style={{ fontSize: 26, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4, color: "var(--att-navy)" }}>{fmtHrs(billable)}</div></div>
+        <div className="att-card"><div className="att-eyebrow">Non-billable</div><div style={{ fontSize: 26, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4, color: "var(--att-text-2)" }}>{fmtHrs(total - billable)}</div></div>
       </div>
 
       <div className="att-card" style={{ display: "grid", gap: 10 }}>

@@ -50,7 +50,7 @@ function ClientsIndex() {
   return (
     <div>
       <div className="att-eyebrow">Case Files</div>
-      <h1 style={{ fontSize: 36, marginTop: 6, marginBottom: 6, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>Your clients</h1>
+      <h1 style={{ fontSize: 36, marginTop: 6, marginBottom: 6, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontWeight: 400 }}>Your clients</h1>
       <p style={{ color: "var(--att-text-2)", maxWidth: 640, marginBottom: 24 }}>
         Every survivor who has shared their PatternProof case file with you. Read-only. Provenance & integrity logged.
       </p>
@@ -73,7 +73,7 @@ function ClientsIndex() {
             {shared.length > 0 && (
               <div style={{ marginTop: 24 }}>
                 <div className="att-eyebrow" style={{ marginBottom: 6 }}>Shared with you</div>
-                <h2 style={{ fontSize: 22, margin: "0 0 12px", fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>
+                <h2 style={{ fontSize: 22, margin: "0 0 12px", fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontWeight: 400 }}>
                   Cases a firm colleague granted you
                 </h2>
                 <ClientGrid clients={shared} sharedBadge />
@@ -154,7 +154,7 @@ function DiagnosisCard({ clientCount, tier }: { clientCount: number | null; tier
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div>
           <div className="att-eyebrow">Portal status</div>
-          <h2 style={{ fontSize: 22, margin: "4px 0 6px", fontFamily: '"Instrument Serif", serif' }}>
+          <h2 style={{ fontSize: 22, margin: "4px 0 6px", fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif" }}>
             {status === "loading" && "Opening your portal…"}
             {status === "empty" && "You're ready. The first invite is the next move."}
             {status === "active" && `${clientCount} client case file${clientCount === 1 ? "" : "s"} active.`}
@@ -186,7 +186,7 @@ function Stat({ icon, label, v }: { icon: React.ReactNode; label: string; v: num
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--att-slate)", fontSize: 11, fontWeight: 600, letterSpacing: 0.6, textTransform: "uppercase" }}>{icon}{label}</div>
-      <div style={{ fontSize: 24, fontFamily: '"Instrument Serif", serif', marginTop: 2 }}>{v}</div>
+      <div style={{ fontSize: 24, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 2 }}>{v}</div>
     </div>
   );
 }
@@ -436,7 +436,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 12, flexWrap: "wrap" }}>
         <div>
           <div className="att-eyebrow">Survivor invites</div>
-          <h2 style={{ fontSize: 22, marginTop: 4, fontFamily: '"Instrument Serif", serif' }}>
+          <h2 style={{ fontSize: 22, marginTop: 4, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif" }}>
             Invite a survivor to share their case
           </h2>
         </div>
