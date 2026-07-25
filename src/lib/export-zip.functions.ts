@@ -130,11 +130,16 @@ export const generateExportZip = createServerFn({ method: "POST" })
       !e.family_id ? true : familyCanonical.get(e.family_id) === e.id;
 
     // Augment evidence CSV rows with family_id and is_canonical.
-    const evidenceCsvRows = evidence.map((e) => ({
-      ...e,
-      family_id: e.family_id ?? null,
-      is_canonical: isCanonical(e),
-    }));
+    // Strip quarantined GPS fields — location data is opt-in per-item in the
+    // app and MUST NOT leak into any bulk export.
+    const evidenceCsvRows = evidence.map((e) => {
+      const { gps_lat: _lat, gps_lon: _lon, gps_reveal_opt_in: _opt, ...rest } = e;
+      return {
+        ...rest,
+        family_id: e.family_id ?? null,
+        is_canonical: isCanonical(e),
+      };
+    });
 
     const zip = new JSZip();
     const exportedAt = new Date().toISOString();
