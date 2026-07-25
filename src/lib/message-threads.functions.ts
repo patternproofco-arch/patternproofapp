@@ -205,7 +205,7 @@ export const parseMessageThread = createServerFn({ method: "POST" })
     // Confirm ownership
     const { data: thread, error: threadErr } = await supabase
       .from("message_threads")
-      .select("id,user_id,source_type")
+      .select("id,user_id,source_type,capture_method")
       .eq("id", data.threadId)
       .single();
     if (threadErr || !thread || thread.user_id !== userId) {
@@ -283,6 +283,22 @@ export const parseMessageThread = createServerFn({ method: "POST" })
       .update(update)
       .eq("id", data.threadId);
     if (updErr) throw new Error(updErr.message);
+
+    // Cross-tier audit trail — records which capture method was used.
+    await supabase.rpc("record_audit_event", {
+      p_user_id: userId,
+      p_event_type: "thread.imported",
+      p_subject_kind: "message_thread",
+      p_subject_id: data.threadId,
+      p_actor_kind: "user",
+      p_actor_id: userId,
+      p_meta: {
+        capture_method: (thread as { capture_method?: string }).capture_method ?? "backup_export",
+        source_type: sourceType,
+        message_count: parsed.length,
+        status,
+      },
+    });
 
     return {
       ok: true as const,
