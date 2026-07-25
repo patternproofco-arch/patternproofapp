@@ -187,37 +187,6 @@ function SectionRule({ label }: { label: string }) {
   );
 }
 
-function ExhibitCard({
-  tag, tagTone, accent, body,
-}: { tag: string; tagTone: "muted" | "accent"; accent?: string; body: React.ReactNode }) {
-  const border = tagTone === "accent" && accent ? accent : "rgba(20,19,31,0.20)";
-  return (
-    <div
-      style={{
-        position: "relative",
-        background: PAPER,
-        border: `1px solid ${border}`,
-        borderLeft: `3px solid ${tagTone === "accent" && accent ? accent : "rgba(20,19,31,0.35)"}`,
-        padding: "22px 24px",
-        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
-      }}
-    >
-      <div
-        style={{
-          display: "inline-block",
-          fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase",
-          color: tagTone === "accent" && accent ? accent : MUTED,
-          border: `1px solid ${tagTone === "accent" && accent ? accent : "rgba(20,19,31,0.25)"}`,
-          padding: "3px 8px", marginBottom: 14,
-        }}
-      >
-        {tag}
-      </div>
-      {body}
-    </div>
-  );
-}
-
 function BeforeAfter({ label, before, after }: { label: string; before: string; after: string }) {
   return (
     <div
