@@ -2,11 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Upload, FileText, FileSpreadsheet, FileCode2, FileArchive, FileType2, Shield, Sparkles, AlertTriangle, MessageSquare, Loader2, Trash2 } from "lucide-react";
+import { Upload, FileText, FileSpreadsheet, FileCode2, FileArchive, FileType2, Shield, Sparkles, AlertTriangle, MessageSquare, Loader2, Trash2, Camera, Video, Laptop } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { parseMessageThread } from "@/lib/message-threads.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { ScreenshotStitcher } from "@/components/threads/ScreenshotStitcher";
+import { ScreenRecordingUpload } from "@/components/threads/ScreenRecordingUpload";
 
 export const Route = createFileRoute("/_authenticated/message-threads")({
   component: MessageThreadsPage,
@@ -79,6 +81,12 @@ interface ThreadRow {
   flags: Array<{ type: string; label: string; evidence: string; severity: string }>;
   exhibit_label: string | null;
   created_at: string;
+  capture_method: string | null;
+  captured_at: string | null;
+  capture_notes: string | null;
+  screenshot_count: number | null;
+  video_duration_sec: number | null;
+  primary_artifact_urls: string[] | null;
 }
 
 function typeForFile(file: File, hint: SourceType): SourceType {
@@ -98,6 +106,9 @@ function MessageThreadsPage() {
   const parseFn = useServerFn(parseMessageThread);
   const [threads, setThreads] = useState<ThreadRow[]>([]);
   const [busyType, setBusyType] = useState<SourceType | null>(null);
+  const [tier, setTier] = useState<"picker" | "tier1" | "tier2" | "tier3">("picker");
+  const [tier2Notes, setTier2Notes] = useState<string>("");
+  const [tier2Participant, setTier2Participant] = useState<string>("");
   const inputs = useRef<Record<SourceType, HTMLInputElement | null>>({
     pdf: null, csv: null, txt: null, rsmf: null, zip: null, excel: null,
   });
@@ -146,6 +157,11 @@ function MessageThreadsPage() {
           source_filename: file.name,
           file_url: path,
           parse_status: "pending",
+          capture_method: "backup_export",
+          captured_at: new Date().toISOString(),
+          capture_notes: tier2Notes || null,
+          conversation_participant: tier2Participant || null,
+          primary_artifact_urls: [path],
         })
         .select("id")
         .single();
@@ -171,6 +187,9 @@ function MessageThreadsPage() {
       toast.error(e instanceof Error ? e.message : "Upload failed.");
     } finally {
       setBusyType(null);
+      setTier("picker");
+      setTier2Notes("");
+      setTier2Participant("");
     }
   };
 
@@ -196,9 +215,8 @@ function MessageThreadsPage() {
           Upload a Message Thread
         </h1>
         <p style={{ fontSize: 16, lineHeight: 1.6, color: "#3D3832", maxWidth: 720 }}>
-          Bring your texts, iMessages, and SMS conversations into PatternProof. We can&apos;t reach into your phone
-          for you — you export the messages yourself using a lawful method, and we organize them into a searchable
-          timeline with pattern, threat, and escalation flags.
+          Three ways to bring a conversation in — pick the one that fits where you are and what you have access to right now.
+          There&apos;s no wrong choice. All three land in Documentation first and stay private to you.
         </p>
       </header>
 
@@ -224,8 +242,72 @@ function MessageThreadsPage() {
         </div>
       </div>
 
-      {/* Upload cards */}
-      <section className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+      {tier === "picker" && (
+        <section className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
+          <TierCard
+            eyebrow="Tier 1 · Fastest"
+            title="Take screenshots"
+            body="On your own, need this fast. You screenshot the thread as you scroll; we stitch them together and pull out searchable text. Your screenshots stay the primary evidence."
+            hint="Best when you're alone and time matters — least re-exposure."
+            accent="#7C5CC4"
+            Icon={Camera}
+            cta="Start with screenshots"
+            onClick={() => setTier("tier1")}
+          />
+          <TierCard
+            eyebrow="Tier 2 · Strongest"
+            title="Backup with a computer"
+            body="You (or an advocate/attorney) sit down with a computer and do a real phone backup, then upload the export. Most court-defensible option — but never required."
+            hint="Recommended when you have help or a laptop available."
+            accent="#2F8D85"
+            Icon={Laptop}
+            cta="Show me how"
+            onClick={() => setTier("tier2")}
+            recommended
+          />
+          <TierCard
+            eyebrow="Tier 3 · Fallback"
+            title="Screen recording"
+            body="Only when nothing else works — for hundreds of messages you can't screenshot one by one. The video itself is your evidence; the AI transcript is a searchable index only."
+            hint="Takes longer and means more time looking at the conversation."
+            accent="#B0556A"
+            Icon={Video}
+            cta="Use screen recording"
+            onClick={() => setTier("tier3")}
+          />
+        </section>
+      )}
+
+      {tier === "tier1" && <ScreenshotStitcher onDone={() => { setTier("picker"); load(); }} onCancel={() => setTier("picker")} />}
+      {tier === "tier3" && <ScreenRecordingUpload onDone={() => { setTier("picker"); load(); }} onCancel={() => setTier("picker")} />}
+
+      {tier === "tier2" && (
+        <section style={{ borderRadius: 20, padding: 22, background: "rgba(255,255,255,0.8)", border: "1px solid rgba(47,141,133,0.25)" }} className="flex flex-col gap-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="label-eyebrow" style={{ color: "#2F8D85" }}>Tier 2 · Strongest</div>
+              <h3 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 24, color: "#1A1714", marginTop: 4 }}>Backup export walkthrough</h3>
+            </div>
+            <button type="button" onClick={() => setTier("picker")} className="text-sm underline" style={{ color: "#6B5A4F" }}>Back</button>
+          </div>
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
+            <StepCard n="1" title="iPhone (Finder or iTunes)" body="Connect your iPhone to a Mac or PC. Use Finder (macOS) or iTunes (Windows) to make an encrypted local backup. Then use a reputable tool like iMazing or Decipher TextMessage to export your messages as a PDF, CSV, or TXT file." />
+            <StepCard n="2" title="Android (Google Takeout or backup app)" body="Sign in to Google Takeout on a computer and export SMS/Chats — or use a reputable Android backup app that produces an export file. Save the export somewhere you can find it." />
+            <StepCard n="3" title="Upload the export below" body="Any of the file formats below work. All uploads are private to you; nothing is shared unless you choose to." />
+          </div>
+          <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 1fr" }}>
+            <div>
+              <label className="label-eyebrow">Who is this conversation with?</label>
+              <input value={tier2Participant} onChange={(e) => setTier2Participant(e.target.value)} className="input-pp mt-1" placeholder="e.g. Alex — ex-partner" />
+            </div>
+            <div>
+              <label className="label-eyebrow">Anything to remember?</label>
+              <input value={tier2Notes} onChange={(e) => setTier2Notes(e.target.value)} className="input-pp mt-1" placeholder="e.g. iPhone, Finder backup, laptop present" />
+            </div>
+          </div>
+
+          {/* Existing file-format cards, reused as the Tier-2 uploaders */}
+          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
         {CARDS.map((c) => {
           const Icon = c.icon;
           const busy = busyType === c.type;
@@ -280,7 +362,9 @@ function MessageThreadsPage() {
             </div>
           );
         })}
-      </section>
+          </div>
+        </section>
+      )}
 
       {/* Threads list */}
       <section className="flex flex-col gap-4">
