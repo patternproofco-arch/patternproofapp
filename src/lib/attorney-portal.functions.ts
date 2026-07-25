@@ -506,10 +506,10 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
         // Evidence: total + most recent created_at.
         const evidenceTotalQ = l.include_all_evidence
           ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true })
-              .eq("user_id", l.client_user_id).is("deleted_at", null)
+              .eq("user_id", l.client_user_id).is("deleted_at", null).neq("review_status", "suggested")
           : scopedEvidenceIds.length
             ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true })
-                .eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null)
+                .eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null).neq("review_status", "suggested")
             : Promise.resolve({ data: null, count: 0 });
         const evidenceRecentQ = l.include_all_evidence
           ? supabaseAdmin.from("evidence").select("created_at")
