@@ -1110,14 +1110,22 @@ export type Database = {
           deleted_at: string | null
           derivative_kind: string | null
           description: string | null
+          exif_captured_at: string | null
           family_id: string | null
           file_type: string
           file_url: string
+          gps_lat: number | null
+          gps_lon: number | null
+          gps_reveal_opt_in: boolean
           id: string
           import_batch_id: string | null
+          in_image_timestamp_at: string | null
+          in_image_timestamp_text: string | null
+          ingested_at: string | null
           integrity_verified_at: string | null
           linked_incident_id: string | null
           linked_recording_id: string | null
+          match_reason: string | null
           mime: string | null
           near_duplicate_of: string | null
           near_duplicate_status: string | null
@@ -1127,8 +1135,15 @@ export type Database = {
           preservation_status: string | null
           preserved_at: string | null
           raw_metadata: Json | null
+          review_status: string
           sha256: string | null
+          suggested_incident_id: string | null
           title: string
+          transcript: string | null
+          transcript_segments: Json | null
+          transcript_status: string
+          transcript_verified_at: string | null
+          transcript_verified_by: string | null
           user_id: string
         }
         Insert: {
@@ -1138,14 +1153,22 @@ export type Database = {
           deleted_at?: string | null
           derivative_kind?: string | null
           description?: string | null
+          exif_captured_at?: string | null
           family_id?: string | null
           file_type: string
           file_url: string
+          gps_lat?: number | null
+          gps_lon?: number | null
+          gps_reveal_opt_in?: boolean
           id?: string
           import_batch_id?: string | null
+          in_image_timestamp_at?: string | null
+          in_image_timestamp_text?: string | null
+          ingested_at?: string | null
           integrity_verified_at?: string | null
           linked_incident_id?: string | null
           linked_recording_id?: string | null
+          match_reason?: string | null
           mime?: string | null
           near_duplicate_of?: string | null
           near_duplicate_status?: string | null
@@ -1155,8 +1178,15 @@ export type Database = {
           preservation_status?: string | null
           preserved_at?: string | null
           raw_metadata?: Json | null
+          review_status?: string
           sha256?: string | null
+          suggested_incident_id?: string | null
           title: string
+          transcript?: string | null
+          transcript_segments?: Json | null
+          transcript_status?: string
+          transcript_verified_at?: string | null
+          transcript_verified_by?: string | null
           user_id: string
         }
         Update: {
@@ -1166,14 +1196,22 @@ export type Database = {
           deleted_at?: string | null
           derivative_kind?: string | null
           description?: string | null
+          exif_captured_at?: string | null
           family_id?: string | null
           file_type?: string
           file_url?: string
+          gps_lat?: number | null
+          gps_lon?: number | null
+          gps_reveal_opt_in?: boolean
           id?: string
           import_batch_id?: string | null
+          in_image_timestamp_at?: string | null
+          in_image_timestamp_text?: string | null
+          ingested_at?: string | null
           integrity_verified_at?: string | null
           linked_incident_id?: string | null
           linked_recording_id?: string | null
+          match_reason?: string | null
           mime?: string | null
           near_duplicate_of?: string | null
           near_duplicate_status?: string | null
@@ -1183,8 +1221,15 @@ export type Database = {
           preservation_status?: string | null
           preserved_at?: string | null
           raw_metadata?: Json | null
+          review_status?: string
           sha256?: string | null
+          suggested_incident_id?: string | null
           title?: string
+          transcript?: string | null
+          transcript_segments?: Json | null
+          transcript_status?: string
+          transcript_verified_at?: string | null
+          transcript_verified_by?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1214,6 +1259,13 @@ export type Database = {
             columns: ["parent_evidence_id"]
             isOneToOne: false
             referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_suggested_incident_id_fkey"
+            columns: ["suggested_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
             referencedColumns: ["id"]
           },
         ]
