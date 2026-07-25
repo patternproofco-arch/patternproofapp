@@ -13,6 +13,7 @@ import { Route as TriageRouteImport } from './routes/triage'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
+import { Route as SampleCaseRouteImport } from './routes/sample-case'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
 import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
@@ -106,6 +107,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SelfHelpGuideRoute = SelfHelpGuideRouteImport.update({
   id: '/self-help-guide',
   path: '/self-help-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SampleCaseRoute = SampleCaseRouteImport.update({
+  id: '/sample-case',
+  path: '/sample-case',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SafetyRoute = SafetyRouteImport.update({
@@ -518,6 +524,7 @@ export interface FileRoutesByFullPath {
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
+  '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -596,6 +603,7 @@ export interface FileRoutesByTo {
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
+  '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -675,6 +683,7 @@ export interface FileRoutesById {
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
+  '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -755,6 +764,7 @@ export interface FileRouteTypes {
     | '/professional-access'
     | '/request-org-access'
     | '/safety'
+    | '/sample-case'
     | '/self-help-guide'
     | '/sitemap.xml'
     | '/terms'
@@ -833,6 +843,7 @@ export interface FileRouteTypes {
     | '/professional-access'
     | '/request-org-access'
     | '/safety'
+    | '/sample-case'
     | '/self-help-guide'
     | '/sitemap.xml'
     | '/terms'
@@ -911,6 +922,7 @@ export interface FileRouteTypes {
     | '/professional-access'
     | '/request-org-access'
     | '/safety'
+    | '/sample-case'
     | '/self-help-guide'
     | '/sitemap.xml'
     | '/terms'
@@ -992,6 +1004,7 @@ export interface RootRouteChildren {
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   SafetyRoute: typeof SafetyRoute
+  SampleCaseRoute: typeof SampleCaseRoute
   SelfHelpGuideRoute: typeof SelfHelpGuideRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
@@ -1038,6 +1051,13 @@ declare module '@tanstack/react-router' {
       path: '/self-help-guide'
       fullPath: '/self-help-guide'
       preLoaderRoute: typeof SelfHelpGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sample-case': {
+      id: '/sample-case'
+      path: '/sample-case'
+      fullPath: '/sample-case'
+      preLoaderRoute: typeof SampleCaseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/safety': {
@@ -1706,6 +1726,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfessionalAccessRoute: ProfessionalAccessRoute,
   RequestOrgAccessRoute: RequestOrgAccessRoute,
   SafetyRoute: SafetyRoute,
+  SampleCaseRoute: SampleCaseRoute,
   SelfHelpGuideRoute: SelfHelpGuideRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
