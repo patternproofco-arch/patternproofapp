@@ -93,7 +93,9 @@ function EvidencePage() {
   const load = useCallback(async () => {
     if (!user) return;
     const [ev, inc] = await Promise.all([
-      supabase.from("evidence").select("*").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
+      supabase.from("evidence")
+        .select("id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256")
+        .eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("incidents").select("id,date,description").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }),
     ]);
     const rows = (ev.data as EvidenceRow[] | null) ?? [];
