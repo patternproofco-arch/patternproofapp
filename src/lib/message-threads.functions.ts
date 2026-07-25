@@ -295,3 +295,279 @@ export const parseMessageThread = createServerFn({ method: "POST" })
       exhibitLabel: update.exhibit_label,
     };
   });
+
+// -----------------------------------------------------------------------------
+// Tier 1 — Multi-screenshot stitch. Uploaded screenshot storage paths come from
+// the client (which uploaded via the standard supabase-js client). We fetch
+// each via signed URL, run a vision extract per image, and dedup consecutive
+// overlaps by text similarity. Screenshots remain the primary artifact; the
+// parsed text is a searchable index labeled AI-extracted — unverified.
+// -----------------------------------------------------------------------------
+
+interface StitchBubble { sender: string | null; timestamp: string | null; text: string; }
+
+const STITCH_SYSTEM = `You are reading a screenshot of a text/chat conversation. Return STRICT JSON only.
+Schema: { "bubbles": [ { "sender": "string or null", "timestamp": "string or null (as it appears)", "text": "string" } ] }
+Order bubbles top-to-bottom as they appear. Never invent content. If a value is unclear, use null.`;
+
+async function extractBubblesFromImage(signedUrl: string, mimeType: string, key: string): Promise<StitchBubble[]> {
+  try {
+    assertSupabaseStorageUrl(signedUrl);
+    const r = await fetch(signedUrl);
+    if (!r.ok) return [];
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (buf.length > 8 * 1024 * 1024) return [];
+    const dataUri = `data:${mimeType};base64,${buf.toString("base64")}`;
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: STITCH_SYSTEM },
+          { role: "user", content: [
+            { type: "text", text: "Extract every visible message bubble from this screenshot." },
+            { type: "image_url", image_url: { url: dataUri } },
+          ] },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (!res.ok) return [];
+    const j = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const raw = j.choices?.[0]?.message?.content ?? "";
+    const parsed = JSON.parse(raw) as { bubbles?: StitchBubble[] };
+    return Array.isArray(parsed.bubbles) ? parsed.bubbles.filter((b) => b && typeof b.text === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function normText(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, " ").replace(/[^a-z0-9 ]/g, "").trim();
+}
+
+function bubbleOverlap(a: StitchBubble, b: StitchBubble): number {
+  const na = normText(a.text);
+  const nb = normText(b.text);
+  if (!na || !nb) return 0;
+  if (na === nb) return 1;
+  const shorter = na.length < nb.length ? na : nb;
+  const longer = na.length < nb.length ? nb : na;
+  if (longer.includes(shorter) && shorter.length >= 8) return 0.9;
+  // token Jaccard
+  const ta = new Set(na.split(" "));
+  const tb = new Set(nb.split(" "));
+  let inter = 0;
+  ta.forEach((t) => { if (tb.has(t)) inter += 1; });
+  const union = ta.size + tb.size - inter;
+  return union === 0 ? 0 : inter / union;
+}
+
+// Deduplicate: for each screenshot after the first, drop its leading bubbles
+// that match the trailing bubbles of the previous screenshot (>=0.7 overlap).
+function dedupAcrossScreenshots(perImage: StitchBubble[][]): StitchBubble[] {
+  if (perImage.length === 0) return [];
+  const merged: StitchBubble[] = [...perImage[0]!];
+  for (let i = 1; i < perImage.length; i++) {
+    const next = perImage[i]!;
+    if (next.length === 0) continue;
+    const tail = merged.slice(-Math.min(8, merged.length));
+    // find the longest prefix of `next` whose bubbles match somewhere in tail
+    let skipCount = 0;
+    for (let k = 0; k < Math.min(next.length, tail.length); k++) {
+      const candidate = next[k]!;
+      const matched = tail.some((t) => bubbleOverlap(t, candidate) >= 0.7);
+      if (matched) skipCount = k + 1;
+      else if (skipCount > 0) break;
+    }
+    for (let k = skipCount; k < next.length; k++) merged.push(next[k]!);
+  }
+  return merged;
+}
+
+export const stitchScreenshotThread = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({
+    screenshotPaths: z.array(z.string().min(1)).min(1).max(60),
+    capturedAt: z.string().datetime().optional(),
+    captureNotes: z.string().max(500).optional(),
+    participantHint: z.string().max(200).optional(),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("AI is not available right now.");
+
+    // Insert thread row first
+    const { data: inserted, error: insErr } = await supabase
+      .from("message_threads")
+      .insert({
+        user_id: userId,
+        source_type: "txt",
+        source_filename: `Screenshot capture · ${new Date().toLocaleString()}`,
+        file_url: data.screenshotPaths[0]!,
+        parse_status: "pending",
+        capture_method: "multi_screenshot" as CaptureMethod,
+        captured_at: data.capturedAt ?? new Date().toISOString(),
+        capture_notes: data.captureNotes ?? null,
+        primary_artifact_urls: data.screenshotPaths,
+        screenshot_count: data.screenshotPaths.length,
+        conversation_participant: data.participantHint ?? null,
+      })
+      .select("id")
+      .single();
+    if (insErr || !inserted) throw new Error(insErr?.message ?? "Could not create thread record.");
+    const threadId = inserted.id;
+
+    // Sign each screenshot and extract bubbles
+    const perImage: StitchBubble[][] = [];
+    const shaList: string[] = [];
+    for (const path of data.screenshotPaths) {
+      const { data: signed } = await supabase.storage.from("evidence-files").createSignedUrl(path, 600);
+      if (!signed?.signedUrl) { perImage.push([]); continue; }
+      // hash the file for the audit meta
+      try {
+        const r = await fetch(signed.signedUrl);
+        const buf = Buffer.from(await r.arrayBuffer());
+        shaList.push(createHash("sha256").update(buf).digest("hex"));
+      } catch { /* ignore */ }
+      const mime = /\.png$/i.test(path) ? "image/png" : /\.webp$/i.test(path) ? "image/webp" : "image/jpeg";
+      const bubbles = await extractBubblesFromImage(signed.signedUrl, mime, key);
+      perImage.push(bubbles);
+    }
+
+    const merged = dedupAcrossScreenshots(perImage);
+    let status: "parsed" | "partial" = merged.length > 0 ? "parsed" : "partial";
+    let parseError: string | null = merged.length === 0
+      ? "We couldn't read any messages from these screenshots. Your original images are safely stored — you can still work with them as evidence."
+      : null;
+
+    if (merged.length > 0) {
+      const rows = merged.map((b, i) => ({
+        thread_id: threadId,
+        user_id: userId,
+        position: i + 1,
+        sender: b.sender ?? null,
+        recipient: null,
+        sent_on: null,
+        sent_at_time: null,
+        body: b.text ?? null,
+        attachment_name: null,
+        attachment_url: null,
+        flags: { ai_extracted: true, unverified: true, timestamp_hint: b.timestamp ?? null },
+      }));
+      for (let i = 0; i < rows.length; i += 500) {
+        const { error } = await supabase.from("thread_messages").insert(rows.slice(i, i + 500));
+        if (error) { status = "partial"; parseError = error.message; break; }
+      }
+    }
+
+    // Best-effort AI summary/flags — reuse the same conversation-analysis pipeline
+    const asParsed = merged.map((b, i) => ({
+      position: i + 1, sender: b.sender ?? null, recipient: null,
+      sent_on: null, sent_at_time: null, body: b.text, attachment_name: null,
+    }));
+    const ai = asParsed.length > 0 ? await runAiAnalysis(asParsed) : null;
+
+    await supabase
+      .from("message_threads")
+      .update({
+        parse_status: status,
+        parse_error: parseError,
+        message_count: merged.length,
+        summary: ai?.summary ?? null,
+        attorney_summary: ai?.attorney_summary ?? null,
+        flags: ai?.flags ?? [],
+        exhibit_label: ai?.exhibit_label ?? null,
+      })
+      .eq("id", threadId);
+
+    await supabase.rpc("record_audit_event", {
+      p_user_id: userId,
+      p_event_type: "thread.imported",
+      p_subject_kind: "message_thread",
+      p_subject_id: threadId,
+      p_actor_kind: "user",
+      p_actor_id: userId,
+      p_meta: {
+        capture_method: "multi_screenshot",
+        captured_at: data.capturedAt ?? new Date().toISOString(),
+        artifact_count: data.screenshotPaths.length,
+        sha256_list: shaList,
+      },
+    });
+
+    return { ok: true as const, threadId, messageCount: merged.length, status };
+  });
+
+// -----------------------------------------------------------------------------
+// Tier 3 — Screen recording. The video file itself is the primary evidence
+// artifact (hashed and stored). Transcription runs best-effort and is stored
+// on the thread summary explicitly labeled AI-generated — unverified.
+// -----------------------------------------------------------------------------
+
+export const ingestRecordedThread = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({
+    videoPath: z.string().min(1),
+    filename: z.string().max(300),
+    durationSec: z.number().int().nonnegative().optional(),
+    capturedAt: z.string().datetime().optional(),
+    captureNotes: z.string().max(500).optional(),
+    participantHint: z.string().max(200).optional(),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    // hash the video for audit
+    let sha: string | null = null;
+    try {
+      const { data: signed } = await supabase.storage.from("evidence-files").createSignedUrl(data.videoPath, 600);
+      if (signed?.signedUrl) {
+        const r = await fetch(signed.signedUrl);
+        const buf = Buffer.from(await r.arrayBuffer());
+        if (buf.length <= 200 * 1024 * 1024) {
+          sha = createHash("sha256").update(buf).digest("hex");
+        }
+      }
+    } catch { /* ignore */ }
+
+    const { data: inserted, error: insErr } = await supabase
+      .from("message_threads")
+      .insert({
+        user_id: userId,
+        source_type: "zip", // reuse existing enum-ish column; not used for parsing
+        source_filename: data.filename,
+        file_url: data.videoPath,
+        parse_status: "queued",
+        parse_error: "This is a screen recording — the video itself is your primary evidence. A searchable AI transcript is being generated separately and is labeled unverified until you review it.",
+        capture_method: "screen_recording" as CaptureMethod,
+        captured_at: data.capturedAt ?? new Date().toISOString(),
+        capture_notes: data.captureNotes ?? null,
+        primary_artifact_urls: [data.videoPath],
+        video_duration_sec: data.durationSec ?? null,
+        conversation_participant: data.participantHint ?? null,
+      })
+      .select("id")
+      .single();
+    if (insErr || !inserted) throw new Error(insErr?.message ?? "Could not create thread record.");
+
+    await supabase.rpc("record_audit_event", {
+      p_user_id: userId,
+      p_event_type: "thread.imported",
+      p_subject_kind: "message_thread",
+      p_subject_id: inserted.id,
+      p_actor_kind: "user",
+      p_actor_id: userId,
+      p_meta: {
+        capture_method: "screen_recording",
+        captured_at: data.capturedAt ?? new Date().toISOString(),
+        artifact_count: 1,
+        sha256_list: sha ? [sha] : [],
+        video_duration_sec: data.durationSec ?? null,
+      },
+    });
+
+    return { ok: true as const, threadId: inserted.id };
+  });
