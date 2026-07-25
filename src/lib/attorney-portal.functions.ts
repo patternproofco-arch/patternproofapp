@@ -645,12 +645,12 @@ export const getClientCase = createServerFn({ method: "POST" })
     const incidents = incQ.data ?? [];
     // Quarantined GPS fields must never reach the attorney UI — the survivor
     // opts in per-item in her own view, and even then it's not shared.
-    const evidence = (evQ.data ?? []).map((e: Record<string, unknown>) => {
-      const { gps_lat: _gpsLat, gps_lon: _gpsLon, gps_reveal_opt_in: _gpsOpt, ...rest } = e as {
-        gps_lat?: unknown; gps_lon?: unknown; gps_reveal_opt_in?: unknown;
-      };
-      void _gpsLat; void _gpsLon; void _gpsOpt;
-      return rest;
+    const evidence = (evQ.data ?? []).map((e) => {
+      const clone = { ...(e as Record<string, unknown>) };
+      delete clone.gps_lat;
+      delete clone.gps_lon;
+      delete clone.gps_reveal_opt_in;
+      return clone as typeof e;
     });
     const flags = escQ.data ?? [];
     const pattern = (patQ.data ?? null) as { analysis: AnyJson; created_at: string; reviewed_status?: AnyJson } | null;
