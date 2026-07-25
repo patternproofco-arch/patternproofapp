@@ -1546,6 +1546,9 @@ export type Database = {
       message_threads: {
         Row: {
           attorney_summary: string | null
+          capture_method: string | null
+          capture_notes: string | null
+          captured_at: string | null
           conversation_participant: string | null
           created_at: string
           exhibit_label: string | null
@@ -1555,14 +1558,20 @@ export type Database = {
           message_count: number
           parse_error: string | null
           parse_status: string
+          primary_artifact_urls: string[]
+          screenshot_count: number | null
           source_filename: string
           source_type: string
           summary: string | null
           updated_at: string
           user_id: string
+          video_duration_sec: number | null
         }
         Insert: {
           attorney_summary?: string | null
+          capture_method?: string | null
+          capture_notes?: string | null
+          captured_at?: string | null
           conversation_participant?: string | null
           created_at?: string
           exhibit_label?: string | null
@@ -1572,14 +1581,20 @@ export type Database = {
           message_count?: number
           parse_error?: string | null
           parse_status?: string
+          primary_artifact_urls?: string[]
+          screenshot_count?: number | null
           source_filename: string
           source_type: string
           summary?: string | null
           updated_at?: string
           user_id: string
+          video_duration_sec?: number | null
         }
         Update: {
           attorney_summary?: string | null
+          capture_method?: string | null
+          capture_notes?: string | null
+          captured_at?: string | null
           conversation_participant?: string | null
           created_at?: string
           exhibit_label?: string | null
@@ -1589,11 +1604,14 @@ export type Database = {
           message_count?: number
           parse_error?: string | null
           parse_status?: string
+          primary_artifact_urls?: string[]
+          screenshot_count?: number | null
           source_filename?: string
           source_type?: string
           summary?: string | null
           updated_at?: string
           user_id?: string
+          video_duration_sec?: number | null
         }
         Relationships: []
       }
