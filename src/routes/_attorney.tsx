@@ -140,7 +140,7 @@ function AttorneyTopNav() {
   return (
     <nav className="att-nav">
       <Link to="/clients" className="att-nav-brand" style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-        <Logo variant="attorney" size={36} />
+        <Logo variant="attorney" size={36} onDark />
         <span style={{ opacity: 0.55, fontSize: 13 }}>· Attorney Portal</span>
       </Link>
 
