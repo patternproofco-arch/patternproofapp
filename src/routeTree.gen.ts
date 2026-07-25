@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
 import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
@@ -94,6 +95,11 @@ const TermsRoute = TermsRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelfHelpGuideRoute = SelfHelpGuideRouteImport.update({
+  id: '/self-help-guide',
+  path: '/self-help-guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SafetyRoute = SafetyRouteImport.update({
@@ -506,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
+  '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -582,6 +589,7 @@ export interface FileRoutesByTo {
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
+  '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -659,6 +667,7 @@ export interface FileRoutesById {
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
   '/safety': typeof SafetyRoute
+  '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -737,6 +746,7 @@ export interface FileRouteTypes {
     | '/professional-access'
     | '/request-org-access'
     | '/safety'
+    | '/self-help-guide'
     | '/sitemap.xml'
     | '/terms'
     | '/.mcp/list-tools'
@@ -813,6 +823,7 @@ export interface FileRouteTypes {
     | '/professional-access'
     | '/request-org-access'
     | '/safety'
+    | '/self-help-guide'
     | '/sitemap.xml'
     | '/terms'
     | '/.mcp/list-tools'
@@ -889,6 +900,7 @@ export interface FileRouteTypes {
     | '/professional-access'
     | '/request-org-access'
     | '/safety'
+    | '/self-help-guide'
     | '/sitemap.xml'
     | '/terms'
     | '/.mcp/list-tools'
@@ -968,6 +980,7 @@ export interface RootRouteChildren {
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   SafetyRoute: typeof SafetyRoute
+  SelfHelpGuideRoute: typeof SelfHelpGuideRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -998,6 +1011,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/self-help-guide': {
+      id: '/self-help-guide'
+      path: '/self-help-guide'
+      fullPath: '/self-help-guide'
+      preLoaderRoute: typeof SelfHelpGuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/safety': {
@@ -1666,6 +1686,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfessionalAccessRoute: ProfessionalAccessRoute,
   RequestOrgAccessRoute: RequestOrgAccessRoute,
   SafetyRoute: SafetyRoute,
+  SelfHelpGuideRoute: SelfHelpGuideRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
