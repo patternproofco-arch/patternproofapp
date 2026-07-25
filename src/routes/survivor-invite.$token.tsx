@@ -155,7 +155,7 @@ function SurvivorInvitePage() {
   return (
     <Shell>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, paddingBottom: 14, borderBottom: "1px solid #E2E8F0" }}>
-        <Logo variant="attorney" size={32} />
+        <Logo variant="attorney" size={32} solid />
         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 600, letterSpacing: 0.12, textTransform: "uppercase", color: "#475569" }}>
           <ShieldCheck size={12} /> Attorney invite
         </div>
