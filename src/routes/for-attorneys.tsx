@@ -52,7 +52,7 @@ function ForAttorneys() {
           Less time buried in scattered files. More of your day spent on the actual case.
         </p>
         <Link
-          to="/lawyer-signup"
+          to="/sample-case"
           style={{
             display: "inline-block", marginTop: 34, background: NAVY, color: "#F4F6FB",
             padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
@@ -95,9 +95,9 @@ function ForAttorneys() {
           </p>
         </div>
 
-        <div style={{ marginTop: 32 }}>
+        <div style={{ marginTop: 32, display: "flex", gap: 14, flexWrap: "wrap" }}>
           <Link
-            to="/lawyer-signup"
+            to="/sample-case"
             style={{
               display: "inline-block", background: NAVY, color: "#F4F6FB",
               padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
@@ -105,6 +105,17 @@ function ForAttorneys() {
             }}
           >
             See a sample case →
+          </Link>
+          <Link
+            to="/lawyer-signup"
+            style={{
+              display: "inline-block", background: "transparent", color: INK,
+              padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
+              textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
+              border: `1px solid ${INK}`,
+            }}
+          >
+            Create your attorney account →
           </Link>
         </div>
       </section>
