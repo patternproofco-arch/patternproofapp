@@ -28,7 +28,7 @@ function SettingsPage() {
     <div style={{ display: "grid", gap: 20, maxWidth: 1080, margin: "0 auto" }}>
       <div>
         <div className="att-eyebrow">Settings · Trust</div>
-        <h1 style={{ fontSize: 32, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>Security &amp; provenance & integrity</h1>
+        <h1 style={{ fontSize: 32, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>Security &amp; provenance & integrity</h1>
       </div>
 
       <div className="att-card" style={{ background: "#F0FDF4", borderColor: "#86EFAC", display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -115,7 +115,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   return (
     <div className="att-card">
       <div className="att-eyebrow" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>{icon} {label}</div>
-      <div style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>{value}</div>
+      <div style={{ fontSize: 28, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>{value}</div>
     </div>
   );
 }

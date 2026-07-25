@@ -99,7 +99,7 @@ function SubscribePage() {
     return (
       <div className="att-card" style={{ maxWidth: 640, margin: "40px auto", textAlign: "center" }}>
         <Check size={32} style={{ color: "var(--att-green)", margin: "0 auto 12px" }} />
-        <h1 style={{ fontSize: 30, marginBottom: 8, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>You're subscribed.</h1>
+        <h1 style={{ fontSize: 30, marginBottom: 8, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontWeight: 400 }}>You're subscribed.</h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 14, marginBottom: 16 }}>
           Plan: PatternProof {sub.tier === "firm" ? "Firm" : sub.tier === "enterprise" ? "Enterprise" : "Solo"} · {sub.status}
           {sub.currentPeriodEnd && <> · renews {new Date(sub.currentPeriodEnd).toLocaleDateString()}</>}
@@ -122,7 +122,7 @@ function SubscribePage() {
       <PaymentTestModeBanner />
       <div style={{ marginTop: 24, marginBottom: 24 }}>
         <div className="att-eyebrow">Attorney Portal · Pricing</div>
-        <h1 style={{ fontSize: 36, marginTop: 4, marginBottom: 10, fontFamily: '"Instrument Serif", serif' }}>
+        <h1 style={{ fontSize: 36, marginTop: 4, marginBottom: 10, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif" }}>
           See the pattern before the hearing.
         </h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 15, maxWidth: 640 }}>
@@ -170,7 +170,7 @@ function SubscribePage() {
                 </span>
               )}
               <div className="att-eyebrow">{tier.name}</div>
-              <div style={{ fontSize: 36, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>
+              <div style={{ fontSize: 36, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>
                 {tier.priceStrike && (
                   <span style={{ fontSize: 18, color: "var(--att-text-2)", textDecoration: "line-through", marginRight: 8, fontFamily: "inherit" }}>
                     {tier.priceStrike}
@@ -200,7 +200,7 @@ function SubscribePage() {
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 32, marginTop: 32 }}>
         <div>
           <div className="att-eyebrow">Selected: {t.name}</div>
-          <h2 style={{ fontSize: 26, marginTop: 4, marginBottom: 8, fontFamily: '"Instrument Serif", serif' }}>
+          <h2 style={{ fontSize: 26, marginTop: 4, marginBottom: 8, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif" }}>
             {t.close}
           </h2>
           <p style={{ color: "var(--att-text-2)", fontSize: 14 }}>

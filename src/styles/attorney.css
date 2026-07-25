@@ -1,225 +1,370 @@
 /* ============================================================
-   PatternProof — Attorney Portal Design System
-   Isolated from the survivor app's warm/pastel system.
+   PatternProof — Attorney Portal Design System (v2)
+   Dense navy practice-management UI. Deliberately NOT the
+   survivor register: no serif, no warm paper, no wide spacing.
+   Typography: IBM Plex Sans (UI) + IBM Plex Mono (all data).
+   Accent: muted gold — actions/status only.
    Loaded only by routes under /_attorney/* and /accept-invite.
-   Scope everything under .att-root so survivor pages aren't
-   affected when this stylesheet is on the page.
+   Everything is scoped under .att-root.
    ============================================================ */
 
 .att-root {
-  --att-bg: #F4F6F9;
+  --att-bg: #F2F4F8;
   --att-surface: #FFFFFF;
-  --att-border: #E2E8F0;
-  --att-border-strong: #CBD5E1;
-  --att-navy: #1B2A4A;
-  --att-navy-mid: #2D4A8A;
-  --att-slate: #64748B;
-  --att-text: #0F172A;
-  --att-text-2: #475569;
-  --att-muted: #94A3B8;
-  --att-blue: #3B82F6;
-  --att-green: #10B981;
-  --att-amber: #F59E0B;
-  --att-red: #EF4444;
-  --att-pp-pink: #D4708A;
+  --att-surface-2: #F7F9FC;
+  --att-border: #DDE3EC;
+  --att-border-strong: #C3CCDA;
+  --att-navy: #152038;
+  --att-navy-mid: #22314F;
+  --att-navy-deep: #0E1729;
+  --att-slate: #63708A;
+  --att-text: #131C2E;
+  --att-text-2: #4C596F;
+  --att-muted: #8C97A9;
+
+  /* single restrained accent — muted gold, actions & status only */
+  --att-accent: #A8792F;
+  --att-accent-hover: #8E6524;
+  --att-accent-soft: #FBF3E4;
+  --att-accent-border: #E7D3AC;
+
+  /* status (kept muted, used for data state not decoration) */
+  --att-green: #2F7D5E;
+  --att-amber: #A8792F;
+  --att-red: #A83A33;
+  --att-blue: #2F4A78;      /* legacy alias → steel navy, no bright blue */
+  --att-pp-pink: #A8792F;
 
   background: var(--att-bg);
   color: var(--att-text);
   font-family: "IBM Plex Sans", system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.45;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
 .att-root * { box-sizing: border-box; }
 
-.att-root h1, .att-root h2, .att-root h3, .att-root .att-serif {
-  font-family: "Instrument Serif", Georgia, serif;
-  font-weight: 400;
-  letter-spacing: -0.01em;
+/* No serif anywhere in the attorney portal. */
+.att-root h1, .att-root h2, .att-root h3, .att-root h4, .att-root .att-serif {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.012em;
   color: var(--att-text);
+  line-height: 1.2;
+  margin: 0;
 }
-.att-root .att-mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+.att-root h1 { font-size: 21px; }
+.att-root h2 { font-size: 17px; }
+.att-root h3 { font-size: 15px; }
+
+.att-root .att-mono,
+.att-root .att-num {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
 
 .att-root .att-eyebrow {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--att-slate);
 }
 
-/* ---------- card ---------- */
+/* ---------- card (chrome: square, tight) ---------- */
 .att-card {
   background: var(--att-surface);
   border: 1px solid var(--att-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
-  padding: 20px;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(19,28,46,0.04);
+  padding: 14px 16px;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 .att-card.att-hover:hover {
-  box-shadow: 0 4px 16px rgba(15,23,42,0.09);
+  box-shadow: 0 2px 8px rgba(19,28,46,0.07);
   border-color: var(--att-border-strong);
+}
+.att-panel {
+  background: var(--att-surface);
+  border: 1px solid var(--att-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.att-panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 9px 12px;
+  background: var(--att-surface-2);
+  border-bottom: 1px solid var(--att-border);
+}
+
+/* ---------- exhibit card: clipped corner, product-wide identity ---------- */
+.att-exhibit {
+  background: var(--att-surface);
+  border: 1px solid var(--att-border);
+  padding: 14px 16px;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  position: relative;
+}
+.att-exhibit--accent { border-left: 2px solid var(--att-accent); }
+.att-exhibit-label {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--att-slate);
 }
 
 /* ---------- buttons ---------- */
-.att-btn-primary, .att-btn-secondary, .att-btn-export, .att-btn-ghost {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 10px 20px; border-radius: 8px;
-  font-weight: 600; font-size: 14px;
-  cursor: pointer; transition: all 0.15s ease;
+.att-btn-primary, .att-btn-secondary, .att-btn-export, .att-btn-ghost, .att-btn-accent {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 7px 13px; border-radius: 3px;
+  font-weight: 600; font-size: 12.5px;
+  cursor: pointer; transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
   border: 1px solid transparent;
   font-family: inherit;
   white-space: nowrap;
+  text-decoration: none;
 }
 .att-btn-primary { background: var(--att-navy); color: #fff; }
-.att-btn-primary:hover { background: var(--att-navy-mid); }
-.att-btn-primary:disabled { background: #94A3B8; cursor: not-allowed; }
+.att-btn-primary:hover:not(:disabled) { background: var(--att-navy-mid); }
+.att-btn-primary:disabled { background: #A6AEBD; cursor: not-allowed; }
 
-.att-btn-export { background: var(--att-green); color: #fff; }
-.att-btn-export:hover { background: #059669; }
+.att-btn-accent { background: var(--att-accent); color: #fff; }
+.att-btn-accent:hover:not(:disabled) { background: var(--att-accent-hover); }
+.att-btn-accent:disabled { background: #C9BFA8; cursor: not-allowed; }
+
+/* legacy alias — export actions now read as the accent, not green */
+.att-btn-export { background: var(--att-accent); color: #fff; }
+.att-btn-export:hover:not(:disabled) { background: var(--att-accent-hover); }
+.att-btn-export:disabled { background: #C9BFA8; cursor: not-allowed; }
 
 .att-btn-secondary {
-  background: transparent; color: var(--att-navy);
-  border-color: var(--att-border);
+  background: var(--att-surface); color: var(--att-navy);
+  border-color: var(--att-border-strong);
 }
-.att-btn-secondary:hover { background: #F8FAFC; border-color: var(--att-border-strong); }
+.att-btn-secondary:hover { background: var(--att-surface-2); }
 
 .att-btn-ghost {
   background: transparent; color: var(--att-text-2);
-  padding: 6px 10px; font-weight: 500;
+  padding: 5px 8px; font-weight: 500;
 }
-.att-btn-ghost:hover { background: #F1F5F9; color: var(--att-text); }
+.att-btn-ghost:hover { background: #E9EDF4; color: var(--att-text); }
+
+.att-btn-xs { padding: 4px 8px; font-size: 11.5px; border-radius: 3px; }
 
 /* ---------- inputs ---------- */
 .att-input, .att-select, .att-textarea {
   width: 100%;
   background: var(--att-surface);
-  border: 1px solid var(--att-border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 14px;
+  border: 1px solid var(--att-border-strong);
+  border-radius: 3px;
+  padding: 7px 10px;
+  font-size: 12.5px;
   font-family: inherit;
   color: var(--att-text);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 .att-input:focus, .att-select:focus, .att-textarea:focus {
   outline: none;
-  border-color: var(--att-blue);
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  border-color: var(--att-navy);
+  box-shadow: 0 0 0 2px rgba(21,32,56,0.12);
 }
-.att-textarea { min-height: 80px; resize: vertical; }
+.att-textarea { min-height: 76px; resize: vertical; }
+.att-search-wrap { position: relative; display: inline-flex; align-items: center; }
+.att-search-wrap .att-input { padding-left: 28px; padding-right: 30px; }
+.att-kbd {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px; color: var(--att-slate);
+  border: 1px solid var(--att-border-strong); border-radius: 3px;
+  padding: 1px 4px; background: var(--att-surface-2);
+}
 
-/* ---------- tags ---------- */
+/* ---------- toolbar / filter row ---------- */
+.att-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 9px 10px;
+  background: var(--att-surface);
+  border: 1px solid var(--att-border);
+  border-radius: 4px;
+}
+.att-seg { display: inline-flex; border: 1px solid var(--att-border-strong); border-radius: 3px; overflow: hidden; }
+.att-seg button {
+  padding: 5px 10px; font-size: 11.5px; font-weight: 600; font-family: inherit;
+  background: var(--att-surface); color: var(--att-text-2);
+  border: none; border-right: 1px solid var(--att-border); cursor: pointer;
+}
+.att-seg button:last-child { border-right: none; }
+.att-seg button[aria-pressed="true"] { background: var(--att-navy); color: #fff; }
+
+/* ---------- dense data table ---------- */
+.att-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+.att-table thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--att-surface-2);
+  border-bottom: 1px solid var(--att-border);
+  text-align: left;
+  padding: 7px 10px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--att-slate);
+  white-space: nowrap;
+  user-select: none;
+}
+.att-table thead th.sortable { cursor: pointer; }
+.att-table thead th.sortable:hover { color: var(--att-navy); }
+.att-table thead th.sorted { color: var(--att-navy); }
+.att-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #EDF0F5;
+  vertical-align: middle;
+}
+.att-table tbody tr { background: var(--att-surface); }
+.att-table tbody tr:hover { background: #EEF2F8; }
+.att-table tbody tr.att-row:focus-visible,
+.att-table tbody tr.att-row.is-cursor {
+  outline: none;
+  background: #E7EDF7;
+  box-shadow: inset 2px 0 0 var(--att-navy);
+}
+.att-table td.num { text-align: right; font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.att-table a { color: var(--att-navy); text-decoration: none; font-weight: 600; }
+.att-table a:hover { text-decoration: underline; }
+.att-table-scroll { max-height: none; overflow-x: auto; }
+
+/* ---------- tags / badges ---------- */
 .att-tag {
   display: inline-flex; align-items: center;
-  padding: 3px 10px; border-radius: 100px;
-  font-size: 11px; font-weight: 600;
-  letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 3px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  white-space: nowrap;
 }
-.att-tag-physical   { background: #FEE2E2; color: #991B1B; }
+.att-tag-physical   { background: #F6E7E5; color: #8E322C; }
 .att-tag-verbal,
-.att-tag-emotional  { background: #FCE7F3; color: #9D174D; }
-.att-tag-financial  { background: #DBEAFE; color: #1E40AF; }
-.att-tag-digital    { background: #F3E8FF; color: #6B21A8; }
-.att-tag-coercive   { background: #FEF3C7; color: #92400E; }
-.att-tag-custody    { background: #DCFCE7; color: #166534; }
-.att-tag-other      { background: #E2E8F0; color: #334155; }
-.att-tag-pattern    { background: #DCFCE7; color: #166534; }
+.att-tag-emotional  { background: #F3E9EF; color: #7C3355; }
+.att-tag-financial  { background: #E7ECF5; color: #2F4A78; }
+.att-tag-digital    { background: #ECEAF3; color: #453C6B; }
+.att-tag-coercive   { background: #F7EFDF; color: #7C5A1E; }
+.att-tag-custody    { background: #E5EFE9; color: #275D46; }
+.att-tag-other      { background: #E9EDF4; color: #3C475C; }
+.att-tag-pattern    { background: #E5EFE9; color: #275D46; }
 .att-tag-auth {
-  background: #DCFCE7; color: #166534;
-  font-size: 10px; font-weight: 700; padding: 2px 8px;
+  background: #E5EFE9; color: #275D46;
+  font-size: 10px; font-weight: 600; padding: 2px 6px;
 }
+
+/* inline count badge used in dense lists */
+.att-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  min-width: 22px; justify-content: center;
+  padding: 1px 6px; border-radius: 3px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px; font-weight: 500;
+  border: 1px solid var(--att-border-strong);
+  background: var(--att-surface-2); color: var(--att-text-2);
+}
+.att-badge--zero { color: var(--att-muted); border-color: var(--att-border); }
+.att-badge--flag { background: var(--att-accent-soft); border-color: var(--att-accent-border); color: #7C5A1E; }
+.att-badge--navy { background: #E7ECF5; border-color: #C7D2E5; color: var(--att-navy); }
 
 /* ---------- top nav ---------- */
 .att-nav {
   background: var(--att-navy);
   color: #fff;
-  height: 60px;
-  padding: 0 2rem;
-  display: flex; align-items: center; justify-content: space-between;
+  height: 48px;
+  padding: 0 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
   position: sticky; top: 0; z-index: 100;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
 }
 .att-nav-brand {
-  display: inline-flex; align-items: center; gap: 10px;
-  color: #fff; font-family: "Instrument Serif", serif;
-  font-size: 18px; letter-spacing: 0.02em;
-}
-.att-nav-brand-mark {
-  width: 22px; height: 22px; border-radius: 5px;
-  background: linear-gradient(135deg, var(--att-pp-pink), var(--att-blue));
-}
-.att-nav-tabs { display: flex; align-items: center; gap: 4px; }
-.att-nav-tab {
-  color: rgba(255,255,255,0.65);
-  font-size: 13px; font-weight: 500;
-  padding: 7px 14px; border-radius: 6px;
-  transition: all 0.15s ease;
+  display: inline-flex; align-items: center; gap: 8px;
+  color: #fff;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
   text-decoration: none;
 }
-.att-nav-tab:hover { color: #fff; background: rgba(255,255,255,0.08); }
+.att-nav-tabs { display: flex; align-items: center; gap: 2px; }
+.att-nav-tab {
+  color: rgba(255,255,255,0.66);
+  font-size: 12.5px; font-weight: 500;
+  padding: 5px 10px; border-radius: 3px;
+  transition: background 0.12s ease, color 0.12s ease;
+  text-decoration: none;
+  background: transparent; border: none; cursor: pointer; font-family: inherit;
+}
+.att-nav-tab:hover { color: #fff; background: rgba(255,255,255,0.09); }
 .att-nav-tab.active {
-  color: #fff; background: rgba(255,255,255,0.14);
+  color: #fff; background: rgba(255,255,255,0.12);
   font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--att-accent);
 }
 .att-nav-meta {
-  display: flex; align-items: center; gap: 14px;
-  color: rgba(255,255,255,0.7); font-size: 12px;
+  display: flex; align-items: center; gap: 12px;
+  color: rgba(255,255,255,0.68); font-size: 11.5px;
 }
-.att-nav-meta .att-mono { color: rgba(255,255,255,0.95); }
+.att-nav-meta .att-mono { color: rgba(255,255,255,0.94); }
 
-/* ---------- security banner ---------- */
+/* ---------- security strip ---------- */
 .att-security-banner {
-  background: #EFF6FF;
-  border-bottom: 1px solid #BFDBFE;
-  padding: 8px 2rem;
-  font-size: 12px;
-  color: #1E40AF;
+  background: var(--att-navy-deep);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 5px 18px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.7);
   display: flex; align-items: center; justify-content: space-between;
   gap: 8px;
 }
+.att-security-banner .att-mono { color: rgba(255,255,255,0.95); }
 
 /* ---------- breadcrumb ---------- */
 .att-breadcrumb {
-  padding: 14px 2rem 0;
-  font-size: 12px;
+  padding: 10px 18px 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: 0.05em;
   color: var(--att-slate);
 }
 .att-breadcrumb a { color: var(--att-slate); text-decoration: none; }
 .att-breadcrumb a:hover { color: var(--att-navy); }
-.att-breadcrumb-sep { margin: 0 8px; color: var(--att-muted); }
+.att-breadcrumb-sep { margin: 0 6px; color: var(--att-muted); }
 
 /* ---------- footer ---------- */
 .att-footer {
   border-top: 1px solid var(--att-border);
-  padding: 18px 2rem;
-  margin-top: 60px;
-  font-size: 11px;
+  padding: 12px 18px;
+  margin-top: 36px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
   color: var(--att-slate);
-  display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+  display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
 }
 
 /* ---------- severity bar ---------- */
-.att-severity-bar { display: flex; height: 6px; border-radius: 999px; overflow: hidden; background: var(--att-border); }
+.att-severity-bar { display: flex; height: 5px; border-radius: 2px; overflow: hidden; background: var(--att-border); }
 .att-severity-bar > span { display: block; height: 100%; }
-.att-sev-low      { background: #10B981; }
-.att-sev-moderate { background: #FBBF24; }
-.att-sev-high     { background: #F59E0B; }
-.att-sev-critical { background: #EF4444; }
+.att-sev-low      { background: #2F7D5E; }
+.att-sev-moderate { background: #C9A244; }
+.att-sev-high     { background: #A8792F; }
+.att-sev-critical { background: #A83A33; }
 
 /* ---------- utility ---------- */
-.att-divider { height: 1px; background: var(--att-border); margin: 14px 0; }
+.att-divider { height: 1px; background: var(--att-border); margin: 10px 0; }
+.att-kpi-strip { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 1px; background: var(--att-border); border: 1px solid var(--att-border); border-radius: 4px; overflow: hidden; }
+.att-kpi { background: var(--att-surface); padding: 10px 12px; }
+.att-kpi-value { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 20px; font-weight: 500; color: var(--att-text); font-variant-numeric: tabular-nums; }
 
 @media (max-width: 768px) {
-  .att-nav { padding: 0 14px; height: auto; flex-wrap: wrap; gap: 6px; padding-top: 10px; padding-bottom: 10px; }
+  .att-nav { padding: 0 12px; height: auto; flex-wrap: wrap; gap: 6px; padding-top: 8px; padding-bottom: 8px; }
   .att-nav-tabs { width: 100%; overflow-x: auto; }
-  .att-security-banner, .att-breadcrumb, .att-footer { padding-left: 14px; padding-right: 14px; }
+  .att-security-banner, .att-breadcrumb, .att-footer { padding-left: 12px; padding-right: 12px; }
 }
 
 @media print {
-  .att-nav, .att-security-banner, .att-footer, .att-breadcrumb { display: none !important; }
+  .att-nav, .att-security-banner, .att-footer, .att-breadcrumb, .att-toolbar { display: none !important; }
   .att-root { background: #fff; }
 }

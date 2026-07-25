@@ -100,7 +100,7 @@ function OnboardingPage() {
           fontSize: 36,
           marginTop: 6,
           marginBottom: 8,
-          fontFamily: '"Instrument Serif", serif',
+          fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif",
         }}
       >
         Set up your attorney profile.

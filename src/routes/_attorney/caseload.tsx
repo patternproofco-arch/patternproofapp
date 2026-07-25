@@ -40,7 +40,7 @@ function CaseloadPage() {
     <div style={{ display: "grid", gap: 20 }}>
       <div>
         <div className="att-eyebrow">Overview</div>
-        <h1 style={{ fontFamily: "Georgia, 'Palatino Linotype', serif", fontSize: 28, margin: "4px 0 0" }}>
+        <h1 style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 28, margin: "4px 0 0" }}>
           Caseload capacity
         </h1>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 6, maxWidth: 640 }}>
@@ -162,7 +162,7 @@ function Kpi({ icon, label, value, tone }: { icon: React.ReactNode; label: strin
       <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--att-text-2)" }}>
         {icon}<span>{label}</span>
       </div>
-      <div style={{ fontFamily: "Georgia, 'Palatino Linotype', serif", fontSize: 26, marginTop: 6 }}>{value}</div>
+      <div style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 26, marginTop: 6 }}>{value}</div>
     </div>
   );
 }
