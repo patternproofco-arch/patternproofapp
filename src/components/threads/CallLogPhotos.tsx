@@ -67,15 +67,15 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
   };
 
   return (
-    <div style={{ borderRadius: 20, padding: 22, background: "rgba(255,255,255,0.8)", border: "1px solid rgba(43,110,190,0.22)" }}>
+    <div style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(43,110,190,0.22)" }}>
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="label-eyebrow" style={{ color: "#2B6EBE" }}>Call log · Photos</div>
-          <h3 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 24, color: "#1A1714", marginTop: 4 }}>Import your call history</h3>
+          <div className="label-eyebrow" style={{ color: "#5B4CD6" }}>Call log · Photos</div>
+          <h3 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#14131F", marginTop: 4 }}>Import your call history</h3>
         </div>
-        <button type="button" onClick={onCancel} className="text-sm underline" style={{ color: "#6B5A4F" }}>Cancel</button>
+        <button type="button" onClick={onCancel} className="text-sm underline" style={{ color: "rgba(20,19,31,0.55)" }}>Cancel</button>
       </div>
-      <p style={{ fontSize: 13.5, color: "#3D3832", lineHeight: 1.55, marginBottom: 14 }}>
+      <p style={{ fontSize: 13.5, color: "#3A3849", lineHeight: 1.55, marginBottom: 14 }}>
         Take screenshots of your phone&apos;s Recents / Calls screen — scroll and screenshot as you go. Works the same on iPhone and Android. The photos are your evidence; the extracted call rows are labeled <em>AI-extracted — unverified</em>.
       </p>
 
@@ -100,17 +100,17 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
 
       <input ref={inp} type="file" accept="image/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
       <button type="button" onClick={() => inp.current?.click()}
-        style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 999,
-          background: "linear-gradient(90deg,#2B6EBE,#7C5CC4)", color: "#fff", fontWeight: 700, fontSize: 13 }}>
+        style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 0,
+          background: "#5B4CD6", color: "#F7F5F0", fontWeight: 700, fontSize: 13 }}>
         <Phone size={14} /> Add call log photos
       </button>
 
       {shots.length > 0 && (
         <div className="mt-4 grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))" }}>
           {shots.map((s, idx) => (
-            <div key={s.id} style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: "1px solid rgba(43,110,190,0.2)" }}>
+            <div key={s.id} style={{ position: "relative", borderRadius: 0, overflow: "hidden", border: "1px solid rgba(43,110,190,0.2)" }}>
               <img src={s.url} alt={`call log ${idx + 1}`} style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} />
-              <div style={{ position: "absolute", top: 4, left: 4, background: "rgba(0,0,0,0.55)", color: "#fff", fontSize: 11, padding: "2px 6px", borderRadius: 6 }}>#{idx + 1}</div>
+              <div style={{ position: "absolute", top: 4, left: 4, background: "rgba(0,0,0,0.55)", color: "#F7F5F0", fontSize: 11, padding: "2px 6px", borderRadius: 6 }}>#{idx + 1}</div>
               <button type="button" onClick={() => remove(idx)} aria-label="Remove"
                 style={{ position: "absolute", top: 4, right: 4, background: "rgba(255,255,255,0.9)", borderRadius: 6, padding: 4 }}>
                 <X size={12} />
@@ -122,9 +122,9 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
 
       <div className="mt-5 flex items-center justify-end gap-2">
         <button type="button" onClick={save} disabled={busy || shots.length === 0}
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 999,
-            background: shots.length === 0 ? "#C9C0BC" : "linear-gradient(90deg,#2B6EBE,#7C5CC4)",
-            color: "#fff", fontWeight: 700, fontSize: 13,
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 0,
+            background: shots.length === 0 ? "rgba(20,19,31,0.22)" : "#5B4CD6",
+            color: "#F7F5F0", fontWeight: 700, fontSize: 13,
             opacity: busy ? 0.7 : 1, cursor: busy ? "wait" : "pointer" }}>
           {busy ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
           {busy ? "Reading…" : `Import ${shots.length} photo${shots.length === 1 ? "" : "s"}`}

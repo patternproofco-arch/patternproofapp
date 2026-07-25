@@ -211,11 +211,11 @@ function MessageThreadsPage() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        <div className="label-eyebrow" style={{ color: "#7C5CC4" }}>Evidence Portal · Conversations</div>
-        <h1 style={{ fontFamily: '"Instrument Serif", serif', fontWeight: 400, fontSize: 40, lineHeight: 1.05, color: "#1A1714" }}>
+        <div className="label-eyebrow" style={{ color: "#5B4CD6" }}>Evidence Portal · Conversations</div>
+        <h1 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 40, lineHeight: 1.05, color: "#14131F" }}>
           Upload a Message Thread
         </h1>
-        <p style={{ fontSize: 16, lineHeight: 1.6, color: "#3D3832", maxWidth: 720 }}>
+        <p style={{ fontSize: 16, lineHeight: 1.6, color: "#3A3849", maxWidth: 720 }}>
           Three ways to bring a conversation in — pick the one that fits where you are and what you have access to right now.
           There&apos;s no wrong choice. All three land in Documentation first and stay private to you.
         </p>
@@ -224,18 +224,18 @@ function MessageThreadsPage() {
       {/* Safety notice */}
       <div
         style={{
-          display: "flex", gap: 14, padding: 18, borderRadius: 18,
-          background: "linear-gradient(135deg, rgba(196,167,255,0.18), rgba(164,255,239,0.18))",
+          display: "flex", gap: 14, padding: 18, borderRadius: 0,
+          background: "rgba(91,76,214,0.10), rgba(164,255,239,0.18))",
           border: "1px solid rgba(124,92,196,0.25)",
-          color: "#1A1714",
+          color: "#14131F",
         }}
       >
-        <Shield size={22} color="#7C5CC4" style={{ flexShrink: 0, marginTop: 2 }} />
+        <Shield size={22} color="#5B4CD6" style={{ flexShrink: 0, marginTop: 2 }} />
         <div>
           <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 14, letterSpacing: "0.02em" }}>
             A note about lawful use
           </div>
-          <p style={{ fontSize: 14, lineHeight: 1.55, color: "#3D3832" }}>
+          <p style={{ fontSize: 14, lineHeight: 1.55, color: "#3A3849" }}>
             Only upload messages from your own device, account, or records you are legally allowed to access.
             PatternProof does not hack, scrape, bypass Apple security, or access another person&apos;s private messages.
             We help you organize what you already have the right to keep.
@@ -250,7 +250,7 @@ function MessageThreadsPage() {
             title="Take screenshots"
             body="On your own, need this fast. You screenshot the thread as you scroll; we stitch them together and pull out searchable text. Your screenshots stay the primary evidence."
             hint="Best when you're alone and time matters — least re-exposure."
-            accent="#7C5CC4"
+            accent="#5B4CD6"
             Icon={Camera}
             cta="Start with screenshots"
             onClick={() => setTier("tier1")}
@@ -260,7 +260,7 @@ function MessageThreadsPage() {
             title="Backup with a computer"
             body="You (or an advocate/attorney) sit down with a computer and do a real phone backup, then upload the export. Most court-defensible option — but never required."
             hint="Recommended when you have help or a laptop available."
-            accent="#2F8D85"
+            accent="#5B4CD6"
             Icon={Laptop}
             cta="Show me how"
             onClick={() => setTier("tier2")}
@@ -271,7 +271,7 @@ function MessageThreadsPage() {
             title="Screen recording"
             body="Only when nothing else works — for hundreds of messages you can't screenshot one by one. The video itself is your evidence; the AI transcript is a searchable index only."
             hint="Takes longer and means more time looking at the conversation."
-            accent="#B0556A"
+            accent="#C5674A"
             Icon={Video}
             cta="Use screen recording"
             onClick={() => setTier("tier3")}
@@ -281,7 +281,7 @@ function MessageThreadsPage() {
             title="Import your call history"
             body="Screenshots of your Recents / Calls screen. Same photo-based path on iPhone and Android — no special permissions, no computer needed. We read each call row from the images."
             hint="Best for showing frequency, missed calls, and late-night patterns."
-            accent="#2B6EBE"
+            accent="#5B4CD6"
             Icon={Phone}
             cta="Import call log photos"
             onClick={() => setTier("call_log")}
@@ -294,13 +294,13 @@ function MessageThreadsPage() {
       {tier === "call_log" && <CallLogPhotos onDone={() => { setTier("picker"); load(); }} onCancel={() => setTier("picker")} />}
 
       {tier === "tier2" && (
-        <section style={{ borderRadius: 20, padding: 22, background: "rgba(255,255,255,0.8)", border: "1px solid rgba(47,141,133,0.25)" }} className="flex flex-col gap-4">
+        <section style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(47,141,133,0.25)" }} className="flex flex-col gap-4">
           <div className="flex items-start justify-between">
             <div>
-              <div className="label-eyebrow" style={{ color: "#2F8D85" }}>Tier 2 · Strongest</div>
-              <h3 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 24, color: "#1A1714", marginTop: 4 }}>Backup export walkthrough</h3>
+              <div className="label-eyebrow" style={{ color: "#5B4CD6" }}>Tier 2 · Strongest</div>
+              <h3 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#14131F", marginTop: 4 }}>Backup export walkthrough</h3>
             </div>
-            <button type="button" onClick={() => setTier("picker")} className="text-sm underline" style={{ color: "#6B5A4F" }}>Back</button>
+            <button type="button" onClick={() => setTier("picker")} className="text-sm underline" style={{ color: "rgba(20,19,31,0.55)" }}>Back</button>
           </div>
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
             <StepCard n="1" title="iPhone (Finder or iTunes)" body="Connect your iPhone to a Mac or PC. Use Finder (macOS) or iTunes (Windows) to make an encrypted local backup. Then use a reputable tool like iMazing or Decipher TextMessage to export your messages as a PDF, CSV, or TXT file." />
@@ -328,7 +328,7 @@ function MessageThreadsPage() {
               key={c.type}
               style={{
                 position: "relative",
-                borderRadius: 20,
+                borderRadius: 0,
                 padding: 20,
                 background: "rgba(255,255,255,0.7)",
                 border: "1px solid rgba(124,92,196,0.18)",
@@ -340,24 +340,24 @@ function MessageThreadsPage() {
             >
               <div
                 style={{
-                  width: 46, height: 46, borderRadius: 14, display: "grid", placeItems: "center",
-                  background: `linear-gradient(135deg, ${c.swatch[0]}, ${c.swatch[1]})`,
+                  width: 46, height: 46, borderRadius: 0, display: "grid", placeItems: "center",
+                  background: `rgba(91,76,214,0.10)`,
                   color: "#3D2C5C",
                 }}
               >
                 <Icon size={22} color="#3D2C5C" />
               </div>
-              <div style={{ fontWeight: 700, fontSize: 16, color: "#1A1714" }}>{c.title}</div>
-              <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#3D3832", flex: 1 }}>{c.blurb}</p>
+              <div style={{ fontWeight: 700, fontSize: 16, color: "#14131F" }}>{c.title}</div>
+              <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#3A3849", flex: 1 }}>{c.blurb}</p>
               <button
                 type="button"
                 onClick={() => onPick(c.type)}
                 disabled={busy}
                 style={{
                   display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  padding: "10px 14px", borderRadius: 999,
-                  background: "linear-gradient(90deg, #7C5CC4, #2F8D85)",
-                  color: "#fff", fontWeight: 700, fontSize: 13,
+                  padding: "10px 14px", borderRadius: 0,
+                  background: "#5B4CD6",
+                  color: "#F7F5F0", fontWeight: 700, fontSize: 13,
                   opacity: busy ? 0.7 : 1, cursor: busy ? "wait" : "pointer",
                 }}
               >
@@ -380,16 +380,16 @@ function MessageThreadsPage() {
 
       {/* Threads list */}
       <section className="flex flex-col gap-4">
-        <h2 style={{ fontFamily: '"Instrument Serif", serif', fontWeight: 400, fontSize: 28, color: "#1A1714" }}>
+        <h2 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 28, color: "#14131F" }}>
           Your uploaded conversations
         </h2>
         {threads.length === 0 ? (
           <div
             style={{
-              padding: 28, borderRadius: 20, textAlign: "center",
+              padding: 28, borderRadius: 0, textAlign: "center",
               background: "rgba(255,255,255,0.6)",
               border: "1px dashed rgba(124,92,196,0.3)",
-              color: "#3D3832", fontSize: 14, lineHeight: 1.6,
+              color: "#3A3849", fontSize: 14, lineHeight: 1.6,
             }}
           >
             Nothing here yet. When you&apos;re ready, upload an export above — your file stays private to you.
@@ -412,15 +412,15 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
         ? "💻 Backup export"
         : null;
   const statusColor =
-    t.parse_status === "parsed" ? "#2F8D85"
-    : t.parse_status === "queued" ? "#7C5CC4"
+    t.parse_status === "parsed" ? "#5B4CD6"
+    : t.parse_status === "queued" ? "#5B4CD6"
     : t.parse_status === "partial" ? "#B88B2A"
-    : t.parse_status === "failed" ? "#B0556A"
-    : "#7C5CC4";
+    : t.parse_status === "failed" ? "#C5674A"
+    : "#5B4CD6";
   return (
     <article
       style={{
-        borderRadius: 20, padding: 22,
+        borderRadius: 0, padding: 22,
         background: "rgba(255,255,255,0.75)",
         border: "1px solid rgba(124,92,196,0.18)",
         boxShadow: "0 16px 40px -24px rgba(47,141,133,0.35)",
@@ -431,8 +431,8 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
       {captureLabel && (
         <div style={{
           display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11,
-          padding: "4px 10px", borderRadius: 999, marginBottom: 10,
-          background: "rgba(26,23,20,0.06)", color: "#3D3832", fontWeight: 600, letterSpacing: "0.03em",
+          padding: "4px 10px", borderRadius: 0, marginBottom: 10,
+          background: "rgba(26,23,20,0.06)", color: "#3A3849", fontWeight: 600, letterSpacing: "0.03em",
         }}>
           How this was captured · {captureLabel}
           {t.captured_at && <span style={{ opacity: 0.7 }}> · {new Date(t.captured_at).toLocaleString()}</span>}
@@ -440,18 +440,18 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
       )}
       {(t.capture_method === "multi_screenshot" || t.capture_method === "screen_recording") && (
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
-          color: "#B0556A", marginBottom: 8 }}>
+          color: "#C5674A", marginBottom: 8 }}>
           AI-{t.capture_method === "screen_recording" ? "generated" : "extracted"} — unverified
         </div>
       )}
       <header className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-start gap-3">
-          <div style={{ width: 38, height: 38, borderRadius: 12, background: "linear-gradient(135deg,#E2DCFA,#C7E9E3)", display: "grid", placeItems: "center" }}>
+          <div style={{ width: 38, height: 38, borderRadius: 0, background: "rgba(91,76,214,0.10)", display: "grid", placeItems: "center" }}>
             <MessageSquare size={18} color="#3D2C5C" />
           </div>
           <div>
-            <div style={{ fontWeight: 700, color: "#1A1714", fontSize: 15 }}>{t.source_filename}</div>
-            <div style={{ fontSize: 12, color: "#6B5A4F", letterSpacing: "0.04em", textTransform: "uppercase", marginTop: 2 }}>
+            <div style={{ fontWeight: 700, color: "#14131F", fontSize: 15 }}>{t.source_filename}</div>
+            <div style={{ fontSize: 12, color: "rgba(20,19,31,0.55)", letterSpacing: "0.04em", textTransform: "uppercase", marginTop: 2 }}>
               {t.source_type.toUpperCase()} · {new Date(t.created_at).toLocaleDateString()} · {t.message_count} messages
             </div>
           </div>
@@ -460,7 +460,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
           <span
             style={{
               fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-              padding: "4px 10px", borderRadius: 999,
+              padding: "4px 10px", borderRadius: 0,
               background: `${statusColor}1A`, color: statusColor,
             }}
           >
@@ -468,7 +468,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
           </span>
           <button
             type="button" onClick={onDelete} aria-label="Delete"
-            style={{ padding: 6, borderRadius: 8, color: "#6B5A4F", background: "transparent" }}
+            style={{ padding: 6, borderRadius: 8, color: "rgba(20,19,31,0.55)", background: "transparent" }}
           >
             <Trash2 size={15} />
           </button>
@@ -476,7 +476,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
       </header>
 
       {t.parse_error && (
-        <p style={{ fontSize: 13, color: "#6B5A4F", marginBottom: 12, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13, color: "rgba(20,19,31,0.55)", marginBottom: 12, lineHeight: 1.5 }}>
           <AlertTriangle size={12} style={{ display: "inline", marginRight: 6, color: "#B88B2A" }} />
           {t.parse_error}
         </p>
@@ -484,21 +484,21 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
 
       {t.summary && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#7C5CC4", marginBottom: 6 }}>Summary</div>
-          <p style={{ fontSize: 14, lineHeight: 1.6, color: "#1A1714" }}>{t.summary}</p>
+          <div className="label-eyebrow" style={{ color: "#5B4CD6", marginBottom: 6 }}>Summary</div>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: "#14131F" }}>{t.summary}</p>
         </div>
       )}
 
       {t.attorney_summary && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#2F8D85", marginBottom: 6 }}>Attorney-ready summary</div>
-          <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "#3D3832" }}>{t.attorney_summary}</p>
+          <div className="label-eyebrow" style={{ color: "#5B4CD6", marginBottom: 6 }}>Attorney-ready summary</div>
+          <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "#3A3849" }}>{t.attorney_summary}</p>
         </div>
       )}
 
       {Array.isArray(t.flags) && t.flags.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#B0556A", marginBottom: 8 }}>Flags & patterns</div>
+          <div className="label-eyebrow" style={{ color: "#C5674A", marginBottom: 8 }}>Flags & patterns</div>
           <div className="flex flex-wrap gap-2">
             {t.flags.map((f, i) => (
               <span
@@ -506,9 +506,9 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
                 title={f.evidence}
                 style={{
                   fontSize: 12, fontWeight: 600,
-                  padding: "5px 10px", borderRadius: 999,
+                  padding: "5px 10px", borderRadius: 0,
                   background: f.severity === "high" ? "#F7DDE3" : f.severity === "medium" ? "#FAEAD3" : "#E4F3EE",
-                  color: f.severity === "high" ? "#7E2A3D" : f.severity === "medium" ? "#7A5613" : "#1F5E55",
+                  color: f.severity === "high" ? "#C5674A" : f.severity === "medium" ? "#7A5613" : "#1F5E55",
                 }}
               >
                 {f.label}
@@ -522,7 +522,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
         <div
           style={{
             marginTop: 14, padding: "10px 14px",
-            borderRadius: 12, background: "rgba(124,92,196,0.08)",
+            borderRadius: 0, background: "rgba(124,92,196,0.08)",
             fontSize: 12.5, color: "#3D2C5C", fontWeight: 600, letterSpacing: "0.02em",
             display: "inline-flex", alignItems: "center", gap: 8,
           }}
@@ -543,8 +543,8 @@ function TierCard({ eyebrow, title, body, hint, accent, Icon, cta, onClick, reco
     <button type="button" onClick={onClick}
       style={{
         position: "relative", textAlign: "left",
-        borderRadius: 20, padding: 22,
-        background: "rgba(255,255,255,0.8)",
+        borderRadius: 0, padding: 22,
+        background: "#F7F5F0",
         border: `1px solid ${accent}44`,
         boxShadow: recommended ? `0 20px 44px -22px ${accent}80` : `0 12px 32px -22px ${accent}55`,
         display: "flex", flexDirection: "column", gap: 10,
@@ -552,15 +552,15 @@ function TierCard({ eyebrow, title, body, hint, accent, Icon, cta, onClick, reco
       {recommended && (
         <span style={{ position: "absolute", top: 12, right: 12, fontSize: 10, fontWeight: 800,
           letterSpacing: "0.1em", textTransform: "uppercase", color: accent,
-          background: `${accent}18`, padding: "3px 8px", borderRadius: 999 }}>Recommended</span>
+          background: `${accent}18`, padding: "3px 8px", borderRadius: 0 }}>Recommended</span>
       )}
-      <div style={{ width: 44, height: 44, borderRadius: 12, background: `${accent}18`, display: "grid", placeItems: "center" }}>
+      <div style={{ width: 44, height: 44, borderRadius: 0, background: `${accent}18`, display: "grid", placeItems: "center" }}>
         <Icon size={20} color={accent} />
       </div>
       <div className="label-eyebrow" style={{ color: accent }}>{eyebrow}</div>
-      <div style={{ fontWeight: 700, fontSize: 17, color: "#1A1714" }}>{title}</div>
-      <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#3D3832" }}>{body}</p>
-      <p style={{ fontSize: 12.5, lineHeight: 1.5, color: "#6B5A4F", fontStyle: "italic" }}>{hint}</p>
+      <div style={{ fontWeight: 700, fontSize: 17, color: "#14131F" }}>{title}</div>
+      <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#3A3849" }}>{body}</p>
+      <p style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(20,19,31,0.55)", fontStyle: "italic" }}>{hint}</p>
       <span style={{ marginTop: 4, fontSize: 13, fontWeight: 700, color: accent }}>{cta} →</span>
     </button>
   );
@@ -568,10 +568,10 @@ function TierCard({ eyebrow, title, body, hint, accent, Icon, cta, onClick, reco
 
 function StepCard({ n, title, body }: { n: string; title: string; body: string }) {
   return (
-    <div style={{ borderRadius: 14, padding: 14, background: "rgba(255,255,255,0.6)", border: "1px solid rgba(47,141,133,0.2)" }}>
-      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", color: "#2F8D85", marginBottom: 6 }}>STEP {n}</div>
-      <div style={{ fontWeight: 700, color: "#1A1714", fontSize: 14, marginBottom: 4 }}>{title}</div>
-      <p style={{ fontSize: 13, lineHeight: 1.5, color: "#3D3832" }}>{body}</p>
+    <div style={{ borderRadius: 0, padding: 14, background: "rgba(255,255,255,0.6)", border: "1px solid rgba(47,141,133,0.2)" }}>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", color: "#5B4CD6", marginBottom: 6 }}>STEP {n}</div>
+      <div style={{ fontWeight: 700, color: "#14131F", fontSize: 14, marginBottom: 4 }}>{title}</div>
+      <p style={{ fontSize: 13, lineHeight: 1.5, color: "#3A3849" }}>{body}</p>
     </div>
   );
 }

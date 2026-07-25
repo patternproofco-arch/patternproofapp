@@ -160,7 +160,7 @@ function SurvivorInvitePage() {
           <ShieldCheck size={12} /> Attorney invite
         </div>
       </div>
-      <h1 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 32, marginBottom: 8 }}>
+      <h1 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 32, marginBottom: 8 }}>
         {attorneyDisplay} invited you to share your case.
       </h1>
       <p style={{ color: "#475569", fontSize: 14, marginBottom: 18 }}>
@@ -168,7 +168,7 @@ function SurvivorInvitePage() {
       </p>
 
       {inv.personal_note && (
-        <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderLeft: "3px solid #2F8D85", borderRadius: 8, padding: 14, marginBottom: 18, fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+        <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderLeft: "3px solid #5B4CD6", borderRadius: 8, padding: 14, marginBottom: 18, fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
           {inv.personal_note}
         </div>
       )}
@@ -182,8 +182,8 @@ function SurvivorInvitePage() {
         <form onSubmit={submitAuth} style={{ display: "grid", gap: 12 }}>
           {!user && (
             <div style={{ display: "flex", gap: 4, fontSize: 12 }}>
-              <button type="button" onClick={() => setMode("signup")} style={{ padding: "6px 12px", borderRadius: 6, border: mode === "signup" ? "1px solid #2F8D85" : "1px solid #E2E8F0", background: mode === "signup" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>Create account</button>
-              <button type="button" onClick={() => setMode("login")} style={{ padding: "6px 12px", borderRadius: 6, border: mode === "login" ? "1px solid #2F8D85" : "1px solid #E2E8F0", background: mode === "login" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>I already have an account</button>
+              <button type="button" onClick={() => setMode("signup")} style={{ padding: "6px 12px", borderRadius: 6, border: mode === "signup" ? "1px solid #5B4CD6" : "1px solid #E2E8F0", background: mode === "signup" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>Create account</button>
+              <button type="button" onClick={() => setMode("login")} style={{ padding: "6px 12px", borderRadius: 6, border: mode === "login" ? "1px solid #5B4CD6" : "1px solid #E2E8F0", background: mode === "login" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>I already have an account</button>
             </div>
           )}
           {!user && (
@@ -216,8 +216,8 @@ function SurvivorInvitePage() {
             disabled={busy}
             style={{
               padding: "12px 18px",
-              background: "#2F8D85",
-              color: "#fff",
+              background: "#5B4CD6",
+              color: "#F7F5F0",
               border: 0,
               borderRadius: 8,
               fontWeight: 600,
@@ -234,7 +234,7 @@ function SurvivorInvitePage() {
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
           <div>
-            <h2 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 22, margin: 0 }}>What would you like to share?</h2>
+            <h2 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 22, margin: 0 }}>What would you like to share?</h2>
             <p style={{ fontSize: 13, color: "#475569", marginTop: 6 }}>
               Everything is selected by default so you can continue in one click, but you can narrow what this attorney sees before accepting.
             </p>
@@ -300,7 +300,7 @@ function SurvivorInvitePage() {
             )}
           </ScopeBox>
 
-          <div style={{ padding: 14, borderRadius: 12, border: "1px solid #E2E8F0", background: "#fff" }}>
+          <div style={{ padding: 14, borderRadius: 0, border: "1px solid #E2E8F0", background: "#F7F5F0" }}>
             <Toggle checked={sharePatterns} onChange={setSharePatterns} label="Share pattern analysis" />
             <p style={{ margin: "8px 0 0 24px", fontSize: 12, color: "#475569" }}>
               Includes PatternProof analysis, forecasts, attorney summaries, and safety notes when available.
@@ -312,7 +312,7 @@ function SurvivorInvitePage() {
             onClick={confirmScope}
             disabled={busy}
             style={{
-              padding: "12px 18px", background: "#2F8D85", color: "#fff", border: 0, borderRadius: 8,
+              padding: "12px 18px", background: "#5B4CD6", color: "#F7F5F0", border: 0, borderRadius: 8,
               fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? 0.6 : 1,
               display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
             }}
@@ -339,7 +339,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
 
 function ScopeBox({ icon, title, description, children }: { icon: React.ReactNode; title: string; description: string; children: React.ReactNode }) {
   return (
-    <div style={{ padding: 14, borderRadius: 12, border: "1px solid #E2E8F0", background: "#fff", display: "grid", gap: 10 }}>
+    <div style={{ padding: 14, borderRadius: 0, border: "1px solid #E2E8F0", background: "#F7F5F0", display: "grid", gap: 10 }}>
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 14 }}>{icon}{title}</div>
         <p style={{ fontSize: 12, color: "#475569", margin: "4px 0 0" }}>{description}</p>
@@ -351,7 +351,7 @@ function ScopeBox({ icon, title, description, children }: { icon: React.ReactNod
 
 function ScopeModeCard({ name, checked, onChange, title, helper }: { name: string; checked: boolean; onChange: () => void; title: string; helper: string }) {
   return (
-    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, padding: 10, borderRadius: 10, cursor: "pointer", border: checked ? "1px solid #2F8D85" : "1px solid #E2E8F0", background: checked ? "#EAF7EF" : "#FBFEFC" }}>
+    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, padding: 10, borderRadius: 10, cursor: "pointer", border: checked ? "1px solid #5B4CD6" : "1px solid #E2E8F0", background: checked ? "#EAF7EF" : "#FBFEFC" }}>
       <input type="radio" name={name} checked={checked} onChange={onChange} style={{ marginTop: 2 }} />
       <span>
         <strong style={{ display: "block", fontSize: 13 }}>{title}</strong>
@@ -372,7 +372,7 @@ function SelectionList({ children, empty }: { children: React.ReactNode; empty: 
 
 function SelectableItem({ checked, onChange, title, subtitle }: { checked: boolean; onChange: (checked: boolean) => void; title: string; subtitle: string }) {
   return (
-    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, alignItems: "start", padding: 8, borderRadius: 8, background: "#fff", border: "1px solid #E2E8F0", cursor: "pointer" }}>
+    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, alignItems: "start", padding: 8, borderRadius: 8, background: "#F7F5F0", border: "1px solid #E2E8F0", cursor: "pointer" }}>
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} style={{ marginTop: 2 }} />
       <span style={{ minWidth: 0 }}>
         <strong style={{ display: "block", fontSize: 12 }}>{title}</strong>
@@ -386,7 +386,7 @@ const inputStyle: React.CSSProperties = {
   padding: "10px 12px",
   borderRadius: 8,
   border: "1px solid #E2E8F0",
-  background: "#fff",
+  background: "#F7F5F0",
   fontSize: 14,
   fontFamily: "inherit",
 };
@@ -394,7 +394,7 @@ const inputStyle: React.CSSProperties = {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ minHeight: "100vh", background: "#FBFEFC", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ maxWidth: 680, width: "100%", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 28, boxShadow: "0 4px 24px rgba(15,23,42,0.06)" }}>
+      <div style={{ maxWidth: 680, width: "100%", background: "#F7F5F0", border: "1px solid #E2E8F0", borderRadius: 0, padding: 28, boxShadow: "0 4px 24px rgba(15,23,42,0.06)" }}>
         {children}
       </div>
     </div>
