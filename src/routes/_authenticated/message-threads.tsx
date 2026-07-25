@@ -2,13 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Upload, FileText, FileSpreadsheet, FileCode2, FileArchive, FileType2, Shield, Sparkles, AlertTriangle, MessageSquare, Loader2, Trash2, Camera, Video, Laptop } from "lucide-react";
+import { Upload, FileText, FileSpreadsheet, FileCode2, FileArchive, FileType2, Shield, Sparkles, AlertTriangle, MessageSquare, Loader2, Trash2, Camera, Video, Laptop, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { parseMessageThread } from "@/lib/message-threads.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { ScreenshotStitcher } from "@/components/threads/ScreenshotStitcher";
 import { ScreenRecordingUpload } from "@/components/threads/ScreenRecordingUpload";
+import { CallLogPhotos } from "@/components/threads/CallLogPhotos";
 
 export const Route = createFileRoute("/_authenticated/message-threads")({
   component: MessageThreadsPage,
@@ -106,7 +107,7 @@ function MessageThreadsPage() {
   const parseFn = useServerFn(parseMessageThread);
   const [threads, setThreads] = useState<ThreadRow[]>([]);
   const [busyType, setBusyType] = useState<SourceType | null>(null);
-  const [tier, setTier] = useState<"picker" | "tier1" | "tier2" | "tier3">("picker");
+  const [tier, setTier] = useState<"picker" | "tier1" | "tier2" | "tier3" | "call_log">("picker");
   const [tier2Notes, setTier2Notes] = useState<string>("");
   const [tier2Participant, setTier2Participant] = useState<string>("");
   const inputs = useRef<Record<SourceType, HTMLInputElement | null>>({
@@ -275,11 +276,22 @@ function MessageThreadsPage() {
             cta="Use screen recording"
             onClick={() => setTier("tier3")}
           />
+          <TierCard
+            eyebrow="Call log · Photos"
+            title="Import your call history"
+            body="Screenshots of your Recents / Calls screen. Same photo-based path on iPhone and Android — no special permissions, no computer needed. We read each call row from the images."
+            hint="Best for showing frequency, missed calls, and late-night patterns."
+            accent="#2B6EBE"
+            Icon={Phone}
+            cta="Import call log photos"
+            onClick={() => setTier("call_log")}
+          />
         </section>
       )}
 
       {tier === "tier1" && <ScreenshotStitcher onDone={() => { setTier("picker"); load(); }} onCancel={() => setTier("picker")} />}
       {tier === "tier3" && <ScreenRecordingUpload onDone={() => { setTier("picker"); load(); }} onCancel={() => setTier("picker")} />}
+      {tier === "call_log" && <CallLogPhotos onDone={() => { setTier("picker"); load(); }} onCancel={() => setTier("picker")} />}
 
       {tier === "tier2" && (
         <section style={{ borderRadius: 20, padding: 22, background: "rgba(255,255,255,0.8)", border: "1px solid rgba(47,141,133,0.25)" }} className="flex flex-col gap-4">
