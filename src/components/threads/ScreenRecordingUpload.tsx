@@ -4,13 +4,14 @@ import { Upload, Loader2, Video, AlertTriangle } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { ingestRecordedThread } from "@/lib/message-threads.functions";
+import { ingestRecordedThread, transcribeRecordedThread } from "@/lib/message-threads.functions";
 
 interface Props { onDone: () => void; onCancel: () => void; }
 
 export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
   const { user } = useAuth();
   const ingest = useServerFn(ingestRecordedThread);
+  const transcribe = useServerFn(transcribeRecordedThread);
   const [file, setFile] = useState<File | null>(null);
   const [participant, setParticipant] = useState("");
   const [notes, setNotes] = useState("");
@@ -43,7 +44,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
       } catch { /* ignore */ }
 
       toast("Uploaded. Your video is the primary record.", { icon: "🎬" });
-      await ingest({ data: {
+      const ing = await ingest({ data: {
         videoPath: path,
         filename: file.name,
         durationSec: duration,
@@ -51,8 +52,11 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
         captureNotes: notes || undefined,
         participantHint: participant || undefined,
       } });
-      toast.success("Saved. A searchable transcript will appear shortly.");
+      toast.success("Saved. Generating a searchable transcript…");
       onDone();
+      // Fire-and-forget: transcription can take a while and shouldn't block the UI.
+      // Failures are handled server-side by writing a friendly parse_error.
+      transcribe({ data: { threadId: ing.threadId } }).catch(() => { /* server records failure */ });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed.");
     } finally {
