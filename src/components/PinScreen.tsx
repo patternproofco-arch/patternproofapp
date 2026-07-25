@@ -86,7 +86,7 @@ export function PinScreen() {
                 className="pulse-rec"
                 style={{
                   width: 4,
-                  background: "#E77B56",
+                  background: "#C5674A",
                   borderRadius: 2,
                   height: `${10 + ((i * 7 + elapsed * 5) % 32)}px`,
                   animationDelay: `${i * 60}ms`,
@@ -157,7 +157,7 @@ export function PinScreen() {
           onClick={beginBare}
           aria-label="Quick record"
           className="fixed bottom-5 right-5 flex h-11 w-11 items-center justify-center rounded-full"
-          style={{ background: "#E77B56", color: "#fff", boxShadow: "0 4px 12px rgba(78,59,49,0.2)" }}
+          style={{ background: "#C5674A", color: "#fff", boxShadow: "0 4px 12px rgba(20,19,31,0.2)" }}
         >
           <Mic size={18} />
         </button>

@@ -78,7 +78,7 @@ function SurvivorFeedbackPage() {
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 999, background: "rgba(189,230,212,0.35)", color: "#1E5A3E", fontWeight: 700, fontSize: 13, marginBottom: 18 }}>
             <Check size={16} /> Thank you
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px", color: "#2A1A10" }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px", color: "#14131F" }}>
             Received. Every word you shared helps.
           </h1>
           <p style={{ color: "#4E3B31", lineHeight: 1.6, marginBottom: 24 }}>
@@ -95,7 +95,7 @@ function SurvivorFeedbackPage() {
       <Link to="/dashboard" style={backLink}><ArrowLeft size={14} /> Back to dashboard</Link>
       <div style={cardStyle}>
         <div style={eyebrow}>Your voice · shared privately</div>
-        <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", margin: "10px 0 12px", color: "#2A1A10", fontFamily: "Georgia, 'Palatino Linotype', serif" }}>
+        <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", margin: "10px 0 12px", color: "#14131F", fontFamily: "Georgia, 'Palatino Linotype', serif" }}>
           How is PatternProof feeling for you?
         </h1>
         <p style={{ color: "#4E3B31", lineHeight: 1.65, marginBottom: 24 }}>
@@ -176,7 +176,7 @@ function SurvivorFeedbackPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#2A1A10", marginBottom: 10, lineHeight: 1.4 }}>{label}</label>
+      <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#14131F", marginBottom: 10, lineHeight: 1.4 }}>{label}</label>
       {children}
     </div>
   );
@@ -206,10 +206,10 @@ const pageWrap: React.CSSProperties = {
 const cardStyle: React.CSSProperties = {
   maxWidth: 640,
   margin: "0 auto",
-  background: "#DEB896",
+  background: "#F7F5F0",
   borderRadius: 20,
   padding: "36px 32px",
-  boxShadow: "0 20px 60px -30px rgba(78,59,49,0.35)",
+  boxShadow: "0 20px 60px -30px rgba(20,19,31,0.35)",
   border: "1px solid rgba(255,255,255,0.4)",
 };
 
@@ -240,9 +240,9 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "12px 14px",
   borderRadius: 12,
-  border: "1px solid rgba(78,59,49,0.25)",
-  background: "#F5E9D6",
-  color: "#2A1A10",
+  border: "1px solid rgba(20,19,31,0.25)",
+  background: "#F7F5F0",
+  color: "#14131F",
   fontSize: 14,
   outline: "none",
 };
@@ -250,7 +250,7 @@ const inputStyle: React.CSSProperties = {
 const ctaBtn: React.CSSProperties = {
   padding: "14px 28px",
   borderRadius: 999,
-  background: "#E77B56",
+  background: "#C5674A",
   color: "#FFFFFF",
   fontWeight: 700,
   fontSize: 15,
@@ -263,9 +263,9 @@ function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
     borderRadius: 999,
-    border: active ? "1px solid #E77B56" : "1px solid rgba(78,59,49,0.25)",
-    background: active ? "#E77B56" : "#F5E9D6",
-    color: active ? "#FFFFFF" : "#2A1A10",
+    border: active ? "1px solid #C5674A" : "1px solid rgba(20,19,31,0.25)",
+    background: active ? "#C5674A" : "#F7F5F0",
+    color: active ? "#FFFFFF" : "#14131F",
     fontWeight: 600,
     fontSize: 14,
     cursor: "pointer",

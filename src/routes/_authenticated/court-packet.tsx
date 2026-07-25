@@ -120,7 +120,7 @@ function CourtPacket() {
       </div>
 
       <div id="packet" style={{ background: "#fff", color: "#000", padding: "32px 36px", borderRadius: 12, fontFamily: "system-ui, sans-serif", fontSize: 14, lineHeight: 1.55 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderBottom: "2px solid #E77B56", paddingBottom: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderBottom: "2px solid #C5674A", paddingBottom: 10 }}>
           <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 22, fontWeight: 700 }}>
             PatternProof
           </div>
