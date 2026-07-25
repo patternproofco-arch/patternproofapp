@@ -361,6 +361,19 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
             <AlertTriangle size={12} style={{ display: "inline", marginRight: 4, verticalAlign: "-2px" }} />
             Do not delete your original source (phone photo, screenshot, email) based only on this import. Keep your originals until you are sure the import is complete.
           </p>
+          {suggestionCount !== null && suggestionCount > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg p-3 text-[13px]" style={{ background: "rgba(106,146,214,0.14)", color: "#1f3a68", border: "1px solid rgba(106,146,214,0.35)" }}>
+              <div className="flex-1">
+                {suggestionCount === 1
+                  ? "1 file looks like it might belong to an incident you've already written down."
+                  : `${suggestionCount} files look like they might belong to incidents you've already written down.`}
+                {" "}Nothing was attached yet — review the suggestions when you're ready.
+              </div>
+              <Link to="/evidence-review" className="btn-ghost text-[12px]">
+                Review suggestions
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>
