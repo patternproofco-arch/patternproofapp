@@ -107,8 +107,7 @@ function Index() {
 
         <div style={{ marginTop: 40 }}>
           <Link
-            to="/login"
-            search={{}}
+            to="/choose-role"
             style={{
               display: "inline-block",
               background: "#14131F",
