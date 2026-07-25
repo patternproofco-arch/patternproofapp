@@ -5,7 +5,7 @@ import { assertSupabaseStorageUrl } from "./safe-fetch.server";
 import { createHash } from "crypto";
 
 type SourceType = "pdf" | "csv" | "excel" | "txt" | "rsmf" | "zip";
-type CaptureMethod = "multi_screenshot" | "backup_export" | "screen_recording";
+type CaptureMethod = "multi_screenshot" | "backup_export" | "screen_recording" | "call_log_photos";
 
 interface ParsedMessage {
   position: number;
