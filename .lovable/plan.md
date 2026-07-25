@@ -1,167 +1,76 @@
-# Logo swap + Photo/Video auto-attach with transcription
+## Reality check first
 
-## Part 1 — Logo swap (contained)
+There is **no existing screen-recording + AI-reconstruction import** in the codebase to replace. The current `/message-threads` page only accepts exported files (PDF, CSV, TXT, RSMF, ZIP) and parses them via `parseMessageThread` in `src/lib/message-threads.functions.ts`. All three tiers below are new; the existing file-export flow becomes the second half of Tier 2.
 
-Rewrite `src/components/Logo.tsx` to render the standalone ink-line SVG mark
-(path `M8 8 H50 L64 22 V64 H8 Z` + `M50 8 V22 H64`, viewBox `0 0 72 72`,
-stroke `#14131F`, stroke-width `2.2`, fill `none`). Keep the `LogoVariant`
-prop shape so every existing call site keeps compiling; ignore the variant
-visually (single mark, no tinted asset). Drop the tri-logo PNG asset JSON
-imports so the marketing pages no longer reference the retired assets.
+## What I'll build
 
-Delete the unused `src/components/BrandLogo.tsx` (facet/diamond mark, no
-callers).
+### 1. Schema (one migration)
+Add to `message_threads`:
+- `capture_method text` — `'multi_screenshot' | 'backup_export' | 'screen_recording'`
+- `captured_at timestamptz` — when the survivor performed the capture (not the upload time)
+- `capture_notes text` — free text (e.g. "iPhone, Finder backup, laptop present")
+- `primary_artifact_urls text[]` — storage paths of the raw evidence (screenshots array, or single video, or export file). This is what stays canonical; parsed text is the index.
+- `screenshot_count int`, `video_duration_sec int` — for display
 
-Favicon + PWA icon:
-- Overwrite `public/icons/icon.svg` and `public/icons/icon-maskable.svg` with
-  the same mark (maskable gets a paper `#F7F5F0` background and inset).
-- Add a matching `public/favicon.svg` and reference it in
-  `src/routes/__root.tsx` head `links` (add alongside the existing manifest
-  link); replace/delete `public/favicon.ico` if present so the old icon
-  doesn't leak via `/favicon.ico` fallback.
-- Manifest theme_color stays `#4E3B31` unless we already know it needs an
-  update — leave untouched.
+Keep `parse_status`, `summary`, `attorney_summary`, `flags`, `exhibit_label` — all three tiers reuse the existing summary-first / AI-flag pipeline.
 
-## Part 2 — Photo/video auto-attach + transcription
+### 2. Tier picker UI — replace top of `/message-threads`
+Three plain-language cards, in this order (Tier 2 visually marked "strongest"):
 
-### DB migration (single migration)
+```text
+┌ Take screenshots (fastest) ────┐  ┌ Backup with a computer (strongest) ┐  ┌ Screen recording (fallback) ┐
+│ On your own, need it now.      │  │ Recommended when you have help.    │  │ Only if nothing else works. │
+└────────────────────────────────┘  └────────────────────────────────────┘  └─────────────────────────────┘
+```
+Below each: a warning/context line. Tier 3 shows the "takes longer / more re-exposure" warning before its file picker opens.
 
-Add to `public.evidence`:
-- `exif_captured_at timestamptz` — from EXIF DateTimeOriginal
-- `in_image_timestamp_text text` — raw OCR match text
-- `in_image_timestamp_at timestamptz` — parsed if unambiguous (nullable)
-- `ingested_at timestamptz not null default now()` — server-side upload time
-  (backfill from `created_at`)
-- `gps_lat double precision` / `gps_lon double precision` — quarantined,
-  NEVER selected by default queries. Column comments call this out.
-- `gps_reveal_opt_in boolean not null default false` — survivor must flip
-  this per-item before any UI/export renders GPS.
-- `transcript text` — AI-generated
-- `transcript_segments jsonb` — `[{start, end, speaker, text}]`
-- `transcript_status text not null default 'pending'` (pending/ready/failed)
-- `transcript_verified_at timestamptz`, `transcript_verified_by uuid`
-- `review_status text not null default 'suggested'`
-  (suggested / confirmed / skipped). Only `confirmed` rows are part of the
-  official record. Existing rows backfilled to `confirmed` so the current
-  timeline is unchanged.
-- `suggested_incident_id uuid references incidents(id)` — proposed match,
-  distinct from the current authoritative `linked_incident_id`.
-- `match_reason text` — human-readable "why we matched this" (e.g.
-  "EXIF date 2025-03-14 09:12 within 6 h of incident on 2025-03-14").
+### 3. Tier 1 — Multi-screenshot stitch (new)
+- New component `src/components/threads/ScreenshotStitcher.tsx`: accepts multiple images at once (or repeatedly), previews them in scroll order, lets her reorder/remove.
+- New server fn `stitchScreenshotThread` in `src/lib/message-threads.functions.ts`:
+  1. Upload each screenshot to `evidence-files` under `threads/{threadId}/shot-{n}.jpg`; SHA-256 each.
+  2. Run the existing vision model (Gemini) on each screenshot to extract `{sender, timestamp, text}` per bubble — already-built pattern from `extract-incident.functions.ts`.
+  3. **Dedup**: between consecutive screenshots, drop leading bubbles whose text overlaps ≥70% (normalized) with the tail of the previous screenshot. Text-based dedup — cheaper and more reliable than image similarity for chat UIs.
+  4. Persist merged bubbles into `thread_messages` with `flags: { ai_extracted: true, unverified: true }`.
+  5. `capture_method='multi_screenshot'`, `primary_artifact_urls` = all screenshot paths.
+- Lands in Documentation (no schema change needed — attorney/export queries already filter by `review_status='suggested'` from the previous pass; this thread stays unverified until she confirms).
 
-Grants: keep the current `authenticated` grants on `evidence`; add a
-`gps_columns_visible` DB-side rule — since PostgREST doesn't do column-level
-RLS naturally, the app-side rule is: `gps_lat`/`gps_lon` are never returned
-by any user-facing query unless `gps_reveal_opt_in = true`. Server functions
-enforce this with explicit `.select("… no gps unless opted in …")`
-projections and a dedicated `getEvidenceGps({ id })` fn.
+### 4. Tier 2 — Backup guided walkthrough (mostly wiring existing flow)
+- New route section `Tier 2 walkthrough`: a 3-step guide (iPhone Finder backup / Android Google Takeout / recommend iMazing-style tool) with copy-only instructions and a "your privacy" note.
+- Ends at the **existing** file uploader (PDF/CSV/TXT/RSMF/ZIP) — thread stamped `capture_method='backup_export'`.
+- Visually flagged "strongest, most court-defensible" on the tier card and in the resulting thread badge.
 
-### Ingest pipeline (`src/lib/evidence-ingest.functions.ts`)
+### 5. Tier 3 — Screen recording (new)
+- New component `src/components/threads/ScreenRecordingUpload.tsx`: warning modal → file picker for a video (mp4/mov/webm, ≤200MB).
+- New server fn `ingestRecordedThread`:
+  1. Upload video to `evidence-files`, compute SHA-256, store as the **primary** artifact.
+  2. Kick off transcription via the existing `transcribeEvidence` pipeline (`openai/gpt-4o-transcribe`) — reused, not re-implemented.
+  3. Store transcript on the thread's `summary` field (labeled "AI-generated — unverified"). Video URL stays canonical; transcript is a searchable index only.
+- `capture_method='screen_recording'`, `primary_artifact_urls=[videoPath]`.
 
-Extend `ingestEvidenceBatch` (already handles SHA-256 + perceptual hash).
-Add, in order, still fully server-side:
+### 6. Cross-tier — audit trail
+Every new thread writes an `audit_events` row via `record_audit_event`:
+```
+event_type: 'thread.imported'
+subject_kind: 'message_thread', subject_id: threadId
+meta: { capture_method, captured_at, artifact_count, sha256_list }
+```
 
-1. Detect mime → images vs video vs other.
-2. Images:
-   - Parse EXIF (`exifr` npm) → `exif_captured_at`, raw GPS to quarantined
-     columns.
-   - Run OCR on the image (`tesseract.js` or a lighter timestamp-only regex
-     over EXIF's embedded XMP where possible — realistically ship
-     tesseract.js worker in a server fn; fall back to no-OCR on failure).
-     Regex-extract common in-image timestamp shapes (`MMM d, h:mm a`,
-     `HH:mm`, iOS "Today 9:14 AM", `MM/DD/YY HH:mm`). Store the raw hit in
-     `in_image_timestamp_text` and, if unambiguous with a same-file EXIF
-     date anchor, the resolved timestamp in `in_image_timestamp_at`.
-3. Videos:
-   - Enqueue transcription (see below). Extract EXIF/QuickTime date via
-     `exifr` — same GPS quarantine.
-4. Every file: unchanged SHA-256 + `ingested_at = now()`.
+### 7. Thread detail view
+On the existing thread card, show:
+- A "How this was captured" chip (e.g. "📱 Multi-screenshot · 7 images · captured Jul 25 10:12") — always visible, always factual.
+- For Tier 1/3: an "AI-extracted — unverified" badge above the parsed messages.
+- Existing summary-first / flag / incident-grouping UI unchanged.
 
-Matching (`findIncidentCandidates`):
-- Pick the best available anchor per item: EXIF > in-image OCR >
-  ingest date (last-resort, low-confidence).
-- Query the user's non-deleted incidents where `date` is within a
-  configurable window (default ±72 h; `settings.matchWindowHours`,
-  otherwise the constant). Return up to 3 candidates with a `match_reason`
-  string like "Photo captured 2025-03-14 09:12 (EXIF) — within 4 h of
-  incident on 2025-03-14 05:00".
-- Set `suggested_incident_id` to the top candidate; leave
-  `linked_incident_id` NULL. `review_status` = `suggested`.
-- Never auto-populate `linked_incident_id`.
+## What I'm not doing this pass
+- Native mobile screenshot burst-mode (web can't trigger the system screenshotter; she takes them the normal way and uploads).
+- Actual image-similarity dedup (using text-overlap instead — reason above).
+- Auto-promotion Documentation → Evidence on Tier 2 hash-verify (deferred; the current Documentation/Evidence rule already handles this at the evidence-level, not thread-level).
 
-### Transcription (`src/lib/transcribe-evidence.functions.ts` — new)
+## Files touched
+- **New**: `src/components/threads/TierPicker.tsx`, `ScreenshotStitcher.tsx`, `ScreenRecordingUpload.tsx`, `BackupWalkthrough.tsx`
+- **Migration**: add columns to `message_threads`
+- **Update**: `src/lib/message-threads.functions.ts` (+2 fns, +audit call), `src/routes/_authenticated/message-threads.tsx` (tier picker + capture chip)
 
-Server fn `transcribeEvidence({ evidence_id })`:
-- Loads the video/audio via signed URL, POSTs to Lovable AI Gateway
-  `openai/gpt-4o-transcribe` with `response_format: verbose_json` to get
-  segments + words.
-- Approximate speaker diarization: group adjacent segments by
-  silence-gap heuristic (>1.2 s) and alternate `Speaker 1` / `Speaker 2`
-  labels. Explicitly documented as approximate; never uses names.
-- Writes `transcript`, `transcript_segments`, `transcript_status = 'ready'`.
-  Leaves `transcript_verified_at` NULL — the UI treats NULL as
-  "AI-generated — unverified".
-- On ingest, kicked off in background via a follow-up server fn call from
-  the client after upload succeeds (Workers have no queue; the client
-  triggers it).
+Estimated ~900 lines net. Typecheck at the end.
 
-Verification fn `verifyTranscript({ evidence_id })`: sets
-`transcript_verified_at = now()` and `transcript_verified_by = auth.uid()`.
-
-### UI — Review queue
-
-New route `src/routes/_authenticated/evidence-review.tsx`:
-- Lists `evidence` where `review_status = 'suggested'`, paginated 6 per page.
-- Each row: thumbnail (via signed URL), the three timestamps clearly
-  labeled (EXIF / In-image OCR / Uploaded), `match_reason`, and 3 buttons:
-  "Attach to <incident label>" · "Create new incident" · "Skip".
-- "Attach" → sets `linked_incident_id = suggested_incident_id`,
-  `review_status = 'confirmed'`.
-- "Create new incident" → navigates to journal prefill with EXIF date.
-- "Skip" → `review_status = 'skipped'` (stays out of timeline).
-- Also a top banner card if there are pending suggestions >0, linked from
-  the dashboard contextual-card list (after contradictions, before
-  severity).
-
-`src/components/evidence/BatchDropzone.tsx`: after ingest completes, if
-any items are `suggested`, deep-link to `/evidence-review`. Do NOT surface
-all matches inline — pacing rule.
-
-`src/routes/_authenticated/evidence.tsx` (existing detail view):
-- Show the three timestamps distinctly.
-- If `gps_lat` server-side check indicates GPS exists (via
-  `hasGps` boolean returned by `getEvidence`), show an opt-in card:
-  "This file contains location data. Show it on this exhibit?" with the
-  recency warning; on confirm calls `setGpsRevealOptIn`.
-- For videos with a transcript: render audio/video player + segment list,
-  every transcript block prefixed with the "AI-generated — unverified"
-  chip until `transcript_verified_at` is set. "Confirm transcript"
-  button calls `verifyTranscript`.
-
-### Export / attorney-share safety
-
-- All export code paths (`court-packet.functions.ts`,
-  `export-zip.functions.ts`, attorney-portal getters) must NEVER include
-  `gps_lat`/`gps_lon` unless `gps_reveal_opt_in = true`. Add explicit
-  `select` projections and one shared helper `stripGps(row)` as a
-  belt-and-suspenders guard.
-- Attorney portal reads only see `review_status = 'confirmed'`; suggested
-  rows are private to the survivor.
-- Transcripts render with the "AI-generated — unverified" banner in the
-  attorney view too, until confirmed.
-
-## Technical notes
-
-- New npm deps: `exifr` (EXIF + GPS, Worker-friendly), `tesseract.js` for
-  OCR. If `tesseract.js` doesn't run in the Cloudflare Worker, fall back
-  to skipping OCR gracefully and log; do NOT break ingest.
-- Transcription uses existing Lovable AI Gateway pattern; no new keys.
-- Backward-compat: all existing evidence rows get `review_status =
-  'confirmed'`, so nothing disappears from the current timeline.
-
-## Out of scope for this pass
-
-- Bulk camera-roll picker integration (native). This pass covers the
-  file-drop path; the pacing/paginated review queue is the primary
-  cognitive-load control regardless of source.
-- Manual speaker relabeling UI beyond a single free-text field per turn.
+Confirm and I'll build. If you want to trim (e.g. skip Tier 3 for now, or accept text-overlap dedup instead of debating image-similarity), tell me before I start.
