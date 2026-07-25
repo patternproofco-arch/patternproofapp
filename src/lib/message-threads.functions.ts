@@ -2,8 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertSupabaseStorageUrl } from "./safe-fetch.server";
+import { createHash } from "crypto";
 
 type SourceType = "pdf" | "csv" | "excel" | "txt" | "rsmf" | "zip";
+type CaptureMethod = "multi_screenshot" | "backup_export" | "screen_recording";
 
 interface ParsedMessage {
   position: number;
