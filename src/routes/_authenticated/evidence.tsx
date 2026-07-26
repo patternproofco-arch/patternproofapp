@@ -12,6 +12,7 @@ import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { BatchDropzone } from "@/components/evidence/BatchDropzone";
 import { ABUSE_TYPES } from "@/lib/abuse-types";
+import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 
 export const Route = createFileRoute("/_authenticated/evidence")({
   component: EvidencePage,
@@ -76,6 +77,7 @@ function EvidencePage() {
   const [items, setItems] = useState<EvidenceRow[]>([]);
   const [incidents, setIncidents] = useState<IncOption[]>([]);
   const [pending, setPending] = useState<File | null>(null);
+  const [sizeError, setSizeError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(today());
   const [description, setDescription] = useState("");
