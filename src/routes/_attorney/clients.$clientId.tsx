@@ -1807,7 +1807,9 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   const [include, setInclude] = useState({
     overview: true, timeline: true, patterns: true, checklist: true, gaps: true, evidence: true,
   });
-  const [format, setFormat] = useState<"pdf" | "print" | "word">("print");
+  // "zip" was previously mislabelled "PDF" in the UI while actually producing a
+  // ZIP bundle, and "print" produced the same ZIP rather than printing.
+  const [format, setFormat] = useState<"zip" | "print" | "word">("zip");
   const [certify, setCertify] = useState(false);
   const [attorneyNotes, setAttorneyNotes] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -1827,6 +1829,11 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         console.error("Word export failed", e);
         toast("Couldn't generate Word document — try Print / Save as PDF instead.");
       } finally { setDownloading(false); }
+      return;
+    }
+    if (format === "print") {
+      // Browser print dialog — the attorney chooses "Save as PDF" there.
+      window.print();
       return;
     }
     setDownloading(true);
@@ -1874,16 +1881,23 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         <div style={{ marginTop: 18 }}>
           <div className="att-eyebrow">Format</div>
           <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-            {(["print", "pdf", "word"] as const).map((f) => (
+            {(["zip", "print", "word"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFormat(f)}
                 className={format === f ? "att-btn-primary" : "att-btn-secondary"}
                 style={{ padding: "6px 14px", fontSize: 12 }}
               >
-                {f === "print" ? "Print / Save PDF" : f === "pdf" ? "PDF" : "Word (.docx)"}
+                {f === "zip" ? "Files (.zip)" : f === "print" ? "Print / Save as PDF" : "Word (.docx)"}
               </button>
             ))}
+          </div>
+          <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--att-text-2)", lineHeight: 1.5 }}>
+            {format === "zip"
+              ? "A ZIP archive containing Markdown, CSV and JSON files plus the evidence index — not a single PDF."
+              : format === "print"
+                ? "Opens your browser's print dialog; choose \u201cSave as PDF\u201d to get a single document."
+                : "A single .docx document you can edit before filing."}
           </div>
         </div>
 
