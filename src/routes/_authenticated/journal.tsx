@@ -14,6 +14,7 @@ import { AddFromJournalModal } from "@/components/AddFromJournalModal";
 import { BulkPastIncidentsModal } from "@/components/BulkPastIncidentsModal";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { checkUploadSize } from "@/lib/upload-limits";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -107,6 +108,8 @@ function JournalPage() {
     });
     setEditingId(null);
     setAiFilled(false);
+    setAttachments([]);
+    setAttachError(null);
   };
 
   const toggleType = (t: string) => {
