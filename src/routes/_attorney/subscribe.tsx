@@ -32,7 +32,7 @@ const TIERS: Record<TierKey, {
       "One attorney seat",
       "Up to 10 active client matters",
       "Structured chronological timeline + pattern analysis",
-      "Exportable case summary (ZIP) — Clio-compatible",
+      "Exportable case summary (ZIP) — imports into practice management systems",
       "Private attorney notes per incident",
     ],
     close: "$297/month — one seat, up to 10 active matters.",

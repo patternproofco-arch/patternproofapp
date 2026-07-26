@@ -64,7 +64,7 @@ const BASE_TIERS: Tier[] = [
       "Up to 10 active client matters",
       "Structured chronological timeline",
       "Source-linked supporting records",
-      "Exportable case summary (ZIP) — Clio-compatible",
+      "Exportable case summary (ZIP) — imports into practice management systems",
       "Survivor vs. AI-suggested content clearly distinguished",
     ],
     cta: "Start with Solo",
@@ -107,7 +107,7 @@ function buildTiers(remainingCharter: number | null): Tier[] {
           "Multi-attorney collaboration and shared case notes",
           "Caseload and capacity view across the firm",
           "Firm-wide conflict-of-interest detection",
-          "Priority client onboarding + Clio-compatible exports",
+          "Priority client onboarding + practice-management-ready exports",
         ],
         cta: "Start with Firm",
         ctaTo: "/lawyer-signup",
@@ -160,8 +160,8 @@ const FAQS = [
     a: "Organizations are our referral partners, not our customers. Every survivor a partner organization refers to PatternProof gets full access, free forever — no cost to the organization or the survivor. We work directly with a small number of organizations at a time so we can support your advocates properly.",
   },
   {
-    q: "Do you integrate with Clio?",
-    a: "Not natively. Attorney and Organization plans include a Clio-compatible ZIP export you can import into a Clio matter today. A native Clio Manage connection is not yet available.",
+    q: "Does this work with my practice management system?",
+    a: "There is no live sync. Attorney and Organization plans include a ZIP export of standard CSVs plus every evidence file, which you can import into the practice management system you already use.",
   },
   {
     q: "Is my data safe?",
