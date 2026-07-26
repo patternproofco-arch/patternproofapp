@@ -100,6 +100,50 @@ function JournalPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Files the survivor attaches while writing an entry. They're uploaded and
+  // linked to the incident only once the entry itself saves successfully.
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachError, setAttachError] = useState<string | null>(null);
+
+  const addAttachments = (files: FileList | null) => {
+    if (!files?.length) return;
+    const next: File[] = [];
+    for (const f of Array.from(files)) {
+      const check = checkUploadSize(f);
+      if (!check.ok) { setAttachError(check.message); continue; }
+      next.push(f);
+    }
+    if (next.length) setAttachError(null);
+    setAttachments((p) => [...p, ...next]);
+  };
+
+  const uploadAttachments = async (incidentId: string): Promise<string | null> => {
+    if (!user || attachments.length === 0) return null;
+    let ok = 0;
+    for (const f of attachments) {
+      const key = `${user.id}/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("evidence-files").upload(key, f);
+      if (upErr) continue;
+      const { error: rowErr } = await supabase.from("evidence").insert({
+        user_id: user.id,
+        title: f.name,
+        date: form.date || today(),
+        file_url: key,
+        file_type: f.type || "application/octet-stream",
+        original_filename: f.name,
+        bytes: f.size,
+        mime: f.type || null,
+        linked_incident_id: incidentId,
+        review_status: "confirmed",
+      });
+      if (!rowErr) ok += 1;
+    }
+    if (ok === attachments.length) {
+      return `Saved. Your record and ${ok} file${ok === 1 ? "" : "s"} are safe.`;
+    }
+    return `Saved. ${ok} of ${attachments.length} files attached — you can add the rest from Evidence.`;
+  };
+
   const reset = () => {
     setForm({
       date: today(), time: "", location: "", description: "", abuse_types: [], witnesses: "", emotional_impact: "",
