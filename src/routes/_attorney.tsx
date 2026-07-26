@@ -196,6 +196,42 @@ function AttorneyTopNav() {
 
 /* ---------- security banner ---------- */
 function SecurityBanner() {
+  return <SecurityBannerInner />;
+}
+
+/**
+ * Permanent, non-dismissible. Attorneys must never be able to hide the fact
+ * that this tool organises a client's own records rather than assessing them.
+ */
+function LegalDisclaimerBar() {
+  return (
+    <div
+      role="note"
+      style={{
+        borderBottom: "1px solid rgba(21,32,56,0.12)",
+        background: "rgba(21,32,56,0.04)",
+        color: "#152038",
+        fontSize: 11.5,
+        lineHeight: 1.5,
+        letterSpacing: "0.01em",
+        padding: "7px 2rem",
+        display: "flex",
+        justifyContent: "center",
+        textAlign: "center",
+      }}
+    >
+      <span style={{ maxWidth: 1280 }}>
+        <strong style={{ fontWeight: 600 }}>No legal conclusions.</strong>{" "}
+        PatternProof compiles and organises records supplied by the client. Summaries, pattern
+        groupings, gap lists and flagged inconsistencies are generated from that material and are{" "}
+        <strong style={{ fontWeight: 600 }}>not findings of fact, legal advice, or an opinion on
+        the merits</strong>. Verify every item against its source before relying on it.
+      </span>
+    </div>
+  );
+}
+
+function SecurityBannerInner() {
   const clientId = useClientIdFromPath();
   const caseId = clientId ? `PP-${clientId.slice(0, 4).toUpperCase()}` : "—";
   const [dismissed, setDismissed] = useState(false);
