@@ -28,7 +28,7 @@ import {
 import {
   listFirmColleagues, listCaseGrants, grantCaseAccess, revokeCaseGrant,
 } from "@/lib/firm-grants.functions";
-import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateClioPackage } from "@/lib/payments.functions";
+import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateCaseManagementPackage } from "@/lib/payments.functions";
 import { findClientCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -1815,9 +1815,9 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   const [certify, setCertify] = useState(false);
   const [attorneyNotes, setAttorneyNotes] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [clioDownloading, setClioDownloading] = useState(false);
+  const [pkgDownloading, setPkgDownloading] = useState(false);
   const packetFn = useServerFn(generateAttorneyCourtPacket);
-  const clioFn = useServerFn(generateClioPackage);
+  const pkgFn = useServerFn(generateCaseManagementPackage);
 
   const toggle = (k: keyof typeof include) => setInclude((s) => ({ ...s, [k]: !s[k] }));
 
@@ -1847,14 +1847,14 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
     } finally { setDownloading(false); }
   };
 
-  const generateClio = async () => {
-    setClioDownloading(true);
+  const generatePackage = async () => {
+    setPkgDownloading(true);
     try {
-      const r = await clioFn({ data: { clientId: caseId } });
-      if (!r.ok) { toast("Couldn't prepare Clio package: " + r.reason); return; }
+      const r = await pkgFn({ data: { clientId: caseId } });
+      if (!r.ok) { toast("Couldn't prepare the import package: " + r.reason); return; }
       window.open(r.url, "_blank");
-      toast(`Clio package ready — ${r.counts.documents} documents, ${r.counts.tasks} tasks.`);
-    } finally { setClioDownloading(false); }
+      toast(`Import package ready — ${r.counts.documents} documents, ${r.counts.tasks} tasks.`);
+    } finally { setPkgDownloading(false); }
   };
 
   const Item = ({ k, label, note }: { k: keyof typeof include; label: string; note: string }) => (
@@ -1935,20 +1935,20 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
           <Clock size={11} /> Export logged · {new Date().toLocaleString()}
         </div>
         <div className="att-divider" />
-        <div className="att-eyebrow" style={{ marginTop: 4 }}>Prepare for Clio</div>
+        <div className="att-eyebrow" style={{ marginTop: 4 }}>Case management import</div>
         <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, lineHeight: 1.6 }}>
-          Drop-in import package for Clio Manage. Contains <span className="att-mono">contacts.csv</span>,
+          Drop-in import package for your practice management system. Contains <span className="att-mono">contacts.csv</span>,
           <span className="att-mono"> matter.csv</span>, <span className="att-mono">events.csv</span>,
           <span className="att-mono"> documents.csv</span>, <span className="att-mono">tasks.csv</span>, and a
           <span className="att-mono"> /documents</span> folder with every evidence file.
         </p>
         <button
           className="att-btn-secondary"
-          onClick={generateClio}
-          disabled={clioDownloading}
+          onClick={generatePackage}
+          disabled={pkgDownloading}
           style={{ marginTop: 10, width: "100%", padding: "10px 14px", fontSize: 13 }}
         >
-          <Briefcase size={13} /> {clioDownloading ? "Preparing…" : "Download Clio package (ZIP)"}
+          <Briefcase size={13} /> {pkgDownloading ? "Preparing…" : "Download import package (ZIP)"}
         </button>
       </div>
     </div>
@@ -2087,7 +2087,7 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
           <span style={{ fontSize: 13, fontWeight: 600 }}>Not connected</span>
         </div>
         <p style={{ fontSize: 11.5, color: "var(--att-text-2)", lineHeight: 1.5, margin: 0 }}>
-          Use <strong>Prepare for Clio</strong> on the Export tab to generate a Clio-ready ZIP today. Live sync coming soon.
+          Use <strong>Case management import</strong> on the Export tab to generate a Clio-ready ZIP today. Live sync coming soon.
         </p>
       </div>
     </div>
