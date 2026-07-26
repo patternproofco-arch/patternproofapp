@@ -116,8 +116,21 @@ function EvidencePage() {
   useEffect(() => { load(); }, [load]);
 
   const onFile = (f: File | null) => {
+    if (!f) {
+      setPending(null);
+      setSizeError(null);
+      return;
+    }
+    const problem = checkUploadSize(f);
+    if (problem) {
+      setSizeError(problem);
+      setPending(null);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+    setSizeError(null);
     setPending(f);
-    if (f && !title) setTitle(f.name.replace(/\.[^.]+$/, ""));
+    if (!title) setTitle(f.name.replace(/\.[^.]+$/, ""));
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -327,11 +340,27 @@ function EvidencePage() {
           style={{ borderColor: "var(--border)" }}>
           <Upload size={26} className="mx-auto mb-2" style={{ color: "var(--muted-foreground)" }} />
           <div className="font-serif text-[16px]">{pending ? pending.name : "Drop a file here, or tap to choose"}</div>
-          <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>Images, PDF, audio, video</div>
+          <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            Images, PDF, audio, video · up to {humanSize(UPLOAD_LIMITS.document)} for photos and
+            documents, {humanSize(UPLOAD_LIMITS.video)} for video
+          </div>
           <input ref={inputRef} type="file" className="hidden"
             accept="image/jpeg,image/png,image/webp,application/pdf,audio/mpeg,audio/mp4,audio/wav,audio/x-m4a,video/mp4"
             onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
         </label>
+        {sizeError && (
+          <div
+            className="rounded-xl px-3 py-2 text-[13px]"
+            style={{
+              background: "var(--tint-purple)",
+              border: "1px solid var(--border)",
+              color: "var(--foreground)",
+              lineHeight: 1.5,
+            }}
+          >
+            {sizeError}
+          </div>
+        )}
         {pending && (
           <div className="grid gap-3 md:grid-cols-2">
             <div>
