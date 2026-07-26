@@ -1912,7 +1912,14 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         </label>
 
         <button className="att-btn-export" onClick={generate} disabled={downloading} style={{ marginTop: 18, width: "100%", padding: "12px 20px" }}>
-          <Download size={14} /> {downloading ? "Preparing packet…" : "Generate professional-review packet (ZIP)"}
+          <Download size={14} />{" "}
+          {downloading
+            ? "Preparing packet…"
+            : format === "zip"
+              ? "Generate professional-review packet (.zip)"
+              : format === "print"
+                ? "Open print dialog"
+                : "Generate professional-review packet (.docx)"}
         </button>
       </div>
       <div className="att-card" style={{ background: "#F8FAFC" }}>
