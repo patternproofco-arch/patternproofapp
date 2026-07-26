@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check, MessageSquare, Send, X, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } from "@/lib/attorney-invitations.functions";
+import { sendTransactionalEmail } from "@/lib/email/send";
 import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts, setDepositionPrepConsent } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -47,7 +48,7 @@ function ShareWithAttorney() {
   const [personalNote, setPersonalNote] = useState("");
   const [days, setDays] = useState(30);
   const [busy, setBusy] = useState(false);
-  const [justCreated, setJustCreated] = useState<{ url: string; email: string } | null>(null);
+  const [justCreated, setJustCreated] = useState<{ url: string; email: string; sent: boolean } | null>(null);
   const [cases, setCases] = useState<Array<{ id: string; case_name: string | null; other_party: string | null; highlighted_incident_ids: string[] | null; attached_evidence_ids: string[] | null }>>([]);
   const [caseId, setCaseId] = useState<string>(""); // "" = all cases (legacy)
 
@@ -88,7 +89,20 @@ function ShareWithAttorney() {
         case_id: caseId || null,
       } });
       const url = `${window.location.origin}/accept-invite/${r.invitation.invite_token}`;
-      setJustCreated({ url, email: email.trim() });
+      const recipient = email.trim();
+      const sent = await sendTransactionalEmail({
+        templateName: "attorney-invitation",
+        recipientEmail: recipient,
+        idempotencyKey: `attorney-invitation-${r.invitation.id}`,
+        templateData: {
+          attorneyName: name.trim() || undefined,
+          clientLabel: "Your client",
+          personalNote: personalNote.trim() || undefined,
+          acceptUrl: url,
+          expiresLabel: `${days} days`,
+        },
+      });
+      setJustCreated({ url, email: recipient, sent });
       setOpen(false);
       setEmail(""); setName(""); setFirm(""); setPersonalNote("");
       setRangeFrom(""); setRangeTo("");
@@ -120,6 +134,11 @@ function ShareWithAttorney() {
       {justCreated && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--safe)" }}>
           <div className="flex items-center gap-2"><Check size={16} style={{ color: "var(--safe)" }} /><div className="font-serif text-[18px]">Secure access link generated</div></div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            {justCreated.sent
+              ? `We emailed the link to ${justCreated.email}. You can also copy it below.`
+              : `We couldn't send the email just now — copy the link below and send it to ${justCreated.email} yourself.`}
+          </p>
           <div className="mt-2 break-all rounded-lg px-3 py-2 text-[12px]" style={{ background: "var(--input)", fontFamily: "monospace" }}>{justCreated.url}</div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={() => { navigator.clipboard.writeText(justCreated.url); toast("Link copied."); }} className="btn-primary inline-flex items-center gap-2"><Copy size={14} /> Copy link</button>

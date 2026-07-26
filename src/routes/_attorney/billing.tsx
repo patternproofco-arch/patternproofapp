@@ -133,28 +133,17 @@ function BillingPage() {
       </div>
 
       <div className="att-card" style={{ marginTop: 16 }}>
-        <div className="att-eyebrow">Integrations</div>
-        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 14, alignItems: "center", marginTop: 10 }}>
+        <div className="att-eyebrow">Exports</div>
+        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 14, alignItems: "center", marginTop: 10 }}>
           <div style={{ width: 44, height: 44, borderRadius: 10, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
             <Plug size={20} />
           </div>
           <div>
-            <div style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 20, color: "var(--att-navy)" }}>Clio Manage</div>
+            <div style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 20, color: "var(--att-navy)" }}>Case management import package</div>
             <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
-              Push court packet exports and matter metadata into Clio Manage. Local ZIP
-              exports keep working today; live sync unlocks once approval clears.
+              Each client case file exports a ZIP of CSVs plus every evidence file, ready to import
+              into your practice management system.
             </div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-            <button
-              disabled
-              title="Pending Clio app approval"
-              className="att-btn-secondary"
-              style={{ cursor: "not-allowed", opacity: 0.55, display: "inline-flex", alignItems: "center", gap: 6 }}
-            >
-              <Clock size={13} /> Connect Clio
-            </button>
-            <span style={{ fontSize: 11, color: "var(--att-text-2)" }}>Pending Clio app approval</span>
           </div>
         </div>
       </div>

@@ -180,7 +180,7 @@ Run this checklist before each production deployment:
 - Supabase service role key
 - Stripe secret key (live or test)
 - Any API key for Anthropic, OpenAI, or other AI providers
-- Any third-party OAuth secrets (Clio app secret, etc.)
+- Any third-party OAuth secrets
 
 All secrets must be stored in:
 - Lovable environment variables (for Lovable-hosted builds)

@@ -666,9 +666,9 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     };
   });
 
-/* ------------------------- Prepare for Clio ZIP ------------------------- */
+/* ------------------ Case management import package (ZIP) ------------------ */
 
-export const generateClioPackage = createServerFn({ method: "POST" })
+export const generateCaseManagementPackage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
     z.object({ clientId: z.string().uuid() }).parse(input),
@@ -735,8 +735,8 @@ export const generateClioPackage = createServerFn({ method: "POST" })
     const zip = new JSZip();
 
     // README
-    zip.file("README_clio_import.md", [
-      `# Prepare for Clio — Import Package`,
+    zip.file("README_import.md", [
+      `# Case Management Import Package`,
       ``,
       `**Matter:** ${matterName}`,
       `**Prepared:** ${exportedAt}`,
@@ -744,24 +744,24 @@ export const generateClioPackage = createServerFn({ method: "POST" })
       ``,
       `## How to import`,
       ``,
-      `1. **Contacts** → Clio › Contacts › Import — upload \`contacts.csv\`.`,
-      `2. **Matter** → Clio › Matters › New — use \`matter.csv\` for field mapping.`,
-      `3. **Documents** → Open the matter in Clio › Documents › Upload — drag the entire \`/documents\` folder. Use \`documents.csv\` as the index.`,
-      `4. **Tasks** → Clio › Tasks › Import — upload \`tasks.csv\`.`,
+      `1. **Contacts** → import \`contacts.csv\` into your practice management system.`,
+      `2. **Matter** → create the matter and use \`matter.csv\` for field mapping.`,
+      `3. **Documents** → upload the entire \`/documents\` folder to the matter. Use \`documents.csv\` as the index.`,
+      `4. **Tasks** → import \`tasks.csv\` as matter tasks.`,
       `5. **Calendar / Notes** → \`events.csv\` lists each documented incident as a timestamped matter note.`,
       ``,
       `## What's included`,
       ``,
       `- ${incidents.length} incident notes`,
       `- ${evidence.length} evidence documents`,
-      `- ${docRequests.length} pending document requests (as Clio Tasks)`,
+      `- ${docRequests.length} pending document requests (as tasks)`,
       `- Contacts: client + opposing party${otherParty ? ` (${otherParty})` : ""}`,
       ``,
       `All evidence files are stored under \`/documents/\` with sanitized filenames.`,
       `The \`manifest.json\` records SHA-256 hashes for every file for provenance & integrity.`,
     ].join("\n"));
 
-    // contacts.csv (Clio-friendly column names)
+    // contacts.csv (standard column names)
     const contacts = [
       {
         type: "Person",
@@ -820,7 +820,7 @@ export const generateClioPackage = createServerFn({ method: "POST" })
     });
     zip.file("events.csv", toCsv(events));
 
-    // documents.csv — Clio Document index
+    // documents.csv — document index
     const docFolder = zip.folder("documents");
     const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
     const docRows: Array<Record<string, unknown>> = [];
@@ -853,7 +853,7 @@ export const generateClioPackage = createServerFn({ method: "POST" })
     }));
     zip.file("documents.csv", toCsv(docRows));
 
-    // tasks.csv — open doc requests + high-severity gaps as Clio tasks
+    // tasks.csv — open doc requests + high-severity gaps as tasks
     const taskRows: Array<Record<string, unknown>> = docRequests.map((d) => ({
       matter_reference: caseShort,
       task_name: d.title ?? "Document request",
@@ -869,16 +869,16 @@ export const generateClioPackage = createServerFn({ method: "POST" })
     // manifest.json
     zip.file("manifest.json", JSON.stringify({
       exported_at: exportedAt,
-      target_system: "Clio Manage",
+      target_system: "Practice management import",
       matter_reference: caseShort,
       counts: { incidents: incidents.length, evidence: evidence.length, documents_stored: fileHashes.length, doc_requests: docRequests.length, contacts: contacts.length },
       file_hashes: fileHashes,
-      generator: "PatternProof Prepare-for-Clio v1",
+      generator: "PatternProof case-management export v1",
     }, null, 2));
 
     const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
     const ts = exportedAt.replace(/[:.]/g, "-");
-    const objectPath = `${context.userId}/clio-package-${data.clientId}-${ts}.zip`;
+    const objectPath = `${context.userId}/case-package-${data.clientId}-${ts}.zip`;
     const up = await supabaseAdmin.storage.from("exports").upload(objectPath, zipBuf, {
       contentType: "application/zip",
       upsert: false,
@@ -890,7 +890,7 @@ export const generateClioPackage = createServerFn({ method: "POST" })
       ok: true as const,
       url: signed.data.signedUrl,
       bytes: zipBuf.byteLength,
-      filename: `clio-package-${caseShort}-${ts}.zip`,
+      filename: `case-package-${caseShort}-${ts}.zip`,
       counts: { incidents: incidents.length, documents: fileHashes.length, tasks: taskRows.length, contacts: contacts.length },
     };
   });

@@ -113,7 +113,7 @@ function PrivacyPage() {
           </ul>
           <H3>Information From Third-Party Integrations</H3>
           <p>
-            If you connect PatternProof to a third-party service such as Clio (legal practice
+            If you connect PatternProof to a third-party service (for example, legal practice
             management software), we may receive information from that service as authorized
             by you. We only request access to the data necessary for the integration to function.
           </p>
@@ -154,7 +154,7 @@ function PrivacyPage() {
             the platform, that attorney will receive the information you designate. You control
             what is shared.
           </p>
-          <H3>With Third-Party Integrations (e.g., Clio)</H3>
+          <H3>With Third-Party Integrations</H3>
           <p>
             If you authorize integration with a third-party legal platform, we will share only
             the information necessary for that integration to function, as directed by you.
