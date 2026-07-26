@@ -462,6 +462,39 @@ function JournalPage() {
           )}
 
           <div>
+            <label className="label-eyebrow">Attach photos, audio or files</label>
+            <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>
+              Anything you attach here is saved with this entry. You can add more later.
+            </p>
+            <input
+              type="file"
+              multiple
+              accept="image/*,audio/*,video/*,application/pdf"
+              className="input-pp mt-2 text-[12px]"
+              onChange={(e) => { addAttachments(e.target.files); e.currentTarget.value = ""; }}
+            />
+            {attachError && (
+              <p className="text-[11.5px] mt-1" style={{ color: "var(--accent)" }}>{attachError}</p>
+            )}
+            {attachments.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {attachments.map((f, idx) => (
+                  <li key={`${f.name}-${idx}`} className="flex items-center justify-between text-[12px]">
+                    <span className="truncate">{f.name}</span>
+                    <button
+                      type="button"
+                      className="text-[11px] underline"
+                      onClick={() => setAttachments((p) => p.filter((_, i) => i !== idx))}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div>
             <label className="label-eyebrow">Date precision</label>
             <select
               value={form.date_precision}
