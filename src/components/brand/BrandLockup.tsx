@@ -1,5 +1,5 @@
-import { EchoP } from "./EchoP";
-import { INK, LAVENDER, PLEX } from "./echo";
+import { BlurP } from "./BlurP";
+import { INK, MONO, PAPER, PLEX } from "./mark";
 
 interface BrandLockupProps {
   /** Height of the mark itself, in px. Type scales with it. */
@@ -12,12 +12,12 @@ interface BrandLockupProps {
 /**
  * Tier 1 — Brand Lockup. MARKETING ONLY.
  *
- * Dense echoed-outline P (13 copies) on a lavender card, with the
- * "PATTERN PROOF" wordmark and "THE PROOF IS IN THE PATTERN" tagline.
+ * Inverted: ink square, paper-coloured blur-to-crisp P with the negative-space
+ * notch cut in ink, plus the "PATTERNPROOF" wordmark and tagline.
  *
- * Allowed surfaces: marketing site header/hero, social share images,
- * the attorney one-pager PDF. Never inside the logged-in app, never in
- * the attorney portal, never in exports (use AppMark there).
+ * Allowed surfaces: marketing site header/hero, social share images, the
+ * attorney one-pager PDF. Never inside the logged-in app, never in the
+ * attorney portal, never in exports (use AppMark there).
  */
 export function BrandLockup({ size = 92, className, showTagline = true }: BrandLockupProps) {
   return (
@@ -28,11 +28,11 @@ export function BrandLockup({ size = 92, className, showTagline = true }: BrandL
         flexDirection: "column",
         alignItems: "flex-start",
         gap: 18,
-        background: LAVENDER,
+        background: INK,
         padding: `${Math.round(size * 0.34)}px ${Math.round(size * 0.42)}px`,
       }}
     >
-      <EchoP copies={13} size={size} ink={INK} minOpacity={0.12} />
+      <BlurP size={size} ink={PAPER} cut={INK} />
       <div>
         <div
           style={{
@@ -40,20 +40,20 @@ export function BrandLockup({ size = 92, className, showTagline = true }: BrandL
             fontWeight: 800,
             fontSize: Math.max(13, Math.round(size * 0.2)),
             letterSpacing: "0.18em",
-            color: INK,
+            color: PAPER,
             lineHeight: 1.1,
           }}
         >
-          PATTERN PROOF
+          PATTERNPROOF
         </div>
         {showTagline && (
           <div
             style={{
               marginTop: 8,
-              fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+              fontFamily: MONO,
               fontSize: Math.max(9.5, Math.round(size * 0.115)),
               letterSpacing: "0.14em",
-              color: "rgba(23,21,34,0.55)",
+              color: "rgba(247,245,240,0.62)",
             }}
           >
             THE PROOF IS IN THE PATTERN
