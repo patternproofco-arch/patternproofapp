@@ -84,6 +84,9 @@ function LoginPage() {
           },
         });
         if (error) throw error;
+        // Persist the survivor role immediately so it's a real grant, not an
+        // absence of one. Best-effort: never block sign-up on it.
+        await ensureRole().catch(() => undefined);
         if (redirectTo && redirectTo.startsWith("/")) {
           navigate({ to: redirectTo, replace: true });
         } else {
