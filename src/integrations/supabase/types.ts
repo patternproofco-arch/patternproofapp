@@ -854,39 +854,6 @@ export type Database = {
         }
         Relationships: []
       }
-      clio_connections: {
-        Row: {
-          access_token: string | null
-          attorney_user_id: string
-          clio_account_id: string | null
-          created_at: string
-          expires_at: string | null
-          id: string
-          refresh_token: string | null
-          updated_at: string
-        }
-        Insert: {
-          access_token?: string | null
-          attorney_user_id: string
-          clio_account_id?: string | null
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          refresh_token?: string | null
-          updated_at?: string
-        }
-        Update: {
-          access_token?: string | null
-          attorney_user_id?: string
-          clio_account_id?: string | null
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          refresh_token?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       communications: {
         Row: {
           channel: string
