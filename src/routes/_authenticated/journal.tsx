@@ -156,6 +156,7 @@ function JournalPage() {
       confirmed_at: new Date().toISOString(),
     };
     let error;
+    let savedId: string | null = editingId;
     if (editingId) {
       const current = list.find((i) => i.id === editingId);
       const updatePayload: typeof payload & { confirmed_at?: string } = { ...payload };
@@ -166,11 +167,14 @@ function JournalPage() {
       }
       ({ error } = await supabase.from("incidents").update(updatePayload).eq("id", editingId).eq("user_id", user.id));
     } else {
-      ({ error } = await supabase.from("incidents").insert(insertPayload));
+      const res = await supabase.from("incidents").insert(insertPayload).select("id").single();
+      error = res.error;
+      savedId = res.data?.id ?? null;
     }
+    if (error) { setBusy(false); toast("We couldn't save that. Try again in a moment."); return; }
+    const attachMsg = savedId && attachments.length ? await uploadAttachments(savedId) : null;
     setBusy(false);
-    if (error) { toast("We couldn't save that. Try again in a moment."); return; }
-    toast("Saved. Your record is safe.");
+    toast(attachMsg ?? "Saved. Your record is safe.");
     reset();
     load();
   };
