@@ -84,7 +84,6 @@ import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
-import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -485,12 +484,6 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IntegrationsClioCallbackRoute =
-  IntegrationsClioCallbackRouteImport.update({
-    id: '/integrations/clio/callback',
-    path: '/integrations/clio/callback',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AuthenticatedAgentThreadIdRoute =
   AuthenticatedAgentThreadIdRouteImport.update({
     id: '/$threadId',
@@ -613,7 +606,6 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
-  '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/clients/': typeof AttorneyClientsIndexRoute
   '/agent/': typeof AuthenticatedAgentIndexRoute
@@ -695,7 +687,6 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
-  '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/clients': typeof AttorneyClientsIndexRoute
   '/agent': typeof AuthenticatedAgentIndexRoute
@@ -782,7 +773,6 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
-  '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
   '/_authenticated/agent/': typeof AuthenticatedAgentIndexRoute
@@ -868,7 +858,6 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/clients/$clientId'
     | '/agent/$threadId'
-    | '/integrations/clio/callback'
     | '/lovable/email/suppression'
     | '/clients/'
     | '/agent/'
@@ -950,7 +939,6 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/clients/$clientId'
     | '/agent/$threadId'
-    | '/integrations/clio/callback'
     | '/lovable/email/suppression'
     | '/clients'
     | '/agent'
@@ -1036,7 +1024,6 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_attorney/clients/$clientId'
     | '/_authenticated/agent/$threadId'
-    | '/integrations/clio/callback'
     | '/lovable/email/suppression'
     | '/_attorney/clients/'
     | '/_authenticated/agent/'
@@ -1082,7 +1069,6 @@ export interface RootRouteChildren {
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
-  IntegrationsClioCallbackRoute: typeof IntegrationsClioCallbackRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -1617,13 +1603,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/integrations/clio/callback': {
-      id: '/integrations/clio/callback'
-      path: '/integrations/clio/callback'
-      fullPath: '/integrations/clio/callback'
-      preLoaderRoute: typeof IntegrationsClioCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/agent/$threadId': {
       id: '/_authenticated/agent/$threadId'
       path: '/$threadId'
@@ -1845,7 +1824,6 @@ const rootRouteChildren: RootRouteChildren = {
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
-  IntegrationsClioCallbackRoute: IntegrationsClioCallbackRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
