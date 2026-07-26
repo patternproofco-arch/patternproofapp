@@ -1,4 +1,4 @@
-import { APP_INK, PAPER, PLEX } from "./echo";
+import { INK, PAPER, PLEX } from "./mark";
 
 interface MicroMarkProps {
   size?: number;
@@ -8,20 +8,20 @@ interface MicroMarkProps {
 
 /**
  * Tier 3 — Micro Mark. Favicon / app-icon sizes only (16-32px).
- * Solid single "P", no echo lines — at this size the echoes smudge.
+ * Solid crisp "P": no blur, no negative-space cut — both turn to mud here.
  */
 export function MicroMark({ size = 24, className, onDark = false }: MicroMarkProps) {
   return (
     <svg
-      viewBox="0 0 150 180"
-      width={Math.round(size * (150 / 180))}
+      viewBox="0 0 220 220"
+      width={size}
       height={size}
       role="img"
       aria-label="PatternProof"
       className={className}
       style={{ display: "block" }}
     >
-      <text x={8} y={152} fontFamily={PLEX} fontWeight={700} fontSize={190} fill={onDark ? PAPER : APP_INK}>
+      <text x="30" y="160" fontFamily={PLEX} fontWeight={700} fontSize={140} fill={onDark ? PAPER : INK}>
         P
       </text>
     </svg>
