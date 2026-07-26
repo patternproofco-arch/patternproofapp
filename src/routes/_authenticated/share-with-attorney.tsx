@@ -48,7 +48,7 @@ function ShareWithAttorney() {
   const [personalNote, setPersonalNote] = useState("");
   const [days, setDays] = useState(30);
   const [busy, setBusy] = useState(false);
-  const [justCreated, setJustCreated] = useState<{ url: string; email: string } | null>(null);
+  const [justCreated, setJustCreated] = useState<{ url: string; email: string; sent: boolean } | null>(null);
   const [cases, setCases] = useState<Array<{ id: string; case_name: string | null; other_party: string | null; highlighted_incident_ids: string[] | null; attached_evidence_ids: string[] | null }>>([]);
   const [caseId, setCaseId] = useState<string>(""); // "" = all cases (legacy)
 
@@ -134,6 +134,11 @@ function ShareWithAttorney() {
       {justCreated && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--safe)" }}>
           <div className="flex items-center gap-2"><Check size={16} style={{ color: "var(--safe)" }} /><div className="font-serif text-[18px]">Secure access link generated</div></div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            {justCreated.sent
+              ? `We emailed the link to ${justCreated.email}. You can also copy it below.`
+              : `We couldn't send the email just now — copy the link below and send it to ${justCreated.email} yourself.`}
+          </p>
           <div className="mt-2 break-all rounded-lg px-3 py-2 text-[12px]" style={{ background: "var(--input)", fontFamily: "monospace" }}>{justCreated.url}</div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={() => { navigator.clipboard.writeText(justCreated.url); toast("Link copied."); }} className="btn-primary inline-flex items-center gap-2"><Copy size={14} /> Copy link</button>
