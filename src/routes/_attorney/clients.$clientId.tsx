@@ -2081,13 +2081,10 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
       </div>
 
       <div className="att-card" style={{ background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
-        <SectionTitle icon={<Briefcase size={14} />}>Clio integration</SectionTitle>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-          <span style={{ width: 8, height: 8, borderRadius: 999, background: "#F59E0B" }} />
-          <span style={{ fontSize: 13, fontWeight: 600 }}>Not connected</span>
-        </div>
+        <SectionTitle icon={<Briefcase size={14} />}>Case management import</SectionTitle>
         <p style={{ fontSize: 11.5, color: "var(--att-text-2)", lineHeight: 1.5, margin: 0 }}>
-          Use <strong>Case management import</strong> on the Export tab to generate a Clio-ready ZIP today. Live sync coming soon.
+          The Export tab generates a ZIP of CSVs plus every evidence file, ready to import into
+          your practice management system.
         </p>
       </div>
     </div>
