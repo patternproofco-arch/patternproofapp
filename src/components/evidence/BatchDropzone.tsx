@@ -148,7 +148,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   }, []);
 
   const removeFile = (id: string) => setFiles((f) => f.filter((x) => x.id !== id));
-  const clearAll = () => { setFiles([]); setReceipt(null); };
+  const clearAll = () => { setFiles([]); setReceipt(null); setSizeErrors([]); };
 
   const preserveAll = async () => {
     if (!user || files.length === 0 || busy) return;
