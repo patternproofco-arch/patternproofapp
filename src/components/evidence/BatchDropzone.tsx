@@ -14,6 +14,7 @@ import {
 } from "@/lib/evidence-ingest.functions";
 import { enrichEvidence } from "@/lib/evidence-enrichment.functions";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
+import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 
 type UploadPhase = "queued" | "uploading" | "preserving" | "done" | "error";
 
@@ -92,6 +93,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const enrich = useServerFn(enrichEvidence);
   const transcribe = useServerFn(transcribeEvidence);
   const [files, setFiles] = useState<FileState[]>([]);
+  const [sizeErrors, setSizeErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<PreservationReceipt | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
