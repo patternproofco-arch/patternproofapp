@@ -116,7 +116,17 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   };
 
   const addFiles = useCallback((list: FileList | File[]) => {
-    const incoming = Array.from(list);
+    const all = Array.from(list);
+    // Filter oversized files out first and explain each one inline, so a single
+    // huge file never silently blocks the rest of the batch.
+    const oversized: string[] = [];
+    const incoming = all.filter((f) => {
+      const problem = checkUploadSize(f);
+      if (problem) { oversized.push(problem); return false; }
+      return true;
+    });
+    setSizeErrors(oversized);
+    if (incoming.length === 0) return;
     setFiles((prev) => {
       const room = MAX_FILES - prev.length;
       if (room <= 0) {
