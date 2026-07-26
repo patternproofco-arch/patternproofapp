@@ -643,6 +643,32 @@ export const getClientCase = createServerFn({ method: "POST" })
     ]);
 
     const incidents = incQ.data ?? [];
+    // The attorney should be able to see the exact terms they hold access
+    // under, not just the data itself.
+    const { data: grantInv } = link.id
+      ? await supabaseAdmin
+          .from("attorney_client_links")
+          .select("created_at,invitation_id")
+          .eq("id", link.id)
+          .maybeSingle()
+      : { data: null };
+    let grantRange: { start: string | null; end: string | null; expires: string | null } = {
+      start: null, end: null, expires: null,
+    };
+    if (grantInv?.invitation_id) {
+      const { data: inv } = await supabaseAdmin
+        .from("attorney_invitations")
+        .select("date_range_start,date_range_end,expires_at")
+        .eq("id", grantInv.invitation_id)
+        .maybeSingle();
+      if (inv) {
+        grantRange = {
+          start: inv.date_range_start ?? null,
+          end: inv.date_range_end ?? null,
+          expires: inv.expires_at ?? null,
+        };
+      }
+    }
     // Quarantined GPS fields must never reach the attorney UI — the survivor
     // opts in per-item in her own view, and even then it's not shared.
     const evidence = (evQ.data ?? []).map((e) => {
@@ -797,6 +823,18 @@ export const getClientCase = createServerFn({ method: "POST" })
       last_30_days: last30,
       timeline,
       link_id: link.id,
+      consent: {
+        granted_at: grantInv?.created_at ?? null,
+        include_all_incidents: link.include_all_incidents,
+        include_all_evidence: link.include_all_evidence,
+        include_patterns: link.include_patterns,
+        scoped_incident_count: link.include_all_incidents ? null : scopedIncidentIds.length,
+        scoped_evidence_count: link.include_all_evidence ? null : scopedEvidenceIds.length,
+        date_range_start: grantRange.start,
+        date_range_end: grantRange.end,
+        expires_at: grantRange.expires,
+        case_scoped: !!link.case_id,
+      },
     };
   });
 
