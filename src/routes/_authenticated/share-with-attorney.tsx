@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check, MessageSquare, Send, X, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } from "@/lib/attorney-invitations.functions";
+import { sendTransactionalEmail } from "@/lib/email/send";
 import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts, setDepositionPrepConsent } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -88,7 +89,20 @@ function ShareWithAttorney() {
         case_id: caseId || null,
       } });
       const url = `${window.location.origin}/accept-invite/${r.invitation.invite_token}`;
-      setJustCreated({ url, email: email.trim() });
+      const recipient = email.trim();
+      const sent = await sendTransactionalEmail({
+        templateName: "attorney-invitation",
+        recipientEmail: recipient,
+        idempotencyKey: `attorney-invitation-${r.invitation.id}`,
+        templateData: {
+          attorneyName: name.trim() || undefined,
+          clientLabel: "Your client",
+          personalNote: personalNote.trim() || undefined,
+          acceptUrl: url,
+          expiresLabel: `${days} days`,
+        },
+      });
+      setJustCreated({ url, email: recipient, sent });
       setOpen(false);
       setEmail(""); setName(""); setFirm(""); setPersonalNote("");
       setRangeFrom(""); setRangeTo("");
