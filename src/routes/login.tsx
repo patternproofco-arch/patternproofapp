@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { lovable } from "@/integrations/lovable";
 import { getMyRole } from "@/lib/attorney-portal.functions";
 import { recordOrgReferral } from "@/lib/payments.functions";
+import { ensureSurvivorRole } from "@/lib/roles.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AppMark } from "@/components/brand/AppMark";
@@ -39,6 +40,7 @@ function LoginPage() {
   const { redirect: redirectTo, ref: refSlug } = Route.useSearch();
   const fetchRole = useServerFn(getMyRole);
   const recordReferral = useServerFn(recordOrgReferral);
+  const ensureRole = useServerFn(ensureSurvivorRole);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
