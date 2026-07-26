@@ -109,8 +109,8 @@ function JournalPage() {
     if (!files?.length) return;
     const next: File[] = [];
     for (const f of Array.from(files)) {
-      const check = checkUploadSize(f);
-      if (!check.ok) { setAttachError(check.message); continue; }
+      const problem = checkUploadSize(f);
+      if (problem) { setAttachError(problem); continue; }
       next.push(f);
     }
     if (next.length) setAttachError(null);
