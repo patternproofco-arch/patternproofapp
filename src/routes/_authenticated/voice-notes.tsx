@@ -8,6 +8,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { transcribeVoiceNote } from "@/lib/transcribe-voice-note.functions";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { checkUploadSize } from "@/lib/upload-limits";
 
 export const Route = createFileRoute("/_authenticated/voice-notes")({
   component: VoiceNotesPage,

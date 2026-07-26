@@ -10,6 +10,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { ScreenshotStitcher } from "@/components/threads/ScreenshotStitcher";
 import { ScreenRecordingUpload } from "@/components/threads/ScreenRecordingUpload";
 import { CallLogPhotos } from "@/components/threads/CallLogPhotos";
+import { checkUploadSize } from "@/lib/upload-limits";
 
 export const Route = createFileRoute("/_authenticated/message-threads")({
   component: MessageThreadsPage,
@@ -133,8 +134,9 @@ function MessageThreadsPage() {
 
   const onFile = async (cardType: SourceType, file: File | undefined) => {
     if (!user || !file) return;
-    if (file.size > 20 * 1024 * 1024) {
-      toast.error("That file is over 20 MB. Try splitting the export.");
+    const sizeProblem = checkUploadSize(file);
+    if (sizeProblem) {
+      toast.error(sizeProblem);
       return;
     }
     setBusyType(cardType);
