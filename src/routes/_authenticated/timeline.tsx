@@ -160,7 +160,20 @@ function TimelinePage() {
           .filter((l) => l._date && (!from || l._date >= from) && (!to || l._date <= to))
           .map((l) => ({ kind: "legal", date: l._date, item: l } as Row))
       : [];
-    return [...inc, ...leg].sort((a, b) => (a.date < b.date ? 1 : -1));
+    // Chronological first (newest at top). Where two entries share a date, the
+    // more certain one reads first — an exact date is a firmer anchor than an
+    // approximate or unknown one. Undated entries fall to the bottom.
+    const precisionRank = (r: Row) => {
+      if (r.kind !== "incident") return 0;
+      const p = (r.item as Item).date_precision ?? "exact";
+      return p === "exact" ? 0 : p === "approximate" ? 1 : 2;
+    };
+    return [...inc, ...leg].sort((a, b) => {
+      if (!a.date && b.date) return 1;
+      if (a.date && !b.date) return -1;
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return precisionRank(a) - precisionRank(b);
+    });
   }, [items, legal, showLegal, types, from, to]);
 
   const toggleType = (v: string) => setTypes((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]));

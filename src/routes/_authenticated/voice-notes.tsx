@@ -8,6 +8,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { transcribeVoiceNote } from "@/lib/transcribe-voice-note.functions";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { checkUploadSize } from "@/lib/upload-limits";
 
 export const Route = createFileRoute("/_authenticated/voice-notes")({
   component: VoiceNotesPage,
@@ -82,6 +83,8 @@ function VoiceNotesPage() {
 
   const save = async () => {
     if (!user || !pendingBlob) return;
+    const problem = checkUploadSize({ name: "Voice note", size: pendingBlob.size, type: "audio/webm" });
+    if (problem) { toast(problem); return; }
     setBusy(true);
     const key = `${user.id}/${Date.now()}.webm`;
     const up = await supabase.storage.from("voice-notes").upload(key, pendingBlob, { contentType: "audio/webm" });

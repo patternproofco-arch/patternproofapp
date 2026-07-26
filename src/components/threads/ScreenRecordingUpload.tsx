@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ingestRecordedThread, transcribeRecordedThread } from "@/lib/message-threads.functions";
+import { checkUploadSize } from "@/lib/upload-limits";
 
 interface Props { onDone: () => void; onCancel: () => void; }
 
@@ -21,7 +22,8 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
 
   const save = async () => {
     if (!user || !file) return;
-    if (file.size > 200 * 1024 * 1024) { toast.error("Video is over 200 MB. Try a shorter recording."); return; }
+    const sizeProblem = checkUploadSize(file);
+    if (sizeProblem) { toast.error(sizeProblem); return; }
     setBusy(true);
     try {
       const ext = (file.name.match(/\.[^.]+$/)?.[0] ?? ".mp4").toLowerCase();

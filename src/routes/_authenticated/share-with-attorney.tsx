@@ -236,6 +236,30 @@ function ShareWithAttorney() {
                   <div className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
                     linked {new Date(l.created_at).toLocaleDateString()}
                   </div>
+                  <div
+                    className="mt-2 rounded-xl px-3 py-2 text-[12px]"
+                    style={{ background: "var(--input)", lineHeight: 1.55 }}
+                  >
+                    <div className="label-eyebrow" style={{ marginBottom: 4 }}>What they can see</div>
+                    <div>
+                      {l.include_all_incidents ? "All journal entries" : "Selected journal entries only"}
+                      {" · "}
+                      {l.include_all_evidence ? "all evidence files" : "selected evidence only"}
+                      {" · "}
+                      {l.include_patterns ? "pattern analysis included" : "no pattern analysis"}
+                    </div>
+                    <div style={{ color: "var(--muted-foreground)", marginTop: 3 }}>
+                      {l.case_label ? `Case: ${l.case_label}` : "All cases"}
+                      {" · "}
+                      {l.grant?.date_range_start || l.grant?.date_range_end
+                        ? `Dates ${l.grant.date_range_start ?? "any"} to ${l.grant.date_range_end ?? "any"}`
+                        : "No date limit"}
+                      {" · "}
+                      {l.grant?.expires_at
+                        ? `Access expires ${new Date(l.grant.expires_at).toLocaleDateString()}`
+                        : "No expiry set"}
+                    </div>
+                  </div>
                   <label className="mt-3 flex items-start gap-2 text-[12px]" style={{ color: "var(--foreground)", cursor: "pointer" }}>
                     <input
                       type="checkbox"
@@ -271,7 +295,7 @@ function ShareWithAttorney() {
                       }}>{unread[l.id]}</span>
                     )}
                   </button>
-                  <button onClick={async () => { const ok = await confirm({ title: "Revoke this attorney's access?", body: "The share link will stop working immediately.", confirmLabel: "Revoke", cancelLabel: "Keep" }); if (ok) { await revokeLk({ data: { id: l.id } }); toast("Access revoked."); load(); } }} className="btn-ghost inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--primary)" }}>
+                  <button onClick={async () => { const ok = await confirm({ title: "Revoke this attorney's access?", body: "They'll lose access immediately — the link stops working and they can't open your records again. One thing to know: anything they already downloaded or printed stays on their computer. Revoking can't reach files that have already left PatternProof.", confirmLabel: "Revoke", cancelLabel: "Keep" }); if (ok) { await revokeLk({ data: { id: l.id } }); toast("Access revoked."); load(); } }} className="btn-ghost inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--primary)" }}>
                     <Trash2 size={13} /> Revoke
                   </button>
                 </div>

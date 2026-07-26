@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
+import { ensureSurvivorRole } from "@/lib/roles.functions";
 import { AppShell } from "@/components/AppShell";
 import { SettingsProvider, useSettings } from "@/lib/settings-context";
 import { PinLockProvider, usePinLock } from "@/lib/pin-lock";
@@ -29,10 +31,27 @@ function Gate() {
   const { settings, update } = useSettings();
   const { hasPin, isLocked } = usePinLock();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const ensureRole = useServerFn(ensureSurvivorRole);
+  const roleChecked = useRef(false);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login", replace: true });
   }, [user, loading, navigate]);
+
+  // Backfill the survivor role for accounts created before roles were
+  // persisted, and send attorney-only accounts to their own portal instead of
+  // leaving them loose in the survivor app. Runs once per session.
+  useEffect(() => {
+    if (loading || !user || roleChecked.current) return;
+    roleChecked.current = true;
+    ensureRole()
+      .then((r) => {
+        if (!r.is_survivor && r.roles.includes("attorney")) {
+          navigate({ to: "/clients", replace: true });
+        }
+      })
+      .catch(() => undefined);
+  }, [loading, user, ensureRole, navigate]);
 
   // Seed local onboarded flag from server-side user metadata so returning
   // users on a new device / private browser / cleared storage don't get

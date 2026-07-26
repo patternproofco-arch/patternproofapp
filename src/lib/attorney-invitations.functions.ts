@@ -70,7 +70,7 @@ export const listMyInvitations = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     const { data: links } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id,attorney_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,deposition_prep_consent,deposition_prep_consent_at,case_id")
+      .select("id,attorney_user_id,invitation_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,deposition_prep_consent,deposition_prep_consent_at,case_id")
       .eq("client_user_id", context.userId)
       .order("created_at", { ascending: false });
     const attorneyIds = (links ?? []).map((l) => l.attorney_user_id);
@@ -98,6 +98,19 @@ export const listMyInvitations = createServerFn({ method: "GET" })
       ...l,
       profile: profMap.get(l.attorney_user_id) ?? null,
       case_label: labelFor(l.case_id),
+      // Surface the terms this access was granted under, so the survivor can
+      // always see what she agreed to — not just who has access.
+      grant: (() => {
+        const inv = l.invitation_id
+          ? (invitations ?? []).find((i) => i.id === l.invitation_id)
+          : undefined;
+        return {
+          date_range_start: inv?.date_range_start ?? null,
+          date_range_end: inv?.date_range_end ?? null,
+          expires_at: inv?.expires_at ?? null,
+          granted_at: l.created_at,
+        };
+      })(),
     }));
     const invitationsOut = (invitations ?? []).map((i) => ({
       ...i,

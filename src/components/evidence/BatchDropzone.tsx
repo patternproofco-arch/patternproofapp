@@ -14,6 +14,7 @@ import {
 } from "@/lib/evidence-ingest.functions";
 import { enrichEvidence } from "@/lib/evidence-enrichment.functions";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
+import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 
 type UploadPhase = "queued" | "uploading" | "preserving" | "done" | "error";
 
@@ -92,6 +93,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const enrich = useServerFn(enrichEvidence);
   const transcribe = useServerFn(transcribeEvidence);
   const [files, setFiles] = useState<FileState[]>([]);
+  const [sizeErrors, setSizeErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<PreservationReceipt | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -116,7 +118,17 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   };
 
   const addFiles = useCallback((list: FileList | File[]) => {
-    const incoming = Array.from(list);
+    const all = Array.from(list);
+    // Filter oversized files out first and explain each one inline, so a single
+    // huge file never silently blocks the rest of the batch.
+    const oversized: string[] = [];
+    const incoming = all.filter((f) => {
+      const problem = checkUploadSize(f);
+      if (problem) { oversized.push(problem); return false; }
+      return true;
+    });
+    setSizeErrors(oversized);
+    if (incoming.length === 0) return;
     setFiles((prev) => {
       const room = MAX_FILES - prev.length;
       if (room <= 0) {
@@ -136,7 +148,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   }, []);
 
   const removeFile = (id: string) => setFiles((f) => f.filter((x) => x.id !== id));
-  const clearAll = () => { setFiles([]); setReceipt(null); };
+  const clearAll = () => { setFiles([]); setReceipt(null); setSizeErrors([]); };
 
   const preserveAll = async () => {
     if (!user || files.length === 0 || busy) return;
@@ -262,7 +274,9 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           {files.length > 0 ? `${files.length} file${files.length === 1 ? "" : "s"} queued` : "Drop files here, or tap to choose"}
         </div>
         <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          Images, PDFs, audio, video, documents — mix them freely. Up to {MAX_FILES} at once.
+          Images, PDFs, audio, video, documents — mix them freely. Up to {MAX_FILES} at once,{" "}
+          {humanSize(UPLOAD_LIMITS.document)} per photo or document and{" "}
+          {humanSize(UPLOAD_LIMITS.video)} per video.
         </div>
         <input
           ref={inputRef}
@@ -272,6 +286,33 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           onChange={(e) => e.target.files && addFiles(e.target.files)}
         />
       </label>
+
+      {sizeErrors.length > 0 && (
+        <div
+          className="mt-3 space-y-1.5 rounded-xl p-3 text-[13px]"
+          style={{
+            background: "var(--input)",
+            border: "1px solid var(--border)",
+            color: "var(--foreground)",
+            lineHeight: 1.5,
+          }}
+        >
+          <div style={{ fontWeight: 600 }}>
+            {sizeErrors.length === 1 ? "One file was too large to add" : `${sizeErrors.length} files were too large to add`}
+          </div>
+          {sizeErrors.map((m) => (
+            <div key={m}>{m}</div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setSizeErrors([])}
+            className="text-[12px] underline"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {files.length > 0 && (
         <>

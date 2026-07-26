@@ -463,6 +463,8 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
         </div>
       </div>
 
+      <ConsentGrantPanel data={data} />
+
       <DashboardKpiRow data={data} reviews={reviews} />
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18 }}>
@@ -1807,7 +1809,9 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   const [include, setInclude] = useState({
     overview: true, timeline: true, patterns: true, checklist: true, gaps: true, evidence: true,
   });
-  const [format, setFormat] = useState<"pdf" | "print" | "word">("print");
+  // "zip" was previously mislabelled "PDF" in the UI while actually producing a
+  // ZIP bundle, and "print" produced the same ZIP rather than printing.
+  const [format, setFormat] = useState<"zip" | "print" | "word">("zip");
   const [certify, setCertify] = useState(false);
   const [attorneyNotes, setAttorneyNotes] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -1827,6 +1831,11 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         console.error("Word export failed", e);
         toast("Couldn't generate Word document — try Print / Save as PDF instead.");
       } finally { setDownloading(false); }
+      return;
+    }
+    if (format === "print") {
+      // Browser print dialog — the attorney chooses "Save as PDF" there.
+      window.print();
       return;
     }
     setDownloading(true);
@@ -1874,16 +1883,23 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         <div style={{ marginTop: 18 }}>
           <div className="att-eyebrow">Format</div>
           <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-            {(["print", "pdf", "word"] as const).map((f) => (
+            {(["zip", "print", "word"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFormat(f)}
                 className={format === f ? "att-btn-primary" : "att-btn-secondary"}
                 style={{ padding: "6px 14px", fontSize: 12 }}
               >
-                {f === "print" ? "Print / Save PDF" : f === "pdf" ? "PDF" : "Word (.docx)"}
+                {f === "zip" ? "Files (.zip)" : f === "print" ? "Print / Save as PDF" : "Word (.docx)"}
               </button>
             ))}
+          </div>
+          <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--att-text-2)", lineHeight: 1.5 }}>
+            {format === "zip"
+              ? "A ZIP archive containing Markdown, CSV and JSON files plus the evidence index — not a single PDF."
+              : format === "print"
+                ? "Opens your browser's print dialog; choose \u201cSave as PDF\u201d to get a single document."
+                : "A single .docx document you can edit before filing."}
           </div>
         </div>
 
@@ -1898,7 +1914,14 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         </label>
 
         <button className="att-btn-export" onClick={generate} disabled={downloading} style={{ marginTop: 18, width: "100%", padding: "12px 20px" }}>
-          <Download size={14} /> {downloading ? "Preparing packet…" : "Generate professional-review packet (ZIP)"}
+          <Download size={14} />{" "}
+          {downloading
+            ? "Preparing packet…"
+            : format === "zip"
+              ? "Generate professional-review packet (.zip)"
+              : format === "print"
+                ? "Open print dialog"
+                : "Generate professional-review packet (.docx)"}
         </button>
       </div>
       <div className="att-card" style={{ background: "#F8FAFC" }}>
@@ -1937,6 +1960,64 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
 type ReviewLite = { evidence_id: string; status: string; exhibit_label: string | null };
 
 function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLite[] }) {
+  return <DashboardKpiRowInner data={data} reviews={reviews} />;
+}
+
+/**
+ * Shows the attorney the exact terms of the client's consent grant. Access is
+ * the client's to give and to withdraw, and that should be visible, not buried.
+ */
+function ConsentGrantPanel({ data }: { data: CaseData }) {
+  const c = data.consent;
+  if (!c) return null;
+  const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString() : null);
+  const expired = c.expires_at ? new Date(c.expires_at) < new Date() : false;
+  const row = (label: string, value: string) => (
+    <div style={{ display: "flex", gap: 8, fontSize: 12.5, lineHeight: 1.6 }}>
+      <span style={{ color: "var(--att-text-2)", minWidth: 118 }}>{label}</span>
+      <span className="att-mono" style={{ color: "var(--att-text)" }}>{value}</span>
+    </div>
+  );
+  return (
+    <div className="att-card" style={{ borderLeft: "3px solid #A8792F" }}>
+      <div className="att-eyebrow">Access granted by client</div>
+      <div style={{ marginTop: 8, display: "grid", gap: 2 }}>
+        {row("Granted", fmt(c.granted_at) ?? "—")}
+        {row(
+          "Records",
+          c.include_all_incidents
+            ? "All journal entries"
+            : `${c.scoped_incident_count ?? 0} selected entries`,
+        )}
+        {row(
+          "Evidence",
+          c.include_all_evidence
+            ? "All evidence files"
+            : `${c.scoped_evidence_count ?? 0} selected files`,
+        )}
+        {row("Pattern analysis", c.include_patterns ? "Included" : "Not shared")}
+        {row("Scope", c.case_scoped ? "Single case" : "All of client's cases")}
+        {row(
+          "Date window",
+          c.date_range_start || c.date_range_end
+            ? `${fmt(c.date_range_start) ?? "any"} — ${fmt(c.date_range_end) ?? "any"}`
+            : "No date limit",
+        )}
+        {row(
+          "Expires",
+          c.expires_at ? `${fmt(c.expires_at)}${expired ? " (expired)" : ""}` : "No expiry set",
+        )}
+      </div>
+      <p style={{ fontSize: 11.5, color: "var(--att-text-2)", marginTop: 10, lineHeight: 1.55 }}>
+        The client may revoke this access at any time, which ends live access immediately. Material
+        you have already exported remains in your possession and is governed by your own retention
+        and professional-conduct obligations.
+      </p>
+    </div>
+  );
+}
+
+function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: ReviewLite[] }) {
   const totalEv = data.evidence.length;
   const reviewed = reviews.filter((r) => r.status && r.status !== "unreviewed").length;
   const useful = reviews.filter((r) => r.status === "useful" || r.status === "exhibit_candidate").length;

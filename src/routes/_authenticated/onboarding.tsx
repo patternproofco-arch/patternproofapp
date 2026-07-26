@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { AlertTriangle, BellOff, DoorOpen, FileCheck, Phone, ShieldCheck, Smartphone } from "lucide-react";
+import { AlertTriangle, BellOff, DoorOpen, FileCheck, Phone, Scale, ShieldCheck, Smartphone } from "lucide-react";
 import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,12 +23,13 @@ function Onboarding() {
   const [busy, setBusy] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreeLegalUse, setAgreeLegalUse] = useState(false);
 
-  const ready = agreePrivacy && agreeTerms;
+  const ready = agreePrivacy && agreeTerms && agreeLegalUse;
 
   const finishAll = async () => {
     if (!ready) {
-      toast("Please agree to the Privacy Policy and Terms to continue.");
+      toast("Please read and check all three items above to continue.");
       return;
     }
     setBusy(true);
@@ -41,6 +42,7 @@ function Onboarding() {
           state,
           agreed_privacy_at: new Date().toISOString(),
           agreed_terms_at: new Date().toISOString(),
+          acknowledged_legal_use_at: new Date().toISOString(),
         },
       });
       navigate({ to: "/dashboard", replace: true });
@@ -126,6 +128,38 @@ function Onboarding() {
           </p>
         </StepCard>
 
+        <StepCard icon={<Scale size={20} />} title="This record can end up in a courtroom">
+          <p>
+            This is the most important thing on this page, so please read it slowly.
+          </p>
+          <p>
+            What you write here is <strong>a record</strong>. If you share it with an attorney, file
+            it with a court, or it becomes part of a legal case, it can be{" "}
+            <strong>requested by the other side</strong> and read by their lawyer, by a judge, and
+            sometimes by the other person themselves. That is true of your entries, your uploaded
+            files, and your voice notes.
+          </p>
+          <p>
+            That is not a reason to stop. It's the reason this app exists — a clear, dated,
+            consistent record is what makes you credible. But it does mean two things:
+          </p>
+          <ul className="ml-4 list-disc space-y-1.5 text-[14px]">
+            <li>
+              <strong>Write what happened, not what you feel about the person.</strong> Facts,
+              dates, and details hold up. Insults don't.
+            </li>
+            <li>
+              <strong>Don't write anything you'd be unwilling to explain out loud.</strong> Editing
+              or deleting an entry later doesn't guarantee it disappears from a case once it has
+              been shared.
+            </li>
+          </ul>
+          <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            Nothing leaves your account until you choose to share it. You control who gets access,
+            and you can revoke it at any time.
+          </p>
+        </StepCard>
+
         <StepCard icon={<ShieldCheck size={20} />} title="Which state are you in?">
           <p className="text-[14px]">
             So we can show you the right legal resources and recording-consent rules.
@@ -137,8 +171,20 @@ function Onboarding() {
 
         <StepCard icon={<FileCheck size={20} />} title="Agree to continue">
           <p className="text-[14px]">
-            Two boxes to check before we open your space.
+            Three boxes to check before we open your space.
           </p>
+          <label className="flex items-start gap-2 text-[14px] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreeLegalUse}
+              onChange={(e) => setAgreeLegalUse(e.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              I understand that anything I record here may be used in a legal case and may be seen
+              by the other side, their attorney, or a judge.
+            </span>
+          </label>
           <label className="flex items-start gap-2 text-[14px] cursor-pointer">
             <input
               type="checkbox"
@@ -177,7 +223,7 @@ function Onboarding() {
           className="btn-primary w-full"
           style={{ opacity: busy || !ready ? 0.6 : 1 }}
         >
-          {busy ? "One moment…" : ready ? "Open my space" : "Agree to the two items above to continue"}
+          {busy ? "One moment…" : ready ? "Open my space" : "Check the three items above to continue"}
         </button>
       </div>
     </div>

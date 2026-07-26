@@ -1,76 +1,60 @@
-## Reality check first
+# Gap analysis: 15 items vs. actual code
 
-There is **no existing screen-recording + AI-reconstruction import** in the codebase to replace. The current `/message-threads` page only accepts exported files (PDF, CSV, TXT, RSMF, ZIP) and parses them via `parseMessageThread` in `src/lib/message-threads.functions.ts`. All three tiers below are new; the existing file-export flow becomes the second half of Tier 2.
+Verified by reading the code. Verdicts: **BUILT**, **PARTIAL**, **MISSING**.
 
-## What I'll build
+## Survivor
 
-### 1. Schema (one migration)
-Add to `message_threads`:
-- `capture_method text` — `'multi_screenshot' | 'backup_export' | 'screen_recording'`
-- `captured_at timestamptz` — when the survivor performed the capture (not the upload time)
-- `capture_notes text` — free text (e.g. "iPhone, Finder backup, laptop present")
-- `primary_artifact_urls text[]` — storage paths of the raw evidence (screenshots array, or single video, or export file). This is what stays canonical; parsed text is the index.
-- `screenshot_count int`, `video_duration_sec int` — for display
+**1. Auth with survivor role — PARTIAL.** Auth is plain Supabase email/password (`src/lib/auth-context.tsx:19-40`). There is no survivor role row: `login.tsx:75-91` signs up with no `user_roles` insert. `getMyRole()` (`attorney-portal.functions.ts:206-229`) returns `"survivor"` as a *code fallback* when no attorney/collaborator row exists. `user_roles` is only ever written for attorneys (`attorney-invitations.functions.ts:184`). Consequence: `_authenticated.tsx:26-35` gates on "is logged in", not "is a survivor" — an attorney account can walk into survivor routes.
 
-Keep `parse_status`, `summary`, `attorney_summary`, `flags`, `exhibit_label` — all three tiers reuse the existing summary-first / AI-flag pipeline.
+**2. Unskippable disclosure before first entry — PARTIAL.** `/onboarding` is force-redirected for any un-onboarded user (`_authenticated.tsx:48-55`) and the CTA is disabled until Privacy + Terms are checked (`onboarding.tsx:174-181`). But **the specific disclosure you asked for does not exist**: nothing says the record may be used legally / is discoverable / may be read by opposing counsel. Closest copy is "not a law firm, not a crisis service" (`onboarding.tsx:118-127`). Also: `OnboardingModal.tsx` and `FirstTimeEducationModal.tsx` are **dead code** — never imported anywhere.
 
-### 2. Tier picker UI — replace top of `/message-threads`
-Three plain-language cards, in this order (Tier 2 visually marked "strongest"):
+**3. Entry with text/photo/voice + date states — PARTIAL.** Date states are *better* than you asked: six precisions (`exact, approximate_month, range, before_anchor, after_anchor, unknown`) with `date_range_start/end` and `anchor_incident_id` (`journal.tsx:32-53,144-148`). Text is fully supported. **Photo/voice are not part of the entry model** — an incident has no attachment field. Photos in `journal.tsx:241-266` are uploaded only to run AI extraction into the text form and are then discarded from the record. Evidence and voice notes are separate tables/routes linked back by `linked_incident_id`.
 
-```text
-┌ Take screenshots (fastest) ────┐  ┌ Backup with a computer (strongest) ┐  ┌ Screen recording (fallback) ┐
-│ On your own, need it now.      │  │ Recommended when you have help.    │  │ Only if nothing else works. │
-└────────────────────────────────┘  └────────────────────────────────────┘  └─────────────────────────────┘
-```
-Below each: a warning/context line. Tier 3 shows the "takes longer / more re-exposure" warning before its file picker opens.
+**4. Timeline immediate, sorted by precision — PARTIAL.** No threshold gate exists (good — `timeline.tsx:211-216` just shows an empty state). But sorting is `sort((a,b) => a.date < b.date ? 1 : -1)` (`timeline.tsx:163`) — pure date desc. `date_precision` is fetched but used only for label formatting, never ordering.
 
-### 3. Tier 1 — Multi-screenshot stitch (new)
-- New component `src/components/threads/ScreenshotStitcher.tsx`: accepts multiple images at once (or repeatedly), previews them in scroll order, lets her reorder/remove.
-- New server fn `stitchScreenshotThread` in `src/lib/message-threads.functions.ts`:
-  1. Upload each screenshot to `evidence-files` under `threads/{threadId}/shot-{n}.jpg`; SHA-256 each.
-  2. Run the existing vision model (Gemini) on each screenshot to extract `{sender, timestamp, text}` per bubble — already-built pattern from `extract-incident.functions.ts`.
-  3. **Dedup**: between consecutive screenshots, drop leading bubbles whose text overlaps ≥70% (normalized) with the tail of the previous screenshot. Text-based dedup — cheaper and more reliable than image similarity for chat UIs.
-  4. Persist merged bubbles into `thread_messages` with `flags: { ai_extracted: true, unverified: true }`.
-  5. `capture_method='multi_screenshot'`, `primary_artifact_urls` = all screenshot paths.
-- Lands in Documentation (no schema change needed — attorney/export queries already filter by `review_status='suggested'` from the previous pass; this thread stays unverified until she confirms).
+**5. Quick exit = real logout — MISSING (this is the most serious finding).** `QuickExitButton.tsx:14-36` clears only `sessionStorage` `pp.*` keys, resets the title, and redirects. It **never calls `supabase.auth.signOut()`**, and the Supabase client persists the session in `localStorage` (`client.ts:23-24`). So after a "quick exit", reopening the app restores the logged-in session with no PIN and no login. The attorney side *does* call `signOut()` (`_attorney.tsx:180`), so this is an asymmetry, not a platform limit.
 
-### 4. Tier 2 — Backup guided walkthrough (mostly wiring existing flow)
-- New route section `Tier 2 walkthrough`: a 3-step guide (iPhone Finder backup / Android Google Takeout / recommend iMazing-style tool) with copy-only instructions and a "your privacy" note.
-- Ends at the **existing** file uploader (PDF/CSV/TXT/RSMF/ZIP) — thread stamped `capture_method='backup_export'`.
-- Visually flagged "strongest, most court-defensible" on the tier card and in the resulting thread badge.
+**6. Survivor-visible consent log — PARTIAL.** `share-with-attorney.tsx:224-280` lists active counsel (name/firm/email/created date) and allows revoke. It does **not** show, per active grant, the scope, date-range window, or expiry — those exist on the row but are only rendered transiently at creation time. The `audit_log` shown in `settings.tsx:61-72` is an integrity/hash-chain log, not a who-viewed-what access log.
 
-### 5. Tier 3 — Screen recording (new)
-- New component `src/components/threads/ScreenRecordingUpload.tsx`: warning modal → file picker for a video (mp4/mov/webm, ≤200MB).
-- New server fn `ingestRecordedThread`:
-  1. Upload video to `evidence-files`, compute SHA-256, store as the **primary** artifact.
-  2. Kick off transcription via the existing `transcribeEvidence` pipeline (`openai/gpt-4o-transcribe`) — reused, not re-implemented.
-  3. Store transcript on the thread's `summary` field (labeled "AI-generated — unverified"). Video URL stays canonical; transcript is a searchable index only.
-- `capture_method='screen_recording'`, `primary_artifact_urls=[videoPath]`.
+**7. Edit/delete own entries — BUILT.** Edit (`journal.tsx:178-198`), soft delete via `deleted_at` with an 8s undo (`:204-225`), and all reads filter `.is("deleted_at", null)`.
 
-### 6. Cross-tier — audit trail
-Every new thread writes an `audit_events` row via `record_audit_event`:
-```
-event_type: 'thread.imported'
-subject_kind: 'message_thread', subject_id: threadId
-meta: { capture_method, captured_at, artifact_count, sha256_list }
-```
+**8. 25MB cap with inline error — MISSING as specified.** There is no unified cap and no 25MB anywhere. Actual limits are scattered and inconsistent: 200MB video (`ScreenRecordingUpload.tsx:24`), 20MB thread files (`message-threads.tsx:136`), 8MB screenshots/call-logs (`ScreenshotStitcher.tsx:26`, `CallLogPhotos.tsx:27`), 15MB voice transcription (`transcribe-voice-note.functions.ts:56`). The main evidence uploader (`evidence.tsx`, `BatchDropzone.tsx`) enforces **file count (50), not size** — no byte check at all.
 
-### 7. Thread detail view
-On the existing thread card, show:
-- A "How this was captured" chip (e.g. "📱 Multi-screenshot · 7 images · captured Jul 25 10:12") — always visible, always factual.
-- For Tier 1/3: an "AI-extracted — unverified" badge above the parsed messages.
-- Existing summary-first / flag / incident-grouping UI unchanged.
+## Attorney
 
-## What I'm not doing this pass
-- Native mobile screenshot burst-mode (web can't trigger the system screenshotter; she takes them the normal way and uploads).
-- Actual image-similarity dedup (using text-overlap instead — reason above).
-- Auto-promotion Documentation → Evidence on Tier 2 hash-verify (deferred; the current Documentation/Evidence rule already handles this at the evidence-level, not thread-level).
+**9. Attorney role + invite — BUILT. Clio is not an auth path.** Role is granted on invite acceptance after verifying the JWT email matches the invited email (`attorney-invitations.functions.ts:160-186`). `lawyer-signup.tsx` self-registration alone grants no client data. **Clio is dead scaffolding**: `integrations.clio.callback.tsx:1-45` explicitly does not exchange the code for tokens, ignores `code`/`state`, and is marked pending Clio app approval. Direct invite is the only attorney access path today.
 
-## Files touched
-- **New**: `src/components/threads/TierPicker.tsx`, `ScreenshotStitcher.tsx`, `ScreenRecordingUpload.tsx`, `BackupWalkthrough.tsx`
-- **Migration**: add columns to `message_threads`
-- **Update**: `src/lib/message-threads.functions.ts` (+2 fns, +audit call), `src/routes/_authenticated/message-threads.tsx` (tier picker + capture chip)
+**10. Invite email with secure link — PARTIAL.** The invite row + token are created, but `createInvitation` sends **no email** — the survivor copies a link or uses a `mailto:` handoff (`share-with-attorney.tsx:113-124`). Real transactional email infra exists and is unused here (`src/routes/lovable/email/queue/process.ts`). A separate token read-only view does exist (`attorney.$token.tsx`).
 
-Estimated ~900 lines net. Typecheck at the end.
+**11. Timeline + original source files — BUILT.** `getClientCase` returns the full record; `getSignedEvidenceUrl` (`attorney-portal.functions.ts:1208-1232`) issues 30-min signed URLs after an access check, with GPS stripped (`:646-651`).
 
-Confirm and I'll build. If you want to trim (e.g. skip Tier 3 for now, or accept text-overlap dedup instead of debating image-similarity), tell me before I start.
+**12. Permanent "no legal conclusions" disclaimer — MISSING.** Zero disclaimer language in `src/routes/_attorney/*` or `attorney.css`. Permanent chrome only asserts encryption/logging (`_attorney.tsx:104-112`).
+
+**13. Export zip/PDF — PARTIAL and mislabeled.** Survivor side has a real ZIP (`export-zip.functions.ts`) and a real generated PDF via pdf-lib (`court-packet.functions.ts`). The **attorney portal's "PDF" button actually produces a ZIP** of Markdown/CSV/JSON via JSZip (`payments.functions.ts:322-420,651`); the only true PDF there is browser print-to-PDF. Word (.docx) is genuine.
+
+**14. Attorney sees their own consent grant — MISSING.** Nothing in `clients.$clientId.tsx` renders scope, date range, or expiry of the grant.
+
+**15. Revocation — PARTIAL.** Instant cutoff genuinely works: every read path filters `status = 'active'` (18 sites in `attorney-portal.functions.ts`), checked fresh per call. **Missing** is the UI explanation that already-downloaded exports are unaffected — no such copy exists anywhere.
+
+## Pushback
+
+- **Item 5 is a security bug, not a feature request.** Quick Exit currently advertises safety it does not deliver. This should be fixed first, independent of the rest.
+- **Item 8: 25MB conflicts with what's already shipped.** A flat 25MB cap would break screen-recording import (currently 200MB) and thread video. Recommend 25MB as the default for photos/documents, with explicit higher per-path caps for audio/video, rather than one global number.
+- **Item 9/Clio: recommend deleting or clearly labelling the Clio callback.** It is a non-functional stub that reads as a working integration. It is not, and should not become, an auth path — email-verified invite is the correct trust anchor.
+- **Item 3: don't restructure the entry model.** Attaching photos/voice directly onto `incidents` would duplicate the `evidence`/`voice_notes` tables and their hashing/provenance pipeline. Better: surface attach-photo/record-voice controls *inside* the journal entry form that write to the existing tables with `linked_incident_id` pre-filled.
+- **Item 4: your requested sort may be wrong for survivors.** Sorting confirmed-before-approximate globally breaks chronology, which is the product's core value. Recommend chronological primary, precision only as a tiebreaker within the same sort date.
+- **Item 13: fix the label, not the format.** The attorney "PDF" button producing a ZIP is a trust problem in a legal tool.
+
+## Proposed remediation order
+
+1. Quick Exit real sign-out (item 5).
+2. Legal-use disclosure in onboarding + delete the two dead modals (item 2).
+3. Attorney portal permanent disclaimer (item 12) and export-format relabel (item 13).
+4. Unified upload-size policy with inline errors (item 8).
+5. Consent-grant visibility for both sides (items 6, 14) + revocation/exports copy (item 15).
+6. Persist the survivor role on signup and gate `_authenticated` on it (item 1).
+7. Timeline precision tiebreaker (item 4); inline attach controls in journal (item 3).
+8. Send the invite email through existing infra (item 10).
+9. Decide Clio: delete the stub or mark it clearly unavailable (item 9).
+
+Confirm the order and the pushback points you accept, and I'll write the implementation plan.

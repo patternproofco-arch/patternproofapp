@@ -14,6 +14,7 @@ import { AddFromJournalModal } from "@/components/AddFromJournalModal";
 import { BulkPastIncidentsModal } from "@/components/BulkPastIncidentsModal";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { checkUploadSize } from "@/lib/upload-limits";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -99,6 +100,50 @@ function JournalPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Files the survivor attaches while writing an entry. They're uploaded and
+  // linked to the incident only once the entry itself saves successfully.
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachError, setAttachError] = useState<string | null>(null);
+
+  const addAttachments = (files: FileList | null) => {
+    if (!files?.length) return;
+    const next: File[] = [];
+    for (const f of Array.from(files)) {
+      const problem = checkUploadSize(f);
+      if (problem) { setAttachError(problem); continue; }
+      next.push(f);
+    }
+    if (next.length) setAttachError(null);
+    setAttachments((p) => [...p, ...next]);
+  };
+
+  const uploadAttachments = async (incidentId: string): Promise<string | null> => {
+    if (!user || attachments.length === 0) return null;
+    let ok = 0;
+    for (const f of attachments) {
+      const key = `${user.id}/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("evidence-files").upload(key, f);
+      if (upErr) continue;
+      const { error: rowErr } = await supabase.from("evidence").insert({
+        user_id: user.id,
+        title: f.name,
+        date: form.date || today(),
+        file_url: key,
+        file_type: f.type || "application/octet-stream",
+        original_filename: f.name,
+        bytes: f.size,
+        mime: f.type || null,
+        linked_incident_id: incidentId,
+        review_status: "confirmed",
+      });
+      if (!rowErr) ok += 1;
+    }
+    if (ok === attachments.length) {
+      return `Saved. Your record and ${ok} file${ok === 1 ? "" : "s"} are safe.`;
+    }
+    return `Saved. ${ok} of ${attachments.length} files attached — you can add the rest from Evidence.`;
+  };
+
   const reset = () => {
     setForm({
       date: today(), time: "", location: "", description: "", abuse_types: [], witnesses: "", emotional_impact: "",
@@ -107,6 +152,8 @@ function JournalPage() {
     });
     setEditingId(null);
     setAiFilled(false);
+    setAttachments([]);
+    setAttachError(null);
   };
 
   const toggleType = (t: string) => {
@@ -156,6 +203,7 @@ function JournalPage() {
       confirmed_at: new Date().toISOString(),
     };
     let error;
+    let savedId: string | null = editingId;
     if (editingId) {
       const current = list.find((i) => i.id === editingId);
       const updatePayload: typeof payload & { confirmed_at?: string } = { ...payload };
@@ -166,11 +214,14 @@ function JournalPage() {
       }
       ({ error } = await supabase.from("incidents").update(updatePayload).eq("id", editingId).eq("user_id", user.id));
     } else {
-      ({ error } = await supabase.from("incidents").insert(insertPayload));
+      const res = await supabase.from("incidents").insert(insertPayload).select("id").single();
+      error = res.error;
+      savedId = res.data?.id ?? null;
     }
+    if (error) { setBusy(false); toast("We couldn't save that. Try again in a moment."); return; }
+    const attachMsg = savedId && attachments.length ? await uploadAttachments(savedId) : null;
     setBusy(false);
-    if (error) { toast("We couldn't save that. Try again in a moment."); return; }
-    toast("Saved. Your record is safe.");
+    toast(attachMsg ?? "Saved. Your record is safe.");
     reset();
     load();
   };
@@ -409,6 +460,39 @@ function JournalPage() {
               AI-drafted — please edit anything that isn't quite right.
             </div>
           )}
+
+          <div>
+            <label className="label-eyebrow">Attach photos, audio or files</label>
+            <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>
+              Anything you attach here is saved with this entry. You can add more later.
+            </p>
+            <input
+              type="file"
+              multiple
+              accept="image/*,audio/*,video/*,application/pdf"
+              className="input-pp mt-2 text-[12px]"
+              onChange={(e) => { addAttachments(e.target.files); e.currentTarget.value = ""; }}
+            />
+            {attachError && (
+              <p className="text-[11.5px] mt-1" style={{ color: "var(--accent)" }}>{attachError}</p>
+            )}
+            {attachments.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {attachments.map((f, idx) => (
+                  <li key={`${f.name}-${idx}`} className="flex items-center justify-between text-[12px]">
+                    <span className="truncate">{f.name}</span>
+                    <button
+                      type="button"
+                      className="text-[11px] underline"
+                      onClick={() => setAttachments((p) => p.filter((_, i) => i !== idx))}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           <div>
             <label className="label-eyebrow">Date precision</label>

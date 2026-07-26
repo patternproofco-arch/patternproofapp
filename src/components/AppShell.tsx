@@ -8,6 +8,7 @@ import { AmbientBackground } from "@/components/AmbientBackground";
 import { FloatingNav } from "@/components/FloatingNav";
 import { AppMark } from "@/components/brand/AppMark";
 import { NotificationBanner } from "@/components/NotificationBanner";
+import { quickExit } from "@/lib/quick-exit";
 
 /**
  * AppShell — Living Canvas edition.
@@ -20,17 +21,7 @@ export function AppShell() {
   // Quick-exit shortcut: double-Esc
   useEffect(() => {
     let last = 0;
-    const exit = () => {
-      const url = settings.exitUrl || "https://weather.com";
-      try {
-        Object.keys(window.sessionStorage).forEach((k) => {
-          if (k.startsWith("pp.")) window.sessionStorage.removeItem(k);
-        });
-      } catch { /* ignore */ }
-      try { document.title = "Weather"; } catch { /* ignore */ }
-      try { window.history.replaceState(null, "", "/"); } catch { /* ignore */ }
-      window.location.replace(url);
-    };
+    const exit = () => quickExit(settings.exitUrl);
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         const now = Date.now();
