@@ -1,4 +1,4 @@
-import { BlurP } from "./BlurP";
+import { CubeMark } from "./CubeMark";
 import { INK, MONO, PAPER, PLEX } from "./mark";
 
 interface BrandLockupProps {
@@ -12,12 +12,12 @@ interface BrandLockupProps {
 /**
  * Tier 1 — Brand Lockup. MARKETING ONLY.
  *
- * Inverted: ink square, paper-coloured blur-to-crisp P with the negative-space
- * notch cut in ink, plus the "PATTERNPROOF" wordmark and tagline.
+ * Ink card, paper-coloured nested cube (blurred outer / crisp inner), plus the
+ * "PATTERNPROOF" wordmark and tagline.
  *
  * Allowed surfaces: marketing site header/hero, social share images, the
- * attorney one-pager PDF. Never inside the logged-in app, never in the
- * attorney portal, never in exports (use AppMark there).
+ * attorney one-pager PDF. Never inside the logged-in app, never in the attorney
+ * portal, never in exports (use AppMark there).
  */
 export function BrandLockup({ size = 92, className, showTagline = true }: BrandLockupProps) {
   return (
@@ -32,7 +32,7 @@ export function BrandLockup({ size = 92, className, showTagline = true }: BrandL
         padding: `${Math.round(size * 0.34)}px ${Math.round(size * 0.42)}px`,
       }}
     >
-      <BlurP size={size} ink={PAPER} cut={INK} />
+      <CubeMark size={size} />
       <div>
         <div
           style={{
