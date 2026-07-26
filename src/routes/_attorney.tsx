@@ -97,6 +97,7 @@ function AttorneyLayout() {
     <div className="att-root att-cockpit">
       <AttorneyTopNav />
       <SecurityBanner />
+      <LegalDisclaimerBar />
       <AttorneyBreadcrumb />
       <main style={{ maxWidth: 1280, margin: "0 auto", padding: "20px 2rem 0" }}>
         <Outlet />
@@ -111,6 +112,11 @@ function AttorneyLayout() {
         <span>Session logged · {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
         <span>·</span>
         <span>All access recorded for provenance & integrity</span>
+        <span>·</span>
+        <span>
+          PatternProof organises the client&apos;s own records. It does not draw legal conclusions
+          and is not legal advice.
+        </span>
         <span>·</span>
         <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
       </footer>
