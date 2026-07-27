@@ -335,8 +335,8 @@ function MessageThreadsPage() {
                 background: "rgba(255,255,255,0.7)",
                 border: "1px solid rgba(91,76,214,0.18)",
                 boxShadow: "none",
-                backdropFilter: "blur(14px)",
-                WebkitBackdropFilter: "blur(14px)",
+                backdropFilter: "none",
+                WebkitBackdropFilter: "none",
                 display: "flex", flexDirection: "column", gap: 12,
               }}
             >
@@ -426,8 +426,8 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
         background: "rgba(255,255,255,0.75)",
         border: "1px solid rgba(91,76,214,0.18)",
         boxShadow: "none",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
       }}
     >
       {captureLabel && (

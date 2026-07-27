@@ -332,7 +332,7 @@ function EvidencePage() {
             Import iPhone, iMessage, or SMS exports (PDF, CSV/Excel, TXT, RSMF, ZIP) into a searchable, flagged timeline.
           </div>
         </div>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#7C5CC4" }}>Open →</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#5B4CD6" }}>Open →</span>
       </Link>
 
       <BatchDropzone onDone={load} />

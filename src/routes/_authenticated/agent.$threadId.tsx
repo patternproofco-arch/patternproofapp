@@ -153,11 +153,11 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                 <div className="flex items-center gap-2">
                   <div
                     className="rounded-full p-1.5"
-                    style={{ background: "#FFFFFF", color: "#4FAFA7", border: "1px solid #D8F0E0" }}
+                    style={{ background: "#FFFFFF", color: "#4E8C8A", border: "1px solid #D8F0E0" }}
                   >
                     <Sparkles size={14} />
                   </div>
-                  <div className="text-[12px] font-semibold tracking-wide" style={{ color: "#4FAFA7" }}>
+                  <div className="text-[12px] font-semibold tracking-wide" style={{ color: "#4E8C8A" }}>
                     WELCOME
                   </div>
                 </div>
@@ -210,7 +210,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
 
           {status === "submitted" && (
             <div className="text-sm italic flex items-center gap-2" style={{ color: "#667085" }}>
-              <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#4FAFA7" }} />
+              <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#4E8C8A" }} />
               Thinking…
             </div>
           )}

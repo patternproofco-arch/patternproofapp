@@ -220,8 +220,8 @@ function PricingPage() {
               borderRadius: 999,
               background: "rgba(255,255,255,0.6)",
               border: "1px solid rgba(20,23,31,0.08)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
+              backdropFilter: "none",
+              WebkitBackdropFilter: "none",
               fontSize: 12,
               fontWeight: 700,
               letterSpacing: "0.16em",
@@ -377,8 +377,8 @@ function TierCard({ tier }: { tier: Tier }) {
 
   const textColor = isAttorney ? "#FFFFFF" : isOrg ? "#1F2D1A" : "#14131F";
   const mutedColor = isAttorney ? "rgba(226,232,240,0.78)" : isOrg ? "#36422F" : "#8A8894";
-  const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#7C5CC4";
-  const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#7C5CC4";
+  const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#5B4CD6";
+  const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#5B4CD6";
 
   const ctaBg = isAttorney
     ? "#FFFFFF"

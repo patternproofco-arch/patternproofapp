@@ -131,7 +131,7 @@ export function FloatingNav() {
           border: "1px solid rgba(255,255,255,0.15)",
           color: "#FAF7F2",
           display: "grid", placeItems: "center",
-          backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+          backdropFilter: "none", WebkitBackdropFilter: "none",
           boxShadow: "none",
         }}
       >
@@ -168,8 +168,8 @@ export function FloatingNav() {
             width: "fit-content",
             margin: "0 auto 8px",
             fontWeight: 700,
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
+            backdropFilter: "none",
+            WebkitBackdropFilter: "none",
           }}
         >
           🔒 ENCRYPTED IN TRANSIT & AT REST
@@ -179,8 +179,8 @@ export function FloatingNav() {
           className="nav-island"
           style={{
             background: "rgba(26,23,20,0.85)",
-            WebkitBackdropFilter: "blur(24px)",
-            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "none",
+            backdropFilter: "none",
             border: "1px solid rgba(255,255,255,0.10)",
             borderRadius: 100,
             padding: "10px 16px",
@@ -369,8 +369,8 @@ function DesktopDock({
         zIndex: 100,
         opacity: dim ? 0.7 : 1,
         background: "rgba(26,23,20,0.85)",
-        WebkitBackdropFilter: "blur(24px)",
-        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "none",
+        backdropFilter: "none",
         border: "1px solid rgba(255,255,255,0.10)",
         borderRadius: 28,
         padding: "16px 10px",

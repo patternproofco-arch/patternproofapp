@@ -556,3 +556,8 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; }
 }
+
+/* Radius clamp — nothing rounder than the hairline card, except deliberate
+   circular controls (.rounded-full: avatars, record button). */
+.rounded-2xl:not(.rounded-full),
+.rounded-3xl:not(.rounded-full) { border-radius: 2px; }
