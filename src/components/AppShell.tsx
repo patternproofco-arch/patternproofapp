@@ -34,7 +34,7 @@ export function AppShell() {
   }, [settings.exitUrl]);
 
   return (
-    <div className="min-h-screen w-full" data-density="survivor" style={{ background: "var(--background)" }}>
+    <div className="min-h-screen w-full" data-density="survivor" data-persona="survivor" style={{ background: "var(--background)" }}>
       {/* Ambient pastel canvas behind everything */}
       <AmbientBackground />
 

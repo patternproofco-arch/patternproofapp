@@ -40,7 +40,7 @@ function RequestOrgAccess() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F7F5F0", padding: "60px 24px" }}>
+    <div data-persona="org" style={{ minHeight: "100vh", background: "#F7F5F0", padding: "60px 24px" }}>
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
         <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted-foreground)", textDecoration: "none", marginBottom: 24 }}>
           <ArrowLeft size={14} /> Back to PatternProof

@@ -36,7 +36,7 @@ export const Route = createFileRoute("/for-organizations")({
 
 function ForOrganizations() {
   return (
-    <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+    <div data-persona="org" style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
       <TopBar />
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(56px,9vw,104px) 24px 40px" }}>
