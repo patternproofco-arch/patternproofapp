@@ -17,6 +17,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
 import { Route as SampleCaseRouteImport } from './routes/sample-case'
 import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
 import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -47,7 +48,6 @@ import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedShareWithAttorneyRouteImport } from './routes/_authenticated/share-with-attorney'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
-import { Route as AuthenticatedResourcesRouteImport } from './routes/_authenticated/resources'
 import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
 import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -133,6 +133,11 @@ const SampleCaseRoute = SampleCaseRouteImport.update({
 const SafetyRoute = SafetyRouteImport.update({
   id: '/safety',
   path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestOrgAccessRoute = RequestOrgAccessRouteImport.update({
@@ -283,11 +288,6 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
   id: '/search',
   path: '/search',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedResourcesRoute = AuthenticatedResourcesRouteImport.update({
-  id: '/resources',
-  path: '/resources',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedPatternsRoute = AuthenticatedPatternsRouteImport.update({
@@ -561,6 +561,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
+  '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
@@ -603,7 +604,6 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/patterns': typeof AuthenticatedPatternsRoute
-  '/resources': typeof AuthenticatedResourcesRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
@@ -646,6 +646,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
+  '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
@@ -686,7 +687,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/patterns': typeof AuthenticatedPatternsRoute
-  '/resources': typeof AuthenticatedResourcesRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
@@ -732,6 +732,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
   '/request-org-access': typeof RequestOrgAccessRoute
+  '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
@@ -774,7 +775,6 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
-  '/_authenticated/resources': typeof AuthenticatedResourcesRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
@@ -819,6 +819,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/professional-access'
     | '/request-org-access'
+    | '/resources'
     | '/safety'
     | '/sample-case'
     | '/self-help-guide'
@@ -861,7 +862,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opra-helper'
     | '/patterns'
-    | '/resources'
     | '/search'
     | '/settings'
     | '/share-with-attorney'
@@ -904,6 +904,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/professional-access'
     | '/request-org-access'
+    | '/resources'
     | '/safety'
     | '/sample-case'
     | '/self-help-guide'
@@ -944,7 +945,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opra-helper'
     | '/patterns'
-    | '/resources'
     | '/search'
     | '/settings'
     | '/share-with-attorney'
@@ -989,6 +989,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/professional-access'
     | '/request-org-access'
+    | '/resources'
     | '/safety'
     | '/sample-case'
     | '/self-help-guide'
@@ -1031,7 +1032,6 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/opra-helper'
     | '/_authenticated/patterns'
-    | '/_authenticated/resources'
     | '/_authenticated/search'
     | '/_authenticated/settings'
     | '/_authenticated/share-with-attorney'
@@ -1077,6 +1077,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
+  ResourcesRoute: typeof ResourcesRoute
   SafetyRoute: typeof SafetyRoute
   SampleCaseRoute: typeof SampleCaseRoute
   SelfHelpGuideRoute: typeof SelfHelpGuideRoute
@@ -1159,6 +1160,13 @@ declare module '@tanstack/react-router' {
       path: '/safety'
       fullPath: '/safety'
       preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/request-org-access': {
@@ -1369,13 +1377,6 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof AuthenticatedSearchRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/resources': {
-      id: '/_authenticated/resources'
-      path: '/resources'
-      fullPath: '/resources'
-      preLoaderRoute: typeof AuthenticatedResourcesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/patterns': {
@@ -1781,7 +1782,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
   AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
-  AuthenticatedResourcesRoute: typeof AuthenticatedResourcesRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShareWithAttorneyRoute: typeof AuthenticatedShareWithAttorneyRoute
@@ -1815,7 +1815,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
   AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
-  AuthenticatedResourcesRoute: AuthenticatedResourcesRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShareWithAttorneyRoute: AuthenticatedShareWithAttorneyRoute,
@@ -1847,6 +1846,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ProfessionalAccessRoute: ProfessionalAccessRoute,
   RequestOrgAccessRoute: RequestOrgAccessRoute,
+  ResourcesRoute: ResourcesRoute,
   SafetyRoute: SafetyRoute,
   SampleCaseRoute: SampleCaseRoute,
   SelfHelpGuideRoute: SelfHelpGuideRoute,
