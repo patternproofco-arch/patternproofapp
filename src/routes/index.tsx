@@ -210,7 +210,8 @@ function Index() {
         <div style={{ marginTop: 18 }}>
           <Link to="/privacy" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>
           <Link to="/safety" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Safety</Link>
-          <Link to="/terms" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3 }}>Terms</Link>
+          <Link to="/terms" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Terms</Link>
+          <Link to="/support" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3 }}>Support</Link>
         </div>
       </footer>
     </div>
