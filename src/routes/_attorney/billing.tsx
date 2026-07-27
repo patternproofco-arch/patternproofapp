@@ -46,7 +46,7 @@ function BillingPage() {
         <h1 style={{ fontSize: 32, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>Plan &amp; payment</h1>
       </div>
 
-      <div className="att-card" style={{ background: sub.isActive ? "#F0FDF4" : "#FEF2F2", borderColor: sub.isActive ? "#86EFAC" : "#FCA5A5" }}>
+      <div className="att-card" style={{ background: sub.isActive ? "#F0FDF4" : "#FFFFFF", borderColor: sub.isActive ? "#86EFAC" : "#FCA5A5" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <div>
             <div className="att-eyebrow" style={{ color: sub.isActive ? "#166534" : "#991B1B" }}>

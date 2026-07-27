@@ -5,7 +5,7 @@ const PAPER = "#F7F5F0";
 const MUTED = "#6B6A78";
 const RULE = "rgba(20,19,31,0.14)";
 const VIOLET = "#5B4CD6";
-const CAUTION = "#B45309";
+const CAUTION = "#8A5A2E";
 
 const SERIF = "'Newsreader', Georgia, serif";
 const SANS = "'IBM Plex Sans', system-ui, sans-serif";

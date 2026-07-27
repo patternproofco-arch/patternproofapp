@@ -101,7 +101,7 @@ function ClientCaseView() {
 
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
   const densityColor: Record<string, string> = {
-    low: "#10B981", moderate: "#FBBF24", elevated: "#F59E0B", high: "#EF4444",
+    low: "#0F6E56", moderate: "#8A8894", elevated: "#8A8894", high: "#8A5A2E",
   };
 
   return (
@@ -478,7 +478,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
                 <div key={m.month} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12 }}>
                   <div style={{ width: 70, color: "var(--att-text-2)" }} className="att-mono">{m.month}</div>
                   <div style={{ flex: 1, height: 6, background: "var(--att-border)", borderRadius: 999 }}>
-                    <div style={{ height: "100%", borderRadius: 999, width: `${(m.count / tMax) * 100}%`, background: m.avg_severity >= 3 ? "#EF4444" : "var(--att-navy-mid)" }} />
+                    <div style={{ height: "100%", borderRadius: 999, width: `${(m.count / tMax) * 100}%`, background: m.avg_severity >= 3 ? "#8A5A2E" : "var(--att-navy-mid)" }} />
                   </div>
                   <div style={{ width: 80, textAlign: "right" }}>{m.count} · sev {m.avg_severity.toFixed(1)}</div>
                 </div>
@@ -527,7 +527,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
             {data.flags.slice(0, 8).map((f) => (
-              <li key={f.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, padding: "8px 10px", background: "#FEF2F2", borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "#EF4444" : "#F59E0B"}`, borderRadius: 2 }}>
+              <li key={f.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, padding: "8px 10px", background: "#FFFFFF", borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "#8A5A2E" : "#8A8894"}`, borderRadius: 2 }}>
                 <span>{f.details ?? f.flag_type ?? "Escalation flagged"}</span>
                 <span className="att-mono" style={{ color: "var(--att-text-2)" }}>sev {f.severity_tier ?? "?"}</span>
               </li>
@@ -570,7 +570,7 @@ function CaseNotesCard({ clientId }: { clientId: string }) {
   };
 
   return (
-    <div className="att-card" style={{ background: "#FFFBEB", borderColor: "#FCD34D" }}>
+    <div className="att-card" style={{ background: "#FFFFFF", borderColor: "#FCD34D" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
         <SectionTitle icon={<Lock size={16} />}>Private attorney notes</SectionTitle>
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--att-text-2)" }}>
@@ -660,9 +660,9 @@ function TeamCard({ clientId }: { clientId: string }) {
   };
 
   const STATUS: Record<string, { bg: string; fg: string; label: string }> = {
-    pending: { bg: "#FEF3C7", fg: "#92400E", label: "Pending" },
+    pending: { bg: "#FFFFFF", fg: "#92400E", label: "Pending" },
     active: { bg: "#D1FAE5", fg: "#065F46", label: "Active" },
-    revoked: { bg: "#FEE2E2", fg: "#991B1B", label: "Revoked" },
+    revoked: { bg: "#FFFFFF", fg: "#991B1B", label: "Revoked" },
   };
 
   return (
@@ -833,7 +833,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
       </p>
 
       {!firmSet ? (
-        <div className="att-card" style={{ background: "#FFFBEB", borderColor: "#FCD34D" }}>
+        <div className="att-card" style={{ background: "#FFFFFF", borderColor: "#FCD34D" }}>
           <div style={{ fontSize: 13 }}>
             Set your firm in <Link to="/settings" style={{ color: "#1D4ED8", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
           </div>
@@ -908,7 +908,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
 
 
 function IntegrityStat({ label, value, tone }: { label: string; value: number | string; tone?: "green" | "amber" | "red" }) {
-  const color = tone === "green" ? "#10B981" : tone === "amber" ? "#F59E0B" : tone === "red" ? "#EF4444" : "var(--att-text)";
+  const color = tone === "green" ? "#0F6E56" : tone === "amber" ? "#8A8894" : tone === "red" ? "#8A5A2E" : "var(--att-text)";
   return (
     <div style={{ padding: 10, background: "#fff", border: "1px solid var(--att-border)", borderRadius: 2 }}>
       <div className="att-eyebrow">{label}</div>
@@ -1040,7 +1040,7 @@ function TimelineTab({ data, clientId, notes, onNotes }: { data: CaseData; clien
                       <div style={{ display: "flex", gap: 6 }}>
                         <button
                           className="att-btn-ghost"
-                          style={{ color: n?.flagged ? "#EF4444" : "var(--att-text-2)" }}
+                          style={{ color: n?.flagged ? "#8A5A2E" : "var(--att-text-2)" }}
                           onClick={() => update(i.id, { flagged: !n?.flagged })}
                           title="Flag for review"
                         >
@@ -1124,7 +1124,7 @@ function Patterns({ data, clientId }: { data: CaseData; clientId: string }) {
               <div key={m.month} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12 }}>
                 <div style={{ width: 80, color: "var(--att-text-2)" }} className="att-mono">{m.month}</div>
                 <div style={{ flex: 1, height: 6, background: "var(--att-border)", borderRadius: 999 }}>
-                  <div style={{ height: "100%", borderRadius: 999, width: `${(m.count / tMax) * 100}%`, background: m.avg_severity >= 3 ? "#EF4444" : "var(--att-navy-mid)" }} />
+                  <div style={{ height: "100%", borderRadius: 999, width: `${(m.count / tMax) * 100}%`, background: m.avg_severity >= 3 ? "#8A5A2E" : "var(--att-navy-mid)" }} />
                 </div>
                 <div style={{ width: 90, textAlign: "right" }}>{m.count} · sev {m.avg_severity.toFixed(1)}</div>
               </div>
@@ -1199,7 +1199,7 @@ function ChecklistTab({ data }: { data: CaseData }) {
 function ReviewStatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; bg: string; fg: string }> = {
     confirmed: { label: "Confirmed", bg: "#DCFCE7", fg: "#166534" },
-    rejected:  { label: "Rejected",  bg: "#FEE2E2", fg: "#991B1B" },
+    rejected:  { label: "Rejected",  bg: "#FFFFFF", fg: "#991B1B" },
     edited:    { label: "Edited",    bg: "#DBEAFE", fg: "#1E40AF" },
     unsure:    { label: "Unreviewed",bg: "#F1F5F9", fg: "#475569" },
   };
@@ -1238,7 +1238,7 @@ function GapsTab({ data }: { data: CaseData }) {
   const [openBucket, setOpenBucket] = useState<Record<string, boolean>>({ high: true, moderate: true, low: false });
   const [bulkSending, setBulkSending] = useState<string | null>(null);
 
-  const sevColor: Record<string, string> = { high: "#EF4444", moderate: "#F59E0B", low: "#94A3B8" };
+  const sevColor: Record<string, string> = { high: "#8A5A2E", moderate: "#8A8894", low: "#8A8894" };
 
   const requestClarification = async (idx: number, g: CaseData["gaps"][number]) => {
     setSendingIdx(idx);
@@ -1279,10 +1279,10 @@ function GapsTab({ data }: { data: CaseData }) {
       ? "All flagged gaps addressed"
       : `${closedGaps} of ${totalGaps} flagged gap${totalGaps === 1 ? "" : "s"} addressed`;
   const readinessColor = totalGaps === 0 || closedGaps === totalGaps
-    ? "#10B981"
+    ? "#0F6E56"
     : closedGaps > 0
-      ? "#F59E0B"
-      : "#EF4444";
+      ? "#8A8894"
+      : "#8A5A2E";
 
   const sendBucket = async (sev: "high" | "moderate" | "low") => {
     setBulkSending(sev);
@@ -1459,7 +1459,7 @@ function UnlinkedIncidentsSection({ data, clientId }: { data: CaseData; clientId
           {unlinked.slice(0, 40).map((i) => {
             const already = sent.has(i.id);
             return (
-              <li key={i.id} style={{ padding: "10px 12px", background: "#F8FAFC", borderRadius: 2, borderLeft: "3px solid #94A3B8" }}>
+              <li key={i.id} style={{ padding: "10px 12px", background: "#F8FAFC", borderRadius: 2, borderLeft: "3px solid #8A8894" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600 }}>{i.date ?? "Undated"}</div>
@@ -1534,11 +1534,11 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
   };
 
   const STATUS_OPTIONS: { value: string; label: string; color: string }[] = [
-    { value: "unreviewed", label: "Unreviewed", color: "#94A3B8" },
-    { value: "useful", label: "Useful", color: "#10B981" },
-    { value: "needs_context", label: "Needs context", color: "#FBBF24" },
-    { value: "duplicate", label: "Duplicate", color: "#94A3B8" },
-    { value: "exclude", label: "Exclude", color: "#EF4444" },
+    { value: "unreviewed", label: "Unreviewed", color: "#8A8894" },
+    { value: "useful", label: "Useful", color: "#0F6E56" },
+    { value: "needs_context", label: "Needs context", color: "#8A8894" },
+    { value: "duplicate", label: "Duplicate", color: "#8A8894" },
+    { value: "exclude", label: "Exclude", color: "#8A5A2E" },
     { value: "privileged", label: "Privileged", color: "#8B5CF6" },
     { value: "exhibit_candidate", label: "Exhibit candidate", color: "#2D4A8A" },
   ];
@@ -1741,22 +1741,22 @@ function DepoTab({ depo, loading, onRun }: { depo: DepoResult | null; loading: b
         Surfaces chronology strengths, credibility gaps, and likely cross-examination angles. Internal work product.
       </p>
       {depo && !depo.ok && (
-        <p style={{ marginTop: 12, fontSize: 13, color: "#EF4444" }}>Couldn't generate: {depo.reason}</p>
+        <p style={{ marginTop: 12, fontSize: 13, color: "#8A5A2E" }}>Couldn't generate: {depo.reason}</p>
       )}
       {depo?.ok && depo.prep && (
         <div style={{ marginTop: 18, display: "grid", gap: 18, fontSize: 13 }}>
           <DepoSection title="Chronology strengths" items={depo.prep.chronology_strengths} />
           <DepoSection title="Talking points (narrative spine)" items={depo.prep.talking_points} />
-          <DepoComplex title="Strongest evidence" items={depo.prep.strongest_evidence} keys={["item", "why_it_helps", "tied_to_incident"]} accent="#10B981" />
-          <DepoComplex title="Weakest evidence" items={depo.prep.weakest_evidence} keys={["item", "risk", "recommended_action"]} accent="#EF4444" />
-          <DepoComplex title="Contradictions to reconcile" items={depo.prep.contradictions} keys={["topic", "conflicting_accounts", "how_to_reconcile"]} accent="#F59E0B" />
+          <DepoComplex title="Strongest evidence" items={depo.prep.strongest_evidence} keys={["item", "why_it_helps", "tied_to_incident"]} accent="#0F6E56" />
+          <DepoComplex title="Weakest evidence" items={depo.prep.weakest_evidence} keys={["item", "risk", "recommended_action"]} accent="#8A5A2E" />
+          <DepoComplex title="Contradictions to reconcile" items={depo.prep.contradictions} keys={["topic", "conflicting_accounts", "how_to_reconcile"]} accent="#8A8894" />
           <DepoComplex title="Weak spots" items={depo.prep.weak_spots} keys={["issue", "risk", "suggested_fix"]} />
           <DepoComplex title="Credibility gaps" items={depo.prep.credibility_gaps} keys={["gap", "address_before_testimony"]} />
           <DepoSection title="Direct examination questions" items={depo.prep.prep_questions} ordered />
           <DepoSection title="Cross-examination warnings" items={depo.prep.cross_warnings} />
           {depo.phrasing_consent && depo.prep.court_safe_phrasing?.length ? (
             <div>
-              <div style={{ background: "#FEF3C7", border: "1px solid #F59E0B", borderRadius: 2, padding: "8px 12px", marginBottom: 10, fontSize: 12, color: "#78350F" }}>
+              <div style={{ background: "#FFFFFF", border: "1px solid #8A8894", borderRadius: 2, padding: "8px 12px", marginBottom: 10, fontSize: 12, color: "#78350F" }}>
                 <strong>AI-suggested phrasing for deposition prep — not the survivor's own words.</strong> Do not export or attribute to your client as her statement. This is internal work product only.
               </div>
               <DepoComplex title="Court-safe phrasing (AI-suggested — not client's words)" items={depo.prep.court_safe_phrasing} keys={["instead_of", "say"]} accent="#2D4A8A" />
@@ -1792,7 +1792,7 @@ function DepoComplex({ title, items, keys, accent }: { title: string; items?: Ar
       <h3 style={{ fontSize: 16, marginBottom: 6 }}>{title}</h3>
       <ul style={{ display: "grid", gap: 8, listStyle: "none", padding: 0 }}>
         {items.map((row, i) => (
-          <li key={i} style={{ borderLeft: `3px solid ${accent ?? "#F59E0B"}`, paddingLeft: 12 }}>
+          <li key={i} style={{ borderLeft: `3px solid ${accent ?? "#8A8894"}`, paddingLeft: 12 }}>
             {keys.map((k) => (
               <div key={k}><span className="att-eyebrow">{k.replace(/_/g, " ")}: </span>{row[k]}</div>
             ))}
@@ -2027,7 +2027,7 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
 
   const strengthPct = totalEv === 0 ? 0 : Math.round(((useful * 2 + linked) / (totalEv * 3)) * 100);
   const strengthLabel = strengthPct >= 70 ? "Strong" : strengthPct >= 40 ? "Building" : totalEv === 0 ? "No evidence yet" : "Thin";
-  const strengthColor = strengthPct >= 70 ? "#10B981" : strengthPct >= 40 ? "#F59E0B" : "#EF4444";
+  const strengthColor = strengthPct >= 70 ? "#0F6E56" : strengthPct >= 40 ? "#8A8894" : "#8A5A2E";
 
   const reviewPct = totalEv === 0 ? 0 : Math.round((reviewed / totalEv) * 100);
   const highRisk = data.flags.filter((f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3).length;
@@ -2062,7 +2062,7 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
 
       <div className="att-card">
         <SectionTitle icon={<Shield size={14} />}>Urgent risk flags</SectionTitle>
-        <div style={{ fontSize: 28, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", color: highRisk > 0 ? "#EF4444" : "var(--att-text)" }}>{highRisk}</div>
+        <div style={{ fontSize: 28, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", color: highRisk > 0 ? "#8A5A2E" : "var(--att-text)" }}>{highRisk}</div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
           {highRisk === 0 ? "No high-severity flags active" : `High-severity escalation${highRisk === 1 ? "" : "s"} on record`}
         </div>
@@ -2326,7 +2326,7 @@ function ThreadsTab({ clientId }: { clientId: string }) {
                   </div>
                 </div>
                 {high > 0 && (
-                  <span className="att-tag" style={{ background: "#FEE2E2", color: "#B91C1C", fontSize: 10 }}>
+                  <span className="att-tag" style={{ background: "#FFFFFF", color: "#8A5A2E", fontSize: 10 }}>
                     {high} high
                   </span>
                 )}
@@ -2356,7 +2356,7 @@ function ThreadsTab({ clientId }: { clientId: string }) {
 
 function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[] }) {
   const flags = toFlags(t.flags);
-  const sevColor = (s?: string) => s === "high" ? "#B91C1C" : s === "medium" ? "#B45309" : "#0F2547";
+  const sevColor = (s?: string) => s === "high" ? "#8A5A2E" : s === "medium" ? "#8A5A2E" : "#0F2547";
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div>
@@ -2689,7 +2689,7 @@ function TimeTab({ clientId }: { clientId: string }) {
                   <span style={{ fontSize: 13 }}>{r.description}</span>
                   <div style={{ display: "flex", gap: 6 }}>
                     <button className="att-btn-ghost" onClick={() => startEdit(r)}>Edit</button>
-                    <button className="att-btn-ghost" onClick={() => remove(r.id)} style={{ color: "#B91C1C" }}>Delete</button>
+                    <button className="att-btn-ghost" onClick={() => remove(r.id)} style={{ color: "#8A5A2E" }}>Delete</button>
                   </div>
                 </>
               )}
@@ -2859,7 +2859,7 @@ function CrossReferenceSection({ clientId }: { clientId: string }) {
         the record, not to fact-check the client.
       </p>
       {loading && <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 10 }}>Computing…</p>}
-      {err && <p style={{ fontSize: 13, color: "#B45309", marginTop: 10 }}>Could not compute: {err}</p>}
+      {err && <p style={{ fontSize: 13, color: "#8A5A2E", marginTop: 10 }}>Could not compute: {err}</p>}
       {!loading && !err && clusters && clusters.length === 0 && (
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 10 }}>
           No cross-references yet. Add more incidents or link evidence to build shared anchors.

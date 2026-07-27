@@ -60,7 +60,7 @@ function RequestOrgAccess() {
 
           {submitted ? (
             <div style={{ display: "grid", gap: 16 }}>
-              <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: 20, background: "rgba(189,230,212,0.30)", borderRadius: 2 }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: 20, background: "rgba(127,161,137,0.20)", borderRadius: 2 }}>
                 <Check size={20} style={{ color: "var(--teal-dark)", marginTop: 2 }} />
                 <div>
                   <div style={{ fontWeight: 700, marginBottom: 4 }}>Request opened in your email.</div>
@@ -124,7 +124,7 @@ function RequestOrgAccess() {
         </div>
         <div style={{ marginTop: 20, textAlign: "center", fontSize: 13, color: "var(--muted-foreground)" }}>
           Already partnering with us?{" "}
-          <Link to="/org-feedback" style={{ color: "#3D72B8", fontWeight: 600, textDecoration: "underline" }}>
+          <Link to="/org-feedback" style={{ color: "#4E8C8A", fontWeight: 600, textDecoration: "underline" }}>
             Share feedback about PatternProof
           </Link>
         </div>

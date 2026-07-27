@@ -22,17 +22,17 @@ type ClientRow = Awaited<ReturnType<typeof listMyClients>>["clients"][number];
 type InviteRow = Awaited<ReturnType<typeof listSurvivorInvites>>["invites"][number];
 
 const DENSITY: Record<string, { color: string; label: string }> = {
-  low: { color: "#10B981", label: "Low density" },
-  moderate: { color: "#FBBF24", label: "Moderate density" },
-  elevated: { color: "#F59E0B", label: "Elevated density" },
-  high: { color: "#EF4444", label: "High density" },
+  low: { color: "#0F6E56", label: "Low density" },
+  moderate: { color: "#8A8894", label: "Moderate density" },
+  elevated: { color: "#8A8894", label: "Elevated density" },
+  high: { color: "#8A5A2E", label: "High density" },
 };
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
-  pending: { bg: "#FEF3C7", fg: "#92400E", label: "Pending" },
+  pending: { bg: "#FFFFFF", fg: "#92400E", label: "Pending" },
   accepted: { bg: "#D1FAE5", fg: "#065F46", label: "Accepted" },
   expired: { bg: "#E2E8F0", fg: "#475569", label: "Expired" },
-  revoked: { bg: "#FEE2E2", fg: "#991B1B", label: "Revoked" },
+  revoked: { bg: "#FFFFFF", fg: "#991B1B", label: "Revoked" },
 };
 
 function ClientsIndex() {
@@ -327,7 +327,7 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
       />
 
       {parseErrors.length > 0 && (
-        <div style={{ background: "#FEF3C7", color: "#92400E", padding: 8, borderRadius: 2, fontSize: 12 }}>
+        <div style={{ background: "#FFFFFF", color: "#92400E", padding: 8, borderRadius: 2, fontSize: 12 }}>
           {parseErrors.map((e, i) => <div key={i}>• {e}</div>)}
         </div>
       )}
@@ -348,7 +348,7 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
               {previewRows.map((r, i) => {
                 const outcome = results?.find((o) => o.index === i);
                 return (
-                  <tr key={i} style={{ borderTop: "1px solid var(--att-border)", background: r.invalid ? "#FEF2F2" : undefined }}>
+                  <tr key={i} style={{ borderTop: "1px solid var(--att-border)", background: r.invalid ? "#FFFFFF" : undefined }}>
                     <td style={{ padding: 8, color: "var(--att-text-2)" }}>{i + 1}</td>
                     <td style={{ padding: 8 }}>{r.survivor_email || <em style={{ color: "#991B1B" }}>missing</em>}</td>
                     <td style={{ padding: 8 }}>{r.survivor_name ?? ""}</td>
