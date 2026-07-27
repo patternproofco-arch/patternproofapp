@@ -7,19 +7,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { AppMark } from "@/components/brand/AppMark";
 import { toast } from "sonner";
+import { US_STATES } from "@/lib/state-resources";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
 });
-
-const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
 function Onboarding() {
   const navigate = useNavigate();
   const { update } = useSettings();
   const { setRealPin } = usePinLock();
   const [pin, setPin] = useState("");
-  const [state, setState] = useState("NJ");
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
   const [busy, setBusy] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -35,11 +35,12 @@ function Onboarding() {
     setBusy(true);
     try {
       if (pin.length === 4) await setRealPin(pin);
-      update({ state, onboarded: true });
+      update({ state, city: city.trim(), onboarded: true });
       await supabase.auth.updateUser({
         data: {
           onboarding_complete: true,
           state,
+          city: city.trim(),
           agreed_privacy_at: new Date().toISOString(),
           agreed_terms_at: new Date().toISOString(),
           acknowledged_legal_use_at: new Date().toISOString(),
