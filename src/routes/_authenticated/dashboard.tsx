@@ -323,12 +323,9 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
       style={{
         background: featured
           ? "#FFFFFF"
-          : "rgba(255, 255, 255, 0.2)",
-        backdropFilter: "blur(18px) saturate(140%)",
-        border: featured ? "1.5px solid rgba(47,141,133,0.45)" : "1px solid rgba(255, 255, 255, 0.45)",
-        boxShadow: featured
-          ? "0 14px 38px rgba(47,141,133,0.22), inset 0 1px 0 rgba(255,255,255,0.7)"
-          : `0 8px 26px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255,255,255,0.7)`,
+          : "#FFFFFF",
+        border: featured ? "1px solid var(--pp-accent)" : "1px solid var(--pp-hairline)",
+        boxShadow: "none",
       }}
     >
       <div className={`relative flex h-full ${compact ? "flex-row items-center gap-4" : "flex-col"}`}>
