@@ -648,7 +648,7 @@ function JournalPage() {
         </div>
       </div>
 
-      <div className="collapse-shell mt-6" data-open={listOpen} aria-hidden={!listOpen}>
+      <div className="collapse-shell mt-6" data-open={listOpen} inert={!listOpen}>
         <div className="collapse-inner">
         <section
           className="card-pp"
