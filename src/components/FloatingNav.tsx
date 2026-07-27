@@ -294,7 +294,7 @@ export function FloatingNav() {
               position: "absolute", right: 16, bottom: 92, top: 16,
               width: "min(320px, calc(100vw - 32px))",
               padding: 18, overflowY: "auto",
-              borderRadius: 24,
+              borderRadius: 2,
             }}
           >
             <div className="flex items-center justify-between mb-3">
@@ -372,7 +372,7 @@ function DesktopDock({
         WebkitBackdropFilter: "none",
         backdropFilter: "none",
         border: "1px solid rgba(255,255,255,0.10)",
-        borderRadius: 28,
+        borderRadius: 2,
         padding: "16px 10px",
         width: open ? 224 : 64,
         flexDirection: "column",
@@ -397,7 +397,7 @@ function DesktopDock({
           aria-label="Drag to move menu"
           title="Drag to move"
           style={{
-            cursor: "grab", padding: 4, borderRadius: 8,
+            cursor: "grab", padding: 4, borderRadius: 2,
             background: "transparent", color: "rgba(255,255,255,0.6)",
             touchAction: "none",
           }}
@@ -410,7 +410,7 @@ function DesktopDock({
             onClick={onHide}
             aria-label="Hide navigation"
             title="Hide navigation"
-            style={{ padding: 4, borderRadius: 8, background: "transparent", color: "rgba(255,255,255,0.7)" }}
+            style={{ padding: 4, borderRadius: 2, background: "transparent", color: "rgba(255,255,255,0.7)" }}
           >
             <NavIcon icon={EyeOff} size={16} color="rgba(255,255,255,0.7)" />
           </button>
@@ -420,7 +420,7 @@ function DesktopDock({
           onClick={() => setExpanded((v) => !v)}
           aria-label={open ? "Collapse menu" : "Expand menu"}
           title={open ? "Collapse menu" : "Expand menu"}
-          style={{ padding: 4, borderRadius: 8, background: "transparent", color: "rgba(255,255,255,0.82)" }}
+          style={{ padding: 4, borderRadius: 2, background: "transparent", color: "rgba(255,255,255,0.82)" }}
         >
           <NavIcon icon={open ? PanelLeftClose : PanelLeftOpen} size={open ? 18 : 20} color="rgba(255,255,255,0.82)" />
         </button>
@@ -438,7 +438,7 @@ function DesktopDock({
               alignItems: "center",
               gap: 12,
               padding: "10px 10px",
-              borderRadius: 16,
+              borderRadius: 2,
               background: it.cta
                 ? "rgba(232,160,180,0.18)"
                 : it.pinnedLabel
@@ -475,7 +475,7 @@ function DesktopDock({
         title="More"
         style={{
           display: "flex", alignItems: "center", gap: 12,
-          padding: "10px 10px", borderRadius: 16,
+          padding: "10px 10px", borderRadius: 2,
           background: "transparent",
         }}
       >

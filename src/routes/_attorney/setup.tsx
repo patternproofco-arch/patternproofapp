@@ -206,7 +206,7 @@ function OnboardingPage() {
             alignItems: "flex-start",
             padding: 14,
             background: "#F8FAFC",
-            borderRadius: 8,
+            borderRadius: 2,
             border: "1px solid var(--att-border)",
             cursor: "pointer",
             fontSize: 13,

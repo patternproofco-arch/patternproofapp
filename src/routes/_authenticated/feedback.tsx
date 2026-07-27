@@ -207,7 +207,7 @@ const cardStyle: React.CSSProperties = {
   maxWidth: 640,
   margin: "0 auto",
   background: "#F7F5F0",
-  borderRadius: 20,
+  borderRadius: 2,
   padding: "36px 32px",
   boxShadow: "none",
   border: "1px solid rgba(255,255,255,0.4)",
@@ -239,7 +239,7 @@ const eyebrow: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "12px 14px",
-  borderRadius: 12,
+  borderRadius: 2,
   border: "1px solid rgba(20,19,31,0.25)",
   background: "#F7F5F0",
   color: "#14131F",

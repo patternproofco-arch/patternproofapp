@@ -71,7 +71,7 @@ function OrgFeedbackPage() {
   };
 
   return (
-    <div style={pageWrap}>
+    <div data-persona="org" style={pageWrap}>
       <div style={{ maxWidth: 680, margin: "0 auto" }}>
         <Link to="/" style={backLink}><ArrowLeft size={14} /> Back to PatternProof</Link>
         <div style={cardStyle}>
@@ -178,7 +178,7 @@ const pageWrap: React.CSSProperties = {
 };
 const cardStyle: React.CSSProperties = {
   background: "#FFFFFF",
-  borderRadius: 20,
+  borderRadius: 2,
   padding: "36px 32px",
   borderLeft: "4px solid #7A9B6E",
   boxShadow: "none",
@@ -203,7 +203,7 @@ const eyebrow: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
-  borderRadius: 10,
+  borderRadius: 2,
   border: "1px solid rgba(62,90,51,0.20)",
   background: "#F6F8F1",
   color: "#1F2D1A",

@@ -327,13 +327,13 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
       />
 
       {parseErrors.length > 0 && (
-        <div style={{ background: "#FEF3C7", color: "#92400E", padding: 8, borderRadius: 6, fontSize: 12 }}>
+        <div style={{ background: "#FEF3C7", color: "#92400E", padding: 8, borderRadius: 2, fontSize: 12 }}>
           {parseErrors.map((e, i) => <div key={i}>• {e}</div>)}
         </div>
       )}
 
       {previewRows.length > 0 && (
-        <div style={{ overflowX: "auto", border: "1px solid var(--att-border)", borderRadius: 8 }}>
+        <div style={{ overflowX: "auto", border: "1px solid var(--att-border)", borderRadius: 2 }}>
           <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
             <thead style={{ background: "#F8FAFC" }}>
               <tr>

@@ -84,7 +84,7 @@ function DemoHeader() {
           <h1 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.4rem)", fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>A sample case, end-to-end</h1>
           <p style={{ marginTop: 8, fontSize: 14, color: "#6B6478", maxWidth: 620 }}>This is fictional composite data based on common patterns in coercive-control cases. Click around — nothing here is saved.</p>
         </div>
-        <Link to="/login" style={{ background: "#5B4BA4", color: "white", padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>Start your own case →</Link>
+        <Link to="/login" style={{ background: "#5B4BA4", color: "white", padding: "10px 18px", borderRadius: 2, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>Start your own case →</Link>
       </div>
     </div>
   );
@@ -93,7 +93,7 @@ function DemoHeader() {
 function DemoBanner() {
   return (
     <div style={{ maxWidth: 1080, margin: "16px auto 0", padding: "0 20px" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "rgba(255, 235, 180, 0.45)", border: "1px solid rgba(180, 140, 60, 0.25)", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#5C4520" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "rgba(255, 235, 180, 0.45)", border: "1px solid rgba(180, 140, 60, 0.25)", borderRadius: 2, padding: "10px 14px", fontSize: 13, color: "#5C4520" }}>
         <Info size={16} style={{ flexShrink: 0, marginTop: 1 }} />
         <div><strong>Demo mode.</strong> Buttons like "Save", "Upload", or "Export" won't do anything — this case is read-only sample data. To document a real case, <Link to="/login" style={{ color: "#5B4BA4", fontWeight: 600 }}>create an account</Link>.</div>
       </div>
@@ -111,12 +111,12 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
     { key: "packet", label: "Court Packet", icon: FileText },
   ];
   return (
-    <div style={{ marginTop: 28, display: "flex", gap: 4, overflowX: "auto", background: "white", padding: 6, borderRadius: 12, border: "1px solid rgba(91,75,164,0.12)", boxShadow: "none" }}>
+    <div style={{ marginTop: 28, display: "flex", gap: 4, overflowX: "auto", background: "white", padding: 6, borderRadius: 2, border: "1px solid rgba(91,75,164,0.12)", boxShadow: "none" }}>
       {tabs.map((t) => {
         const Icon = t.icon;
         const active = tab === t.key;
         return (
-          <button key={t.key} onClick={() => setTab(t.key)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer", whiteSpace: "nowrap", background: active ? "#5B4BA4" : "transparent", color: active ? "white" : "#5A5469" }}>
+          <button key={t.key} onClick={() => setTab(t.key)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 2, fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer", whiteSpace: "nowrap", background: active ? "#5B4BA4" : "transparent", color: active ? "white" : "#5A5469" }}>
             <Icon size={14} /> {t.label}
           </button>
         );
@@ -126,7 +126,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
 }
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <div style={{ background: "white", borderRadius: 14, padding: 20, border: "1px solid rgba(91,75,164,0.10)", boxShadow: "none", ...style }}>{children}</div>;
+  return <div style={{ background: "white", borderRadius: 2, padding: 20, border: "1px solid rgba(91,75,164,0.10)", boxShadow: "none", ...style }}>{children}</div>;
 }
 
 function Overview({ onJump }: { onJump: (t: Tab) => void }) {
@@ -145,7 +145,7 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
           {stats.map((s) => {
             const I = s.icon;
             return (
-              <div key={s.label} style={{ background: "rgba(91,75,164,0.05)", borderRadius: 10, padding: 14 }}>
+              <div key={s.label} style={{ background: "rgba(91,75,164,0.05)", borderRadius: 2, padding: 14 }}>
                 <I size={16} style={{ color: "#5B4CD6" }} />
                 <div style={{ fontSize: 22, fontWeight: 700, marginTop: 6 }}>{s.value}</div>
                 <div style={{ fontSize: 12, color: "#6B6478" }}>{s.label}</div>
@@ -163,7 +163,7 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
             ["patterns", "Patterns — what the AI surfaces that one-off incidents miss"],
             ["packet", "Court Packet — the attorney-ready output"],
           ] as Array<[Tab, string]>).map(([key, label]) => (
-            <button key={key} onClick={() => onJump(key)} style={{ textAlign: "left", background: "transparent", border: "1px solid rgba(91,75,164,0.15)", padding: "10px 14px", borderRadius: 8, fontSize: 13, color: "#1F1A2E", cursor: "pointer" }}>{label} →</button>
+            <button key={key} onClick={() => onJump(key)} style={{ textAlign: "left", background: "transparent", border: "1px solid rgba(91,75,164,0.15)", padding: "10px 14px", borderRadius: 2, fontSize: 13, color: "#1F1A2E", cursor: "pointer" }}>{label} →</button>
           ))}
         </div>
       </Card>
@@ -204,7 +204,7 @@ function IncidentRow({ inc }: { inc: Incident }) {
       {evidence.length > 0 && (
         <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px dashed rgba(91,75,164,0.15)", display: "flex", flexWrap: "wrap", gap: 8 }}>
           {evidence.map((e) => (
-            <span key={e.id} style={{ fontSize: 11, color: "#5A5469", background: "rgba(91,75,164,0.06)", padding: "3px 8px", borderRadius: 6, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <span key={e.id} style={{ fontSize: 11, color: "#5A5469", background: "rgba(91,75,164,0.06)", padding: "3px 8px", borderRadius: 2, display: "inline-flex", alignItems: "center", gap: 4 }}>
               <Paperclip size={11} /> {e.title}
             </span>
           ))}
@@ -292,7 +292,7 @@ function EvidenceLibrary() {
           return (
             <Card key={e.id}>
               <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(91,75,164,0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#5B4BA4", flexShrink: 0 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 2, background: "rgba(91,75,164,0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#5B4BA4", flexShrink: 0 }}>
                   <I size={16} />
                 </div>
                 <div style={{ minWidth: 0 }}>
@@ -362,4 +362,4 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 const prose: React.CSSProperties = { margin: 0, fontSize: 14, lineHeight: 1.65, color: "#2A2440" };
 const list: React.CSSProperties = { ...prose, paddingLeft: 20, display: "grid", gap: 6 };
-const demoButton: React.CSSProperties = { background: "white", color: "#5B4BA4", padding: "8px 14px", borderRadius: 8, border: "1px solid rgba(91,75,164,0.25)", fontSize: 13, fontWeight: 600, cursor: "pointer" };
+const demoButton: React.CSSProperties = { background: "white", color: "#5B4BA4", padding: "8px 14px", borderRadius: 2, border: "1px solid rgba(91,75,164,0.25)", fontSize: 13, fontWeight: 600, cursor: "pointer" };

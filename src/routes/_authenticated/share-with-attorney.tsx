@@ -405,7 +405,7 @@ function MessagePanel({ linkId, onClose }: { linkId: string; onClose: () => void
             const mine = m.sender_role === "survivor";
             return (
               <div key={m.id} style={{ display: "flex", justifyContent: mine ? "flex-end" : "flex-start" }}>
-                <div style={{ maxWidth: "80%", padding: "8px 12px", borderRadius: 10, background: mine ? "#A8CCE0" : "var(--input)", color: "#1A1714" }}>
+                <div style={{ maxWidth: "80%", padding: "8px 12px", borderRadius: 2, background: mine ? "#A8CCE0" : "var(--input)", color: "#1A1714" }}>
                   <div className="text-[13px]" style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{m.content}</div>
                   <div className="text-[10px] mt-1" style={{ opacity: 0.7, display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <span>{mine ? "You" : "Attorney"}</span>

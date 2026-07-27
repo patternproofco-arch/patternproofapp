@@ -527,7 +527,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
             {data.flags.slice(0, 8).map((f) => (
-              <li key={f.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, padding: "8px 10px", background: "#FEF2F2", borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "#EF4444" : "#F59E0B"}`, borderRadius: 4 }}>
+              <li key={f.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, padding: "8px 10px", background: "#FEF2F2", borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "#EF4444" : "#F59E0B"}`, borderRadius: 2 }}>
                 <span>{f.details ?? f.flag_type ?? "Escalation flagged"}</span>
                 <span className="att-mono" style={{ color: "var(--att-text-2)" }}>sev {f.severity_tier ?? "?"}</span>
               </li>
@@ -586,7 +586,7 @@ function CaseNotesCard({ clientId }: { clientId: string }) {
         rows={6}
         style={{
           width: "100%", padding: 12, fontSize: 13, lineHeight: 1.6,
-          border: "1px solid #FCD34D", borderRadius: 8, background: "#FFFFFF",
+          border: "1px solid #FCD34D", borderRadius: 2, background: "#FFFFFF",
           fontFamily: "inherit", resize: "vertical",
         }}
       />
@@ -678,7 +678,7 @@ function TeamCard({ clientId }: { clientId: string }) {
       </p>
 
       {open && (
-        <form onSubmit={submit} style={{ display: "grid", gap: 10, padding: 12, background: "#F8FAFC", border: "1px solid var(--att-border)", borderRadius: 8, marginBottom: 12 }}>
+        <form onSubmit={submit} style={{ display: "grid", gap: 10, padding: 12, background: "#F8FAFC", border: "1px solid var(--att-border)", borderRadius: 2, marginBottom: 12 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 160px", gap: 10 }}>
             <label style={{ display: "grid", gap: 4 }}>
               <span className="att-eyebrow">Email *</span>
@@ -713,7 +713,7 @@ function TeamCard({ clientId }: { clientId: string }) {
             const s = STATUS[c.status] ?? STATUS.pending;
             const link = `${typeof window === "undefined" ? "" : window.location.origin}/collaborator-invite/${c.invite_token}`;
             return (
-              <div key={c.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: 10, border: "1px solid var(--att-border)", borderRadius: 8 }}>
+              <div key={c.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: 10, border: "1px solid var(--att-border)", borderRadius: 2 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                     <strong style={{ fontSize: 14 }}>{c.collaborator_name || c.collaborator_email}</strong>
@@ -871,7 +871,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
       ) : (
         <div style={{ display: "grid", gap: 8 }}>
           {activeGrants.map((g) => (
-            <div key={g.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: 10, border: "1px solid var(--att-border)", borderRadius: 8 }}>
+            <div key={g.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: 10, border: "1px solid var(--att-border)", borderRadius: 2 }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <strong style={{ fontSize: 14 }}>{g.full_name || g.email || "Colleague"}</strong>
@@ -910,7 +910,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
 function IntegrityStat({ label, value, tone }: { label: string; value: number | string; tone?: "green" | "amber" | "red" }) {
   const color = tone === "green" ? "#10B981" : tone === "amber" ? "#F59E0B" : tone === "red" ? "#EF4444" : "var(--att-text)";
   return (
-    <div style={{ padding: 10, background: "#fff", border: "1px solid var(--att-border)", borderRadius: 6 }}>
+    <div style={{ padding: 10, background: "#fff", border: "1px solid var(--att-border)", borderRadius: 2 }}>
       <div className="att-eyebrow">{label}</div>
       <div style={{ fontSize: 20, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 2, color }}>{value}</div>
     </div>
@@ -1022,7 +1022,7 @@ function TimelineTab({ data, clientId, notes, onNotes }: { data: CaseData; clien
                 const n = noteMap[i.id];
                 const evCount = data.evidence.filter((e) => e.linked_incident_id === i.id).length;
                 return (
-                  <li key={i.id} style={{ borderLeft: "3px solid var(--att-navy)", padding: "10px 14px", background: "#F8FAFC", borderRadius: 8 }}>
+                  <li key={i.id} style={{ borderLeft: "3px solid var(--att-navy)", padding: "10px 14px", background: "#F8FAFC", borderRadius: 2 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>
@@ -1362,7 +1362,7 @@ function GapsTab({ data }: { data: CaseData }) {
                   {gapsInBucket.map(({ g, i }) => {
                     const sent = sentIdx.has(i);
                     return (
-                      <li key={i} style={{ padding: "12px 14px", background: "#F8FAFC", borderRadius: 6, borderLeft: `3px solid ${sevColor[sev]}` }}>
+                      <li key={i} style={{ padding: "12px 14px", background: "#F8FAFC", borderRadius: 2, borderLeft: `3px solid ${sevColor[sev]}` }}>
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
                           <strong style={{ fontSize: 14 }}>{g.kind}</strong>
                           {sent && <span className="att-tag att-tag-auth" style={{ fontSize: 10 }}>REQUESTED</span>}
@@ -1459,7 +1459,7 @@ function UnlinkedIncidentsSection({ data, clientId }: { data: CaseData; clientId
           {unlinked.slice(0, 40).map((i) => {
             const already = sent.has(i.id);
             return (
-              <li key={i.id} style={{ padding: "10px 12px", background: "#F8FAFC", borderRadius: 6, borderLeft: "3px solid #94A3B8" }}>
+              <li key={i.id} style={{ padding: "10px 12px", background: "#F8FAFC", borderRadius: 2, borderLeft: "3px solid #94A3B8" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600 }}>{i.date ?? "Undated"}</div>
@@ -1634,7 +1634,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
       </div>
 
       {items.length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "#F8FAFC", border: "1px solid var(--att-border)", borderRadius: 6, marginBottom: 14, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "#F8FAFC", border: "1px solid var(--att-border)", borderRadius: 2, marginBottom: 14, flexWrap: "wrap" }}>
           <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>
             <strong>{items.length}</strong> item{items.length === 1 ? "" : "s"} visible · bulk apply:
           </span>
@@ -1671,7 +1671,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
               </div>
               {e.description && <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8 }}>{e.description.slice(0, 120)}</p>}
               {r?.notes && !isEditing && (
-                <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8, padding: 8, background: "#F8FAFC", borderLeft: "2px solid var(--att-navy)", borderRadius: 4 }}>
+                <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8, padding: 8, background: "#F8FAFC", borderLeft: "2px solid var(--att-navy)", borderRadius: 2 }}>
                   <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Attorney note</span>
                   {r.notes}
                 </p>
@@ -1756,13 +1756,13 @@ function DepoTab({ depo, loading, onRun }: { depo: DepoResult | null; loading: b
           <DepoSection title="Cross-examination warnings" items={depo.prep.cross_warnings} />
           {depo.phrasing_consent && depo.prep.court_safe_phrasing?.length ? (
             <div>
-              <div style={{ background: "#FEF3C7", border: "1px solid #F59E0B", borderRadius: 8, padding: "8px 12px", marginBottom: 10, fontSize: 12, color: "#78350F" }}>
+              <div style={{ background: "#FEF3C7", border: "1px solid #F59E0B", borderRadius: 2, padding: "8px 12px", marginBottom: 10, fontSize: 12, color: "#78350F" }}>
                 <strong>AI-suggested phrasing for deposition prep — not the survivor's own words.</strong> Do not export or attribute to your client as her statement. This is internal work product only.
               </div>
               <DepoComplex title="Court-safe phrasing (AI-suggested — not client's words)" items={depo.prep.court_safe_phrasing} keys={["instead_of", "say"]} accent="#2D4A8A" />
             </div>
           ) : !depo.phrasing_consent ? (
-            <div style={{ background: "var(--att-surface-2)", border: "1px dashed var(--att-border)", borderRadius: 8, padding: 12, fontSize: 12, color: "var(--att-text-2)" }}>
+            <div style={{ background: "var(--att-surface-2)", border: "1px dashed var(--att-border)", borderRadius: 2, padding: 12, fontSize: 12, color: "var(--att-text-2)" }}>
               <strong>Court-safe phrasing unavailable.</strong> {depo.phrasing_consent_note}
             </div>
           ) : null}
@@ -1858,7 +1858,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   };
 
   const Item = ({ k, label, note }: { k: keyof typeof include; label: string; note: string }) => (
-    <label style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: 10, borderRadius: 8, background: include[k] ? "#F8FAFC" : "transparent", border: "1px solid var(--att-border)" }}>
+    <label style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: 10, borderRadius: 2, background: include[k] ? "#F8FAFC" : "transparent", border: "1px solid var(--att-border)" }}>
       <input type="checkbox" checked={include[k]} onChange={() => toggle(k)} style={{ marginTop: 3 }} />
       <div>
         <div style={{ fontSize: 14, fontWeight: 500 }}>{label}</div>
@@ -2370,7 +2370,7 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
       </div>
 
       {t.attorney_summary && (
-        <div style={{ padding: 14, background: "#F8FAFC", borderLeft: "3px solid var(--att-navy)", borderRadius: 4 }}>
+        <div style={{ padding: 14, background: "#F8FAFC", borderLeft: "3px solid var(--att-navy)", borderRadius: 2 }}>
           <div className="att-eyebrow" style={{ marginBottom: 6 }}>Attorney summary</div>
           <p style={{ fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap", margin: 0 }}>{t.attorney_summary}</p>
         </div>
@@ -2381,7 +2381,7 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
           <div className="att-eyebrow" style={{ marginBottom: 8 }}>Flagged passages ({flags.length})</div>
           <div style={{ display: "grid", gap: 8 }}>
             {flags.map((f, i) => (
-              <div key={i} style={{ padding: 10, borderLeft: `3px solid ${sevColor(f.severity)}`, background: "#FEF9F4", borderRadius: 4 }}>
+              <div key={i} style={{ padding: 10, borderLeft: `3px solid ${sevColor(f.severity)}`, background: "#FEF9F4", borderRadius: 2 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
                   <span>{f.label || f.type}</span>
                   <span className="att-mono" style={{ color: sevColor(f.severity), textTransform: "uppercase", fontSize: 10 }}>
@@ -2404,7 +2404,7 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
         ) : (
           <div style={{ display: "grid", gap: 6, maxHeight: 500, overflowY: "auto", paddingRight: 6 }}>
             {messages.map((m) => (
-              <div key={m.id} style={{ padding: "8px 10px", background: "#fff", border: "1px solid var(--att-border)", borderRadius: 6 }}>
+              <div key={m.id} style={{ padding: "8px 10px", background: "#fff", border: "1px solid var(--att-border)", borderRadius: 2 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--att-text-2)", marginBottom: 2 }}>
                   <span style={{ fontWeight: 600, color: "var(--att-navy)" }}>{m.sender || "Unknown"}</span>
                   <span className="att-mono">
@@ -2496,7 +2496,7 @@ function MessagesTab({ linkId }: { linkId: string }) {
               <div style={{
                 maxWidth: "78%",
                 padding: "9px 12px",
-                borderRadius: 10,
+                borderRadius: 2,
                 background: mine ? "var(--att-navy)" : "#F1F5F9",
                 color: mine ? "#fff" : "var(--att-text)",
                 border: mine ? "none" : "1px solid var(--att-border)",
@@ -2665,7 +2665,7 @@ function TimeTab({ clientId }: { clientId: string }) {
         {rows?.length === 0 && <div style={{ fontSize: 13, color: "var(--att-text-2)" }}>No time entries yet.</div>}
         <div style={{ display: "grid", gap: 6 }}>
           {rows?.map((r) => (
-            <div key={r.id} style={{ display: "grid", gridTemplateColumns: "110px 90px 90px 1fr auto", gap: 8, padding: "8px 10px", border: "1px solid var(--att-border)", borderRadius: 6, alignItems: "center", background: "#fff" }}>
+            <div key={r.id} style={{ display: "grid", gridTemplateColumns: "110px 90px 90px 1fr auto", gap: 8, padding: "8px 10px", border: "1px solid var(--att-border)", borderRadius: 2, alignItems: "center", background: "#fff" }}>
               {editingId === r.id && editDraft ? (
                 <>
                   <input className="att-input" type="date" value={editDraft.entry_date} onChange={(e) => setEditDraft({ ...editDraft, entry_date: e.target.value })} />
@@ -2814,7 +2814,7 @@ function MissingEvidenceChecklistSection({ clientId }: { clientId: string }) {
           onKeyDown={(e) => { if (e.key === "Enter") onAdd(); }}
           placeholder="Add a checklist item…"
           disabled={busy}
-          style={{ flex: 1, padding: "6px 10px", border: "1px solid var(--att-border)", borderRadius: 6, fontSize: 13 }}
+          style={{ flex: 1, padding: "6px 10px", border: "1px solid var(--att-border)", borderRadius: 2, fontSize: 13 }}
         />
         <button onClick={onAdd} disabled={busy || !newLabel.trim()} className="att-btn" style={{ fontSize: 12 }}>
           Add

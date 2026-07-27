@@ -48,7 +48,7 @@ export function Section({ title, children }: { title: string; children: ReactNod
 
 export function Callout({ children }: { children: ReactNode }) {
   return (
-    <div style={{ background: "rgba(158,216,208,0.18)", border: "1px solid rgba(158,216,208,0.55)", borderRadius: 12, padding: "12px 14px", fontSize: 14, color: "#2A2540", margin: "12px 0" }}>
+    <div style={{ background: "rgba(158,216,208,0.18)", border: "1px solid rgba(158,216,208,0.55)", borderRadius: 2, padding: "12px 14px", fontSize: 14, color: "#2A2540", margin: "12px 0" }}>
       {children}
     </div>
   );

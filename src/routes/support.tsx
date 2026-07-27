@@ -223,14 +223,14 @@ const bodyText = { fontSize: 14, lineHeight: 1.65, color: "#3A3849", margin: "0 
 const safetyNote = {
   background: "rgba(91,76,214,0.07)",
   border: "1px solid rgba(91,76,214,0.22)",
-  borderRadius: 12, padding: "12px 14px", fontSize: 13.5,
+  borderRadius: 2, padding: "12px 14px", fontSize: 13.5,
   lineHeight: 1.6, color: "#14131F", marginBottom: 24,
 } as const;
 
 const card = {
   background: "#FFFFFF",
   border: "1px solid rgba(20,19,31,0.10)",
-  borderRadius: 16, padding: 20,
+  borderRadius: 2, padding: 20,
   clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)",
 } as const;
 
@@ -243,7 +243,7 @@ const input = {
   width: "100%", padding: "10px 12px", fontSize: 15,
   fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
   color: "#14131F", background: "#F7F5F0",
-  border: "1px solid rgba(20,19,31,0.16)", borderRadius: 10,
+  border: "1px solid rgba(20,19,31,0.16)", borderRadius: 2,
 } as const;
 
 const errorText = { fontSize: 13.5, color: "#5B4CD6", margin: "0 0 12px", lineHeight: 1.55 } as const;
@@ -257,7 +257,7 @@ const submitBtn = {
 const emailRow = {
   display: "inline-flex", alignItems: "center", gap: 12,
   background: "#FFFFFF", border: "1px solid rgba(20,19,31,0.10)",
-  borderRadius: 12, padding: "10px 12px",
+  borderRadius: 2, padding: "10px 12px",
 } as const;
 
 const emailText = { fontFamily: "'IBM Plex Mono', monospace", fontSize: 14, color: "#14131F" } as const;

@@ -136,7 +136,7 @@ function BillingPage() {
       <div className="att-card" style={{ marginTop: 16 }}>
         <div className="att-eyebrow">Exports</div>
         <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 14, alignItems: "center", marginTop: 10 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
+          <div style={{ width: 44, height: 44, borderRadius: 2, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
             <Plug size={20} />
           </div>
           <div>
@@ -209,7 +209,7 @@ function ClioPanel() {
       <div className="att-eyebrow">Integrations</div>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
+          <div style={{ width: 44, height: 44, borderRadius: 2, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
             <Plug size={20} />
           </div>
           <div>

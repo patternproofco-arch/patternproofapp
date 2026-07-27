@@ -177,8 +177,8 @@ function CourtPacket() {
           {evidence.filter((e) => e.file_type === "image" && evUrls[e.id]).length > 0 && (
             <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
               {evidence.filter((e) => e.file_type === "image" && evUrls[e.id]).map((e) => (
-                <figure key={e.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 6 }}>
-                  <img src={evUrls[e.id]} alt={e.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 4 }} />
+                <figure key={e.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 2 }}>
+                  <img src={evUrls[e.id]} alt={e.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 2 }} />
                   <figcaption style={{ marginTop: 4, fontSize: 11 }}>{e.title} · {new Date(e.date).toLocaleDateString()}</figcaption>
                 </figure>
               ))}
@@ -214,8 +214,8 @@ function CourtPacket() {
           {legalDocs.filter((d) => d.file_type.startsWith("image/") && legalUrls[d.id]).length > 0 && (
             <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
               {legalDocs.filter((d) => d.file_type.startsWith("image/") && legalUrls[d.id]).map((d) => (
-                <figure key={d.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 6 }}>
-                  <img src={legalUrls[d.id]} alt={d.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 4 }} />
+                <figure key={d.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 2 }}>
+                  <img src={legalUrls[d.id]} alt={d.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 2 }} />
                   <figcaption style={{ marginTop: 4, fontSize: 11 }}>{d.title}</figcaption>
                 </figure>
               ))}
