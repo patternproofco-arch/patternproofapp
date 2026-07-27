@@ -661,17 +661,7 @@ function ymd(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Soft iridescent backdrop — pearl white with teal / lavender / blue-gray blooms. */
+/** Flat paper backdrop — no decorative blooms in the locked design system. */
 function IridescentBackdrop() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0" style={{ background: "#F7F5F0" }} />
-      <div className="absolute -left-32 -top-24 h-[420px] w-[420px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(159,216,210,0.55), transparent 65%)", filter: "blur(20px)" }} />
-      <div className="absolute right-[-120px] top-[10%] h-[480px] w-[480px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(201,185,255,0.45), transparent 65%)", filter: "blur(20px)" }} />
-      <div className="absolute bottom-[-160px] left-1/3 h-[520px] w-[520px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(176,206,236,0.45), transparent 65%)", filter: "blur(20px)" }} />
-    </div>
-  );
+  return <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "#F7F5F0" }} />;
 }

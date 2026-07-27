@@ -54,7 +54,7 @@ type Tab = "overview" | "journal" | "timeline" | "patterns" | "evidence" | "pack
 function DemoPage() {
   const [tab, setTab] = useState<Tab>("overview");
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse 80% 60% at 15% 10%, rgba(196,176,232,0.18), transparent 60%), radial-gradient(ellipse 70% 50% at 90% 90%, rgba(158,216,208,0.18), transparent 60%), #FAFBFD", color: "#1F1A2E", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#F7F5F0", color: "#1F1A2E", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
       <DemoHeader />
       <DemoBanner />
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px 80px" }}>
