@@ -1,17 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="220" height="220">
-  <rect width="220" height="220" fill="#14131F"/>
-  <g transform="translate(29.5,17) scale(0.9)">
-    <g stroke="#F7F5F0" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" fill="none" opacity="0.35">
-      <path d="M90 20 L155 58 L155 132 L90 170 L25 132 L25 58 Z"/>
-      <line x1="90" y1="90" x2="90" y2="170"/>
-      <line x1="90" y1="90" x2="155" y2="58"/>
-      <line x1="90" y1="90" x2="25" y2="58"/>
-    </g>
-    <g stroke="#F7F5F0" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" fill="none">
-      <path d="M90 53.75 L125.75 74.65 L125.75 115.35 L90 136.25 L54.25 115.35 L54.25 74.65 Z"/>
-      <line x1="90" y1="92.25" x2="90" y2="136.25"/>
-      <line x1="90" y1="92.25" x2="125.75" y2="74.65"/>
-      <line x1="90" y1="92.25" x2="54.25" y2="74.65"/>
-    </g>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120"><rect width="120" height="120" fill="#F7F5F0"/><g transform="translate(31,28) scale(1)"><path d="M29 2 L55 17 L29 32 L3 17 Z" fill="#4E8C8A"/><path d="M29 2 L55 17 L55 47 L29 62 L3 47 L3 17 Z" fill="none" stroke="#14131F" stroke-width="3" stroke-linejoin="round"/><path d="M29 32 L29 62 M29 32 L3 17 M29 32 L55 17" stroke="#14131F" stroke-width="3" fill="none"/></g></svg>

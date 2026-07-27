@@ -35,7 +35,7 @@ export function CognitiveClose({ eyebrow = "Your next step", title, body, cta, t
       style={{
         background: "var(--linen, #F2E8D8)",
         border: "1px solid rgba(42,37,32,0.06)",
-        boxShadow: "0 18px 40px -24px rgba(42,37,32,0.18)",
+        boxShadow: "none",
       }}
     >
       <span className="label-eyebrow" style={{ color: "var(--primary)" }}>{eyebrow}</span>

@@ -63,7 +63,7 @@ function AgentLayout() {
       style={{
         background: "#EAF7EF",
         border: "1px solid #D8F0E0",
-        boxShadow: "0 1px 0 rgba(79,175,167,0.06), 0 8px 28px -18px rgba(31,41,51,0.18)",
+        boxShadow: "none",
       }}
     >
       <div className="flex items-center gap-2 px-1">
@@ -73,7 +73,7 @@ function AgentLayout() {
       <button
         onClick={handleNew}
         className="w-full rounded-xl px-3 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:brightness-105"
-        style={{ background: "#4FAFA7", color: "#FFFFFF", boxShadow: "0 4px 14px -6px rgba(79,175,167,0.55)" }}
+        style={{ background: "#4E8C8A", color: "#FFFFFF", boxShadow: "none" }}
       >
         <Plus size={16} /> New case chat
       </button>

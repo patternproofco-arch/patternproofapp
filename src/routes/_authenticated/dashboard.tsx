@@ -62,7 +62,7 @@ function Dashboard() {
       blurb: "Add screenshots, texts, documents, photos, or recordings.",
       status: "Start here",
       icon: <UploadDocIcon size={26} strokeWidth={1.9} />,
-      tint: "rgba(120, 200, 220, 0.45)", iconBg: "#2F8D85", iconFg: "#FFFFFF",
+      tint: "rgba(120, 200, 220, 0.45)", iconBg: "#4E8C8A", iconFg: "#FFFFFF",
       ariaLabel: "Upload evidence — start here",
       featured: true,
     },
@@ -72,7 +72,7 @@ function Dashboard() {
       blurb: "See incidents organized by date and pattern.",
       status: "Review",
       icon: <TimelineDotsIcon size={26} strokeWidth={1.9} />,
-      tint: "rgba(170, 160, 230, 0.45)", iconBg: "#7C5CC4", iconFg: "#FFFFFF",
+      tint: "rgba(170, 160, 230, 0.45)", iconBg: "#5B4CD6", iconFg: "#FFFFFF",
       ariaLabel: "Open timeline",
     },
     "/patterns": {
@@ -90,7 +90,7 @@ function Dashboard() {
       blurb: "Ask the agent to organize, explain, or summarize your evidence.",
       status: "Ask for help",
       icon: <PpTriangleIcon size={26} strokeWidth={1.9} color="#FFFFFF" />,
-      tint: "rgba(180, 220, 240, 0.65)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
+      tint: "rgba(180, 220, 240, 0.65)", iconBg: "#5B4CD6", iconFg: "#FFFFFF",
       ariaLabel: "Open the PatternProof agent",
       luminous: true,
     },
@@ -100,7 +100,7 @@ function Dashboard() {
       blurb: "Generate an attorney-ready court overview.",
       status: "For review",
       icon: <CourtSummaryIcon size={26} strokeWidth={1.9} />,
-      tint: "rgba(160, 180, 230, 0.45)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
+      tint: "rgba(160, 180, 230, 0.45)", iconBg: "#5B4CD6", iconFg: "#FFFFFF",
       ariaLabel: "Build court summary",
     },
     "/settings": {
@@ -109,7 +109,7 @@ function Dashboard() {
       blurb: "Manage PIN, privacy, and account safety.",
       status: "Private & secure",
       icon: <ShieldCheck size={26} strokeWidth={2} />,
-      tint: "rgba(170, 220, 200, 0.45)", iconBg: "#2F8D85", iconFg: "#FFFFFF",
+      tint: "rgba(170, 220, 200, 0.45)", iconBg: "#4E8C8A", iconFg: "#FFFFFF",
       ariaLabel: "Open safety and settings",
     },
     "/journal": {
@@ -118,7 +118,7 @@ function Dashboard() {
       blurb: "Log or edit incidents in your own words.",
       status: "Your words",
       icon: <TimelineDotsIcon size={26} strokeWidth={1.9} />,
-      tint: "rgba(170, 160, 230, 0.45)", iconBg: "#7C5CC4", iconFg: "#FFFFFF",
+      tint: "rgba(170, 160, 230, 0.45)", iconBg: "#5B4CD6", iconFg: "#FFFFFF",
       ariaLabel: "Open journal",
     },
   };
@@ -150,7 +150,7 @@ function Dashboard() {
         blurb: `${stats.uncertain_date_count} ${stats.uncertain_date_count === 1 ? "incident has" : "incidents have"} approximate or missing dates you can refine when you're ready.`,
         status: "When you're ready",
         icon: <CalendarClock size={26} strokeWidth={1.9} />,
-        tint: "rgba(180, 200, 230, 0.5)", iconBg: "#5B7CC4", iconFg: "#FFFFFF",
+        tint: "rgba(180, 200, 230, 0.5)", iconBg: "#5B4CD6", iconFg: "#FFFFFF",
         ariaLabel: "Resolve uncertain dates",
       });
     }
@@ -225,7 +225,7 @@ function Dashboard() {
               to="/evidence"
               aria-label="Upload evidence"
               className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-[15px] font-semibold text-white shadow-[0_10px_30px_rgba(47,141,133,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(47,141,133,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={{ background: "linear-gradient(135deg, #2F8D85 0%, #5B7CC4 100%)" }}
+              style={{ background: "#5B4CD6" }}
             >
               <UploadCloud size={18} /> Upload Evidence
             </Link>
@@ -233,7 +233,7 @@ function Dashboard() {
               <Link
                 to="/agent"
                 aria-label="Ask PatternProof Agent"
-                className="inline-flex items-center gap-2 rounded-full border border-[#5B7CC4]/40 bg-white/60 px-6 py-3 text-[15px] font-semibold text-[#5B7CC4] backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4] focus-visible:ring-offset-2"
+                className="inline-flex items-center gap-2 rounded-full border border-[#5B4CD6]/40 bg-white/60 px-6 py-3 text-[15px] font-semibold text-[#5B4CD6] transition-all hover:-translate-y-0.5 hover:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6] focus-visible:ring-offset-2"
               >
                 <Sparkles size={16} /> Ask PatternProof Agent
               </Link>
@@ -246,7 +246,7 @@ function Dashboard() {
             className="mb-6 rounded-2xl px-5 py-4 text-[13px]"
             style={{
               background: "rgba(255,255,255,0.35)",
-              backdropFilter: "blur(12px) saturate(140%)",
+              backdropFilter: "none",
               border: "1px solid rgba(255,255,255,0.45)",
               color: "#2A1A10",
             }}
@@ -285,7 +285,7 @@ function Dashboard() {
           to="/evidence"
           aria-label="Upload evidence"
           className="flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-[15px] font-semibold text-white shadow-[0_14px_36px_rgba(47,141,133,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          style={{ background: "linear-gradient(135deg, #2F8D85 0%, #5B7CC4 100%)" }}
+          style={{ background: "#5B4CD6" }}
         >
           <UploadCloud size={18} /> Upload Evidence
         </Link>
@@ -319,16 +319,13 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
     <Link
       to={card.to}
       aria-label={card.ariaLabel}
-      className={`group relative block h-full ${compact ? "min-h-0" : "min-h-[200px]"} rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4] focus-visible:ring-offset-2`}
+      className={`group relative block h-full ${compact ? "min-h-0" : "min-h-[200px]"} rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6] focus-visible:ring-offset-2`}
       style={{
         background: featured
-          ? "linear-gradient(135deg, rgba(47,141,133,0.22), rgba(91,124,196,0.18))"
-          : "rgba(255, 255, 255, 0.2)",
-        backdropFilter: "blur(18px) saturate(140%)",
-        border: featured ? "1.5px solid rgba(47,141,133,0.45)" : "1px solid rgba(255, 255, 255, 0.45)",
-        boxShadow: featured
-          ? "0 14px 38px rgba(47,141,133,0.22), inset 0 1px 0 rgba(255,255,255,0.7)"
-          : `0 8px 26px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255,255,255,0.7)`,
+          ? "#FFFFFF"
+          : "#FFFFFF",
+        border: featured ? "1px solid var(--pp-accent)" : "1px solid var(--pp-hairline)",
+        boxShadow: "none",
       }}
     >
       <div className={`relative flex h-full ${compact ? "flex-row items-center gap-4" : "flex-col"}`}>
@@ -344,8 +341,8 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
             <span
               className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
               style={{
-                background: featured ? "#2F8D85" : "rgba(255,255,255,0.75)",
-                color: featured ? "#FFFFFF" : "#2F8D85",
+                background: featured ? "#4E8C8A" : "rgba(255,255,255,0.75)",
+                color: featured ? "#FFFFFF" : "#4E8C8A",
                 border: featured ? "none" : "1px solid rgba(47,141,133,0.3)",
               }}
             >
@@ -368,7 +365,7 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
           {!compact && (
             <span
               className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold transition-transform group-hover:translate-x-0.5"
-              style={{ color: featured ? "#2F8D85" : "var(--teal-dark)" }}
+              style={{ color: featured ? "#4E8C8A" : "var(--teal-dark)" }}
             >
               {featured ? "Upload now" : "Open"} <ArrowRight size={14} />
             </span>
@@ -422,17 +419,17 @@ function CourtCalendarCard() {
       className="relative h-full rounded-3xl p-6"
       style={{
         background: "rgba(255,255,255,0.2)",
-        backdropFilter: "blur(18px) saturate(140%)",
+        backdropFilter: "none",
         border: "1px solid rgba(255,255,255,0.45)",
-        boxShadow: "0 8px 26px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.7)",
+        boxShadow: "none",
       }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl shadow-[0_6px_18px_rgba(15,23,42,0.18)]"
-          style={{ background: "#5B7CC4", color: "#FFFFFF" }} aria-hidden>
+          style={{ background: "#5B4CD6", color: "#FFFFFF" }} aria-hidden>
           <CalendarGridIcon size={26} strokeWidth={1.9} color="#FFFFFF" />
         </div>
-        <span className="rounded-full border border-[#5B7CC4]/30 bg-white/75 px-2.5 py-1 text-[11px] font-semibold" style={{ color: "#5B7CC4" }}>
+        <span className="rounded-full border border-[#5B4CD6]/30 bg-white/75 px-2.5 py-1 text-[11px] font-semibold" style={{ color: "#5B4CD6" }}>
           Upcoming dates
         </span>
       </div>
@@ -453,7 +450,7 @@ function CourtCalendarCard() {
             type="button"
             aria-label="Previous month"
             onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
-            className="grid h-7 w-7 place-items-center rounded-full hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4]"
+            className="grid h-7 w-7 place-items-center rounded-full hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6]"
           >
             <ChevronLeft size={14} />
           </button>
@@ -462,7 +459,7 @@ function CourtCalendarCard() {
             type="button"
             aria-label="Next month"
             onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
-            className="grid h-7 w-7 place-items-center rounded-full hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4]"
+            className="grid h-7 w-7 place-items-center rounded-full hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6]"
           >
             <ChevronRight size={14} />
           </button>
@@ -490,7 +487,7 @@ function CourtCalendarCard() {
               >
                 {d.getDate()}
                 {has && (
-                  <span aria-hidden className="absolute bottom-1 h-1 w-1 rounded-full" style={{ background: "#5B7CC4" }} />
+                  <span aria-hidden className="absolute bottom-1 h-1 w-1 rounded-full" style={{ background: "#5B4CD6" }} />
                 )}
               </div>
             );
@@ -508,7 +505,7 @@ function CourtCalendarCard() {
           <ul className="space-y-2">
             {upcoming.map((d) => (
               <li key={d.id} className="flex items-start gap-2 text-[13px]">
-                <span className="mt-1 inline-block h-2 w-2 rounded-full shrink-0" style={{ background: "#5B7CC4" }} />
+                <span className="mt-1 inline-block h-2 w-2 rounded-full shrink-0" style={{ background: "#5B4CD6" }} />
                 <div className="min-w-0">
                   <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
                     {new Date(d.hearing_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
@@ -528,8 +525,8 @@ function CourtCalendarCard() {
         <DialogTrigger asChild>
           <button
             type="button"
-            className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-[#5B7CC4]/40 bg-white/70 px-4 py-2 text-[13px] font-semibold backdrop-blur hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4]"
-            style={{ color: "#5B7CC4" }}
+            className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-[#5B4CD6]/40 bg-white/70 px-4 py-2 text-[13px] font-semibold hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6]"
+            style={{ color: "#5B4CD6" }}
           >
             <Plus size={14} /> Add court date
           </button>
@@ -636,7 +633,7 @@ function AddCourtDateForm({ onSaved }: { onSaved: () => void }) {
           type="submit"
           disabled={saving}
           className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-semibold text-white disabled:opacity-60"
-          style={{ background: "linear-gradient(135deg, #2F8D85 0%, #5B7CC4 100%)" }}
+          style={{ background: "#5B4CD6" }}
         >
           {saving ? "Saving…" : "Save date"}
         </button>
@@ -661,17 +658,7 @@ function ymd(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Soft iridescent backdrop — pearl white with teal / lavender / blue-gray blooms. */
+/** Flat paper backdrop — no decorative blooms in the locked design system. */
 function IridescentBackdrop() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, #F6F8FF 0%, #EEF4F5 100%)" }} />
-      <div className="absolute -left-32 -top-24 h-[420px] w-[420px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(159,216,210,0.55), transparent 65%)", filter: "blur(20px)" }} />
-      <div className="absolute right-[-120px] top-[10%] h-[480px] w-[480px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(201,185,255,0.45), transparent 65%)", filter: "blur(20px)" }} />
-      <div className="absolute bottom-[-160px] left-1/3 h-[520px] w-[520px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(176,206,236,0.45), transparent 65%)", filter: "blur(20px)" }} />
-    </div>
-  );
+  return <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "#F7F5F0" }} />;
 }

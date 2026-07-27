@@ -1300,7 +1300,7 @@ function GapsTab({ data }: { data: CaseData }) {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <div className="att-card" style={{ background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
+      <div className="att-card" style={{ background: "#FFFFFF", borderColor: "rgba(20,19,31,0.14)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div className="att-eyebrow">Documentation completeness</div>
@@ -1591,7 +1591,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div>
-      <div className="att-card" style={{ marginBottom: 14, background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
+      <div className="att-card" style={{ marginBottom: 14, background: "#FFFFFF", borderColor: "rgba(20,19,31,0.14)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
           <ShieldCheck size={16} style={{ color: "var(--att-green)" }} />
           <SectionTitle>Evidence integrity record</SectionTitle>
@@ -2080,7 +2080,7 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
         </ul>
       </div>
 
-      <div className="att-card" style={{ background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
+      <div className="att-card" style={{ background: "#FFFFFF", borderColor: "rgba(20,19,31,0.14)" }}>
         <SectionTitle icon={<Briefcase size={14} />}>Case management import</SectionTitle>
         <p style={{ fontSize: 11.5, color: "var(--att-text-2)", lineHeight: 1.5, margin: 0 }}>
           The Export tab generates a ZIP of CSVs plus every evidence file, ready to import into
@@ -2199,7 +2199,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <div className="att-card" style={{ background: "linear-gradient(135deg,#0F2547,#1E3A6B)", color: "#fff", borderColor: "transparent" }}>
+      <div className="att-card" style={{ background: "#152038", color: "#fff", borderColor: "transparent" }}>
         <div style={{ fontSize: 10, letterSpacing: 1.4, opacity: 0.75 }}>ATTORNEY INTAKE SUMMARY</div>
         <h2 style={{ fontSize: 28, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4, color: "#fff" }}>Case {caseId}</h2>
         <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>

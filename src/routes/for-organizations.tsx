@@ -8,7 +8,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 const INK = "#14131F";
 const PAPER = "#F7F5F0";
-const SAGE = "#2E4A38";
+const SAGE = "#7FA189";
+const SAGE_DEEP = "#2E4A38";
 const MUTED = "#6B6A78";
 const RULE = "rgba(20,19,31,0.14)";
 
@@ -53,7 +54,7 @@ function ForOrganizations() {
         <Link
           to="/request-org-access"
           style={{
-            display: "inline-block", marginTop: 34, background: SAGE, color: "#F1F6F2",
+            display: "inline-block", marginTop: 34, background: SAGE, color: "#14131F",
             padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
             textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
           }}
@@ -116,7 +117,7 @@ function ForOrganizations() {
           <Link
             to="/request-org-access"
             style={{
-              display: "inline-block", background: SAGE, color: "#F1F6F2",
+              display: "inline-block", background: SAGE, color: "#14131F",
               padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
               textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
             }}
@@ -208,7 +209,7 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
           <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: MUTED }}>{before}</div>
         </div>
         <div style={{ borderLeft: `3px solid ${SAGE}`, paddingLeft: 14 }}>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: SAGE, textTransform: "uppercase", marginBottom: 4 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: SAGE_DEEP, textTransform: "uppercase", marginBottom: 4 }}>
             After
           </div>
           <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: INK }}>{after}</div>

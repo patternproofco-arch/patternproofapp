@@ -263,7 +263,7 @@ function CourtDatesPage() {
                 >
                   <span className="text-[12px]">{d.getDate()}</span>
                   {has && (
-                    <span className="mt-auto truncate text-[10px] font-semibold" style={{ color: "#5B7CC4" }}>
+                    <span className="mt-auto truncate text-[10px] font-semibold" style={{ color: "#5B4CD6" }}>
                       {has[0].hearing_type}{has.length > 1 ? ` +${has.length - 1}` : ""}
                     </span>
                   )}
@@ -393,7 +393,7 @@ function DateRow({
   syncing: boolean;
 }) {
   return (
-    <li className="rounded-xl bg-white/40 p-3" style={{ borderLeft: "3px solid #5B7CC4" }}>
+    <li className="rounded-xl bg-white/40 p-3" style={{ borderLeft: "3px solid #5B4CD6" }}>
       <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
         {new Date(r.hearing_at).toLocaleString(undefined, { hour: "numeric", minute: "2-digit" })}
       </div>

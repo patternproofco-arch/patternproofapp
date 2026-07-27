@@ -138,7 +138,7 @@ function CourtCard({ icon: Icon, title, burden, purpose, whatMatters, yourEdge }
   return (
     <div
       className="flex flex-col rounded-2xl border p-6"
-      style={{ background: "var(--card)", borderColor: "var(--border)", boxShadow: "0 6px 18px -12px rgba(26,20,14,0.25)", borderLeft: `3px solid ${ROSE}` }}
+      style={{ background: "var(--card)", borderColor: "var(--border)", boxShadow: "none", borderLeft: `3px solid ${ROSE}` }}
     >
       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: `${BROWN}12`, color: BROWN }}>
         <Icon size={20} />

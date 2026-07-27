@@ -200,7 +200,7 @@ const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "40px 20px 80px",
   background:
-    "radial-gradient(ellipse 70% 55% at 15% 0%, rgba(180,220,220,0.35), transparent 60%), radial-gradient(ellipse 60% 50% at 85% 100%, rgba(220,180,220,0.30), transparent 60%), linear-gradient(180deg, #F5EFE6 0%, #EBDFCE 100%)",
+    "#F7F5F0",
 };
 
 const cardStyle: React.CSSProperties = {
@@ -209,7 +209,7 @@ const cardStyle: React.CSSProperties = {
   background: "#F7F5F0",
   borderRadius: 20,
   padding: "36px 32px",
-  boxShadow: "0 20px 60px -30px rgba(20,19,31,0.35)",
+  boxShadow: "none",
   border: "1px solid rgba(255,255,255,0.4)",
 };
 
@@ -250,21 +250,21 @@ const inputStyle: React.CSSProperties = {
 const ctaBtn: React.CSSProperties = {
   padding: "14px 28px",
   borderRadius: 999,
-  background: "#C5674A",
+  background: "#5B4CD6",
   color: "#FFFFFF",
   fontWeight: 700,
   fontSize: 15,
   border: "none",
   cursor: "pointer",
-  boxShadow: "0 8px 24px -12px rgba(231,123,86,0.6)",
+  boxShadow: "none",
 };
 
 function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
     borderRadius: 999,
-    border: active ? "1px solid #C5674A" : "1px solid rgba(20,19,31,0.25)",
-    background: active ? "#C5674A" : "#F7F5F0",
+    border: active ? "1px solid #5B4CD6" : "1px solid rgba(20,19,31,0.25)",
+    background: active ? "#5B4CD6" : "#F7F5F0",
     color: active ? "#FFFFFF" : "#14131F",
     fontWeight: 600,
     fontSize: 14,

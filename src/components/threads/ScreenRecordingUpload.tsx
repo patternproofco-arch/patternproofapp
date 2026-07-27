@@ -70,7 +70,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
     <div style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(197,103,74,0.25)" }}>
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="label-eyebrow" style={{ color: "#C5674A" }}>Tier 3 · Fallback</div>
+          <div className="label-eyebrow" style={{ color: "#8A5A2E" }}>Tier 3 · Fallback</div>
           <h3 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#14131F", marginTop: 4 }}>Upload a screen recording</h3>
         </div>
         <button type="button" onClick={onCancel} className="text-sm underline" style={{ color: "rgba(20,19,31,0.55)" }}>Cancel</button>
@@ -78,9 +78,9 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
 
       <div style={{ display: "flex", gap: 12, padding: 14, borderRadius: 0,
         background: "rgba(197,103,74,0.08)", border: "1px solid rgba(197,103,74,0.2)", marginBottom: 14 }}>
-        <AlertTriangle size={20} color="#C5674A" style={{ flexShrink: 0, marginTop: 2 }} />
+        <AlertTriangle size={20} color="#8A5A2E" style={{ flexShrink: 0, marginTop: 2 }} />
         <div style={{ fontSize: 13.5, color: "#3A3849", lineHeight: 1.55 }}>
-          <div style={{ fontWeight: 700, marginBottom: 4, color: "#C5674A" }}>Before you record</div>
+          <div style={{ fontWeight: 700, marginBottom: 4, color: "#8A5A2E" }}>Before you record</div>
           Screen recording means more time looking at the conversation. If you can, the <strong>screenshots</strong> option is faster and gentler.
           Only use this when nothing else works — for example, when there are hundreds of messages to scroll through.
           Your video file is what counts as evidence. The AI transcript we generate from it is only a searchable index, labeled <em>AI-generated — unverified</em>.

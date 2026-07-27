@@ -120,9 +120,9 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
     <div
       className="h-[calc(100vh-2rem)] rounded-2xl flex flex-col overflow-hidden"
       style={{
-        background: "linear-gradient(180deg, #FFFFFF 0%, #FBFEFC 60%, #F4FBF7 100%)",
+        background: "#FFFFFF",
         border: "1px solid #EAF7EF",
-        boxShadow: "0 8px 30px -22px rgba(31,41,51,0.18)",
+        boxShadow: "none",
       }}
     >
       {/* Header */}
@@ -146,18 +146,18 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               <div
                 className="rounded-2xl p-5 sm:p-6 space-y-3"
                 style={{
-                  background: "linear-gradient(135deg, #EAF7EF 0%, #F1ECFF 100%)",
+                  background: "#FFFFFF",
                   border: "1px solid #D8F0E0",
                 }}
               >
                 <div className="flex items-center gap-2">
                   <div
                     className="rounded-full p-1.5"
-                    style={{ background: "#FFFFFF", color: "#4FAFA7", border: "1px solid #D8F0E0" }}
+                    style={{ background: "#FFFFFF", color: "#4E8C8A", border: "1px solid #D8F0E0" }}
                   >
                     <Sparkles size={14} />
                   </div>
-                  <div className="text-[12px] font-semibold tracking-wide" style={{ color: "#4FAFA7" }}>
+                  <div className="text-[12px] font-semibold tracking-wide" style={{ color: "#4E8C8A" }}>
                     WELCOME
                   </div>
                 </div>
@@ -184,7 +184,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                   <div
                     className="max-w-[82%] rounded-2xl px-4 py-2.5 text-[15px] whitespace-pre-wrap"
                     style={{
-                      background: "linear-gradient(135deg, #D8F0E0 0%, #E4DDFF 100%)",
+                      background: "transparent",
                       color: "#1F2933",
                       border: "1px solid #D8F0E0",
                     }}
@@ -210,7 +210,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
 
           {status === "submitted" && (
             <div className="text-sm italic flex items-center gap-2" style={{ color: "#667085" }}>
-              <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#4FAFA7" }} />
+              <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#4E8C8A" }} />
               Thinking…
             </div>
           )}
@@ -235,7 +235,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               style={{
                 background: "#FFFFFF",
                 border: "1px solid #D8F0E0",
-                boxShadow: "0 1px 0 rgba(79,175,167,0.06), 0 8px 24px -16px rgba(79,175,167,0.25)",
+                boxShadow: "none",
               }}
             >
               <button
@@ -277,9 +277,9 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                 disabled={busy || !input.trim()}
                 className="rounded-full p-2.5 transition-all disabled:opacity-40"
                 style={{
-                  background: "linear-gradient(135deg, #4FAFA7 0%, #C9B8FF 140%)",
+                  background: "#5B4CD6",
                   color: "#FFFFFF",
-                  boxShadow: "0 4px 14px -4px rgba(79,175,167,0.45)",
+                  boxShadow: "none",
                 }}
                 aria-label="Send"
               >

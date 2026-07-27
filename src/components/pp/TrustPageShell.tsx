@@ -8,7 +8,7 @@ export function TrustPage({ title, subtitle, children }: { title: string; subtit
       style={{
         minHeight: "100vh",
         background:
-          "radial-gradient(ellipse 80% 60% at 15% 10%, rgba(196,176,232,0.18), transparent 60%), radial-gradient(ellipse 70% 50% at 90% 90%, rgba(158,216,208,0.18), transparent 60%), #FAFBFD",
+          "#F7F5F0",
         color: "#1F1A2E",
         fontFamily: "Inter, system-ui, -apple-system, sans-serif",
         padding: "32px 20px 80px",

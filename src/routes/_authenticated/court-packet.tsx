@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { typeLabel } from "@/lib/abuse-types";
 import { useSubscription } from "@/hooks/useSubscription";
+import { AppMark } from "@/components/brand/AppMark";
 
 export const Route = createFileRoute("/_authenticated/court-packet")({
   component: CourtPacket,
@@ -119,12 +120,10 @@ function CourtPacket() {
         </div>
       </div>
 
-      <div id="packet" style={{ background: "#fff", color: "#000", padding: "32px 36px", borderRadius: 12, fontFamily: "system-ui, sans-serif", fontSize: 14, lineHeight: 1.55 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderBottom: "2px solid #C5674A", paddingBottom: 10 }}>
-          <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 22, fontWeight: 700 }}>
-            PatternProof
-          </div>
-          <div style={{ fontSize: 12, color: "#444" }}>Prepared {today}</div>
+      <div id="packet" style={{ background: "#fff", color: "#14131F", padding: "32px 36px", border: "1px solid rgba(20,19,31,0.14)", borderRadius: 2, fontFamily: "'IBM Plex Sans', system-ui, sans-serif", fontSize: 14, lineHeight: 1.55 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(20,19,31,0.14)", paddingBottom: 14 }}>
+          <AppMark size={40} withWordmark />
+          <div style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#8A8894" }}>Prepared {today}</div>
         </div>
 
         <Section title="Case Overview">
@@ -146,7 +145,7 @@ function CourtPacket() {
               </thead>
               <tbody>
                 {incidents.map((i, idx) => (
-                  <tr key={i.id} style={{ background: idx % 2 ? "#F5E6DF" : "#fff" }}>
+                  <tr key={i.id} style={{ background: idx % 2 ? "#FAFAF8" : "#fff" }}>
                     <td style={td}>{new Date(i.date).toLocaleDateString()}</td>
                     <td style={td}>{i.abuse_types.map(typeLabel).join(", ")}</td>
                     <td style={td}>{i.description}</td>

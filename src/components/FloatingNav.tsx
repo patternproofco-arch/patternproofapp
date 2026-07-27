@@ -131,8 +131,8 @@ export function FloatingNav() {
           border: "1px solid rgba(255,255,255,0.15)",
           color: "#FAF7F2",
           display: "grid", placeItems: "center",
-          backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-          boxShadow: "0 8px 24px rgba(26,23,20,0.30)",
+          backdropFilter: "none", WebkitBackdropFilter: "none",
+          boxShadow: "none",
         }}
       >
         <NavIcon icon={Eye} size={18} color="#FAF7F2" />
@@ -168,8 +168,8 @@ export function FloatingNav() {
             width: "fit-content",
             margin: "0 auto 8px",
             fontWeight: 700,
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
+            backdropFilter: "none",
+            WebkitBackdropFilter: "none",
           }}
         >
           🔒 ENCRYPTED IN TRANSIT & AT REST
@@ -179,15 +179,15 @@ export function FloatingNav() {
           className="nav-island"
           style={{
             background: "rgba(26,23,20,0.85)",
-            WebkitBackdropFilter: "blur(24px)",
-            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "none",
+            backdropFilter: "none",
             border: "1px solid rgba(255,255,255,0.10)",
             borderRadius: 100,
             padding: "10px 16px",
             display: "flex",
             alignItems: "center",
             gap: 6,
-            boxShadow: "0 8px 32px rgba(26,23,20,0.25), 0 2px 8px rgba(26,23,20,0.15)",
+            boxShadow: "none",
             transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)",
           }}
         >
@@ -369,8 +369,8 @@ function DesktopDock({
         zIndex: 100,
         opacity: dim ? 0.7 : 1,
         background: "rgba(26,23,20,0.85)",
-        WebkitBackdropFilter: "blur(24px)",
-        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "none",
+        backdropFilter: "none",
         border: "1px solid rgba(255,255,255,0.10)",
         borderRadius: 28,
         padding: "16px 10px",
@@ -380,7 +380,7 @@ function DesktopDock({
         gap: 6,
         overflow: "hidden",
         transition: "width 0.25s ease, opacity 0.25s ease",
-        boxShadow: "0 12px 36px rgba(26,23,20,0.30)",
+        boxShadow: "none",
       }}
     >
       <div

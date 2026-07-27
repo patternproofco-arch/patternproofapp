@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Link } from "@tanstack/react-router";
 import { BrandLockup } from "@/components/brand/BrandLockup";
+import { MicroMark } from "@/components/brand/MicroMark";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -49,7 +50,8 @@ function Index() {
 
   if (loading || user) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <MicroMark size={34} />
         <div className="label-eyebrow">Preparing your space…</div>
       </div>
     );
@@ -206,6 +208,9 @@ function Index() {
           lineHeight: 1.7,
         }}
       >
+        <div style={{ marginBottom: 20 }}>
+          <MicroMark size={26} />
+        </div>
         Work at your own pace — a few minutes today is enough. Only you can see what you write.
         <div style={{ marginTop: 18 }}>
           <Link to="/privacy" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>

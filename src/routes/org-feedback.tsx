@@ -80,7 +80,7 @@ function OrgFeedbackPage() {
 
           {done ? (
             <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 999, background: "rgba(122,155,110,0.20)", color: "#3E5A33", fontWeight: 700, fontSize: 13, marginTop: 20 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 2, background: "rgba(127,161,137,0.20)", color: "#3E5A33", fontWeight: 700, fontSize: 13, marginTop: 20 }}>
                 <Check size={16} /> Received
               </div>
               <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.02em", margin: "16px 0 12px", color: "#1F2D1A" }}>
@@ -174,14 +174,14 @@ const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "60px 24px 100px",
   background:
-    "radial-gradient(ellipse 70% 55% at 85% 0%, rgba(140,180,120,0.32), transparent 60%), radial-gradient(ellipse 70% 55% at 15% 100%, rgba(168,194,155,0.28), transparent 60%), linear-gradient(180deg, #EFF3E8 0%, #DCE7D2 60%, #C9D8BB 100%)",
+    "#F7F5F0",
 };
 const cardStyle: React.CSSProperties = {
   background: "#FFFFFF",
   borderRadius: 20,
   padding: "36px 32px",
   borderLeft: "4px solid #7A9B6E",
-  boxShadow: "0 20px 60px -30px rgba(62,90,51,0.30)",
+  boxShadow: "none",
 };
 const backLink: React.CSSProperties = {
   display: "inline-flex",
@@ -213,21 +213,21 @@ const inputStyle: React.CSSProperties = {
 const ctaBtn: React.CSSProperties = {
   padding: "14px 26px",
   borderRadius: 999,
-  background: "#3E5A33",
-  color: "#FFFFFF",
+  background: "#7FA189",
+  color: "#14131F",
   fontWeight: 700,
   fontSize: 15,
   border: "none",
   cursor: "pointer",
-  boxShadow: "0 8px 24px -12px rgba(62,90,51,0.5)",
+  boxShadow: "none",
 };
 function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
     borderRadius: 999,
-    border: active ? "1px solid #3E5A33" : "1px solid rgba(62,90,51,0.25)",
-    background: active ? "#3E5A33" : "#FFFFFF",
-    color: active ? "#FFFFFF" : "#1F2D1A",
+    border: active ? "1px solid #7FA189" : "1px solid rgba(62,90,51,0.25)",
+    background: active ? "#7FA189" : "#FFFFFF",
+    color: active ? "#14131F" : "#1F2D1A",
     fontWeight: 600,
     fontSize: 13,
     cursor: "pointer",
