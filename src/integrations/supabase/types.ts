@@ -854,6 +854,69 @@ export type Database = {
         }
         Relationships: []
       }
+      clio_connections: {
+        Row: {
+          access_token: string
+          clio_user_email: string | null
+          clio_user_id: string | null
+          created_at: string
+          expires_at: string
+          firm_name: string | null
+          id: string
+          refresh_token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          clio_user_email?: string | null
+          clio_user_id?: string | null
+          created_at?: string
+          expires_at: string
+          firm_name?: string | null
+          id?: string
+          refresh_token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          clio_user_email?: string | null
+          clio_user_id?: string | null
+          created_at?: string
+          expires_at?: string
+          firm_name?: string | null
+          id?: string
+          refresh_token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      clio_oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          redirect_to: string | null
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          redirect_to?: string | null
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          redirect_to?: string | null
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       communications: {
         Row: {
           channel: string
