@@ -1,0 +1,83 @@
+/**
+ * State-level DV coalitions. One entry per US state + DC.
+ * Extend by adding to STATE_RESOURCES — the resources page renders whatever is here.
+ */
+export interface StateResource {
+  name: string;
+  url: string;
+  phone?: string;
+}
+
+export const US_STATES: { code: string; name: string }[] = [
+  { code: "AL", name: "Alabama" }, { code: "AK", name: "Alaska" }, { code: "AZ", name: "Arizona" },
+  { code: "AR", name: "Arkansas" }, { code: "CA", name: "California" }, { code: "CO", name: "Colorado" },
+  { code: "CT", name: "Connecticut" }, { code: "DE", name: "Delaware" }, { code: "DC", name: "District of Columbia" },
+  { code: "FL", name: "Florida" }, { code: "GA", name: "Georgia" }, { code: "HI", name: "Hawaii" },
+  { code: "ID", name: "Idaho" }, { code: "IL", name: "Illinois" }, { code: "IN", name: "Indiana" },
+  { code: "IA", name: "Iowa" }, { code: "KS", name: "Kansas" }, { code: "KY", name: "Kentucky" },
+  { code: "LA", name: "Louisiana" }, { code: "ME", name: "Maine" }, { code: "MD", name: "Maryland" },
+  { code: "MA", name: "Massachusetts" }, { code: "MI", name: "Michigan" }, { code: "MN", name: "Minnesota" },
+  { code: "MS", name: "Mississippi" }, { code: "MO", name: "Missouri" }, { code: "MT", name: "Montana" },
+  { code: "NE", name: "Nebraska" }, { code: "NV", name: "Nevada" }, { code: "NH", name: "New Hampshire" },
+  { code: "NJ", name: "New Jersey" }, { code: "NM", name: "New Mexico" }, { code: "NY", name: "New York" },
+  { code: "NC", name: "North Carolina" }, { code: "ND", name: "North Dakota" }, { code: "OH", name: "Ohio" },
+  { code: "OK", name: "Oklahoma" }, { code: "OR", name: "Oregon" }, { code: "PA", name: "Pennsylvania" },
+  { code: "RI", name: "Rhode Island" }, { code: "SC", name: "South Carolina" }, { code: "SD", name: "South Dakota" },
+  { code: "TN", name: "Tennessee" }, { code: "TX", name: "Texas" }, { code: "UT", name: "Utah" },
+  { code: "VT", name: "Vermont" }, { code: "VA", name: "Virginia" }, { code: "WA", name: "Washington" },
+  { code: "WV", name: "West Virginia" }, { code: "WI", name: "Wisconsin" }, { code: "WY", name: "Wyoming" },
+];
+
+export const STATE_RESOURCES: Record<string, StateResource[]> = {
+  AL: [{ name: "Alabama Coalition Against Domestic Violence", url: "https://www.acadv.org", phone: "1-800-650-6522" }],
+  AK: [{ name: "Alaska Network on Domestic Violence and Sexual Assault", url: "https://andvsa.org" }],
+  AZ: [{ name: "Arizona Coalition to End Sexual and Domestic Violence", url: "https://www.acesdv.org", phone: "1-800-782-6400" }],
+  AR: [{ name: "Arkansas Coalition Against Domestic Violence", url: "https://www.domesticpeace.com", phone: "1-800-269-4668" }],
+  CA: [{ name: "California Partnership to End Domestic Violence", url: "https://www.cpedv.org" }],
+  CO: [{ name: "Violence Free Colorado", url: "https://www.violencefreecolorado.org" }],
+  CT: [{ name: "Connecticut Coalition Against Domestic Violence", url: "https://www.ctcadv.org", phone: "1-888-774-2900" }],
+  DE: [{ name: "Delaware Coalition Against Domestic Violence", url: "https://dcadv.org" }],
+  DC: [{ name: "DC Coalition Against Domestic Violence", url: "https://dccadv.org" }],
+  FL: [{ name: "Florida Coalition Against Domestic Violence", url: "https://www.myflfamilies.com/services/domestic-violence", phone: "1-800-500-1119" }],
+  GA: [{ name: "Georgia Coalition Against Domestic Violence", url: "https://gcadv.org", phone: "1-800-334-2836" }],
+  HI: [{ name: "Hawaii State Coalition Against Domestic Violence", url: "https://www.hscadv.org" }],
+  ID: [{ name: "Idaho Coalition Against Sexual and Domestic Violence", url: "https://www.idvsa.org" }],
+  IL: [{ name: "The Network: Advocating Against Domestic Violence (Illinois)", url: "https://www.the-network.org" }],
+  IN: [{ name: "Indiana Coalition Against Domestic Violence", url: "https://www.icadvinc.org", phone: "1-800-332-7385" }],
+  IA: [{ name: "Iowa Coalition Against Domestic Violence", url: "https://www.icadv.org", phone: "1-800-770-1650" }],
+  KS: [{ name: "Kansas Coalition Against Sexual and Domestic Violence", url: "https://www.kcsdv.org" }],
+  KY: [{ name: "ZeroV (Kentucky Coalition Against Domestic Violence)", url: "https://zerov.org" }],
+  LA: [{ name: "Louisiana Coalition Against Domestic Violence", url: "https://lcadv.org" }],
+  ME: [{ name: "Maine Coalition to End Domestic Violence", url: "https://www.mcedv.org", phone: "1-866-834-4357" }],
+  MD: [{ name: "Maryland Network Against Domestic Violence", url: "https://mnadv.org", phone: "1-800-634-3577" }],
+  MA: [{ name: "Jane Doe Inc. — Massachusetts Coalition Against Sexual Assault and Domestic Violence", url: "https://janedoe.org" }],
+  MI: [{ name: "Michigan Coalition to End Domestic and Sexual Violence", url: "https://mcedsv.org" }],
+  MN: [{ name: "Violence Free Minnesota", url: "https://www.vfmn.org", phone: "1-866-223-1111" }],
+  MS: [{ name: "Mississippi Coalition Against Domestic Violence", url: "https://mcadv.org", phone: "1-800-898-3234" }],
+  MO: [{ name: "Missouri Coalition Against Domestic and Sexual Violence", url: "https://www.mocadsv.org" }],
+  MT: [{ name: "Montana Coalition Against Domestic and Sexual Violence", url: "https://mcadsv.com" }],
+  NE: [{ name: "Nebraska Coalition to End Sexual and Domestic Violence", url: "https://www.nebraskacoalition.org" }],
+  NV: [{ name: "Nevada Coalition to End Domestic and Sexual Violence", url: "https://www.ncedsv.org" }],
+  NH: [{ name: "New Hampshire Coalition Against Domestic and Sexual Violence", url: "https://www.nhcadsv.org", phone: "1-866-644-3574" }],
+  NJ: [{ name: "New Jersey Coalition to End Domestic Violence", url: "https://njcedv.org", phone: "1-800-572-7233" }],
+  NM: [{ name: "New Mexico Coalition Against Domestic Violence", url: "https://www.nmcadv.org" }],
+  NY: [{ name: "New York State Coalition Against Domestic Violence", url: "https://www.nyscadv.org", phone: "1-800-942-6906" }],
+  NC: [{ name: "North Carolina Coalition Against Domestic Violence", url: "https://nccadv.org" }],
+  ND: [{ name: "North Dakota Council on Abused Women's Services (CAWS North Dakota)", url: "https://www.cawsnorthdakota.org", phone: "1-888-255-6240" }],
+  OH: [{ name: "Ohio Domestic Violence Network", url: "https://www.odvn.org", phone: "1-800-934-9840" }],
+  OK: [{ name: "Oklahoma Coalition Against Domestic Violence and Sexual Assault", url: "https://ocadvsa.org" }],
+  OR: [{ name: "Oregon Coalition Against Domestic and Sexual Violence", url: "https://www.ocadsv.org" }],
+  PA: [{ name: "Pennsylvania Coalition Against Domestic Violence", url: "https://www.pcadv.org", phone: "1-800-932-4632" }],
+  RI: [{ name: "Rhode Island Coalition Against Domestic Violence", url: "https://www.ricadv.org", phone: "1-800-494-8100" }],
+  SC: [{ name: "South Carolina Coalition Against Domestic Violence and Sexual Assault", url: "https://sccadvasa.org" }],
+  SD: [{ name: "South Dakota Coalition Ending Domestic and Sexual Violence", url: "https://www.sdcedsv.org" }],
+  TN: [{ name: "Tennessee Coalition to End Domestic and Sexual Violence", url: "https://tncoalition.org", phone: "1-800-289-9018" }],
+  TX: [{ name: "Texas Council on Family Violence", url: "https://tcfv.org" }],
+  UT: [{ name: "Utah Domestic Violence Coalition", url: "https://www.udvc.org", phone: "1-800-897-5465" }],
+  VT: [{ name: "Vermont Network Against Domestic and Sexual Violence", url: "https://vtnetwork.org", phone: "1-800-228-7395" }],
+  VA: [{ name: "Virginia Sexual and Domestic Violence Action Alliance", url: "https://vsdvalliance.org", phone: "1-800-838-8238" }],
+  WA: [{ name: "Washington State Coalition Against Domestic Violence", url: "https://wscadv.org" }],
+  WV: [{ name: "West Virginia Coalition Against Domestic Violence", url: "https://www.wvcadv.org" }],
+  WI: [{ name: "End Domestic Abuse Wisconsin", url: "https://www.endabusewi.org" }],
+  WY: [{ name: "Wyoming Coalition Against Domestic Violence and Sexual Assault", url: "https://www.wyomingdvsa.org", phone: "1-800-990-3877" }],
+};

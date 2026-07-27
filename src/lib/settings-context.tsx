@@ -5,6 +5,7 @@ export interface PpSettings {
   exitUrl: string;
   sessionTimeoutSec: number;
   state: string;
+  city: string;
   notificationsEnabled: boolean;
   iconStyle: string;
   onboarded: boolean;
@@ -16,7 +17,8 @@ const DEFAULTS: PpSettings = {
   disguiseName: "Daily Planner",
   exitUrl: "https://weather.com",
   sessionTimeoutSec: 60,
-  state: "NJ",
+  state: "",
+  city: "",
   notificationsEnabled: false,
   iconStyle: "Calendar",
   onboarded: false,

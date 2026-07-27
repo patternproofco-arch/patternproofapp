@@ -145,6 +145,23 @@ function Index() {
           >
             See how it works
           </Link>
+          <Link
+            to="/resources"
+            style={{
+              display: "inline-block",
+              marginLeft: 20,
+              padding: "14px 4px",
+              fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+              fontSize: 13,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "#14131F",
+              textDecoration: "underline",
+              textUnderlineOffset: 4,
+            }}
+          >
+            Resources
+          </Link>
         </div>
 
         <div
@@ -214,6 +231,7 @@ function Index() {
         Work at your own pace — a few minutes today is enough. Only you can see what you write.
         <div style={{ marginTop: 18 }}>
           <Link to="/privacy" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>
+          <Link to="/resources" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Resources</Link>
           <Link to="/safety" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Safety</Link>
           <Link to="/terms" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Terms</Link>
           <Link to="/support" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3 }}>Support</Link>

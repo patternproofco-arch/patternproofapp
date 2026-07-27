@@ -7,19 +7,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { AppMark } from "@/components/brand/AppMark";
 import { toast } from "sonner";
+import { US_STATES } from "@/lib/state-resources";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
 });
-
-const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
 function Onboarding() {
   const navigate = useNavigate();
   const { update } = useSettings();
   const { setRealPin } = usePinLock();
   const [pin, setPin] = useState("");
-  const [state, setState] = useState("NJ");
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
   const [busy, setBusy] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -35,11 +35,12 @@ function Onboarding() {
     setBusy(true);
     try {
       if (pin.length === 4) await setRealPin(pin);
-      update({ state, onboarded: true });
+      update({ state, city: city.trim(), onboarded: true });
       await supabase.auth.updateUser({
         data: {
           onboarding_complete: true,
           state,
+          city: city.trim(),
           agreed_privacy_at: new Date().toISOString(),
           agreed_terms_at: new Date().toISOString(),
           acknowledged_legal_use_at: new Date().toISOString(),
@@ -160,13 +161,22 @@ function Onboarding() {
           </p>
         </StepCard>
 
-        <StepCard icon={<ShieldCheck size={20} />} title="Which state are you in?">
+        <StepCard icon={<ShieldCheck size={20} />} title="Where are you?">
           <p className="text-[14px]">
-            So we can show you the right legal resources and recording-consent rules.
+            Only used to filter the resources list. You never have to answer this.
           </p>
+          <label className="label-eyebrow">State</label>
           <select value={state} onChange={(e) => setState(e.target.value)} className="input-pp w-full">
-            {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+            <option value="">Prefer not to say</option>
+            {US_STATES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
           </select>
+          <label className="label-eyebrow">City — optional</label>
+          <input
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className="input-pp w-full"
+            placeholder="Leave blank if you'd rather not"
+          />
         </StepCard>
 
         <StepCard icon={<FileCheck size={20} />} title="Agree to continue">
