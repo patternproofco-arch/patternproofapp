@@ -227,7 +227,7 @@ function pillBtn(active: boolean): React.CSSProperties {
     borderRadius: 999,
     border: active ? "1px solid #7FA189" : "1px solid rgba(62,90,51,0.25)",
     background: active ? "#7FA189" : "#FFFFFF",
-    color: active ? "#FFFFFF" : "#1F2D1A",
+    color: active ? "#14131F" : "#1F2D1A",
     fontWeight: 600,
     fontSize: 13,
     cursor: "pointer",
