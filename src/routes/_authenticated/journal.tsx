@@ -439,7 +439,7 @@ function JournalPage() {
         </button>
       </div>
 
-      <div className="collapse-shell mt-6" data-open={logOpen} aria-hidden={!logOpen}>
+      <div className="collapse-shell mt-6" data-open={logOpen} inert={!logOpen}>
         <div className="collapse-inner">
         <section
           className="card-pp"
@@ -648,7 +648,7 @@ function JournalPage() {
         </div>
       </div>
 
-      <div className="collapse-shell mt-6" data-open={listOpen} aria-hidden={!listOpen}>
+      <div className="collapse-shell mt-6" data-open={listOpen} inert={!listOpen}>
         <div className="collapse-inner">
         <section
           className="card-pp"
