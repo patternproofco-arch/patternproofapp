@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TriageRouteImport } from './routes/triage'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
 import { Route as SampleCaseRouteImport } from './routes/sample-case'
@@ -106,6 +107,11 @@ const TriageRoute = TriageRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -552,6 +558,7 @@ export interface FileRoutesByFullPath {
   '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -635,6 +642,7 @@ export interface FileRoutesByTo {
   '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -719,6 +727,7 @@ export interface FileRoutesById {
   '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -804,6 +813,7 @@ export interface FileRouteTypes {
     | '/sample-case'
     | '/self-help-guide'
     | '/sitemap.xml'
+    | '/support'
     | '/terms'
     | '/triage'
     | '/unsubscribe'
@@ -887,6 +897,7 @@ export interface FileRouteTypes {
     | '/sample-case'
     | '/self-help-guide'
     | '/sitemap.xml'
+    | '/support'
     | '/terms'
     | '/triage'
     | '/unsubscribe'
@@ -970,6 +981,7 @@ export interface FileRouteTypes {
     | '/sample-case'
     | '/self-help-guide'
     | '/sitemap.xml'
+    | '/support'
     | '/terms'
     | '/triage'
     | '/unsubscribe'
@@ -1056,6 +1068,7 @@ export interface RootRouteChildren {
   SampleCaseRoute: typeof SampleCaseRoute
   SelfHelpGuideRoute: typeof SelfHelpGuideRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   TriageRoute: typeof TriageRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
@@ -1097,6 +1110,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1810,6 +1830,7 @@ const rootRouteChildren: RootRouteChildren = {
   SampleCaseRoute: SampleCaseRoute,
   SelfHelpGuideRoute: SelfHelpGuideRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   TriageRoute: TriageRoute,
   UnsubscribeRoute: UnsubscribeRoute,
