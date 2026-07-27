@@ -40,12 +40,12 @@ function RequestOrgAccess() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F7F5F0", padding: "60px 24px" }}>
+    <div data-persona="org" style={{ minHeight: "100vh", background: "#F7F5F0", padding: "60px 24px" }}>
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
         <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted-foreground)", textDecoration: "none", marginBottom: 24 }}>
           <ArrowLeft size={14} /> Back to PatternProof
         </Link>
-        <div style={{ background: "#FFFFFF", borderRadius: 24, padding: 36, border: "1px solid var(--border)" }}>
+        <div style={{ background: "#FFFFFF", borderRadius: 2, padding: 36, border: "1px solid var(--border)" }}>
           <BrandLockup size={44} />
           <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700, marginTop: 20 }}>
             DV organizations · invite-only
@@ -60,7 +60,7 @@ function RequestOrgAccess() {
 
           {submitted ? (
             <div style={{ display: "grid", gap: 16 }}>
-              <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: 20, background: "rgba(189,230,212,0.30)", borderRadius: 14 }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: 20, background: "rgba(127,161,137,0.20)", borderRadius: 2 }}>
                 <Check size={20} style={{ color: "var(--teal-dark)", marginTop: 2 }} />
                 <div>
                   <div style={{ fontWeight: 700, marginBottom: 4 }}>Request opened in your email.</div>
@@ -70,7 +70,7 @@ function RequestOrgAccess() {
                 </div>
               </div>
               {referralUrl && (
-                <div style={{ padding: 20, borderRadius: 14, border: "1px solid var(--border)", background: "#FFFFFF" }}>
+                <div style={{ padding: 20, borderRadius: 2, border: "1px solid var(--border)", background: "#FFFFFF" }}>
                   <div style={{ fontSize: 12, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700, marginBottom: 8 }}>
                     Your proposed referral link
                   </div>
@@ -78,7 +78,7 @@ function RequestOrgAccess() {
                     Once we approve your organization, survivors who sign up through this link stay free forever and we can attribute their outcomes back to your advocacy.
                   </p>
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <code style={{ flex: 1, padding: "10px 12px", background: "#F5F5F0", borderRadius: 10, fontSize: 13, overflowWrap: "anywhere" }}>
+                    <code style={{ flex: 1, padding: "10px 12px", background: "#F5F5F0", borderRadius: 2, fontSize: 13, overflowWrap: "anywhere" }}>
                       {referralUrl}
                     </code>
                     <button
@@ -89,7 +89,7 @@ function RequestOrgAccess() {
                           setTimeout(() => setCopied(false), 1500);
                         });
                       }}
-                      style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "#FFFFFF", cursor: "pointer", fontSize: 13, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 6 }}
+                      style={{ padding: "10px 14px", borderRadius: 2, border: "1px solid var(--border)", background: "#FFFFFF", cursor: "pointer", fontSize: 13, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 6 }}
                     >
                       <Copy size={14} /> {copied ? "Copied" : "Copy"}
                     </button>
@@ -110,12 +110,12 @@ function RequestOrgAccess() {
                   value={form.note}
                   onChange={(e) => setForm({ ...form, note: e.target.value })}
                   rows={4}
-                  style={{ width: "100%", padding: 12, borderRadius: 12, border: "1px solid var(--border)", fontSize: 14, fontFamily: "inherit" }}
+                  style={{ width: "100%", padding: 12, borderRadius: 2, border: "1px solid var(--border)", fontSize: 14, fontFamily: "inherit" }}
                 />
               </div>
               <button
                 type="submit"
-                style={{ marginTop: 8, padding: "14px 24px", borderRadius: 999, background: "#3D72B8", color: "#FFFFFF", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
+                style={{ marginTop: 8, padding: "14px 24px", borderRadius: 2, background: "#7FA189", color: "#14131F", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
               >
                 Request org access
               </button>
@@ -124,7 +124,7 @@ function RequestOrgAccess() {
         </div>
         <div style={{ marginTop: 20, textAlign: "center", fontSize: 13, color: "var(--muted-foreground)" }}>
           Already partnering with us?{" "}
-          <Link to="/org-feedback" style={{ color: "#3D72B8", fontWeight: 600, textDecoration: "underline" }}>
+          <Link to="/org-feedback" style={{ color: "#4E8C8A", fontWeight: 600, textDecoration: "underline" }}>
             Share feedback about PatternProof
           </Link>
         </div>
@@ -154,7 +154,7 @@ function Input({
         onChange={(e) => onChange(e.target.value)}
         required={required}
         placeholder={placeholder}
-        style={{ width: "100%", padding: 12, borderRadius: 12, border: "1px solid var(--border)", fontSize: 14, fontFamily: "inherit" }}
+        style={{ width: "100%", padding: 12, borderRadius: 2, border: "1px solid var(--border)", fontSize: 14, fontFamily: "inherit" }}
       />
     </div>
   );

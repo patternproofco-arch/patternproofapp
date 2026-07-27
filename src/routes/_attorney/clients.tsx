@@ -38,7 +38,7 @@ function ClientsLayout() {
           style={{
             display: "flex", alignItems: "center", gap: 6,
             padding: "6px 10px", marginBottom: 8,
-            borderRadius: 6, border: "1px solid var(--att-border)",
+            borderRadius: 2, border: "1px solid var(--att-border)",
             fontSize: 12, textDecoration: "none", color: "inherit",
           }}
         >
@@ -61,7 +61,7 @@ function ClientsLayout() {
                   style={{
                     display: "block",
                     padding: "8px 10px",
-                    borderRadius: 6,
+                    borderRadius: 2,
                     background: isActive ? "var(--att-navy)" : "transparent",
                     color: isActive ? "white" : "inherit",
                     textDecoration: "none",

@@ -87,14 +87,14 @@ function AttorneyLayout() {
 
   if (loading || checking || sub.loading) {
     return (
-      <div className="att-root" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="att-root" data-persona="attorney" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <span className="att-eyebrow">Opening portal…</span>
       </div>
     );
   }
 
   return (
-    <div className="att-root att-cockpit">
+    <div className="att-root att-cockpit" data-persona="attorney">
       <AttorneyTopNav />
       <SecurityBanner />
       <LegalDisclaimerBar />

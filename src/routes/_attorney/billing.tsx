@@ -46,7 +46,7 @@ function BillingPage() {
         <h1 style={{ fontSize: 32, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>Plan &amp; payment</h1>
       </div>
 
-      <div className="att-card" style={{ background: sub.isActive ? "#F0FDF4" : "#FEF2F2", borderColor: sub.isActive ? "#86EFAC" : "#FCA5A5" }}>
+      <div className="att-card" style={{ background: sub.isActive ? "#F0FDF4" : "#FFFFFF", borderColor: sub.isActive ? "#86EFAC" : "#FCA5A5" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <div>
             <div className="att-eyebrow" style={{ color: sub.isActive ? "#166534" : "#991B1B" }}>
@@ -136,7 +136,7 @@ function BillingPage() {
       <div className="att-card" style={{ marginTop: 16 }}>
         <div className="att-eyebrow">Exports</div>
         <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 14, alignItems: "center", marginTop: 10 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
+          <div style={{ width: 44, height: 44, borderRadius: 2, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
             <Plug size={20} />
           </div>
           <div>
@@ -209,7 +209,7 @@ function ClioPanel() {
       <div className="att-eyebrow">Integrations</div>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
+          <div style={{ width: 44, height: 44, borderRadius: 2, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
             <Plug size={20} />
           </div>
           <div>

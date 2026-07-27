@@ -110,9 +110,9 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
           {shots.map((s, idx) => (
             <div key={s.id} style={{ position: "relative", borderRadius: 0, overflow: "hidden", border: "1px solid rgba(91,76,214,0.2)" }}>
               <img src={s.url} alt={`call log ${idx + 1}`} style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} />
-              <div style={{ position: "absolute", top: 4, left: 4, background: "rgba(0,0,0,0.55)", color: "#F7F5F0", fontSize: 11, padding: "2px 6px", borderRadius: 6 }}>#{idx + 1}</div>
+              <div style={{ position: "absolute", top: 4, left: 4, background: "rgba(0,0,0,0.55)", color: "#F7F5F0", fontSize: 11, padding: "2px 6px", borderRadius: 2 }}>#{idx + 1}</div>
               <button type="button" onClick={() => remove(idx)} aria-label="Remove"
-                style={{ position: "absolute", top: 4, right: 4, background: "rgba(255,255,255,0.9)", borderRadius: 6, padding: 4 }}>
+                style={{ position: "absolute", top: 4, right: 4, background: "rgba(255,255,255,0.9)", borderRadius: 2, padding: 4 }}>
                 <X size={12} />
               </button>
             </div>

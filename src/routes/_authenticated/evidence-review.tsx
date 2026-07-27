@@ -123,7 +123,7 @@ function EvidenceReviewPage() {
                       <img
                         src={previews[it.id]}
                         alt=""
-                        style={{ maxWidth: 180, maxHeight: 180, borderRadius: 8, objectFit: "cover" }}
+                        style={{ maxWidth: 180, maxHeight: 180, borderRadius: 2, objectFit: "cover" }}
                       />
                     )}
                     <div className="min-w-0 flex-1 space-y-2">

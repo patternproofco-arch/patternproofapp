@@ -168,13 +168,13 @@ function SurvivorInvitePage() {
       </p>
 
       {inv.personal_note && (
-        <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderLeft: "3px solid #5B4CD6", borderRadius: 8, padding: 14, marginBottom: 18, fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+        <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderLeft: "3px solid #5B4CD6", borderRadius: 2, padding: 14, marginBottom: 18, fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
           {inv.personal_note}
         </div>
       )}
 
       {done ? (
-        <div style={{ padding: 16, background: "#D1FAE5", borderRadius: 8, color: "#065F46", fontSize: 14 }}>
+        <div style={{ padding: 16, background: "#D1FAE5", borderRadius: 2, color: "#065F46", fontSize: 14 }}>
           <ShieldCheck size={16} style={{ verticalAlign: "-3px", marginRight: 6 }} />
           Connected. Taking you to your dashboard…
         </div>
@@ -182,8 +182,8 @@ function SurvivorInvitePage() {
         <form onSubmit={submitAuth} style={{ display: "grid", gap: 12 }}>
           {!user && (
             <div style={{ display: "flex", gap: 4, fontSize: 12 }}>
-              <button type="button" onClick={() => setMode("signup")} style={{ padding: "6px 12px", borderRadius: 6, border: mode === "signup" ? "1px solid #5B4CD6" : "1px solid #E2E8F0", background: mode === "signup" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>Create account</button>
-              <button type="button" onClick={() => setMode("login")} style={{ padding: "6px 12px", borderRadius: 6, border: mode === "login" ? "1px solid #5B4CD6" : "1px solid #E2E8F0", background: mode === "login" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>I already have an account</button>
+              <button type="button" onClick={() => setMode("signup")} style={{ padding: "6px 12px", borderRadius: 2, border: mode === "signup" ? "1px solid #5B4CD6" : "1px solid #E2E8F0", background: mode === "signup" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>Create account</button>
+              <button type="button" onClick={() => setMode("login")} style={{ padding: "6px 12px", borderRadius: 2, border: mode === "login" ? "1px solid #5B4CD6" : "1px solid #E2E8F0", background: mode === "login" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>I already have an account</button>
             </div>
           )}
           {!user && (
@@ -219,7 +219,7 @@ function SurvivorInvitePage() {
               background: "#5B4CD6",
               color: "#F7F5F0",
               border: 0,
-              borderRadius: 8,
+              borderRadius: 2,
               fontWeight: 600,
               cursor: busy ? "not-allowed" : "pointer",
               opacity: busy ? 0.6 : 1,
@@ -312,7 +312,7 @@ function SurvivorInvitePage() {
             onClick={confirmScope}
             disabled={busy}
             style={{
-              padding: "12px 18px", background: "#5B4CD6", color: "#F7F5F0", border: 0, borderRadius: 8,
+              padding: "12px 18px", background: "#5B4CD6", color: "#F7F5F0", border: 0, borderRadius: 2,
               fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? 0.6 : 1,
               display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
             }}
@@ -351,7 +351,7 @@ function ScopeBox({ icon, title, description, children }: { icon: React.ReactNod
 
 function ScopeModeCard({ name, checked, onChange, title, helper }: { name: string; checked: boolean; onChange: () => void; title: string; helper: string }) {
   return (
-    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, padding: 10, borderRadius: 10, cursor: "pointer", border: checked ? "1px solid #5B4CD6" : "1px solid #E2E8F0", background: checked ? "#EAF7EF" : "#FBFEFC" }}>
+    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, padding: 10, borderRadius: 2, cursor: "pointer", border: checked ? "1px solid #5B4CD6" : "1px solid #E2E8F0", background: checked ? "#EAF7EF" : "#FBFEFC" }}>
       <input type="radio" name={name} checked={checked} onChange={onChange} style={{ marginTop: 2 }} />
       <span>
         <strong style={{ display: "block", fontSize: 13 }}>{title}</strong>
@@ -364,7 +364,7 @@ function ScopeModeCard({ name, checked, onChange, title, helper }: { name: strin
 function SelectionList({ children, empty }: { children: React.ReactNode; empty: string }) {
   const hasChildren = Array.isArray(children) ? children.length > 0 : !!children;
   return (
-    <div style={{ display: "grid", gap: 6, maxHeight: 190, overflowY: "auto", padding: 8, borderRadius: 10, border: "1px solid #E2E8F0", background: "#F8FAFC" }}>
+    <div style={{ display: "grid", gap: 6, maxHeight: 190, overflowY: "auto", padding: 8, borderRadius: 2, border: "1px solid #E2E8F0", background: "#F8FAFC" }}>
       {hasChildren ? children : <p style={{ fontSize: 12, color: "#667085", margin: 0 }}>{empty}</p>}
     </div>
   );
@@ -372,7 +372,7 @@ function SelectionList({ children, empty }: { children: React.ReactNode; empty: 
 
 function SelectableItem({ checked, onChange, title, subtitle }: { checked: boolean; onChange: (checked: boolean) => void; title: string; subtitle: string }) {
   return (
-    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, alignItems: "start", padding: 8, borderRadius: 8, background: "#F7F5F0", border: "1px solid #E2E8F0", cursor: "pointer" }}>
+    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, alignItems: "start", padding: 8, borderRadius: 2, background: "#F7F5F0", border: "1px solid #E2E8F0", cursor: "pointer" }}>
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} style={{ marginTop: 2 }} />
       <span style={{ minWidth: 0 }}>
         <strong style={{ display: "block", fontSize: 12 }}>{title}</strong>
@@ -384,7 +384,7 @@ function SelectableItem({ checked, onChange, title, subtitle }: { checked: boole
 
 const inputStyle: React.CSSProperties = {
   padding: "10px 12px",
-  borderRadius: 8,
+  borderRadius: 2,
   border: "1px solid #E2E8F0",
   background: "#F7F5F0",
   fontSize: 14,

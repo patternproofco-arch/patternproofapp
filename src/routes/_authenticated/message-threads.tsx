@@ -470,7 +470,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
           </span>
           <button
             type="button" onClick={onDelete} aria-label="Delete"
-            style={{ padding: 6, borderRadius: 8, color: "rgba(20,19,31,0.55)", background: "transparent" }}
+            style={{ padding: 6, borderRadius: 2, color: "rgba(20,19,31,0.55)", background: "transparent" }}
           >
             <Trash2 size={15} />
           </button>

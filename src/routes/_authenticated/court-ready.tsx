@@ -94,7 +94,7 @@ function CourtReadyPage() {
           </div>
         )}
 
-        <div style={{ border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ border: "1px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
           {mode === "monthly" ? (
             <StripeEmbeddedCheckout
               priceId="court_ready_monthly"
