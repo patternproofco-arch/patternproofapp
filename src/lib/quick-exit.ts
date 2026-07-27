@@ -18,6 +18,23 @@ import { supabase } from "@/integrations/supabase/client";
 export function quickExit(exitUrl?: string) {
   const url = exitUrl || "https://weather.com";
 
+  // 0. Capture the access token BEFORE we destroy local storage, so we can
+  //    still revoke it server-side afterwards.
+  let accessToken: string | null = null;
+  try {
+    for (const k of Object.keys(window.localStorage)) {
+      if (k.startsWith("sb-") && k.includes("auth-token")) {
+        const raw = window.localStorage.getItem(k);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          accessToken = parsed?.access_token ?? parsed?.currentSession?.access_token ?? null;
+        }
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+
   // 1. Destroy the persisted auth token synchronously.
   try {
     Object.keys(window.localStorage).forEach((k) => {
@@ -39,9 +56,28 @@ export function quickExit(exitUrl?: string) {
     /* ignore */
   }
 
-  // 3. Best-effort server-side sign-out. Not awaited past a short deadline.
+  // 3. Revoke the session server-side (global scope) so a copied/stale token
+  //    cannot be replayed to restore access. Fired with `keepalive` so it
+  //    survives the navigation below; never awaited.
   try {
-    void supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+    void supabase.auth.signOut({ scope: "global" }).catch(() => undefined);
+  } catch {
+    /* ignore */
+  }
+  try {
+    const base = import.meta.env.VITE_SUPABASE_URL;
+    const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    if (accessToken && base && apikey) {
+      void fetch(`${base}/auth/v1/logout?scope=global`, {
+        method: "POST",
+        keepalive: true,
+        headers: {
+          apikey,
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }).catch(() => undefined);
+    }
   } catch {
     /* ignore */
   }
