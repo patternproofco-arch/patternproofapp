@@ -214,7 +214,7 @@ const ctaBtn: React.CSSProperties = {
   padding: "14px 26px",
   borderRadius: 999,
   background: "#7FA189",
-  color: "#FFFFFF",
+  color: "#14131F",
   fontWeight: 700,
   fontSize: 15,
   border: "none",
