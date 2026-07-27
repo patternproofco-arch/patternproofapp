@@ -415,7 +415,7 @@ function JournalPage() {
           style={{
             background: "var(--primary)",
             color: "#FFFFFF",
-            boxShadow: "0 6px 18px -6px rgba(122,148,121,0.55)",
+            boxShadow: "none",
           }}
         >
           <PenLine size={17} />

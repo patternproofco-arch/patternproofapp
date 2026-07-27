@@ -122,7 +122,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
       style={{
         background: "#FFFFFF",
         border: "1px solid #EAF7EF",
-        boxShadow: "0 8px 30px -22px rgba(31,41,51,0.18)",
+        boxShadow: "none",
       }}
     >
       {/* Header */}
@@ -235,7 +235,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               style={{
                 background: "#FFFFFF",
                 border: "1px solid #D8F0E0",
-                boxShadow: "0 1px 0 rgba(79,175,167,0.06), 0 8px 24px -16px rgba(79,175,167,0.25)",
+                boxShadow: "none",
               }}
             >
               <button
@@ -279,7 +279,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                 style={{
                   background: "#5B4CD6",
                   color: "#FFFFFF",
-                  boxShadow: "0 4px 14px -4px rgba(79,175,167,0.45)",
+                  boxShadow: "none",
                 }}
                 aria-label="Send"
               >

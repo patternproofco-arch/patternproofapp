@@ -394,7 +394,7 @@ const inputStyle: React.CSSProperties = {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ minHeight: "100vh", background: "#FBFEFC", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ maxWidth: 680, width: "100%", background: "#F7F5F0", border: "1px solid #E2E8F0", borderRadius: 0, padding: 28, boxShadow: "0 4px 24px rgba(15,23,42,0.06)" }}>
+      <div style={{ maxWidth: 680, width: "100%", background: "#F7F5F0", border: "1px solid #E2E8F0", borderRadius: 0, padding: 28, boxShadow: "none" }}>
         {children}
       </div>
     </div>

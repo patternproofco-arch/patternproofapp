@@ -111,7 +111,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
     { key: "packet", label: "Court Packet", icon: FileText },
   ];
   return (
-    <div style={{ marginTop: 28, display: "flex", gap: 4, overflowX: "auto", background: "white", padding: 6, borderRadius: 12, border: "1px solid rgba(91,75,164,0.12)", boxShadow: "0 1px 3px rgba(15,12,40,0.04)" }}>
+    <div style={{ marginTop: 28, display: "flex", gap: 4, overflowX: "auto", background: "white", padding: 6, borderRadius: 12, border: "1px solid rgba(91,75,164,0.12)", boxShadow: "none" }}>
       {tabs.map((t) => {
         const Icon = t.icon;
         const active = tab === t.key;
@@ -126,7 +126,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
 }
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <div style={{ background: "white", borderRadius: 14, padding: 20, border: "1px solid rgba(91,75,164,0.10)", boxShadow: "0 1px 3px rgba(15,12,40,0.04)", ...style }}>{children}</div>;
+  return <div style={{ background: "white", borderRadius: 14, padding: 20, border: "1px solid rgba(91,75,164,0.10)", boxShadow: "none", ...style }}>{children}</div>;
 }
 
 function Overview({ onJump }: { onJump: (t: Tab) => void }) {
@@ -241,7 +241,7 @@ function Timeline() {
         <div style={{ position: "absolute", left: 7, top: 6, bottom: 6, width: 2, background: "rgba(91,75,164,0.18)" }} />
         {sorted.map((inc) => (
           <div key={inc.id} style={{ position: "relative", marginBottom: 14 }}>
-            <div style={{ position: "absolute", left: -22, top: 16, width: 12, height: 12, borderRadius: 999, background: TYPE_COLORS[inc.abuse_types[0]] ?? "#5B4BA4", border: "2px solid white", boxShadow: "0 0 0 1px rgba(91,75,164,0.3)" }} />
+            <div style={{ position: "absolute", left: -22, top: 16, width: 12, height: 12, borderRadius: 999, background: TYPE_COLORS[inc.abuse_types[0]] ?? "#5B4BA4", border: "2px solid white", boxShadow: "none" }} />
             <IncidentRow inc={inc} />
           </div>
         ))}

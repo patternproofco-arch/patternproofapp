@@ -94,7 +94,7 @@ export function FloatingRecordButton() {
           style={{
             background: "var(--linen)",
             border: "1px solid var(--border)",
-            boxShadow: "0 12px 28px rgba(42,37,32,0.14)",
+            boxShadow: "none",
             right: "24px",
             bottom: "96px",
           }}
@@ -139,7 +139,7 @@ export function FloatingRecordButton() {
           background: bg,
           color: "#F7F3EC",
           ...dragStyle,
-          boxShadow: "0 8px 22px rgba(42,37,32,0.18)",
+          boxShadow: "none",
           touchAction: "none",
           cursor: "grab",
         }}

@@ -48,7 +48,7 @@ export function WhyCourtsStruggleModal() {
     >
       <div
         className="relative my-4 w-full max-w-3xl rounded-2xl p-6 md:p-10"
-        style={{ background: "var(--background)", boxShadow: "0 30px 60px -20px rgba(31,26,20,0.4)" }}
+        style={{ background: "var(--background)", boxShadow: "none" }}
         onClick={(e) => e.stopPropagation()}
       >
         <button

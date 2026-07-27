@@ -235,7 +235,7 @@ function TimelinePage() {
                 const color = LEGAL_COLOR[l.document_type] ?? "#B57E60";
                 return (
                   <div key={`l-${l.id}`} className="relative">
-                    <span className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4" style={{ background: color, boxShadow: "0 0 0 4px var(--background)" }}>
+                    <span className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4" style={{ background: color, boxShadow: "none" }}>
                       <FileText size={10} color="#14131F" />
                     </span>
                     <div className="card-pp" style={{ borderLeft: `3px solid ${color}` }}>
@@ -266,7 +266,7 @@ function TimelinePage() {
               const long = i.description.length > 160;
               return (
                 <div key={`i-${i.id}`} className="relative">
-                  <span className="absolute -left-[26px] top-3 h-3.5 w-3.5 rounded-full ring-4" style={{ background: typeColor(primary), boxShadow: "0 0 0 4px var(--background)" }} />
+                  <span className="absolute -left-[26px] top-3 h-3.5 w-3.5 rounded-full ring-4" style={{ background: typeColor(primary), boxShadow: "none" }} />
                   <div className="card-pp" style={{ borderLeft: `3px solid ${typeColor(primary)}` }}>
                     <div className="font-serif italic text-[16px]">
                       {formatIncidentDate({ ...i, anchor_incident: anchor ? { date: anchor.date, description: anchor.description } : null })}

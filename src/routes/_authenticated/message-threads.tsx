@@ -334,7 +334,7 @@ function MessageThreadsPage() {
                 padding: 20,
                 background: "rgba(255,255,255,0.7)",
                 border: "1px solid rgba(91,76,214,0.18)",
-                boxShadow: "0 12px 36px -20px rgba(91,76,214,0.35)",
+                boxShadow: "none",
                 backdropFilter: "blur(14px)",
                 WebkitBackdropFilter: "blur(14px)",
                 display: "flex", flexDirection: "column", gap: 12,
@@ -425,7 +425,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
         borderRadius: 0, padding: 22,
         background: "rgba(255,255,255,0.75)",
         border: "1px solid rgba(91,76,214,0.18)",
-        boxShadow: "0 16px 40px -24px rgba(91,76,214,0.35)",
+        boxShadow: "none",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
       }}

@@ -100,7 +100,7 @@ function PatternsPage() {
               onClick={() => run(true)}
               disabled={busy}
               className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-[14px] font-bold transition-all hover:-translate-y-px disabled:opacity-60"
-              style={{ background: "var(--sidebar)", color: "var(--sidebar-active)", letterSpacing: "0.02em", boxShadow: "0 6px 18px rgba(26,20,14,0.22)" }}
+              style={{ background: "var(--sidebar)", color: "var(--sidebar-active)", letterSpacing: "0.02em", boxShadow: "none" }}
             >
               {busy ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
               {busy ? "Analyzing…" : analysis ? "Refresh Analysis" : "Analyze My Patterns"}

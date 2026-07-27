@@ -132,7 +132,7 @@ export function FloatingNav() {
           color: "#FAF7F2",
           display: "grid", placeItems: "center",
           backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-          boxShadow: "0 8px 24px rgba(26,23,20,0.30)",
+          boxShadow: "none",
         }}
       >
         <NavIcon icon={Eye} size={18} color="#FAF7F2" />
@@ -187,7 +187,7 @@ export function FloatingNav() {
             display: "flex",
             alignItems: "center",
             gap: 6,
-            boxShadow: "0 8px 32px rgba(26,23,20,0.25), 0 2px 8px rgba(26,23,20,0.15)",
+            boxShadow: "none",
             transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)",
           }}
         >
@@ -380,7 +380,7 @@ function DesktopDock({
         gap: 6,
         overflow: "hidden",
         transition: "width 0.25s ease, opacity 0.25s ease",
-        boxShadow: "0 12px 36px rgba(26,23,20,0.30)",
+        boxShadow: "none",
       }}
     >
       <div

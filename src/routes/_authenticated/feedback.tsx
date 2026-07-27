@@ -209,7 +209,7 @@ const cardStyle: React.CSSProperties = {
   background: "#F7F5F0",
   borderRadius: 20,
   padding: "36px 32px",
-  boxShadow: "0 20px 60px -30px rgba(20,19,31,0.35)",
+  boxShadow: "none",
   border: "1px solid rgba(255,255,255,0.4)",
 };
 
@@ -256,7 +256,7 @@ const ctaBtn: React.CSSProperties = {
   fontSize: 15,
   border: "none",
   cursor: "pointer",
-  boxShadow: "0 8px 24px -12px rgba(231,123,86,0.6)",
+  boxShadow: "none",
 };
 
 function pillBtn(active: boolean): React.CSSProperties {

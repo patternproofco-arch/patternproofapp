@@ -181,7 +181,7 @@ const cardStyle: React.CSSProperties = {
   borderRadius: 20,
   padding: "36px 32px",
   borderLeft: "4px solid #7A9B6E",
-  boxShadow: "0 20px 60px -30px rgba(62,90,51,0.30)",
+  boxShadow: "none",
 };
 const backLink: React.CSSProperties = {
   display: "inline-flex",
@@ -219,7 +219,7 @@ const ctaBtn: React.CSSProperties = {
   fontSize: 15,
   border: "none",
   cursor: "pointer",
-  boxShadow: "0 8px 24px -12px rgba(62,90,51,0.5)",
+  boxShadow: "none",
 };
 function pillBtn(active: boolean): React.CSSProperties {
   return {

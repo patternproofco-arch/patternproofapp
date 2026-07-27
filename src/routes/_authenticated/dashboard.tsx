@@ -424,7 +424,7 @@ function CourtCalendarCard() {
         background: "rgba(255,255,255,0.2)",
         backdropFilter: "blur(18px) saturate(140%)",
         border: "1px solid rgba(255,255,255,0.45)",
-        boxShadow: "0 8px 26px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.7)",
+        boxShadow: "none",
       }}
     >
       <div className="flex items-start justify-between gap-3">

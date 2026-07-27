@@ -85,7 +85,7 @@ function AbuserTacticsPage() {
               background: "var(--sidebar)",
               color: "var(--sidebar-active)",
               letterSpacing: "0.02em",
-              boxShadow: "0 6px 18px rgba(26,20,14,0.22)",
+              boxShadow: "none",
             }}
           >
             {busy ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}

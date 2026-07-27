@@ -40,7 +40,7 @@ export function QuickExitButton() {
       style={{
         background: "#B7D8B0", /* pastel green */
         color: "#1F3A1B",
-        boxShadow: "0 4px 14px rgba(31,26,20,0.18)",
+        boxShadow: "none",
         letterSpacing: "0.04em",
         touchAction: "none",
         cursor: "grab",
