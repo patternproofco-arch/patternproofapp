@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Check, ExternalLink, Lock, Star, Plug, Clock } from "lucide-react";
 import { createPortalSession } from "@/lib/payments.functions";
+import { getClioStatus, startClioConnect, disconnectClio } from "@/lib/clio.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 
