@@ -4,7 +4,7 @@ import {
   Files, BookOpen, Scale,
   Settings as SettingsIcon, LogOut, X,
   PanelLeftClose, PanelLeftOpen, GripVertical, EyeOff, Eye,
-  Search as SearchIcon, MessageSquare,
+  Search as SearchIcon, MessageSquare, LifeBuoy,
 } from "lucide-react";
 import { useEffect, useState, type ReactElement } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +62,7 @@ const OVERFLOW = [
   { to: "/share-with-attorney", label: "Attorney Portal",     Icon: Scale },
   { to: "/attorney-portal",     label: "Shared with attorney", Icon: Scale },
   { to: "/settings",            label: "Settings",            Icon: SettingsIcon },
+  { to: "/support",             label: "Support",             Icon: LifeBuoy },
 ];
 
 function useScrollDir() {
