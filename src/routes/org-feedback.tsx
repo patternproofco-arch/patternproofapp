@@ -80,7 +80,7 @@ function OrgFeedbackPage() {
 
           {done ? (
             <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 999, background: "rgba(122,155,110,0.20)", color: "#3E5A33", fontWeight: 700, fontSize: 13, marginTop: 20 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 2, background: "rgba(127,161,137,0.20)", color: "#3E5A33", fontWeight: 700, fontSize: 13, marginTop: 20 }}>
                 <Check size={16} /> Received
               </div>
               <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.02em", margin: "16px 0 12px", color: "#1F2D1A" }}>
@@ -213,7 +213,7 @@ const inputStyle: React.CSSProperties = {
 const ctaBtn: React.CSSProperties = {
   padding: "14px 26px",
   borderRadius: 999,
-  background: "#3E5A33",
+  background: "#7FA189",
   color: "#FFFFFF",
   fontWeight: 700,
   fontSize: 15,
@@ -225,8 +225,8 @@ function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
     borderRadius: 999,
-    border: active ? "1px solid #3E5A33" : "1px solid rgba(62,90,51,0.25)",
-    background: active ? "#3E5A33" : "#FFFFFF",
+    border: active ? "1px solid #7FA189" : "1px solid rgba(62,90,51,0.25)",
+    background: active ? "#7FA189" : "#FFFFFF",
     color: active ? "#FFFFFF" : "#1F2D1A",
     fontWeight: 600,
     fontSize: 13,
