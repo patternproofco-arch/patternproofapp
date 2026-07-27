@@ -148,6 +148,95 @@ function BillingPage() {
           </div>
         </div>
       </div>
+
+      <ClioPanel />
+    </div>
+  );
+}
+
+type ClioState =
+  | { connected: false }
+  | { connected: true; firmName: string | null; email: string | null; connectedAt: string };
+
+function ClioPanel() {
+  const statusFn = useServerFn(getClioStatus);
+  const connectFn = useServerFn(startClioConnect);
+  const disconnectFn = useServerFn(disconnectClio);
+  const [state, setState] = useState<ClioState | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setState((await statusFn({})) as ClioState);
+    } catch {
+      setState({ connected: false });
+    }
+  }, [statusFn]);
+
+  useEffect(() => {
+    void load();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("clio") === "connected") toast("Connected to Clio.");
+    if (params.get("clio") === "error") toast(params.get("reason") || "We couldn't finish connecting Clio.");
+  }, [load]);
+
+  const connect = async () => {
+    setBusy(true);
+    try {
+      const { url } = await connectFn({});
+      window.location.href = url;
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "We couldn't start the Clio connection.");
+      setBusy(false);
+    }
+  };
+
+  const disconnect = async () => {
+    setBusy(true);
+    try {
+      await disconnectFn({});
+      toast("Clio disconnected. Your ZIP exports still work.");
+      await load();
+    } catch {
+      toast("We couldn't disconnect Clio. Try again in a moment.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="att-card">
+      <div className="att-eyebrow">Integrations</div>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+          <div style={{ width: 44, height: 44, borderRadius: 10, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
+            <Plug size={20} />
+          </div>
+          <div>
+            <div style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 20, color: "var(--att-navy)" }}>
+              {state?.connected ? `Connected to Clio${state.firmName ? ` as ${state.firmName}` : ""}` : "Clio"}
+            </div>
+            <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
+              {state === null
+                ? "Checking connection…"
+                : state.connected
+                  ? `${state.email ?? "Signed in"} · connected ${new Date(state.connectedAt).toLocaleDateString()}`
+                  : "Link your Clio account. The ZIP import package stays available either way."}
+            </div>
+          </div>
+        </div>
+        <div>
+          {state?.connected ? (
+            <button className="att-btn-secondary" onClick={disconnect} disabled={busy}>
+              {busy ? "Working…" : "Disconnect"}
+            </button>
+          ) : (
+            <button className="att-btn-primary" onClick={connect} disabled={busy || state === null}>
+              {busy ? "Opening Clio…" : "Connect to Clio"}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
