@@ -394,7 +394,7 @@ function TierCard({ tier }: { tier: Tier }) {
         border,
         borderRadius: 24,
         padding: 36,
-        boxShadow: tier.featured ? glow : "0 8px 32px rgba(26,23,20,0.08)",
+        boxShadow: "none",
         display: "flex",
         flexDirection: "column",
         position: "relative",

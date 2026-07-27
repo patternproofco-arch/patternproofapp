@@ -152,7 +152,7 @@ export function FloatingRecordButton() {
             height: 14,
             borderRadius: 999,
             background: isRecording ? "#FFFFFF" : "#E25C5C",
-            boxShadow: isRecording ? "0 0 0 3px rgba(255,255,255,0.25)" : "0 0 0 3px rgba(226,92,92,0.25)",
+            boxShadow: "none",
             display: "inline-block",
           }}
         />

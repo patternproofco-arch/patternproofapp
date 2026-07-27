@@ -548,7 +548,7 @@ function TierCard({ eyebrow, title, body, hint, accent, Icon, cta, onClick, reco
         borderRadius: 0, padding: 22,
         background: "#F7F5F0",
         border: `1px solid ${accent}44`,
-        boxShadow: recommended ? `0 20px 44px -22px ${accent}80` : `0 12px 32px -22px ${accent}55`,
+        boxShadow: "none",
         display: "flex", flexDirection: "column", gap: 10,
       }}>
       {recommended && (
