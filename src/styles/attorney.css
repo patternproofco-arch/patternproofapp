@@ -9,18 +9,18 @@
    ============================================================ */
 
 .att-root {
-  --att-bg: #F2F4F8;
+  --att-bg: #F4F5F7;
   --att-surface: #FFFFFF;
   --att-surface-2: #F7F9FC;
-  --att-border: #DDE3EC;
-  --att-border-strong: #C3CCDA;
+  --att-border: rgba(20,19,31,0.14);
+  --att-border-strong: rgba(20,19,31,0.24);
   --att-navy: #152038;
   --att-navy-mid: #22314F;
   --att-navy-deep: #0E1729;
   --att-slate: #63708A;
-  --att-text: #131C2E;
+  --att-text: #14131F;
   --att-text-2: #4C596F;
-  --att-muted: #8C97A9;
+  --att-muted: #8A8894;
 
   /* single restrained accent — muted gold, actions & status only */
   --att-accent: #A8792F;
@@ -29,14 +29,16 @@
   --att-accent-border: #E7D3AC;
 
   /* status (kept muted, used for data state not decoration) */
-  --att-green: #2F7D5E;
+  --att-green: #0F6E56;
   --att-amber: #A8792F;
-  --att-red: #A83A33;
-  --att-blue: #2F4A78;      /* legacy alias → steel navy, no bright blue */
+  --att-red: #8A5A2E;
+  --att-blue: #152038;      /* legacy alias → navy */
   --att-pp-pink: #A8792F;
 
   background: var(--att-bg);
   color: var(--att-text);
+  --pp-accent: #152038;
+  --pp-accent-fg: #FFFFFF;
   font-family: "IBM Plex Sans", system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.45;
@@ -79,19 +81,19 @@
 .att-card {
   background: var(--att-surface);
   border: 1px solid var(--att-border);
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(19,28,46,0.04);
+  border-radius: 2px;
+  box-shadow: none;
   padding: 14px 16px;
   transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 .att-card.att-hover:hover {
-  box-shadow: 0 2px 8px rgba(19,28,46,0.07);
+  box-shadow: none;
   border-color: var(--att-border-strong);
 }
 .att-panel {
   background: var(--att-surface);
   border: 1px solid var(--att-border);
-  border-radius: 4px;
+  border-radius: 2px;
   overflow: hidden;
 }
 .att-panel-head {
@@ -119,7 +121,7 @@
 /* ---------- buttons ---------- */
 .att-btn-primary, .att-btn-secondary, .att-btn-export, .att-btn-ghost, .att-btn-accent {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 7px 13px; border-radius: 3px;
+  padding: 7px 13px; border-radius: 2px;
   font-weight: 600; font-size: 12.5px;
   cursor: pointer; transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
   border: 1px solid transparent;
@@ -152,14 +154,14 @@
 }
 .att-btn-ghost:hover { background: #E9EDF4; color: var(--att-text); }
 
-.att-btn-xs { padding: 4px 8px; font-size: 11.5px; border-radius: 3px; }
+.att-btn-xs { padding: 4px 8px; font-size: 11.5px; border-radius: 2px; }
 
 /* ---------- inputs ---------- */
 .att-input, .att-select, .att-textarea {
   width: 100%;
   background: var(--att-surface);
   border: 1px solid var(--att-border-strong);
-  border-radius: 3px;
+  border-radius: 2px;
   padding: 7px 10px;
   font-size: 12.5px;
   font-family: inherit;
@@ -177,7 +179,7 @@
 .att-kbd {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 10px; color: var(--att-slate);
-  border: 1px solid var(--att-border-strong); border-radius: 3px;
+  border: 1px solid var(--att-border-strong); border-radius: 2px;
   padding: 1px 4px; background: var(--att-surface-2);
 }
 
@@ -187,9 +189,9 @@
   padding: 9px 10px;
   background: var(--att-surface);
   border: 1px solid var(--att-border);
-  border-radius: 4px;
+  border-radius: 2px;
 }
-.att-seg { display: inline-flex; border: 1px solid var(--att-border-strong); border-radius: 3px; overflow: hidden; }
+.att-seg { display: inline-flex; border: 1px solid var(--att-border-strong); border-radius: 2px; overflow: hidden; }
 .att-seg button {
   padding: 5px 10px; font-size: 11.5px; font-weight: 600; font-family: inherit;
   background: var(--att-surface); color: var(--att-text-2);
@@ -236,23 +238,23 @@
 /* ---------- tags / badges ---------- */
 .att-tag {
   display: inline-flex; align-items: center;
-  padding: 2px 7px; border-radius: 3px;
+  padding: 2px 7px; border-radius: 2px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 10px; font-weight: 500;
   letter-spacing: 0.06em; text-transform: uppercase;
   white-space: nowrap;
 }
-.att-tag-physical   { background: #F6E7E5; color: #8E322C; }
+.att-tag-physical   { background: transparent; border: 1px solid rgba(20,19,31,0.20); color: #8A5A2E; }
 .att-tag-verbal,
-.att-tag-emotional  { background: #F3E9EF; color: #7C3355; }
-.att-tag-financial  { background: #E7ECF5; color: #2F4A78; }
-.att-tag-digital    { background: #ECEAF3; color: #453C6B; }
-.att-tag-coercive   { background: #F7EFDF; color: #7C5A1E; }
-.att-tag-custody    { background: #E5EFE9; color: #275D46; }
-.att-tag-other      { background: #E9EDF4; color: #3C475C; }
-.att-tag-pattern    { background: #E5EFE9; color: #275D46; }
+.att-tag-emotional  { background: transparent; border: 1px solid rgba(20,19,31,0.20); color: #152038; }
+.att-tag-financial  { background: transparent; border: 1px solid rgba(20,19,31,0.20); color: #152038; }
+.att-tag-digital    { background: transparent; border: 1px solid rgba(20,19,31,0.20); color: #152038; }
+.att-tag-coercive   { background: transparent; border: 1px solid rgba(20,19,31,0.20); color: #A8792F; }
+.att-tag-custody    { background: transparent; border: 1px solid rgba(20,19,31,0.20); color: #0F6E56; }
+.att-tag-other      { background: transparent; border: 1px solid rgba(20,19,31,0.20); color: #8A8894; }
+.att-tag-pattern    { background: transparent; border: 1px solid rgba(20,19,31,0.20); color: #0F6E56; }
 .att-tag-auth {
-  background: #E5EFE9; color: #275D46;
+  background: transparent; border: 1px solid rgba(20,19,31,0.20); color: #0F6E56;
   font-size: 10px; font-weight: 600; padding: 2px 6px;
 }
 
@@ -260,7 +262,7 @@
 .att-badge {
   display: inline-flex; align-items: center; gap: 4px;
   min-width: 22px; justify-content: center;
-  padding: 1px 6px; border-radius: 3px;
+  padding: 1px 6px; border-radius: 2px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 11px; font-weight: 500;
   border: 1px solid var(--att-border-strong);
@@ -268,7 +270,7 @@
 }
 .att-badge--zero { color: var(--att-muted); border-color: var(--att-border); }
 .att-badge--flag { background: var(--att-accent-soft); border-color: var(--att-accent-border); color: #7C5A1E; }
-.att-badge--navy { background: #E7ECF5; border-color: #C7D2E5; color: var(--att-navy); }
+.att-badge--navy { background: transparent; border-color: rgba(21,32,56,0.3); color: var(--att-navy); }
 
 /* ---------- top nav ---------- */
 .att-nav {
@@ -283,6 +285,8 @@
 .att-nav-brand {
   display: inline-flex; align-items: center; gap: 8px;
   color: #fff;
+  --pp-accent: #152038;
+  --pp-accent-fg: #FFFFFF;
   font-family: "IBM Plex Sans", system-ui, sans-serif;
   font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
   text-decoration: none;
@@ -291,7 +295,7 @@
 .att-nav-tab {
   color: rgba(255,255,255,0.66);
   font-size: 12.5px; font-weight: 500;
-  padding: 5px 10px; border-radius: 3px;
+  padding: 5px 10px; border-radius: 2px;
   transition: background 0.12s ease, color 0.12s ease;
   text-decoration: none;
   background: transparent; border: none; cursor: pointer; font-family: inherit;
@@ -347,14 +351,14 @@
 /* ---------- severity bar ---------- */
 .att-severity-bar { display: flex; height: 5px; border-radius: 2px; overflow: hidden; background: var(--att-border); }
 .att-severity-bar > span { display: block; height: 100%; }
-.att-sev-low      { background: #2F7D5E; }
-.att-sev-moderate { background: #C9A244; }
+.att-sev-low      { background: #0F6E56; }
+.att-sev-moderate { background: #3A4FA8; }
 .att-sev-high     { background: #A8792F; }
-.att-sev-critical { background: #A83A33; }
+.att-sev-critical { background: #8A5A2E; }
 
 /* ---------- utility ---------- */
 .att-divider { height: 1px; background: var(--att-border); margin: 10px 0; }
-.att-kpi-strip { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 1px; background: var(--att-border); border: 1px solid var(--att-border); border-radius: 4px; overflow: hidden; }
+.att-kpi-strip { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 1px; background: var(--att-border); border: 1px solid var(--att-border); border-radius: 2px; overflow: hidden; }
 .att-kpi { background: var(--att-surface); padding: 10px 12px; }
 .att-kpi-value { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 20px; font-weight: 500; color: var(--att-text); font-variant-numeric: tabular-nums; }
 
