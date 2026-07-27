@@ -217,7 +217,7 @@ function PricingPage() {
               alignItems: "center",
               gap: 8,
               padding: "6px 14px",
-              borderRadius: 999,
+              borderRadius: 2,
               background: "rgba(255,255,255,0.6)",
               border: "1px solid rgba(20,23,31,0.08)",
               backdropFilter: "none",
@@ -234,7 +234,7 @@ function PricingPage() {
               style={{
                 width: 6,
                 height: 6,
-                borderRadius: 999,
+                borderRadius: 2,
                 background: "#4E8C8A",
               }}
             />

@@ -115,7 +115,7 @@ function RequestOrgAccess() {
               </div>
               <button
                 type="submit"
-                style={{ marginTop: 8, padding: "14px 24px", borderRadius: 999, background: "#3D72B8", color: "#FFFFFF", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
+                style={{ marginTop: 8, padding: "14px 24px", borderRadius: 2, background: "#7FA189", color: "#14131F", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
               >
                 Request org access
               </button>

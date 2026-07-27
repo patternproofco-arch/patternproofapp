@@ -175,7 +175,7 @@ function Chip({ value, warn }: { value: number | string; warn?: boolean }) {
       justifyContent: "center",
       minWidth: 32,
       padding: "2px 8px",
-      borderRadius: 999,
+      borderRadius: 2,
       fontSize: 12,
       fontWeight: 600,
       background: warn ? "rgba(231, 123, 86, 0.15)" : "transparent",

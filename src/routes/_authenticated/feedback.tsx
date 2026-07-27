@@ -75,7 +75,7 @@ function SurvivorFeedbackPage() {
     return (
       <div style={pageWrap}>
         <div style={cardStyle}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 999, background: "rgba(189,230,212,0.35)", color: "#1E5A3E", fontWeight: 700, fontSize: 13, marginBottom: 18 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 2, background: "rgba(189,230,212,0.35)", color: "#1E5A3E", fontWeight: 700, fontSize: 13, marginBottom: 18 }}>
             <Check size={16} /> Thank you
           </div>
           <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px", color: "#14131F" }}>
@@ -249,7 +249,7 @@ const inputStyle: React.CSSProperties = {
 
 const ctaBtn: React.CSSProperties = {
   padding: "14px 28px",
-  borderRadius: 999,
+  borderRadius: 2,
   background: "#5B4CD6",
   color: "#FFFFFF",
   fontWeight: 700,
@@ -262,7 +262,7 @@ const ctaBtn: React.CSSProperties = {
 function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
-    borderRadius: 999,
+    borderRadius: 2,
     border: active ? "1px solid #5B4CD6" : "1px solid rgba(20,19,31,0.25)",
     background: active ? "#5B4CD6" : "#F7F5F0",
     color: active ? "#FFFFFF" : "#14131F",

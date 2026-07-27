@@ -73,7 +73,7 @@ function StatusChip({ item }: { item: PreservationReceiptItem }) {
         alignItems: "center",
         gap: 6,
         padding: "3px 8px",
-        borderRadius: 999,
+        borderRadius: 2,
         fontSize: 11,
         fontWeight: 600,
         background: m.bg,

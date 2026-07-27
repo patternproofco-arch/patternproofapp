@@ -310,7 +310,7 @@ function ShareWithAttorney() {
                     {(unread[l.id] ?? 0) > 0 && (
                       <span style={{
                         marginLeft: 4, background: "var(--primary)", color: "#fff",
-                        borderRadius: 999, fontSize: 10, padding: "1px 6px", fontWeight: 600,
+                        borderRadius: 2, fontSize: 10, padding: "1px 6px", fontWeight: 600,
                       }}>{unread[l.id]}</span>
                     )}
                   </button>

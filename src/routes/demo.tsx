@@ -178,7 +178,7 @@ const TYPE_COLORS: Record<string, string> = {
 
 function TypeBadge({ t }: { t: string }) {
   const color = TYPE_COLORS[t] ?? "#5A5469";
-  return <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 999, background: color + "18", color, border: "1px solid " + color + "30" }}>{t}</span>;
+  return <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 2, background: color + "18", color, border: "1px solid " + color + "30" }}>{t}</span>;
 }
 
 function formatDate(iso: string) {

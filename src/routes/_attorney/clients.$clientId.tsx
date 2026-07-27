@@ -1205,7 +1205,7 @@ function ReviewStatusBadge({ status }: { status: string }) {
   };
   const m = map[status] ?? map.unsure;
   return (
-    <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 999, background: m.bg, color: m.fg, fontWeight: 600, letterSpacing: 0.3 }}>
+    <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 2, background: m.bg, color: m.fg, fontWeight: 600, letterSpacing: 0.3 }}>
       {m.label.toUpperCase()}
     </span>
   );

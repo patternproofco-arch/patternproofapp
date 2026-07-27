@@ -250,7 +250,7 @@ const errorText = { fontSize: 13.5, color: "#5B4CD6", margin: "0 0 12px", lineHe
 
 const submitBtn = {
   background: "#14131F", color: "#F7F5F0", border: "none",
-  borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 600,
+  borderRadius: 2, padding: "11px 22px", fontSize: 14, fontWeight: 600,
   cursor: "pointer", fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
 } as const;
 
@@ -265,7 +265,7 @@ const emailText = { fontFamily: "'IBM Plex Mono', monospace", fontSize: 14, colo
 const copyBtn = {
   display: "inline-flex", alignItems: "center", gap: 6,
   background: "#F7F5F0", border: "1px solid rgba(20,19,31,0.16)",
-  borderRadius: 999, padding: "6px 12px", fontSize: 12.5, fontWeight: 600,
+  borderRadius: 2, padding: "6px 12px", fontSize: 12.5, fontWeight: 600,
   color: "#14131F", cursor: "pointer",
 } as const;
 
