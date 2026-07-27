@@ -120,7 +120,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
     <div
       className="h-[calc(100vh-2rem)] rounded-2xl flex flex-col overflow-hidden"
       style={{
-        background: "linear-gradient(180deg, #FFFFFF 0%, #FBFEFC 60%, #F4FBF7 100%)",
+        background: "#FFFFFF",
         border: "1px solid #EAF7EF",
         boxShadow: "0 8px 30px -22px rgba(31,41,51,0.18)",
       }}
@@ -146,7 +146,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               <div
                 className="rounded-2xl p-5 sm:p-6 space-y-3"
                 style={{
-                  background: "linear-gradient(135deg, #EAF7EF 0%, #F1ECFF 100%)",
+                  background: "#FFFFFF",
                   border: "1px solid #D8F0E0",
                 }}
               >
@@ -184,7 +184,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                   <div
                     className="max-w-[82%] rounded-2xl px-4 py-2.5 text-[15px] whitespace-pre-wrap"
                     style={{
-                      background: "linear-gradient(135deg, #D8F0E0 0%, #E4DDFF 100%)",
+                      background: "transparent",
                       color: "#1F2933",
                       border: "1px solid #D8F0E0",
                     }}
@@ -277,7 +277,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                 disabled={busy || !input.trim()}
                 className="rounded-full p-2.5 transition-all disabled:opacity-40"
                 style={{
-                  background: "linear-gradient(135deg, #4FAFA7 0%, #C9B8FF 140%)",
+                  background: "#5B4CD6",
                   color: "#FFFFFF",
                   boxShadow: "0 4px 14px -4px rgba(79,175,167,0.45)",
                 }}

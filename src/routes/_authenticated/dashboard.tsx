@@ -225,7 +225,7 @@ function Dashboard() {
               to="/evidence"
               aria-label="Upload evidence"
               className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-[15px] font-semibold text-white shadow-[0_10px_30px_rgba(47,141,133,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(47,141,133,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={{ background: "linear-gradient(135deg, #2F8D85 0%, #5B7CC4 100%)" }}
+              style={{ background: "#5B4CD6" }}
             >
               <UploadCloud size={18} /> Upload Evidence
             </Link>
@@ -285,7 +285,7 @@ function Dashboard() {
           to="/evidence"
           aria-label="Upload evidence"
           className="flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-[15px] font-semibold text-white shadow-[0_14px_36px_rgba(47,141,133,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          style={{ background: "linear-gradient(135deg, #2F8D85 0%, #5B7CC4 100%)" }}
+          style={{ background: "#5B4CD6" }}
         >
           <UploadCloud size={18} /> Upload Evidence
         </Link>
@@ -322,7 +322,7 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
       className={`group relative block h-full ${compact ? "min-h-0" : "min-h-[200px]"} rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B7CC4] focus-visible:ring-offset-2`}
       style={{
         background: featured
-          ? "linear-gradient(135deg, rgba(47,141,133,0.22), rgba(91,124,196,0.18))"
+          ? "#FFFFFF"
           : "rgba(255, 255, 255, 0.2)",
         backdropFilter: "blur(18px) saturate(140%)",
         border: featured ? "1.5px solid rgba(47,141,133,0.45)" : "1px solid rgba(255, 255, 255, 0.45)",
@@ -636,7 +636,7 @@ function AddCourtDateForm({ onSaved }: { onSaved: () => void }) {
           type="submit"
           disabled={saving}
           className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-semibold text-white disabled:opacity-60"
-          style={{ background: "linear-gradient(135deg, #2F8D85 0%, #5B7CC4 100%)" }}
+          style={{ background: "#5B4CD6" }}
         >
           {saving ? "Saving…" : "Save date"}
         </button>
@@ -665,7 +665,7 @@ function ymd(d: Date) {
 function IridescentBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, #F6F8FF 0%, #EEF4F5 100%)" }} />
+      <div className="absolute inset-0" style={{ background: "#F7F5F0" }} />
       <div className="absolute -left-32 -top-24 h-[420px] w-[420px] rounded-full"
         style={{ background: "radial-gradient(circle, rgba(159,216,210,0.55), transparent 65%)", filter: "blur(20px)" }} />
       <div className="absolute right-[-120px] top-[10%] h-[480px] w-[480px] rounded-full"

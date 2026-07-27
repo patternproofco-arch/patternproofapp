@@ -253,7 +253,7 @@ function PricingPage() {
             <br />
             <span
               style={{
-                background: "linear-gradient(90deg,#2F8D85,#7C5CC4)",
+                background: "#5B4CD6",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -358,10 +358,10 @@ function TierCard({ tier }: { tier: Tier }) {
   const isOrg = tier.key === "organization";
 
   const cardBg = isAttorney
-    ? "radial-gradient(ellipse 90% 70% at 80% 0%, rgba(80,130,230,0.30), transparent 60%), linear-gradient(160deg, #0F1B3D 0%, #1B2A4A 100%)"
+    ? "#152038"
     : isOrg
-      ? "radial-gradient(ellipse 90% 70% at 80% 0%, rgba(140,180,120,0.28), transparent 60%), linear-gradient(160deg, #EEF3E8 0%, #DCE7D2 100%)"
-      : "linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(248,243,255,0.88) 100%)";
+      ? "#FFFFFF"
+      : "#FFFFFF";
 
   const border = isAttorney
     ? "1px solid rgba(181,199,240,0.18)"
@@ -383,8 +383,8 @@ function TierCard({ tier }: { tier: Tier }) {
   const ctaBg = isAttorney
     ? "#FFFFFF"
     : isOrg
-      ? "linear-gradient(90deg,#5A7A4F,#7A9B6E)"
-      : "linear-gradient(90deg,#2F8D85,#7C5CC4)";
+      ? "#7FA189"
+      : "#5B4CD6";
   const ctaColor = isAttorney ? "#0F1B3D" : "#FFFFFF";
 
   return (

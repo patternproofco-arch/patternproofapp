@@ -317,13 +317,13 @@ function EvidencePage() {
         to="/message-threads"
         className="mt-5 flex items-start gap-3 rounded-2xl p-4"
         style={{
-          background: "linear-gradient(135deg, rgba(196,167,255,0.16), rgba(164,255,239,0.16))",
+          background: "#FFFFFF",
           border: "1px solid rgba(124,92,196,0.22)",
           color: "var(--foreground)",
           textDecoration: "none",
         }}
       >
-        <div style={{ width: 38, height: 38, borderRadius: 12, background: "linear-gradient(135deg,#E2DCFA,#C7E9E3)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+        <div style={{ width: 38, height: 38, borderRadius: 12, background: "transparent", display: "grid", placeItems: "center", flexShrink: 0 }}>
           <MessageSquare size={18} color="#3D2C5C" />
         </div>
         <div style={{ flex: 1 }}>

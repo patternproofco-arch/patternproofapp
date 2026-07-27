@@ -174,7 +174,7 @@ const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "60px 24px 100px",
   background:
-    "radial-gradient(ellipse 70% 55% at 85% 0%, rgba(140,180,120,0.32), transparent 60%), radial-gradient(ellipse 70% 55% at 15% 100%, rgba(168,194,155,0.28), transparent 60%), linear-gradient(180deg, #EFF3E8 0%, #DCE7D2 60%, #C9D8BB 100%)",
+    "#F7F5F0",
 };
 const cardStyle: React.CSSProperties = {
   background: "#FFFFFF",
