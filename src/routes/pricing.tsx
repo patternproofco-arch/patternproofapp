@@ -392,15 +392,13 @@ function TierCard({ tier }: { tier: Tier }) {
       style={{
         background: cardBg,
         border,
-        borderRadius: 24,
+        borderRadius: 2,
         padding: 36,
         boxShadow: "none",
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
       }}
-      className="card-lift"
     >
       {tier.featured && (
         <div
@@ -410,9 +408,9 @@ function TierCard({ tier }: { tier: Tier }) {
             left: "50%",
             transform: "translateX(-50%)",
             background: "#152038",
-            color: "#0F1B3D",
+            color: "#F7F5F0",
             padding: "6px 16px",
-            borderRadius: 999,
+            borderRadius: 2,
             fontSize: 11,
             fontWeight: 700,
             letterSpacing: "0.12em",
