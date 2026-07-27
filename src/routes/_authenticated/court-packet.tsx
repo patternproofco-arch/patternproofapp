@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { typeLabel } from "@/lib/abuse-types";
 import { useSubscription } from "@/hooks/useSubscription";
+import { AppMark } from "@/components/brand/AppMark";
 
 export const Route = createFileRoute("/_authenticated/court-packet")({
   component: CourtPacket,
