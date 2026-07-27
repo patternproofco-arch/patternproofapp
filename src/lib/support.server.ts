@@ -27,6 +27,30 @@ export async function enqueueSupportEmail(input: {
       typeof template.subject === "function" ? template.subject(props) : template.subject;
 
     const messageId = crypto.randomUUID();
+
+    // The email API requires an unsubscribe token for every transactional send.
+    const inbox = template.to!.toLowerCase();
+    const { data: existing } = await supabaseAdmin
+      .from("email_unsubscribe_tokens")
+      .select("token")
+      .eq("email", inbox)
+      .maybeSingle();
+    let unsubscribeToken = existing?.token;
+    if (!unsubscribeToken) {
+      const bytes = new Uint8Array(32);
+      crypto.getRandomValues(bytes);
+      const fresh = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+      await supabaseAdmin
+        .from("email_unsubscribe_tokens")
+        .upsert({ token: fresh, email: inbox }, { onConflict: "email", ignoreDuplicates: true });
+      const { data: stored } = await supabaseAdmin
+        .from("email_unsubscribe_tokens")
+        .select("token")
+        .eq("email", inbox)
+        .maybeSingle();
+      unsubscribeToken = stored?.token ?? fresh;
+    }
+
     await supabaseAdmin.from("email_send_log").insert({
       message_id: messageId,
       template_name: "support-request",
@@ -48,6 +72,7 @@ export async function enqueueSupportEmail(input: {
         purpose: "transactional",
         label: "support-request",
         idempotency_key: `support-request-${input.id}`,
+        unsubscribe_token: unsubscribeToken,
         queued_at: new Date().toISOString(),
       },
     });
