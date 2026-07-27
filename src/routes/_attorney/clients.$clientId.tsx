@@ -835,7 +835,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
       {!firmSet ? (
         <div className="att-card" style={{ background: "#FFFFFF", borderColor: "#FCD34D" }}>
           <div style={{ fontSize: 13 }}>
-            Set your firm in <Link to="/settings" style={{ color: "#1D4ED8", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
+            Set your firm in <Link to="/settings" style={{ color: "#152038", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
           </div>
         </div>
       ) : (
@@ -1200,7 +1200,7 @@ function ReviewStatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; bg: string; fg: string }> = {
     confirmed: { label: "Confirmed", bg: "#DCFCE7", fg: "#166534" },
     rejected:  { label: "Rejected",  bg: "#FFFFFF", fg: "#991B1B" },
-    edited:    { label: "Edited",    bg: "#DBEAFE", fg: "#1E40AF" },
+    edited:    { label: "Edited",    bg: "#FFFFFF", fg: "#3A4FA8" },
     unsure:    { label: "Unreviewed",bg: "#F1F5F9", fg: "#475569" },
   };
   const m = map[status] ?? map.unsure;
@@ -1539,7 +1539,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
     { value: "needs_context", label: "Needs context", color: "#8A8894" },
     { value: "duplicate", label: "Duplicate", color: "#8A8894" },
     { value: "exclude", label: "Exclude", color: "#8A5A2E" },
-    { value: "privileged", label: "Privileged", color: "#8B5CF6" },
+    { value: "privileged", label: "Privileged", color: "#152038" },
     { value: "exhibit_candidate", label: "Exhibit candidate", color: "#2D4A8A" },
   ];
   const statusMeta = (v: string) => STATUS_OPTIONS.find((s) => s.value === v) ?? STATUS_OPTIONS[0];
