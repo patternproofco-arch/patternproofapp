@@ -402,10 +402,15 @@ textarea.input-pp { min-height: 130px; resize: vertical; line-height: 1.95; font
   transition: grid-template-rows 280ms cubic-bezier(0.22, 1, 0.36, 1),
               opacity 220ms ease;
   opacity: 0;
+  /* Closed content stays mounted (so in-progress drafts survive a toggle) but
+     must never be reachable by pointer, and `inert` on the element keeps it out
+     of the tab order and the accessibility tree. */
+  pointer-events: none;
 }
 .collapse-shell[data-open="true"] {
   grid-template-rows: 1fr;
   opacity: 1;
+  pointer-events: auto;
 }
 .collapse-inner { overflow: hidden; min-height: 0; }
 
