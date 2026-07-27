@@ -145,7 +145,7 @@ function CourtPacket() {
               </thead>
               <tbody>
                 {incidents.map((i, idx) => (
-                  <tr key={i.id} style={{ background: idx % 2 ? "#F5E6DF" : "#fff" }}>
+                  <tr key={i.id} style={{ background: idx % 2 ? "#FAFAF8" : "#fff" }}>
                     <td style={td}>{new Date(i.date).toLocaleDateString()}</td>
                     <td style={td}>{i.abuse_types.map(typeLabel).join(", ")}</td>
                     <td style={td}>{i.description}</td>

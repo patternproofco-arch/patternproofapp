@@ -250,7 +250,7 @@ const inputStyle: React.CSSProperties = {
 const ctaBtn: React.CSSProperties = {
   padding: "14px 28px",
   borderRadius: 999,
-  background: "#C5674A",
+  background: "#5B4CD6",
   color: "#FFFFFF",
   fontWeight: 700,
   fontSize: 15,
@@ -263,8 +263,8 @@ function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
     borderRadius: 999,
-    border: active ? "1px solid #C5674A" : "1px solid rgba(20,19,31,0.25)",
-    background: active ? "#C5674A" : "#F7F5F0",
+    border: active ? "1px solid #5B4CD6" : "1px solid rgba(20,19,31,0.25)",
+    background: active ? "#5B4CD6" : "#F7F5F0",
     color: active ? "#FFFFFF" : "#14131F",
     fontWeight: 600,
     fontSize: 14,

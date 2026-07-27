@@ -235,7 +235,7 @@ function PricingPage() {
                 width: 6,
                 height: 6,
                 borderRadius: 999,
-                background: "linear-gradient(90deg,#9ED8D0,#C4B0E8)",
+                background: "#4E8C8A",
               }}
             />
             Simple, transparent pricing
@@ -265,7 +265,7 @@ function PricingPage() {
           <p
             style={{
               fontSize: 17,
-              color: "#6B5D4F",
+              color: "#8A8894",
               maxWidth: 520,
               margin: "0 auto",
               fontWeight: 500,
@@ -375,8 +375,8 @@ function TierCard({ tier }: { tier: Tier }) {
       ? "0 20px 60px -20px rgba(90,122,79,0.35), 0 0 70px -30px rgba(140,180,120,0.45), 0 0 0 1px rgba(122,155,110,0.18)"
       : "0 20px 60px -20px rgba(124,92,196,0.35), 0 0 0 1px rgba(196,176,232,0.30)";
 
-  const textColor = isAttorney ? "#FFFFFF" : isOrg ? "#1F2D1A" : "#2A2218";
-  const mutedColor = isAttorney ? "rgba(226,232,240,0.78)" : isOrg ? "#36422F" : "#6B5D4F";
+  const textColor = isAttorney ? "#FFFFFF" : isOrg ? "#1F2D1A" : "#14131F";
+  const mutedColor = isAttorney ? "rgba(226,232,240,0.78)" : isOrg ? "#36422F" : "#8A8894";
   const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#7C5CC4";
   const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#7C5CC4";
 
@@ -409,7 +409,7 @@ function TierCard({ tier }: { tier: Tier }) {
             top: -12,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "linear-gradient(90deg,#B5C7F0,#9CB3E8)",
+            background: "#152038",
             color: "#0F1B3D",
             padding: "6px 16px",
             borderRadius: 999,
@@ -587,7 +587,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         style={{
           fontSize: 15,
           fontWeight: 700,
-          color: "#2A2218",
+          color: "#14131F",
           marginBottom: 8,
           display: "flex",
           alignItems: "center",
@@ -597,7 +597,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         <HelpCircle size={16} style={{ color: "var(--primary)", flexShrink: 0 }} />
         {q}
       </h4>
-      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6B5D4F", margin: 0 }}>
+      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#8A8894", margin: 0 }}>
         {a}
       </p>
     </div>

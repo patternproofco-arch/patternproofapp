@@ -273,7 +273,7 @@ function MessageThreadsPage() {
             title="Screen recording"
             body="Only when nothing else works — for hundreds of messages you can't screenshot one by one. The video itself is your evidence; the AI transcript is a searchable index only."
             hint="Takes longer and means more time looking at the conversation."
-            accent="#C5674A"
+            accent="#8A5A2E"
             Icon={Video}
             cta="Use screen recording"
             onClick={() => setTier("tier3")}
@@ -417,7 +417,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
     t.parse_status === "parsed" ? "#5B4CD6"
     : t.parse_status === "queued" ? "#5B4CD6"
     : t.parse_status === "partial" ? "#B88B2A"
-    : t.parse_status === "failed" ? "#C5674A"
+    : t.parse_status === "failed" ? "#8A5A2E"
     : "#5B4CD6";
   return (
     <article
@@ -442,7 +442,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
       )}
       {(t.capture_method === "multi_screenshot" || t.capture_method === "screen_recording") && (
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
-          color: "#C5674A", marginBottom: 8 }}>
+          color: "#8A5A2E", marginBottom: 8 }}>
           AI-{t.capture_method === "screen_recording" ? "generated" : "extracted"} — unverified
         </div>
       )}
@@ -500,7 +500,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
 
       {Array.isArray(t.flags) && t.flags.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#C5674A", marginBottom: 8 }}>Flags & patterns</div>
+          <div className="label-eyebrow" style={{ color: "#8A5A2E", marginBottom: 8 }}>Flags & patterns</div>
           <div className="flex flex-wrap gap-2">
             {t.flags.map((f, i) => (
               <span
@@ -510,7 +510,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
                   fontSize: 12, fontWeight: 600,
                   padding: "5px 10px", borderRadius: 0,
                   background: f.severity === "high" ? "#F7DDE3" : f.severity === "medium" ? "#FAEAD3" : "#E4F3EE",
-                  color: f.severity === "high" ? "#C5674A" : f.severity === "medium" ? "#7A5613" : "#1F5E55",
+                  color: f.severity === "high" ? "#8A5A2E" : f.severity === "medium" ? "#8A5A2E" : "#0F6E56",
                 }}
               >
                 {f.label}

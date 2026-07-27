@@ -33,7 +33,7 @@ interface LegalItem {
 }
 
 const LEGAL_COLOR: Record<string, string> = {
-  tro: "#C5674A", fro: "#C5674A",
+  tro: "#8A5A2E", fro: "#8A5A2E",
   police_report: "#5B4CD6", "911_log": "#5B4CD6",
   custody_order: "#A8D8B9", court_order: "#A8D8B9",
   cps_report: "#D2B48C", hearing_transcript: "#B57E60", other: "#B57E60",

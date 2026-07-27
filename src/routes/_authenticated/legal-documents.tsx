@@ -56,15 +56,15 @@ const DOC_TYPES: { value: DocType; label: string }[] = [
 ];
 
 const BADGE: Record<DocType, { label: string; bg: string; fg: string }> = {
-  tro:                { label: "TRO",            bg: "#C5674A", fg: "#14131F" },
-  fro:                { label: "FRO",            bg: "#C5674A", fg: "#14131F" },
+  tro:                { label: "TRO",            bg: "#8A5A2E", fg: "#14131F" },
+  fro:                { label: "FRO",            bg: "#8A5A2E", fg: "#14131F" },
   police_report:      { label: "Police Report",  bg: "#5B4CD6", fg: "#14131F" },
   "911_log":          { label: "911 Log",        bg: "#5B4CD6", fg: "#14131F" },
   custody_order:      { label: "Custody Order",  bg: "#A8D8B9", fg: "#14131F" },
   court_order:        { label: "Court Order",    bg: "#A8D8B9", fg: "#14131F" },
   cps_report:         { label: "CPS",            bg: "#D2B48C", fg: "#14131F" },
-  hearing_transcript: { label: "Transcript",     bg: "#B57E60", fg: "#F5E6DF" },
-  other:              { label: "Other",          bg: "#B57E60", fg: "#F5E6DF" },
+  hearing_transcript: { label: "Transcript",     bg: "#14131F", fg: "#F7F5F0" },
+  other:              { label: "Other",          bg: "#14131F", fg: "#F7F5F0" },
 };
 
 const GROUPS: { label: string; types: DocType[] }[] = [

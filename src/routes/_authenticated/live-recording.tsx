@@ -153,7 +153,7 @@ function LiveRecording() {
               <div className="rounded-xl px-4 py-3" style={{ background: "rgba(242,232,216,0.95)", color: "#2A1A10", border: "1px solid rgba(78,59,49,0.15)" }}>
                 <p className="text-[13px]">This looks like it may have been accidental. Discard it?</p>
                 <div className="mt-2 flex gap-2">
-                  <button onClick={discard} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold" style={{ background: "#B57E60", color: "#F5E6DF" }}>Discard</button>
+                  <button onClick={discard} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold" style={{ background: "#14131F", color: "#F7F5F0" }}>Discard</button>
                   <button onClick={() => setAccidental(null)} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold" style={{ background: "transparent", color: "#2A1A10" }}>Keep it</button>
                 </div>
               </div>
