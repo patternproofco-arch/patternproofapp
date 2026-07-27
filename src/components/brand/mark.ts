@@ -1,11 +1,11 @@
-// Shared constants for the PatternProof nested-cube mark.
+// Shared constants for the PatternProof cube mark.
 //
-// A larger outer cube, blurred (the bigger picture still resolving), around a
-// smaller crisp inner cube (the confirmed truth at the centre). Paper-coloured
-// line art with no fill — it is only visible on a dark backing.
+// An isometric cube drawn in ink line art with a teal top face — teal is the
+// "confirmed" facet: the part of the pattern that is already established.
 
 export const INK = "#14131F";
-export const NAVY = "#152038";
 export const PAPER = "#F7F5F0";
+export const NAVY = "#152038";
+export const TEAL = "#4E8C8A";
 export const PLEX = "'IBM Plex Sans', system-ui, sans-serif";
 export const MONO = "'IBM Plex Mono', ui-monospace, monospace";

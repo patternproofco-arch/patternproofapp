@@ -7,40 +7,27 @@ interface BrandLockupProps {
   className?: string;
   /** Hide the tagline line (tight header placements). */
   showTagline?: boolean;
+  /** Dark surface — strokes and type flip to paper. */
+  onDark?: boolean;
 }
 
 /**
- * Tier 1 — Brand Lockup. MARKETING ONLY.
- *
- * Ink card, paper-coloured nested cube (blurred outer / crisp inner), plus the
- * "PATTERNPROOF" wordmark and tagline.
- *
- * Allowed surfaces: marketing site header/hero, social share images, the
- * attorney one-pager PDF. Never inside the logged-in app, never in the attorney
- * portal, never in exports (use AppMark there).
+ * Tier 1 — Brand Lockup: cube + "PATTERNPROOF" + optional tagline.
+ * Ink on paper, no card, no gradient.
  */
-export function BrandLockup({ size = 92, className, showTagline = true }: BrandLockupProps) {
+export function BrandLockup({ size = 64, className, showTagline = true, onDark = false }: BrandLockupProps) {
+  const fg = onDark ? PAPER : INK;
   return (
-    <div
-      className={className}
-      style={{
-        display: "inline-flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
-        gap: 18,
-        background: INK,
-        padding: `${Math.round(size * 0.34)}px ${Math.round(size * 0.42)}px`,
-      }}
-    >
-      <CubeMark size={size} />
+    <div className={className} style={{ display: "inline-flex", alignItems: "center", gap: 16 }}>
+      <CubeMark size={size} onDark={onDark} />
       <div>
         <div
           style={{
             fontFamily: PLEX,
-            fontWeight: 800,
-            fontSize: Math.max(13, Math.round(size * 0.2)),
-            letterSpacing: "0.18em",
-            color: PAPER,
+            fontWeight: 600,
+            fontSize: Math.max(13, Math.round(size * 0.26)),
+            letterSpacing: "0.2em",
+            color: fg,
             lineHeight: 1.1,
           }}
         >
@@ -49,11 +36,11 @@ export function BrandLockup({ size = 92, className, showTagline = true }: BrandL
         {showTagline && (
           <div
             style={{
-              marginTop: 8,
+              marginTop: 7,
               fontFamily: MONO,
-              fontSize: Math.max(9.5, Math.round(size * 0.115)),
+              fontSize: Math.max(9.5, Math.round(size * 0.145)),
               letterSpacing: "0.14em",
-              color: "rgba(247,245,240,0.62)",
+              color: onDark ? "rgba(247,245,240,0.66)" : "#8A8894",
             }}
           >
             THE PROOF IS IN THE PATTERN
