@@ -49,7 +49,7 @@ export function NotificationBanner() {
       {items.map((n) => (
         <div
           key={n.id}
-          className="flex items-start gap-3 rounded-2xl border px-4 py-3"
+          className="flex items-start gap-3 rounded-[2px] border px-4 py-3"
           style={{
             background: "var(--linen, #F2E8D8)",
             borderColor: "rgba(231,123,86,0.35)",
@@ -63,7 +63,7 @@ export function NotificationBanner() {
           <button
             onClick={() => dismiss(n.id)}
             aria-label="Dismiss"
-            className="rounded-full p-1 transition-opacity hover:opacity-70"
+            className="rounded-[2px] p-1 transition-opacity hover:opacity-70"
           >
             <X size={16} />
           </button>

@@ -45,7 +45,7 @@ function AgentThreadPage() {
   if (initialMessages === null || token === null) {
     return (
       <div
-        className="h-[calc(100vh-2rem)] rounded-2xl flex items-center justify-center"
+        className="h-[calc(100vh-2rem)] rounded-[2px] flex items-center justify-center"
         style={{ background: "#FFFFFF", border: "1px solid #EAF7EF" }}
       >
         <div className="text-sm" style={{ color: "#667085" }}>Opening conversation…</div>
@@ -118,7 +118,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
 
   return (
     <div
-      className="h-[calc(100vh-2rem)] rounded-2xl flex flex-col overflow-hidden"
+      className="h-[calc(100vh-2rem)] rounded-[2px] flex flex-col overflow-hidden"
       style={{
         background: "#FFFFFF",
         border: "1px solid #EAF7EF",
@@ -144,7 +144,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
           {showGreeting && (
             <div className="space-y-5">
               <div
-                className="rounded-2xl p-5 sm:p-6 space-y-3"
+                className="rounded-[2px] p-5 sm:p-6 space-y-3"
                 style={{
                   background: "#FFFFFF",
                   border: "1px solid #D8F0E0",
@@ -152,7 +152,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className="rounded-full p-1.5"
+                    className="rounded-[2px] p-1.5"
                     style={{ background: "#FFFFFF", color: "#4E8C8A", border: "1px solid #D8F0E0" }}
                   >
                     <Sparkles size={14} />
@@ -182,7 +182,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               return (
                 <div key={m.id} className="flex justify-end">
                   <div
-                    className="max-w-[82%] rounded-2xl px-4 py-2.5 text-[15px] whitespace-pre-wrap"
+                    className="max-w-[82%] rounded-[2px] px-4 py-2.5 text-[15px] whitespace-pre-wrap"
                     style={{
                       background: "transparent",
                       color: "#1F2933",
@@ -197,7 +197,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
             return (
               <div key={m.id} className="flex">
                 <div
-                  className="max-w-[90%] rounded-2xl px-5 py-3.5"
+                  className="max-w-[90%] rounded-[2px] px-5 py-3.5"
                   style={{ background: "#FFFFFF", border: "1px solid #EAF7EF", color: "#1F2933" }}
                 >
                   <div className="prose prose-sm max-w-none prose-strong:text-[#1F2933] prose-p:my-2 prose-ul:my-2 prose-li:my-0.5">
@@ -216,7 +216,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
           )}
           {error && (
             <div
-              className="flex items-start gap-2 text-sm rounded-xl px-3 py-2"
+              className="flex items-start gap-2 text-sm rounded-[2px] px-3 py-2"
               style={{ background: "#FDECEF", color: "#9B2C3E", border: "1px solid #F5C2CB" }}
             >
               <ShieldAlert size={16} className="mt-0.5 shrink-0" />
@@ -231,7 +231,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
         <div className="max-w-3xl mx-auto">
           <form onSubmit={(e) => { e.preventDefault(); void handleSend(); }}>
             <div
-              className="flex items-end gap-2 rounded-2xl px-2.5 py-2"
+              className="flex items-end gap-2 rounded-[2px] px-2.5 py-2"
               style={{
                 background: "#FFFFFF",
                 border: "1px solid #D8F0E0",
@@ -240,7 +240,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
             >
               <button
                 type="button"
-                className="rounded-full p-2 transition-colors hover:bg-[#EAF7EF]"
+                className="rounded-[2px] p-2 transition-colors hover:bg-[#EAF7EF]"
                 style={{ color: "#667085" }}
                 aria-label="Attach evidence"
                 title="Attach evidence (upload from Evidence Vault)"
@@ -265,7 +265,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               />
               <button
                 type="button"
-                className="rounded-full p-2 transition-colors hover:bg-[#EAF7EF]"
+                className="rounded-[2px] p-2 transition-colors hover:bg-[#EAF7EF]"
                 style={{ color: "#667085" }}
                 aria-label="Voice note"
                 title="Record a voice note"
@@ -275,7 +275,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               <button
                 type="submit"
                 disabled={busy || !input.trim()}
-                className="rounded-full p-2.5 transition-all disabled:opacity-40"
+                className="rounded-[2px] p-2.5 transition-all disabled:opacity-40"
                 style={{
                   background: "#5B4CD6",
                   color: "#FFFFFF",
@@ -300,7 +300,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                     type="button"
                     onClick={() => handleSend(s)}
                     disabled={busy}
-                    className="text-[13px] rounded-full px-3.5 py-1.5 transition-all hover:bg-[#D8F0E0] disabled:opacity-50"
+                    className="text-[13px] rounded-[2px] px-3.5 py-1.5 transition-all hover:bg-[#D8F0E0] disabled:opacity-50"
                     style={{
                       background: "#EAF7EF",
                       color: "#1F2933",

@@ -144,12 +144,12 @@ function EvidenceReviewPage() {
                         Uploaded: {new Date(it.ingested_at ?? it.created_at).toLocaleString()}
                       </div>
                       {it.match_reason && (
-                        <div className="rounded-md p-2 text-[12px]" style={{ background: "rgba(106,146,214,0.14)", color: "#1f3a68" }}>
+                        <div className="rounded-[2px] p-2 text-[12px]" style={{ background: "rgba(106,146,214,0.14)", color: "#1f3a68" }}>
                           Why it matched: {it.match_reason}
                         </div>
                       )}
                       {inc && (
-                        <div className="rounded-md p-2 text-[13px]" style={{ background: "var(--input)" }}>
+                        <div className="rounded-[2px] p-2 text-[13px]" style={{ background: "var(--input)" }}>
                           <div style={{ fontWeight: 600 }}>Suggested incident · {inc.date}</div>
                           <div className="mt-1 line-clamp-3" style={{ color: "var(--muted-foreground)" }}>
                             {inc.description ?? "(no description)"}

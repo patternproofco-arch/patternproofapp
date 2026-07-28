@@ -42,7 +42,7 @@ export function IncidentCard({
             </span>
             {needsConfirmation && (
               <span
-                className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold"
                 style={{ background: "#FFE4B5", color: "#7A4A00", border: "1px solid rgba(180,120,20,0.35)" }}
                 title="Drafted by AI from an uploaded file. Please review and confirm."
               >
@@ -52,7 +52,7 @@ export function IncidentCard({
             {incident.abuse_types.slice(0, 3).map((t) => (
               <span
                 key={t}
-                className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+                className="rounded-[2px] px-2.5 py-0.5 text-[11px] font-semibold"
                 style={{ background: typeColor(t), color: "#1A1714" }}
               >
                 {typeLabel(t)}
@@ -71,7 +71,7 @@ export function IncidentCard({
             <button
               type="button"
               onClick={() => onConfirm(incident.id)}
-              className="mt-2 rounded-full px-3 py-1 text-[11px] font-semibold"
+              className="mt-2 rounded-[2px] px-3 py-1 text-[11px] font-semibold"
               style={{ background: "var(--primary)", color: "#fff" }}
             >
               Confirm this record

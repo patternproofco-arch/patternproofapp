@@ -330,7 +330,7 @@ function JournalPage() {
           <button
             type="button"
             onClick={() => setJournalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
+            className="inline-flex items-center gap-2 rounded-[2px] px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
             style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
           >
             <BookOpen size={15} />
@@ -339,7 +339,7 @@ function JournalPage() {
           <button
             type="button"
             onClick={() => setBulkOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
+            className="inline-flex items-center gap-2 rounded-[2px] px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
             style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
           >
             <Clock size={15} />
@@ -371,7 +371,7 @@ function JournalPage() {
               return (
                 <li
                   key={`${c.incident_a_id}-${c.incident_b_id}-${c.conflict_type}-${idx}`}
-                  className="rounded-xl p-3"
+                  className="rounded-[2px] p-3"
                   style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(42,37,32,0.08)" }}
                 >
                   <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "#6A7FA8" }}>
@@ -382,7 +382,7 @@ function JournalPage() {
                     <button
                       type="button"
                       onClick={() => edit(a)}
-                      className="rounded-lg p-2 text-left text-[12px] hover:bg-black/5"
+                      className="rounded-[2px] p-2 text-left text-[12px] hover:bg-black/5"
                       style={{ border: "1px solid rgba(42,37,32,0.10)" }}
                     >
                       <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review entry A</div>
@@ -391,7 +391,7 @@ function JournalPage() {
                     <button
                       type="button"
                       onClick={() => edit(b)}
-                      className="rounded-lg p-2 text-left text-[12px] hover:bg-black/5"
+                      className="rounded-[2px] p-2 text-left text-[12px] hover:bg-black/5"
                       style={{ border: "1px solid rgba(42,37,32,0.10)" }}
                     >
                       <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review entry B</div>
@@ -411,7 +411,7 @@ function JournalPage() {
           type="button"
           onClick={() => { setLogOpen((v) => !v); if (!logOpen) setTimeout(() => window.scrollTo({ top: window.scrollY + 80, behavior: "smooth" }), 50); }}
           aria-expanded={logOpen}
-          className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
+          className="inline-flex items-center gap-2 rounded-[2px] px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
           style={{
             background: "var(--primary)",
             color: "#FFFFFF",
@@ -426,7 +426,7 @@ function JournalPage() {
           type="button"
           onClick={() => setListOpen((v) => !v)}
           aria-expanded={listOpen}
-          className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
+          className="inline-flex items-center gap-2 rounded-[2px] px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
           style={{
             background: "#E5E2DA",
             color: "#2A2520",
@@ -446,7 +446,7 @@ function JournalPage() {
           style={{ background: "var(--linen)", borderLeft: "4px solid var(--primary)" }}
         >
           <form onSubmit={submit} className="space-y-3">
-          <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed p-3 text-[12px]" style={{ borderColor: "var(--border)" }}>
+          <label className="flex cursor-pointer items-center gap-2 rounded-[2px] border border-dashed p-3 text-[12px]" style={{ borderColor: "var(--border)" }}>
             <Sparkles size={14} style={{ color: "var(--accent)" }} />
             <span className="flex-1">
               {aiBusy ? "Reading your image…" : "Upload a screenshot (text, email, photo) and I'll draft the fields for you to review."}
@@ -456,7 +456,7 @@ function JournalPage() {
               onChange={(e) => { const f = e.target.files?.[0] ?? null; e.currentTarget.value = ""; autofillFromImage(f); }} />
           </label>
           {aiFilled && (
-            <div className="rounded-xl p-2 text-[11px]" style={{ background: "rgba(106,146,214,0.15)", color: "var(--foreground)" }}>
+            <div className="rounded-[2px] p-2 text-[11px]" style={{ background: "rgba(106,146,214,0.15)", color: "var(--foreground)" }}>
               AI-drafted — please edit anything that isn't quite right.
             </div>
           )}
@@ -542,7 +542,7 @@ function JournalPage() {
           </div>
 
           {(form.date_precision === "before_anchor" || form.date_precision === "after_anchor") && (
-            <div className="space-y-2 rounded-xl p-3" style={{ background: "rgba(168,216,185,0.15)", border: "1px solid rgba(78,59,49,0.08)" }}>
+            <div className="space-y-2 rounded-[2px] p-3" style={{ background: "rgba(168,216,185,0.15)", border: "1px solid rgba(78,59,49,0.08)" }}>
               <div>
                 <label className="label-eyebrow">
                   {form.date_precision === "before_anchor" ? "Before which event?" : "After which event?"}
@@ -579,7 +579,7 @@ function JournalPage() {
           )}
 
           {form.date_precision === "unknown" && (
-            <p className="rounded-xl p-3 text-[12px]" style={{ background: "rgba(106,146,214,0.10)", color: "var(--foreground)" }}>
+            <p className="rounded-[2px] p-3 text-[12px]" style={{ background: "rgba(106,146,214,0.10)", color: "var(--foreground)" }}>
               That's okay. Save it now — you can come back and add a date if it comes to you later.
             </p>
           )}
@@ -604,7 +604,7 @@ function JournalPage() {
                     type="button"
                     key={t.value}
                     onClick={() => toggleType(t.value)}
-                    className="rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                    className="rounded-[2px] px-3 py-1.5 text-[12px] font-semibold transition-colors"
                     style={{
                       background: on ? t.color : "transparent",
                       color: on ? "#fff" : "var(--foreground)",
@@ -669,8 +669,8 @@ function JournalPage() {
                    onConfirm={confirmRecord}
                   actions={
                     <>
-                      <button onClick={() => edit(i)} aria-label="Edit" className="rounded-lg p-2 hover:bg-black/5"><Pencil size={15} /></button>
-                      <button onClick={() => remove(i.id)} aria-label="Remove" className="rounded-lg p-2 hover:bg-black/5"><Trash2 size={15} /></button>
+                      <button onClick={() => edit(i)} aria-label="Edit" className="rounded-[2px] p-2 hover:bg-black/5"><Pencil size={15} /></button>
+                      <button onClick={() => remove(i.id)} aria-label="Remove" className="rounded-[2px] p-2 hover:bg-black/5"><Trash2 size={15} /></button>
                     </>
                   }
                 />

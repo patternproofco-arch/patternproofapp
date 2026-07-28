@@ -140,7 +140,7 @@ Respectfully,
                 const on = types.includes(t);
                 return (
                   <button key={t} type="button" onClick={() => toggle(t)}
-                    className="rounded-full px-3 py-1 text-[12px] font-semibold"
+                    className="rounded-[2px] px-3 py-1 text-[12px] font-semibold"
                     style={{ background: on ? "var(--accent)" : "transparent", color: on ? "#fff" : "var(--foreground)", border: "1.5px solid var(--accent)" }}>
                     {t}
                   </button>
@@ -184,7 +184,7 @@ Respectfully,
                   <div className="font-serif text-[15px]">{r.agency_name ?? "(no agency)"}</div>
                   <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>{new Date(r.created_at).toLocaleDateString()}</div>
                 </div>
-                <span className="rounded-full px-3 py-1 text-[11px] font-semibold" style={{ background: "var(--input)", color: "var(--foreground)" }}>{r.status}</span>
+                <span className="rounded-[2px] px-3 py-1 text-[11px] font-semibold" style={{ background: "var(--input)", color: "var(--foreground)" }}>{r.status}</span>
               </div>
             ))}
           </div>

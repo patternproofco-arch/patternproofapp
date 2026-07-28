@@ -80,7 +80,7 @@ function AbuserTacticsPage() {
           <button
             onClick={() => run(true)}
             disabled={busy}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-[14px] font-bold transition-all hover:-translate-y-px disabled:opacity-60"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-[2px] px-5 text-[14px] font-bold transition-all hover:-translate-y-px disabled:opacity-60"
             style={{
               background: "var(--sidebar)",
               color: "var(--sidebar-active)",
@@ -135,7 +135,7 @@ function AbuserTacticsPage() {
                   <div className="font-serif text-[20px] leading-tight">{t.tactic}</div>
                 </div>
                 <span
-                  className="rounded-full px-2.5 py-0.5 text-[11px] font-bold"
+                  className="rounded-[2px] px-2.5 py-0.5 text-[11px] font-bold"
                   style={{ background: "var(--input)", color: "var(--foreground)" }}
                   title="Approximate incidents where this shows up"
                 >
@@ -143,7 +143,7 @@ function AbuserTacticsPage() {
                 </span>
               </div>
               <p className="mt-3 text-[14px] leading-relaxed">{t.description}</p>
-              <div className="mt-3 rounded-md p-3 text-[13px]" style={{ background: "var(--input)" }}>
+              <div className="mt-3 rounded-[2px] p-3 text-[13px]" style={{ background: "var(--input)" }}>
                 <div className="label-eyebrow">Why it matters</div>
                 <p className="mt-1 leading-relaxed">{t.why_it_matters}</p>
               </div>

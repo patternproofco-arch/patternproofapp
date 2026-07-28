@@ -139,7 +139,7 @@ function ShareWithAttorney() {
               ? `We emailed the link to ${justCreated.email}. You can also copy it below.`
               : `We couldn't send the email just now — copy the link below and send it to ${justCreated.email} yourself.`}
           </p>
-          <div className="mt-2 break-all rounded-lg px-3 py-2 text-[12px]" style={{ background: "var(--input)", fontFamily: "monospace" }}>{justCreated.url}</div>
+          <div className="mt-2 break-all rounded-[2px] px-3 py-2 text-[12px]" style={{ background: "var(--input)", fontFamily: "monospace" }}>{justCreated.url}</div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={() => { navigator.clipboard.writeText(justCreated.url); toast("Link copied."); }} className="btn-primary inline-flex items-center gap-2"><Copy size={14} /> Copy link</button>
             <a
@@ -175,7 +175,7 @@ function ShareWithAttorney() {
                     const empty = (sel.highlighted_incident_ids ?? []).length === 0 && (sel.attached_evidence_ids ?? []).length === 0;
                     if (!empty) return null;
                     return (
-                      <div className="mt-2 rounded-lg p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}>
+                      <div className="mt-2 rounded-[2px] p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}>
                         This case doesn't have any incidents or files added to it yet, so your attorney would open an empty file.{" "}
                         <Link to="/case-builder" style={{ textDecoration: "underline" }}>Add them in Case Builder</Link> first, or share all cases instead.
                       </div>
@@ -256,7 +256,7 @@ function ShareWithAttorney() {
                     linked {new Date(l.created_at).toLocaleDateString()}
                   </div>
                   <div
-                    className="mt-2 rounded-xl px-3 py-2 text-[12px]"
+                    className="mt-2 rounded-[2px] px-3 py-2 text-[12px]"
                     style={{ background: "var(--input)", lineHeight: 1.55 }}
                   >
                     <div className="label-eyebrow" style={{ marginBottom: 4 }}>What they can see</div>

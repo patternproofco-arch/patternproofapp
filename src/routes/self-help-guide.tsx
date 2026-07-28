@@ -87,7 +87,7 @@ function SelfHelpGuide() {
               In most states, you file a petition at the courthouse (often the family or civil clerk's window). A judge reviews it the same day or next, and may issue a short-term <em>temporary</em> order right away — usually good for about 2 weeks. A full hearing is scheduled where both sides can testify. If the judge grants a <em>final</em> order, it typically lasts 1–5 years depending on your state. Advocates at your local DV program can walk into the courthouse with you at no cost.
             </>
           }
-          link={{ label: "Find a free DV advocate in your state →", to: "/triage" }}
+          link={{ label: "Find a free DV advocate in your state →", to: "/resources" }}
         />
 
         <Exchange
@@ -98,7 +98,7 @@ function SelfHelpGuide() {
               We can't answer this — and honestly, nobody online can. Whether a judge finds you credible depends on the specific judge, the evidence in front of them, how the other side testifies, and dozens of details in your case. What we <em>can</em> say: judges tend to weigh contemporaneous, source-linked records more heavily than reconstructed narratives — which is one reason documenting as things happen matters.
             </>
           }
-          link={{ label: "Talk to a free legal-aid attorney →", to: "/triage" }}
+          link={{ label: "Talk to a free legal-aid attorney →", to: "/resources" }}
         />
       </section>
 

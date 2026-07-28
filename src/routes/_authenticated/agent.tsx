@@ -59,7 +59,7 @@ function AgentLayout() {
 
   const Sidebar = (
     <aside
-      className="rounded-2xl p-4 flex flex-col gap-3 h-full"
+      className="rounded-[2px] p-4 flex flex-col gap-3 h-full"
       style={{
         background: "#EAF7EF",
         border: "1px solid #D8F0E0",
@@ -72,7 +72,7 @@ function AgentLayout() {
       </div>
       <button
         onClick={handleNew}
-        className="w-full rounded-xl px-3 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:brightness-105"
+        className="w-full rounded-[2px] px-3 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:brightness-105"
         style={{ background: "#4E8C8A", color: "#FFFFFF", boxShadow: "none" }}
       >
         <Plus size={16} /> New case chat
@@ -93,12 +93,12 @@ function AgentLayout() {
           return (
             <div
               key={t.id}
-              className="group flex items-center gap-1 mx-1 rounded-lg transition-colors"
+              className="group flex items-center gap-1 mx-1 rounded-[2px] transition-colors"
               style={{ background: active ? "#D8F0E0" : "transparent" }}
             >
               <button
                 onClick={() => { setMobileOpen(false); navigate({ to: "/agent/$threadId", params: { threadId: t.id } }); }}
-                className="flex-1 text-left px-2 py-2 text-sm truncate flex items-center gap-2 hover:bg-white/40 rounded-lg"
+                className="flex-1 text-left px-2 py-2 text-sm truncate flex items-center gap-2 hover:bg-white/40 rounded-[2px]"
                 style={{ color: "#1F2933" }}
                 title={t.title}
               >
@@ -129,7 +129,7 @@ function AgentLayout() {
               key={to}
               to={to}
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2.5 mx-1 px-2 py-2 rounded-lg text-sm transition-colors hover:bg-white/50"
+              className="flex items-center gap-2.5 mx-1 px-2 py-2 rounded-[2px] text-sm transition-colors hover:bg-white/50"
               style={{
                 color: active ? "#1F2933" : "#3a4654",
                 background: active ? "#D8F0E0" : "transparent",
@@ -161,7 +161,7 @@ function AgentLayout() {
       {/* Mobile menu trigger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed top-3 left-3 z-40 rounded-full p-2 shadow"
+        className="md:hidden fixed top-3 left-3 z-40 rounded-[2px] p-2 shadow"
         style={{ background: "#EAF7EF", border: "1px solid #D8F0E0", color: "#1F2933" }}
         aria-label="Open menu"
       >
@@ -175,7 +175,7 @@ function AgentLayout() {
           <div className="relative w-[88%] max-w-[320px] h-full p-3" style={{ background: "#FBFEFC" }}>
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute top-2 right-2 z-10 rounded-full p-1.5"
+              className="absolute top-2 right-2 z-10 rounded-[2px] p-1.5"
               style={{ color: "#1F2933" }}
               aria-label="Close menu"
             >
