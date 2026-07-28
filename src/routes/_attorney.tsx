@@ -1,13 +1,13 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut, Lock } from "lucide-react";
+import { LogOut, Lock, LayoutGrid, Users, CreditCard, Plug, ShieldCheck, MessageSquare } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, getAttorneyProfile } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
-import { AppMark } from "@/components/brand/AppMark";
+import { CubeMark } from "@/components/brand/CubeMark";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -28,6 +28,7 @@ function AttorneyLayout() {
   const [checking, setChecking] = useState(true);
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
   const [userRole, setUserRole] = useState<"attorney" | "collaborator" | null>(null);
+  const [firmName, setFirmName] = useState<string | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sub = useSubscription();
 
@@ -47,6 +48,7 @@ function AttorneyLayout() {
         try {
           const { profile } = await getProfile();
           setOnboarded(profile?.onboarded === true);
+          setFirmName(profile?.firm_name ?? profile?.full_name ?? null);
         } catch {
           setOnboarded(false);
         }
@@ -94,15 +96,17 @@ function AttorneyLayout() {
   }
 
   return (
-    <div className="att-root att-cockpit" data-persona="attorney">
-      <AttorneyTopNav />
-      <SecurityBanner />
-      <LegalDisclaimerBar />
-      <AttorneyBreadcrumb />
-      <main style={{ maxWidth: 1280, margin: "0 auto", padding: "20px 2rem 0" }}>
-        <Outlet />
-      </main>
-      <footer className="att-footer">
+    <div className="att-root att-cockpit att-shell" data-persona="attorney">
+      <AttorneySidebar />
+      <div style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+        <AttorneyTopBar firmName={firmName} />
+        <SecurityBanner />
+        <LegalDisclaimerBar />
+        <AttorneyBreadcrumb />
+        <main className="att-content">
+          <Outlet />
+        </main>
+        <footer className="att-footer">
         <span>PatternProof</span>
         <span>·</span>
         <span>attorney.pattern-proof.tech</span>
@@ -118,16 +122,12 @@ function AttorneyLayout() {
           and is not legal advice.
         </span>
         <span>·</span>
-        <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
-      </footer>
+          <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
+        </footer>
+      </div>
     </div>
   );
 }
-
-/* ---------- top nav ---------- */
-const CASE_TABS = [
-  { key: "overview", label: "Case File", to: "/clients/$clientId" },
-] as const;
 
 function useClientIdFromPath(): string | null {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -135,62 +135,66 @@ function useClientIdFromPath(): string | null {
   return m?.[1] ?? null;
 }
 
-function AttorneyTopNav() {
-  const navigate = useNavigate();
+/* ---------- persistent left sidebar ---------- */
+const NAV_ITEMS = [
+  { to: "/caseload", label: "Dashboard", icon: LayoutGrid },
+  { to: "/clients", label: "Matters", icon: Users },
+  { to: "/billing", label: "Billing", icon: CreditCard },
+  { to: "/billing", label: "Clio connection", icon: Plug, hash: "clio" },
+  { to: "/trust", label: "Settings", icon: ShieldCheck },
+  { to: "/attorney-feedback", label: "Feedback", icon: MessageSquare },
+] as const;
+
+function AttorneySidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isActive = (to: string, hash?: string) => {
+    if (hash) return false;
+    if (to === "/clients") return pathname.startsWith("/clients");
+    return pathname === to;
+  };
+  return (
+    <aside className="att-sidebar">
+      <Link to="/clients" className="att-sidebar-brand">
+        <CubeMark size={26} />
+        <span>PatternProof</span>
+      </Link>
+      <div className="att-sidebar-section">Practice</div>
+      {NAV_ITEMS.map((item) => (
+        <Link
+          key={item.label}
+          to={item.to}
+          hash={"hash" in item ? item.hash : undefined}
+          className={`att-side-link ${isActive(item.to, "hash" in item ? item.hash : undefined) ? "active" : ""}`}
+        >
+          <item.icon size={14} /> {item.label}
+        </Link>
+      ))}
+      <div className="att-sidebar-foot">
+        <span className="att-eyebrow">Attorney portal</span>
+      </div>
+    </aside>
+  );
+}
+
+/* ---------- minimal top bar ---------- */
+function AttorneyTopBar({ firmName }: { firmName: string | null }) {
+  const navigate = useNavigate();
   const clientId = useClientIdFromPath();
   const caseId = clientId ? `PP-${clientId.slice(0, 4).toUpperCase()}` : null;
-
-  const onCase = !!clientId;
-
   return (
-    <nav className="att-nav">
-      <Link to="/clients" className="att-nav-brand" style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-        <AppMark size={34} onDark />
-        <span style={{ opacity: 0.55, fontSize: 13 }}>· Attorney Portal</span>
-      </Link>
-
-      <div className="att-nav-tabs">
-        {onCase && clientId ? (
-          CASE_TABS.map((t) => {
-            const href = t.to.replace("$clientId", clientId);
-            const active = t.key === "overview"
-              ? pathname === `/clients/${clientId}`
-              : pathname.startsWith(href);
-            return (
-              <Link
-                key={t.key}
-                to={t.to}
-                params={{ clientId }}
-                className={`att-nav-tab ${active ? "active" : ""}`}
-              >
-                {t.label}
-              </Link>
-            );
-          })
-        ) : (
-          <>
-            <Link to="/clients" className={`att-nav-tab ${pathname === "/clients" ? "active" : ""}`}>Clients</Link>
-            <Link to="/billing" className={`att-nav-tab ${pathname === "/billing" ? "active" : ""}`}>Billing</Link>
-            <Link to="/trust" className={`att-nav-tab ${pathname === "/trust" ? "active" : ""}`}>Trust</Link>
-            <Link to="/attorney-feedback" className={`att-nav-tab ${pathname === "/attorney-feedback" ? "active" : ""}`}>Feedback</Link>
-          </>
-        )}
+    <div className="att-topbar">
+      <div className="att-topbar-firm">
+        <span>{firmName ?? "Your firm"}</span>
+        {caseId && <span className="att-mono">Case {caseId}</span>}
       </div>
-
-      <div className="att-nav-meta">
-        {caseId && (
-          <span>Case ID: <span className="att-mono">{caseId}</span></span>
-        )}
-        <button
-          onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/lawyer-signup" }); }}
-          className="att-nav-tab"
-          style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-        >
-          <LogOut size={13} /> Sign out
-        </button>
-      </div>
-    </nav>
+      <button
+        onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/lawyer-signup" }); }}
+        className="att-btn-ghost"
+        style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+      >
+        <LogOut size={13} /> Sign out
+      </button>
+    </div>
   );
 }
 
