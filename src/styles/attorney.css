@@ -9,11 +9,11 @@
    ============================================================ */
 
 .att-root {
-  --att-bg: #F4F5F7;
+  --att-bg: #F7F5F0;
   --att-surface: #FFFFFF;
-  --att-surface-2: #F7F9FC;
+  --att-surface-2: #FAFAF8;
   --att-border: rgba(20,19,31,0.14);
-  --att-border-strong: rgba(20,19,31,0.24);
+  --att-border-strong: rgba(20,19,31,0.22);
   --att-navy: #152038;
   --att-navy-mid: #22314F;
   --att-navy-deep: #0E1729;
@@ -22,18 +22,18 @@
   --att-text-2: #4C596F;
   --att-muted: #8A8894;
 
-  /* single restrained accent — muted gold, actions & status only */
-  --att-accent: #A8792F;
-  --att-accent-hover: #8E6524;
-  --att-accent-soft: #FBF3E4;
-  --att-accent-border: #E7D3AC;
+  /* single accent — navy. No other accent colour on attorney screens. */
+  --att-accent: #152038;
+  --att-accent-hover: #22314F;
+  --att-accent-soft: rgba(21,32,56,0.06);
+  --att-accent-border: rgba(21,32,56,0.24);
 
-  /* status (kept muted, used for data state not decoration) */
-  --att-green: #0F6E56;
-  --att-amber: #A8792F;
-  --att-red: #8A5A2E;
-  --att-blue: #152038;      /* legacy alias → navy */
-  --att-pp-pink: #A8792F;
+  /* status aliases — all resolve to navy/ink so nothing competes with the accent */
+  --att-green: #152038;
+  --att-amber: #4C596F;
+  --att-red: #14131F;
+  --att-blue: #152038;
+  --att-pp-pink: #152038;
 
   background: var(--att-bg);
   color: var(--att-text);
@@ -58,6 +58,16 @@
   margin: 0;
 }
 .att-root h1 { font-size: 21px; }
+
+/* Newsreader is reserved for page titles only. */
+.att-root .att-page-title {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 400;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin: 2px 0 0;
+}
 .att-root h2 { font-size: 17px; }
 .att-root h3 { font-size: 15px; }
 
