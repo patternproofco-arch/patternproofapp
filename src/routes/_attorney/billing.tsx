@@ -40,19 +40,19 @@ function BillingPage() {
   const renews = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null;
 
   return (
-    <div style={{ display: "grid", gap: 20, maxWidth: 1080, margin: "0 auto" }}>
+    <div style={{ display: "grid", gap: 20, maxWidth: 1080 }}>
       <div>
         <div className="att-eyebrow">Billing</div>
-        <h1 style={{ fontSize: 32, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>Plan &amp; payment</h1>
+        <h1 className="att-page-title">Plan &amp; payment</h1>
       </div>
 
-      <div className="att-card" style={{ background: sub.isActive ? "#F0FDF4" : "#FFFFFF", borderColor: sub.isActive ? "#86EFAC" : "#FCA5A5" }}>
+      <div className="att-card" style={{ background: "var(--att-surface)", borderLeft: "2px solid var(--att-navy)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <div>
-            <div className="att-eyebrow" style={{ color: sub.isActive ? "#166534" : "#991B1B" }}>
+            <div className="att-eyebrow" style={{ color: "var(--att-slate)" }}>
               {sub.isActive ? "Active subscription" : "No active subscription"}
             </div>
-            <div style={{ fontSize: 22, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>
+            <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4 }}>
               {sub.isActive
                 ? `PatternProof ${currentTier === "firm" ? "Firm" : currentTier === "enterprise" ? "Enterprise" : currentTier === "solo" ? "Solo" : "Plan"}`
                 : "Pick a plan to unlock case files"}
@@ -87,12 +87,13 @@ function BillingPage() {
                 className="att-card"
                 style={{
                   position: "relative",
-                  border: isCurrent ? "2px solid var(--att-navy)" : t.recommended ? "2px solid var(--att-green)" : "1px solid var(--att-border)",
-                  background: isCurrent ? "#F8FAFC" : "var(--att-surface)",
+                  border: "1px solid var(--att-border)",
+                  borderLeft: isCurrent || t.recommended ? "2px solid var(--att-navy)" : "1px solid var(--att-border)",
+                  background: "var(--att-surface)",
                 }}
               >
                 {t.recommended && !isCurrent && (
-                  <span className="att-tag" style={{ position: "absolute", top: 12, right: 12, background: "var(--att-green)", color: "#fff", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <span className="att-tag" style={{ position: "absolute", top: 12, right: 12, border: "1px solid var(--att-accent-border)", color: "var(--att-navy)", display: "inline-flex", alignItems: "center", gap: 4 }}>
                     <Star size={10} /> Recommended
                   </span>
                 )}
@@ -100,13 +101,13 @@ function BillingPage() {
                   <span className="att-tag" style={{ position: "absolute", top: 12, right: 12, background: "var(--att-navy)", color: "#fff" }}>Current</span>
                 )}
                 <div className="att-eyebrow">{t.name}</div>
-                <div style={{ fontSize: 30, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>
+                <div className="att-mono" style={{ fontSize: 26, marginTop: 4 }}>
                   {t.price}<span style={{ fontSize: 13, color: "var(--att-text-2)" }}>{t.per}</span>
                 </div>
                 <ul style={{ listStyle: "none", padding: 0, marginTop: 14, display: "grid", gap: 8, fontSize: 13 }}>
                   {t.bullets.map((b) => (
                     <li key={b} style={{ display: "flex", gap: 8 }}>
-                      <Check size={14} style={{ color: "var(--att-green)", marginTop: 2, flexShrink: 0 }} /> <span>{b}</span>
+                      <Check size={14} style={{ color: "var(--att-navy)", marginTop: 2, flexShrink: 0 }} /> <span>{b}</span>
                     </li>
                   ))}
                 </ul>
@@ -129,18 +130,18 @@ function BillingPage() {
         </div>
       </div>
 
-      <div className="att-card" style={{ background: "#F8FAFC", display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--att-text-2)" }}>
+      <div className="att-card" style={{ background: "var(--att-surface-2)", display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--att-text-2)" }}>
         <Lock size={14} /> Cards never touch our servers. Billing handled end-to-end by Stripe.
       </div>
 
       <div className="att-card" style={{ marginTop: 16 }}>
         <div className="att-eyebrow">Exports</div>
         <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 14, alignItems: "center", marginTop: 10 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 2, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
+          <div style={{ width: 44, height: 44, borderRadius: 2, background: "var(--att-surface-2)", border: "1px solid var(--att-border)", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
             <Plug size={20} />
           </div>
           <div>
-            <div style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 20, color: "var(--att-navy)" }}>Case management import package</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--att-text)" }}>Case management import package</div>
             <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
               Each client case file exports a ZIP of CSVs plus every evidence file, ready to import
               into your practice management system.
@@ -205,15 +206,15 @@ function ClioPanel() {
   };
 
   return (
-    <div className="att-card">
-      <div className="att-eyebrow">Integrations</div>
+    <div className="att-card" id="clio">
+      <div className="att-eyebrow">Clio connection</div>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-          <div style={{ width: 44, height: 44, borderRadius: 2, background: "#EEF2F7", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
+          <div style={{ width: 44, height: 44, borderRadius: 2, background: "var(--att-surface-2)", border: "1px solid var(--att-border)", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
             <Plug size={20} />
           </div>
           <div>
-            <div style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 20, color: "var(--att-navy)" }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--att-text)" }}>
               {state?.connected ? `Connected to Clio${state.firmName ? ` as ${state.firmName}` : ""}` : "Clio"}
             </div>
             <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>

@@ -40,7 +40,7 @@ function CaseloadPage() {
     <div style={{ display: "grid", gap: 20 }}>
       <div>
         <div className="att-eyebrow">Overview</div>
-        <h1 style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 28, margin: "4px 0 0" }}>
+        <h1 className="att-page-title">
           Caseload capacity
         </h1>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 6, maxWidth: 640 }}>

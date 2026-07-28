@@ -99,7 +99,7 @@ function SubscribePage() {
     return (
       <div className="att-card" style={{ maxWidth: 640, margin: "40px auto", textAlign: "center" }}>
         <Check size={32} style={{ color: "var(--att-green)", margin: "0 auto 12px" }} />
-        <h1 style={{ fontSize: 30, marginBottom: 8, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontWeight: 400 }}>You're subscribed.</h1>
+        <h1 className="att-page-title">You're subscribed.</h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 14, marginBottom: 16 }}>
           Plan: PatternProof {sub.tier === "firm" ? "Firm" : sub.tier === "enterprise" ? "Enterprise" : "Solo"} · {sub.status}
           {sub.currentPeriodEnd && <> · renews {new Date(sub.currentPeriodEnd).toLocaleDateString()}</>}
@@ -122,7 +122,7 @@ function SubscribePage() {
       <PaymentTestModeBanner />
       <div style={{ marginTop: 24, marginBottom: 24 }}>
         <div className="att-eyebrow">Attorney Portal · Pricing</div>
-        <h1 style={{ fontSize: 36, marginTop: 4, marginBottom: 10, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif" }}>
+        <h1 className="att-page-title">
           See the pattern before the hearing.
         </h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 15, maxWidth: 640 }}>
@@ -136,8 +136,8 @@ function SubscribePage() {
       </div>
 
       {/* Grace's signature story — decisions happen here */}
-      <div className="att-card" style={{ marginBottom: 28, background: "#FFFFFF", borderColor: "#FCD34D" }}>
-        <div className="att-eyebrow" style={{ color: "#92400E" }}>From Grace, founder</div>
+      <div className="att-card" style={{ marginBottom: 28, background: "#FFFFFF", borderColor: "var(--att-border-strong)" }}>
+        <div className="att-eyebrow" style={{ color: "var(--att-text-2)" }}>From Grace, founder</div>
         <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.65, color: "var(--att-text)", fontStyle: "italic" }}>
           "I documented everything. Nobody believed me anyway. I walked into that courtroom with folders of notes and screenshots and I still couldn't show the pattern. The judge couldn't see it. I built PatternProof because the evidence was always there — I just needed something that could show it."
         </p>
@@ -161,7 +161,7 @@ function SubscribePage() {
                     ? "2px solid var(--att-green)"
                     : "1px solid var(--att-border)",
                 position: "relative",
-                background: active ? "#F8FAFC" : "var(--att-surface)",
+                background: active ? "var(--att-surface-2)" : "var(--att-surface)",
               }}
             >
               {tier.recommended && (

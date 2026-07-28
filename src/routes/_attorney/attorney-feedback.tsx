@@ -66,7 +66,7 @@ function AttorneyFeedbackPage() {
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 2, background: "rgba(16,185,129,0.10)", color: "var(--att-green)", fontWeight: 700, fontSize: 12, marginBottom: 16 }}>
             <Check size={14} /> Received
           </div>
-          <h1 style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 26, margin: "0 0 10px" }}>Thank you.</h1>
+          <h1 className="att-page-title">Thank you.</h1>
           <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 20 }}>
             Product feedback goes directly to the team building PatternProof. If you flagged something urgent, we'll follow up.
           </p>
@@ -80,7 +80,7 @@ function AttorneyFeedbackPage() {
     <div style={{ display: "grid", gap: 20, maxWidth: 720 }}>
       <div>
         <div className="att-eyebrow">Product feedback</div>
-        <h1 style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 28, margin: "4px 0 0" }}>
+        <h1 className="att-page-title">
           Attorney feedback
         </h1>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 6, maxWidth: 620 }}>
