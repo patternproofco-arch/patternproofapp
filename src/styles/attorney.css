@@ -324,21 +324,21 @@
 
 /* ---------- security strip ---------- */
 .att-security-banner {
-  background: var(--att-navy-deep);
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  padding: 5px 18px;
+  background: var(--att-surface-2);
+  border-bottom: 1px solid var(--att-border);
+  padding: 5px 20px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 10.5px;
   letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.7);
+  color: var(--att-slate);
   display: flex; align-items: center; justify-content: space-between;
   gap: 8px;
 }
-.att-security-banner .att-mono { color: rgba(255,255,255,0.95); }
+.att-security-banner .att-mono { color: var(--att-text); }
 
 /* ---------- breadcrumb ---------- */
 .att-breadcrumb {
-  padding: 10px 18px 0;
+  padding: 12px 20px 0;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 10.5px; letter-spacing: 0.05em;
   color: var(--att-slate);
@@ -350,7 +350,7 @@
 /* ---------- footer ---------- */
 .att-footer {
   border-top: 1px solid var(--att-border);
-  padding: 12px 18px;
+  padding: 12px 20px;
   margin-top: 36px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 10.5px;
