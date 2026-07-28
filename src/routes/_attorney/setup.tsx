@@ -95,14 +95,7 @@ function OnboardingPage() {
   return (
     <div style={{ maxWidth: 760, margin: "32px auto" }}>
       <div className="att-eyebrow">Attorney Portal · Onboarding</div>
-      <h1
-        style={{
-          fontSize: 36,
-          marginTop: 6,
-          marginBottom: 8,
-          fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif",
-        }}
-      >
+      <h1 className="att-page-title" style={{ marginBottom: 8 }}>
         Set up your attorney profile.
       </h1>
       <p style={{ color: "var(--att-text-2)", fontSize: 15, marginBottom: 24 }}>
