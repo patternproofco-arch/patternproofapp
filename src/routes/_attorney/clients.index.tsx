@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, FileText, MessageSquare, TrendingUp, ArrowRight, CheckCircle2,
-  Send, Copy, RotateCw, X, Mail, Plus, Upload, Users,
+  Send, Copy, RotateCw, X, Mail, Plus, Upload, Users, Search, ChevronUp, ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { listMyClients } from "@/lib/attorney-portal.functions";
@@ -21,18 +21,21 @@ export const Route = createFileRoute("/_attorney/clients/")({
 type ClientRow = Awaited<ReturnType<typeof listMyClients>>["clients"][number];
 type InviteRow = Awaited<ReturnType<typeof listSurvivorInvites>>["invites"][number];
 
-const DENSITY: Record<string, { color: string; label: string }> = {
-  low: { color: "#0F6E56", label: "Low density" },
-  moderate: { color: "#8A8894", label: "Moderate density" },
-  elevated: { color: "#8A8894", label: "Elevated density" },
-  high: { color: "#8A5A2E", label: "High density" },
+const DENSITY: Record<string, { label: string }> = {
+  low: { label: "Low" },
+  moderate: { label: "Moderate" },
+  elevated: { label: "Elevated" },
+  high: { label: "High" },
 };
 
+const DATE_FMT = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "2-digit" });
+const fmtDate = (v: string | null | undefined) => (v ? DATE_FMT.format(new Date(v)) : "—");
+
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
-  pending: { bg: "#FFFFFF", fg: "#92400E", label: "Pending" },
-  accepted: { bg: "#D1FAE5", fg: "#065F46", label: "Accepted" },
-  expired: { bg: "#E2E8F0", fg: "#475569", label: "Expired" },
-  revoked: { bg: "#FFFFFF", fg: "#991B1B", label: "Revoked" },
+  pending: { bg: "#FFFFFF", fg: "var(--att-text-2)", label: "Pending" },
+  accepted: { bg: "rgba(21,32,56,0.06)", fg: "var(--att-navy)", label: "Accepted" },
+  expired: { bg: "#FFFFFF", fg: "var(--att-muted)", label: "Expired" },
+  revoked: { bg: "#FFFFFF", fg: "var(--att-muted)", label: "Revoked" },
 };
 
 function ClientsIndex() {
@@ -49,10 +52,10 @@ function ClientsIndex() {
 
   return (
     <div>
-      <div className="att-eyebrow">Case Files</div>
-      <h1 style={{ fontSize: 36, marginTop: 6, marginBottom: 6, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontWeight: 400 }}>Your clients</h1>
-      <p style={{ color: "var(--att-text-2)", maxWidth: 640, marginBottom: 24 }}>
-        Every survivor who has shared their PatternProof case file with you. Read-only. Provenance & integrity logged.
+      <div className="att-eyebrow">Case files</div>
+      <h1 className="att-page-title">Matters</h1>
+      <p style={{ color: "var(--att-text-2)", maxWidth: 620, margin: "6px 0 18px", fontSize: 12.5 }}>
+        Every survivor who has shared their PatternProof case file with you. Read-only. Provenance &amp; integrity logged.
       </p>
 
       {/* Diagnosis card — never shows a raw empty grid */}
@@ -60,23 +63,18 @@ function ClientsIndex() {
 
       <InvitePanel invites={invites} onChange={reloadInvites} />
 
-      {clients === null && (
-        <div className="att-card">Loading clients…</div>
-      )}
+      {clients === null && <ClientTable clients={null} />}
 
       {clients && clients.length > 0 && (() => {
         const owned = clients.filter((c) => (c as any).access_kind !== "granted" && (c as any).access_kind !== "collaborator");
         const shared = clients.filter((c) => (c as any).access_kind === "granted" || (c as any).access_kind === "collaborator");
         return (
           <>
-            <ClientGrid clients={owned} />
+            <ClientTable clients={owned} />
             {shared.length > 0 && (
-              <div style={{ marginTop: 24 }}>
-                <div className="att-eyebrow" style={{ marginBottom: 6 }}>Shared with you</div>
-                <h2 style={{ fontSize: 22, margin: "0 0 12px", fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontWeight: 400 }}>
-                  Cases a firm colleague granted you
-                </h2>
-                <ClientGrid clients={shared} sharedBadge />
+              <div style={{ marginTop: 28 }}>
+                <div className="att-eyebrow" style={{ marginBottom: 8 }}>Shared with you · granted by a firm colleague</div>
+                <ClientTable clients={shared} sharedBadge />
               </div>
             )}
           </>
@@ -86,61 +84,134 @@ function ClientsIndex() {
   );
 }
 
-function ClientGrid({ clients, sharedBadge }: { clients: ClientRow[]; sharedBadge?: boolean }) {
-  if (!clients.length) return null;
+type SortKey = "client" | "linked_at" | "incident_count" | "evidence_count" | "escalation_flag_count" | "last_incident_date";
+
+function ClientTable({ clients, sharedBadge }: { clients: ClientRow[] | null; sharedBadge?: boolean }) {
+  const [q, setQ] = useState("");
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({ key: "last_incident_date", dir: "desc" });
+
+  const rows = useMemo(() => {
+    if (!clients) return null;
+    const needle = q.trim().toLowerCase();
+    const filtered = needle
+      ? clients.filter((c) =>
+          c.client_user_id.toLowerCase().includes(needle) ||
+          `pp-${c.client_user_id.slice(0, 4)}`.includes(needle) ||
+          c.documentation_density.toLowerCase().includes(needle))
+      : clients;
+    const val = (c: ClientRow): string | number => {
+      switch (sort.key) {
+        case "client": return c.client_user_id;
+        case "linked_at": return c.linked_at ?? "";
+        case "last_incident_date": return c.last_incident_date ?? "";
+        default: return (c as any)[sort.key] as number;
+      }
+    };
+    return [...filtered].sort((a, b) => {
+      const av = val(a); const bv = val(b);
+      const cmp = typeof av === "number" && typeof bv === "number"
+        ? av - bv
+        : String(av).localeCompare(String(bv));
+      return sort.dir === "asc" ? cmp : -cmp;
+    });
+  }, [clients, q, sort]);
+
+  if (clients && clients.length === 0) return null;
+
+  const th = (key: SortKey, label: string, num?: boolean) => (
+    <th
+      className={`sortable ${sort.key === key ? "sorted" : ""}`}
+      style={{ textAlign: num ? "right" : "left" }}
+      onClick={() => setSort((s) => ({ key, dir: s.key === key && s.dir === "desc" ? "asc" : "desc" }))}
+    >
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+        {label}
+        {sort.key === key && (sort.dir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />)}
+      </span>
+    </th>
+  );
+
   return (
-    <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))" }}>
-      {clients.map((c) => {
-            const density = DENSITY[c.documentation_density];
-            const caseId = `PP-${c.client_user_id.slice(0, 4).toUpperCase()}`;
-            return (
-              <Link
-                key={c.link_id}
-                to="/clients/$clientId"
-                params={{ clientId: c.client_user_id }}
-                className="att-card att-hover"
-                style={{ borderLeft: `3px solid ${density.color}`, textDecoration: "none", color: "inherit", display: "block" }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-                  <div>
-                    <div className="att-eyebrow">Case</div>
-                    <h3 style={{ fontSize: 22, margin: "2px 0 2px" }}>Client {c.client_user_id.slice(0, 8)}</h3>
-                    <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
-                      <span className="att-mono">{caseId}</span> · linked {new Date(c.linked_at).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
+    <div className="att-table-wrap">
+      <div className="att-table-toolbar">
+        <span className="att-search-wrap">
+          <Search size={12} style={{ position: "absolute", left: 9, color: "var(--att-slate)" }} />
+          <input
+            className="att-input"
+            placeholder="Search matters…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            disabled={!clients}
+          />
+        </span>
+        <span className="att-table-count">{rows ? `${rows.length} matter${rows.length === 1 ? "" : "s"}` : "Loading"}</span>
+      </div>
+      <div className="att-table-scroll">
+        <table className="att-table">
+          <thead>
+            <tr>
+              {th("client", "Client")}
+              <th>Case ID</th>
+              <th>Density</th>
+              {th("incident_count", "Incidents", true)}
+              {th("evidence_count", "Evidence", true)}
+              {th("escalation_flag_count", "Flags", true)}
+              <th style={{ textAlign: "right" }}>Activity</th>
+              {th("last_incident_date", "Latest incident")}
+              {th("linked_at", "Linked")}
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {!rows && Array.from({ length: 6 }).map((_, i) => (
+              <tr key={i}>
+                {Array.from({ length: 10 }).map((__, j) => (
+                  <td key={j} className="att-td-tight"><span className="att-skel" style={{ width: j === 0 ? "70%" : "45%" }} /></td>
+                ))}
+              </tr>
+            ))}
+            {rows?.map((c) => {
+              const caseId = `PP-${c.client_user_id.slice(0, 4).toUpperCase()}`;
+              const activity = c.unread_messages + c.open_doc_requests;
+              return (
+                <tr key={c.link_id} className="att-row">
+                  <td className="att-td-tight">
+                    <Link to="/clients/$clientId" params={{ clientId: c.client_user_id }}>
+                      Client {c.client_user_id.slice(0, 8)}
+                    </Link>
+                    {sharedBadge && <span className="att-tag att-badge--navy" style={{ marginLeft: 6 }}>Shared</span>}
+                  </td>
+                  <td className="att-td-tight att-mono" style={{ color: "var(--att-text-2)" }}>{caseId}</td>
+                  <td className="att-td-tight">
                     <span
-                      className="att-tag"
-                      style={{ background: `${density.color}1A`, color: density.color }}
+                      className="att-tag att-badge--navy"
                       title="Documentation density reflects volume + severity ratings the survivor has logged — not a clinical or forensic risk assessment."
                     >
-                      {density.label}
+                      {DENSITY[c.documentation_density]?.label ?? c.documentation_density}
                     </span>
-                    {sharedBadge && (
-                      <span className="att-tag" style={{ background: "#EEF2FF", color: "#3730A3" }}>Shared</span>
-                    )}
-                  </div>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginTop: 16 }}>
-                  <Stat icon={<FileText size={12} />} label="Incidents" v={c.incident_count} />
-                  <Stat icon={<TrendingUp size={12} />} label="Evidence" v={c.evidence_count} />
-                  <Stat icon={<AlertTriangle size={12} />} label="Flags" v={c.escalation_flag_count} />
-                </div>
-                {(c.unread_messages > 0 || c.open_doc_requests > 0) && (
-                  <div style={{ marginTop: 12, display: "flex", gap: 12, fontSize: 11, color: "var(--att-blue)", fontWeight: 600 }}>
-                    {c.unread_messages > 0 && <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><MessageSquare size={11} /> {c.unread_messages} new</span>}
-                    {c.open_doc_requests > 0 && <span>{c.open_doc_requests} doc request{c.open_doc_requests === 1 ? "" : "s"}</span>}
-                  </div>
-                )}
-                <div className="att-divider" />
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "var(--att-text-2)" }}>
-                  <span>{c.last_incident_date ? `Latest: ${new Date(c.last_incident_date).toLocaleDateString()}` : "No incidents yet"}</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--att-navy)", fontWeight: 600 }}>Open case <ArrowRight size={12} /></span>
-                </div>
-              </Link>
-            );
-          })}
+                  </td>
+                  <td className="att-td-tight num">{c.incident_count}</td>
+                  <td className="att-td-tight num">{c.evidence_count}</td>
+                  <td className="att-td-tight num">{c.escalation_flag_count}</td>
+                  <td className="att-td-tight num" style={{ color: activity ? "var(--att-navy)" : "var(--att-muted)", fontWeight: activity ? 600 : 400 }}>
+                    {activity || "—"}
+                  </td>
+                  <td className="att-td-tight att-mono" style={{ color: "var(--att-text-2)" }}>{fmtDate(c.last_incident_date)}</td>
+                  <td className="att-td-tight att-mono" style={{ color: "var(--att-text-2)" }}>{fmtDate(c.linked_at)}</td>
+                  <td className="att-td-tight" style={{ textAlign: "right" }}>
+                    <Link to="/clients/$clientId" params={{ clientId: c.client_user_id }} style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                      Open <ArrowRight size={11} />
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
+            {rows && rows.length === 0 && (
+              <tr><td colSpan={10} style={{ padding: 16, color: "var(--att-text-2)" }}>No matters match “{q}”.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
