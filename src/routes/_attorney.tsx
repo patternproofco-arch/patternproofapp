@@ -253,7 +253,7 @@ function SecurityBannerInner() {
       <button
         onClick={() => { sessionStorage.setItem("att-security-dismissed", "1"); setDismissed(true); }}
         className="att-btn-ghost"
-        style={{ padding: "2px 8px", fontSize: 11, color: "#1E40AF" }}
+        style={{ padding: "2px 8px", fontSize: 11, color: "var(--att-navy)" }}
       >
         Dismiss
       </button>

@@ -186,7 +186,7 @@ function OnboardingPage() {
                     border: active
                       ? "2px solid var(--att-navy)"
                       : "1px solid var(--att-border)",
-                    background: active ? "#F8FAFC" : "var(--att-surface)",
+                    background: active ? "var(--att-surface-2)" : "var(--att-surface)",
                   }}
                 >
                   <div style={{ fontSize: 14, fontWeight: 600 }}>{r.label}</div>
@@ -205,7 +205,7 @@ function OnboardingPage() {
             gap: 10,
             alignItems: "flex-start",
             padding: 14,
-            background: "#F8FAFC",
+            background: "var(--att-surface-2)",
             borderRadius: 2,
             border: "1px solid var(--att-border)",
             cursor: "pointer",

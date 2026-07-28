@@ -398,7 +398,7 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
       />
 
       {parseErrors.length > 0 && (
-        <div style={{ background: "#FFFFFF", color: "#92400E", padding: 8, borderRadius: 2, fontSize: 12 }}>
+        <div style={{ background: "#FFFFFF", color: "var(--att-text-2)", padding: 8, borderRadius: 2, fontSize: 12 }}>
           {parseErrors.map((e, i) => <div key={i}>• {e}</div>)}
         </div>
       )}
@@ -406,7 +406,7 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
       {previewRows.length > 0 && (
         <div style={{ overflowX: "auto", border: "1px solid var(--att-border)", borderRadius: 2 }}>
           <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
-            <thead style={{ background: "#F8FAFC" }}>
+            <thead style={{ background: "var(--att-surface-2)" }}>
               <tr>
                 <th style={{ textAlign: "left", padding: 8 }}>#</th>
                 <th style={{ textAlign: "left", padding: 8 }}>Email</th>
@@ -421,19 +421,19 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
                 return (
                   <tr key={i} style={{ borderTop: "1px solid var(--att-border)", background: r.invalid ? "#FFFFFF" : undefined }}>
                     <td style={{ padding: 8, color: "var(--att-text-2)" }}>{i + 1}</td>
-                    <td style={{ padding: 8 }}>{r.survivor_email || <em style={{ color: "#991B1B" }}>missing</em>}</td>
+                    <td style={{ padding: 8 }}>{r.survivor_email || <em style={{ color: "var(--att-text)" }}>missing</em>}</td>
                     <td style={{ padding: 8 }}>{r.survivor_name ?? ""}</td>
                     <td style={{ padding: 8, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.personal_note ?? ""}</td>
                     <td style={{ padding: 8 }}>
                       {outcome
                         ? outcome.ok
-                          ? <span style={{ color: "#065F46" }}>✓ Sent</span>
-                          : <span style={{ color: "#991B1B" }}>✗ Failed · {outcome.error}</span>
+                          ? <span style={{ color: "var(--att-navy)" }}>✓ Sent</span>
+                          : <span style={{ color: "var(--att-text)" }}>✗ Failed · {outcome.error}</span>
                         : results
-                          ? <span style={{ color: "#92400E" }}>Pending</span>
+                          ? <span style={{ color: "var(--att-text-2)" }}>Pending</span>
                           : r.invalid
-                            ? <span style={{ color: "#991B1B" }}>{r.invalid}</span>
-                            : <span style={{ color: "#92400E" }}>Pending</span>}
+                            ? <span style={{ color: "var(--att-text)" }}>{r.invalid}</span>
+                            : <span style={{ color: "var(--att-text-2)" }}>Pending</span>}
                     </td>
                   </tr>
                 );

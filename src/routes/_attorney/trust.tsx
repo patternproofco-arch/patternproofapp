@@ -31,8 +31,8 @@ function SettingsPage() {
         <h1 style={{ fontSize: 32, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>Security &amp; provenance & integrity</h1>
       </div>
 
-      <div className="att-card" style={{ background: "#F0FDF4", borderColor: "#86EFAC", display: "flex", gap: 12, alignItems: "flex-start" }}>
-        <ShieldCheck size={20} style={{ color: "#0F6E56", marginTop: 2 }} />
+      <div className="att-card" style={{ background: "var(--att-surface-2)", borderColor: "var(--att-border-strong)", display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <ShieldCheck size={20} style={{ color: "var(--att-navy)", marginTop: 2 }} />
         <div>
           <div style={{ fontWeight: 600, fontSize: 14 }}>Read-only access · Survivor-owned data</div>
           <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 4, lineHeight: 1.6 }}>
@@ -75,7 +75,7 @@ function SettingsPage() {
             {data.invites.map((i) => (
               <li key={i.id} style={{ display: "grid", gridTemplateColumns: "1fr 110px 160px", gap: 10, fontSize: 13, padding: "8px 0", borderBottom: "1px solid var(--att-border)" }}>
                 <span>{i.survivor_email}</span>
-                <span className="att-tag" style={{ background: i.status === "accepted" ? "#DCFCE7" : i.status === "pending" ? "#FFFFFF" : "#FFFFFF", color: "var(--att-text)" }}>{i.status}</span>
+                <span className="att-tag" style={{ background: i.status === "accepted" ? "rgba(21,32,56,0.07)" : i.status === "pending" ? "#FFFFFF" : "#FFFFFF", color: "var(--att-text)" }}>{i.status}</span>
                 <span className="att-mono" style={{ color: "var(--att-text-2)" }}>{new Date(i.created_at).toLocaleDateString()}</span>
               </li>
             ))}
@@ -99,8 +99,8 @@ function SettingsPage() {
         )}
       </div>
 
-      <div className="att-card" style={{ background: "#FFFFFF", borderColor: "#FCD34D", display: "flex", gap: 12, alignItems: "flex-start" }}>
-        <Lock size={18} style={{ color: "#92400E", marginTop: 2 }} />
+      <div className="att-card" style={{ background: "#FFFFFF", borderColor: "var(--att-border-strong)", display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <Lock size={18} style={{ color: "var(--att-text-2)", marginTop: 2 }} />
         <div style={{ fontSize: 13, lineHeight: 1.6 }}>
           <strong>Confidentiality reminder.</strong> The records in this portal are protected by attorney-client
           privilege and your jurisdiction's evidence rules. Do not share signed URLs, exported ZIPs, or screenshots

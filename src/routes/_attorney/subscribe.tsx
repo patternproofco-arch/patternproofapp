@@ -136,8 +136,8 @@ function SubscribePage() {
       </div>
 
       {/* Grace's signature story — decisions happen here */}
-      <div className="att-card" style={{ marginBottom: 28, background: "#FFFFFF", borderColor: "#FCD34D" }}>
-        <div className="att-eyebrow" style={{ color: "#92400E" }}>From Grace, founder</div>
+      <div className="att-card" style={{ marginBottom: 28, background: "#FFFFFF", borderColor: "var(--att-border-strong)" }}>
+        <div className="att-eyebrow" style={{ color: "var(--att-text-2)" }}>From Grace, founder</div>
         <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.65, color: "var(--att-text)", fontStyle: "italic" }}>
           "I documented everything. Nobody believed me anyway. I walked into that courtroom with folders of notes and screenshots and I still couldn't show the pattern. The judge couldn't see it. I built PatternProof because the evidence was always there — I just needed something that could show it."
         </p>
@@ -161,7 +161,7 @@ function SubscribePage() {
                     ? "2px solid var(--att-green)"
                     : "1px solid var(--att-border)",
                 position: "relative",
-                background: active ? "#F8FAFC" : "var(--att-surface)",
+                background: active ? "var(--att-surface-2)" : "var(--att-surface)",
               }}
             >
               {tier.recommended && (
