@@ -28,7 +28,7 @@ function SettingsPage() {
     <div style={{ display: "grid", gap: 20, maxWidth: 1080, margin: "0 auto" }}>
       <div>
         <div className="att-eyebrow">Settings · Trust</div>
-        <h1 style={{ fontSize: 32, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>Security &amp; provenance & integrity</h1>
+        <h1 className="att-page-title">Security &amp; provenance & integrity</h1>
       </div>
 
       <div className="att-card" style={{ background: "var(--att-surface-2)", borderColor: "var(--att-border-strong)", display: "flex", gap: 12, alignItems: "flex-start" }}>
