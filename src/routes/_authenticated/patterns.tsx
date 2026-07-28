@@ -99,7 +99,7 @@ function PatternsPage() {
             <button
               onClick={() => run(true)}
               disabled={busy}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-[14px] font-bold transition-all hover:-translate-y-px disabled:opacity-60"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-[2px] px-5 text-[14px] font-bold transition-all hover:-translate-y-px disabled:opacity-60"
               style={{ background: "var(--sidebar)", color: "var(--sidebar-active)", letterSpacing: "0.02em", boxShadow: "none" }}
             >
               {busy ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
@@ -108,7 +108,7 @@ function PatternsPage() {
             {analysis && (
               <button
                 onClick={() => window.print()}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border px-4 text-[13px] font-semibold"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-[2px] border px-4 text-[13px] font-semibold"
                 style={{ borderColor: "var(--border)", background: "transparent" }}
               >
                 <Printer size={15} /> Print / PDF
@@ -132,10 +132,10 @@ function PatternsPage() {
 
       <Link
         to="/escalation-detector"
-        className="mt-6 flex items-start gap-4 rounded-xl p-4 transition-all hover:-translate-y-px no-print"
+        className="mt-6 flex items-start gap-4 rounded-[2px] p-4 transition-all hover:-translate-y-px no-print"
         style={{ background: "var(--input)", border: "1px solid var(--border)" }}
       >
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg" style={{ background: "#B5523A", color: "#FFFFFF" }} aria-hidden>
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[2px]" style={{ background: "#B5523A", color: "#FFFFFF" }} aria-hidden>
           <ShieldAlert size={20} />
         </div>
         <div className="flex-1 min-w-0">
@@ -183,7 +183,7 @@ function PatternsPage() {
                   )}
                 </div>
                 {analysis.confidence_level && (
-                  <span className="inline-flex items-center rounded-full px-4 py-2 text-[12px] font-bold uppercase tracking-wide" style={{ background: c.bg, color: c.fg, border: `1px solid ${c.border}` }}>
+                  <span className="inline-flex items-center rounded-[2px] px-4 py-2 text-[12px] font-bold uppercase tracking-wide" style={{ background: c.bg, color: c.fg, border: `1px solid ${c.border}` }}>
                     {analysis.confidence_level} confidence
                   </span>
                 )}
@@ -225,7 +225,7 @@ function PatternsPage() {
                 {analysis.evidence_list.map((e, i) => (
                   <li key={i} className="text-[14px] leading-relaxed">
                     <span className="font-bold">{e.date}</span> — {e.description}{" "}
-                    <span className="ml-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide" style={{ background: "var(--input)", color: "var(--muted-foreground)" }}>
+                    <span className="ml-1 inline-block rounded-[2px] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide" style={{ background: "var(--input)", color: "var(--muted-foreground)" }}>
                       {e.category}
                     </span>
                   </li>
@@ -248,7 +248,7 @@ function PatternsPage() {
                   return (
                     <li
                       key={i}
-                      className="rounded-xl p-4"
+                      className="rounded-[2px] p-4"
                       style={{ background: "var(--input)", opacity: rejected ? 0.5 : 1 }}
                     >
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -267,7 +267,7 @@ function PatternsPage() {
                             <Link
                               key={j}
                               to="/journal"
-                              className="rounded-md px-2 py-1 text-[12px] font-semibold"
+                              className="rounded-[2px] px-2 py-1 text-[12px] font-semibold"
                               style={{ background: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)" }}
                             >
                               {d}
@@ -294,7 +294,7 @@ function PatternsPage() {
               <div className="mt-3 flex flex-wrap items-center gap-2 font-serif text-[15px]">
                 {analysis.pattern_timeline_text.split(/→|->/).map((seg, i, arr) => (
                   <span key={i} className="flex items-center gap-2">
-                    <span className="rounded-md px-3 py-1.5" style={{ background: "var(--input)" }}>{seg.trim()}</span>
+                    <span className="rounded-[2px] px-3 py-1.5" style={{ background: "var(--input)" }}>{seg.trim()}</span>
                     {i < arr.length - 1 && <span style={{ color: "var(--muted-foreground)" }}>→</span>}
                   </span>
                 ))}
@@ -400,7 +400,7 @@ function PatternsPage() {
 
           {/* 10. Attorney Summary */}
           {analysis.attorney_summary && (
-            <div className="lg:col-span-2 rounded-2xl p-6" style={{ background: "#EEF2F7", border: "1px solid #C8D3E2", opacity: reviewed["attorney_summary"]?.status === "rejected" ? 0.5 : 1 }}>
+            <div className="lg:col-span-2 rounded-[2px] p-6" style={{ background: "#EEF2F7", border: "1px solid #C8D3E2", opacity: reviewed["attorney_summary"]?.status === "rejected" ? 0.5 : 1 }}>
               <div className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#3A4A66" }}>For legal review</div>
               <h3 className="mt-1 font-serif text-[20px]" style={{ color: "#1F2A3D" }}>Attorney summary</h3>
               <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "#1F2A3D" }}>{analysis.attorney_summary}</p>
@@ -414,7 +414,7 @@ function PatternsPage() {
           )}
 
           {/* 11. Safety Note — always */}
-          <div className="lg:col-span-2 rounded-xl p-5 text-[12px] leading-relaxed" style={{ background: "var(--input)", color: "var(--muted-foreground)" }}>
+          <div className="lg:col-span-2 rounded-[2px] p-5 text-[12px] leading-relaxed" style={{ background: "var(--input)", color: "var(--muted-foreground)" }}>
             Pattern analysis is based only on the evidence uploaded into PatternProof. It is not a guarantee, legal advice, or a safety plan. If you believe you are in immediate danger, contact emergency services, a domestic violence advocate, or your attorney.
           </div>
         </div>
@@ -465,7 +465,7 @@ function ClaimReview({
         </div>
       )}
       {editedNote && !editing && (
-        <div className="mb-2 rounded-md px-3 py-2 text-[12px]" style={{ background: tone === "dark" ? "#DCE3EE" : "var(--input)" }}>
+        <div className="mb-2 rounded-[2px] px-3 py-2 text-[12px]" style={{ background: tone === "dark" ? "#DCE3EE" : "var(--input)" }}>
           <span className="label-eyebrow" style={{ display: "block", marginBottom: 4 }}>Your note</span>
           {editedNote}
         </div>

@@ -81,7 +81,7 @@ function Onboarding() {
         </StepCard>
 
         <StepCard icon={<AlertTriangle size={20} />} title="If you are in danger right now">
-          <div className="rounded-2xl p-4" style={{ background: "var(--tint-purple)", border: "1px solid var(--border)" }}>
+          <div className="rounded-[2px] p-4" style={{ background: "var(--tint-purple)", border: "1px solid var(--border)" }}>
             <div className="mb-2 inline-flex items-center gap-2 text-[14px]" style={{ color: "var(--foreground)" }}>
               <Phone size={14} /> <strong>Call 911</strong> (US emergency)
             </div>

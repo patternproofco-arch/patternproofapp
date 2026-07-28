@@ -202,7 +202,7 @@ function VoiceNotesPage() {
                   <div className="label-eyebrow mt-1">{new Date(n.date).toLocaleDateString()} {n.duration_seconds != null && `· ${mmss(n.duration_seconds)}`}</div>
                   {audioUrls[n.id] && <audio controls src={audioUrls[n.id]} className="mt-3 w-full" />}
                   {n.transcript ? (
-                    <div className="mt-3 rounded-xl p-3 text-[13px] leading-relaxed" style={{ background: "var(--input)" }}>
+                    <div className="mt-3 rounded-[2px] p-3 text-[13px] leading-relaxed" style={{ background: "var(--input)" }}>
                       <div className="label-eyebrow mb-1">Transcript</div>
                       {n.transcript}
                     </div>
@@ -216,7 +216,7 @@ function VoiceNotesPage() {
                     </button>
                   )}
                 </div>
-                <button onClick={() => remove(n)} aria-label="Remove" className="rounded-lg p-2 hover:bg-black/5"><Trash2 size={15} /></button>
+                <button onClick={() => remove(n)} aria-label="Remove" className="rounded-[2px] p-2 hover:bg-black/5"><Trash2 size={15} /></button>
               </div>
             </div>
           ))

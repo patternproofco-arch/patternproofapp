@@ -93,7 +93,7 @@ function SearchPage() {
           return (
             <section key={kind}>
               <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>
-                <span className="grid h-6 w-6 place-items-center rounded-md" style={{ background: meta.accent, color: "#1A1714" }}>
+                <span className="grid h-6 w-6 place-items-center rounded-[2px]" style={{ background: meta.accent, color: "#1A1714" }}>
                   <Icon size={12} />
                 </span>
                 {meta.label} <span style={{ opacity: 0.7 }}>· {list.length}</span>

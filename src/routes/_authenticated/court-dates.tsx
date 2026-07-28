@@ -245,7 +245,7 @@ function CourtDatesPage() {
                   type="button"
                   onClick={() => setSelectedKey(key)}
                   onDoubleClick={() => openNewForDay(key)}
-                  className="relative flex h-16 flex-col items-start justify-start rounded-xl px-2 py-1.5 text-left transition-colors"
+                  className="relative flex h-16 flex-col items-start justify-start rounded-[2px] px-2 py-1.5 text-left transition-colors"
                   style={{
                     background: isSelected
                       ? "rgba(91,124,196,0.20)"
@@ -314,7 +314,7 @@ function CourtDatesPage() {
                         setCursor(new Date(d.getFullYear(), d.getMonth(), 1));
                         setSelectedKey(ymd(d));
                       }}
-                      className="w-full rounded-xl px-3 py-2 text-left transition-colors hover:bg-white/50"
+                      className="w-full rounded-[2px] px-3 py-2 text-left transition-colors hover:bg-white/50"
                     >
                       <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
                         {new Date(r.hearing_at).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
@@ -393,7 +393,7 @@ function DateRow({
   syncing: boolean;
 }) {
   return (
-    <li className="rounded-xl bg-white/40 p-3" style={{ borderLeft: "3px solid #5B4CD6" }}>
+    <li className="rounded-[2px] bg-white/40 p-3" style={{ borderLeft: "3px solid #5B4CD6" }}>
       <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
         {new Date(r.hearing_at).toLocaleString(undefined, { hour: "numeric", minute: "2-digit" })}
       </div>

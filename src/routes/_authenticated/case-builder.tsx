@@ -247,7 +247,7 @@ function CaseBuilder() {
 
       {/* Case switcher */}
       <div
-        className="mt-4 flex flex-wrap items-center gap-2 rounded-xl p-3 text-[13px]"
+        className="mt-4 flex flex-wrap items-center gap-2 rounded-[2px] p-3 text-[13px]"
         style={{ background: "var(--input)", borderLeft: "3px solid var(--accent)" }}
       >
         <span className="label-eyebrow">Working on</span>
@@ -311,7 +311,7 @@ function CaseBuilder() {
                     const on = types.includes(t);
                     return (
                       <button key={t} type="button" onClick={() => toggle(types, t, setTypes)}
-                        className="rounded-full px-3 py-1.5 text-[12px] font-semibold"
+                        className="rounded-[2px] px-3 py-1.5 text-[12px] font-semibold"
                         style={{ background: on ? "var(--accent)" : "transparent", color: on ? "#fff" : "var(--foreground)", border: "1.5px solid var(--accent)" }}>
                         {t}
                       </button>
@@ -330,7 +330,7 @@ function CaseBuilder() {
         {step === 2 && (
           <>
             <h2 className="font-serif text-[20px]">Pattern summary</h2>
-            <div className="rounded-xl p-4" style={{ background: "var(--input)" }}>
+            <div className="rounded-[2px] p-4" style={{ background: "var(--input)" }}>
               <div className="label-eyebrow">By type</div>
               <div className="mt-2 flex flex-wrap gap-3">
                 {ABUSE_TYPES.map((t) => (
@@ -361,7 +361,7 @@ function CaseBuilder() {
                 const on = highlighted.includes(i.id);
                 const disabled = !on && highlighted.length >= 10;
                 return (
-                  <label key={i.id} className="flex cursor-pointer items-start gap-3 rounded-xl p-3"
+                  <label key={i.id} className="flex cursor-pointer items-start gap-3 rounded-[2px] p-3"
                     style={{ background: on ? "var(--input)" : "transparent", borderLeft: `3px solid ${typeColor(i.abuse_types[0] ?? "other")}` }}>
                     <input type="checkbox" checked={on} disabled={disabled}
                       onChange={() => toggle(highlighted, i.id, setHighlighted)} className="mt-1" />
@@ -384,7 +384,7 @@ function CaseBuilder() {
               {evidence.map((e) => {
                 const on = attached.includes(e.id);
                 return (
-                  <label key={e.id} className="flex cursor-pointer items-start gap-3 rounded-xl p-3"
+                  <label key={e.id} className="flex cursor-pointer items-start gap-3 rounded-[2px] p-3"
                     style={{ background: on ? "var(--input)" : "transparent" }}>
                     <input type="checkbox" checked={on} onChange={() => toggle(attached, e.id, setAttached)} className="mt-1" />
                     <div className="min-w-0 flex-1">
@@ -405,7 +405,7 @@ function CaseBuilder() {
               {legalDocs.map((l) => {
                 const on = legalAttached.includes(l.id);
                 return (
-                  <label key={l.id} className="flex cursor-pointer items-start gap-3 rounded-xl p-3"
+                  <label key={l.id} className="flex cursor-pointer items-start gap-3 rounded-[2px] p-3"
                     style={{ background: on ? "var(--input)" : "transparent" }}>
                     <input type="checkbox" checked={on} onChange={() => toggle(legalAttached, l.id, setLegalAttached)} className="mt-1" />
                     <div className="min-w-0 flex-1">

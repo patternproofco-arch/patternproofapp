@@ -312,7 +312,7 @@ export function FloatingNav() {
                   <Link
                     key={it.to}
                     to={it.to}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+                    className="flex items-center gap-3 rounded-[2px] px-3 py-2.5"
                     style={{
                       background: active ? "rgba(212,112,138,0.10)" : "transparent",
                       color: "#1A1714", fontSize: 15, fontWeight: 600,
@@ -325,7 +325,7 @@ export function FloatingNav() {
               })}
               <button
                 onClick={signOut}
-                className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-left"
+                className="mt-2 flex items-center gap-3 rounded-[2px] px-3 py-2.5 text-left"
                 style={{ color: "#3D3832", fontSize: 14, fontWeight: 600 }}
               >
                 <NavIcon icon={LogOut} size={16} color="#3D3832" /> Sign out

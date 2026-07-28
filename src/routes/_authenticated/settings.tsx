@@ -93,7 +93,7 @@ function SettingsPage() {
           <div className="flex items-center gap-2"><Mic size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">Quick Record Button</h2></div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>The record button floats on every screen so you can start recording instantly.</p>
           <div className="mt-4 space-y-3">
-            <label className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: "var(--input)" }}>
+            <label className="flex items-center justify-between rounded-[2px] px-3 py-2.5" style={{ background: "var(--input)" }}>
               <span className="text-[14px]">Show quick record button</span>
               <input
                 type="checkbox"
@@ -101,7 +101,7 @@ function SettingsPage() {
                 onChange={(e) => update({ quickRecordVisible: e.target.checked })}
               />
             </label>
-            <label className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: "var(--input)" }}>
+            <label className="flex items-center justify-between rounded-[2px] px-3 py-2.5" style={{ background: "var(--input)" }}>
               <span className="text-[14px]">Freeze button <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>(prevents accidental taps)</span></span>
               <input
                 type="checkbox"
@@ -118,7 +118,7 @@ function SettingsPage() {
           <div className="mt-3 space-y-2">
             {DISGUISES.map((d) => (
               <button key={d.name} onClick={() => update({ disguiseName: d.name, exitUrl: d.url })}
-                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left"
+                className="flex w-full items-center justify-between rounded-[2px] px-3 py-2 text-left"
                 style={{ background: settings.disguiseName === d.name ? "rgba(168,216,185,0.25)" : "var(--input)", border: "1px solid var(--border)" }}>
                 <span className="font-serif text-[15px]">{d.name}</span>
                 <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>exits to {new URL(d.url).hostname}</span>
@@ -162,7 +162,7 @@ function SettingsPage() {
         ) : (
           <div className="mt-4 space-y-2">
             {audit.map((a) => (
-              <div key={a.id} className="flex items-start justify-between gap-3 rounded-xl px-3 py-2" style={{ background: "var(--input)" }}>
+              <div key={a.id} className="flex items-start justify-between gap-3 rounded-[2px] px-3 py-2" style={{ background: "var(--input)" }}>
                 <div className="min-w-0">
                   <div className="font-serif text-[14px]">{a.action_type}</div>
                   <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
@@ -201,7 +201,7 @@ function SettingsPage() {
           <Download size={14} /> {exporting ? "Building export…" : "Export everything (.zip)"}
         </button>
         {exportResult && (
-          <div className="mt-4 rounded-xl p-3" style={{ background: "var(--input)" }}>
+          <div className="mt-4 rounded-[2px] p-3" style={{ background: "var(--input)" }}>
             <p className="text-[13px]">Ready: {(exportResult.bytes / (1024 * 1024)).toFixed(1)} MB · link valid 24 hours.</p>
             <a href={exportResult.url} download={exportResult.filename} className="btn-primary mt-2 inline-block">Download {exportResult.filename}</a>
           </div>

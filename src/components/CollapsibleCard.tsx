@@ -27,7 +27,7 @@ export function CollapsibleCard({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <section
-      className={`rounded-2xl border ${className}`}
+      className={`rounded-[2px] border ${className}`}
       style={{
         background: "var(--card)",
         borderColor: "var(--border)",

@@ -196,7 +196,7 @@ function TimelinePage() {
                 const on = types.includes(t.value);
                 return (
                   <button key={t.value} onClick={() => toggleType(t.value)}
-                    className="rounded-full px-3 py-1 text-[11px] font-semibold"
+                    className="rounded-[2px] px-3 py-1 text-[11px] font-semibold"
                     style={{ background: on ? t.color : "transparent", color: on ? "#fff" : "var(--foreground)", border: `1.5px solid ${t.color}` }}>
                     {t.label}
                   </button>
@@ -243,7 +243,7 @@ function TimelinePage() {
                         {new Date(row.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
                       </div>
                       <div className="mt-1">
-                        <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: color, color: "#14131F" }}>
+                        <span className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold" style={{ background: color, color: "#14131F" }}>
                           {LEGAL_LABEL[l.document_type] ?? "Document"}
                         </span>
                       </div>
@@ -273,7 +273,7 @@ function TimelinePage() {
                     </div>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {i.abuse_types.map((t) => (
-                        <span key={t} className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: typeColor(t), color: "#1A1714" }}>{typeLabel(t)}</span>
+                        <span key={t} className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold" style={{ background: typeColor(t), color: "#1A1714" }}>{typeLabel(t)}</span>
                       ))}
                     </div>
                     <p className="mt-2 text-[14px] leading-relaxed" style={{ color: "var(--foreground)" }}>
@@ -288,7 +288,7 @@ function TimelinePage() {
                       <div className="mt-3 flex flex-wrap gap-2">
                         {evByIncident[i.id].map((e) => (
                           <a key={e.id} href={e.url} target="_blank" rel="noreferrer"
-                            className="block overflow-hidden rounded-lg" style={{ width: 88, background: "var(--input)", border: "1px solid var(--border)" }}>
+                            className="block overflow-hidden rounded-[2px]" style={{ width: 88, background: "var(--input)", border: "1px solid var(--border)" }}>
                             {e.file_type === "image" && e.url ? (
                               <img src={e.url} alt={e.title} className="h-16 w-full object-cover" />
                             ) : (

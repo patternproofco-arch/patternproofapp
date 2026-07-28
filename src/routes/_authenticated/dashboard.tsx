@@ -224,7 +224,7 @@ function Dashboard() {
             <Link
               to="/evidence"
               aria-label="Upload evidence"
-              className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-[15px] font-semibold text-white shadow-[0_10px_30px_rgba(47,141,133,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(47,141,133,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 rounded-[2px] px-6 py-3 text-[15px] font-semibold text-white shadow-[0_10px_30px_rgba(47,141,133,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(47,141,133,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               style={{ background: "#5B4CD6" }}
             >
               <UploadCloud size={18} /> Upload Evidence
@@ -233,7 +233,7 @@ function Dashboard() {
               <Link
                 to="/agent"
                 aria-label="Ask PatternProof Agent"
-                className="inline-flex items-center gap-2 rounded-full border border-[#5B4CD6]/40 bg-white/60 px-6 py-3 text-[15px] font-semibold text-[#5B4CD6] transition-all hover:-translate-y-0.5 hover:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6] focus-visible:ring-offset-2"
+                className="inline-flex items-center gap-2 rounded-[2px] border border-[#5B4CD6]/40 bg-white/60 px-6 py-3 text-[15px] font-semibold text-[#5B4CD6] transition-all hover:-translate-y-0.5 hover:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6] focus-visible:ring-offset-2"
               >
                 <Sparkles size={16} /> Ask PatternProof Agent
               </Link>
@@ -243,7 +243,7 @@ function Dashboard() {
 
         {statusLine && !isFirstTime && (
           <p
-            className="mb-6 rounded-2xl px-5 py-4 text-[13px]"
+            className="mb-6 rounded-[2px] px-5 py-4 text-[13px]"
             style={{
               background: "rgba(255,255,255,0.35)",
               backdropFilter: "none",
@@ -284,7 +284,7 @@ function Dashboard() {
         <Link
           to="/evidence"
           aria-label="Upload evidence"
-          className="flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-[15px] font-semibold text-white shadow-[0_14px_36px_rgba(47,141,133,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="flex w-full items-center justify-center gap-2 rounded-[2px] px-6 py-4 text-[15px] font-semibold text-white shadow-[0_14px_36px_rgba(47,141,133,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{ background: "#5B4CD6" }}
         >
           <UploadCloud size={18} /> Upload Evidence
@@ -319,7 +319,7 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
     <Link
       to={card.to}
       aria-label={card.ariaLabel}
-      className={`group relative block h-full ${compact ? "min-h-0" : "min-h-[200px]"} rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6] focus-visible:ring-offset-2`}
+      className={`group relative block h-full ${compact ? "min-h-0" : "min-h-[200px]"} rounded-[2px] p-6 transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6] focus-visible:ring-offset-2`}
       style={{
         background: featured
           ? "#FFFFFF"
@@ -331,7 +331,7 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
       <div className={`relative flex h-full ${compact ? "flex-row items-center gap-4" : "flex-col"}`}>
         <div className={`flex ${compact ? "items-center" : "items-start justify-between"} gap-3`}>
           <div
-            className={`grid ${compact ? "h-11 w-11" : "h-14 w-14"} shrink-0 place-items-center rounded-2xl`}
+            className={`grid ${compact ? "h-11 w-11" : "h-14 w-14"} shrink-0 place-items-center rounded-[2px]`}
             style={{ background: card.iconBg, color: card.iconFg }}
             aria-hidden
           >
@@ -339,7 +339,7 @@ function GlassCard({ card, compact = false }: { card: DashCard; compact?: boolea
           </div>
           {!compact && (
             <span
-              className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+              className="rounded-[2px] px-2.5 py-1 text-[11px] font-semibold"
               style={{
                 background: featured ? "#4E8C8A" : "rgba(255,255,255,0.75)",
                 color: featured ? "#FFFFFF" : "#4E8C8A",
@@ -416,7 +416,7 @@ function CourtCalendarCard() {
   return (
     <section
       aria-label="Court calendar"
-      className="relative h-full rounded-3xl p-6"
+      className="relative h-full rounded-[2px] p-6"
       style={{
         background: "rgba(255,255,255,0.2)",
         backdropFilter: "none",
@@ -425,11 +425,11 @@ function CourtCalendarCard() {
       }}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl shadow-[0_6px_18px_rgba(15,23,42,0.18)]"
+        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-[2px] shadow-[0_6px_18px_rgba(15,23,42,0.18)]"
           style={{ background: "#5B4CD6", color: "#FFFFFF" }} aria-hidden>
           <CalendarGridIcon size={26} strokeWidth={1.9} color="#FFFFFF" />
         </div>
-        <span className="rounded-full border border-[#5B4CD6]/30 bg-white/75 px-2.5 py-1 text-[11px] font-semibold" style={{ color: "#5B4CD6" }}>
+        <span className="rounded-[2px] border border-[#5B4CD6]/30 bg-white/75 px-2.5 py-1 text-[11px] font-semibold" style={{ color: "#5B4CD6" }}>
           Upcoming dates
         </span>
       </div>
@@ -444,7 +444,7 @@ function CourtCalendarCard() {
       </p>
 
       {/* Mini calendar */}
-      <div className="mt-5 rounded-2xl bg-white/40 p-3">
+      <div className="mt-5 rounded-[2px] bg-white/40 p-3">
         <div className="mb-2 flex items-center justify-between">
           <button
             type="button"
@@ -476,7 +476,7 @@ function CourtCalendarCard() {
             return (
               <div
                 key={i}
-                className="relative grid h-9 place-items-center rounded-lg text-[12px]"
+                className="relative grid h-9 place-items-center rounded-[2px] text-[12px]"
                 style={{
                   background: has ? "rgba(91,124,196,0.18)" : isToday ? "rgba(47,141,133,0.12)" : "transparent",
                   color: inMonth ? "var(--foreground)" : "rgba(0,0,0,0.25)",
@@ -525,7 +525,7 @@ function CourtCalendarCard() {
         <DialogTrigger asChild>
           <button
             type="button"
-            className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-[#5B4CD6]/40 bg-white/70 px-4 py-2 text-[13px] font-semibold hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6]"
+            className="mt-5 inline-flex items-center gap-1.5 rounded-[2px] border border-[#5B4CD6]/40 bg-white/70 px-4 py-2 text-[13px] font-semibold hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CD6]"
             style={{ color: "#5B4CD6" }}
           >
             <Plus size={14} /> Add court date
@@ -632,7 +632,7 @@ function AddCourtDateForm({ onSaved }: { onSaved: () => void }) {
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-semibold text-white disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-[2px] px-5 py-2.5 text-[14px] font-semibold text-white disabled:opacity-60"
           style={{ background: "#5B4CD6" }}
         >
           {saving ? "Saving…" : "Save date"}

@@ -126,7 +126,7 @@ function SeverityIndicatorsPage() {
                     <div className="font-serif text-[17px]">{s.label}</div>
                     <p className="mt-1 text-[13px] leading-relaxed">{s.note}</p>
                     {editedNote && (
-                      <div className="mt-2 rounded-md px-3 py-2 text-[12px]" style={{ background: "var(--input)" }}>
+                      <div className="mt-2 rounded-[2px] px-3 py-2 text-[12px]" style={{ background: "var(--input)" }}>
                         <span className="label-eyebrow" style={{ display: "block", marginBottom: 4 }}>Your note</span>
                         {editedNote}
                       </div>

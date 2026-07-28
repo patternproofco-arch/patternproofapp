@@ -27,7 +27,7 @@ function AgentIndex() {
   }, [createFn, navigate]);
 
   return (
-    <div className="h-full rounded-2xl flex items-center justify-center p-10 bg-card border border-border">
+    <div className="h-full rounded-[2px] flex items-center justify-center p-10 bg-card border border-border">
       <div className="flex flex-col items-center gap-3 text-muted-foreground">
         <AppMark size={52} />
         <p className="text-sm">Opening a safe space…</p>

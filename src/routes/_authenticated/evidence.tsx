@@ -315,7 +315,7 @@ function EvidencePage() {
 
       <Link
         to="/message-threads"
-        className="mt-5 flex items-start gap-3 rounded-2xl p-4"
+        className="mt-5 flex items-start gap-3 rounded-[2px] p-4"
         style={{
           background: "#FFFFFF",
           border: "1px solid rgba(124,92,196,0.22)",
@@ -338,7 +338,7 @@ function EvidencePage() {
       <BatchDropzone onDone={load} />
 
       <form onSubmit={submit} className="card-pp mt-6 space-y-4">
-        <label className="block cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center"
+        <label className="block cursor-pointer rounded-[2px] border-2 border-dashed p-8 text-center"
           style={{ borderColor: "var(--border)" }}>
           <Upload size={26} className="mx-auto mb-2" style={{ color: "var(--muted-foreground)" }} />
           <div className="font-serif text-[16px]">{pending ? pending.name : "Drop a file here, or tap to choose"}</div>
@@ -352,7 +352,7 @@ function EvidencePage() {
         </label>
         {sizeError && (
           <div
-            className="rounded-xl px-3 py-2 text-[13px]"
+            className="rounded-[2px] px-3 py-2 text-[13px]"
             style={{
               background: "var(--tint-purple)",
               border: "1px solid var(--border)",
@@ -405,7 +405,7 @@ function EvidencePage() {
               <div className="flex flex-col gap-2 mb-4">
                 <div className="flex items-center gap-2">
                   <button type="button" onClick={() => setTab("documentation")}
-                    className="rounded-full px-4 py-1.5 text-[13px] font-semibold"
+                    className="rounded-[2px] px-4 py-1.5 text-[13px] font-semibold"
                     style={{
                       background: tab === "documentation" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
                       color: tab === "documentation" ? "#FFFDD0" : "var(--foreground)",
@@ -414,7 +414,7 @@ function EvidencePage() {
                     Documentation · {docItems.length}
                   </button>
                   <button type="button" onClick={() => setTab("evidence")}
-                    className="rounded-full px-4 py-1.5 text-[13px] font-semibold"
+                    className="rounded-[2px] px-4 py-1.5 text-[13px] font-semibold"
                     style={{
                       background: tab === "evidence" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
                       color: tab === "evidence" ? "#FFFDD0" : "var(--foreground)",
@@ -449,16 +449,16 @@ function EvidencePage() {
                   </div>
                   <div className="label-eyebrow mt-2">{new Date(it.date).toLocaleDateString()}</div>
                   {it.review_status === "suggested" && (
-                    <div className="mt-2 rounded-lg p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}>
+                    <div className="mt-2 rounded-[2px] p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}>
                       Held back from court packets and anything you share with an attorney until you review the suggested match.{" "}
                       <Link to="/evidence-review" style={{ textDecoration: "underline" }}>Review it now</Link>
                     </div>
                   )}
                   {it.file_type === "image" && url && (
-                    <img src={url} alt={it.title} className="mt-3 max-h-48 w-full rounded-xl object-cover" />
+                    <img src={url} alt={it.title} className="mt-3 max-h-48 w-full rounded-[2px] object-cover" />
                   )}
                   {it.file_type === "audio" && url && <audio controls src={url} className="mt-3 w-full" />}
-                  {it.file_type === "video" && url && <video controls src={url} className="mt-3 max-h-48 w-full rounded-xl" />}
+                  {it.file_type === "video" && url && <video controls src={url} className="mt-3 max-h-48 w-full rounded-[2px]" />}
                   {it.description && <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>{it.description}</p>}
                   {linked && <div className="mt-2 text-[12px]" style={{ color: "var(--accent)" }}>Linked: {linked.date}</div>}
                   <div className="mt-3 flex items-center gap-2">
@@ -512,7 +512,7 @@ function EvidencePage() {
             )}
 
             {!reviewBusy && reviewError && (
-              <div className="my-4 rounded-xl bg-white/40 p-4 text-[13px]" style={{ color: "#2A1A10" }}>
+              <div className="my-4 rounded-[2px] bg-white/40 p-4 text-[13px]" style={{ color: "#2A1A10" }}>
                 {reviewError}
               </div>
             )}
@@ -554,7 +554,7 @@ function EvidencePage() {
                               if (set.has(t)) set.delete(t); else set.add(t);
                               setDraft({ ...draft, abuse_types: Array.from(set) });
                             }}
-                            className="rounded-full px-3 py-1 text-[12px] font-semibold"
+                            className="rounded-[2px] px-3 py-1 text-[12px] font-semibold"
                             style={{
                               background: active ? opt.color : "rgba(255,255,255,0.55)",
                               color: active ? "#FFFFFF" : "#2A1A10",

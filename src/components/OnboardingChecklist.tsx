@@ -35,7 +35,7 @@ export function OnboardingChecklist({ counts }: { counts: ChecklistCounts }) {
           <li key={s.to}>
             <Link
               to={s.to}
-              className="flex items-center gap-4 rounded-xl p-3 transition-colors hover:bg-black/[0.03]"
+              className="flex items-center gap-4 rounded-[2px] p-3 transition-colors hover:bg-black/[0.03]"
               style={{ border: "1px solid var(--border)" }}
             >
               <span
