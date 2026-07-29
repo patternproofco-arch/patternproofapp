@@ -114,7 +114,8 @@ export const generateCourtPacketPdf = createServerFn({ method: "POST" })
     type Exhibit =
       | { kind: "incident"; row: Inc }
       | { kind: "evidence"; row: Ev }
-      | { kind: "legal"; row: Lg };
+      | { kind: "legal"; row: Lg }
+      | { kind: "thread"; row: Th };
     const exhibits: Exhibit[] = [
       ...incidents.map((row) => ({ kind: "incident" as const, row })),
       ...evidence.map((row) => ({ kind: "evidence" as const, row })),
