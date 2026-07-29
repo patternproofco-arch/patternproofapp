@@ -240,6 +240,79 @@ export const generateExportZip = createServerFn({ method: "POST" })
       }
     }));
 
+    // Imported message conversations: original screenshots + extracted text +
+    // the full correction history, so nothing about provenance is lost.
+    if (includeThreads) {
+      const thQ = scopedThreadIds
+        ? (scopedThreadIds.length
+            ? supabase.from("message_threads").select("*").eq("user_id", userId).in("id", scopedThreadIds)
+            : Promise.resolve({ data: [] as unknown[] }))
+        : supabase.from("message_threads").select("*").eq("user_id", userId);
+      const { data: thData } = await thQ;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const threads = (thData ?? []) as any[];
+      const threadIds = threads.map((t) => t.id as string);
+      if (threadIds.length) {
+        const [msgRes, docRes] = await Promise.all([
+          supabase.from("thread_messages").select("*").eq("user_id", userId).in("thread_id", threadIds).order("position", { ascending: true }),
+          supabase.from("thread_source_documents").select("*").eq("user_id", userId).in("thread_id", threadIds).order("upload_index", { ascending: true }),
+        ]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const messages = (msgRes.data ?? []) as any[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const docs = (docRes.data ?? []) as any[];
+        const messageIds = messages.map((m) => m.id as string);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let corrections: any[] = [];
+        if (messageIds.length) {
+          const { data: corrData } = await supabase
+            .from("thread_message_corrections")
+            .select("*")
+            .eq("user_id", userId)
+            .in("message_id", messageIds)
+            .order("created_at", { ascending: true });
+          corrections = corrData ?? [];
+        }
+
+        const mtFolder = zip.folder("message-threads");
+        if (mtFolder) {
+          mtFolder.file("threads.json", JSON.stringify(threads, null, 2));
+          mtFolder.file("messages.json", JSON.stringify(messages, null, 2));
+          mtFolder.file("messages.csv", toCsv(messages as Array<Record<string, unknown>>));
+          mtFolder.file("corrections.json", JSON.stringify(corrections, null, 2));
+          mtFolder.file(
+            "README.txt",
+            [
+              "Imported message conversations",
+              "",
+              "These messages were read from screenshots uploaded by the account holder.",
+              "Text recognition happened on their own device. Each field records whether it",
+              "was extracted automatically or corrected by hand; corrections.json keeps the",
+              "original extracted value alongside every correction — nothing is overwritten.",
+              "The original screenshots are in the screenshots/ folder, hashed in manifest.json.",
+            ].join("\n"),
+          );
+
+          const shotsFolder = mtFolder.folder("screenshots");
+          await Promise.all(docs.map(async (d) => {
+            if (!shotsFolder) return;
+            const buf = await downloadFile("evidence-files", d.storage_path);
+            if (!buf) return;
+            const ext = String(d.storage_path).split(".").pop() || "png";
+            const safeName = `${String(d.upload_index).padStart(3, "0")}_${String(d.id).slice(0, 8)}.${ext}`;
+            shotsFolder.file(safeName, buf);
+            const hash = sha256(buf);
+            fileHashes.push({ path: `message-threads/screenshots/${safeName}`, sha256: hash, bytes: buf.byteLength });
+            shotsFolder.file(`${safeName}.meta.json`, JSON.stringify({
+              id: d.id, thread_id: d.thread_id, upload_index: d.upload_index,
+              original_filename: d.original_filename, ocr_status: d.ocr_status,
+              ocr_confidence: d.ocr_confidence, sha256: hash, original_path: d.storage_path,
+            }, null, 2));
+          }));
+        }
+      }
+    }
+
     // Manifest
     // Hash-of-hashes — tamper-evident root for the whole evidence set
     const hashOfHashes = createHash("sha256")
