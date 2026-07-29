@@ -405,6 +405,27 @@ function CaseBuilder() {
               })}
             </div>
 
+            <h2 className="mt-6 font-serif text-[20px]">Imported message conversations</h2>
+            <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              Conversations you brought in from screenshots. Attaching one includes its messages and the original screenshots in your packet.
+            </p>
+            <div className="space-y-2">
+              {threads.length === 0 && <p className="text-[13px]">No conversations imported yet.</p>}
+              {threads.map((t) => {
+                const on = threadAttached.includes(t.id);
+                return (
+                  <label key={t.id} className="flex cursor-pointer items-start gap-3 rounded-[2px] p-3"
+                    style={{ background: on ? "var(--input)" : "transparent" }}>
+                    <input type="checkbox" checked={on} onChange={() => toggle(threadAttached, t.id, setThreadAttached)} className="mt-1" />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-serif text-[15px]">{t.conversation_participant || t.source_filename}</div>
+                      <div className="label-eyebrow mt-1">{t.message_count} messages</div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
             <h2 className="mt-6 font-serif text-[20px]">Legal documents</h2>
             <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
               Attach any TROs, police reports, or court orders that belong with this case.
