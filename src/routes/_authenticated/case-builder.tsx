@@ -32,6 +32,7 @@ interface IncRow {
 }
 interface EvRow { id: string; title: string; date: string; file_type: string }
 interface LegalRow { id: string; document_type: string; title: string; effective_date: string | null; case_number: string | null }
+interface ThreadRow { id: string; conversation_participant: string | null; source_filename: string; message_count: number; created_at: string }
 interface CaseRow {
   id: string;
   case_name: string | null;
@@ -43,6 +44,7 @@ interface CaseRow {
   highlighted_incident_ids: string[];
   attached_evidence_ids: string[];
   legal_document_ids: string[];
+  attached_thread_ids: string[];
   updated_at?: string;
 }
 
@@ -70,9 +72,11 @@ function CaseBuilder() {
   const [highlighted, setHighlighted] = useState<string[]>([]);
   const [attached, setAttached] = useState<string[]>([]);
   const [legalAttached, setLegalAttached] = useState<string[]>([]);
+  const [threadAttached, setThreadAttached] = useState<string[]>([]);
   const [incidents, setIncidents] = useState<IncRow[]>([]);
   const [evidence, setEvidence] = useState<EvRow[]>([]);
   const [legalDocs, setLegalDocs] = useState<LegalRow[]>([]);
+  const [threads, setThreads] = useState<ThreadRow[]>([]);
 
   const hydrateFromRow = useCallback((row: CaseRow) => {
     setCaseId(row.id);
@@ -96,6 +100,7 @@ function CaseBuilder() {
     setHighlighted(row.highlighted_incident_ids ?? []);
     setAttached(row.attached_evidence_ids ?? []);
     setLegalAttached(row.legal_document_ids ?? []);
+    setThreadAttached(row.attached_thread_ids ?? []);
   }, []);
 
   const resetForNewCase = useCallback(() => {
@@ -112,20 +117,23 @@ function CaseBuilder() {
     setHighlighted([]);
     setAttached([]);
     setLegalAttached([]);
+    setThreadAttached([]);
     setStep(1);
   }, []);
 
   const loadCase = useCallback(async () => {
     if (!user) return;
-    const [c, inc, ev, ld] = await Promise.all([
+    const [c, inc, ev, ld, th] = await Promise.all([
       supabase.from("cases").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
       supabase.from("incidents").select("id,date,description,abuse_types,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false, nullsFirst: false }),
       supabase.from("evidence").select("id,title,date,file_type").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("legal_documents").select("id,document_type,title,effective_date,case_number").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("message_threads").select("id,conversation_participant,source_filename,message_count,created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
     ]);
     setIncidents((inc.data as IncRow[] | null) ?? []);
     setEvidence((ev.data as EvRow[] | null) ?? []);
     setLegalDocs((ld.data as LegalRow[] | null) ?? []);
+    setThreads((th.data as ThreadRow[] | null) ?? []);
     const list = (c.data as CaseRow[] | null) ?? [];
     setCases(list);
     // Prefer currently-selected case, otherwise the most-recently-updated one.
@@ -185,6 +193,7 @@ function CaseBuilder() {
       highlighted_incident_ids: highlighted,
       attached_evidence_ids: attached,
       legal_document_ids: legalAttached,
+      attached_thread_ids: threadAttached,
     };
     if (caseId) {
       await supabase.from("cases").update(payload).eq("id", caseId).eq("user_id", user.id);
@@ -199,7 +208,7 @@ function CaseBuilder() {
         setHasExistingCase(Boolean(other || caseName || rel || types.length || summary));
       }
     }
-  }, [user, caseId, hasExistingCase, savedOther, other, caseName, rel, types, jurisdiction, summary, highlighted, attached, legalAttached]);
+  }, [user, caseId, hasExistingCase, savedOther, other, caseName, rel, types, jurisdiction, summary, highlighted, attached, legalAttached, threadAttached]);
 
   // auto-save when step changes
   useEffect(() => { const t = setTimeout(persist, 500); return () => clearTimeout(t); }, [persist, step]);
@@ -390,6 +399,27 @@ function CaseBuilder() {
                     <div className="min-w-0 flex-1">
                       <div className="font-serif text-[15px]">{e.title}</div>
                       <div className="label-eyebrow mt-1">{e.date} · {e.file_type}</div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
+            <h2 className="mt-6 font-serif text-[20px]">Imported message conversations</h2>
+            <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              Conversations you brought in from screenshots. Attaching one includes its messages and the original screenshots in your packet.
+            </p>
+            <div className="space-y-2">
+              {threads.length === 0 && <p className="text-[13px]">No conversations imported yet.</p>}
+              {threads.map((t) => {
+                const on = threadAttached.includes(t.id);
+                return (
+                  <label key={t.id} className="flex cursor-pointer items-start gap-3 rounded-[2px] p-3"
+                    style={{ background: on ? "var(--input)" : "transparent" }}>
+                    <input type="checkbox" checked={on} onChange={() => toggle(threadAttached, t.id, setThreadAttached)} className="mt-1" />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-serif text-[15px]">{t.conversation_participant || t.source_filename}</div>
+                      <div className="label-eyebrow mt-1">{t.message_count} messages</div>
                     </div>
                   </label>
                 );

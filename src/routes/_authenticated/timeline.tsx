@@ -5,6 +5,8 @@ import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { formatIncidentDate } from "@/lib/dates";
 import { FileText } from "lucide-react";
+import { MessageSquare } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { useServerFn } from "@tanstack/react-start";
 import { findCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
@@ -43,6 +45,15 @@ const LEGAL_LABEL: Record<string, string> = {
   custody_order: "Custody Order", court_order: "Court Order",
   cps_report: "CPS Report", hearing_transcript: "Hearing Transcript", other: "Document",
 };
+
+// One imported-conversation day, built from screenshot message imports.
+interface MsgDay {
+  key: string;
+  date: string;
+  participant: string;
+  count: number;
+  preview: string;
+}
 
 export const Route = createFileRoute("/_authenticated/timeline")({
   component: TimelinePage,
@@ -91,6 +102,8 @@ function TimelinePage() {
   const [evByIncident, setEvByIncident] = useState<Record<string, Array<EvItem & { url?: string }>>>({});
   const [legal, setLegal] = useState<LegalItem[]>([]);
   const [showLegal, setShowLegal] = useState(true);
+  const [msgDays, setMsgDays] = useState<MsgDay[]>([]);
+  const [showMessages, setShowMessages] = useState(true);
   const [types, setTypes] = useState<string[]>([]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -140,12 +153,48 @@ function TimelinePage() {
         .select("id,document_type,title,effective_date,incident_date,expiration_date,key_terms,case_number")
         .eq("user_id", user.id);
       setLegal((ld as LegalItem[] | null) ?? []);
+
+      // Imported message threads sit on the same timeline as everything else.
+      const { data: threads } = await supabase
+        .from("message_threads")
+        .select("id,conversation_participant")
+        .eq("user_id", user.id)
+        .eq("capture_method", "multi_screenshot");
+      const threadRows = (threads as Array<{ id: string; conversation_participant: string | null }> | null) ?? [];
+      if (threadRows.length) {
+        const { data: msgs } = await supabase
+          .from("thread_messages")
+          .select("thread_id,sent_on,body")
+          .eq("user_id", user.id)
+          .in("thread_id", threadRows.map((t) => t.id))
+          .not("sent_on", "is", null);
+        const byDay = new Map<string, MsgDay>();
+        ((msgs as Array<{ thread_id: string; sent_on: string | null; body: string | null }> | null) ?? []).forEach((m) => {
+          if (!m.sent_on) return;
+          const t = threadRows.find((x) => x.id === m.thread_id);
+          const participant = t?.conversation_participant || "Imported conversation";
+          const key = `${m.thread_id}|${m.sent_on}`;
+          const existing = byDay.get(key);
+          if (existing) {
+            existing.count += 1;
+          } else {
+            byDay.set(key, {
+              key, date: m.sent_on, participant, count: 1,
+              preview: (m.body ?? "").slice(0, 120),
+            });
+          }
+        });
+        setMsgDays([...byDay.values()]);
+      } else {
+        setMsgDays([]);
+      }
     })();
   }, [user]);
 
   type Row =
     | { kind: "incident"; date: string; item: Item }
-    | { kind: "legal"; date: string; item: LegalItem };
+    | { kind: "legal"; date: string; item: LegalItem }
+    | { kind: "messages"; date: string; item: MsgDay };
 
   const filtered = useMemo<Row[]>(() => {
     const inc: Row[] = items.filter((i) => {
@@ -160,6 +209,11 @@ function TimelinePage() {
           .filter((l) => l._date && (!from || l._date >= from) && (!to || l._date <= to))
           .map((l) => ({ kind: "legal", date: l._date, item: l } as Row))
       : [];
+    const msg: Row[] = showMessages
+      ? msgDays
+          .filter((d) => (!from || d.date >= from) && (!to || d.date <= to))
+          .map((d) => ({ kind: "messages", date: d.date, item: d } as Row))
+      : [];
     // Chronological first (newest at top). Where two entries share a date, the
     // more certain one reads first — an exact date is a firmer anchor than an
     // approximate or unknown one. Undated entries fall to the bottom.
@@ -168,13 +222,13 @@ function TimelinePage() {
       const p = (r.item as Item).date_precision ?? "exact";
       return p === "exact" ? 0 : p === "approximate" ? 1 : 2;
     };
-    return [...inc, ...leg].sort((a, b) => {
+    return [...inc, ...leg, ...msg].sort((a, b) => {
       if (!a.date && b.date) return 1;
       if (a.date && !b.date) return -1;
       if (a.date !== b.date) return a.date < b.date ? 1 : -1;
       return precisionRank(a) - precisionRank(b);
     });
-  }, [items, legal, showLegal, types, from, to]);
+  }, [items, legal, showLegal, msgDays, showMessages, types, from, to]);
 
   const toggleType = (v: string) => setTypes((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]));
 
@@ -216,6 +270,10 @@ function TimelinePage() {
             <input type="checkbox" checked={showLegal} onChange={(e) => setShowLegal(e.target.checked)} />
             Include legal documents
           </label>
+          <label className="flex items-center gap-2 self-center text-[12px]">
+            <input type="checkbox" checked={showMessages} onChange={(e) => setShowMessages(e.target.checked)} />
+            Include imported messages
+          </label>
         </div>
       </div>
 
@@ -254,6 +312,35 @@ function TimelinePage() {
                       {l.key_terms && (
                         <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--foreground)" }}>{l.key_terms}</p>
                       )}
+                    </div>
+                  </div>
+                );
+              }
+              if (row.kind === "messages") {
+                const d = row.item;
+                return (
+                  <div key={`m-${d.key}`} className="relative">
+                    <span className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4" style={{ background: "#C7E9E3", boxShadow: "none" }}>
+                      <MessageSquare size={10} color="#14131F" />
+                    </span>
+                    <div className="card-pp" style={{ borderLeft: "3px solid #C7E9E3" }}>
+                      <div className="font-serif italic text-[16px]">
+                        {new Date(row.date + "T00:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
+                      </div>
+                      <div className="mt-1">
+                        <span className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold" style={{ background: "#C7E9E3", color: "#14131F" }}>
+                          IMPORTED MESSAGES
+                        </span>
+                      </div>
+                      <p className="mt-2 font-serif text-[15px]">
+                        {d.count} message{d.count === 1 ? "" : "s"} with {d.participant}
+                      </p>
+                      {d.preview && (
+                        <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--foreground)" }}>“{d.preview}”</p>
+                      )}
+                      <Link to="/import-messages" className="mt-2 inline-block text-[12px] font-semibold" style={{ color: "var(--accent)" }}>
+                        Open the conversation →
+                      </Link>
                     </div>
                   </div>
                 );

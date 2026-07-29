@@ -809,6 +809,7 @@ export type Database = {
       cases: {
         Row: {
           attached_evidence_ids: string[]
+          attached_thread_ids: string[]
           case_name: string | null
           case_types: string[]
           created_at: string
@@ -824,6 +825,7 @@ export type Database = {
         }
         Insert: {
           attached_evidence_ids?: string[]
+          attached_thread_ids?: string[]
           case_name?: string | null
           case_types?: string[]
           created_at?: string
@@ -839,6 +841,7 @@ export type Database = {
         }
         Update: {
           attached_evidence_ids?: string[]
+          attached_thread_ids?: string[]
           case_name?: string | null
           case_types?: string[]
           created_at?: string
@@ -1585,10 +1588,12 @@ export type Database = {
           file_url: string
           flags: Json
           id: string
+          import_status: string
           message_count: number
           parse_error: string | null
           parse_status: string
           primary_artifact_urls: string[]
+          processed_count: number
           screenshot_count: number | null
           source_filename: string
           source_type: string
@@ -1608,10 +1613,12 @@ export type Database = {
           file_url: string
           flags?: Json
           id?: string
+          import_status?: string
           message_count?: number
           parse_error?: string | null
           parse_status?: string
           primary_artifact_urls?: string[]
+          processed_count?: number
           screenshot_count?: number | null
           source_filename: string
           source_type: string
@@ -1631,10 +1638,12 @@ export type Database = {
           file_url?: string
           flags?: Json
           id?: string
+          import_status?: string
           message_count?: number
           parse_error?: string | null
           parse_status?: string
           primary_artifact_urls?: string[]
+          processed_count?: number
           screenshot_count?: number | null
           source_filename?: string
           source_type?: string
@@ -1944,55 +1953,183 @@ export type Database = {
         }
         Relationships: []
       }
+      thread_message_corrections: {
+        Row: {
+          created_at: string
+          field: string
+          id: string
+          message_id: string
+          new_value: string | null
+          old_value: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          field: string
+          id?: string
+          message_id: string
+          new_value?: string | null
+          old_value?: string | null
+          source?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          field?: string
+          id?: string
+          message_id?: string
+          new_value?: string | null
+          old_value?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_message_corrections_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "thread_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       thread_messages: {
         Row: {
+          attachment_marker_text: string | null
           attachment_name: string | null
           attachment_url: string | null
           body: string | null
           created_at: string
+          date_confidence: string
+          field_provenance: Json
           flags: Json
+          has_attachment_marker: boolean
           id: string
+          ocr_confidence: number | null
           position: number
           recipient: string | null
           sender: string | null
+          sender_side: string
           sent_at_time: string | null
           sent_on: string | null
+          source_document_id: string | null
+          source_document_ids: string[]
           thread_id: string
           user_id: string
         }
         Insert: {
+          attachment_marker_text?: string | null
           attachment_name?: string | null
           attachment_url?: string | null
           body?: string | null
           created_at?: string
+          date_confidence?: string
+          field_provenance?: Json
           flags?: Json
+          has_attachment_marker?: boolean
           id?: string
+          ocr_confidence?: number | null
           position?: number
           recipient?: string | null
           sender?: string | null
+          sender_side?: string
           sent_at_time?: string | null
           sent_on?: string | null
+          source_document_id?: string | null
+          source_document_ids?: string[]
           thread_id: string
           user_id: string
         }
         Update: {
+          attachment_marker_text?: string | null
           attachment_name?: string | null
           attachment_url?: string | null
           body?: string | null
           created_at?: string
+          date_confidence?: string
+          field_provenance?: Json
           flags?: Json
+          has_attachment_marker?: boolean
           id?: string
+          ocr_confidence?: number | null
           position?: number
           recipient?: string | null
           sender?: string | null
+          sender_side?: string
           sent_at_time?: string | null
           sent_on?: string | null
+          source_document_id?: string | null
+          source_document_ids?: string[]
           thread_id?: string
           user_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "thread_messages_source_document_id_fkey"
+            columns: ["source_document_id"]
+            isOneToOne: false
+            referencedRelation: "thread_source_documents"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "thread_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thread_source_documents: {
+        Row: {
+          bytes: number | null
+          created_at: string
+          id: string
+          mime: string | null
+          ocr_confidence: number | null
+          ocr_status: string
+          original_filename: string | null
+          sha256: string | null
+          storage_path: string
+          thread_id: string
+          updated_at: string
+          upload_index: number
+          user_id: string
+        }
+        Insert: {
+          bytes?: number | null
+          created_at?: string
+          id?: string
+          mime?: string | null
+          ocr_confidence?: number | null
+          ocr_status?: string
+          original_filename?: string | null
+          sha256?: string | null
+          storage_path: string
+          thread_id: string
+          updated_at?: string
+          upload_index?: number
+          user_id: string
+        }
+        Update: {
+          bytes?: number | null
+          created_at?: string
+          id?: string
+          mime?: string | null
+          ocr_confidence?: number | null
+          ocr_status?: string
+          original_filename?: string | null
+          sha256?: string | null
+          storage_path?: string
+          thread_id?: string
+          updated_at?: string
+          upload_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_source_documents_thread_id_fkey"
             columns: ["thread_id"]
             isOneToOne: false
             referencedRelation: "message_threads"
