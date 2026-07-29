@@ -55,6 +55,7 @@ import { Route as AuthenticatedMessageThreadsRouteImport } from './routes/_authe
 import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authenticated/live-recording'
 import { Route as AuthenticatedLegalDocumentsRouteImport } from './routes/_authenticated/legal-documents'
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
+import { Route as AuthenticatedImportMessagesRouteImport } from './routes/_authenticated/import-messages'
 import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
 import { Route as AuthenticatedEvidenceReviewRouteImport } from './routes/_authenticated/evidence-review'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
@@ -328,6 +329,12 @@ const AuthenticatedJournalRoute = AuthenticatedJournalRouteImport.update({
   path: '/journal',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedImportMessagesRoute =
+  AuthenticatedImportMessagesRouteImport.update({
+    id: '/import-messages',
+    path: '/import-messages',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
   id: '/feedback',
   path: '/feedback',
@@ -597,6 +604,7 @@ export interface FileRoutesByFullPath {
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/evidence-review': typeof AuthenticatedEvidenceReviewRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
+  '/import-messages': typeof AuthenticatedImportMessagesRoute
   '/journal': typeof AuthenticatedJournalRoute
   '/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
@@ -680,6 +688,7 @@ export interface FileRoutesByTo {
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/evidence-review': typeof AuthenticatedEvidenceReviewRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
+  '/import-messages': typeof AuthenticatedImportMessagesRoute
   '/journal': typeof AuthenticatedJournalRoute
   '/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/live-recording': typeof AuthenticatedLiveRecordingRoute
@@ -768,6 +777,7 @@ export interface FileRoutesById {
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
   '/_authenticated/evidence-review': typeof AuthenticatedEvidenceReviewRoute
   '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
+  '/_authenticated/import-messages': typeof AuthenticatedImportMessagesRoute
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
   '/_authenticated/legal-documents': typeof AuthenticatedLegalDocumentsRoute
   '/_authenticated/live-recording': typeof AuthenticatedLiveRecordingRoute
@@ -855,6 +865,7 @@ export interface FileRouteTypes {
     | '/evidence'
     | '/evidence-review'
     | '/feedback'
+    | '/import-messages'
     | '/journal'
     | '/legal-documents'
     | '/live-recording'
@@ -938,6 +949,7 @@ export interface FileRouteTypes {
     | '/evidence'
     | '/evidence-review'
     | '/feedback'
+    | '/import-messages'
     | '/journal'
     | '/legal-documents'
     | '/live-recording'
@@ -1025,6 +1037,7 @@ export interface FileRouteTypes {
     | '/_authenticated/evidence'
     | '/_authenticated/evidence-review'
     | '/_authenticated/feedback'
+    | '/_authenticated/import-messages'
     | '/_authenticated/journal'
     | '/_authenticated/legal-documents'
     | '/_authenticated/live-recording'
@@ -1428,6 +1441,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJournalRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/import-messages': {
+      id: '/_authenticated/import-messages'
+      path: '/import-messages'
+      fullPath: '/import-messages'
+      preLoaderRoute: typeof AuthenticatedImportMessagesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/feedback': {
       id: '/_authenticated/feedback'
       path: '/feedback'
@@ -1775,6 +1795,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
   AuthenticatedEvidenceReviewRoute: typeof AuthenticatedEvidenceReviewRoute
   AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
+  AuthenticatedImportMessagesRoute: typeof AuthenticatedImportMessagesRoute
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
   AuthenticatedLegalDocumentsRoute: typeof AuthenticatedLegalDocumentsRoute
   AuthenticatedLiveRecordingRoute: typeof AuthenticatedLiveRecordingRoute
@@ -1808,6 +1829,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
   AuthenticatedEvidenceReviewRoute: AuthenticatedEvidenceReviewRoute,
   AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
+  AuthenticatedImportMessagesRoute: AuthenticatedImportMessagesRoute,
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
   AuthenticatedLegalDocumentsRoute: AuthenticatedLegalDocumentsRoute,
   AuthenticatedLiveRecordingRoute: AuthenticatedLiveRecordingRoute,

@@ -314,8 +314,30 @@ function EvidencePage() {
       </h1>
 
       <Link
-        to="/message-threads"
+        to="/import-messages"
         className="mt-5 flex items-start gap-3 rounded-[2px] p-4"
+        style={{
+          background: "#FFFFFF",
+          border: "1px solid rgba(20,19,31,0.14)",
+          color: "var(--foreground)",
+          textDecoration: "none",
+        }}
+      >
+        <div style={{ width: 38, height: 38, borderRadius: 2, display: "grid", placeItems: "center", flexShrink: 0 }}>
+          <MessageSquare size={18} color="#3D2C5C" />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#1A1714" }}>Import Messages from screenshots</div>
+          <div style={{ fontSize: 13, color: "#3D3832", marginTop: 2, lineHeight: 1.5 }}>
+            Add screenshots of a text conversation in any order. They&apos;re read here on your device — no app can open your phone&apos;s Messages history, so this works from your own screenshots.
+          </div>
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#5B4CD6" }}>Open →</span>
+      </Link>
+
+      <Link
+        to="/message-threads"
+        className="mt-3 flex items-start gap-3 rounded-[2px] p-4"
         style={{
           background: "#FFFFFF",
           border: "1px solid rgba(124,92,196,0.22)",
