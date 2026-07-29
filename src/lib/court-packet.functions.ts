@@ -256,6 +256,36 @@ export const generateCourtPacketPdf = createServerFn({ method: "POST" })
       });
     }
 
+    // ---------- Imported message conversations ----------
+    if (threads.length) {
+      page = pdf.addPage([PAGE_W, PAGE_H]); y = PAGE_H - M;
+      writeLine("IMPORTED MESSAGE CONVERSATIONS", serifBold, 16);
+      gap(6);
+      writePara(
+        "These messages were read from screenshots the account holder uploaded. Text marked as extracted was read automatically and may contain errors; text marked as corrected was reviewed and fixed by the account holder. Original screenshots are included in the evidence archive.",
+        serif, 10, MUTE,
+      );
+      gap(10);
+      threads.forEach((t, idx) => {
+        const num = incidents.length + evidence.length + legal.length + idx + 1;
+        writeLine(`EXHIBIT ${String(num).padStart(3, "0")}`, mono, 10, MUTE);
+        writeLine(t.conversation_participant || t.source_filename, serifBold, 12);
+        gap(4);
+        const msgs = threadMessages
+          .filter((m) => m.thread_id === t.id)
+          .sort((a, b) => (a.sent_on ?? "9999") < (b.sent_on ?? "9999") ? -1 : a.sent_on === b.sent_on ? a.position - b.position : 1);
+        if (!msgs.length) writePara("No messages recorded for this conversation.", serif, 11, MUTE);
+        msgs.forEach((m) => {
+          const stamp = `${m.sent_on ? fmtConfirmed(m.sent_on) : "Date unknown"}${m.sent_at_time ? ` ${m.sent_at_time.slice(0, 5)}` : ""}`;
+          writeLine(`${stamp} · ${m.sender || "Unknown sender"}`, mono, 9, MUTE);
+          writePara(m.body || "(no text)", serif, 11);
+          gap(4);
+        });
+        gap(8);
+        rule();
+      });
+    }
+
     const bytes = await pdf.save();
     const base64 = Buffer.from(bytes).toString("base64");
     const slug = (caseRow.case_name || caseRow.other_party || "case")
