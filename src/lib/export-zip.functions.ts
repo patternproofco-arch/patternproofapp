@@ -36,11 +36,13 @@ export const generateExportZip = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({
       case_id: z.string().uuid().optional().nullable(),
+      include_message_threads: z.boolean().optional(),
     }).partial().parse(input ?? {}),
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const requestedCaseId = data?.case_id ?? null;
+    const includeThreads = data?.include_message_threads !== false;
 
     // Resolve which case (if any) to scope this export to. When the survivor
     // has more than one case and did not pick one, we export ALL data (legacy
@@ -65,6 +67,9 @@ export const generateExportZip = createServerFn({ method: "POST" })
       : null;
     const scopedLegalIds: string[] | null = scopedCase
       ? (((scopedCase.legal_document_ids as string[] | null) ?? []))
+      : null;
+    const scopedThreadIds: string[] | null = scopedCase
+      ? (((scopedCase.attached_thread_ids as string[] | null) ?? []))
       : null;
 
     const incQ = scopedIncidentIds
