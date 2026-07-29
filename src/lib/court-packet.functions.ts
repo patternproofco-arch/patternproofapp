@@ -188,13 +188,16 @@ export const generateCourtPacketPdf = createServerFn({ method: "POST" })
       } else if (e.kind === "evidence") {
         title = e.row.title || "Evidence";
         dateStr = e.row.date ? fmtConfirmed(e.row.date) : "Date unknown";
-      } else {
+      } else if (e.kind === "legal") {
         title = e.row.title || "Document";
         dateStr = e.row.effective_date
           ? fmtConfirmed(e.row.effective_date)
           : e.row.incident_date
             ? fmtConfirmed(e.row.incident_date)
             : "Date unknown";
+      } else {
+        title = `Imported conversation — ${e.row.conversation_participant || e.row.source_filename}`;
+        dateStr = "See conversation";
       }
       writeLine(`${num}    ${dateStr}`, mono, 10);
       writePara(`   ${title}`, serif, 12);
