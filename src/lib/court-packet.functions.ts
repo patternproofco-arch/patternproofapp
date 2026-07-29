@@ -65,7 +65,7 @@ export const generateCourtPacketPdf = createServerFn({ method: "POST" })
 
     const { data: caseRow, error: caseErr } = await supabase
       .from("cases")
-      .select("id,case_name,other_party,relationship_type,case_types,jurisdiction,pattern_summary,highlighted_incident_ids,attached_evidence_ids,legal_document_ids")
+      .select("id,case_name,other_party,relationship_type,case_types,jurisdiction,pattern_summary,highlighted_incident_ids,attached_evidence_ids,legal_document_ids,attached_thread_ids")
       .eq("id", data.case_id)
       .eq("user_id", userId)
       .maybeSingle();
@@ -74,8 +74,9 @@ export const generateCourtPacketPdf = createServerFn({ method: "POST" })
     const incIds: string[] = caseRow.highlighted_incident_ids ?? [];
     const evIds: string[] = caseRow.attached_evidence_ids ?? [];
     const lgIds: string[] = caseRow.legal_document_ids ?? [];
+    const thIds: string[] = caseRow.attached_thread_ids ?? [];
 
-    const [incR, evR, lgR] = await Promise.all([
+    const [incR, evR, lgR, thR, tmR] = await Promise.all([
       incIds.length
         ? supabase.from("incidents").select("id,date,date_precision,date_range_start,date_range_end,anchor_label,location,description,abuse_types")
             .eq("user_id", userId).in("id", incIds).is("deleted_at", null)
@@ -88,15 +89,27 @@ export const generateCourtPacketPdf = createServerFn({ method: "POST" })
         ? supabase.from("legal_documents").select("id,title,document_type,effective_date,incident_date,case_number,key_terms")
             .eq("user_id", userId).in("id", lgIds)
         : Promise.resolve({ data: [] as unknown[] }),
+      thIds.length
+        ? supabase.from("message_threads").select("id,conversation_participant,source_filename,message_count")
+            .eq("user_id", userId).in("id", thIds)
+        : Promise.resolve({ data: [] as unknown[] }),
+      thIds.length
+        ? supabase.from("thread_messages").select("thread_id,position,sender,sent_on,sent_at_time,body")
+            .eq("user_id", userId).in("thread_id", thIds).order("position", { ascending: true })
+        : Promise.resolve({ data: [] as unknown[] }),
     ]);
 
     interface Inc { id: string; date: string | null; date_precision: string | null; date_range_start: string | null; date_range_end: string | null; anchor_label: string | null; location: string | null; description: string; abuse_types: string[] }
     interface Ev { id: string; title: string; date: string | null; file_type: string; description: string | null }
     interface Lg { id: string; title: string; document_type: string; effective_date: string | null; incident_date: string | null; case_number: string | null; key_terms: string | null }
+    interface Th { id: string; conversation_participant: string | null; source_filename: string; message_count: number }
+    interface Tm { thread_id: string; position: number; sender: string | null; sent_on: string | null; sent_at_time: string | null; body: string | null }
 
     const incidents = ((incR.data as Inc[] | null) ?? []).sort((a, b) => (a.date ?? "0") < (b.date ?? "0") ? -1 : 1);
     const evidence = (evR.data as Ev[] | null) ?? [];
     const legal = (lgR.data as Lg[] | null) ?? [];
+    const threads = (thR.data as Th[] | null) ?? [];
+    const threadMessages = (tmR.data as Tm[] | null) ?? [];
 
     type Exhibit =
       | { kind: "incident"; row: Inc }
@@ -106,6 +119,7 @@ export const generateCourtPacketPdf = createServerFn({ method: "POST" })
       ...incidents.map((row) => ({ kind: "incident" as const, row })),
       ...evidence.map((row) => ({ kind: "evidence" as const, row })),
       ...legal.map((row) => ({ kind: "legal" as const, row })),
+      ...threads.map((row) => ({ kind: "thread" as const, row })),
     ];
 
     // ---------- Build PDF ----------
