@@ -82,3 +82,11 @@ export function formatIncidentDate(i: IncidentDateFields): string {
   if (!i.date) return "Date not documented";
   return formatDateLocal(i.date, { month: "short", day: "numeric", year: "numeric" });
 }
+
+/**
+ * Evidence shares the incident date vocabulary, but its `date` may be absent
+ * entirely — nothing in the app forces a date onto a piece of evidence.
+ */
+export function formatEvidenceDate(e: IncidentDateFields): string {
+  return formatIncidentDate(e);
+}
