@@ -14,6 +14,161 @@ export type Database = {
   }
   public: {
     Tables: {
+      advocate_client_links: {
+        Row: {
+          advocate_user_id: string
+          case_id: string | null
+          client_user_id: string
+          created_at: string
+          id: string
+          include_all_evidence: boolean
+          include_all_incidents: boolean
+          include_patterns: boolean
+          invitation_id: string | null
+          revoked_at: string | null
+          scope_evidence: string[]
+          scope_incidents: string[]
+          status: string
+        }
+        Insert: {
+          advocate_user_id: string
+          case_id?: string | null
+          client_user_id: string
+          created_at?: string
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invitation_id?: string | null
+          revoked_at?: string | null
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Update: {
+          advocate_user_id?: string
+          case_id?: string | null
+          client_user_id?: string
+          created_at?: string
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invitation_id?: string | null
+          revoked_at?: string | null
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advocate_client_links_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "advocate_invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advocate_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          advocate_email: string
+          advocate_name: string | null
+          case_id: string | null
+          client_user_id: string
+          created_at: string
+          date_range_end: string | null
+          date_range_start: string | null
+          expires_at: string | null
+          id: string
+          include_all_evidence: boolean
+          include_all_incidents: boolean
+          include_patterns: boolean
+          invite_token: string
+          org_name: string | null
+          personal_note: string | null
+          scope_evidence: string[]
+          scope_incidents: string[]
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_email: string
+          advocate_name?: string | null
+          case_id?: string | null
+          client_user_id: string
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          expires_at?: string | null
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invite_token?: string
+          org_name?: string | null
+          personal_note?: string | null
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_email?: string
+          advocate_name?: string | null
+          case_id?: string | null
+          client_user_id?: string
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          expires_at?: string | null
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invite_token?: string
+          org_name?: string | null
+          personal_note?: string | null
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Relationships: []
+      }
+      advocate_profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          onboarded: boolean
+          org_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          onboarded?: boolean
+          org_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          onboarded?: boolean
+          org_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_messages: {
         Row: {
           created_at: string
@@ -2458,7 +2613,7 @@ export type Database = {
         | "court_packet_only"
         | "incidents_only"
         | "evidence_only"
-      app_role: "survivor" | "attorney" | "admin"
+      app_role: "survivor" | "attorney" | "admin" | "advocate"
       attorney_type: "attorney" | "advocate"
       legal_document_type:
         | "tro"
@@ -2604,7 +2759,7 @@ export const Constants = {
         "incidents_only",
         "evidence_only",
       ],
-      app_role: ["survivor", "attorney", "admin"],
+      app_role: ["survivor", "attorney", "admin", "advocate"],
       attorney_type: ["attorney", "advocate"],
       legal_document_type: [
         "tro",
