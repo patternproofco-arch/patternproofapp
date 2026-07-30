@@ -82,7 +82,7 @@ function SurvivorFeedbackPage() {
             Received. Every word you shared helps.
           </h1>
           <p style={{ color: "#4E3B31", lineHeight: 1.6, marginBottom: 24 }}>
-            Your response is stored privately. We only see the words you chose to share here — not anything from your journal or evidence.
+            Your response is stored privately. We only see the words you chose to share here — not anything from your Archive or evidence.
           </p>
           <button onClick={() => navigate({ to: "/dashboard" })} style={ctaBtn}>Back to dashboard</button>
         </div>

@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   UploadCloud, ShieldCheck, ArrowRight,
-  Sparkles, ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarClock, ShieldAlert, GitCompare,
+  Sparkles, ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarClock, GitCompare,
 } from "lucide-react";
 import {
   UploadDocIcon, TimelineDotsIcon, CalendarGridIcon,
@@ -77,12 +77,12 @@ function Dashboard() {
     },
     "/patterns": {
       to: "/patterns",
-      title: "Pattern Detection",
-      blurb: "View repeated behaviors, escalation, and abuse patterns.",
-      status: "Patterns",
+      title: "Recurline",
+      blurb: "See which Marks keep recurring, and how often.",
+      status: "Recurline",
       icon: <DotCirclePatternIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(140, 210, 200, 0.45)", iconBg: "#3FA89D", iconFg: "#FFFFFF",
-      ariaLabel: "Open pattern report",
+      ariaLabel: "Open Recurline",
     },
     "/agent": {
       to: "/agent",
@@ -114,12 +114,12 @@ function Dashboard() {
     },
     "/journal": {
       to: "/journal",
-      title: "Journal",
-      blurb: "Log or edit incidents in your own words.",
+      title: "Archive",
+      blurb: "Add or edit Marks in your own words.",
       status: "Your words",
       icon: <TimelineDotsIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(170, 160, 230, 0.45)", iconBg: "#5B4CD6", iconFg: "#FFFFFF",
-      ariaLabel: "Open journal",
+      ariaLabel: "Open archive",
     },
   };
 
@@ -158,24 +158,12 @@ function Dashboard() {
       const n = stats.contradiction_count;
       contextualCards.push({
         to: "/journal",
-        title: "A few same-day entries don't match",
-        blurb: `${n} ${n === 1 ? "pair of entries has" : "pairs of entries have"} different times or locations on the same day. Worth a look when you have a moment.`,
+        title: "A few same-day Marks don't match",
+        blurb: `${n} ${n === 1 ? "pair of Marks has" : "pairs of Marks have"} different times or locations on the same day. Worth a look when you have a moment.`,
         status: "Worth a look",
         icon: <GitCompare size={26} strokeWidth={1.9} />,
         tint: "rgba(200, 210, 230, 0.5)", iconBg: "#6A7FA8", iconFg: "#FFFFFF",
-        ariaLabel: "Review same-day entries with different details",
-      });
-    }
-    if (stats.unreviewed_severity_indicator_count > 0) {
-      const n = stats.unreviewed_severity_indicator_count;
-      contextualCards.push({
-        to: "/escalation-detector" as CardTo,
-        title: `${n} documented ${n === 1 ? "item needs" : "items need"} your review`,
-        blurb: "Severity indicators drawn from your confirmed records. Confirm or dismiss each so your documentation reflects what actually happened.",
-        status: "Review",
-        icon: <ShieldAlert size={26} strokeWidth={1.9} />,
-        tint: "rgba(230, 170, 120, 0.5)", iconBg: "#B5523A", iconFg: "#FFFFFF",
-        ariaLabel: "Review documented severity indicators",
+        ariaLabel: "Review same-day Marks with different details",
       });
     }
     const byLast: Record<string, CardTo> = {

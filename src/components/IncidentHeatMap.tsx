@@ -7,7 +7,7 @@ interface Props {
 }
 
 /**
- * Calendar-style heat map of incident frequency over the last N months.
+ * Marks Calendar — heat map of Mark frequency over the last N months.
  * Pure client-side aggregation. Color intensity = count; red tint when any
  * incident that day has an escalation flag.
  */
@@ -71,7 +71,7 @@ export function IncidentHeatMap({ incidents, months = 6 }: Props) {
                   <Link
                     key={i}
                     to="/timeline"
-                    title={`${d.date}${d.cell ? ` · ${d.cell.count} incident${d.cell.count > 1 ? "s" : ""}${d.cell.flagged ? " · escalation" : ""}` : ""}`}
+                    title={`${d.date}${d.cell ? ` · ${d.cell.count} Mark${d.cell.count > 1 ? "s" : ""}` : ""}`}
                     className="aspect-square rounded text-center text-[10px] leading-none"
                     style={{ background: colorFor(d.cell), color: d.cell ? "var(--sidebar-active)" : "var(--muted-foreground)", paddingTop: 4 }}
                   >
@@ -92,7 +92,7 @@ export function IncidentHeatMap({ incidents, months = 6 }: Props) {
         </div>
         <span>More frequent</span>
         <div className="ml-3 h-3 w-3 rounded" style={{ background: "color-mix(in oklab, var(--primary) 70%, var(--input))" }} />
-        <span>Escalation flagged</span>
+        <span>Flagged</span>
       </div>
     </div>
   );

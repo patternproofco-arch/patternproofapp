@@ -38,7 +38,7 @@ type Item = {
   Icon: typeof Home | ((p: { size?: number; strokeWidth?: number; color?: string }) => ReactElement);
   custom?: boolean;
   accent: AccentKey;
-  /** Treat this nav item as primary CTA (Log Incident). */
+  /** Treat this nav item as primary CTA (Add a Mark). */
   cta?: boolean;
   /** Always show label, pill-shape (Attorney Portal). */
   pinnedLabel?: boolean;
@@ -46,9 +46,9 @@ type Item = {
 
 const PRIMARY: Item[] = [
   { to: "/dashboard",          label: "Home",            Icon: Home,                 accent: "neutral" },
-  { to: "/journal",            label: "Log Incident",    Icon: NotebookPen,          accent: "pink",   cta: true },
+  { to: "/journal",            label: "Add a Mark"   ,    Icon: NotebookPen,          accent: "pink",   cta: true },
   { to: "/timeline",           label: "Timeline",        Icon: TimelineDotsIcon as unknown as typeof Home, custom: true, accent: "yellow" },
-  { to: "/patterns",           label: "Patterns",        Icon: DotCirclePatternIcon as unknown as typeof Home, custom: true, accent: "purple" },
+  { to: "/patterns",           label: "Recurline",        Icon: DotCirclePatternIcon as unknown as typeof Home, custom: true, accent: "purple" },
   { to: "/agent",              label: "Agent",           Icon: PpTriangleIcon as unknown as typeof Home, custom: true, accent: "blue" },
   { to: "/court-packet",       label: "Court Summary",   Icon: CourtSummaryIcon as unknown as typeof Home, custom: true, accent: "blue", pinnedLabel: true },
 ];

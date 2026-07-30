@@ -139,8 +139,8 @@ function CommunicationsPage() {
       </div>
       <CognitiveClose
         title="Link a message to the day it happened"
-        body="Open the journal entry for that date and attach this communication — context makes it count."
-        cta="Go to journal"
+        body="Open the Mark for that date and attach this communication — context makes it count."
+        cta="Go to Archive"
         to="/journal"
       />
     </div>

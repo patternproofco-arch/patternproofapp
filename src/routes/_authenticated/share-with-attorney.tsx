@@ -210,7 +210,7 @@ function ShareWithAttorney() {
               {[
                 ["Include all logged incidents", incIncidents, setIncIncidents],
                 ["Include uploaded evidence",   incEvidence,   setIncEvidence],
-                ["Include pattern analysis",    incPatterns,   setIncPatterns],
+                ["Include Recurline",    incPatterns,   setIncPatterns],
               ].map(([label, val, set]) => (
                 <label key={String(label)} className="flex items-center gap-3 text-[13px]" style={{ color: "var(--foreground)" }}>
                   <input type="checkbox" checked={val as boolean} onChange={(e) => (set as (b: boolean) => void)(e.target.checked)} />
@@ -261,11 +261,11 @@ function ShareWithAttorney() {
                   >
                     <div className="label-eyebrow" style={{ marginBottom: 4 }}>What they can see</div>
                     <div>
-                      {l.include_all_incidents ? "All journal entries" : "Selected journal entries only"}
+                      {l.include_all_incidents ? "All Marks" : "Selected Marks only"}
                       {" · "}
                       {l.include_all_evidence ? "all evidence files" : "selected evidence only"}
                       {" · "}
-                      {l.include_patterns ? "pattern analysis included" : "no pattern analysis"}
+                      {l.include_patterns ? "Recurline included" : "no Recurline"}
                     </div>
                     <div style={{ color: "var(--muted-foreground)", marginTop: 3 }}>
                       {l.case_label ? `Case: ${l.case_label}` : "All cases"}

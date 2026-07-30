@@ -628,8 +628,8 @@ function EvidencePage() {
 
       <CognitiveClose
         title="Tie evidence to an incident"
-        body="A screenshot becomes much stronger when it sits next to the day it happened. Open the journal to link them up."
-        cta="Go to journal"
+        body="A screenshot becomes much stronger when it sits next to the day it happened. Open your Archive to link them up."
+        cta="Go to Archive"
         to="/journal"
       />
       <ConfirmDialog

@@ -20,7 +20,7 @@ function CourtReadyThanks() {
       if (cancelled) return;
       clearInterval(poll);
       toast.success("Professional Review is unlocked.", {
-        description: "Your full packet, exports, and pattern analysis are ready.",
+        description: "Your full packet, exports, and Recurline are ready.",
       });
       navigate({ to: "/court-packet", replace: true });
     };
