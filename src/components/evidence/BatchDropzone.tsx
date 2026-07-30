@@ -116,6 +116,49 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const [dragOver, setDragOver] = useState(false);
   const [nearResolved, setNearResolved] = useState<Record<string, "confirmed" | "rejected">>({});
   const [suggestionCount, setSuggestionCount] = useState<number | null>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const [dating, setDating] = useState<DateCertaintyValue>(EMPTY_DATE_CERTAINTY);
+  const [offline, setOffline] = useState(false);
+  const [resumable, setResumable] = useState(0);
+
+  // Anything left in the local queue from a previous session can be picked back
+  // up — she never has to find and re-select the same files.
+  const loadResumable = useCallback(async () => {
+    if (!user || !isQueueSupported()) return;
+    try {
+      const rows = await listQueue(user.id);
+      setResumable(rows.length);
+    } catch { /* the queue is a convenience, never a blocker */ }
+  }, [user]);
+
+  useEffect(() => { loadResumable(); }, [loadResumable]);
+
+  useEffect(() => {
+    const sync = () => setOffline(typeof navigator !== "undefined" && !navigator.onLine);
+    sync();
+    window.addEventListener("offline", sync);
+    const off = onBackOnline(() => { sync(); loadResumable(); });
+    return () => { window.removeEventListener("offline", sync); off(); };
+  }, [loadResumable]);
+
+  const resumeQueued = async () => {
+    if (!user) return;
+    try {
+      const rows = await listQueue(user.id);
+      const restored: FileState[] = rows.map((r) => ({
+        id: r.id,
+        queuedId: r.id,
+        file: new File([r.blob], r.name, { type: r.mime }),
+        phase: "queued" as UploadPhase,
+        exifChoice: (r.exifChoice ?? null) as ExifChoice | null,
+      }));
+      setFiles((prev) => [...prev, ...restored]);
+      setResumable(0);
+      toast(`Picked up where you left off — ${restored.length} file${restored.length === 1 ? "" : "s"} waiting.`);
+    } catch {
+      toast("We couldn't reopen those files. They're still on this device.");
+    }
+  };
 
   const resolveNear = async (evidenceId: string, action: "confirm" | "reject") => {
     try {
