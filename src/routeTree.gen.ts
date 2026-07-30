@@ -49,6 +49,7 @@ import { Route as AuthenticatedWhyCourtsStruggleRouteImport } from './routes/_au
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
 import { Route as AuthenticatedShareWithAttorneyRouteImport } from './routes/_authenticated/share-with-attorney'
+import { Route as AuthenticatedShareWithAdvocateRouteImport } from './routes/_authenticated/share-with-advocate'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
@@ -298,6 +299,12 @@ const AuthenticatedShareWithAttorneyRoute =
   AuthenticatedShareWithAttorneyRouteImport.update({
     id: '/share-with-attorney',
     path: '/share-with-attorney',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedShareWithAdvocateRoute =
+  AuthenticatedShareWithAdvocateRouteImport.update({
+    id: '/share-with-advocate',
+    path: '/share-with-advocate',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -645,6 +652,7 @@ export interface FileRoutesByFullPath {
   '/patterns': typeof AuthenticatedPatternsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
   '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
@@ -733,6 +741,7 @@ export interface FileRoutesByTo {
   '/patterns': typeof AuthenticatedPatternsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
   '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
@@ -827,6 +836,7 @@ export interface FileRoutesById {
   '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
   '/_authenticated/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
@@ -919,6 +929,7 @@ export interface FileRouteTypes {
     | '/patterns'
     | '/search'
     | '/settings'
+    | '/share-with-advocate'
     | '/share-with-attorney'
     | '/timeline'
     | '/voice-notes'
@@ -1007,6 +1018,7 @@ export interface FileRouteTypes {
     | '/patterns'
     | '/search'
     | '/settings'
+    | '/share-with-advocate'
     | '/share-with-attorney'
     | '/timeline'
     | '/voice-notes'
@@ -1100,6 +1112,7 @@ export interface FileRouteTypes {
     | '/_authenticated/patterns'
     | '/_authenticated/search'
     | '/_authenticated/settings'
+    | '/_authenticated/share-with-advocate'
     | '/_authenticated/share-with-attorney'
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
@@ -1456,6 +1469,13 @@ declare module '@tanstack/react-router' {
       path: '/share-with-attorney'
       fullPath: '/share-with-attorney'
       preLoaderRoute: typeof AuthenticatedShareWithAttorneyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/share-with-advocate': {
+      id: '/_authenticated/share-with-advocate'
+      path: '/share-with-advocate'
+      fullPath: '/share-with-advocate'
+      preLoaderRoute: typeof AuthenticatedShareWithAdvocateRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings': {
@@ -1913,6 +1933,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedShareWithAdvocateRoute: typeof AuthenticatedShareWithAdvocateRoute
   AuthenticatedShareWithAttorneyRoute: typeof AuthenticatedShareWithAttorneyRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
@@ -1947,6 +1968,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedShareWithAdvocateRoute: AuthenticatedShareWithAdvocateRoute,
   AuthenticatedShareWithAttorneyRoute: AuthenticatedShareWithAttorneyRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
