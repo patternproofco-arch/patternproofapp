@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { Phone, Globe, MessageSquare } from "lucide-react";
 import { SettingsProvider, useSettings } from "@/lib/settings-context";
 import { QuickExitButton } from "@/components/QuickExitButton";
-import { FloatingNav } from "@/components/FloatingNav";
+import { BottomTabBar } from "@/components/BottomTabBar";
+import { HubTabs, RESOURCE_TABS } from "@/components/HubTabs";
 import { useAuth } from "@/lib/auth-context";
 import { MicroMark } from "@/components/brand/MicroMark";
 import { US_STATES, STATE_RESOURCES, type StateResource } from "@/lib/state-resources";
@@ -57,6 +58,18 @@ const GUIDANCE: { title: string; body: string; to?: string; label?: string }[] =
     label: "Read safety notes",
   },
   {
+    title: "Records requests",
+    body: "Ask police departments, schools, or agencies for the records they already hold about your situation, with wording that gets a real answer.",
+    to: "/opra-helper",
+    label: "Open the records-request helper",
+  },
+  {
+    title: "How the courts work",
+    body: "Which court hears which case, what judges look for, and how a record is usually read.",
+    to: "/court-systems",
+    label: "Open the court systems guide",
+  },
+  {
     title: "Something not working?",
     body: "Reach a real person without going through your own email client.",
     to: "/support",
@@ -87,9 +100,10 @@ function ResourcesPage() {
   return (
     <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
       <QuickExitButton />
-      {user ? <FloatingNav /> : null}
+      {user ? <BottomTabBar /> : null}
 
       <div style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(40px,8vw,88px) 24px 140px" }}>
+        {user ? <HubTabs tabs={RESOURCE_TABS} /> : null}
         <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: INK, textDecoration: "none" }}>
           ← PatternProof
         </Link>
