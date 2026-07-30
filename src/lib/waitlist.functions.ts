@@ -28,9 +28,15 @@ export const joinWaitlist = createServerFn({ method: "POST" })
       source_path: data.sourcePath ? data.sourcePath : null,
     };
 
-    const { error } = await supabaseAdmin
+    const { data: existing } = await supabaseAdmin
       .from("waitlist_signups")
-      .upsert(row, { onConflict: "email" });
+      .select("id")
+      .eq("email", row.email)
+      .maybeSingle();
+
+    const { error } = existing
+      ? await supabaseAdmin.from("waitlist_signups").update(row).eq("id", existing.id)
+      : await supabaseAdmin.from("waitlist_signups").insert(row);
 
     if (error && !/duplicate key|unique constraint/i.test(error.message)) {
       throw new Error("We couldn't save that just now. Try again in a moment.");
