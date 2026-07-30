@@ -162,6 +162,12 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
       if (!f.original_filename) throw new Error("Missing original_filename");
       if (typeof f.bytes !== "number" || f.bytes < 0) throw new Error("Invalid bytes");
       if (typeof f.mime !== "string") throw new Error("Invalid mime");
+      if (f.date_precision && !PRECISIONS.has(f.date_precision)) {
+        throw new Error("Invalid date_precision");
+      }
+      if (f.exif_choice && !["none", "kept", "stripped"].includes(f.exif_choice)) {
+        throw new Error("Invalid exif_choice");
+      }
     }
     return input;
   })
@@ -191,7 +197,6 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
     }
     const batchId = batchInsert.data.id as string;
     const items: PreservationReceiptItem[] = [];
-    const today = new Date().toISOString().slice(0, 10);
 
     for (const f of data.files) {
       try {
