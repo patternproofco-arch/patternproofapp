@@ -238,7 +238,7 @@ function PatternsPage() {
             <div className="card-pp lg:col-span-2">
               <div className="label-eyebrow">Tactics detected in the record</div>
               <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                Recurring behaviors drawn from your confirmed entries. Review each — you can confirm, edit, or reject.
+                Recurring behaviors drawn from your confirmed Marks. Review each — you can confirm, edit, or reject.
               </p>
               <ul className="mt-4 space-y-4">
                 {analysis.abuser_tactics.map((t, i) => {
@@ -312,7 +312,7 @@ function PatternsPage() {
           )}
           {(analysis.escalation_before || analysis.escalation_during || analysis.escalation_after) && (
             <div className="card-pp">
-              <div className="label-eyebrow">Escalation cycle</div>
+              <div className="label-eyebrow">Before, during, after</div>
               <div className="mt-2 space-y-2 text-[14px] leading-relaxed">
                 {analysis.escalation_before && <p><span className="font-bold">Before: </span>{analysis.escalation_before}</p>}
                 {analysis.escalation_during && <p><span className="font-bold">During: </span>{analysis.escalation_during}</p>}
@@ -322,7 +322,7 @@ function PatternsPage() {
           )}
 
           <div className="card-pp" style={{ borderLeft: "3px solid var(--primary)" }}>
-            <div className="label-eyebrow">Escalation arc · {analysis.severity_trajectory}</div>
+            <div className="label-eyebrow">Change over time · {analysis.severity_trajectory}</div>
             <p className="mt-2 text-[14px] leading-relaxed">{analysis.escalation_arc}</p>
           </div>
 
@@ -369,7 +369,7 @@ function PatternsPage() {
                   </div>
                 ))}
               </div>
-              <Link to="/journal" className="btn-primary mt-4 inline-block">Add an entry</Link>
+              <Link to="/journal" className="btn-primary mt-4 inline-block">Add a Mark</Link>
             </div>
           )}
 
@@ -414,10 +414,19 @@ function PatternsPage() {
 
           {/* 11. Safety Note — always */}
           <div className="lg:col-span-2 rounded-[2px] p-5 text-[12px] leading-relaxed" style={{ background: "var(--input)", color: "var(--muted-foreground)" }}>
-            Pattern analysis is based only on the evidence uploaded into PatternProof. It is not a guarantee, legal advice, or a safety plan. If you believe you are in immediate danger, contact emergency services, a domestic violence advocate, or your attorney.
+            Recurline is based only on the Marks and evidence you've added to PatternProof. It is not a guarantee, legal advice, or a safety plan. If you believe you are in immediate danger, contact emergency services, a domestic violence advocate, or your attorney.
           </div>
         </div>
       )}
+
+      <div className="card-pp mt-8">
+        <div className="label-eyebrow">Mark density</div>
+        <p className="mt-1 mb-3 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          A visual view of how often Marks appear over time, and how recent they are. Shading only — no score, no assessment.
+        </p>
+        <MarkDensityBar marks={marks} />
+        <SafetyResourcesLink />
+      </div>
     </div>
   );
 }
