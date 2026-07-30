@@ -90,7 +90,7 @@ function Index() {
         >
           {attorneyMode ? (
             <>
-            "A shoebox of screenshots isn't a chronology."
+            A shoebox of screenshots isn't a chronology.
             <br />
             <em>
               <span className="highlight-thread">A source-linked timeline is.</span>
@@ -159,6 +159,7 @@ function Index() {
         ) : (
         <div
           style={{
+            position: "relative",
             marginTop: 40,
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
@@ -166,6 +167,28 @@ function Index() {
             alignItems: "stretch",
           }}
         >
+          <svg
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+            preserveAspectRatio="none"
+            viewBox="0 0 1000 120"
+          >
+            <path
+              d="M0,60 C180,20 320,100 500,60 S820,20 1000,60"
+              fill="none"
+              stroke="#14131F"
+              strokeWidth="1.5"
+              strokeOpacity="0.18"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
           <PathCard
             accent="#5B4CD6"
             eyebrow="Survivor"
@@ -237,6 +260,8 @@ function PathCard({
     <Link
       to={to}
       style={{
+        position: "relative",
+        zIndex: 1,
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
