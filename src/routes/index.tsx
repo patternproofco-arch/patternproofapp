@@ -64,154 +64,76 @@ function Index() {
     >
       <section
         style={{
-          maxWidth: 780,
+          maxWidth: 1040,
           margin: "0 auto",
-          padding: "clamp(64px,10vw,120px) 24px 40px",
+          padding: "clamp(56px,9vw,104px) 24px 24px",
         }}
       >
-        <BrandLockup size={78} />
-
-        <div
-          className="mono-meta mono-meta--muted"
-          style={{ marginTop: 32, marginBottom: 28, textTransform: "uppercase" }}
-        >
-          PatternProof · Private documentation
-        </div>
+        <BrandLockup size={70} />
 
         <h1
           style={{
+            marginTop: 34,
             fontFamily: "'Newsreader', Georgia, serif",
             fontWeight: 300,
-            fontSize: "clamp(2.4rem, 5.6vw, 4.2rem)",
-            lineHeight: 1.05,
+            fontSize: "clamp(2.2rem, 5.2vw, 3.6rem)",
+            lineHeight: 1.08,
             letterSpacing: "-0.02em",
             color: "#14131F",
-            margin: 0,
+            marginBottom: 0,
           }}
         >
-          Write it down while you remember.
+          The file is not the story.
           <br />
-          <em style={{ color: "#14131F" }}>
-            <span className="highlight-thread">Keep it in one place.</span>
+          <em>
+            <span className="highlight-thread">The pattern is.</span>
           </em>
         </h1>
 
         <p
           style={{
-            marginTop: 28,
-            fontSize: 18,
+            marginTop: 20,
+            fontSize: 17,
             lineHeight: 1.6,
             color: "#3A3849",
             fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
-            maxWidth: 640,
+            maxWidth: 620,
           }}
         >
-          A quiet, private space to record what happened — with the pacing you need,
-          on infrastructure only you can see.
+          Choose the path that fits you.
         </p>
-
-        <div style={{ marginTop: 40 }}>
-          <Link
-            to="/choose-role"
-            style={{
-              display: "inline-block",
-              background: "#14131F",
-              color: "#F7F5F0",
-              padding: "14px 26px",
-              fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
-              fontSize: 13,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              borderRadius: 0,
-              textDecoration: "none",
-            }}
-          >
-            Start documenting →
-          </Link>
-          <Link
-            to="/how-it-works"
-            style={{
-              display: "inline-block",
-              marginLeft: 20,
-              padding: "14px 4px",
-              fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
-              fontSize: 13,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "#14131F",
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-            }}
-          >
-            See how it works
-          </Link>
-          <Link
-            to="/resources"
-            style={{
-              display: "inline-block",
-              marginLeft: 20,
-              padding: "14px 4px",
-              fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
-              fontSize: 13,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "#14131F",
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-            }}
-          >
-            Resources
-          </Link>
-        </div>
 
         <div
           style={{
-            marginTop: 22,
-            fontSize: 13,
-            fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
-            color: "#3A3849",
+            marginTop: 40,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: 16,
+            alignItems: "stretch",
           }}
         >
-          Also here for a case?{" "}
-          <Link
+          <PathCard
+            accent="#5B4CD6"
+            eyebrow="Survivor"
+            body="Write down what happened, at your own pace. Photos, messages, and dates stay together — private, encrypted, only yours."
+            to="/login"
+            cta="Start documenting →"
+          />
+          <PathCard
+            accent="#152038"
+            eyebrow="Attorney"
+            body="Get a source-linked chronology on day one instead of a shoebox of screenshots. Hearing prep starts with strategy, not sorting."
             to="/for-attorneys"
-            style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3 }}
-          >
-            I'm an attorney
-          </Link>
-          {" · "}
-          <Link
+            cta="See a sample case →"
+          />
+          <PathCard
+            accent="#2E4A38"
+            eyebrow="DV organization"
+            body="A free tool your advocates can hand a survivor at intake. She documents once; your referral to counsel arrives clean."
             to="/for-organizations"
-            style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3 }}
-          >
-            I'm with a DV organization
-          </Link>
+            cta="See how it fits your program →"
+          />
         </div>
-      </section>
-
-      <section
-        style={{
-          maxWidth: 780,
-          margin: "0 auto",
-          padding: "56px 24px 20px",
-          borderTop: "1px solid rgba(20,19,31,0.14)",
-        }}
-      >
-        <ProofRow
-          n="01"
-          title="Every entry is yours."
-          body="Encrypted at rest. Nobody at PatternProof can read it. Export or delete at any time."
-        />
-        <ProofRow
-          n="02"
-          title="Every fact keeps its source."
-          body="A date, a photo, a message — each attaches to the record it came from, so nothing floats loose."
-        />
-        <ProofRow
-          n="03"
-          title="Approximate is a first-class answer."
-          body="You don't have to remember exact dates. Say ‘around April’ or ‘before school let out’ and move on."
-        />
       </section>
 
       <footer
