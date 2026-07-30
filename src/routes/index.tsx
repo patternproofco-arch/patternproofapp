@@ -150,8 +150,9 @@ function Index() {
         <div style={{ marginBottom: 20 }}>
           <MicroMark size={26} />
         </div>
-        Work at your own pace — a few minutes today is enough. Only you can see what you write.
+        Every entry keeps its source. Only you can see what you write, and you can export or delete it at any time.
         <div style={{ marginTop: 18 }}>
+          <Link to="/how-it-works" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>How it works</Link>
           <Link to="/privacy" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>
           <Link to="/resources" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Resources</Link>
           <Link to="/safety" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Safety</Link>
@@ -164,39 +165,72 @@ function Index() {
   );
 }
 
-function ProofRow({ n, title, body }: { n: string; title: string; body: string }) {
+function PathCard({
+  accent,
+  eyebrow,
+  body,
+  to,
+  cta,
+}: {
+  accent: string;
+  eyebrow: string;
+  body: string;
+  to: string;
+  cta: string;
+}) {
   return (
-    <div style={{ display: "flex", gap: 20, padding: "18px 0", borderBottom: "1px solid rgba(20,19,31,0.10)" }}>
-      <div
-        className="mono-meta mono-meta--muted"
-        style={{ minWidth: 44, letterSpacing: "0.14em" }}
-      >
-        {n}
-      </div>
+    <Link
+      to={to}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        gap: 18,
+        textDecoration: "none",
+        color: "#14131F",
+        border: "1px solid rgba(20,19,31,0.14)",
+        borderLeft: `3px solid ${accent}`,
+        padding: "22px 22px 20px",
+        background: "#F7F5F0",
+      }}
+    >
       <div>
         <div
           style={{
-            fontFamily: "'Newsreader', Georgia, serif",
-            fontWeight: 400,
-            fontSize: 20,
-            color: "#14131F",
-            lineHeight: 1.25,
+            fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: accent,
           }}
         >
-          {title}
+          {eyebrow}
         </div>
         <p
           style={{
-            marginTop: 6,
-            fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
-            fontSize: 15,
-            color: "#3A3849",
-            lineHeight: 1.6,
+            marginTop: 12,
+            fontFamily: "'Newsreader', Georgia, serif",
+            fontWeight: 300,
+            fontSize: 18,
+            lineHeight: 1.5,
+            color: "#14131F",
           }}
         >
           {body}
         </p>
       </div>
-    </div>
+      <span
+        style={{
+          fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+          fontSize: 12,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          textDecoration: "underline",
+          textUnderlineOffset: 4,
+        }}
+      >
+        {cta}
+      </span>
+    </Link>
   );
 }
