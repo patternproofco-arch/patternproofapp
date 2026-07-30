@@ -241,14 +241,15 @@ function ImportMessagesPage() {
         Screenshots, <em>put in order.</em>
       </h1>
       <p className="mt-3 max-w-2xl text-[15px]" style={{ color: "var(--muted-foreground)" }}>
-        Add screenshots of a conversation in any order. We read them here on your device, put them
-        in order, and let you fix anything we got wrong.
+        Add screenshots of a conversation in any order — or a screen recording of you scrolling
+        through it. We read them here on your device, put them in order, and let you fix anything we
+        got wrong.
       </p>
 
       <input
         ref={fileInput}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         multiple
         hidden
         onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }}
@@ -256,7 +257,12 @@ function ImportMessagesPage() {
 
       <div className="mt-8 space-y-6">
         {phase === "working" ? (
-          <OcrProgress done={done} total={total} currentName={currentName} found={found} />
+          <>
+            {stage && (
+              <p className="text-[13.5px]" style={{ color: "rgba(20,19,31,0.62)" }}>{stage}</p>
+            )}
+            <OcrProgress done={done} total={total} currentName={currentName} found={found} />
+          </>
         ) : (
           <ImportIntro
             participant={participant}
@@ -312,9 +318,8 @@ function ImportMessagesPage() {
         >
           <span className="exhibit-tag">COMING LATER</span>
           <p className="mt-2 text-[13.5px]" style={{ color: "rgba(20,19,31,0.65)" }}>
-            Later we&apos;ll add reading text from screen recordings frame by frame, importing exported
-            chat files and pasted text, and optional source-linked pattern observations you turn on
-            yourself. None of that is on today, and nothing here is sent to an AI.
+            Later we&apos;ll add importing exported chat files and pasted text. Screenshots and screen
+            recordings are read entirely on your device — nothing on this page is sent to an AI.
           </p>
         </section>
       </div>
