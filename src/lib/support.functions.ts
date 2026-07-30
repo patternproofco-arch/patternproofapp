@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 export const SUPPORT_CATEGORIES = [
@@ -14,19 +16,37 @@ const schema = z.object({
   replyEmail: z.string().trim().email().max(255),
   category: z.enum(SUPPORT_CATEGORIES),
   message: z.string().trim().min(10).max(4000),
-  userId: z.string().uuid().nullable().optional(),
 });
+
+/** Derive the caller's user id from their own verified session, never from input. */
+async function resolveCallerUserId(): Promise<string | null> {
+  try {
+    const authHeader = getRequest()?.headers?.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) return null;
+    const token = authHeader.slice("Bearer ".length).trim();
+    if (!token) return null;
+
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+    if (!url || !key) return null;
+
+    const client = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data, error } = await client.auth.getUser(token);
+    if (error) return null;
+    return data.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export const submitSupportRequest = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => schema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    let userId: string | null = null;
-    if (data.userId) {
-      const { data: found } = await supabaseAdmin.auth.admin.getUserById(data.userId);
-      userId = found?.user?.id ?? null;
-    }
+    const userId = await resolveCallerUserId();
 
     const { data: row, error } = await supabaseAdmin
       .from("support_requests")
