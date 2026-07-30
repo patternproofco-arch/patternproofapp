@@ -15,6 +15,7 @@ import { BulkPastIncidentsModal } from "@/components/BulkPastIncidentsModal";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { checkUploadSize } from "@/lib/upload-limits";
+import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -318,6 +319,7 @@ function JournalPage() {
 
   return (
     <div>
+      <HubTabs tabs={ARCHIVE_TABS} />
       <div className="label-eyebrow">Your Archive</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Add what happened.

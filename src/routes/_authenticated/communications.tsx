@@ -9,6 +9,7 @@ import { CommCard } from "@/components/communications/CommCard";
 import { CommFilters, type Filter } from "@/components/communications/CommFilters";
 import type { Comm, IncidentLite } from "@/components/communications/types";
 import { CognitiveClose } from "@/components/CognitiveClose";
+import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/communications")({
   component: CommunicationsPage,
@@ -81,6 +82,7 @@ function CommunicationsPage() {
 
   return (
     <div>
+      <HubTabs tabs={CASE_TABS} />
       <div className="label-eyebrow">Communication log</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Every message, <em>every call.</em>

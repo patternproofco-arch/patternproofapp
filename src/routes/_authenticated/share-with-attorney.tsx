@@ -10,6 +10,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/share-with-attorney")({
   component: ShareWithAttorney,
@@ -119,6 +120,7 @@ function ShareWithAttorney() {
 
   return (
     <div>
+      <HubTabs tabs={CASE_TABS} />
       <div className="label-eyebrow">Share with attorney</div>
       <h1 className="mt-2 font-serif text-[30px]">Share your case with <em>your attorney</em>.</h1>
       <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>

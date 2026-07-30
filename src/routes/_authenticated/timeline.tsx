@@ -10,6 +10,7 @@ import { Link } from "@tanstack/react-router";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { useServerFn } from "@tanstack/react-start";
 import { findCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
+import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 
 interface Item {
   id: string;
@@ -234,6 +235,7 @@ function TimelinePage() {
 
   return (
     <div>
+      <HubTabs tabs={ARCHIVE_TABS} />
       <div className="label-eyebrow">Timeline</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         The pattern, <em>over time.</em>
