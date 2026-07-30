@@ -1,5 +1,5 @@
-import { useCallback, useRef, useState } from "react";
-import { Upload, Check, AlertTriangle, Clock, ShieldCheck, Eye } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Upload, Check, AlertTriangle, Clock, ShieldCheck, Eye, Camera, WifiOff } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -15,6 +15,18 @@ import {
 import { enrichEvidence } from "@/lib/evidence-enrichment.functions";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
 import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
+import { readExif, stripExif, type ExifSummary } from "@/lib/exif";
+import { FileIntakeRow, type ExifChoice } from "./FileIntakeRow";
+import {
+  DateCertaintyField,
+  EMPTY_DATE_CERTAINTY,
+  toEvidenceDateFields,
+  type DateCertaintyValue,
+} from "@/components/pp/DateCertaintyField";
+import {
+  enqueueFiles, listQueue, removeQueued, onBackOnline, isQueueSupported,
+} from "@/lib/intake-queue";
+import { openIntakeBatch, updateIntakeBatch } from "@/lib/intake-batches.functions";
 
 type UploadPhase = "queued" | "uploading" | "preserving" | "done" | "error";
 
@@ -24,6 +36,10 @@ type FileState = {
   phase: UploadPhase;
   storageKey?: string;
   message?: string;
+  exif?: ExifSummary | null;
+  exifChoice?: ExifChoice | null;
+  /** Set when this file came back from the local resume queue. */
+  queuedId?: string;
 };
 
 const MAX_FILES = 50;
