@@ -13,6 +13,7 @@ import {
 } from "@/lib/court-dates.functions";
 import { syncCourtDateToGoogle } from "@/lib/google-calendar.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/court-dates")({
   component: CourtDatesPage,
@@ -195,6 +196,7 @@ function CourtDatesPage() {
         <ArrowLeft size={14} /> Back to dashboard
       </Link>
 
+      <HubTabs tabs={CASE_TABS} />
       <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <span className="label-eyebrow">Court calendar</span>

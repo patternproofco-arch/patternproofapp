@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { typeLabel } from "@/lib/abuse-types";
 import { useSubscription } from "@/hooks/useSubscription";
 import { AppMark } from "@/components/brand/AppMark";
+import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/court-packet")({
   component: CourtPacket,
@@ -93,6 +94,7 @@ function CourtPacket() {
   if (!caseRow) {
     return (
       <div>
+        <HubTabs tabs={CASE_TABS} />
           <div className="label-eyebrow">Professional-review packet</div>
         <h1 className="mt-2 font-serif text-[34px] leading-tight">Your packet isn't ready yet.</h1>
         <div className="card-pp mt-6">
@@ -109,6 +111,7 @@ function CourtPacket() {
 
   return (
     <div>
+      <HubTabs tabs={CASE_TABS} />
       <div className="no-print mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="label-eyebrow">Professional-review packet</div>
