@@ -6,6 +6,9 @@ import { BrandLockup } from "@/components/brand/BrandLockup";
 import { MicroMark } from "@/components/brand/MicroMark";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    ref: typeof search.ref === "string" ? search.ref : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "PatternProof — Turn scattered evidence into structured patterns" },
@@ -44,6 +47,8 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { ref } = Route.useSearch();
+  const attorneyMode = ref?.toLowerCase() === "attorney";
   useEffect(() => {
     if (!loading && user) navigate({ to: "/dashboard", replace: true });
   }, [user, loading, navigate]);
@@ -83,11 +88,23 @@ function Index() {
             marginBottom: 0,
           }}
         >
-          The file is not the story.
-          <br />
-          <em>
-            <span className="highlight-thread">The pattern is.</span>
-          </em>
+          {attorneyMode ? (
+            <>
+              Smoother days,
+              <br />
+              <em>
+                <span className="highlight-thread">not just faster invoices.</span>
+              </em>
+            </>
+          ) : (
+            <>
+              The file is not the story.
+              <br />
+              <em>
+                <span className="highlight-thread">The pattern is.</span>
+              </em>
+            </>
+          )}
         </h1>
 
         <p
@@ -100,9 +117,46 @@ function Index() {
             maxWidth: 620,
           }}
         >
-          Choose the path that fits you.
+          {attorneyMode
+            ? "For attorneys: a structured, source-linked chronology on day one — not a shoebox of screenshots. Hearing prep starts with strategy, not sorting."
+            : "Choose the path that fits you."}
         </p>
 
+        {attorneyMode ? (
+          <div style={{ marginTop: 34 }}>
+            <Link
+              to="/for-attorneys"
+              style={{
+                display: "inline-block",
+                background: "#152038",
+                color: "#F4F6FB",
+                padding: "14px 26px",
+                fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+                fontSize: 13,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                textDecoration: "none",
+              }}
+            >
+              See a sample case →
+            </Link>
+            <div style={{ marginTop: 18 }}>
+              <Link
+                to="/"
+                search={{ ref: undefined }}
+                style={{
+                  fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+                  fontSize: 13,
+                  color: "#3A3849",
+                  textDecoration: "underline",
+                  textUnderlineOffset: 3,
+                }}
+              >
+                Not an attorney? See all options
+              </Link>
+            </div>
+          </div>
+        ) : (
         <div
           style={{
             marginTop: 40,
@@ -134,6 +188,7 @@ function Index() {
             cta="See how it fits your program →"
           />
         </div>
+        )}
       </section>
 
       <footer
