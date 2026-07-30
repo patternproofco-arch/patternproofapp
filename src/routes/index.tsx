@@ -90,11 +90,11 @@ function Index() {
         >
           {attorneyMode ? (
             <>
-              Smoother days,
-              <br />
-              <em>
-                <span className="highlight-thread">not just faster invoices.</span>
-              </em>
+            "A shoebox of screenshots isn't a chronology."
+            <br />
+            <em>
+              <span className="highlight-thread">A source-linked timeline is.</span>
+            </em>
             </>
           ) : (
             <>
