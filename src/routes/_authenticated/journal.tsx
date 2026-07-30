@@ -318,9 +318,9 @@ function JournalPage() {
 
   return (
     <div>
-      <div className="label-eyebrow">Your journal</div>
+      <div className="label-eyebrow">Your Archive</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
-        Log what happened.
+        Add what happened.
         <br />
         <em>In your own words.</em>
       </h1>
@@ -334,7 +334,7 @@ function JournalPage() {
             style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
           >
             <BookOpen size={15} />
-            Add from Journal Entry
+            Add from a written page
           </button>
           <button
             type="button"
@@ -343,11 +343,11 @@ function JournalPage() {
             style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
           >
             <Clock size={15} />
-            Add Multiple Past Incidents
+            Add Multiple Past Marks
           </button>
         </div>
         <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          Upload a journal page, or recall older incidents one memory at a time.
+          Upload a written page, or recall older Marks one memory at a time.
         </p>
       </div>
 
@@ -355,10 +355,10 @@ function JournalPage() {
         <section
           className="card-pp mt-6"
           style={{ background: "#F4EFE4", borderLeft: "4px solid #6A7FA8" }}
-          aria-label="Same-day entries with different details"
+          aria-label="Same-day Marks with different details"
         >
           <h2 className="font-serif text-[18px]" style={{ color: "var(--foreground)" }}>
-            A few entries on the same day have different details — worth a look
+            A few Marks on the same day have different details — worth a look
           </h2>
           <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
             Nothing has been changed. Review each one and edit whichever feels right — or leave them as they are.
@@ -385,7 +385,7 @@ function JournalPage() {
                       className="rounded-[2px] p-2 text-left text-[12px] hover:bg-black/5"
                       style={{ border: "1px solid rgba(42,37,32,0.10)" }}
                     >
-                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review entry A</div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review Mark A</div>
                       <div className="mt-0.5 line-clamp-2">{a.description}</div>
                     </button>
                     <button
@@ -394,7 +394,7 @@ function JournalPage() {
                       className="rounded-[2px] p-2 text-left text-[12px] hover:bg-black/5"
                       style={{ border: "1px solid rgba(42,37,32,0.10)" }}
                     >
-                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review entry B</div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review Mark B</div>
                       <div className="mt-0.5 line-clamp-2">{b.description}</div>
                     </button>
                   </div>
@@ -419,7 +419,7 @@ function JournalPage() {
           }}
         >
           <PenLine size={17} />
-          {editingId ? "Edit incident" : "Log Incident"}
+          {editingId ? "Edit Mark" : "Add a Mark"}
           <ChevronDown size={16} style={{ transition: "transform 200ms", transform: logOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
         </button>
         <button
@@ -434,7 +434,7 @@ function JournalPage() {
           }}
         >
           <List size={17} />
-          All Incidents {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
+          All Marks {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
           <ChevronDown size={16} style={{ transition: "transform 200ms", transform: listOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
         </button>
       </div>
@@ -464,7 +464,7 @@ function JournalPage() {
           <div>
             <label className="label-eyebrow">Attach photos, audio or files</label>
             <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>
-              Anything you attach here is saved with this entry. You can add more later.
+              Anything you attach here is saved with this Mark. You can add more later.
             </p>
             <input
               type="file"
@@ -693,7 +693,7 @@ function JournalPage() {
         onCancel={() => setConfirmDelete(null)}
       />
       <CognitiveClose
-        title="See your entries on a timeline"
+        title="See your Marks on a timeline"
         body="One date next to another is where the pattern starts to show. Take a look when you're ready."
         cta="Open timeline"
         to="/timeline"
