@@ -1137,13 +1137,18 @@ export type Database = {
       }
       evidence: {
         Row: {
+          anchor_label: string | null
           bytes: number | null
           created_at: string
-          date: string
+          date: string | null
+          date_precision: string
+          date_range_end: string | null
+          date_range_start: string | null
           deleted_at: string | null
           derivative_kind: string | null
           description: string | null
           exif_captured_at: string | null
+          exif_choice: string
           family_id: string | null
           file_type: string
           file_url: string
@@ -1178,15 +1183,22 @@ export type Database = {
           transcript_verified_at: string | null
           transcript_verified_by: string | null
           user_id: string
+          voice_caption: string | null
+          voice_caption_audio_url: string | null
         }
         Insert: {
+          anchor_label?: string | null
           bytes?: number | null
           created_at?: string
-          date: string
+          date?: string | null
+          date_precision?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
           deleted_at?: string | null
           derivative_kind?: string | null
           description?: string | null
           exif_captured_at?: string | null
+          exif_choice?: string
           family_id?: string | null
           file_type: string
           file_url: string
@@ -1221,15 +1233,22 @@ export type Database = {
           transcript_verified_at?: string | null
           transcript_verified_by?: string | null
           user_id: string
+          voice_caption?: string | null
+          voice_caption_audio_url?: string | null
         }
         Update: {
+          anchor_label?: string | null
           bytes?: number | null
           created_at?: string
-          date?: string
+          date?: string | null
+          date_precision?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
           deleted_at?: string | null
           derivative_kind?: string | null
           description?: string | null
           exif_captured_at?: string | null
+          exif_choice?: string
           family_id?: string | null
           file_type?: string
           file_url?: string
@@ -1264,6 +1283,8 @@ export type Database = {
           transcript_verified_at?: string | null
           transcript_verified_by?: string | null
           user_id?: string
+          voice_caption?: string | null
+          voice_caption_audio_url?: string | null
         }
         Relationships: [
           {
@@ -1299,6 +1320,53 @@ export type Database = {
             columns: ["suggested_incident_id"]
             isOneToOne: false
             referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evidence_classification_suggestions: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          evidence_id: string
+          id: string
+          model: string | null
+          rationale: string | null
+          status: string
+          suggested_kind: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          evidence_id: string
+          id?: string
+          model?: string | null
+          rationale?: string | null
+          status?: string
+          suggested_kind: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          evidence_id?: string
+          id?: string
+          model?: string | null
+          rationale?: string | null
+          status?: string
+          suggested_kind?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_classification_suggestions_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidence"
             referencedColumns: ["id"]
           },
         ]
@@ -1504,6 +1572,39 @@ export type Database = {
           },
         ]
       }
+      intake_batches: {
+        Row: {
+          created_at: string
+          id: string
+          kind_counts: Json
+          note: string | null
+          queued_files: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind_counts?: Json
+          note?: string | null
+          queued_files?: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind_counts?: Json
+          note?: string | null
+          queued_files?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       legal_documents: {
         Row: {
           ai_extracted: boolean
@@ -1587,6 +1688,7 @@ export type Database = {
           exhibit_label: string | null
           file_url: string
           flags: Json
+          frame_interval_sec: number | null
           id: string
           import_status: string
           message_count: number
@@ -1612,6 +1714,7 @@ export type Database = {
           exhibit_label?: string | null
           file_url: string
           flags?: Json
+          frame_interval_sec?: number | null
           id?: string
           import_status?: string
           message_count?: number
@@ -1637,6 +1740,7 @@ export type Database = {
           exhibit_label?: string | null
           file_url?: string
           flags?: Json
+          frame_interval_sec?: number | null
           id?: string
           import_status?: string
           message_count?: number
@@ -2085,7 +2189,9 @@ export type Database = {
         Row: {
           bytes: number | null
           created_at: string
+          frame_time_sec: number | null
           id: string
+          kind: string
           mime: string | null
           ocr_confidence: number | null
           ocr_status: string
@@ -2100,7 +2206,9 @@ export type Database = {
         Insert: {
           bytes?: number | null
           created_at?: string
+          frame_time_sec?: number | null
           id?: string
+          kind?: string
           mime?: string | null
           ocr_confidence?: number | null
           ocr_status?: string
@@ -2115,7 +2223,9 @@ export type Database = {
         Update: {
           bytes?: number | null
           created_at?: string
+          frame_time_sec?: number | null
           id?: string
+          kind?: string
           mime?: string | null
           ocr_confidence?: number | null
           ocr_status?: string
