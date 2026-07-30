@@ -204,6 +204,15 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       }
       return [...prev, ...next];
     });
+
+    // Inspect embedded metadata in the background so we can ask about it
+    // per file, rather than quietly keeping or removing it.
+    incoming.slice(0, MAX_FILES).forEach(async (f) => {
+      if (!f.type.startsWith("image/")) return;
+      const summary = await readExif(f);
+      if (!summary.hasMetadata) return;
+      setFiles((prev) => prev.map((row) => (row.file === f ? { ...row, exif: summary } : row)));
+    });
   }, []);
 
   const removeFile = (id: string) => setFiles((f) => f.filter((x) => x.id !== id));
