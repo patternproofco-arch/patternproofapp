@@ -145,6 +145,16 @@ function ForOrganizations() {
           >
             How this handles VAWA confidentiality requirements →
           </Link>
+          <Link
+            to="/waitlist"
+            search={{ as: "organization" as const }}
+            style={{
+              fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase",
+              color: INK, textDecoration: "underline", textUnderlineOffset: 4,
+            }}
+          >
+            Not ready to sign up your organization yet? Leave your email →
+          </Link>
         </div>
       </section>
 
@@ -163,6 +173,9 @@ function TopBar() {
         <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
           <Link to="/how-it-works" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
             How it works
+          </Link>
+          <Link to="/waitlist" search={{ as: "organization" as const }} style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
+            Get updates
           </Link>
           <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: MUTED, textTransform: "uppercase" }}>DV organizations</div>
         </div>
