@@ -329,6 +329,14 @@ function JournalPage() {
 
       <div className="mt-4">
         <div className="flex flex-wrap gap-2">
+          <Link
+            to="/voice-notes"
+            className="inline-flex items-center gap-2 rounded-[2px] px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
+            style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
+          >
+            <Mic size={15} />
+            Add a spoken Mark
+          </Link>
           <button
             type="button"
             onClick={() => setJournalOpen(true)}
