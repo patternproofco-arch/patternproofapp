@@ -2,8 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Sparkles, RefreshCw, AlertCircle, Printer, Square, ShieldAlert, ArrowRight } from "lucide-react";
+import { Sparkles, RefreshCw, AlertCircle, Printer, Square } from "lucide-react";
 import { analyzePatterns, getLatestPatternAnalysis, setPatternClaimStatus, type PatternAnalysisResult, type ClaimReviewState } from "@/lib/pattern-analysis.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
+import { MarkDensityBar } from "@/components/MarkDensityBar";
+import { SafetyResourcesLink } from "@/components/SafetyResourcesLink";
 
 function confidenceColor(level?: string) {
   if (level === "Strong") return { bg: "#DCEFD9", fg: "#1F5132", border: "#7FB97A" };
@@ -16,6 +20,7 @@ export const Route = createFileRoute("/_authenticated/patterns")({
 });
 
 function PatternsPage() {
+  const { user } = useAuth();
   const fetchLatest = useServerFn(getLatestPatternAnalysis);
   const runAnalysis = useServerFn(analyzePatterns);
   const setClaimStatus = useServerFn(setPatternClaimStatus);
@@ -26,6 +31,19 @@ function PatternsPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [notEnough, setNotEnough] = useState(false);
+  const [marks, setMarks] = useState<Array<{ date: string | null }>>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("incidents")
+        .select("date")
+        .eq("user_id", user.id)
+        .is("deleted_at", null);
+      setMarks(data ?? []);
+    })();
+  }, [user]);
 
   useEffect(() => {
     (async () => {
@@ -85,10 +103,10 @@ function PatternsPage() {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-2xl">
-          <div className="label-eyebrow">Pattern analysis</div>
+          <div className="label-eyebrow">Recurline</div>
           <h1 className="mt-2 font-serif text-[34px] leading-tight">What the record <em>shows.</em></h1>
           <p className="mt-3 text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            Quiet, calm trends from your own entries. Not a diagnosis. Not a legal conclusion. Just what's there.
+            Quiet, calm trends from your own Marks. Not a diagnosis. Not a legal conclusion. Just what's there.
           </p>
         </div>
         <div className="flex flex-col items-stretch gap-2 md:items-end no-print">
@@ -103,7 +121,7 @@ function PatternsPage() {
               style={{ background: "var(--sidebar)", color: "var(--sidebar-active)", letterSpacing: "0.02em", boxShadow: "none" }}
             >
               {busy ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
-              {busy ? "Analyzing…" : analysis ? "Refresh Analysis" : "Analyze My Patterns"}
+              {busy ? "Analyzing…" : analysis ? "Refresh Recurline" : "Build My Recurline"}
             </button>
             {analysis && (
               <button
@@ -122,7 +140,7 @@ function PatternsPage() {
           )}
           {!analysis && !createdAt && (
             <span className="text-[11px] md:text-right" style={{ color: "var(--muted-foreground)" }}>
-              First time? This analyzes your entries for behavioral patterns.
+              First time? This groups your Marks by what keeps recurring.
             </span>
           )}
         </div>
@@ -130,36 +148,17 @@ function PatternsPage() {
 
       {loading && <p className="mt-6 text-[14px]" style={{ color: "var(--muted-foreground)" }}>Loading…</p>}
 
-      <Link
-        to="/escalation-detector"
-        className="mt-6 flex items-start gap-4 rounded-[2px] p-4 transition-all hover:-translate-y-px no-print"
-        style={{ background: "var(--input)", border: "1px solid var(--border)" }}
-      >
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[2px]" style={{ background: "#B5523A", color: "#FFFFFF" }} aria-hidden>
-          <ShieldAlert size={20} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-serif text-[16px] leading-tight" style={{ color: "var(--foreground)" }}>
-            Documented Severity Indicators
-          </div>
-          <p className="mt-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            Specific behaviors your confirmed records document, with source citations.
-          </p>
-        </div>
-        <ArrowRight size={16} className="mt-1 shrink-0" style={{ color: "var(--muted-foreground)" }} />
-      </Link>
-
       {notEnough && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--accent)" }}>
-          <p className="text-[14px]">Log at least two incidents and try again. Patterns need a little ground to stand on.</p>
-          <Link to="/journal" className="btn-primary mt-3 inline-block">Log an incident</Link>
+          <p className="text-[14px]">Add at least two Marks and try again. Patterns need a little ground to stand on.</p>
+          <Link to="/journal" className="btn-primary mt-3 inline-block">Add a Mark</Link>
         </div>
       )}
 
       {!loading && !analysis && !notEnough && (
         <div className="card-pp mt-6">
           <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            When you're ready, run an analysis. Your entries stay private — only patterns come back.
+            When you're ready, build your Recurline. Your Marks stay private — only patterns come back.
           </p>
         </div>
       )}
