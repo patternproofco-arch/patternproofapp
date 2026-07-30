@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WaitlistRouteImport } from './routes/waitlist'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TriageRouteImport } from './routes/triage'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -96,6 +97,11 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
+const WaitlistRoute = WaitlistRouteImport.update({
+  id: '/waitlist',
+  path: '/waitlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
   path: '/unsubscribe',
@@ -576,6 +582,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/waitlist': typeof WaitlistRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
@@ -662,6 +669,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/waitlist': typeof WaitlistRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
@@ -749,6 +757,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/waitlist': typeof WaitlistRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_attorney/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
@@ -837,6 +846,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/triage'
     | '/unsubscribe'
+    | '/waitlist'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/attorney-feedback'
@@ -923,6 +933,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/triage'
     | '/unsubscribe'
+    | '/waitlist'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/attorney-feedback'
@@ -1009,6 +1020,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/triage'
     | '/unsubscribe'
+    | '/waitlist'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_attorney/attorney-feedback'
@@ -1098,6 +1110,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TriageRoute: typeof TriageRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  WaitlistRoute: typeof WaitlistRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
@@ -1118,6 +1131,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/waitlist': {
+      id: '/waitlist'
+      path: '/waitlist'
+      fullPath: '/waitlist'
+      preLoaderRoute: typeof WaitlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/unsubscribe': {
       id: '/unsubscribe'
       path: '/unsubscribe'
@@ -1876,6 +1896,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TriageRoute: TriageRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  WaitlistRoute: WaitlistRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
