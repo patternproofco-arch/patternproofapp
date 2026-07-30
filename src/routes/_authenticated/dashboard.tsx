@@ -72,7 +72,7 @@ function Dashboard() {
       </p>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <Link to="/journal" search={{ compose: true }} className="btn-primary inline-flex items-center gap-2">
+        <Link to="/journal" className="btn-primary inline-flex items-center gap-2">
           <Plus size={16} /> Add a Mark
         </Link>
         <Link to="/voice-notes" className="btn-ghost inline-flex items-center gap-2">
