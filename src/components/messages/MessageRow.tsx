@@ -13,6 +13,7 @@ export interface ImportedMessage {
   field_provenance: Record<string, string> | null;
   source_document_ids: string[] | null;
   source_document_id: string | null;
+  ocr_confidence?: number | null;
 }
 
 export interface Correction {
@@ -61,6 +62,12 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
   const [showHistory, setShowHistory] = useState(false);
   const prov = message.field_provenance ?? {};
   const mine = message.sender_side === "outgoing";
+  // Old, blurry, or flip-phone screenshots read badly. Rather than leaving a
+  // blank or garbled row, we say so plainly and invite her to type it herself.
+  const hardToRead =
+    prov.body !== "corrected" &&
+    ((message.ocr_confidence != null && message.ocr_confidence < 55) ||
+      !(message.body ?? "").trim());
 
   return (
     <div
@@ -110,11 +117,18 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
       <textarea
         aria-label="Message text"
         defaultValue={message.body ?? ""}
+        placeholder={hardToRead ? "Type what this message says" : undefined}
         onBlur={(e) => { if (e.target.value !== (message.body ?? "")) onCorrect("body", e.target.value); }}
         rows={Math.min(6, Math.max(2, Math.ceil((message.body?.length ?? 0) / 70)))}
         className="input-pp mt-2"
         style={{ fontSize: 14.5, lineHeight: 1.5 }}
       />
+      {hardToRead && (
+        <p className="mt-1 text-[12px]" style={{ color: "rgba(20,19,31,0.6)" }}>
+          This one came out unclear. Type what it says if you can — or leave it and come back later.
+          It stays in your record either way.
+        </p>
+      )}
       <div className="mt-1 flex flex-wrap items-center gap-2">
         <Badge state={prov.body} />
         {message.has_attachment_marker && (
