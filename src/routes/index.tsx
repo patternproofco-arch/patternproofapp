@@ -88,11 +88,23 @@ function Index() {
             marginBottom: 0,
           }}
         >
-          The file is not the story.
-          <br />
-          <em>
-            <span className="highlight-thread">The pattern is.</span>
-          </em>
+          {attorneyMode ? (
+            <>
+              Smoother days,
+              <br />
+              <em>
+                <span className="highlight-thread">not just faster invoices.</span>
+              </em>
+            </>
+          ) : (
+            <>
+              The file is not the story.
+              <br />
+              <em>
+                <span className="highlight-thread">The pattern is.</span>
+              </em>
+            </>
+          )}
         </h1>
 
         <p
