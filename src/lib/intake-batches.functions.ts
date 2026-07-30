@@ -44,7 +44,11 @@ export const updateIntakeBatch = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      status?: string;
+      kind_counts?: Record<string, number>;
+      queued_files?: Array<{ name: string; bytes: number; mime: string }>;
+    } = {};
     if (data.status) patch.status = data.status;
     if (data.kindCounts) patch.kind_counts = data.kindCounts;
     if (data.queuedFiles) patch.queued_files = data.queuedFiles;
