@@ -77,9 +77,9 @@ function Dashboard() {
     },
     "/patterns": {
       to: "/patterns",
-      title: "Pattern Detection",
-      blurb: "View repeated behaviors, escalation, and abuse patterns.",
-      status: "Patterns",
+      title: "Recurline",
+      blurb: "See which Marks keep recurring, and how often.",
+      status: "Recurline",
       icon: <DotCirclePatternIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(140, 210, 200, 0.45)", iconBg: "#3FA89D", iconFg: "#FFFFFF",
       ariaLabel: "Open pattern report",
