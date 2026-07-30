@@ -155,6 +155,9 @@ function TopBar() {
           <Link to="/how-it-works" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
             How it works
           </Link>
+          <Link to="/waitlist" search={{ as: "attorney" as const }} style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
+            Get updates
+          </Link>
           <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: MUTED, textTransform: "uppercase" }}>Attorney portal</div>
         </div>
       </div>
