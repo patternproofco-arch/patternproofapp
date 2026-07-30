@@ -13,6 +13,10 @@ import {
   addSourceDocument, deleteMessageImport, saveExtractedMessages, startMessageImport,
 } from "@/lib/message-import.functions";
 import { groupLinesIntoMessages, mergeDuplicates, orderMessages, extractContactHeader, type DraftMessage } from "@/lib/ocr/parse";
+import { checkUploadSize } from "@/lib/upload-limits";
+
+/** One thing to read: either a screenshot she picked, or a frame we pulled from her recording. */
+type Page = { file: File; kind: "screenshot" | "video_frame"; frameTimeSec?: number };
 
 export const Route = createFileRoute("/_authenticated/import-messages")({
   component: ImportMessagesPage,
@@ -44,6 +48,7 @@ function ImportMessagesPage() {
   const [total, setTotal] = useState(0);
   const [currentName, setCurrentName] = useState<string | null>(null);
   const [found, setFound] = useState(0);
+  const [stage, setStage] = useState<string | null>(null);
   const [activeThread, setActiveThread] = useState<string | undefined>(undefined);
   const fileInput = useRef<HTMLInputElement | null>(null);
 
@@ -53,7 +58,7 @@ function ImportMessagesPage() {
       .from("message_threads")
       .select("id,conversation_participant,created_at,import_status,message_count,screenshot_count")
       .eq("user_id", user.id)
-      .eq("capture_method", "multi_screenshot")
+      .in("capture_method", ["multi_screenshot", "screen_recording"])
       .order("created_at", { ascending: false });
     setThreads((data as ImportThread[] | null) ?? []);
   }, [user]);
@@ -62,20 +67,74 @@ function ImportMessagesPage() {
 
   const handleFiles = async (files: FileList | null) => {
     if (!user || !files || files.length === 0) return;
-    const images = Array.from(files).filter((f) => f.type.startsWith("image/") && f.size <= 12 * 1024 * 1024);
-    if (images.length === 0) {
-      toast("Those files weren't images we can read. Screenshots saved as photos work best.");
+    const picked = Array.from(files);
+    const tooBig = picked.map((f) => checkUploadSize(f)).filter((m): m is string => !!m);
+    tooBig.forEach((m) => toast(m));
+    const usable = picked.filter((f) => !checkUploadSize(f));
+    const images = usable.filter((f) => f.type.startsWith("image/"));
+    const video = usable.find((f) => f.type.startsWith("video/"));
+    if (images.length === 0 && !video) {
+      toast("Those files weren't images or recordings we can read. Screenshots saved as photos work best.");
       return;
     }
 
     setPhase("working");
-    setTotal(images.length);
     setDone(0);
     setFound(0);
+    setTotal(images.length);
+    setStage(null);
+
+    // A recording is read the same way a screenshot is: we pull frames from it
+    // here on your device and run the same reader over each one.
+    let videoPath: string | undefined;
+    let videoDuration: number | undefined;
+    let pages: Page[] = images.map((f) => ({ file: f, kind: "screenshot" as const }));
+
+    if (video) {
+      try {
+        setStage("Reading your recording on this device…");
+        const { extractFrames } = await import("@/lib/ocr/frames");
+        const frames = await extractFrames(video, {
+          onProgress: (d, t) => setStage(`Looking through your recording — ${d} of ${t}`),
+        });
+        if (frames.length === 0) throw new Error("no frames");
+        setStage("Uploading your recording…");
+        const vext = (video.name.match(/\.[^.]+$/)?.[0] ?? ".mp4").toLowerCase();
+        const vpath = `${user.id}/message-imports/recordings/${Date.now()}${vext}`;
+        const vup = await supabase.storage.from("evidence-files").upload(vpath, video, {
+          contentType: video.type || undefined, upsert: false,
+        });
+        if (!vup.error) videoPath = vpath;
+        const el = document.createElement("video");
+        el.preload = "metadata";
+        videoDuration = await new Promise<number | undefined>((resolve) => {
+          el.onloadedmetadata = () => resolve(Math.round(el.duration || 0));
+          el.onerror = () => resolve(undefined);
+          el.src = URL.createObjectURL(video);
+        });
+        pages = [
+          ...pages,
+          ...frames.map((fr) => ({ file: fr.file, kind: "video_frame" as const, frameTimeSec: fr.timeSec })),
+        ];
+      } catch {
+        toast("We couldn't read that recording here in the browser. Screenshots are the surest route.");
+      }
+    }
+
+    if (pages.length === 0) { setPhase("intro"); setStage(null); return; }
+    setTotal(pages.length);
+    setStage(null);
 
     let threadId: string;
     try {
-      const res = await start({ data: { participant: participant || undefined, notes: notes || undefined } });
+      const res = await start({ data: {
+        participant: participant || undefined,
+        notes: notes || undefined,
+        captureMethod: video ? "screen_recording" : "multi_screenshot",
+        videoPath,
+        videoDurationSec: videoDuration,
+        frameIntervalSec: video ? 1.5 : undefined,
+      } });
       threadId = res.threadId;
     } catch {
       toast("We couldn't start that import. Try again in a moment.");
@@ -89,11 +148,13 @@ function ImportMessagesPage() {
     const docIds: string[] = [];
     let headerName: string | null = null;
 
-    for (let i = 0; i < images.length; i++) {
-      const file = images[i]!;
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i]!;
+      const file = page.file;
       setCurrentName(file.name);
       const ext = (file.name.match(/\.[^.]+$/)?.[0] ?? ".jpg").toLowerCase();
-      const path = `${user.id}/message-imports/${threadId}/shot-${String(i + 1).padStart(3, "0")}${ext}`;
+      const prefix = page.kind === "video_frame" ? "frame" : "shot";
+      const path = `${user.id}/message-imports/${threadId}/${prefix}-${String(i + 1).padStart(3, "0")}${ext}`;
       try {
         const up = await supabase.storage.from("evidence-files").upload(path, file, {
           contentType: file.type || undefined, upsert: true,
@@ -102,12 +163,13 @@ function ImportMessagesPage() {
         const { sourceDocumentId } = await addDoc({ data: {
           threadId, storagePath: path, originalFilename: file.name,
           uploadIndex: i, bytes: file.size, mime: file.type || undefined,
+          kind: page.kind, frameTimeSec: page.frameTimeSec,
         } });
         docIds.push(sourceDocumentId);
 
-        const page = await recognizeImage(file);
-        if (!headerName) headerName = extractContactHeader(page.lines, page.height);
-        const drafts = groupLinesIntoMessages(page.lines, page.width, page.height, i);
+        const read = await recognizeImage(file);
+        if (!headerName) headerName = extractContactHeader(read.lines, read.height);
+        const drafts = groupLinesIntoMessages(read.lines, read.width, read.height, i);
         perImage.push(drafts);
       } catch {
         perImage.push([]);
@@ -122,7 +184,7 @@ function ImportMessagesPage() {
         await saveMsgs({ data: {
           threadId,
           processedCount: i + 1,
-          complete: i === images.length - 1,
+          complete: i === pages.length - 1,
           participant: participant || headerName || null,
           messages: mergedSoFar
             .filter((m) => m.source_indices.some((idx) => docIds[idx]))
@@ -147,6 +209,7 @@ function ImportMessagesPage() {
     await terminateOcr().catch(() => undefined);
     setCurrentName(null);
     setPhase("intro");
+    setStage(null);
     await loadThreads();
     toast("Saved. Your record is safe.");
   };
