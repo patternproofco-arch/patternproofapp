@@ -366,6 +366,25 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         </p>
       </div>
 
+      {offline && (
+        <div className="flex gap-2 rounded-xl p-3 text-[13px]" style={{ background: "var(--input)", border: "1px solid var(--border)", lineHeight: 1.5 }}>
+          <WifiOff size={16} style={{ marginTop: 2, flexShrink: 0 }} />
+          <div>
+            You&apos;re offline right now. You can still add files — they&apos;ll be kept on this device and
+            finish uploading the moment you&apos;re back on.
+          </div>
+        </div>
+      )}
+
+      {resumable > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl p-3 text-[13px]" style={{ background: "rgba(168,216,185,0.18)", border: "1px solid rgba(168,216,185,0.6)" }}>
+          <span>
+            {resumable} file{resumable === 1 ? "" : "s"} you added earlier are still waiting on this device.
+          </span>
+          <button type="button" onClick={resumeQueued} className="btn-ghost text-[12px]">Pick up where I left off</button>
+        </div>
+      )}
+
       <label
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
@@ -398,6 +417,28 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         />
       </label>
 
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}
+      />
+      <button type="button" onClick={() => cameraRef.current?.click()} className="btn-ghost inline-flex items-center gap-2">
+        <Camera size={14} /> Take a photo of a paper document
+      </button>
+
+      <DateCertaintyField
+        value={dating}
+        onChange={setDating}
+        label="When is this from?"
+      />
+      <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+        This applies to everything in this batch, and you can change it on any file afterward. If you
+        don&apos;t know, leave it — &ldquo;I&apos;m not sure&rdquo; is a real answer here.
+      </p>
+
       {sizeErrors.length > 0 && (
         <div
           className="mt-3 space-y-1.5 rounded-xl p-3 text-[13px]"
@@ -429,24 +470,23 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         <>
           <div className="space-y-2">
             {files.map((f) => (
-              <div key={f.id} className="flex items-center gap-3 rounded-xl p-2" style={{ background: "var(--input)" }}>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px]" style={{ fontWeight: 600 }}>{f.file.name}</div>
-                  <div className="mt-0.5 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                    {humanBytes(f.file.size)}
-                    {f.file.type ? ` · ${f.file.type}` : ""}
-                    {f.phase === "uploading" ? " · uploading…" : ""}
-                    {f.phase === "preserving" ? " · hashing…" : ""}
-                    {f.phase === "done" ? " · preserved" : ""}
-                    {f.phase === "error" ? ` · ${f.message ?? "failed"}` : ""}
-                  </div>
-                </div>
-                {f.phase === "queued" && (
-                  <button type="button" onClick={() => removeFile(f.id)} className="text-[12px] underline" style={{ color: "var(--muted-foreground)" }}>
-                    Remove
-                  </button>
-                )}
-              </div>
+              <FileIntakeRow
+                key={f.id}
+                name={f.file.name}
+                sizeLabel={humanBytes(f.file.size)}
+                typeLabel={f.file.type}
+                statusLabel={
+                  f.phase === "uploading" ? " · uploading…"
+                    : f.phase === "preserving" ? " · hashing…"
+                      : f.phase === "done" ? " · preserved"
+                        : f.phase === "error" ? ` · ${f.message ?? "failed"}`
+                          : ""
+                }
+                exif={f.exif ?? null}
+                choice={f.exifChoice ?? null}
+                onChoice={(c) => setFiles((prev) => prev.map((row) => (row.id === f.id ? { ...row, exifChoice: c } : row)))}
+                onRemove={f.phase === "queued" ? () => removeFile(f.id) : undefined}
+              />
             ))}
           </div>
 
