@@ -220,11 +220,42 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
 
   const preserveAll = async () => {
     if (!user || files.length === 0 || busy) return;
+
+    // Offline: stage everything locally and finish the moment we're back.
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      try {
+        await enqueueFiles(
+          `local-${Date.now()}`,
+          user.id,
+          files.filter((f) => f.phase === "queued").map((f) => ({
+            file: f.file,
+            dating,
+            exifChoice: f.exifChoice ?? "none",
+          })),
+        );
+        setFiles([]);
+        await loadResumable();
+        toast("You're offline right now. These are saved on this device and will finish when you're back on.");
+      } catch {
+        toast("We couldn't hold these on your device. Try again once you have a connection.");
+      }
+      return;
+    }
+
     setBusy(true);
     setReceipt(null);
 
-    const toIngest: { storage_key: string; original_filename: string; mime: string; bytes: number }[] = [];
+    const dateFields = toEvidenceDateFields(dating);
+    const toIngest: Array<
+      { storage_key: string; original_filename: string; mime: string; bytes: number; exif_choice: ExifChoice } &
+      ReturnType<typeof toEvidenceDateFields>
+    > = [];
     const updates: FileState[] = [...files];
+
+    let intakeBatchId: string | null = null;
+    try {
+      intakeBatchId = (await openBatch({ data: {} })).batchId;
+    } catch { /* resume tracking is a convenience, not a gate */ }
 
     for (let i = 0; i < updates.length; i++) {
       const item = updates[i];
@@ -232,12 +263,16 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       updates[i] = { ...item, phase: "uploading" };
       setFiles([...updates]);
 
-      const ext = item.file.name.split(".").pop() ?? "bin";
+      // Honour the metadata decision before a single byte leaves the device.
+      const choice: ExifChoice = item.exifChoice ?? (item.exif?.hasMetadata ? "kept" : "none");
+      const outgoing = choice === "stripped" ? await stripExif(item.file) : item.file;
+
+      const ext = outgoing.name.split(".").pop() ?? "bin";
       const safeExt = ext.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) || "bin";
       const key = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
       const up = await supabase.storage
         .from("evidence-files")
-        .upload(key, item.file, { upsert: false, contentType: item.file.type || undefined });
+        .upload(key, outgoing, { upsert: false, contentType: outgoing.type || undefined });
       if (up.error) {
         updates[i] = { ...item, phase: "error", message: "Upload failed." };
         setFiles([...updates]);
@@ -245,11 +280,14 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       }
       updates[i] = { ...item, phase: "preserving", storageKey: key };
       setFiles([...updates]);
+      if (item.queuedId) await removeQueued(item.queuedId).catch(() => undefined);
       toIngest.push({
         storage_key: key,
         original_filename: item.file.name,
-        mime: item.file.type || "application/octet-stream",
-        bytes: item.file.size,
+        mime: outgoing.type || "application/octet-stream",
+        bytes: outgoing.size,
+        exif_choice: choice,
+        ...dateFields,
       });
     }
 
@@ -259,7 +297,10 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
     }
 
     try {
-      const result = await ingest({ data: { files: toIngest } });
+      const result = await ingest({ data: { files: toIngest, intake_batch_id: intakeBatchId } });
+      if (intakeBatchId) {
+        await updateBatch({ data: { batchId: intakeBatchId, status: "complete" } }).catch(() => undefined);
+      }
       setReceipt(result);
       // Mark each file as done/error using receipt items.
       const byKey = new Map(result.items.map((it) => [it.storage_key, it]));
