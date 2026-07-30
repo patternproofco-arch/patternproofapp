@@ -11,6 +11,7 @@ import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { BatchDropzone } from "@/components/evidence/BatchDropzone";
+import { ContentTypeSuggestions } from "@/components/evidence/ContentTypeSuggestions";
 import { ABUSE_TYPES } from "@/lib/abuse-types";
 import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
@@ -360,6 +361,7 @@ function EvidencePage() {
       </Link>
 
       <BatchDropzone onDone={load} />
+      <ContentTypeSuggestions />
 
       <form onSubmit={submit} className="card-pp mt-6 space-y-4">
         <label className="block cursor-pointer rounded-[2px] border-2 border-dashed p-8 text-center"

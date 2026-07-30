@@ -112,6 +112,21 @@ function SettingsPage() {
           </div>
         </div>
 
+        <div className="card-pp md:col-span-2">
+          <h2 className="font-serif text-[19px]">Frequency observations</h2>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            Off by default. When on, Recurline shows plain counts of things you've already logged — like "4 files added this month" — with a link to the exact entries. Counts and dates only, never a conclusion.
+          </p>
+          <label className="mt-4 flex items-center justify-between rounded-[2px] px-3 py-2.5" style={{ background: "var(--input)" }}>
+            <span className="text-[14px]">Show frequency observations</span>
+            <input
+              type="checkbox"
+              checked={settings.frequencyObservationsEnabled}
+              onChange={(e) => update({ frequencyObservationsEnabled: e.target.checked })}
+            />
+          </label>
+        </div>
+
         <div className="card-pp">
           <div className="flex items-center gap-2"><ShieldCheck size={18} style={{ color: "var(--safe)" }} /><h2 className="font-serif text-[19px]">Disguise this app</h2></div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>The browser tab and sidebar will use this name. Pick something that fits your day.</p>

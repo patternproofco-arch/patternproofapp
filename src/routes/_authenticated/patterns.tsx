@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { MarkDensityBar } from "@/components/MarkDensityBar";
 import { SafetyResourcesLink } from "@/components/SafetyResourcesLink";
+import { FrequencyObservations } from "@/components/FrequencyObservations";
 import { HubTabs, RECURLINE_TABS } from "@/components/HubTabs";
 
 function confidenceColor(level?: string) {
@@ -429,6 +430,8 @@ function PatternsPage() {
         <MarkDensityBar marks={marks} />
         <SafetyResourcesLink />
       </div>
+
+      <FrequencyObservations />
     </div>
   );
 }

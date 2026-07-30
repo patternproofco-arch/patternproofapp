@@ -11,6 +11,8 @@ export interface PpSettings {
   onboarded: boolean;
   quickRecordVisible: boolean;
   quickRecordFrozen: boolean;
+  /** Neutral frequency observations. Off unless she turns it on. */
+  frequencyObservationsEnabled: boolean;
 }
 
 const DEFAULTS: PpSettings = {
@@ -24,6 +26,7 @@ const DEFAULTS: PpSettings = {
   onboarded: false,
   quickRecordVisible: true,
   quickRecordFrozen: false,
+  frequencyObservationsEnabled: false,
 };
 
 const KEY = "pp_settings_v1";
