@@ -261,7 +261,7 @@ function ShareWithAttorney() {
                   >
                     <div className="label-eyebrow" style={{ marginBottom: 4 }}>What they can see</div>
                     <div>
-                      {l.include_all_incidents ? "All journal entries" : "Selected journal entries only"}
+                      {l.include_all_incidents ? "All Marks" : "Selected Marks only"}
                       {" · "}
                       {l.include_all_evidence ? "all evidence files" : "selected evidence only"}
                       {" · "}

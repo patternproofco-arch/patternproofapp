@@ -224,8 +224,8 @@ function VoiceNotesPage() {
       </div>
       <CognitiveClose
         title="Turn a voice note into a written record"
-        body="When you're ready, log the moment in your journal so it joins your timeline."
-        cta="Open journal"
+        body="When you're ready, add the moment to your Archive so it joins your timeline."
+        cta="Open Archive"
         to="/journal"
       />
       {dialog}

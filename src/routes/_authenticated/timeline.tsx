@@ -69,7 +69,7 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
         <span className="mono-meta mono-meta--muted">Records that reinforce each other</span>
       </div>
       <p style={{ marginTop: 8, fontSize: 13, color: "rgba(20,19,31,0.65)" }}>
-        These entries share a date, place, or repeated pattern. Nothing is flagged as wrong — this
+        These Marks share a date, place, or repeated pattern. Nothing is flagged as wrong — this
         is where your own records line up.
       </p>
       <div className="mt-4 space-y-3">
@@ -394,9 +394,9 @@ function TimelinePage() {
         )}
       </div>
       <CognitiveClose
-        title="See what the pattern is telling you"
-        body="Once your timeline has a few entries, our pattern view surfaces escalation and recurring tactics."
-        cta="View patterns"
+        title="See what your Recurline is telling you"
+        body="Once your timeline has a few Marks, Recurline surfaces recurring tactics and frequency."
+        cta="Open Recurline"
         to="/patterns"
       />
     </div>
