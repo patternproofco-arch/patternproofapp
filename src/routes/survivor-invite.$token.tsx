@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { formatEvidenceDate } from "@/lib/dates";
 import { useEffect, useState } from "react";
 import { ShieldCheck, Lock, Heart, CheckCircle2, FileText, Paperclip } from "lucide-react";
 import { toast } from "sonner";
@@ -43,7 +44,7 @@ function SurvivorInvitePage() {
   const [scopeItemsLoaded, setScopeItemsLoaded] = useState(false);
   const [scopeItemsLoading, setScopeItemsLoading] = useState(false);
   const [incidentOptions, setIncidentOptions] = useState<Array<{ id: string; date: string; description: string | null; abuse_types?: string[] | null }>>([]);
-  const [evidenceOptions, setEvidenceOptions] = useState<Array<{ id: string; title: string; date: string; file_type: string }>>([]);
+  const [evidenceOptions, setEvidenceOptions] = useState<Array<{ id: string; title: string; date: string | null; file_type: string }>>([]);
   const [selectedIncidents, setSelectedIncidents] = useState<string[]>([]);
   const [selectedEvidence, setSelectedEvidence] = useState<string[]>([]);
 
@@ -293,7 +294,7 @@ function SurvivorInvitePage() {
                     checked={selectedEvidence.includes(item.id)}
                     onChange={(checked) => setSelectedEvidence((prev) => checked ? [...new Set([...prev, item.id])] : prev.filter((id) => id !== item.id))}
                     title={item.title || item.file_type}
-                    subtitle={`${new Date(item.date).toLocaleDateString()} · ${item.file_type}`}
+                    subtitle={`${formatEvidenceDate(item)} · ${item.file_type}`}
                   />
                 ))}
               </SelectionList>

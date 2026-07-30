@@ -1,5 +1,6 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { formatEvidenceDate } from "@/lib/dates";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
@@ -1666,7 +1667,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
               </div>
               <h3 style={{ fontSize: 16, marginTop: 8 }}>{e.title}</h3>
               <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
-                {new Date(e.date).toLocaleDateString()}
+                {formatEvidenceDate(e)}
                 {e.linked_incident_id ? " · linked to incident" : " · unlinked"}
               </div>
               {e.description && <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8 }}>{e.description.slice(0, 120)}</p>}
