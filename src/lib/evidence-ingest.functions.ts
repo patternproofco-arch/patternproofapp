@@ -7,11 +7,36 @@ type IngestFileInput = {
   original_filename: string;
   mime: string;
   bytes: number;
+  /**
+   * Optional dating. Absent means "no date claimed" — nothing here forces a
+   * date onto a file, and we never quietly stamp today's date as a fact.
+   */
+  date?: string | null;
+  date_precision?: string | null;
+  date_range_start?: string | null;
+  date_range_end?: string | null;
+  anchor_label?: string | null;
+  /** Whether the survivor chose to keep or remove embedded photo metadata. */
+  exif_choice?: "none" | "kept" | "stripped" | null;
+  /** Optional spoken caption, already transcribed client-side or later. */
+  voice_caption?: string | null;
+  voice_caption_audio_url?: string | null;
 };
 
 type IngestInput = {
   files: IngestFileInput[];
+  /** Links this preservation run to a resumable intake batch, when there is one. */
+  intake_batch_id?: string | null;
 };
+
+const PRECISIONS = new Set([
+  "exact",
+  "approximate_month",
+  "range",
+  "before_anchor",
+  "after_anchor",
+  "unknown",
+]);
 
 export type PreservationStatus =
   | "preserved"
