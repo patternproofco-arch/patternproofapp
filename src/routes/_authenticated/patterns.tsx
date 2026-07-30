@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { MarkDensityBar } from "@/components/MarkDensityBar";
 import { SafetyResourcesLink } from "@/components/SafetyResourcesLink";
+import { HubTabs, RECURLINE_TABS } from "@/components/HubTabs";
 
 function confidenceColor(level?: string) {
   if (level === "Strong") return { bg: "#DCEFD9", fg: "#1F5132", border: "#7FB97A" };
@@ -103,6 +104,7 @@ function PatternsPage() {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-2xl">
+          <HubTabs tabs={RECURLINE_TABS} />
           <div className="label-eyebrow">Recurline</div>
           <h1 className="mt-2 font-serif text-[34px] leading-tight">What the record <em>shows.</em></h1>
           <p className="mt-3 text-[14px]" style={{ color: "var(--muted-foreground)" }}>

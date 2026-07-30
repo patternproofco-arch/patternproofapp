@@ -9,6 +9,7 @@ import { transcribeVoiceNote } from "@/lib/transcribe-voice-note.functions";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { checkUploadSize } from "@/lib/upload-limits";
+import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/voice-notes")({
   component: VoiceNotesPage,
@@ -138,6 +139,7 @@ function VoiceNotesPage() {
 
   return (
     <div>
+      <HubTabs tabs={ARCHIVE_TABS} />
       <div className="label-eyebrow">Voice notes</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">Speak it. <em>It still counts.</em></h1>
 

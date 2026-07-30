@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Copy, FileSearch, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { HubTabs, RESOURCE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/opra-helper")({
   component: OpraHelper,
@@ -111,6 +112,7 @@ Respectfully,
 
   return (
     <div>
+      <HubTabs tabs={RESOURCE_TABS} />
       <div className="label-eyebrow">OPRA helper · New Jersey</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Request your <em>public records.</em>

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { IncidentHeatMap } from "@/components/IncidentHeatMap";
 import { CognitiveClose } from "@/components/CognitiveClose";
+import { HubTabs, RECURLINE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   component: CalendarPage,
@@ -27,6 +28,7 @@ function CalendarPage() {
 
   return (
     <div>
+      <HubTabs tabs={RECURLINE_TABS} />
       <div className="label-eyebrow">Marks Calendar</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">When it happens. <em>How often.</em></h1>
       <p className="mt-3 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>

@@ -8,6 +8,7 @@ import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { formatIncidentDate } from "@/lib/dates";
 import { isMaterialOtherPartyChange } from "@/lib/name-match";
 import { generateCourtPacketPdf } from "@/lib/court-packet.functions";
+import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/case-builder")({
   component: CaseBuilder,
@@ -251,6 +252,7 @@ function CaseBuilder() {
 
   return (
     <div>
+      <HubTabs tabs={CASE_TABS} />
       <div className="label-eyebrow">Case builder</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">Shape your case, <em>step by step.</em></h1>
 

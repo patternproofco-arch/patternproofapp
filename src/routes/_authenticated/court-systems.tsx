@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Scale, Gavel, Shield, FileText, Users, AlertTriangle, BookOpen, ArrowRight } from "lucide-react";
 import { CollapsibleCard } from "@/components/CollapsibleCard";
+import { HubTabs, RESOURCE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/court-systems")({
   head: () => ({
@@ -22,6 +23,7 @@ function CourtSystemsPage() {
   return (
     <div className="space-y-10">
       {/* Header */}
+      <HubTabs tabs={RESOURCE_TABS} />
       <header>
         <div className="label-eyebrow inline-flex items-center gap-2">
           <Scale size={12} /> Court systems guide

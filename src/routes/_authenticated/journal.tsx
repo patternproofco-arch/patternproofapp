@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2, Sparkles, BookOpen, Clock, ChevronDown, PenLine, List } from "lucide-react";
+import { Pencil, Trash2, Sparkles, BookOpen, Clock, ChevronDown, PenLine, List, Mic } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -15,6 +15,7 @@ import { BulkPastIncidentsModal } from "@/components/BulkPastIncidentsModal";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { checkUploadSize } from "@/lib/upload-limits";
+import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -318,6 +319,7 @@ function JournalPage() {
 
   return (
     <div>
+      <HubTabs tabs={ARCHIVE_TABS} />
       <div className="label-eyebrow">Your Archive</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Add what happened.
@@ -327,6 +329,14 @@ function JournalPage() {
 
       <div className="mt-4">
         <div className="flex flex-wrap gap-2">
+          <Link
+            to="/voice-notes"
+            className="inline-flex items-center gap-2 rounded-[2px] px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
+            style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
+          >
+            <Mic size={15} />
+            Add a spoken Mark
+          </Link>
           <button
             type="button"
             onClick={() => setJournalOpen(true)}

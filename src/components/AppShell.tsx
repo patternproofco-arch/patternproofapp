@@ -5,15 +5,16 @@ import { AiSidekick } from "@/components/AiSidekick";
 import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { AmbientBackground } from "@/components/AmbientBackground";
-import { FloatingNav } from "@/components/FloatingNav";
+import { BottomTabBar } from "@/components/BottomTabBar";
+import { UtilityBar } from "@/components/UtilityBar";
 import { AppMark } from "@/components/brand/AppMark";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { quickExit } from "@/lib/quick-exit";
 
 /**
- * AppShell — Living Canvas edition.
- * Drops the sidebar/top bar in favour of a floating nav island (mobile)
- * and side dock (desktop), layered above a pastel ambient background.
+ * AppShell — quiet canvas.
+ * Five-destination flat bottom tab bar, a small utility row for account-level
+ * tools, and a persistent Quick Exit control that is never nested in a menu.
  */
 export function AppShell() {
   const { settings } = useSettings();
@@ -40,9 +41,11 @@ export function AppShell() {
 
       {/* Minimal logo strip (no chrome bar) — sits in normal flow */}
       <header
-        className="no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-center px-5 pt-5 md:px-10 md:pt-6"
+        className="no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 pt-5 md:px-10 md:pt-6"
       >
+        <span aria-hidden style={{ width: 1 }} />
         <AppMark size={42} />
+        <UtilityBar />
       </header>
 
       <NotificationBanner />
@@ -51,15 +54,15 @@ export function AppShell() {
         className="app-surface print-page mx-auto w-full max-w-6xl px-5 md:px-10"
         style={{
           paddingTop: 24,
-          // bottom padding: nav island height + safety
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 120px)",
+          // bottom padding: tab bar height + safety
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 108px)",
         }}
       >
         <Outlet />
       </main>
 
-      {/* Floating chrome */}
-      <FloatingNav />
+      {/* Persistent chrome */}
+      <BottomTabBar />
       <AiSidekick />
       <FloatingRecordButton />
       <QuickExitButton />
