@@ -93,6 +93,7 @@ import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/em
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
+import { Route as AdvocateAdvocateCasesClientIdRouteImport } from './routes/_advocate/advocate-cases.$clientId'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -538,6 +539,12 @@ const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
   path: '/$clientId',
   getParentRoute: () => AttorneyClientsRoute,
 } as any)
+const AdvocateAdvocateCasesClientIdRoute =
+  AdvocateAdvocateCasesClientIdRouteImport.update({
+    id: '/advocate-cases/$clientId',
+    path: '/advocate-cases/$clientId',
+    getParentRoute: () => AdvocateRoute,
+  } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -651,6 +658,7 @@ export interface FileRoutesByFullPath {
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -738,6 +746,7 @@ export interface FileRoutesByTo {
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -831,6 +840,7 @@ export interface FileRoutesById {
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_advocate/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -922,6 +932,7 @@ export interface FileRouteTypes {
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/advocate-cases/$clientId'
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1009,6 +1020,7 @@ export interface FileRouteTypes {
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/advocate-cases/$clientId'
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1101,6 +1113,7 @@ export interface FileRouteTypes {
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_advocate/advocate-cases/$clientId'
     | '/_attorney/clients/$clientId'
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1753,6 +1766,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyClientsClientIdRouteImport
       parentRoute: typeof AttorneyClientsRoute
     }
+    '/_advocate/advocate-cases/$clientId': {
+      id: '/_advocate/advocate-cases/$clientId'
+      path: '/advocate-cases/$clientId'
+      fullPath: '/advocate-cases/$clientId'
+      preLoaderRoute: typeof AdvocateAdvocateCasesClientIdRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -1799,10 +1819,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdvocateRouteChildren {
+  AdvocateAdvocateCasesClientIdRoute: typeof AdvocateAdvocateCasesClientIdRoute
   AdvocateAdvocateCasesIndexRoute: typeof AdvocateAdvocateCasesIndexRoute
 }
 
 const AdvocateRouteChildren: AdvocateRouteChildren = {
+  AdvocateAdvocateCasesClientIdRoute: AdvocateAdvocateCasesClientIdRoute,
   AdvocateAdvocateCasesIndexRoute: AdvocateAdvocateCasesIndexRoute,
 }
 
