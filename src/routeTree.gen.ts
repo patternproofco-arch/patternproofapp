@@ -36,12 +36,14 @@ import { Route as ChooseRoleRouteImport } from './routes/choose-role'
 import { Route as AiTransparencyRouteImport } from './routes/ai-transparency'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
+import { Route as AdvocateRouteImport } from './routes/_advocate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AdvocateInviteTokenRouteImport } from './routes/advocate-invite.$token'
 import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
 import { Route as AuthenticatedWhyCourtsStruggleRouteImport } from './routes/_authenticated/why-courts-struggle'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
@@ -86,6 +88,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
+import { Route as AdvocateAdvocateCasesIndexRouteImport } from './routes/_advocate/advocate-cases.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
@@ -230,6 +233,10 @@ const AttorneyRoute = AttorneyRouteImport.update({
   id: '/_attorney',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdvocateRoute = AdvocateRouteImport.update({
+  id: '/_advocate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -258,6 +265,11 @@ const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdvocateInviteTokenRoute = AdvocateInviteTokenRouteImport.update({
+  id: '/advocate-invite/$token',
+  path: '/advocate-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcceptInviteTokenRoute = AcceptInviteTokenRouteImport.update({
@@ -498,6 +510,12 @@ const AttorneyClientsIndexRoute = AttorneyClientsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AttorneyClientsRoute,
 } as any)
+const AdvocateAdvocateCasesIndexRoute =
+  AdvocateAdvocateCasesIndexRouteImport.update({
+    id: '/advocate-cases/',
+    path: '/advocate-cases/',
+    getParentRoute: () => AdvocateRoute,
+  } as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
@@ -625,6 +643,7 @@ export interface FileRoutesByFullPath {
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
@@ -636,6 +655,7 @@ export interface FileRoutesByFullPath {
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/clients/': typeof AttorneyClientsIndexRoute
   '/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -710,6 +730,7 @@ export interface FileRoutesByTo {
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
@@ -721,6 +742,7 @@ export interface FileRoutesByTo {
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/advocate-cases': typeof AdvocateAdvocateCasesIndexRoute
   '/clients': typeof AttorneyClientsIndexRoute
   '/agent': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -731,6 +753,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_advocate': typeof AdvocateRouteWithChildren
   '/_attorney': typeof AttorneyRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/ai-transparency': typeof AiTransparencyRoute
@@ -800,6 +823,7 @@ export interface FileRoutesById {
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/_authenticated/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
@@ -811,6 +835,7 @@ export interface FileRoutesById {
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/_advocate/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
   '/_authenticated/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -889,6 +914,7 @@ export interface FileRouteTypes {
     | '/voice-notes'
     | '/why-courts-struggle'
     | '/accept-invite/$token'
+    | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
     | '/collaborator-invite/$token'
@@ -900,6 +926,7 @@ export interface FileRouteTypes {
     | '/agent/$threadId'
     | '/integrations/clio/callback'
     | '/lovable/email/suppression'
+    | '/advocate-cases/'
     | '/clients/'
     | '/agent/'
     | '/api/public/payments/webhook'
@@ -974,6 +1001,7 @@ export interface FileRouteTypes {
     | '/voice-notes'
     | '/why-courts-struggle'
     | '/accept-invite/$token'
+    | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
     | '/collaborator-invite/$token'
@@ -985,6 +1013,7 @@ export interface FileRouteTypes {
     | '/agent/$threadId'
     | '/integrations/clio/callback'
     | '/lovable/email/suppression'
+    | '/advocate-cases'
     | '/clients'
     | '/agent'
     | '/api/public/payments/webhook'
@@ -994,6 +1023,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_advocate'
     | '/_attorney'
     | '/_authenticated'
     | '/ai-transparency'
@@ -1063,6 +1093,7 @@ export interface FileRouteTypes {
     | '/_authenticated/voice-notes'
     | '/_authenticated/why-courts-struggle'
     | '/accept-invite/$token'
+    | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
     | '/collaborator-invite/$token'
@@ -1074,6 +1105,7 @@ export interface FileRouteTypes {
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
     | '/lovable/email/suppression'
+    | '/_advocate/advocate-cases/'
     | '/_attorney/clients/'
     | '/_authenticated/agent/'
     | '/api/public/payments/webhook'
@@ -1084,6 +1116,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdvocateRoute: typeof AdvocateRouteWithChildren
   AttorneyRoute: typeof AttorneyRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AiTransparencyRoute: typeof AiTransparencyRoute
@@ -1114,6 +1147,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
+  AdvocateInviteTokenRoute: typeof AdvocateInviteTokenRoute
   ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
@@ -1320,6 +1354,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_advocate': {
+      id: '/_advocate'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AdvocateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -1360,6 +1401,13 @@ declare module '@tanstack/react-router' {
       path: '/api/chat'
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/advocate-invite/$token': {
+      id: '/advocate-invite/$token'
+      path: '/advocate-invite/$token'
+      fullPath: '/advocate-invite/$token'
+      preLoaderRoute: typeof AdvocateInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/accept-invite/$token': {
@@ -1670,6 +1718,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyClientsIndexRouteImport
       parentRoute: typeof AttorneyClientsRoute
     }
+    '/_advocate/advocate-cases/': {
+      id: '/_advocate/advocate-cases/'
+      path: '/advocate-cases'
+      fullPath: '/advocate-cases/'
+      preLoaderRoute: typeof AdvocateAdvocateCasesIndexRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
       path: '/lovable/email/suppression'
@@ -1742,6 +1797,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AdvocateRouteChildren {
+  AdvocateAdvocateCasesIndexRoute: typeof AdvocateAdvocateCasesIndexRoute
+}
+
+const AdvocateRouteChildren: AdvocateRouteChildren = {
+  AdvocateAdvocateCasesIndexRoute: AdvocateAdvocateCasesIndexRoute,
+}
+
+const AdvocateRouteWithChildren = AdvocateRoute._addFileChildren(
+  AdvocateRouteChildren,
+)
 
 interface AttorneyClientsRouteChildren {
   AttorneyClientsClientIdRoute: typeof AttorneyClientsClientIdRoute
@@ -1870,6 +1937,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdvocateRoute: AdvocateRouteWithChildren,
   AttorneyRoute: AttorneyRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AiTransparencyRoute: AiTransparencyRoute,
@@ -1901,6 +1969,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,
+  AdvocateInviteTokenRoute: AdvocateInviteTokenRoute,
   ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
@@ -1918,13 +1987,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
