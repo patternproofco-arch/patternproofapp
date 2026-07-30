@@ -24,7 +24,6 @@ export const Route = createFileRoute("/support")({
 
 function SupportPage() {
   const send = useServerFn(submitSupportRequest);
-  const [userId, setUserId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [category, setCategory] = useState<string>(SUPPORT_CATEGORIES[0]);
@@ -36,7 +35,6 @@ function SupportPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
-      setUserId(data.user.id);
       setEmail((prev) => prev || data.user!.email || "");
     });
   }, []);
@@ -70,7 +68,6 @@ function SupportPage() {
           replyEmail: email.trim(),
           category: category as (typeof SUPPORT_CATEGORIES)[number],
           message: message.trim(),
-          userId,
         },
       });
       if (!res.ok) {
