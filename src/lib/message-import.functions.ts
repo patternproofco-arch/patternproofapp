@@ -31,23 +31,31 @@ export const startMessageImport = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({
     participant: z.string().max(200).optional(),
     notes: z.string().max(500).optional(),
+    captureMethod: z.enum(["multi_screenshot", "screen_recording"]).default("multi_screenshot"),
+    /** Storage path of the original recording, when this import came from video. */
+    videoPath: z.string().max(500).optional(),
+    videoDurationSec: z.number().int().min(0).optional(),
+    frameIntervalSec: z.number().min(0.1).max(30).optional(),
   }).parse(i))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const isVideo = data.captureMethod === "screen_recording";
     const { data: row, error } = await supabase
       .from("message_threads")
       .insert({
         user_id: userId,
         source_type: "txt",
-        source_filename: `Screenshot import · ${new Date().toLocaleDateString()}`,
-        file_url: "",
+        source_filename: `${isVideo ? "Screen recording" : "Screenshot"} import · ${new Date().toLocaleDateString()}`,
+        file_url: data.videoPath ?? "",
         parse_status: "pending",
-        capture_method: "multi_screenshot",
+        capture_method: data.captureMethod,
         captured_at: new Date().toISOString(),
         conversation_participant: data.participant?.trim() || null,
         capture_notes: data.notes?.trim() || null,
-        primary_artifact_urls: [],
+        primary_artifact_urls: data.videoPath ? [data.videoPath] : [],
         screenshot_count: 0,
+        video_duration_sec: data.videoDurationSec ?? null,
+        frame_interval_sec: data.frameIntervalSec ?? null,
         import_status: "draft",
         processed_count: 0,
       })
@@ -68,6 +76,8 @@ export const addSourceDocument = createServerFn({ method: "POST" })
     uploadIndex: z.number().int().min(0).max(500),
     bytes: z.number().int().min(0).optional(),
     mime: z.string().max(120).optional(),
+    kind: z.enum(["screenshot", "video_frame"]).default("screenshot"),
+    frameTimeSec: z.number().min(0).optional(),
   }).parse(i))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -81,6 +91,8 @@ export const addSourceDocument = createServerFn({ method: "POST" })
         upload_index: data.uploadIndex,
         bytes: data.bytes ?? null,
         mime: data.mime ?? null,
+        kind: data.kind,
+        frame_time_sec: data.frameTimeSec ?? null,
         ocr_status: "pending",
       })
       .select("id")

@@ -39,7 +39,7 @@ export function ReviewThread({ userId, threads, initialThreadId }: Props) {
     const [msgRes, docRes] = await Promise.all([
       supabase
         .from("thread_messages")
-        .select("id,thread_id,body,sender_side,sent_on,sent_at_time,date_confidence,has_attachment_marker,attachment_marker_text,field_provenance,source_document_ids,source_document_id,position")
+        .select("id,thread_id,body,sender_side,sent_on,sent_at_time,date_confidence,has_attachment_marker,attachment_marker_text,field_provenance,source_document_ids,source_document_id,ocr_confidence,position")
         .eq("user_id", userId)
         .in("thread_id", threadIds)
         .order("sent_on", { ascending: true, nullsFirst: false })

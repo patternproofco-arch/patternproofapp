@@ -1,5 +1,5 @@
-import { useCallback, useRef, useState } from "react";
-import { Upload, Check, AlertTriangle, Clock, ShieldCheck, Eye } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Upload, Check, AlertTriangle, Clock, ShieldCheck, Eye, Camera, WifiOff } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -15,6 +15,18 @@ import {
 import { enrichEvidence } from "@/lib/evidence-enrichment.functions";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
 import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
+import { readExif, stripExif, type ExifSummary } from "@/lib/exif";
+import { FileIntakeRow, type ExifChoice } from "./FileIntakeRow";
+import {
+  DateCertaintyField,
+  EMPTY_DATE_CERTAINTY,
+  toEvidenceDateFields,
+  type DateCertaintyValue,
+} from "@/components/pp/DateCertaintyField";
+import {
+  enqueueFiles, listQueue, removeQueued, onBackOnline, isQueueSupported,
+} from "@/lib/intake-queue";
+import { openIntakeBatch, updateIntakeBatch } from "@/lib/intake-batches.functions";
 
 type UploadPhase = "queued" | "uploading" | "preserving" | "done" | "error";
 
@@ -24,6 +36,10 @@ type FileState = {
   phase: UploadPhase;
   storageKey?: string;
   message?: string;
+  exif?: ExifSummary | null;
+  exifChoice?: ExifChoice | null;
+  /** Set when this file came back from the local resume queue. */
+  queuedId?: string;
 };
 
 const MAX_FILES = 50;
@@ -92,6 +108,8 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const rejectNear = useServerFn(rejectNearDuplicate);
   const enrich = useServerFn(enrichEvidence);
   const transcribe = useServerFn(transcribeEvidence);
+  const openBatch = useServerFn(openIntakeBatch);
+  const updateBatch = useServerFn(updateIntakeBatch);
   const [files, setFiles] = useState<FileState[]>([]);
   const [sizeErrors, setSizeErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -100,6 +118,49 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const [dragOver, setDragOver] = useState(false);
   const [nearResolved, setNearResolved] = useState<Record<string, "confirmed" | "rejected">>({});
   const [suggestionCount, setSuggestionCount] = useState<number | null>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const [dating, setDating] = useState<DateCertaintyValue>(EMPTY_DATE_CERTAINTY);
+  const [offline, setOffline] = useState(false);
+  const [resumable, setResumable] = useState(0);
+
+  // Anything left in the local queue from a previous session can be picked back
+  // up — she never has to find and re-select the same files.
+  const loadResumable = useCallback(async () => {
+    if (!user || !isQueueSupported()) return;
+    try {
+      const rows = await listQueue(user.id);
+      setResumable(rows.length);
+    } catch { /* the queue is a convenience, never a blocker */ }
+  }, [user]);
+
+  useEffect(() => { loadResumable(); }, [loadResumable]);
+
+  useEffect(() => {
+    const sync = () => setOffline(typeof navigator !== "undefined" && !navigator.onLine);
+    sync();
+    window.addEventListener("offline", sync);
+    const off = onBackOnline(() => { sync(); loadResumable(); });
+    return () => { window.removeEventListener("offline", sync); off(); };
+  }, [loadResumable]);
+
+  const resumeQueued = async () => {
+    if (!user) return;
+    try {
+      const rows = await listQueue(user.id);
+      const restored: FileState[] = rows.map((r) => ({
+        id: r.id,
+        queuedId: r.id,
+        file: new File([r.blob], r.name, { type: r.mime }),
+        phase: "queued" as UploadPhase,
+        exifChoice: (r.exifChoice ?? null) as ExifChoice | null,
+      }));
+      setFiles((prev) => [...prev, ...restored]);
+      setResumable(0);
+      toast(`Picked up where you left off — ${restored.length} file${restored.length === 1 ? "" : "s"} waiting.`);
+    } catch {
+      toast("We couldn't reopen those files. They're still on this device.");
+    }
+  };
 
   const resolveNear = async (evidenceId: string, action: "confirm" | "reject") => {
     try {
@@ -145,6 +206,15 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       }
       return [...prev, ...next];
     });
+
+    // Inspect embedded metadata in the background so we can ask about it
+    // per file, rather than quietly keeping or removing it.
+    incoming.slice(0, MAX_FILES).forEach(async (f) => {
+      if (!f.type.startsWith("image/")) return;
+      const summary = await readExif(f);
+      if (!summary.hasMetadata) return;
+      setFiles((prev) => prev.map((row) => (row.file === f ? { ...row, exif: summary } : row)));
+    });
   }, []);
 
   const removeFile = (id: string) => setFiles((f) => f.filter((x) => x.id !== id));
@@ -152,11 +222,42 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
 
   const preserveAll = async () => {
     if (!user || files.length === 0 || busy) return;
+
+    // Offline: stage everything locally and finish the moment we're back.
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      try {
+        await enqueueFiles(
+          `local-${Date.now()}`,
+          user.id,
+          files.filter((f) => f.phase === "queued").map((f) => ({
+            file: f.file,
+            dating,
+            exifChoice: f.exifChoice ?? "none",
+          })),
+        );
+        setFiles([]);
+        await loadResumable();
+        toast("You're offline right now. These are saved on this device and will finish when you're back on.");
+      } catch {
+        toast("We couldn't hold these on your device. Try again once you have a connection.");
+      }
+      return;
+    }
+
     setBusy(true);
     setReceipt(null);
 
-    const toIngest: { storage_key: string; original_filename: string; mime: string; bytes: number }[] = [];
+    const dateFields = toEvidenceDateFields(dating);
+    const toIngest: Array<
+      { storage_key: string; original_filename: string; mime: string; bytes: number; exif_choice: ExifChoice } &
+      ReturnType<typeof toEvidenceDateFields>
+    > = [];
     const updates: FileState[] = [...files];
+
+    let intakeBatchId: string | null = null;
+    try {
+      intakeBatchId = (await openBatch({ data: {} })).batchId;
+    } catch { /* resume tracking is a convenience, not a gate */ }
 
     for (let i = 0; i < updates.length; i++) {
       const item = updates[i];
@@ -164,12 +265,16 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       updates[i] = { ...item, phase: "uploading" };
       setFiles([...updates]);
 
-      const ext = item.file.name.split(".").pop() ?? "bin";
+      // Honour the metadata decision before a single byte leaves the device.
+      const choice: ExifChoice = item.exifChoice ?? (item.exif?.hasMetadata ? "kept" : "none");
+      const outgoing = choice === "stripped" ? await stripExif(item.file) : item.file;
+
+      const ext = outgoing.name.split(".").pop() ?? "bin";
       const safeExt = ext.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) || "bin";
       const key = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
       const up = await supabase.storage
         .from("evidence-files")
-        .upload(key, item.file, { upsert: false, contentType: item.file.type || undefined });
+        .upload(key, outgoing, { upsert: false, contentType: outgoing.type || undefined });
       if (up.error) {
         updates[i] = { ...item, phase: "error", message: "Upload failed." };
         setFiles([...updates]);
@@ -177,11 +282,14 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       }
       updates[i] = { ...item, phase: "preserving", storageKey: key };
       setFiles([...updates]);
+      if (item.queuedId) await removeQueued(item.queuedId).catch(() => undefined);
       toIngest.push({
         storage_key: key,
         original_filename: item.file.name,
-        mime: item.file.type || "application/octet-stream",
-        bytes: item.file.size,
+        mime: outgoing.type || "application/octet-stream",
+        bytes: outgoing.size,
+        exif_choice: choice,
+        ...dateFields,
       });
     }
 
@@ -191,7 +299,10 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
     }
 
     try {
-      const result = await ingest({ data: { files: toIngest } });
+      const result = await ingest({ data: { files: toIngest, intake_batch_id: intakeBatchId } });
+      if (intakeBatchId) {
+        await updateBatch({ data: { batchId: intakeBatchId, status: "complete" } }).catch(() => undefined);
+      }
       setReceipt(result);
       // Mark each file as done/error using receipt items.
       const byKey = new Map(result.items.map((it) => [it.storage_key, it]));
@@ -255,6 +366,25 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         </p>
       </div>
 
+      {offline && (
+        <div className="flex gap-2 rounded-xl p-3 text-[13px]" style={{ background: "var(--input)", border: "1px solid var(--border)", lineHeight: 1.5 }}>
+          <WifiOff size={16} style={{ marginTop: 2, flexShrink: 0 }} />
+          <div>
+            You&apos;re offline right now. You can still add files — they&apos;ll be kept on this device and
+            finish uploading the moment you&apos;re back on.
+          </div>
+        </div>
+      )}
+
+      {resumable > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl p-3 text-[13px]" style={{ background: "rgba(168,216,185,0.18)", border: "1px solid rgba(168,216,185,0.6)" }}>
+          <span>
+            {resumable} file{resumable === 1 ? "" : "s"} you added earlier are still waiting on this device.
+          </span>
+          <button type="button" onClick={resumeQueued} className="btn-ghost text-[12px]">Pick up where I left off</button>
+        </div>
+      )}
+
       <label
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
@@ -287,6 +417,28 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         />
       </label>
 
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}
+      />
+      <button type="button" onClick={() => cameraRef.current?.click()} className="btn-ghost inline-flex items-center gap-2">
+        <Camera size={14} /> Take a photo of a paper document
+      </button>
+
+      <DateCertaintyField
+        value={dating}
+        onChange={setDating}
+        label="When is this from?"
+      />
+      <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+        This applies to everything in this batch, and you can change it on any file afterward. If you
+        don&apos;t know, leave it — &ldquo;I&apos;m not sure&rdquo; is a real answer here.
+      </p>
+
       {sizeErrors.length > 0 && (
         <div
           className="mt-3 space-y-1.5 rounded-xl p-3 text-[13px]"
@@ -318,24 +470,23 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         <>
           <div className="space-y-2">
             {files.map((f) => (
-              <div key={f.id} className="flex items-center gap-3 rounded-xl p-2" style={{ background: "var(--input)" }}>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px]" style={{ fontWeight: 600 }}>{f.file.name}</div>
-                  <div className="mt-0.5 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                    {humanBytes(f.file.size)}
-                    {f.file.type ? ` · ${f.file.type}` : ""}
-                    {f.phase === "uploading" ? " · uploading…" : ""}
-                    {f.phase === "preserving" ? " · hashing…" : ""}
-                    {f.phase === "done" ? " · preserved" : ""}
-                    {f.phase === "error" ? ` · ${f.message ?? "failed"}` : ""}
-                  </div>
-                </div>
-                {f.phase === "queued" && (
-                  <button type="button" onClick={() => removeFile(f.id)} className="text-[12px] underline" style={{ color: "var(--muted-foreground)" }}>
-                    Remove
-                  </button>
-                )}
-              </div>
+              <FileIntakeRow
+                key={f.id}
+                name={f.file.name}
+                sizeLabel={humanBytes(f.file.size)}
+                typeLabel={f.file.type}
+                statusLabel={
+                  f.phase === "uploading" ? " · uploading…"
+                    : f.phase === "preserving" ? " · hashing…"
+                      : f.phase === "done" ? " · preserved"
+                        : f.phase === "error" ? ` · ${f.message ?? "failed"}`
+                          : ""
+                }
+                exif={f.exif ?? null}
+                choice={f.exifChoice ?? null}
+                onChoice={(c) => setFiles((prev) => prev.map((row) => (row.id === f.id ? { ...row, exifChoice: c } : row)))}
+                onRemove={f.phase === "queued" ? () => removeFile(f.id) : undefined}
+              />
             ))}
           </div>
 
