@@ -6,12 +6,3 @@ export const Route = createFileRoute("/attorneys")({
     throw redirect({ to: "/", search: { ref: "attorney" }, replace: true });
   },
 });
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/attorneys')({
-  component: RouteComponent,
-})
-
-function RouteComponent() {
-  return <div>Hello "/attorneys"!</div>
-}
