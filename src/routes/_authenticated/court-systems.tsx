@@ -122,7 +122,7 @@ function CourtSystemsPage() {
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link to="/patterns" className="btn-primary inline-flex items-center gap-2">
-            Run pattern analysis <ArrowRight size={16} />
+            Open Recurline <ArrowRight size={16} />
           </Link>
           <Link to="/court-packet" className="btn-ghost">Build professional-review packet</Link>
           <Link to="/share-with-attorney" className="btn-ghost">Share with attorney</Link>

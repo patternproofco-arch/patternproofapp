@@ -20,7 +20,7 @@ function CourtReadyPage() {
         <Check size={32} style={{ color: "var(--accent)", margin: "0 auto" }} />
         <h1 className="font-serif text-[28px]">You have Professional Review.</h1>
         <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-          Court packets, attorney exports, and full pattern analysis are unlocked for your account.
+          Court packets, attorney exports, and full Recurline are unlocked for your account.
         </p>
         <Link to="/court-packet" className="btn-primary inline-block">Open court packet</Link>
       </div>
@@ -61,7 +61,7 @@ function CourtReadyPage() {
         <ul className="space-y-2 text-[14px] mb-4">
           <li className="flex gap-2"><FileDown size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Source-linked ZIP packet with provenance and integrity report</li>
           <li className="flex gap-2"><Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Send your case file directly to an attorney</li>
-          <li className="flex gap-2"><Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Full pattern analysis + escalation arc</li>
+          <li className="flex gap-2"><Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Full Recurline + change over time</li>
           <li className="flex gap-2"><Heart size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Cancel any time. Keep access through the paid period.</li>
         </ul>
 

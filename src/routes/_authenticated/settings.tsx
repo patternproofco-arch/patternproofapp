@@ -195,7 +195,7 @@ function SettingsPage() {
       <div className="card-pp mt-6">
         <div className="flex items-center gap-2"><Download size={18} style={{ color: "var(--accent)" }} /><h2 className="font-serif text-[19px]">Export everything</h2></div>
         <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          One ZIP file with every incident, every piece of evidence, every voice note and transcript, your pattern analysis, and a chronological narrative. SHA-256 hashes are included for integrity. Useful for attorney handoff or a personal backup.
+          One ZIP file with every incident, every piece of evidence, every voice note and transcript, your Recurline, and a chronological narrative. SHA-256 hashes are included for integrity. Useful for attorney handoff or a personal backup.
         </p>
         <button onClick={runExport} disabled={exporting} className="btn-primary mt-4 inline-flex items-center gap-2">
           <Download size={14} /> {exporting ? "Building export…" : "Export everything (.zip)"}
