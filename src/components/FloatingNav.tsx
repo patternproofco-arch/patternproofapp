@@ -48,7 +48,7 @@ const PRIMARY: Item[] = [
   { to: "/dashboard",          label: "Home",            Icon: Home,                 accent: "neutral" },
   { to: "/journal",            label: "Add a Mark"   ,    Icon: NotebookPen,          accent: "pink",   cta: true },
   { to: "/timeline",           label: "Timeline",        Icon: TimelineDotsIcon as unknown as typeof Home, custom: true, accent: "yellow" },
-  { to: "/patterns",           label: "Patterns",        Icon: DotCirclePatternIcon as unknown as typeof Home, custom: true, accent: "purple" },
+  { to: "/patterns",           label: "Recurline",        Icon: DotCirclePatternIcon as unknown as typeof Home, custom: true, accent: "purple" },
   { to: "/agent",              label: "Agent",           Icon: PpTriangleIcon as unknown as typeof Home, custom: true, accent: "blue" },
   { to: "/court-packet",       label: "Court Summary",   Icon: CourtSummaryIcon as unknown as typeof Home, custom: true, accent: "blue", pinnedLabel: true },
 ];
