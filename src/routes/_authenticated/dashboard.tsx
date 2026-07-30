@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   UploadCloud, ShieldCheck, ArrowRight,
-  Sparkles, ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarClock, ShieldAlert, GitCompare,
+  Sparkles, ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarClock, GitCompare,
 } from "lucide-react";
 import {
   UploadDocIcon, TimelineDotsIcon, CalendarGridIcon,
@@ -82,7 +82,7 @@ function Dashboard() {
       status: "Recurline",
       icon: <DotCirclePatternIcon size={26} strokeWidth={1.9} />,
       tint: "rgba(140, 210, 200, 0.45)", iconBg: "#3FA89D", iconFg: "#FFFFFF",
-      ariaLabel: "Open pattern report",
+      ariaLabel: "Open Recurline",
     },
     "/agent": {
       to: "/agent",
