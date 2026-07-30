@@ -67,6 +67,7 @@ import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenti
 import { Route as AuthenticatedCourtDatesRouteImport } from './routes/_authenticated/court-dates'
 import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
+import { Route as AuthenticatedCaseRouteImport } from './routes/_authenticated/case'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
 import { Route as AuthenticatedAttorneyBillingRouteImport } from './routes/_authenticated/attorney-billing'
@@ -395,6 +396,11 @@ const AuthenticatedCaseBuilderRoute =
     path: '/case-builder',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCaseRoute = AuthenticatedCaseRouteImport.update({
+  id: '/case',
+  path: '/case',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -585,6 +591,7 @@ export interface FileRoutesByFullPath {
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/calendar': typeof AuthenticatedCalendarRoute
+  '/case': typeof AuthenticatedCaseRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-dates': typeof AuthenticatedCourtDatesRoute
@@ -668,6 +675,7 @@ export interface FileRoutesByTo {
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/calendar': typeof AuthenticatedCalendarRoute
+  '/case': typeof AuthenticatedCaseRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
   '/court-dates': typeof AuthenticatedCourtDatesRoute
@@ -756,6 +764,7 @@ export interface FileRoutesById {
   '/_authenticated/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
   '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
+  '/_authenticated/case': typeof AuthenticatedCaseRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/_authenticated/communications': typeof AuthenticatedCommunicationsRoute
   '/_authenticated/court-dates': typeof AuthenticatedCourtDatesRoute
@@ -843,6 +852,7 @@ export interface FileRouteTypes {
     | '/attorney-billing'
     | '/attorney-portal'
     | '/calendar'
+    | '/case'
     | '/case-builder'
     | '/communications'
     | '/court-dates'
@@ -926,6 +936,7 @@ export interface FileRouteTypes {
     | '/attorney-billing'
     | '/attorney-portal'
     | '/calendar'
+    | '/case'
     | '/case-builder'
     | '/communications'
     | '/court-dates'
@@ -1013,6 +1024,7 @@ export interface FileRouteTypes {
     | '/_authenticated/attorney-billing'
     | '/_authenticated/attorney-portal'
     | '/_authenticated/calendar'
+    | '/_authenticated/case'
     | '/_authenticated/case-builder'
     | '/_authenticated/communications'
     | '/_authenticated/court-dates'
@@ -1512,6 +1524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCaseBuilderRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/case': {
+      id: '/_authenticated/case'
+      path: '/case'
+      fullPath: '/case'
+      preLoaderRoute: typeof AuthenticatedCaseRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/calendar': {
       id: '/_authenticated/calendar'
       path: '/calendar'
@@ -1763,6 +1782,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAttorneyBillingRoute: typeof AuthenticatedAttorneyBillingRoute
   AuthenticatedAttorneyPortalRoute: typeof AuthenticatedAttorneyPortalRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
+  AuthenticatedCaseRoute: typeof AuthenticatedCaseRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
   AuthenticatedCommunicationsRoute: typeof AuthenticatedCommunicationsRoute
   AuthenticatedCourtDatesRoute: typeof AuthenticatedCourtDatesRoute
@@ -1796,6 +1816,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAttorneyBillingRoute: AuthenticatedAttorneyBillingRoute,
   AuthenticatedAttorneyPortalRoute: AuthenticatedAttorneyPortalRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
+  AuthenticatedCaseRoute: AuthenticatedCaseRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
   AuthenticatedCommunicationsRoute: AuthenticatedCommunicationsRoute,
   AuthenticatedCourtDatesRoute: AuthenticatedCourtDatesRoute,
