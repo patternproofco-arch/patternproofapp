@@ -12,7 +12,7 @@ interface Props {
 export function ImportIntro({ participant, notes, onParticipant, onNotes, onPick, busy }: Props) {
   return (
     <div className="card-pp" style={{ padding: 22 }}>
-      <span className="exhibit-tag">SCREENSHOT IMPORT</span>
+      <span className="exhibit-tag">MESSAGE IMPORT</span>
       <h2 className="mt-3 font-serif" style={{ fontSize: 24, lineHeight: 1.2 }}>
         Turn your screenshots into a <em>timeline you can search.</em>
       </h2>
@@ -22,6 +22,11 @@ export function ImportIntro({ participant, notes, onParticipant, onNotes, onPick
         No app can — iPhone and Android both keep that history closed to other apps. This works
         only from screenshots you choose to add here. Because of that, it works the same whether
         the conversation happened on an iPhone or an Android.
+      </p>
+
+      <p className="mt-2" style={{ fontSize: 14.5, lineHeight: 1.6, color: "rgba(20,19,31,0.72)" }}>
+        If the conversation is long, you can add a screen recording of yourself scrolling through it
+        instead. We take still frames from it here on your device and read those the same way.
       </p>
 
       <ul className="mt-4 space-y-2" style={{ fontSize: 13.5, color: "rgba(20,19,31,0.72)" }}>
@@ -69,7 +74,7 @@ export function ImportIntro({ participant, notes, onParticipant, onNotes, onPick
           minHeight: 52, opacity: busy ? 0.6 : 1,
         }}
       >
-        <Camera size={18} /> Add screenshots
+        <Camera size={18} /> Add screenshots or a recording
       </button>
       <p className="mt-2" style={{ fontSize: 12.5, color: "rgba(20,19,31,0.55)" }}>
         You can stop at any point and pick this back up later.
