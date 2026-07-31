@@ -3,8 +3,10 @@ const CLIO_AUTHORIZE_URL = "https://app.clio.com/oauth/authorize";
 const CLIO_TOKEN_URL = "https://app.clio.com/oauth/token";
 const CLIO_API_BASE = "https://app.clio.com/api/v4";
 
-export const CLIO_REDIRECT_URI =
-  process.env.CLIO_REDIRECT_URI || "https://pattern-proof.tech/integrations/clio/callback";
+// Read inside functions: env is injected per-request in the worker runtime.
+export function clioRedirectUri(): string {
+  return process.env.CLIO_REDIRECT_URI || "https://pattern-proof.tech/integrations/clio/callback";
+}
 
 function credentials() {
   const clientId = process.env.CLIO_CLIENT_ID;
@@ -20,7 +22,7 @@ export function buildClioAuthorizeUrl(state: string): string {
   const url = new URL(CLIO_AUTHORIZE_URL);
   url.searchParams.set("client_id", clientId);
   url.searchParams.set("response_type", "code");
-  url.searchParams.set("redirect_uri", CLIO_REDIRECT_URI);
+  url.searchParams.set("redirect_uri", clioRedirectUri());
   url.searchParams.set("state", state);
   return url.toString();
 }
@@ -46,7 +48,7 @@ async function postToken(body: Record<string, string>): Promise<TokenResponse> {
 }
 
 export function exchangeCodeForTokens(code: string) {
-  return postToken({ grant_type: "authorization_code", code, redirect_uri: CLIO_REDIRECT_URI });
+  return postToken({ grant_type: "authorization_code", code, redirect_uri: clioRedirectUri() });
 }
 
 export function refreshTokens(refreshToken: string) {
