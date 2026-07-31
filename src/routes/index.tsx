@@ -180,12 +180,20 @@ function Index() {
             preserveAspectRatio="none"
             viewBox="0 0 1000 120"
           >
+            {/* faint ripple rings where the thread passes behind each card */}
+            {[250, 500, 750].map((cx) => (
+              <g key={cx} fill="none" stroke="#14131F" pointerEvents="none">
+                <circle cx={cx} cy={60} r={16} strokeOpacity={0.16} strokeWidth={1.4} />
+                <circle cx={cx} cy={60} r={26} strokeOpacity={0.10} strokeWidth={1.4} />
+                <circle cx={cx} cy={60} r={36} strokeOpacity={0.05} strokeWidth={1.4} />
+              </g>
+            ))}
             <path
-              d="M0,60 C180,20 320,100 500,60 S820,20 1000,60"
+              d="M0,60 Q62.5,53 125,60 T250,60 T375,60 T500,60 T625,60 T750,60 T875,60 T1000,60"
               fill="none"
               stroke="#14131F"
-              strokeWidth="1.5"
-              strokeOpacity="0.18"
+              strokeWidth={1.5}
+              strokeOpacity={0.18}
               vectorEffect="non-scaling-stroke"
             />
           </svg>
