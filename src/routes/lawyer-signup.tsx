@@ -89,7 +89,7 @@ function LawyerSignup() {
           <AppMark size={72} />
           <div className="font-serif text-[28px] font-bold mt-3">Attorney portal</div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            Turn 40 hours of evidence review into 2.
+            A source-linked chronology instead of a folder of screenshots.
           </p>
         </div>
 

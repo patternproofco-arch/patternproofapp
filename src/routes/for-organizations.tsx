@@ -74,7 +74,7 @@ function ForOrganizations() {
           <BeforeAfter
             label="Case files"
             before="Scattered across paper files, shared drives, and individual caseworkers' notebooks."
-            after="One organized record per survivor, visible to the whole team."
+            after="One organized record per survivor, visible to the staff she has approved."
           />
           <BeforeAfter
             label="Serving more people"

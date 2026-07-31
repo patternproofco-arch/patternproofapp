@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ShieldCheck, KeyRound, Clock3, ScrollText, AlertTriangle, Mic } from "lucide-react";
+import { ShieldCheck, KeyRound, Clock3, ScrollText, AlertTriangle, Mic, Trash2 } from "lucide-react";
 import { MessageCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useSettings } from "@/lib/settings-context";
@@ -168,9 +168,9 @@ function SettingsPage() {
       </div>
 
       <div className="card-pp mt-6">
-        <div className="flex items-center gap-2"><ScrollText size={18} /><h2 className="font-serif text-[19px]">Audit log</h2></div>
+        <div className="flex items-center gap-2"><ScrollText size={18} /><h2 className="font-serif text-[19px]">Activity log</h2></div>
         <p className="mt-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          A tamper-evident record of every action on your account. Each entry is hash-chained to the one before it.
+          A record of key actions on your account, including evidence imports and access grants. It doesn't cover every action in the app.
         </p>
         {audit.length === 0 ? (
           <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>No activity recorded yet.</p>
@@ -221,6 +221,19 @@ function SettingsPage() {
             <a href={exportResult.url} download={exportResult.filename} className="btn-primary mt-2 inline-block">Download {exportResult.filename}</a>
           </div>
         )}
+      </div>
+
+      <div className="card-pp mt-6">
+        <div className="flex items-center gap-2"><Trash2 size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">Request account deletion</h2></div>
+        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          Automatic in-app deletion isn't available yet. You can request deletion of your account and data by emailing us, and we'll confirm once it's complete. Consider exporting your records first.
+        </p>
+        <a
+          href="mailto:gracieburns200@gmail.com?subject=Data%20Deletion%20Request"
+          className="btn-primary mt-4 inline-block"
+        >
+          Request account deletion
+        </a>
       </div>
     </div>
   );

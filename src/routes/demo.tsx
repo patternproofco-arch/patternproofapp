@@ -44,9 +44,9 @@ const INCIDENTS: Incident[] = [
 ];
 
 const PATTERNS = [
-  { title: "Escalation around separation triggers", severity: "high" as const, body: "Each time you raised separation, housing, or legal steps, retaliatory behavior occurred within 72 hours (Sept 14, Oct 19, Nov 3). Courts recognize this temporal pattern as evidence of coercive control.", incidents: ["i1", "i3", "i4"] },
-  { title: "Children used as leverage", severity: "high" as const, body: "Three incidents involve direct manipulation of the children — withholding medication, telling them you don't love them, refusing medical consent. This pattern is documented in custody cases as parental alienation behavior.", incidents: ["i2", "i5", "i6"] },
-  { title: "Financial control alongside emotional escalation", severity: "medium" as const, body: "The Nov 3 unauthorized withdrawal happened the same week as the school counselor incident, suggesting coordinated pressure across multiple domains rather than isolated outbursts.", incidents: ["i4", "i5"] },
+  { title: "Entries clustered after separation steps", severity: "high" as const, body: "Three logged entries (Sept 14, Oct 19, Nov 3) each fall within 72 hours of an entry mentioning separation, housing, or legal steps. This is a count of what was logged, not a legal conclusion.", incidents: ["i1", "i3", "i4"] },
+  { title: "Entries involving the children", severity: "high" as const, body: "Three entries describe the children directly — withholding medication, statements made to them, and a refused medical consent. Grouped by shared subject, as recorded by the survivor.", incidents: ["i2", "i5", "i6"] },
+  { title: "Financial entry in the same week as another entry", severity: "medium" as const, body: "The Nov 3 unauthorized-withdrawal entry and the school counselor entry were logged in the same week. Dates and counts only — PatternProof does not interpret intent.", incidents: ["i4", "i5"] },
 ];
 
 type Tab = "overview" | "journal" | "timeline" | "patterns" | "evidence" | "packet";
@@ -161,7 +161,7 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
             ["journal", "Journal — see how survivors capture an incident in under a minute"],
             ["timeline", "Timeline — six events plotted chronologically"],
             ["patterns", "Patterns — what the AI surfaces that one-off incidents miss"],
-            ["packet", "Court Packet — the attorney-ready output"],
+            ["packet", "Professional-review packet — the shareable output"],
           ] as Array<[Tab, string]>).map(([key, label]) => (
             <button key={key} onClick={() => onJump(key)} style={{ textAlign: "left", background: "transparent", border: "1px solid rgba(91,75,164,0.15)", padding: "10px 14px", borderRadius: 2, fontSize: 13, color: "#1F1A2E", cursor: "pointer" }}>{label} →</button>
           ))}
@@ -315,7 +315,7 @@ function CourtPacket() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Court packet preview</h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6478" }}>Attorney-ready summary of the entire case — generated from your records.</p>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6478" }}>A source-linked summary of the case — generated from your records for professional review.</p>
         </div>
         <button onClick={() => toast.info("Demo mode — exports are disabled. Sign up to generate a real packet.")} style={demoButton}>Export (.docx)</button>
       </div>
@@ -344,7 +344,7 @@ function CourtPacket() {
           </ol>
         </Section>
         <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid rgba(91,75,164,0.12)", display: "flex", gap: 8, alignItems: "center", fontSize: 12, color: "#3F8A6E" }}>
-          <CheckCircle2 size={14} /> Certified: every incident in this packet is linked to dated, timestamped evidence in the survivor's record.
+          <CheckCircle2 size={14} /> Every incident in this packet links back to a dated entry in the survivor's record. PatternProof does not certify content or determine admissibility.
         </div>
       </Card>
     </div>

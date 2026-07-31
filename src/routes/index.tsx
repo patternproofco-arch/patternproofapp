@@ -247,7 +247,7 @@ function Index() {
         <div style={{ marginBottom: 20 }}>
           <MicroMark size={26} />
         </div>
-        Every entry keeps its source. Only you can see what you write, and you can export or delete it at any time.
+        Every entry keeps its source. Private by default. Encrypted in transit and at rest. You control what you share, and you can export your records at any time.
         <div style={{ marginTop: 18 }}>
           <Link to="/how-it-works" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>How it works</Link>
           <Link to="/privacy" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>
