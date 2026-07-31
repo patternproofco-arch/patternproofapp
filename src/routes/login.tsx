@@ -166,7 +166,7 @@ function LoginPage() {
           <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             {mode === "login"
               ? "\n"
-              : "Create an account. Only you can see what you write here."}
+              : "Create an account. Private by default. Encrypted in transit and at rest. You control what you share."}
           </p>
 
           <div className="space-y-3 mb-4">

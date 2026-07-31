@@ -145,7 +145,7 @@ function SurvivorFlow({ accent }: { accent: string }) {
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="Survivor · What happens" accent={accent} />
       <Step n="01" accent={accent} title="Add something whenever you're ready."
-        body="A screenshot, a voice note, a few lines about what happened. No forms to finish, no pressure to be complete. What you save is encrypted and only you can see it." />
+        body="A screenshot, a voice note, a few lines about what happened. No forms to finish, no pressure to be complete. Private by default. Encrypted in transit and at rest. You control what you share." />
       <Step n="02" accent={accent} title="It becomes a timeline on its own."
         body="Entries organize themselves by date, place, and type — including approximate dates like 'around April.' You can keep adding out of order; the record stays chronological." />
       <Step n="03" accent={accent} title="Corroboration surfaces what repeats."

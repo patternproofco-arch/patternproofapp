@@ -172,7 +172,7 @@ function LiveRecording() {
 
       <h2 className="mt-10 font-serif text-[20px]">Your recordings</h2>
       {list.length === 0 ? (
-        <div className="card-pp mt-3"><p style={{ color: "var(--muted-foreground)" }}>Tap the button above to start recording. Everything is encrypted and only you can access it.</p></div>
+        <div className="card-pp mt-3"><p style={{ color: "var(--muted-foreground)" }}>Tap the button above to start recording. Private by default. Encrypted in transit and at rest. You control what you share.</p></div>
       ) : (
         <div className="mt-3 space-y-3">
           {list.map((r) => <RecCard key={r.id} r={r} onChanged={load} />)}

@@ -493,7 +493,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
 
       {t.attorney_summary && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#5B4CD6", marginBottom: 6 }}>Attorney-ready summary</div>
+          <div className="label-eyebrow" style={{ color: "#5B4CD6", marginBottom: 6 }}>Summary for professional review</div>
           <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "#3A3849" }}>{t.attorney_summary}</p>
         </div>
       )}

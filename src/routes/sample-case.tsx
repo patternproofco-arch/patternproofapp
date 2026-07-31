@@ -48,7 +48,7 @@ const EXHIBITS: Exhibit[] = [
     date: "Feb 03, 2025 · 18:12",
     certainty: "confirmed",
     title: "Custody-exchange incident — children withheld 40 min past order",
-    detail: "Contemporaneous journal entry with GPS-verified location at the exchange point. One photo attached (timestamp intact).",
+    detail: "Contemporaneous journal entry with a survivor-stated location at the exchange point. One photo attached (timestamp intact).",
   },
   {
     id: "014",
