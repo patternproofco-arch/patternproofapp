@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import type { ComponentType } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Link } from "@tanstack/react-router";
 import { BrandLockup } from "@/components/brand/BrandLockup";
 import { MicroMark } from "@/components/brand/MicroMark";
+import { Briefcase, FileText, Users } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -199,6 +201,9 @@ function Index() {
           </svg>
           <PathCard
             accent="#5B4CD6"
+            gradient="linear-gradient(135deg, #5B4CD6, #7C6DE0)"
+            icon={FileText}
+            label="Survivor"
             eyebrow="Survivor"
             body="Write down what happened, at your own pace. Photos, messages, and dates stay together — private, encrypted, only yours."
             to="/login"
@@ -206,6 +211,9 @@ function Index() {
           />
           <PathCard
             accent="#152038"
+            gradient="linear-gradient(135deg, #152038, #253652)"
+            icon={Briefcase}
+            label="Attorney"
             eyebrow="Attorney"
             body="Get a source-linked chronology on day one instead of a shoebox of screenshots. Hearing prep starts with strategy, not sorting."
             to="/for-attorneys"
@@ -213,6 +221,9 @@ function Index() {
           />
           <PathCard
             accent="#2E4A38"
+            gradient="linear-gradient(135deg, #2E4A38, #43684B)"
+            icon={Users}
+            label="DV Organization"
             eyebrow="DV organization"
             body="A free tool your advocates can hand a survivor at intake. She documents once; your referral to counsel arrives clean."
             to="/for-organizations"
@@ -253,12 +264,18 @@ function Index() {
 
 function PathCard({
   accent,
+  gradient,
+  icon: Icon,
+  label,
   eyebrow,
   body,
   to,
   cta,
 }: {
   accent: string;
+  gradient: string;
+  icon: ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
+  label: string;
   eyebrow: string;
   body: string;
   to: string;
@@ -272,53 +289,96 @@ function PathCard({
         zIndex: 1,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
-        gap: 18,
+        justifyContent: "flex-start",
         textDecoration: "none",
         color: "#14131F",
         border: "1px solid rgba(20,19,31,0.14)",
         borderLeft: `3px solid ${accent}`,
-        padding: "22px 22px 20px",
         background: "#F7F5F0",
       }}
     >
-      <div>
-        <div
+      <div
+        style={{
+          position: "relative",
+          height: 96,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: gradient,
+        }}
+      >
+        <span
           style={{
+            position: "absolute",
+            top: 12,
+            left: 12,
+            padding: "4px 10px",
+            borderRadius: 9999,
+            background: "rgba(247,245,240,0.86)",
             fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
-            fontSize: 11,
-            letterSpacing: "0.18em",
+            fontSize: 10,
+            fontWeight: 500,
+            letterSpacing: "0.12em",
             textTransform: "uppercase",
-            color: accent,
-          }}
-        >
-          {eyebrow}
-        </div>
-        <p
-          style={{
-            marginTop: 12,
-            fontFamily: "'Newsreader', Georgia, serif",
-            fontWeight: 300,
-            fontSize: 18,
-            lineHeight: 1.5,
             color: "#14131F",
           }}
         >
-          {body}
-        </p>
+          {label}
+        </span>
+        <span aria-hidden="true">
+          <Icon color="#F7F5F0" size={32} strokeWidth={1.5} />
+        </span>
       </div>
-      <span
+
+      <div
         style={{
-          fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
-          fontSize: 12,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          textDecoration: "underline",
-          textUnderlineOffset: 4,
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "20px 22px 22px",
         }}
       >
-        {cta}
-      </span>
+        <div>
+          <div
+            style={{
+              fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+              fontSize: 11,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: accent,
+            }}
+          >
+            {eyebrow}
+          </div>
+          <p
+            style={{
+              marginTop: 12,
+              fontFamily: "'Newsreader', Georgia, serif",
+              fontWeight: 300,
+              fontSize: 18,
+              lineHeight: 1.5,
+              color: "#14131F",
+            }}
+          >
+            {body}
+          </p>
+        </div>
+        <span
+          style={{
+            display: "inline-block",
+            marginTop: 18,
+            fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+            fontSize: 12,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            textDecoration: "underline",
+            textUnderlineOffset: 4,
+          }}
+        >
+          {cta}
+        </span>
+      </div>
     </Link>
   );
 }
