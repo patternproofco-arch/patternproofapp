@@ -270,6 +270,9 @@ function ShareWithAttorney() {
                       {l.include_patterns ? "Recurline included" : "no Recurline"}
                     </div>
                     <div style={{ color: "var(--muted-foreground)", marginTop: 3 }}>
+                      When evidence is shared, they can open the actual files — not just titles and dates.
+                    </div>
+                    <div style={{ color: "var(--muted-foreground)", marginTop: 3 }}>
                       {l.case_label ? `Case: ${l.case_label}` : "All cases"}
                       {" · "}
                       {l.grant?.date_range_start || l.grant?.date_range_end

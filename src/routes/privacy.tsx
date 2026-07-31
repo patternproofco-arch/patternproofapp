@@ -122,7 +122,7 @@ function PrivacyPage() {
           <p>We use the information we collect to:</p>
           <ul>
             <li>Provide, maintain, and improve the Services</li>
-            <li>Generate timelines, pattern analyses, and attorney-ready summaries from your documentation</li>
+            <li>Generate timelines, pattern groupings, and summaries for professional review from your documentation</li>
             <li>Authenticate your account and protect against unauthorized access</li>
             <li>Respond to support requests</li>
             <li>Send you product updates and important notices (you may opt out at any time)</li>
@@ -177,6 +177,25 @@ function PrivacyPage() {
             We may disclose information if required by law, court order, or to protect the
             safety of our users or others. We will notify you of any such request if legally
             permitted to do so.
+          </p>
+
+          <H3>AI providers and subprocessors</H3>
+          <p>
+            Several features rely on third-party AI providers reached through the Lovable AI
+            Gateway: Google (Gemini models) and OpenAI (GPT-4o transcription). Features that use
+            them include Recurline pattern grouping, the Co-Pilot assistant, evidence content-type
+            suggestions, and voice/recording transcription.
+          </p>
+          <p>
+            When you use those features, the content involved — your entry text, message text,
+            file names and extracted text, or audio — is transmitted to and processed by those
+            providers. PatternProof does not control their internal handling or retention terms
+            directly, and we are still finalizing the specific data-processing terms we can state
+            publicly. Their own published policies are the authoritative source
+            (<a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noreferrer">Google</a>{" "}
+            and <a href="https://openai.com/policies/" target="_blank" rel="noreferrer">OpenAI</a>).
+            If you would prefer not to have content processed this way, avoid the AI features
+            listed above; the rest of PatternProof works without them.
           </p>
 
           <H2>6. Data Security</H2>
