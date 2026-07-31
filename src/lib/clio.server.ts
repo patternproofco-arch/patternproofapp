@@ -3,7 +3,8 @@ const CLIO_AUTHORIZE_URL = "https://app.clio.com/oauth/authorize";
 const CLIO_TOKEN_URL = "https://app.clio.com/oauth/token";
 const CLIO_API_BASE = "https://app.clio.com/api/v4";
 
-export const CLIO_REDIRECT_URI = "https://pattern-proof.tech/integrations/clio/callback";
+export const CLIO_REDIRECT_URI =
+  process.env.CLIO_REDIRECT_URI || "https://pattern-proof.tech/integrations/clio/callback";
 
 function credentials() {
   const clientId = process.env.CLIO_CLIENT_ID;
