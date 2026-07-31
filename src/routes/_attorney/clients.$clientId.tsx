@@ -455,7 +455,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
             <div className="att-eyebrow">Court packet</div>
             <h2 style={{ fontSize: 20, marginTop: 4 }}>Download professional-review ZIP</h2>
             <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 4 }}>
-              Includes incidents, evidence files, communications, pattern summary, and a tamper-evident manifest.
+              Includes incidents, evidence files, communications, pattern summary, and a SHA-256 hash manifest for the included files.
             </p>
           </div>
           <button className="att-btn-export" onClick={download} disabled={downloading} style={{ padding: "12px 18px" }}>
