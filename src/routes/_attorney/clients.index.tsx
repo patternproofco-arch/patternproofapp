@@ -522,7 +522,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
             className={mode === "bulk" && open ? "att-btn-primary" : "att-btn-ghost"}
             onClick={() => { setMode("bulk"); setOpen(true); }}
           >
-            <Users size={14} /> Bulk invite
+            <Users size={14} /> Import caseload
           </button>
           {open && (
             <button className="att-btn-ghost" onClick={() => setOpen(false)}>
