@@ -54,7 +54,7 @@ function ConflictCheckPage() {
             className="att-input"
             style={{ flex: "1 1 320px", minWidth: 220 }}
           />
-          <button type="submit" className="att-btn" disabled={busy || name.trim().length < 2}>
+          <button type="submit" className="att-btn-primary" disabled={busy || name.trim().length < 2}>
             <Search size={13} style={{ marginRight: 6 }} />
             {busy ? "Checking…" : "Check my caseload"}
           </button>
