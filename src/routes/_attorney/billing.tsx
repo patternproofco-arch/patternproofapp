@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { Check, ExternalLink, Lock, Star, Plug, Clock } from "lucide-react";
 import { createPortalSession } from "@/lib/payments.functions";
-import { getClioStatus, startClioConnect, disconnectClio } from "@/lib/clio.functions";
+import { getClioStatus, startClioConnect, disconnectClio, listMyClioMatters } from "@/lib/clio.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 
@@ -238,6 +238,94 @@ function ClioPanel() {
           )}
         </div>
       </div>
+      {state?.connected ? <ClioMattersBrowser /> : null}
+    </div>
+  );
+}
+
+type ClioMatterRow = {
+  id: string;
+  display_number: string | null;
+  description: string | null;
+  status: string | null;
+  client_name: string | null;
+};
+
+function ClioMattersBrowser() {
+  const listFn = useServerFn(listMyClioMatters);
+  const [query, setQuery] = useState("");
+  const [rows, setRows] = useState<ClioMatterRow[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  const run = async () => {
+    setLoading(true);
+    setNote(null);
+    try {
+      const r = (await listFn({ data: { query: query.trim() || undefined } })) as { matters: ClioMatterRow[] };
+      setRows(r.matters);
+      if (!r.matters.length) setNote("No matters came back from Clio for that search.");
+    } catch (e) {
+      setRows(null);
+      setNote(e instanceof Error ? e.message : "We couldn't reach Clio just now.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: 18, borderTop: "1px solid var(--att-border)", paddingTop: 16 }}>
+      <div className="att-eyebrow">Browse Clio matters</div>
+      <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
+        Read-only view of your own Clio matters. Nothing is linked to a PatternProof case here.
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+        <input
+          className="att-input"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void run();
+          }}
+          placeholder="Search matter or client name"
+          style={{ flex: "1 1 240px", minWidth: 200 }}
+        />
+        <button className="att-btn-secondary" onClick={() => void run()} disabled={loading}>
+          {loading ? "Loading…" : "Search matters"}
+        </button>
+      </div>
+
+      {note ? <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 10 }}>{note}</div> : null}
+
+      {rows && rows.length > 0 ? (
+        <div style={{ marginTop: 12, overflowX: "auto" }}>
+          <table className="att-table">
+            <thead>
+              <tr>
+                <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>MATTER</th>
+                <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>DESCRIPTION</th>
+                <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>CLIENT</th>
+                <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>STATUS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((m) => (
+                <tr key={m.id}>
+                  <td style={{ fontFamily: "'IBM Plex Mono', monospace", whiteSpace: "nowrap" }}>
+                    {m.display_number ?? m.id}
+                  </td>
+                  <td>{m.description ?? "—"}</td>
+                  <td>{m.client_name ?? "—"}</td>
+                  <td style={{ textTransform: "capitalize" }}>{m.status ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 8 }}>
+            Showing {rows.length} matter{rows.length === 1 ? "" : "s"} (first 200).
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
