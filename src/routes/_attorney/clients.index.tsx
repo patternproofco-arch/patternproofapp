@@ -237,9 +237,15 @@ function DiagnosisCard({ clientCount, tier }: { clientCount: number | null; tier
         <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 220 }}>
           <div className="att-eyebrow">What needs attention</div>
           {status === "empty" ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-              <Send size={14} style={{ color: "var(--att-blue)" }} />
-              <span>Send your first client an invitation link.</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Send size={14} style={{ color: "var(--att-blue)" }} />
+                <span>Send your first client an invitation link.</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--att-text-2)" }}>
+                <Users size={14} style={{ color: "var(--att-slate)" }} />
+                <span>Or import your existing caseload in bulk if you're already representing clients elsewhere.</span>
+              </div>
             </div>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
@@ -374,9 +380,9 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
   return (
     <div className="att-card" style={{ display: "grid", gap: 12, marginBottom: 14 }}>
       <div>
-        <div className="att-eyebrow">Bulk invite</div>
+        <div className="att-eyebrow">Import your existing caseload</div>
         <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
-          Paste CSV rows or upload a .csv. Columns: <code>survivor_email, survivor_name, personal_note</code>. Header row optional. Max {MAX_BULK} rows per batch.
+          Already representing these clients elsewhere? Import your current caseload in one batch instead of inviting people one at a time. Paste CSV rows or upload a .csv. Columns: <code>survivor_email, survivor_name, personal_note</code>. Header row optional. Max {MAX_BULK} rows per batch.
         </p>
       </div>
 
@@ -522,7 +528,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
             className={mode === "bulk" && open ? "att-btn-primary" : "att-btn-ghost"}
             onClick={() => { setMode("bulk"); setOpen(true); }}
           >
-            <Users size={14} /> Bulk invite
+            <Users size={14} /> Import caseload
           </button>
           {open && (
             <button className="att-btn-ghost" onClick={() => setOpen(false)}>
