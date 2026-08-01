@@ -21,6 +21,7 @@ export const getClioStatus = createServerFn({ method: "GET" })
       .from("clio_connections")
       .select("firm_name, clio_user_email, created_at, expires_at")
       .eq("user_id", context.userId)
+      .is("revoked_at", null)
       .maybeSingle();
     if (!data) return { connected: false as const };
     return {

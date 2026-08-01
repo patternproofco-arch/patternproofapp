@@ -92,6 +92,7 @@ export async function getValidClioAccessToken(userId: string): Promise<string | 
     .from("clio_connections")
     .select("access_token, refresh_token, expires_at")
     .eq("user_id", userId)
+    .is("revoked_at", null)
     .maybeSingle();
   if (!data) return null;
 
