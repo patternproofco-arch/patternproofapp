@@ -374,9 +374,9 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
   return (
     <div className="att-card" style={{ display: "grid", gap: 12, marginBottom: 14 }}>
       <div>
-        <div className="att-eyebrow">Bulk invite</div>
+        <div className="att-eyebrow">Import your existing caseload</div>
         <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
-          Paste CSV rows or upload a .csv. Columns: <code>survivor_email, survivor_name, personal_note</code>. Header row optional. Max {MAX_BULK} rows per batch.
+          Already representing these clients elsewhere? Import your current caseload in one batch instead of inviting people one at a time. Paste CSV rows or upload a .csv. Columns: <code>survivor_email, survivor_name, personal_note</code>. Header row optional. Max {MAX_BULK} rows per batch.
         </p>
       </div>
 
