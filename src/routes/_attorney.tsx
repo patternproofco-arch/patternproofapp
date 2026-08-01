@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { LogOut, Lock, LayoutGrid, Users, CreditCard, Plug, ShieldCheck, MessageSquare, ScanSearch } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, getAttorneyProfile } from "@/lib/attorney-portal.functions";
@@ -26,6 +27,8 @@ function AttorneyLayout() {
   const getRole = useServerFn(getMyRole);
   const getProfile = useServerFn(getAttorneyProfile);
   const [checking, setChecking] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
   const [userRole, setUserRole] = useState<"attorney" | "collaborator" | null>(null);
   const [firmName, setFirmName] = useState<string | null>(null);
@@ -35,7 +38,10 @@ function AttorneyLayout() {
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate({ to: "/lawyer-signup", replace: true }); return; }
+    let cancelled = false;
+    setLoadError(null);
     getRole().then(async (r) => {
+      if (cancelled) return;
       if (r.role !== "attorney" && r.role !== "collaborator") {
         navigate({ to: "/lawyer-signup", replace: true });
         return;
@@ -53,9 +59,16 @@ function AttorneyLayout() {
           setOnboarded(false);
         }
       }
+      if (cancelled) return;
       setChecking(false);
-    }).catch(() => navigate({ to: "/lawyer-signup", replace: true }));
-  }, [user, loading, getRole, getProfile, navigate]);
+    }).catch(() => {
+      if (cancelled) return;
+      // Never leave the portal stuck on "Opening portal…" — surface a retry.
+      setLoadError("We couldn't reach your account just now.");
+      setChecking(false);
+    });
+    return () => { cancelled = true; };
+  }, [user, loading, getRole, getProfile, navigate, retryKey]);
 
   // Hard paywall: any non-billing route requires an active subscription.
   // /subscribe, /billing-return, and /setup are reachable without one.
@@ -72,6 +85,10 @@ function AttorneyLayout() {
     if (loading || checking) return;
     if (!user) return;
     if (onboarded === false && !onSetup) {
+      toast("Finish setting up your account to continue", {
+        id: "attorney-onboarding-redirect",
+        description: "We've brought you to setup — it only takes a moment.",
+      });
       navigate({ to: "/setup", replace: true });
     }
   }, [loading, checking, onboarded, onSetup, navigate, user]);
@@ -91,6 +108,26 @@ function AttorneyLayout() {
     return (
       <div className="att-root" data-persona="attorney" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <span className="att-eyebrow">Opening portal…</span>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="att-root" data-persona="attorney" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center", display: "grid", gap: 12, maxWidth: 420, padding: 24 }}>
+          <span className="att-eyebrow">Portal unavailable</span>
+          <p style={{ margin: 0 }}>{loadError} Check your connection and try again.</p>
+          <div>
+            <button
+              type="button"
+              className="att-btn att-btn-primary"
+              onClick={() => { setLoadError(null); setChecking(true); setRetryKey((k) => k + 1); }}
+            >
+              Try again
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
