@@ -237,9 +237,15 @@ function DiagnosisCard({ clientCount, tier }: { clientCount: number | null; tier
         <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 220 }}>
           <div className="att-eyebrow">What needs attention</div>
           {status === "empty" ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-              <Send size={14} style={{ color: "var(--att-blue)" }} />
-              <span>Send your first client an invitation link.</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Send size={14} style={{ color: "var(--att-blue)" }} />
+                <span>Send your first client an invitation link.</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--att-text-2)" }}>
+                <Users size={14} style={{ color: "var(--att-slate)" }} />
+                <span>Or import your existing caseload in bulk if you're already representing clients elsewhere.</span>
+              </div>
             </div>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
