@@ -42,3 +42,19 @@ export const disconnectClio = createServerFn({ method: "POST" })
     if (error) throw new Error("We couldn't disconnect Clio. Try again in a moment.");
     return { ok: true };
   });
+
+export const listMyClioMatters = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { query?: string }) => ({
+    query: typeof input?.query === "string" ? input.query.slice(0, 120) : undefined,
+  }))
+  .handler(async ({ data, context }) => {
+    const { resolveCallerRole } = await import("@/lib/conflict-check.server");
+    const role = await resolveCallerRole(context.userId);
+    if (role !== "attorney" && role !== "collaborator") {
+      throw new Error("This area is for attorney accounts.");
+    }
+    const { listClioMatters } = await import("@/lib/clio-matters.server");
+    const matters = await listClioMatters(context.userId, { query: data.query });
+    return { matters };
+  });
