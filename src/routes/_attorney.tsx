@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut, Lock, LayoutGrid, Users, CreditCard, Plug, ShieldCheck, MessageSquare } from "lucide-react";
+import { LogOut, Lock, LayoutGrid, Users, CreditCard, Plug, ShieldCheck, MessageSquare, ScanSearch } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, getAttorneyProfile } from "@/lib/attorney-portal.functions";
@@ -139,6 +139,7 @@ function useClientIdFromPath(): string | null {
 const NAV_ITEMS = [
   { to: "/caseload", label: "Dashboard", icon: LayoutGrid },
   { to: "/clients", label: "Matters", icon: Users },
+  { to: "/conflict-check", label: "Conflict check", icon: ScanSearch },
   { to: "/billing", label: "Billing", icon: CreditCard },
   { to: "/billing", label: "Clio connection", icon: Plug, hash: "clio" },
   { to: "/trust", label: "Settings", icon: ShieldCheck },

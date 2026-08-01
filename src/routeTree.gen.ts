@@ -81,6 +81,7 @@ import { Route as AuthenticatedAbuserTacticsRouteImport } from './routes/_authen
 import { Route as AttorneyTrustRouteImport } from './routes/_attorney/trust'
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
 import { Route as AttorneySetupRouteImport } from './routes/_attorney/setup'
+import { Route as AttorneyConflictCheckRouteImport } from './routes/_attorney/conflict-check'
 import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
 import { Route as AttorneyCaseloadRouteImport } from './routes/_attorney/caseload'
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
@@ -476,6 +477,11 @@ const AttorneySetupRoute = AttorneySetupRouteImport.update({
   path: '/setup',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AttorneyConflictCheckRoute = AttorneyConflictCheckRouteImport.update({
+  id: '/conflict-check',
+  path: '/conflict-check',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AttorneyClientsRoute = AttorneyClientsRouteImport.update({
   id: '/clients',
   path: '/clients',
@@ -629,6 +635,7 @@ export interface FileRoutesByFullPath {
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/caseload': typeof AttorneyCaseloadRoute
   '/clients': typeof AttorneyClientsRouteWithChildren
+  '/conflict-check': typeof AttorneyConflictCheckRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
   '/trust': typeof AttorneyTrustRoute
@@ -720,6 +727,7 @@ export interface FileRoutesByTo {
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/caseload': typeof AttorneyCaseloadRoute
+  '/conflict-check': typeof AttorneyConflictCheckRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
   '/trust': typeof AttorneyTrustRoute
@@ -815,6 +823,7 @@ export interface FileRoutesById {
   '/_attorney/billing-return': typeof AttorneyBillingReturnRoute
   '/_attorney/caseload': typeof AttorneyCaseloadRoute
   '/_attorney/clients': typeof AttorneyClientsRouteWithChildren
+  '/_attorney/conflict-check': typeof AttorneyConflictCheckRoute
   '/_attorney/setup': typeof AttorneySetupRoute
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
   '/_attorney/trust': typeof AttorneyTrustRoute
@@ -909,6 +918,7 @@ export interface FileRouteTypes {
     | '/billing-return'
     | '/caseload'
     | '/clients'
+    | '/conflict-check'
     | '/setup'
     | '/subscribe'
     | '/trust'
@@ -1000,6 +1010,7 @@ export interface FileRouteTypes {
     | '/billing'
     | '/billing-return'
     | '/caseload'
+    | '/conflict-check'
     | '/setup'
     | '/subscribe'
     | '/trust'
@@ -1094,6 +1105,7 @@ export interface FileRouteTypes {
     | '/_attorney/billing-return'
     | '/_attorney/caseload'
     | '/_attorney/clients'
+    | '/_attorney/conflict-check'
     | '/_attorney/setup'
     | '/_attorney/subscribe'
     | '/_attorney/trust'
@@ -1708,6 +1720,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneySetupRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_attorney/conflict-check': {
+      id: '/_attorney/conflict-check'
+      path: '/conflict-check'
+      fullPath: '/conflict-check'
+      preLoaderRoute: typeof AttorneyConflictCheckRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/_attorney/clients': {
       id: '/_attorney/clients'
       path: '/clients'
@@ -1892,6 +1911,7 @@ interface AttorneyRouteChildren {
   AttorneyBillingReturnRoute: typeof AttorneyBillingReturnRoute
   AttorneyCaseloadRoute: typeof AttorneyCaseloadRoute
   AttorneyClientsRoute: typeof AttorneyClientsRouteWithChildren
+  AttorneyConflictCheckRoute: typeof AttorneyConflictCheckRoute
   AttorneySetupRoute: typeof AttorneySetupRoute
   AttorneySubscribeRoute: typeof AttorneySubscribeRoute
   AttorneyTrustRoute: typeof AttorneyTrustRoute
@@ -1903,6 +1923,7 @@ const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneyBillingReturnRoute: AttorneyBillingReturnRoute,
   AttorneyCaseloadRoute: AttorneyCaseloadRoute,
   AttorneyClientsRoute: AttorneyClientsRouteWithChildren,
+  AttorneyConflictCheckRoute: AttorneyConflictCheckRoute,
   AttorneySetupRoute: AttorneySetupRoute,
   AttorneySubscribeRoute: AttorneySubscribeRoute,
   AttorneyTrustRoute: AttorneyTrustRoute,
