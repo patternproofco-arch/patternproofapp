@@ -93,6 +93,7 @@ import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authentic
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
 import { Route as AdvocateAdvocateCasesIndexRouteImport } from './routes/_advocate/advocate-cases.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integrations.clio.deauthorize'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
@@ -541,6 +542,12 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IntegrationsClioDeauthorizeRoute =
+  IntegrationsClioDeauthorizeRouteImport.update({
+    id: '/integrations/clio/deauthorize',
+    path: '/integrations/clio/deauthorize',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const IntegrationsClioCallbackRoute =
   IntegrationsClioCallbackRouteImport.update({
     id: '/integrations/clio/callback',
@@ -684,6 +691,7 @@ export interface FileRoutesByFullPath {
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
+  '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/clients/': typeof AttorneyClientsIndexRoute
@@ -775,6 +783,7 @@ export interface FileRoutesByTo {
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
+  '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/advocate-cases': typeof AdvocateAdvocateCasesIndexRoute
   '/clients': typeof AttorneyClientsIndexRoute
@@ -872,6 +881,7 @@ export interface FileRoutesById {
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
+  '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_advocate/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
@@ -967,6 +977,7 @@ export interface FileRouteTypes {
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
+    | '/integrations/clio/deauthorize'
     | '/lovable/email/suppression'
     | '/advocate-cases/'
     | '/clients/'
@@ -1058,6 +1069,7 @@ export interface FileRouteTypes {
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
+    | '/integrations/clio/deauthorize'
     | '/lovable/email/suppression'
     | '/advocate-cases'
     | '/clients'
@@ -1154,6 +1166,7 @@ export interface FileRouteTypes {
     | '/_attorney/clients/$clientId'
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
+    | '/integrations/clio/deauthorize'
     | '/lovable/email/suppression'
     | '/_advocate/advocate-cases/'
     | '/_attorney/clients/'
@@ -1207,6 +1220,7 @@ export interface RootRouteChildren {
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   IntegrationsClioCallbackRoute: typeof IntegrationsClioCallbackRoute
+  IntegrationsClioDeauthorizeRoute: typeof IntegrationsClioDeauthorizeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -1804,6 +1818,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/integrations/clio/deauthorize': {
+      id: '/integrations/clio/deauthorize'
+      path: '/integrations/clio/deauthorize'
+      fullPath: '/integrations/clio/deauthorize'
+      preLoaderRoute: typeof IntegrationsClioDeauthorizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/integrations/clio/callback': {
       id: '/integrations/clio/callback'
       path: '/integrations/clio/callback'
@@ -2064,6 +2085,7 @@ const rootRouteChildren: RootRouteChildren = {
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   IntegrationsClioCallbackRoute: IntegrationsClioCallbackRoute,
+  IntegrationsClioDeauthorizeRoute: IntegrationsClioDeauthorizeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

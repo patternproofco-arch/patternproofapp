@@ -1022,6 +1022,7 @@ export type Database = {
           firm_name: string | null
           id: string
           refresh_token: string
+          revoked_at: string | null
           updated_at: string
           user_id: string
         }
@@ -1034,6 +1035,7 @@ export type Database = {
           firm_name?: string | null
           id?: string
           refresh_token: string
+          revoked_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1046,6 +1048,7 @@ export type Database = {
           firm_name?: string | null
           id?: string
           refresh_token?: string
+          revoked_at?: string | null
           updated_at?: string
           user_id?: string
         }
