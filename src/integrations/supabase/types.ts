@@ -285,6 +285,8 @@ export type Database = {
           attorney_user_id: string
           case_id: string | null
           client_user_id: string
+          clio_share_consent: boolean
+          clio_share_consent_at: string | null
           created_at: string
           deposition_prep_consent: boolean
           deposition_prep_consent_at: string | null
@@ -304,6 +306,8 @@ export type Database = {
           attorney_user_id: string
           case_id?: string | null
           client_user_id: string
+          clio_share_consent?: boolean
+          clio_share_consent_at?: string | null
           created_at?: string
           deposition_prep_consent?: boolean
           deposition_prep_consent_at?: string | null
@@ -323,6 +327,8 @@ export type Database = {
           attorney_user_id?: string
           case_id?: string | null
           client_user_id?: string
+          clio_share_consent?: boolean
+          clio_share_consent_at?: string | null
           created_at?: string
           deposition_prep_consent?: boolean
           deposition_prep_consent_at?: string | null
@@ -1053,6 +1059,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      clio_matter_links: {
+        Row: {
+          attorney_client_link_id: string
+          clio_matter_description: string | null
+          clio_matter_display_number: string | null
+          clio_matter_id: string
+          id: string
+          linked_at: string
+          linked_by: string
+          unlinked_at: string | null
+        }
+        Insert: {
+          attorney_client_link_id: string
+          clio_matter_description?: string | null
+          clio_matter_display_number?: string | null
+          clio_matter_id: string
+          id?: string
+          linked_at?: string
+          linked_by: string
+          unlinked_at?: string | null
+        }
+        Update: {
+          attorney_client_link_id?: string
+          clio_matter_description?: string | null
+          clio_matter_display_number?: string | null
+          clio_matter_id?: string
+          id?: string
+          linked_at?: string
+          linked_by?: string
+          unlinked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clio_matter_links_attorney_client_link_id_fkey"
+            columns: ["attorney_client_link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clio_oauth_states: {
         Row: {
