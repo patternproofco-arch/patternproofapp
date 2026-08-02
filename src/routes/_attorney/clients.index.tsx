@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, FileText, MessageSquare, TrendingUp, ArrowRight, CheckCircle2,
   Send, Copy, RotateCw, X, Mail, Plus, Upload, Users, Search, ChevronUp, ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { listMyClients } from "@/lib/attorney-portal.functions";
+import { listClioMatterLinks, unlinkClioMatter } from "@/lib/clio-matter-links.functions";
 import {
   listSurvivorInvites, createSurvivorInvite, createSurvivorInvitesBulk,
   revokeSurvivorInvite, resendSurvivorInvite,
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/_attorney/clients/")({
 });
 
 type ClientRow = Awaited<ReturnType<typeof listMyClients>>["clients"][number];
+type MatterLinkRow = Awaited<ReturnType<typeof listClioMatterLinks>>["links"][number];
 type InviteRow = Awaited<ReturnType<typeof listSurvivorInvites>>["invites"][number];
 
 const DENSITY: Record<string, { label: string }> = {
@@ -44,6 +46,13 @@ function ClientsIndex() {
   const [clients, setClients] = useState<ClientRow[] | null>(null);
   const [invites, setInvites] = useState<InviteRow[] | null>(null);
   const sub = useSubscription();
+  const matterLinksFetcher = useServerFn(listClioMatterLinks);
+  const [matterLinks, setMatterLinks] = useState<MatterLinkRow[]>([]);
+  const reloadMatterLinks = useCallback(
+    () => matterLinksFetcher().then((r) => setMatterLinks(r.links)).catch(() => setMatterLinks([])),
+    [matterLinksFetcher],
+  );
+  useEffect(() => { void reloadMatterLinks(); }, [reloadMatterLinks]);
 
   useEffect(() => { fetcher().then((r) => setClients(r.clients)); }, [fetcher]);
   useEffect(() => { invitesFetcher().then((r) => setInvites(r.invites)); }, [invitesFetcher]);
@@ -70,11 +79,11 @@ function ClientsIndex() {
         const shared = clients.filter((c) => (c as any).access_kind === "granted" || (c as any).access_kind === "collaborator");
         return (
           <>
-            <ClientTable clients={owned} />
+            <ClientTable clients={owned} matterLinks={matterLinks} onMatterChange={reloadMatterLinks} />
             {shared.length > 0 && (
               <div style={{ marginTop: 28 }}>
                 <div className="att-eyebrow" style={{ marginBottom: 8 }}>Shared with you · granted by a firm colleague</div>
-                <ClientTable clients={shared} sharedBadge />
+                <ClientTable clients={shared} sharedBadge matterLinks={matterLinks} onMatterChange={reloadMatterLinks} />
               </div>
             )}
           </>
@@ -86,7 +95,13 @@ function ClientsIndex() {
 
 type SortKey = "client" | "linked_at" | "incident_count" | "evidence_count" | "escalation_flag_count" | "last_incident_date";
 
-function ClientTable({ clients, sharedBadge }: { clients: ClientRow[] | null; sharedBadge?: boolean }) {
+function ClientTable({ clients, sharedBadge, matterLinks, onMatterChange }: {
+  clients: ClientRow[] | null;
+  sharedBadge?: boolean;
+  matterLinks?: MatterLinkRow[];
+  onMatterChange?: () => void;
+}) {
+  const unlinkFn = useServerFn(unlinkClioMatter);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({ key: "last_incident_date", dir: "desc" });
 
@@ -173,6 +188,7 @@ function ClientTable({ clients, sharedBadge }: { clients: ClientRow[] | null; sh
             {rows?.map((c) => {
               const caseId = `PP-${c.client_user_id.slice(0, 4).toUpperCase()}`;
               const activity = c.unread_messages + c.open_doc_requests;
+              const matter = (matterLinks ?? []).find((m) => m.attorney_client_link_id === c.link_id);
               return (
                 <tr key={c.link_id} className="att-row">
                   <td className="att-td-tight">
@@ -180,6 +196,31 @@ function ClientTable({ clients, sharedBadge }: { clients: ClientRow[] | null; sh
                       Client {c.client_user_id.slice(0, 8)}
                     </Link>
                     {sharedBadge && <span className="att-tag att-badge--navy" style={{ marginLeft: 6 }}>Shared</span>}
+                    {matter && (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6, marginLeft: 6 }}>
+                        <span
+                          className="att-tag att-badge--navy"
+                          title={matter.clio_matter_description ?? "Linked Clio matter"}
+                        >
+                          Clio {matter.clio_matter_display_number ?? matter.clio_matter_id}
+                        </span>
+                        <button
+                          className="att-btn-secondary"
+                          style={{ fontSize: 11, padding: "1px 6px" }}
+                          onClick={async () => {
+                            try {
+                              await unlinkFn({ data: { attorney_client_link_id: c.link_id } });
+                              toast("Clio matter unlinked.");
+                              onMatterChange?.();
+                            } catch {
+                              toast("We couldn't unlink that matter. Try again in a moment.");
+                            }
+                          }}
+                        >
+                          Unlink
+                        </button>
+                      </span>
+                    )}
                   </td>
                   <td className="att-td-tight att-mono" style={{ color: "var(--att-text-2)" }}>{caseId}</td>
                   <td className="att-td-tight">

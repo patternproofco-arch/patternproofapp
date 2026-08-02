@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } from "@/lib/attorney-invitations.functions";
 import { sendTransactionalEmail } from "@/lib/email/send";
 import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts, setDepositionPrepConsent } from "@/lib/attorney-portal.functions";
+import { setClioShareConsent } from "@/lib/clio-matter-links.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ function ShareWithAttorney() {
   const revokeInv = useServerFn(revokeInvitation);
   const revokeLk = useServerFn(revokeLink);
   const setPhrasingConsent = useServerFn(setDepositionPrepConsent);
+  const setClioConsent = useServerFn(setClioShareConsent);
 
   const [data, setData] = useState<Listing | null>(null);
   const [open, setOpen] = useState(false);
@@ -301,6 +303,26 @@ function ShareWithAttorney() {
                       Allow {l.profile?.full_name ?? "this attorney"} to see an AI-rephrased, court-appropriate version of your statements for deposition prep.
                       <span style={{ display: "block", color: "var(--muted-foreground)", marginTop: 2 }}>
                         Your original words are never changed — this creates a separate document for your attorney only. Off by default.
+                      </span>
+                    </span>
+                  </label>
+                  <label className="mt-3 flex items-start gap-2 text-[12px]" style={{ color: "var(--foreground)", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      style={{ marginTop: 3 }}
+                      checked={!!l.clio_share_consent}
+                      onChange={async (e) => {
+                        try {
+                          await setClioConsent({ data: { link_id: l.id, consent: e.target.checked } });
+                          toast(e.target.checked ? "Clio sharing approved." : "Clio sharing turned off.");
+                          load();
+                        } catch { toast("We couldn't update that setting. Try again in a moment."); }
+                      }}
+                    />
+                    <span>
+                      Share my case with {l.profile?.full_name ?? "this attorney"}'s Clio account?
+                      <span style={{ display: "block", color: "var(--muted-foreground)", marginTop: 2 }}>
+                        This shares matter reference info only — the matter number and description — not your case content. Off by default.
                       </span>
                     </span>
                   </label>
