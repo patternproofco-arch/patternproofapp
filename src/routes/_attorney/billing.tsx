@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Check, ExternalLink, Lock, Star, Plug, Clock } from "lucide-react";
 import { createPortalSession } from "@/lib/payments.functions";
 import { getClioStatus, startClioConnect, disconnectClio, listMyClioMatters } from "@/lib/clio.functions";
+import { listClioConsentedClients, linkClioMatter } from "@/lib/clio-matter-links.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 
@@ -253,10 +254,46 @@ type ClioMatterRow = {
 
 function ClioMattersBrowser() {
   const listFn = useServerFn(listMyClioMatters);
+  const consentedFn = useServerFn(listClioConsentedClients);
+  const linkFn = useServerFn(linkClioMatter);
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<ClioMatterRow[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [consented, setConsented] = useState<Array<{ link_id: string; client_label: string; case_label: string }>>([]);
+  const [picker, setPicker] = useState<ClioMatterRow | null>(null);
+  const [linking, setLinking] = useState(false);
+
+  const loadConsented = useCallback(async () => {
+    try {
+      const r = await consentedFn();
+      setConsented(r.clients);
+    } catch {
+      setConsented([]);
+    }
+  }, [consentedFn]);
+
+  useEffect(() => { void loadConsented(); }, [loadConsented]);
+
+  const doLink = async (linkId: string) => {
+    if (!picker) return;
+    setLinking(true);
+    try {
+      await linkFn({ data: {
+        attorney_client_link_id: linkId,
+        clio_matter_id: picker.id,
+        clio_matter_display_number: picker.display_number,
+        clio_matter_description: picker.description,
+      } });
+      toast("Matter linked to that case file.");
+      setPicker(null);
+      void loadConsented();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "We couldn't link that matter just now.");
+    } finally {
+      setLinking(false);
+    }
+  };
 
   const run = async () => {
     setLoading(true);
@@ -306,6 +343,7 @@ function ClioMattersBrowser() {
                 <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>DESCRIPTION</th>
                 <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>CLIENT</th>
                 <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>STATUS</th>
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -317,12 +355,47 @@ function ClioMattersBrowser() {
                   <td>{m.description ?? "—"}</td>
                   <td>{m.client_name ?? "—"}</td>
                   <td style={{ textTransform: "capitalize" }}>{m.status ?? "—"}</td>
+                  <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                    <button
+                      className="att-btn-secondary"
+                      disabled={consented.length === 0}
+                      title={consented.length === 0 ? "No clients have approved Clio sharing yet." : "Link this matter to a case file"}
+                      onClick={() => setPicker(m)}
+                    >
+                      Link to case
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
           <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 8 }}>
             Showing {rows.length} matter{rows.length === 1 ? "" : "s"} (first 200).
+          </div>
+        </div>
+      ) : null}
+
+      {picker ? (
+        <div style={{ marginTop: 14, border: "1px solid var(--att-border)", background: "var(--att-surface-2)", padding: 14 }}>
+          <div className="att-eyebrow">Link {picker.display_number ?? picker.id}</div>
+          <div style={{ fontSize: 12, color: "var(--att-text-2)", margin: "4px 0 10px" }}>
+            Only clients who have approved Clio sharing appear here.
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            {consented.map((c) => (
+              <button
+                key={c.link_id}
+                className="att-btn-secondary"
+                disabled={linking}
+                style={{ textAlign: "left" }}
+                onClick={() => void doLink(c.link_id)}
+              >
+                {c.client_label} · {c.case_label}
+              </button>
+            ))}
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <button className="att-btn-secondary" onClick={() => setPicker(null)} disabled={linking}>Cancel</button>
           </div>
         </div>
       ) : null}
