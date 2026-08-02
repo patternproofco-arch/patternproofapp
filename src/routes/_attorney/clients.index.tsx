@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { listMyClients } from "@/lib/attorney-portal.functions";
+import { listClioMatterLinks, unlinkClioMatter } from "@/lib/clio-matter-links.functions";
 import {
   listSurvivorInvites, createSurvivorInvite, createSurvivorInvitesBulk,
   revokeSurvivorInvite, resendSurvivorInvite,
@@ -44,6 +45,13 @@ function ClientsIndex() {
   const [clients, setClients] = useState<ClientRow[] | null>(null);
   const [invites, setInvites] = useState<InviteRow[] | null>(null);
   const sub = useSubscription();
+  const matterLinksFetcher = useServerFn(listClioMatterLinks);
+  const [matterLinks, setMatterLinks] = useState<MatterLinkRow[]>([]);
+  const reloadMatterLinks = useCallback(
+    () => matterLinksFetcher().then((r) => setMatterLinks(r.links)).catch(() => setMatterLinks([])),
+    [matterLinksFetcher],
+  );
+  useEffect(() => { void reloadMatterLinks(); }, [reloadMatterLinks]);
 
   useEffect(() => { fetcher().then((r) => setClients(r.clients)); }, [fetcher]);
   useEffect(() => { invitesFetcher().then((r) => setInvites(r.invites)); }, [invitesFetcher]);
@@ -70,11 +78,11 @@ function ClientsIndex() {
         const shared = clients.filter((c) => (c as any).access_kind === "granted" || (c as any).access_kind === "collaborator");
         return (
           <>
-            <ClientTable clients={owned} />
+            <ClientTable clients={owned} matterLinks={matterLinks} onMatterChange={reloadMatterLinks} />
             {shared.length > 0 && (
               <div style={{ marginTop: 28 }}>
                 <div className="att-eyebrow" style={{ marginBottom: 8 }}>Shared with you · granted by a firm colleague</div>
-                <ClientTable clients={shared} sharedBadge />
+                <ClientTable clients={shared} sharedBadge matterLinks={matterLinks} onMatterChange={reloadMatterLinks} />
               </div>
             )}
           </>
