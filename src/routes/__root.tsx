@@ -186,6 +186,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <GoogleAnalyticsRouteTracker />
         <Outlet />
         <Toaster position="top-center" toastOptions={{ style: { background: "#FFFCF1", color: "#1F1A14", border: "1px solid rgba(31,26,20,0.12)", borderRadius: "14px", fontFamily: "Inter, system-ui" } }} />
       </AuthProvider>
