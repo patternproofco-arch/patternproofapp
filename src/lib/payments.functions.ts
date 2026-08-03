@@ -277,6 +277,7 @@ async function isAttorneyEntitled(attorneyId: string, clientId: string): Promise
     const attorneyPlans = new Set([
       "attorney_solo_monthly",
       "attorney_firm_monthly",
+      "attorney_firm_charter_monthly",
       "attorney_enterprise_monthly",
       // legacy price id used during The Pilot rollout
       "attorney_portal_monthly_297",
