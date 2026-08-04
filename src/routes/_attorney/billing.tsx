@@ -60,7 +60,7 @@ function BillingPage() {
 
   if (sub.loading) return <div className="att-card">Loading billing…</div>;
 
-  const currentTier = sub.tier;
+  
   const renews = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null;
 
   return (
