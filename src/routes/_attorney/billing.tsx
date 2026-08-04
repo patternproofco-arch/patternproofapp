@@ -12,11 +12,34 @@ export const Route = createFileRoute("/_attorney/billing")({
   component: BillingPage,
 });
 
-type TierKey = "solo" | "firm" | "enterprise";
-const TIERS: Array<{ key: TierKey; name: string; price: string; per: string; bullets: string[]; recommended?: boolean }> = [
-  { key: "solo", name: "Solo", price: "$297", per: "/mo", bullets: ["5 active client files", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"] },
-  { key: "firm", name: "Firm", price: "$897", per: "/mo", recommended: true, bullets: ["Up to 3 attorneys", "Unlimited client files", "Priority intake support", "Shared deposition prep"] },
-  { key: "enterprise", name: "Enterprise", price: "$1,497", per: "/mo", bullets: ["Unlimited attorneys", "White-label survivor portal", "SSO + dedicated audits", "Direct line to our team"] },
+type TierKey = "solo" | "firm_charter" | "firm";
+const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: string; per: string; priceId: string; bullets: string[]; recommended?: boolean }> = [
+  {
+    key: "solo",
+    name: "Solo",
+    price: "$297",
+    per: "/mo",
+    priceId: "attorney_solo_monthly",
+    bullets: ["1 attorney seat", "Up to 10 active client matters", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"],
+  },
+  {
+    key: "firm_charter",
+    name: "Firm Charter",
+    price: "$597",
+    priceStrike: "$897",
+    per: "/mo · locked 12 months",
+    priceId: "attorney_firm_charter_monthly",
+    recommended: true,
+    bullets: ["Up to 15 attorney seats", "Unlimited active client matters", "Multi-attorney collaboration and shared case notes", "Firm-wide conflict-of-interest detection", "Charter rate locked 12 months, then $897/mo"],
+  },
+  {
+    key: "firm",
+    name: "Firm",
+    price: "$897",
+    per: "/mo",
+    priceId: "attorney_firm_monthly",
+    bullets: ["Up to 15 attorney seats", "Unlimited active client matters", "Multi-attorney collaboration and shared case notes", "Firm-wide conflict-of-interest detection", "Priority client onboarding support"],
+  },
 ];
 
 function BillingPage() {
@@ -37,7 +60,7 @@ function BillingPage() {
 
   if (sub.loading) return <div className="att-card">Loading billing…</div>;
 
-  const currentTier = sub.tier;
+  
   const renews = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null;
 
   return (
@@ -55,7 +78,12 @@ function BillingPage() {
             </div>
             <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4 }}>
               {sub.isActive
-                ? `PatternProof ${currentTier === "firm" ? "Firm" : currentTier === "enterprise" ? "Enterprise" : currentTier === "solo" ? "Solo" : "Plan"}`
+                ? `PatternProof ${
+                    sub.priceId === "attorney_firm_charter_monthly" ? "Firm Charter"
+                    : sub.priceId === "attorney_firm_monthly" ? "Firm"
+                    : sub.priceId === "attorney_solo_monthly" || sub.priceId === "attorney_portal_monthly_297" ? "Solo"
+                    : "Plan"
+                  }`
                 : "Pick a plan to unlock case files"}
             </div>
             {sub.isActive && (
@@ -81,7 +109,7 @@ function BillingPage() {
         <div className="att-eyebrow" style={{ marginBottom: 10 }}>Compare plans</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 14 }}>
           {TIERS.map((t) => {
-            const isCurrent = sub.isActive && currentTier === t.key;
+            const isCurrent = sub.isActive && sub.priceId === t.priceId;
             return (
               <div
                 key={t.key}
@@ -103,6 +131,11 @@ function BillingPage() {
                 )}
                 <div className="att-eyebrow">{t.name}</div>
                 <div className="att-mono" style={{ fontSize: 26, marginTop: 4 }}>
+                  {t.priceStrike && (
+                    <span style={{ fontSize: 16, color: "var(--att-text-2)", textDecoration: "line-through", marginRight: 6 }}>
+                      {t.priceStrike}
+                    </span>
+                  )}
                   {t.price}<span style={{ fontSize: 13, color: "var(--att-text-2)" }}>{t.per}</span>
                 </div>
                 <ul style={{ listStyle: "none", padding: 0, marginTop: 14, display: "grid", gap: 8, fontSize: 13 }}>
