@@ -7,7 +7,6 @@ import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } fro
 import { sendTransactionalEmail } from "@/lib/email/send";
 import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts, setDepositionPrepConsent } from "@/lib/attorney-portal.functions";
 import { setClioShareConsent } from "@/lib/clio-matter-links.functions";
-import { useSubscription } from "@/hooks/useSubscription";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -22,13 +21,7 @@ type Listing = Awaited<ReturnType<typeof listMyInvitations>>;
 function ShareWithAttorney() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const sub = useSubscription();
   const { confirm, dialog } = useConfirm();
-  useEffect(() => {
-    if (!sub.loading && sub.tier === "core") {
-      navigate({ to: "/court-ready", replace: true });
-    }
-  }, [sub.loading, sub.tier, navigate]);
   const list = useServerFn(listMyInvitations);
   const create = useServerFn(createInvitation);
   const revokeInv = useServerFn(revokeInvitation);
