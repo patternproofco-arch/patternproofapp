@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getMySubscription } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -44,19 +44,38 @@ export function useSubscription(): SubscriptionState {
 
   useEffect(() => { load(); }, [load]);
 
+  // Keep the latest `load` in a ref so the realtime effect below depends only
+  // on the user id. Otherwise a new `load` identity would tear down and
+  // resubscribe the channel on every render.
+  const loadRef = useRef(load);
+  loadRef.current = load;
+
+  // Resolve the user id first, in its own effect...
+  const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => {
-    let userId: string | null = null;
+    let active = true;
     supabase.auth.getUser().then(({ data }) => {
-      userId = data.user?.id ?? null;
-      if (!userId) return;
-      const channel = supabase
-        .channel(`sub-${userId}`)
-        .on("postgres_changes", { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${userId}` }, () => load())
-        .subscribe();
-      // cleanup
-      return () => { supabase.removeChannel(channel); };
+      if (active) setUserId(data.user?.id ?? null);
     });
-  }, [load]);
+    return () => { active = false; };
+  }, []);
+
+  // ...so the channel is created synchronously here and its cleanup is the
+  // effect's own return value (React only registers cleanups returned from the
+  // effect body — a cleanup returned inside a .then() is silently dropped,
+  // which left the channel subscribed and re-subscribed on every re-run).
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`sub-${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${userId}` },
+        () => loadRef.current(),
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId]);
 
   return {
     loading,
