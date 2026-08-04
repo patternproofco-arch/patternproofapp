@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import JSZip from "jszip";
 import { createHash } from "crypto";
 import { z } from "zod";
+import { buildPatternExport } from "@/lib/pattern-export";
 
 function toCsv(rows: Array<Record<string, unknown>>): string {
   if (rows.length === 0) return "";
