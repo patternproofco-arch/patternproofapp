@@ -8,8 +8,8 @@ import { analyzePatterns, getLatestPatternAnalysis, type PatternAnalysisResult }
 export const Route = createFileRoute("/_authenticated/abuser-tactics")({
   head: () => ({
     meta: [
-      { title: "Abuser tactics — PatternProof" },
-      { name: "description", content: "Recurring tactics the other party is using, drawn from your own records." },
+      { title: "Behaviors you've documented — PatternProof" },
+      { name: "description", content: "Recurring behaviors you have reported, counted from your own records. Not a finding about anyone." },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -47,7 +47,7 @@ function AbuserTacticsPage() {
       if (r.ok) {
         setAnalysis(r.analysis);
         setCreatedAt(new Date().toISOString());
-        if (!r.cached) toast("Tactics refreshed.");
+        if (!r.cached) toast("Refreshed from your records.");
       } else if (r.reason === "not-enough-data") {
         setNotEnough(true);
       } else if (r.reason === "rate-limit") {
@@ -68,12 +68,12 @@ function AbuserTacticsPage() {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-2xl">
-          <div className="label-eyebrow">Abuser tactics</div>
-          <h1 className="mt-2 font-serif text-[34px] leading-tight">What they're <em>doing.</em></h1>
+          <div className="label-eyebrow">Behaviors you've documented</div>
+          <h1 className="mt-2 font-serif text-[34px] leading-tight">What you've <em>reported.</em></h1>
           <p className="mt-3 text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            Recurring tactics drawn from your own records — DARVO, gaslighting, love-bombing,
-            isolation, intimidation, monitoring, and more. Not a diagnosis. Just the patterns
-            showing up in what you've already documented.
+            Behaviors that come up more than once across the entries you've written, grouped and
+            counted. These are your own reports read back to you — not a finding, a diagnosis,
+            or a conclusion about anyone.
           </p>
         </div>
         <div className="flex flex-col items-stretch gap-2 md:items-end">
@@ -89,7 +89,7 @@ function AbuserTacticsPage() {
             }}
           >
             {busy ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
-            {busy ? "Analyzing…" : analysis ? "Refresh tactics" : "Identify tactics"}
+            {busy ? "Reading your records…" : analysis ? "Refresh" : "Group my entries"}
           </button>
           {createdAt && (
             <span className="text-[11px] md:text-right" style={{ color: "var(--muted-foreground)" }}>
@@ -103,7 +103,7 @@ function AbuserTacticsPage() {
 
       {notEnough && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--accent)" }}>
-          <p className="text-[14px]">Log at least two incidents to surface tactics. Patterns need a little ground to stand on.</p>
+          <p className="text-[14px]">Add at least two entries first. Repetition needs a little ground to stand on.</p>
           <Link to="/journal" className="btn-primary mt-3 inline-block">Log an incident</Link>
         </div>
       )}
@@ -111,8 +111,8 @@ function AbuserTacticsPage() {
       {!loading && analysis && tactics.length === 0 && (
         <div className="card-pp mt-6">
           <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            Your last analysis didn't surface specific tactics. Refresh after adding more detail to recent entries
-            (what was said, how it was said, what happened right before and after).
+            Nothing repeated clearly enough to group last time. Try again after adding more detail to recent
+            entries — what was said, how it was said, what happened right before and after.
           </p>
         </div>
       )}
@@ -120,7 +120,7 @@ function AbuserTacticsPage() {
       {!loading && !analysis && !notEnough && (
         <div className="card-pp mt-6">
           <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            When you're ready, run an analysis to see which tactics show up most in your records.
+            When you're ready, we'll group what you've written and show you what comes up most often.
           </p>
         </div>
       )}
@@ -137,14 +137,16 @@ function AbuserTacticsPage() {
                 <span
                   className="rounded-[2px] px-2.5 py-0.5 text-[11px] font-bold"
                   style={{ background: "var(--input)", color: "var(--foreground)" }}
-                  title="Approximate incidents where this shows up"
+                  title="Number of your entries that describe this"
                 >
-                  {t.examples_count}×
+                  {t.examples_count} {t.examples_count === 1 ? "entry" : "entries"}
                 </span>
               </div>
-              <p className="mt-3 text-[14px] leading-relaxed">{t.description}</p>
+              <p className="mt-3 text-[14px] leading-relaxed">
+                You've reported this on {t.examples_count} {t.examples_count === 1 ? "occasion" : "occasions"}. {t.description}
+              </p>
               <div className="mt-3 rounded-[2px] p-3 text-[13px]" style={{ background: "var(--input)" }}>
-                <div className="label-eyebrow">Why it matters</div>
+                <div className="label-eyebrow">Why it may be worth tracking</div>
                 <p className="mt-1 leading-relaxed">{t.why_it_matters}</p>
               </div>
               {t.example_dates && t.example_dates.length > 0 && (
@@ -160,9 +162,10 @@ function AbuserTacticsPage() {
       {tactics.length > 0 && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--accent)" }}>
           <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            This is pattern recognition, not a diagnosis of the other person. PatternProof
-            does not label individuals — it surfaces recurring behaviors that show up across
-            your own entries.
+            Everything on this page comes from entries you wrote yourself. PatternProof does not
+            investigate, verify, diagnose, or label anyone, and nothing here is a finding that any
+            behavior occurred or that it amounts to abuse under any legal or clinical standard.
+            Those determinations belong to a court or a licensed professional reviewing your records.
           </p>
         </div>
       )}
