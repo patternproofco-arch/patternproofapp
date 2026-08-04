@@ -365,7 +365,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
         ? supabaseAdmin.from("communications").select("*").eq("user_id", data.clientId).order("date")
         : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
       includePatterns
-        ? supabaseAdmin.from("pattern_analyses").select("analysis,created_at").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1)
+        ? supabaseAdmin.from("pattern_analyses").select("analysis,reviewed_status,created_at").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1)
         : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
       supabaseAdmin.from("cases").select("*").eq("user_id", data.clientId).order("updated_at", { ascending: false }).limit(1),
       supabaseAdmin.from("escalation_flags").select("*").eq("user_id", data.clientId).order("created_at"),
@@ -486,15 +486,11 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     // 02_pattern_summary.md
     const patternLines: string[] = [`# Pattern Summary`, ``];
     if (latestAnalysis) {
-      const a = (latestAnalysis as any).analysis as any;
+      const { buildPatternExport } = await import("@/lib/pattern-export");
+      const gated = buildPatternExport((latestAnalysis as any).analysis, (latestAnalysis as any).reviewed_status);
       patternLines.push(`_Generated: ${(latestAnalysis as any).created_at}_`, ``);
-      if (a?.pattern_summary) patternLines.push(`## Overview`, ``, a.pattern_summary, ``);
-      if (a?.escalation_arc) patternLines.push(`## Escalation arc`, ``, a.escalation_arc, ``);
-      if (Array.isArray(a?.behavior_categories)) {
-        patternLines.push(`## Behavior categories`, ``);
-        a.behavior_categories.forEach((c: any) => patternLines.push(`- **${c.name ?? c.category ?? "—"}** — ${c.count ?? c.frequency ?? ""} ${c.description ?? ""}`.trim()));
-        patternLines.push(``);
-      }
+      if (gated.lines.length) patternLines.push(...gated.lines);
+      else patternLines.push(`_No AI-suggested pattern content has been confirmed by the survivor for inclusion._`, ``);
     } else {
       patternLines.push(`_No pattern analysis on file._`);
     }

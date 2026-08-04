@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import JSZip from "jszip";
 import { createHash } from "crypto";
 import { z } from "zod";
+import { buildPatternExport } from "@/lib/pattern-export";
 
 function toCsv(rows: Array<Record<string, unknown>>): string {
   if (rows.length === 0) return "";
@@ -95,7 +96,7 @@ export const generateExportZip = createServerFn({ method: "POST" })
       supabase.from("communications").select("*").eq("user_id", userId).order("date", { ascending: true }),
       supabase.from("voice_notes").select("*").eq("user_id", userId).order("date", { ascending: true }),
       ldQ,
-      supabase.from("pattern_analyses").select("analysis,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1),
+      supabase.from("pattern_analyses").select("analysis,reviewed_status,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1),
       // Case metadata: use the scoped case if provided, else the most-recently-updated one (legacy).
       requestedCaseId
         ? Promise.resolve({ data: scopedCase ? [scopedCase] : [] as Record<string, unknown>[] })
@@ -157,9 +158,15 @@ export const generateExportZip = createServerFn({ method: "POST" })
     zip.file("voice_notes.csv", toCsv(voiceNotes as Array<Record<string, unknown>>));
     zip.file("legal_documents.csv", toCsv(legalDocs as Array<Record<string, unknown>>));
 
-    // Pattern analysis JSON
-    if (latestAnalysis) {
-      zip.file("pattern_analysis.json", JSON.stringify({ generated: latestAnalysis.created_at, analysis: latestAnalysis.analysis }, null, 2));
+    // Pattern analysis JSON — survivor-review gated (rejected claims stripped).
+    const gatedPattern = latestAnalysis
+      ? buildPatternExport(latestAnalysis.analysis, (latestAnalysis as { reviewed_status?: unknown }).reviewed_status)
+      : null;
+    if (latestAnalysis && gatedPattern) {
+      zip.file(
+        "pattern_analysis.json",
+        JSON.stringify({ generated: latestAnalysis.created_at, analysis: gatedPattern.redactedAnalysis }, null, 2),
+      );
     }
 
     // Case overview JSON
@@ -175,9 +182,9 @@ export const generateExportZip = createServerFn({ method: "POST" })
       `Records included: ${incidents.length} incidents, ${evidence.length} evidence files, ${comms.length} communications, ${voiceNotes.length} voice notes, ${legalDocs.length} legal documents.`,
       "",
     ];
-    if (latestAnalysis) {
-      const a = latestAnalysis.analysis as unknown as { pattern_summary?: string; escalation_arc?: string };
-      lines.push("## Pattern summary", "", a?.pattern_summary ?? "", "", "## Escalation arc", "", a?.escalation_arc ?? "", "");
+    if (gatedPattern) {
+      if (gatedPattern.lines.length) lines.push("# Pattern analysis", "", ...gatedPattern.lines);
+      else lines.push("# Pattern analysis", "", "_No AI-suggested pattern content has been confirmed by the survivor for inclusion._", "");
     }
     lines.push("## Chronology", "");
     type ChronEntry = { date: string; kind: string; text: string };
