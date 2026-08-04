@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Copy } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Check } from "lucide-react";
 import { BrandLockup } from "@/components/brand/BrandLockup";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/request-org-access")({
   head: () => ({
@@ -21,21 +22,27 @@ export const Route = createFileRoute("/request-org-access")({
 function RequestOrgAccess() {
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ org: "", name: "", email: "", role: "", survivors: "", note: "" });
-  const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const referralSlug = useMemo(() => slugify(form.org), [form.org]);
-  const referralUrl = referralSlug
-    ? `https://pattern-proof.tech/login?ref=${referralSlug}`
-    : "";
-
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Stub: open user's mail client with prefilled request, including the
-    // referral slug we'll wire up for their survivors.
-    const body = encodeURIComponent(
-      `Organization: ${form.org}\nContact: ${form.name}\nEmail: ${form.email}\nRole: ${form.role}\nSurvivors served / mo: ${form.survivors}\nProposed referral link: ${referralUrl}\n\n${form.note}`
-    );
-    window.location.href = `mailto:hello@pattern-proof.tech?subject=${encodeURIComponent("DV org access request")}&body=${body}`;
+    setSending(true);
+    setError(null);
+    const { error: insertError } = await supabase.from("org_access_requests").insert({
+      org_name: form.org,
+      contact_name: form.name,
+      email: form.email,
+      contact_role: form.role || null,
+      survivors_per_month: form.survivors || null,
+      message: form.note || null,
+      status: "pending",
+    });
+    setSending(false);
+    if (insertError) {
+      setError("We couldn't send that request. Try again in a moment.");
+      return;
+    }
     setSubmitted(true);
   };
 
@@ -63,39 +70,17 @@ function RequestOrgAccess() {
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: 20, background: "rgba(127,161,137,0.20)", borderRadius: 2 }}>
                 <Check size={20} style={{ color: "var(--teal-dark)", marginTop: 2 }} />
                 <div>
-                  <div style={{ fontWeight: 700, marginBottom: 4 }}>Request opened in your email.</div>
+                  <div style={{ fontWeight: 700, marginBottom: 4 }}>Request received.</div>
                   <div style={{ fontSize: 14, color: "var(--muted-foreground)" }}>
-                    Send the message and we will reply within a few days.
+                    We'll review it and reply within a few days. Once your organization is approved
+                    we'll set up your referral link and a partner login.
                   </div>
                 </div>
               </div>
-              {referralUrl && (
-                <div style={{ padding: 20, borderRadius: 2, border: "1px solid var(--border)", background: "#FFFFFF" }}>
-                  <div style={{ fontSize: 12, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700, marginBottom: 8 }}>
-                    Your proposed referral link
-                  </div>
-                  <p style={{ fontSize: 13, color: "var(--muted-foreground)", marginBottom: 10 }}>
-                    Once we approve your organization, survivors who sign up through this link stay free forever and we can attribute their outcomes back to your advocacy.
-                  </p>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <code style={{ flex: 1, padding: "10px 12px", background: "#F5F5F0", borderRadius: 2, fontSize: 13, overflowWrap: "anywhere" }}>
-                      {referralUrl}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard?.writeText(referralUrl).then(() => {
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 1500);
-                        });
-                      }}
-                      style={{ padding: "10px 14px", borderRadius: 2, border: "1px solid var(--border)", background: "#FFFFFF", cursor: "pointer", fontSize: 13, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 6 }}
-                    >
-                      <Copy size={14} /> {copied ? "Copied" : "Copy"}
-                    </button>
-                  </div>
-                </div>
-              )}
+              <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
+                Partner organizations see referral counts only — never survivor names, records, or
+                anything a survivor has documented.
+              </p>
             </div>
           ) : (
             <form onSubmit={onSubmit} style={{ display: "grid", gap: 14 }}>
@@ -113,11 +98,17 @@ function RequestOrgAccess() {
                   style={{ width: "100%", padding: 12, borderRadius: 2, border: "1px solid var(--border)", fontSize: 14, fontFamily: "inherit" }}
                 />
               </div>
+              {error && (
+                <div style={{ fontSize: 13, color: "var(--foreground)", background: "rgba(231,123,86,0.16)", padding: "10px 12px", borderRadius: 2 }}>
+                  {error}
+                </div>
+              )}
               <button
                 type="submit"
+                disabled={sending}
                 style={{ marginTop: 8, padding: "14px 24px", borderRadius: 2, background: "#7FA189", color: "#14131F", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
               >
-                Request org access
+                {sending ? "Sending…" : "Request org access"}
               </button>
             </form>
           )}
@@ -131,15 +122,6 @@ function RequestOrgAccess() {
       </div>
     </div>
   );
-}
-
-function slugify(v: string): string {
-  return v
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
 }
 
 function Input({
