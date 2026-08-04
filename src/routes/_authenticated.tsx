@@ -6,6 +6,7 @@ import { ensureSurvivorRole } from "@/lib/roles.functions";
 import { AppShell } from "@/components/AppShell";
 import { SettingsProvider, useSettings } from "@/lib/settings-context";
 import { PinLockProvider, usePinLock } from "@/lib/pin-lock";
+import { useIdleLock } from "@/hooks/use-idle-lock";
 import { PinScreen } from "@/components/PinScreen";
 import { RecordingProvider } from "@/lib/recording-context";
 
@@ -29,10 +30,18 @@ function Gate() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { settings, update } = useSettings();
-  const { hasPin, isLocked } = usePinLock();
+  const { hasPin, hasBiometric, isLocked, lock } = usePinLock();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const ensureRole = useServerFn(ensureSurvivorRole);
   const roleChecked = useRef(false);
+
+  // Auto-lock after inactivity — only meaningful once she's set up a PIN or
+  // biometric unlock, otherwise there's nothing to unlock with.
+  useIdleLock(
+    !loading && !!user && (hasPin || hasBiometric) && !isLocked,
+    settings.sessionTimeoutSec,
+    lock
+  );
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login", replace: true });
