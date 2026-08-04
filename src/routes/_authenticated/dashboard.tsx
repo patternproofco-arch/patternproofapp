@@ -33,8 +33,8 @@ function Dashboard() {
     if (!user) return;
     (async () => {
       const [inc, ev, vn] = await Promise.all([
-        supabase.from("incidents").select("id,date,description,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(8),
-        supabase.from("evidence").select("id,date,title,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(8),
+        supabase.from("incidents").select("id,date,description,created_at").eq("user_id", user.id).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("created_at", { ascending: false }).limit(8),
+        supabase.from("evidence").select("id,date,title,created_at").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }).limit(8),
         supabase.from("voice_notes").select("id,date,title,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(8),
       ]);
       const items: ActivityItem[] = [
