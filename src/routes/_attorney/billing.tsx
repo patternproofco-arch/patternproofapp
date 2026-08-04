@@ -109,7 +109,7 @@ function BillingPage() {
         <div className="att-eyebrow" style={{ marginBottom: 10 }}>Compare plans</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 14 }}>
           {TIERS.map((t) => {
-            const isCurrent = sub.isActive && currentTier === t.key;
+            const isCurrent = sub.isActive && sub.priceId === t.priceId;
             return (
               <div
                 key={t.key}
