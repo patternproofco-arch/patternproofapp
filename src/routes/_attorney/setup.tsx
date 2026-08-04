@@ -99,8 +99,9 @@ function OnboardingPage() {
         Set up your attorney profile.
       </h1>
       <p style={{ color: "var(--att-text-2)", fontSize: 15, marginBottom: 24 }}>
-        A few details before we open your client case files. Everything here stays on your
-        attorney profile — survivors only see your name and firm.
+        We've carried over what you already entered — confirm your role and the
+        confidentiality acknowledgement to open your client case files. Everything here stays
+        on your attorney profile; survivors only see your name and firm.
       </p>
 
       <form onSubmit={onSubmit} className="att-card" style={{ display: "grid", gap: 18 }}>
