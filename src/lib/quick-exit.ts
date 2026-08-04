@@ -48,9 +48,12 @@ export function quickExit(exitUrl?: string) {
   }
 
   // 2. Clear transient PatternProof session state (PIN unlock, drafts, etc).
+  //    Keys use both `pp.` and `pp_` prefixes (e.g. `pp_session_unlocked_v1`),
+  //    so match on the bare `pp` prefix — missing the unlock flag would leave
+  //    the app unlocked for whoever picks up the device next.
   try {
     Object.keys(window.sessionStorage).forEach((k) => {
-      if (k.startsWith("pp.")) window.sessionStorage.removeItem(k);
+      if (k.startsWith("pp.") || k.startsWith("pp_")) window.sessionStorage.removeItem(k);
     });
   } catch {
     /* ignore */
