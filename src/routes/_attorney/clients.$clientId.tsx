@@ -1142,26 +1142,26 @@ function Patterns({ data, clientId }: { data: CaseData; clientId: string }) {
 function ChecklistTab({ data }: { data: CaseData }) {
   const tactics = data.abuser_tactics ?? [];
   if (!data.pattern_analysis_present) {
-    return <PatternAnalysisEmpty area="abuser tactics" />;
+    return <PatternAnalysisEmpty area="reported behaviors" />;
   }
   if (tactics.length === 0) {
     return (
       <div className="att-card">
-        <SectionTitle>Abuser tactics</SectionTitle>
+        <SectionTitle>Behaviors reported by the client</SectionTitle>
         <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
-          The pattern analysis for this client did not surface any recurring tactics with clear evidence in the records.
+          This client's records did not contain any behavior reported more than once.
         </p>
       </div>
     );
   }
   return (
     <div className="att-card">
-      <SectionTitle>Abuser tactics</SectionTitle>
+      <SectionTitle>Behaviors reported by the client</SectionTitle>
       <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 6 }}>
-        {tactics.length} recurring tactic{tactics.length === 1 ? "" : "s"} identified from the survivor's confirmed incidents.
+        {tactics.length} behavior{tactics.length === 1 ? "" : "s"} the client reported on more than one occasion, grouped from their confirmed incidents.
       </p>
       <p style={{ fontSize: 11, color: "var(--att-text-2)", marginBottom: 14, fontStyle: "italic" }}>
-        Generated from the survivor-reviewed pattern analysis. Each item is drawn from cited incidents — not a clinical or forensic assessment.
+        Generated from the client's own entries and reviewed by them. These are the client's reports, not findings that the described behavior occurred, and not a clinical, forensic, or legal assessment.
       </p>
       <ul style={{ display: "grid", gap: 14, listStyle: "none", padding: 0, margin: 0 }}>
         {tactics.map((t, i) => (

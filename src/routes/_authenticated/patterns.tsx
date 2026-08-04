@@ -11,12 +11,6 @@ import { SafetyResourcesLink } from "@/components/SafetyResourcesLink";
 import { FrequencyObservations } from "@/components/FrequencyObservations";
 import { HubTabs, RECURLINE_TABS } from "@/components/HubTabs";
 
-function confidenceColor(level?: string) {
-  if (level === "Strong") return { bg: "#DCEFD9", fg: "#1F5132", border: "#7FB97A" };
-  if (level === "Moderate") return { bg: "#DCE7F2", fg: "#1F3A5C", border: "#7FA3CC" };
-  return { bg: "#F5E2BE", fg: "#5C4318", border: "#C99B45" };
-}
-
 export const Route = createFileRoute("/_authenticated/patterns")({
   component: PatternsPage,
 });
@@ -169,14 +163,14 @@ function PatternsPage() {
       {analysis && (
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
           {/* 1. Report header bar */}
-          {(analysis.main_pattern_label || analysis.confidence_level) && (() => {
-            const c = confidenceColor(analysis.confidence_level);
+          {(analysis.main_pattern_label || typeof analysis.corroborating_incident_count === "number") && (() => {
+            const count = analysis.corroborating_incident_count;
             const rejected = reviewed["main_pattern"]?.status === "rejected";
             return (
               <div className="card-pp lg:col-span-2" style={rejected ? { opacity: 0.5 } : undefined}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="label-eyebrow">Primary pattern detected</div>
+                  <div className="label-eyebrow">Most repeated in your record</div>
                   <h2 className="mt-1 font-serif text-[26px] leading-tight">{analysis.main_pattern_label}</h2>
                   {analysis.secondary_patterns && analysis.secondary_patterns.length > 0 && (
                     <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
@@ -184,9 +178,13 @@ function PatternsPage() {
                     </p>
                   )}
                 </div>
-                {analysis.confidence_level && (
-                  <span className="inline-flex items-center rounded-[2px] px-4 py-2 text-[12px] font-bold uppercase tracking-wide" style={{ background: c.bg, color: c.fg, border: `1px solid ${c.border}` }}>
-                    {analysis.confidence_level} confidence
+                {typeof count === "number" && (
+                  <span
+                    className="inline-flex items-center rounded-[2px] px-4 py-2 text-[12px] font-bold"
+                    style={{ background: "var(--input)", color: "var(--foreground)", border: "1px solid var(--border)" }}
+                    title="A count of your entries describing this — not a rating"
+                  >
+                    Corroborating incidents: {count}
                   </span>
                 )}
                 </div>
@@ -236,12 +234,12 @@ function PatternsPage() {
             </div>
           )}
 
-          {/* 3b. Abuser tactics detected */}
+          {/* 3b. Recurring behaviours the survivor reported */}
           {analysis.abuser_tactics && analysis.abuser_tactics.length > 0 && (
             <div className="card-pp lg:col-span-2">
-              <div className="label-eyebrow">Tactics detected in the record</div>
+              <div className="label-eyebrow">Behaviors you've reported more than once</div>
               <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                Recurring behaviors drawn from your confirmed Marks. Review each — you can confirm, edit, or reject.
+                Grouped from your own confirmed Marks — your reports, not a finding about anyone. Review each: confirm, edit, or reject.
               </p>
               <ul className="mt-4 space-y-4">
                 {analysis.abuser_tactics.map((t, i) => {

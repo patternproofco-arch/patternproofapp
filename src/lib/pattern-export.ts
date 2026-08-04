@@ -54,7 +54,10 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
       const label = textOf("main_pattern", String(a.main_pattern_label));
       lines.push(`## Primary pattern (confirmed by the survivor)`, ``, label, ``);
       redacted.main_pattern_label = label;
-      if (a.confidence_level) redacted.confidence_level = a.confidence_level;
+      if (typeof a.corroborating_incident_count === "number") {
+        redacted.corroborating_incident_count = a.corroborating_incident_count;
+        lines.push(`Corroborating incidents in the record: ${a.corroborating_incident_count}`, ``);
+      }
       if (Array.isArray(a.secondary_patterns) && a.secondary_patterns.length) {
         redacted.secondary_patterns = a.secondary_patterns;
       }
@@ -102,7 +105,7 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
       kept.push({ ...t, description: textOf(`tactic:${i}`, String(t.description ?? "")) });
     });
     if (kept.length) {
-      lines.push(`## Recurring behaviours the survivor confirmed`, ``);
+      lines.push(`## Recurring behaviours the survivor reported and confirmed`, ``, `_Reported by the survivor and confirmed by them on review. Not a finding that these behaviours occurred._`, ``);
       kept.forEach((t) => lines.push(`- **${t.tactic ?? "—"}** — ${t.description ?? ""}`.trim()));
       lines.push(``);
       redacted.abuser_tactics = kept;
