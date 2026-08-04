@@ -12,11 +12,34 @@ export const Route = createFileRoute("/_attorney/billing")({
   component: BillingPage,
 });
 
-type TierKey = "solo" | "firm" | "enterprise";
-const TIERS: Array<{ key: TierKey; name: string; price: string; per: string; bullets: string[]; recommended?: boolean }> = [
-  { key: "solo", name: "Solo", price: "$297", per: "/mo", bullets: ["5 active client files", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"] },
-  { key: "firm", name: "Firm", price: "$897", per: "/mo", recommended: true, bullets: ["Up to 3 attorneys", "Unlimited client files", "Priority intake support", "Shared deposition prep"] },
-  { key: "enterprise", name: "Enterprise", price: "$1,497", per: "/mo", bullets: ["Unlimited attorneys", "White-label survivor portal", "SSO + dedicated audits", "Direct line to our team"] },
+type TierKey = "solo" | "firm_charter" | "firm";
+const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: string; per: string; priceId: string; bullets: string[]; recommended?: boolean }> = [
+  {
+    key: "solo",
+    name: "Solo",
+    price: "$297",
+    per: "/mo",
+    priceId: "attorney_solo_monthly",
+    bullets: ["1 attorney seat", "Up to 10 active client matters", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"],
+  },
+  {
+    key: "firm_charter",
+    name: "Firm Charter",
+    price: "$597",
+    priceStrike: "$897",
+    per: "/mo · locked 12 months",
+    priceId: "attorney_firm_charter_monthly",
+    recommended: true,
+    bullets: ["Up to 15 attorney seats", "Unlimited active client matters", "Multi-attorney collaboration and shared case notes", "Firm-wide conflict-of-interest detection", "Charter rate locked 12 months, then $897/mo"],
+  },
+  {
+    key: "firm",
+    name: "Firm",
+    price: "$897",
+    per: "/mo",
+    priceId: "attorney_firm_monthly",
+    bullets: ["Up to 15 attorney seats", "Unlimited active client matters", "Multi-attorney collaboration and shared case notes", "Firm-wide conflict-of-interest detection", "Priority client onboarding support"],
+  },
 ];
 
 function BillingPage() {
