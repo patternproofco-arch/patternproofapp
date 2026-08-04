@@ -131,6 +131,11 @@ function BillingPage() {
                 )}
                 <div className="att-eyebrow">{t.name}</div>
                 <div className="att-mono" style={{ fontSize: 26, marginTop: 4 }}>
+                  {t.priceStrike && (
+                    <span style={{ fontSize: 16, color: "var(--att-text-2)", textDecoration: "line-through", marginRight: 6 }}>
+                      {t.priceStrike}
+                    </span>
+                  )}
                   {t.price}<span style={{ fontSize: 13, color: "var(--att-text-2)" }}>{t.per}</span>
                 </div>
                 <ul style={{ listStyle: "none", padding: 0, marginTop: 14, display: "grid", gap: 8, fontSize: 13 }}>
