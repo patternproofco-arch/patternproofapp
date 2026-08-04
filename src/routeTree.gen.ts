@@ -95,7 +95,7 @@ import { Route as AdvocateAdvocateCasesIndexRouteImport } from './routes/_advoca
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integrations.clio.deauthorize'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
-import { Route as ApiPublicTmpPricecheckRouteImport } from './routes/api/public/_tmp-pricecheck'
+import { Route as ApiPublicTmppricecheckRouteImport } from './routes/api/public/tmppricecheck'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as AdvocateAdvocateCasesClientIdRouteImport } from './routes/_advocate/advocate-cases.$clientId'
@@ -555,9 +555,9 @@ const IntegrationsClioCallbackRoute =
     path: '/integrations/clio/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicTmpPricecheckRoute = ApiPublicTmpPricecheckRouteImport.update({
-  id: '/api/public/_tmp-pricecheck',
-  path: '/api/public',
+const ApiPublicTmppricecheckRoute = ApiPublicTmppricecheckRouteImport.update({
+  id: '/api/public/tmppricecheck',
+  path: '/api/public/tmppricecheck',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAgentThreadIdRoute =
@@ -696,7 +696,7 @@ export interface FileRoutesByFullPath {
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
-  '/api/public': typeof ApiPublicTmpPricecheckRoute
+  '/api/public/tmppricecheck': typeof ApiPublicTmppricecheckRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -789,7 +789,7 @@ export interface FileRoutesByTo {
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
-  '/api/public': typeof ApiPublicTmpPricecheckRoute
+  '/api/public/tmppricecheck': typeof ApiPublicTmppricecheckRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -888,7 +888,7 @@ export interface FileRoutesById {
   '/_advocate/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
-  '/api/public/_tmp-pricecheck': typeof ApiPublicTmpPricecheckRoute
+  '/api/public/tmppricecheck': typeof ApiPublicTmppricecheckRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -985,7 +985,7 @@ export interface FileRouteTypes {
     | '/advocate-cases/$clientId'
     | '/clients/$clientId'
     | '/agent/$threadId'
-    | '/api/public'
+    | '/api/public/tmppricecheck'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/suppression'
@@ -1078,7 +1078,7 @@ export interface FileRouteTypes {
     | '/advocate-cases/$clientId'
     | '/clients/$clientId'
     | '/agent/$threadId'
-    | '/api/public'
+    | '/api/public/tmppricecheck'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/suppression'
@@ -1176,7 +1176,7 @@ export interface FileRouteTypes {
     | '/_advocate/advocate-cases/$clientId'
     | '/_attorney/clients/$clientId'
     | '/_authenticated/agent/$threadId'
-    | '/api/public/_tmp-pricecheck'
+    | '/api/public/tmppricecheck'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/suppression'
@@ -1231,7 +1231,7 @@ export interface RootRouteChildren {
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
-  ApiPublicTmpPricecheckRoute: typeof ApiPublicTmpPricecheckRoute
+  ApiPublicTmppricecheckRoute: typeof ApiPublicTmppricecheckRoute
   IntegrationsClioCallbackRoute: typeof IntegrationsClioCallbackRoute
   IntegrationsClioDeauthorizeRoute: typeof IntegrationsClioDeauthorizeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
@@ -1845,11 +1845,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationsClioCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/_tmp-pricecheck': {
-      id: '/api/public/_tmp-pricecheck'
-      path: '/api/public'
-      fullPath: '/api/public'
-      preLoaderRoute: typeof ApiPublicTmpPricecheckRouteImport
+    '/api/public/tmppricecheck': {
+      id: '/api/public/tmppricecheck'
+      path: '/api/public/tmppricecheck'
+      fullPath: '/api/public/tmppricecheck'
+      preLoaderRoute: typeof ApiPublicTmppricecheckRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/agent/$threadId': {
@@ -2104,7 +2104,7 @@ const rootRouteChildren: RootRouteChildren = {
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
-  ApiPublicTmpPricecheckRoute: ApiPublicTmpPricecheckRoute,
+  ApiPublicTmppricecheckRoute: ApiPublicTmppricecheckRoute,
   IntegrationsClioCallbackRoute: IntegrationsClioCallbackRoute,
   IntegrationsClioDeauthorizeRoute: IntegrationsClioDeauthorizeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
