@@ -73,8 +73,8 @@ function LawyerSignup() {
           email: user.email ?? email,
         },
       });
-      toast("Welcome to the litigation portal.");
-      navigate({ to: "/clients" });
+      toast("Saved. One last step to open the portal.");
+      navigate({ to: "/setup" });
     } catch (err) {
       toast(err instanceof Error ? err.message : "Couldn't save profile.");
     } finally {
