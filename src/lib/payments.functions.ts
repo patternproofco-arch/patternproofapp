@@ -244,6 +244,7 @@ export const recordOrgReferral = createServerFn({ method: "POST" })
       .from("referral_links")
       .select("code, org_name")
       .eq("code", data.code)
+      .eq("is_active", true)
       .maybeSingle();
     if (!link) return { ok: true };
     await supabaseAdmin.from("user_referrals").insert({

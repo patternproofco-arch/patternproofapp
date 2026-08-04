@@ -2041,6 +2041,51 @@ export type Database = {
         }
         Relationships: []
       }
+      org_access_requests: {
+        Row: {
+          contact_name: string
+          contact_role: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          org_name: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          survivors_per_month: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_name: string
+          contact_role?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          org_name: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          survivors_per_month?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_name?: string
+          contact_role?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          org_name?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          survivors_per_month?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pattern_analyses: {
         Row: {
           analysis: Json
@@ -2128,25 +2173,45 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          deactivated_at: string | null
           id: string
+          is_active: boolean
           notes: string | null
           org_name: string
+          org_user_id: string | null
+          request_id: string | null
         }
         Insert: {
           code: string
           created_at?: string
+          deactivated_at?: string | null
           id?: string
+          is_active?: boolean
           notes?: string | null
           org_name: string
+          org_user_id?: string | null
+          request_id?: string | null
         }
         Update: {
           code?: string
           created_at?: string
+          deactivated_at?: string | null
           id?: string
+          is_active?: boolean
           notes?: string | null
           org_name?: string
+          org_user_id?: string | null
+          request_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "referral_links_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "org_access_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
