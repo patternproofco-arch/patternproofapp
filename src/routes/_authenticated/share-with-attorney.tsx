@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback } from "react";
 import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check, MessageSquare, Send, X, Clock } from "lucide-react";
@@ -19,7 +19,6 @@ export const Route = createFileRoute("/_authenticated/share-with-attorney")({
 type Listing = Awaited<ReturnType<typeof listMyInvitations>>;
 
 function ShareWithAttorney() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { confirm, dialog } = useConfirm();
   const list = useServerFn(listMyInvitations);
