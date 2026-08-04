@@ -78,7 +78,12 @@ function BillingPage() {
             </div>
             <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4 }}>
               {sub.isActive
-                ? `PatternProof ${currentTier === "firm" ? "Firm" : currentTier === "enterprise" ? "Enterprise" : currentTier === "solo" ? "Solo" : "Plan"}`
+                ? `PatternProof ${
+                    sub.priceId === "attorney_firm_charter_monthly" ? "Firm Charter"
+                    : sub.priceId === "attorney_firm_monthly" ? "Firm"
+                    : sub.priceId === "attorney_solo_monthly" || sub.priceId === "attorney_portal_monthly_297" ? "Solo"
+                    : "Plan"
+                  }`
                 : "Pick a plan to unlock case files"}
             </div>
             {sub.isActive && (
