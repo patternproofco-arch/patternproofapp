@@ -47,7 +47,8 @@ const BASE_TIERS: Tier[] = [
       "Photo, document & audio evidence upload",
       "Structured chronological timeline",
       "Pattern detection",
-      "Printable case summary (HTML/PDF)",
+      "Court packet export — printable case summary (HTML/PDF), free",
+      "Attorney sharing — send a secure link to your attorney, free",
       "Encrypted in transit and at rest",
     ],
     cta: "Start Documenting Free",
@@ -145,7 +146,7 @@ function buildTiers(remainingCharter: number | null): Tier[] {
 const FAQS = [
   {
     q: "Is it really free for survivors?",
-    a: "Yes. Always. No credit card, no trial, no catch. Survivors never pay.",
+    a: "Yes. Always. No credit card, no trial, no catch. Survivors never pay — and that includes the court packet export and sharing your case with an attorney. Professional Review is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.",
   },
   {
     q: "What's the Charter Firm program?",
