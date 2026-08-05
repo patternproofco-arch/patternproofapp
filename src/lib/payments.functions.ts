@@ -509,9 +509,8 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
 
     // 02_pattern_summary.md
     const patternLines: string[] = [`# Pattern Summary`, ``];
-    if (latestAnalysis) {
-      const { buildPatternExport } = await import("@/lib/pattern-export");
-      const gated = buildPatternExport((latestAnalysis as any).analysis, (latestAnalysis as any).reviewed_status);
+    if (latestAnalysis && gatedAnalysis) {
+      const gated = gatedAnalysis;
       patternLines.push(`_Generated: ${(latestAnalysis as any).created_at}_`, ``);
       if (gated.lines.length) patternLines.push(...gated.lines);
       else patternLines.push(`_No AI-suggested pattern content has been confirmed by the survivor for inclusion._`, ``);
