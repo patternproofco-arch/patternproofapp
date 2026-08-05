@@ -20,11 +20,10 @@ const INTERESTS: { value: Interest; label: string }[] = [
 ];
 
 export const Route = createFileRoute("/waitlist")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    as: (["survivor", "attorney", "organization", "other"] as const).includes(search.as as Interest)
-      ? (search.as as Interest)
-      : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { as?: Interest } =>
+    (["survivor", "attorney", "organization", "other"] as const).includes(search.as as Interest)
+      ? { as: search.as as Interest }
+      : {},
   head: () => ({
     meta: [
       { title: "Get updates from PatternProof" },
