@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 interface SharedBundle {
@@ -19,47 +18,42 @@ interface SharedBundle {
   escalation_flags?: Array<{ id: string; flag_type: string; severity_tier: number; details: string | null; created_at: string }>;
 }
 
-/** One-way hash so raw tokens / IPs are never stored in the access log. */
-async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function callerIp(): string | null {
-  const h = getRequest()?.headers;
-  if (!h) return null;
-  const fwd = h.get("cf-connecting-ip") || h.get("x-forwarded-for") || h.get("x-real-ip");
-  if (!fwd) return null;
-  return fwd.split(",")[0]?.trim() || null;
-}
-
-/** Attempts allowed per token, and globally per IP, within the rolling window. */
-const TOKEN_LIMIT_PER_HOUR = 10;
-const IP_LIMIT_PER_HOUR = 30;
-const WINDOW_MS = 60 * 60 * 1000;
-
 export const fetchSharedBundle = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ token: z.string().min(8).max(100) }).parse(input))
   .handler(async ({ data }): Promise<SharedBundle> => {
+    const { getRequest } = await import("@tanstack/react-start/server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const tokenHash = await sha256(data.token);
-    const ip = callerIp();
-    const ipHash = ip ? await sha256(ip) : null;
-    const userAgent = getRequest()?.headers?.get("user-agent")?.slice(0, 300) ?? null;
-    const since = new Date(Date.now() - WINDOW_MS).toISOString();
+    const hash = async (value: string) => {
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+      return Array.from(new Uint8Array(digest))
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("");
+    };
 
-    const log = async (outcome: SharedBundle["status"]) => {
-      try {
-        await supabaseAdmin.from("share_link_access_log").insert({
-          token_hash: tokenHash,
-          ip_hash: ipHash,
-          outcome,
-          user_agent: userAgent,
-        });
-      } catch {
-        // Never let logging break a legitimate access.
+    const request = getRequest();
+    const forwardedIp =
+      request?.headers.get("cf-connecting-ip") ||
+      request?.headers.get("x-forwarded-for") ||
+      request?.headers.get("x-real-ip");
+    const ip = forwardedIp?.split(",")[0]?.trim() || null;
+    const tokenHash = await hash(data.token);
+    const ipHash = ip ? await hash(ip) : null;
+    const userAgent = request?.headers.get("user-agent")?.slice(0, 300) ?? null;
+    const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+    const log = async (outcome: SharedBundle["status"]): Promise<boolean> => {
+      const { error } = await supabaseAdmin.from("share_link_access_log").insert({
+        token_hash: tokenHash,
+        ip_hash: ipHash,
+        outcome,
+        user_agent: userAgent,
+      });
+      if (error) {
+        console.error("Unable to record share-link access attempt", error.message);
+        return false;
       }
+      return true;
     };
 
     // Rolling-window throttle: per token, and globally per IP to slow token guessing.
@@ -78,7 +72,12 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
         : Promise.resolve({ count: 0 }),
     ]);
 
-    if ((tokenAttempts.count ?? 0) >= TOKEN_LIMIT_PER_HOUR || (ipAttempts.count ?? 0) >= IP_LIMIT_PER_HOUR) {
+    if (tokenAttempts.error || ("error" in ipAttempts && ipAttempts.error)) {
+      await log("rate-limited");
+      return { status: "rate-limited" };
+    }
+
+    if ((tokenAttempts.count ?? 0) >= 10 || (ipAttempts.count ?? 0) >= 30) {
       await log("rate-limited");
       return { status: "rate-limited" };
     }
@@ -92,7 +91,7 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
     if (!access) { await log("not-found"); return { status: "not-found" }; }
     if (access.revoked_at) { await log("revoked"); return { status: "revoked" }; }
     if (access.expires_at && new Date(access.expires_at) < new Date()) { await log("expired"); return { status: "expired" }; }
-    await log("ok");
+    if (!(await log("ok"))) return { status: "rate-limited" };
 
     await supabaseAdmin
       .from("attorney_access")
