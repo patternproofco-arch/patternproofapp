@@ -179,12 +179,16 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
         // caller cannot inject arbitrary text into a branded email.
         if (!template.to) {
           if (templateName === 'attorney-invitation') {
+            // Invitations store attorney_email lowercased; normalize before matching
+            // so a legitimate caller typing mixed case is not rejected.
+            const normalizedRecipient = (recipientEmail || '').trim().toLowerCase()
             const { data: invitation } = await supabase
               .from('attorney_invitations')
               .select('id, attorney_email, attorney_name, personal_note, invite_token, expires_at, status')
               .eq('client_user_id', user.id)
-              .eq('attorney_email', recipientEmail)
+              .eq('attorney_email', normalizedRecipient)
               .eq('status', 'pending')
+              .gt('expires_at', new Date().toISOString())
               .order('created_at', { ascending: false })
               .limit(1)
               .maybeSingle()
