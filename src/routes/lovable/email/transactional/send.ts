@@ -135,6 +135,92 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           )
         }
 
+        // 1a. Rate limit per authenticated user and per network address.
+        const ip = callerIp(request)
+        const ipHash = ip ? await sha256(ip) : null
+        const relaySince = new Date(Date.now() - RELAY_WINDOW_MS).toISOString()
+
+        const logAttempt = async (outcome: string) => {
+          try {
+            await supabase.from('email_relay_attempts').insert({
+              user_id: user.id,
+              ip_hash: ipHash,
+              template_name: templateName,
+              outcome,
+            })
+          } catch {
+            // Logging must never break a legitimate send.
+          }
+        }
+
+        const [userAttempts, ipAttempts] = await Promise.all([
+          supabase
+            .from('email_relay_attempts')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .gte('created_at', relaySince),
+          ipHash
+            ? supabase
+                .from('email_relay_attempts')
+                .select('id', { count: 'exact', head: true })
+                .eq('ip_hash', ipHash)
+                .gte('created_at', relaySince)
+            : Promise.resolve({ count: 0 }),
+        ])
+
+        if ((userAttempts.count ?? 0) >= USER_LIMIT_PER_HOUR || (ipAttempts.count ?? 0) >= IP_LIMIT_PER_HOUR) {
+          await logAttempt('rate_limited')
+          return Response.json({ error: 'Too many email requests. Try again later.' }, { status: 429 })
+        }
+
+        // 1b. Authorize the recipient. Templates with a fixed `to` are inherently
+        // safe; every other template must prove the caller is allowed to email
+        // this address, and its content is rebuilt from the owning record so a
+        // caller cannot inject arbitrary text into a branded email.
+        if (!template.to) {
+          if (templateName === 'attorney-invitation') {
+            const { data: invitation } = await supabase
+              .from('attorney_invitations')
+              .select('id, attorney_email, attorney_name, personal_note, invite_token, expires_at, status')
+              .eq('client_user_id', user.id)
+              .eq('attorney_email', recipientEmail)
+              .eq('status', 'pending')
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle()
+
+            if (!invitation) {
+              await logAttempt('recipient_not_authorized')
+              return Response.json(
+                { error: 'Recipient does not match a pending invitation you created.' },
+                { status: 403 }
+              )
+            }
+
+            const origin = new URL(request.url).origin
+            const expiresLabel = invitation.expires_at
+              ? `${Math.max(1, Math.round((new Date(invitation.expires_at).getTime() - Date.now()) / 86400000))} days`
+              : '30 days'
+
+            // Rebuild template data from the invitation record; ignore caller content.
+            templateData = {
+              attorneyName: invitation.attorney_name ?? undefined,
+              clientLabel: 'Your client',
+              personalNote: invitation.personal_note ?? undefined,
+              acceptUrl: `${origin}/accept-invite/${invitation.invite_token}`,
+              expiresLabel,
+            }
+          } else {
+            await logAttempt('template_not_allowed')
+            return Response.json(
+              { error: `Template '${templateName}' cannot be sent to a caller-chosen recipient.` },
+              { status: 403 }
+            )
+          }
+        }
+
+        await logAttempt('accepted')
+
         // 2. Check suppression list (fail-closed: if we can't verify, don't send)
         const { data: suppressed, error: suppressionError } = await supabase
           .from('suppressed_emails')
