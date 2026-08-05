@@ -8,9 +8,8 @@ import { MicroMark } from "@/components/brand/MicroMark";
 import { Briefcase, FileText, Users } from "lucide-react";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    ref: typeof search.ref === "string" ? search.ref : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { ref?: string } =>
+    typeof search.ref === "string" ? { ref: search.ref } : {},
   head: () => ({
     meta: [
       { title: "PatternProof — Turn scattered evidence into structured patterns" },
