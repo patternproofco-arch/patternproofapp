@@ -390,6 +390,26 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
       storage_path: null as string | null,
     }));
 
+    // Pattern analysis is survivor-review gated before it leaves the survivor's
+    // account: claims marked "rejected" (or still "unsure") are stripped out.
+    const { buildPatternExport } = await import("@/lib/pattern-export");
+    const rawPattern = patQ.data as
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      | { analysis: any; reviewed_status?: any; created_at?: string }
+      | null;
+    const gatedPattern = rawPattern
+      ? buildPatternExport(rawPattern.analysis, rawPattern.reviewed_status)
+      : null;
+    const patternForAdvocate =
+      rawPattern && gatedPattern && Object.keys(gatedPattern.redactedAnalysis).length > 0
+        ? {
+            created_at: rawPattern.created_at ?? null,
+            analysis: gatedPattern.redactedAnalysis,
+            excluded_rejected_claims: gatedPattern.rejectedCount,
+            withheld_unsure_claims: gatedPattern.unsureCount,
+          }
+        : null;
+
     let grant = { date_range_start: null as string | null, date_range_end: null as string | null, expires_at: null as string | null };
     if (link.invitation_id) {
       const { data: inv } = await supabaseAdmin
