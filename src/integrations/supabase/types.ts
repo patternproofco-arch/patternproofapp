@@ -1212,6 +1212,33 @@ export type Database = {
         }
         Relationships: []
       }
+      email_relay_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          ip_hash: string | null
+          outcome: string
+          template_name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          outcome: string
+          template_name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          outcome?: string
+          template_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
