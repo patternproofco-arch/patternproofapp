@@ -169,7 +169,8 @@ function PrivacyPage() {
           <ul>
             <li><strong>Lovable</strong> — application hosting and infrastructure</li>
             <li><strong>Supabase</strong> — database storage</li>
-            <li><strong>Anthropic / OpenAI</strong> — AI pattern analysis (transient processing only, data not retained)</li>
+            <li><strong>Google (Gemini), via the Lovable AI Gateway</strong> — AI pattern analysis and other AI features (transient processing only, data not retained)</li>
+            <li><strong>OpenAI, via the Lovable AI Gateway</strong> — audio transcription of voice notes and recordings only</li>
             <li><strong>Stripe</strong> — payment processing</li>
           </ul>
           <H3>Legal Requirements</H3>

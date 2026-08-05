@@ -197,7 +197,7 @@ export const getMySubscription = createServerFn({ method: "POST" })
   });
 
 /**
- * Charter Firm cohort — capped at 15 active seats. Publicly readable so the
+ * Charter Firm cohort — capped at 10 active seats. Publicly readable so the
  * marketing pricing page can show remaining spots without requiring auth.
  */
 export const getCharterAvailability = createServerFn({ method: "POST" })
@@ -676,7 +676,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       upsert: false,
     });
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
-    const signed = await supabaseAdmin.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 24);
+    const signed = await supabaseAdmin.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 1);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
     return {
       ok: true as const,
@@ -904,7 +904,7 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
       upsert: false,
     });
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
-    const signed = await supabaseAdmin.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 24);
+    const signed = await supabaseAdmin.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 1);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
     return {
       ok: true as const,

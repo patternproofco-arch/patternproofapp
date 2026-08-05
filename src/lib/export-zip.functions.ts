@@ -30,7 +30,7 @@ function sha256(buf: ArrayBuffer | Uint8Array): string {
  *   - voice-notes/  (audio files + transcripts)
  *
  * Uploaded to the private `exports` bucket under {userId}/{timestamp}.zip
- * and returned as a signed URL valid for 24 hours.
+ * and returned as a signed URL valid for 1 hour.
  */
 export const generateExportZip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -460,7 +460,7 @@ echo "Done."
     });
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
 
-    const signed = await supabase.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 24);
+    const signed = await supabase.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 1);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" };
 
     return {
