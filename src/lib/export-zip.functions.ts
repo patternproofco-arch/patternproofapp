@@ -30,7 +30,7 @@ function sha256(buf: ArrayBuffer | Uint8Array): string {
  *   - voice-notes/  (audio files + transcripts)
  *
  * Uploaded to the private `exports` bucket under {userId}/{timestamp}.zip
- * and returned as a signed URL valid for 24 hours.
+ * and returned as a signed URL valid for 1 hour.
  */
 export const generateExportZip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -217,7 +217,7 @@ function SettingsPage() {
         </button>
         {exportResult && (
           <div className="mt-4 rounded-[2px] p-3" style={{ background: "var(--input)" }}>
-            <p className="text-[13px]">Ready: {(exportResult.bytes / (1024 * 1024)).toFixed(1)} MB · link valid 24 hours.</p>
+            <p className="text-[13px]">Ready: {(exportResult.bytes / (1024 * 1024)).toFixed(1)} MB · link valid 1 hour.</p>
             <a href={exportResult.url} download={exportResult.filename} className="btn-primary mt-2 inline-block">Download {exportResult.filename}</a>
           </div>
         )}
