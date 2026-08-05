@@ -88,9 +88,11 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
       .eq("access_token", data.token)
       .maybeSingle();
 
-    if (!access) { await log("not-found"); return { status: "not-found" }; }
-    if (access.revoked_at) { await log("revoked"); return { status: "revoked" }; }
-    if (access.expires_at && new Date(access.expires_at) < new Date()) { await log("expired"); return { status: "expired" }; }
+    if (!access) return { status: (await log("not-found")) ? "not-found" : "rate-limited" };
+    if (access.revoked_at) return { status: (await log("revoked")) ? "revoked" : "rate-limited" };
+    if (access.expires_at && new Date(access.expires_at) < new Date()) {
+      return { status: (await log("expired")) ? "expired" : "rate-limited" };
+    }
     if (!(await log("ok"))) return { status: "rate-limited" };
 
     await supabaseAdmin
