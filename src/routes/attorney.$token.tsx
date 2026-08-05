@@ -36,6 +36,7 @@ function AttorneyView() {
   if (err) return <Frame><Message title="Link unavailable" body={err} /></Frame>;
   if (!bundle) return <Frame><Message title="Opening…" body="One moment." /></Frame>;
   if (bundle.status === "not-found") return <Frame><Message title="Link not found" body="This access link is invalid or has been deleted." /></Frame>;
+  if (bundle.status === "rate-limited") return <Frame><Message title="Too many attempts" body="This link has been opened too many times in the last hour. Please wait a while and try again." /></Frame>;
   if (bundle.status === "revoked") return <Frame><Message title="Access revoked" body="The person who shared this with you has revoked access." /></Frame>;
   if (bundle.status === "expired") return <Frame><Message title="Access expired" body="This link has reached its expiration date." /></Frame>;
 
