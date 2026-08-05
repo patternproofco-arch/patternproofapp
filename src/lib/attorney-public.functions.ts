@@ -50,7 +50,6 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
         user_agent: userAgent,
       });
       if (error) {
-        console.error("Unable to record share-link access attempt", error.message);
         return false;
       }
       return true;
