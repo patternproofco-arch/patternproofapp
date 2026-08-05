@@ -20,7 +20,8 @@ function CourtReadyPage() {
         <Check size={32} style={{ color: "var(--accent)", margin: "0 auto" }} />
         <h1 className="font-serif text-[28px]">You have Professional Review.</h1>
         <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-          Court packets, attorney exports, and full Recurline are unlocked for your account.
+          AI-enhanced pattern analysis, premium packet formatting, and priority processing are
+          active on your account. Your packet and attorney sharing were always free.
         </p>
         <Link to="/court-packet" className="btn-primary inline-block">Open court packet</Link>
       </div>
@@ -33,10 +34,12 @@ function CourtReadyPage() {
       <div className="mb-6 mt-4">
         <p className="label-eyebrow">Professional Review</p>
         <h1 className="font-serif text-[32px] leading-tight mt-1">
-          When you're ready to put it in front of someone.
+          An optional layer, if it helps.
         </h1>
         <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "var(--foreground)" }}>
-          The core app stays free, always. Professional Review adds what you need when you're going to court or working with an attorney: AI-built court packets, attorney exports, and the full pattern view.
+          You already have full access to your case, your court packet, and attorney sharing —
+          free, and always. Professional Review is an optional add-on for AI-enhanced pattern
+          analysis and premium formatting. Nothing here is required to take your case to court.
         </p>
       </div>
 
@@ -59,11 +62,16 @@ function CourtReadyPage() {
         </div>
 
         <ul className="space-y-2 text-[14px] mb-4">
-          <li className="flex gap-2"><FileDown size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Source-linked ZIP packet with provenance and integrity report</li>
-          <li className="flex gap-2"><Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Send your case file directly to an attorney</li>
-          <li className="flex gap-2"><Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Full Recurline + change over time</li>
+          <li className="flex gap-2"><Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> AI-enhanced pattern analysis, with the full view of change over time</li>
+          <li className="flex gap-2"><FileDown size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Premium packet formatting on top of the free export</li>
+          <li className="flex gap-2"><Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Priority processing for transcription and analysis</li>
           <li className="flex gap-2"><Heart size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Cancel any time. Keep access through the paid period.</li>
         </ul>
+
+        <p className="text-[13px] mb-4" style={{ color: "var(--muted-foreground)" }}>
+          Your court packet and attorney sharing stay free whether or not you do this.{" "}
+          <Link to="/court-packet" style={{ textDecoration: "underline" }}>Open your packet</Link>.
+        </p>
 
         {mode === "pwyc" && (
           <div className="mb-4">
