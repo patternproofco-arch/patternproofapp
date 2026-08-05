@@ -460,7 +460,7 @@ echo "Done."
     });
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
 
-    const signed = await supabase.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 24);
+    const signed = await supabase.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 1);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" };
 
     return {

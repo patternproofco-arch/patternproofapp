@@ -10,7 +10,7 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — PatternProof | Evidence Documentation for Survivors & Attorneys" },
-      { name: "description", content: "PatternProof pricing: free forever for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 15 firms." },
+      { name: "description", content: "PatternProof pricing: free forever for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms." },
       { property: "og:title", content: "Pricing — PatternProof" },
       { property: "og:description", content: "Free forever for survivors. Real multi-seat pricing for family-law firms. DV organizations partner with us at no cost." },
       { property: "og:url", content: "https://pattern-proof.tech/pricing" },
