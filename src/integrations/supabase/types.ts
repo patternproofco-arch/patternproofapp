@@ -2213,6 +2213,33 @@ export type Database = {
           },
         ]
       }
+      share_link_access_log: {
+        Row: {
+          created_at: string
+          id: string
+          ip_hash: string | null
+          outcome: string
+          token_hash: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          outcome: string
+          token_hash: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          outcome?: string
+          token_hash?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
