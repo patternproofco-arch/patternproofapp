@@ -410,7 +410,7 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
       case: caseQ.data ?? null,
       incidents: incQ.data ?? [],
       evidence,
-      pattern_analysis: patQ.data ?? null,
+      pattern_analysis: patternForAdvocate,
       consent: {
         granted_at: link.created_at,
         include_all_incidents: includeAllIncidents,
