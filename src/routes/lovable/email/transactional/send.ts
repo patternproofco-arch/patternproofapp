@@ -20,6 +20,26 @@ function redactEmail(email: string | null | undefined): string {
   return `${localPart[0]}***@${domain}`
 }
 
+/** One-way hash so raw network addresses are never stored. */
+async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value))
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+function callerIp(request: Request): string | null {
+  const h = request.headers
+  const fwd = h.get('cf-connecting-ip') || h.get('x-forwarded-for') || h.get('x-real-ip')
+  if (!fwd) return null
+  return fwd.split(',')[0]?.trim() || null
+}
+
+/** Rolling-window send caps for this relay. */
+const USER_LIMIT_PER_HOUR = 20
+const IP_LIMIT_PER_HOUR = 40
+const RELAY_WINDOW_MS = 60 * 60 * 1000
+
 // Generate a cryptographically random 32-byte hex token
 function generateToken(): string {
   const bytes = new Uint8Array(32)
