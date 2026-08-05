@@ -197,7 +197,7 @@ export const getMySubscription = createServerFn({ method: "POST" })
   });
 
 /**
- * Charter Firm cohort — capped at 15 active seats. Publicly readable so the
+ * Charter Firm cohort — capped at 10 active seats. Publicly readable so the
  * marketing pricing page can show remaining spots without requiring auth.
  */
 export const getCharterAvailability = createServerFn({ method: "POST" })
