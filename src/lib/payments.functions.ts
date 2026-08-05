@@ -426,7 +426,30 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     zip.file("evidence.csv", toCsv(evidence as Array<Record<string, unknown>>));
     zip.file("communications.csv", toCsv(comms as Array<Record<string, unknown>>));
     zip.file("escalation_flags.csv", toCsv(flags as Array<Record<string, unknown>>));
-    if (latestAnalysis) zip.file("pattern_analysis.json", JSON.stringify(latestAnalysis, null, 2));
+    // Pattern analysis JSON — survivor-review gated. Anything the survivor
+    // marked "rejected" (or left "unsure") is stripped before it can reach the
+    // packet; if nothing survives the gate the file is omitted entirely.
+    const { buildPatternExport } = await import("@/lib/pattern-export");
+    const gatedAnalysis = latestAnalysis
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? buildPatternExport((latestAnalysis as any).analysis, (latestAnalysis as any).reviewed_status)
+      : null;
+    if (latestAnalysis && gatedAnalysis && Object.keys(gatedAnalysis.redactedAnalysis).length > 0) {
+      zip.file(
+        "pattern_analysis.json",
+        JSON.stringify(
+          {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            generated: (latestAnalysis as any).created_at,
+            analysis: gatedAnalysis.redactedAnalysis,
+            excluded_rejected_claims: gatedAnalysis.rejectedCount,
+            withheld_unsure_claims: gatedAnalysis.unsureCount,
+          },
+          null,
+          2,
+        ),
+      );
+    }
     if (latestCase) zip.file("case.json", JSON.stringify(latestCase, null, 2));
 
     const evFolder = zip.folder("evidence");
@@ -486,9 +509,8 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
 
     // 02_pattern_summary.md
     const patternLines: string[] = [`# Pattern Summary`, ``];
-    if (latestAnalysis) {
-      const { buildPatternExport } = await import("@/lib/pattern-export");
-      const gated = buildPatternExport((latestAnalysis as any).analysis, (latestAnalysis as any).reviewed_status);
+    if (latestAnalysis && gatedAnalysis) {
+      const gated = gatedAnalysis;
       patternLines.push(`_Generated: ${(latestAnalysis as any).created_at}_`, ``);
       if (gated.lines.length) patternLines.push(...gated.lines);
       else patternLines.push(`_No AI-suggested pattern content has been confirmed by the survivor for inclusion._`, ``);
