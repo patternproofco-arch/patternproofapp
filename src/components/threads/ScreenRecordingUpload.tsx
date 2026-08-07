@@ -71,7 +71,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="label-eyebrow" style={{ color: "#8A5A2E" }}>Tier 3 · Fallback</div>
-          <h3 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#14131F", marginTop: 4 }}>Upload a screen recording</h3>
+          <h3 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#14131F", marginTop: 4 }}>Upload a screen recording</h3>
         </div>
         <button type="button" onClick={onCancel} className="text-sm underline" style={{ color: "rgba(20,19,31,0.55)" }}>Cancel</button>
       </div>
