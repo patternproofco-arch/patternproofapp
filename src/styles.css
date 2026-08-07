@@ -38,18 +38,42 @@
   --color-type-custody: #5B4CD6;
   --color-type-other: #8A8894;
 
-  --font-serif: "Newsreader", Georgia, serif;
-  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Newsreader", Georgia, serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-serif: "Fraunces", Georgia, serif;
+  --font-sans: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-mono: "Space Grotesk", ui-monospace, monospace;
+
+  /* Brand palette — oxblood & deep purple moiré system */
+  --color-oxblood: var(--oxblood);
+  --color-oxblood-deep: var(--oxblood-deep);
+  --color-purple: var(--purple);
+  --color-purple-mid: var(--purple-mid);
+  --color-red-bright: var(--red-bright);
+  --color-lav: var(--lav);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-line: var(--line);
 }
 
 :root {
+  /* ---- Brand system: oxblood & deep purple moiré ---- */
+  --oxblood:      #7A1F3D;
+  --oxblood-deep: #5E1730;
+  --purple:       #4A2A6B;
+  --purple-mid:   #5E3785;
+  --red-bright:   #C7405F;
+  --lav:          #8A6BC7;
+  --ink:          #1A1224;
+  --paper:        #FAF8F4;
+  --paper-2:      #F1ECE4;
+  --line:         #E4DDD3;
+
   /* ---- Global tokens (single source of truth) ---- */
-  --pp-ink:        #14131F;
-  --pp-paper:      #F7F5F0;
-  --pp-hairline:   rgba(20,19,31,0.14);
-  --pp-muted:      #8A8894;
+  --pp-ink:        var(--ink);
+  --pp-paper:      var(--paper);
+  --pp-hairline:   var(--line);
+  --pp-muted:      #6E6579;
 
   /* Certainty — identical in every persona, never tinted */
   --pp-confirmed:   #0F6E56;
@@ -58,14 +82,14 @@
   --pp-urgent:      #8A5A2E;
 
   /* Persona accents — chrome + primary buttons ONLY */
-  --pp-accent-attorney: #152038;
-  --pp-accent-org:      #7FA189;
-  --pp-accent-survivor: #5B4CD6;
-  --pp-accent-shared:   #4E8C8A;
+  --pp-accent-attorney: var(--purple);
+  --pp-accent-org:      var(--purple-mid);
+  --pp-accent-survivor: var(--oxblood);
+  --pp-accent-shared:   var(--oxblood-deep);
 
   /* Default accent for un-scoped surfaces */
   --pp-accent: var(--pp-accent-survivor);
-  --pp-accent-fg: #F7F5F0;
+  --pp-accent-fg: var(--paper);
 
   /* ---- Legacy aliases mapped onto the locked palette ---- */
   --background: var(--pp-paper);
@@ -74,10 +98,10 @@
   --panel: var(--pp-ink);
   --sidebar: var(--pp-ink);
   --sidebar-active: var(--pp-paper);
-  --sidebar-inactive: rgba(247,245,240,0.62);
+  --sidebar-inactive: rgba(250,248,244,0.62);
 
   --primary: var(--pp-accent-survivor);
-  --primary-foreground: #F7F5F0;
+  --primary-foreground: var(--paper);
   --accent: var(--pp-accent-survivor);
   --safe: var(--pp-confirmed);
   --gold: var(--pp-urgent);
@@ -85,7 +109,7 @@
   --brand-pink: var(--pp-accent-survivor);
   --brand-pink-strong: var(--pp-accent-survivor);
   --brand-pink-soft: #FFFFFF;
-  --brand-pink-tint: rgba(91,76,214,0.06);
+  --brand-pink-tint: rgba(122,31,61,0.06);
   --teal-dark: var(--pp-accent-shared);
   --purple-dark: var(--pp-accent-survivor);
 
@@ -96,12 +120,12 @@
   --input: #FFFFFF;
   --ring: var(--pp-accent-survivor);
   --destructive: var(--pp-urgent);
-  --destructive-foreground: #F7F5F0;
+  --destructive-foreground: var(--paper);
   --popover: #FFFFFF;
   --popover-foreground: var(--pp-ink);
   --secondary: #FFFFFF;
   --secondary-foreground: var(--pp-ink);
-  --muted: rgba(20,19,31,0.04);
+  --muted: rgba(26,18,36,0.04);
 
   /* Flat surfaces — every tint collapses to paper/white */
   --pastel-teal: var(--pp-accent-shared);
@@ -172,8 +196,8 @@
 /* Persona scoping — one accent per screen */
 [data-persona="attorney"] { --pp-accent: var(--pp-accent-attorney); --pp-accent-fg: #FFFFFF; }
 [data-persona="org"]      { --pp-accent: var(--pp-accent-org);      --pp-accent-fg: var(--pp-ink); }
-[data-persona="survivor"] { --pp-accent: var(--pp-accent-survivor); --pp-accent-fg: #F7F5F0; }
-[data-persona="shared"]   { --pp-accent: var(--pp-accent-shared);   --pp-accent-fg: #F7F5F0; }
+[data-persona="survivor"] { --pp-accent: var(--pp-accent-survivor); --pp-accent-fg: var(--paper); }
+[data-persona="shared"]   { --pp-accent: var(--pp-accent-shared);   --pp-accent-fg: var(--paper); }
 
 @layer base {
   * { border-color: var(--pp-hairline); }
@@ -205,7 +229,7 @@
   h2 { font-size: clamp(1.6rem, 2.6vw, 2.1rem); }
   h3 { font-size: clamp(1.25rem, 1.9vw, 1.5rem); }
   h4 { font-size: clamp(1.05rem, 1.4vw, 1.2rem); }
-  p, li { font-size: 16px; line-height: 1.65; font-weight: 400; color: #3A3849; }
+  p, li { font-size: 16px; line-height: 1.65; font-weight: 400; color: #3A3444; }
   small { font-size: 12px; color: var(--pp-muted); }
   label { font-weight: 600; color: var(--pp-ink); font-size: 13px; }
   button, a { font-weight: 500; color: var(--pp-ink); }
