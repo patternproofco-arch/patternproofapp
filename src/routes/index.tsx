@@ -14,11 +14,11 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "PatternProof — Turn scattered evidence into structured patterns" },
       { name: "description", content: "PatternProof turns scattered incidents, evidence, and timelines into organized patterns survivors can document, attorneys can review, and advocates can understand faster." },
-      { property: "og:title", content: "PatternProof — The proof is in the patterns." },
+      { property: "og:title", content: "PatternProof — The truth is in the pattern." },
       { property: "og:description", content: "Pattern infrastructure for DV, custody, and coercive control documentation." },
       { property: "og:url", content: "https://pattern-proof.tech/" },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "PatternProof — The proof is in the patterns." },
+      { name: "twitter:title", content: "PatternProof — The truth is in the pattern." },
       { name: "twitter:description", content: "Turn scattered evidence into structured patterns." },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/" }],

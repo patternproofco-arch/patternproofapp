@@ -295,7 +295,7 @@ function PrivacyPage() {
           </p>
 
           <p style={{ marginTop: 32, fontStyle: "italic", color: "#5B4CD6", textAlign: "center" }}>
-            The proof is in the patterns.
+            The truth is in the pattern.
           </p>
         </Prose>
       </div>
