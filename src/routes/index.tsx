@@ -75,7 +75,7 @@ function Index() {
           padding: "clamp(56px,9vw,104px) 24px 24px",
         }}
       >
-        <BrandLogo size={70} />
+        <BrandLogo size={70} showTagline />
 
         <h1
           style={{
