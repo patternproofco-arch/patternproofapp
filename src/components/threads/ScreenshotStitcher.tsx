@@ -75,13 +75,13 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
   };
 
   return (
-    <div style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(91,76,214,0.2)" }}>
+    <div style={{ borderRadius: 0, padding: 22, background: "#FAF8F4", border: "1px solid rgba(122,31,61,0.2)" }}>
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="label-eyebrow" style={{ color: "#5B4CD6" }}>Tier 1 · Fastest</div>
-          <h3 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#14131F", marginTop: 4 }}>Add screenshots of the thread</h3>
+          <div className="label-eyebrow" style={{ color: "#7A1F3D" }}>Tier 1 · Fastest</div>
+          <h3 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#1A1224", marginTop: 4 }}>Add screenshots of the thread</h3>
         </div>
-        <button type="button" onClick={onCancel} className="text-sm underline" style={{ color: "rgba(20,19,31,0.55)" }}>Cancel</button>
+        <button type="button" onClick={onCancel} className="text-sm underline" style={{ color: "rgba(26,18,36,0.55)" }}>Cancel</button>
       </div>
       <p style={{ fontSize: 13.5, color: "#3A3849", lineHeight: 1.55, marginBottom: 14 }}>
         Take screenshots as you scroll — a little overlap between them is fine, we&apos;ll stitch them together. The screenshots are your evidence; the extracted text is a searchable index only, labeled <em>AI-extracted — unverified</em>.
@@ -101,16 +101,16 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
       <input ref={inp} type="file" accept="image/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
       <button type="button" onClick={() => inp.current?.click()}
         style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 0,
-          background: "#5B4CD6", color: "#F7F5F0", fontWeight: 700, fontSize: 13 }}>
+          background: "#7A1F3D", color: "#FAF8F4", fontWeight: 700, fontSize: 13 }}>
         <Camera size={14} /> Add screenshots
       </button>
 
       {shots.length > 0 && (
         <div className="mt-4 grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))" }}>
           {shots.map((s, idx) => (
-            <div key={s.id} style={{ position: "relative", borderRadius: 0, overflow: "hidden", border: "1px solid rgba(91,76,214,0.2)" }}>
+            <div key={s.id} style={{ position: "relative", borderRadius: 0, overflow: "hidden", border: "1px solid rgba(122,31,61,0.2)" }}>
               <img src={s.url} alt={`screenshot ${idx + 1}`} style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} />
-              <div style={{ position: "absolute", top: 4, left: 4, background: "rgba(0,0,0,0.55)", color: "#F7F5F0", fontSize: 11, padding: "2px 6px", borderRadius: 2 }}>#{idx + 1}</div>
+              <div style={{ position: "absolute", top: 4, left: 4, background: "rgba(0,0,0,0.55)", color: "#FAF8F4", fontSize: 11, padding: "2px 6px", borderRadius: 2 }}>#{idx + 1}</div>
               <div style={{ position: "absolute", top: 4, right: 4, display: "flex", gap: 4 }}>
                 <button type="button" onClick={() => move(idx, -1)} aria-label="Move up" style={{ background: "rgba(255,255,255,0.9)", borderRadius: 2, padding: "1px 6px", fontSize: 12 }}>↑</button>
                 <button type="button" onClick={() => move(idx, 1)} aria-label="Move down" style={{ background: "rgba(255,255,255,0.9)", borderRadius: 2, padding: "1px 6px", fontSize: 12 }}>↓</button>
@@ -124,8 +124,8 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
       <div className="mt-5 flex items-center justify-end gap-2">
         <button type="button" onClick={save} disabled={busy || shots.length === 0}
           style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 0,
-            background: shots.length === 0 ? "rgba(20,19,31,0.22)" : "#5B4CD6",
-            color: "#F7F5F0", fontWeight: 700, fontSize: 13,
+            background: shots.length === 0 ? "rgba(26,18,36,0.22)" : "#7A1F3D",
+            color: "#FAF8F4", fontWeight: 700, fontSize: 13,
             opacity: busy ? 0.7 : 1, cursor: busy ? "wait" : "pointer" }}>
           {busy ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
           {busy ? "Stitching…" : `Stitch ${shots.length} screenshot${shots.length === 1 ? "" : "s"}`}

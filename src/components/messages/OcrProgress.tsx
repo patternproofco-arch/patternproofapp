@@ -20,11 +20,11 @@ export function OcrProgress({ done, total, currentName, found }: Props) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label="Reading screenshots"
-        style={{ height: 6, background: "rgba(20,19,31,0.10)", borderRadius: 2, overflow: "hidden" }}
+        style={{ height: 6, background: "rgba(26,18,36,0.10)", borderRadius: 2, overflow: "hidden" }}
       >
-        <div style={{ width: `${pct}%`, height: "100%", background: "#14131F", transition: "width 240ms linear" }} />
+        <div style={{ width: `${pct}%`, height: "100%", background: "#1A1224", transition: "width 240ms linear" }} />
       </div>
-      <p className="mt-3" style={{ fontSize: 13.5, color: "rgba(20,19,31,0.7)" }}>
+      <p className="mt-3" style={{ fontSize: 13.5, color: "rgba(26,18,36,0.7)" }}>
         {currentName ? `Reading ${currentName}…` : "Finishing up…"} Found {found} message{found === 1 ? "" : "s"} so far.
         Everything is saved as we go — you can close this tab and come back.
       </p>

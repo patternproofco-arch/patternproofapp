@@ -252,7 +252,7 @@ function LegalDisclaimerBar() {
       style={{
         borderBottom: "1px solid rgba(21,32,56,0.12)",
         background: "rgba(21,32,56,0.04)",
-        color: "#152038",
+        color: "#4A2A6B",
         fontSize: 11.5,
         lineHeight: 1.5,
         letterSpacing: "0.01em",

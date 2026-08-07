@@ -8,7 +8,7 @@ export function TrustPage({ title, subtitle, children }: { title: string; subtit
       style={{
         minHeight: "100vh",
         background:
-          "#F7F5F0",
+          "#FAF8F4",
         color: "#1F1A2E",
         fontFamily: "Inter, system-ui, -apple-system, sans-serif",
         padding: "32px 20px 80px",

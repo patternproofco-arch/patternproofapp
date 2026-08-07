@@ -174,7 +174,7 @@ const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "60px 24px 100px",
   background:
-    "#F7F5F0",
+    "#FAF8F4",
 };
 const cardStyle: React.CSSProperties = {
   background: "#FFFFFF",
@@ -213,8 +213,8 @@ const inputStyle: React.CSSProperties = {
 const ctaBtn: React.CSSProperties = {
   padding: "14px 26px",
   borderRadius: 2,
-  background: "#7FA189",
-  color: "#14131F",
+  background: "#5E3785",
+  color: "#1A1224",
   fontWeight: 700,
   fontSize: 15,
   border: "none",
@@ -225,9 +225,9 @@ function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
     borderRadius: 2,
-    border: active ? "1px solid #7FA189" : "1px solid rgba(62,90,51,0.25)",
-    background: active ? "#7FA189" : "#FFFFFF",
-    color: active ? "#14131F" : "#1F2D1A",
+    border: active ? "1px solid #5E3785" : "1px solid rgba(62,90,51,0.25)",
+    background: active ? "#5E3785" : "#FFFFFF",
+    color: active ? "#1A1224" : "#1F2D1A",
     fontWeight: 600,
     fontSize: 13,
     cursor: "pointer",

@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-const INK = "#14131F";
-const PAPER = "#F7F5F0";
+const INK = "#1A1224";
+const PAPER = "#FAF8F4";
 const MUTED = "#6B6A78";
-const RULE = "rgba(20,19,31,0.14)";
-const VIOLET = "#5B4CD6";
+const RULE = "rgba(26,18,36,0.14)";
+const VIOLET = "#7A1F3D";
 const CAUTION = "#8A5A2E";
 
 const SERIF = "'Fraunces', Georgia, serif";

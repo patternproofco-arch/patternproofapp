@@ -5,11 +5,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
  * Uses the redaction/exhibit visual system (same as /for-attorneys).
  */
 
-const INK = "#14131F";
-const PAPER = "#F7F5F0";
-const NAVY = "#152038";
+const INK = "#1A1224";
+const PAPER = "#FAF8F4";
+const NAVY = "#4A2A6B";
 const MUTED = "#6B6A78";
-const RULE = "rgba(20,19,31,0.14)";
+const RULE = "rgba(26,18,36,0.14)";
 
 const SERIF = "'Fraunces', Georgia, serif";
 const SANS = "'Space Grotesk', system-ui, sans-serif";
@@ -251,7 +251,7 @@ function MetaCell({ label, value }: { label: string; value: string }) {
 
 function ExhibitRow({ ex }: { ex: Exhibit }) {
   const certColor =
-    ex.certainty === "confirmed" ? NAVY : ex.certainty === "approximate" ? "rgba(20,19,31,0.45)" : "rgba(20,19,31,0.25)";
+    ex.certainty === "confirmed" ? NAVY : ex.certainty === "approximate" ? "rgba(26,18,36,0.45)" : "rgba(26,18,36,0.25)";
   const certLabel = ex.certainty.toUpperCase();
   return (
     <div

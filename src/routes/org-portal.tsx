@@ -71,7 +71,7 @@ function OrgPortal() {
     return (
       <Shell>
         <p style={{ fontSize: 14 }}>{error}</p>
-        <Link to="/" style={{ fontSize: 13, color: "#4E8C8A", fontWeight: 600 }}>Back to PatternProof</Link>
+        <Link to="/" style={{ fontSize: 13, color: "#5E1730", fontWeight: 600 }}>Back to PatternProof</Link>
       </Shell>
     );
   }
@@ -181,7 +181,7 @@ const btnStyle: React.CSSProperties = {
 function Shell({ children, orgName }: { children: React.ReactNode; orgName?: string | null }) {
   const navigate = useNavigate();
   return (
-    <div data-persona="org" style={{ minHeight: "100vh", background: "#F7F5F0", color: "var(--foreground)" }}>
+    <div data-persona="org" style={{ minHeight: "100vh", background: "#FAF8F4", color: "var(--foreground)" }}>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px", borderBottom: "1px solid var(--border)", background: "#FFFFFF" }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
           <BrandMark size={22} />

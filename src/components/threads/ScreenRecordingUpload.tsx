@@ -67,13 +67,13 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
   };
 
   return (
-    <div style={{ borderRadius: 0, padding: 22, background: "#F7F5F0", border: "1px solid rgba(197,103,74,0.25)" }}>
+    <div style={{ borderRadius: 0, padding: 22, background: "#FAF8F4", border: "1px solid rgba(197,103,74,0.25)" }}>
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="label-eyebrow" style={{ color: "#8A5A2E" }}>Tier 3 · Fallback</div>
-          <h3 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#14131F", marginTop: 4 }}>Upload a screen recording</h3>
+          <h3 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#1A1224", marginTop: 4 }}>Upload a screen recording</h3>
         </div>
-        <button type="button" onClick={onCancel} className="text-sm underline" style={{ color: "rgba(20,19,31,0.55)" }}>Cancel</button>
+        <button type="button" onClick={onCancel} className="text-sm underline" style={{ color: "rgba(26,18,36,0.55)" }}>Cancel</button>
       </div>
 
       <div style={{ display: "flex", gap: 12, padding: 14, borderRadius: 0,
@@ -106,7 +106,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
       <div className="flex items-center gap-3 flex-wrap">
         <button type="button" onClick={() => inp.current?.click()} disabled={!acknowledged}
           style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 0,
-            background: acknowledged ? "#14131F" : "rgba(20,19,31,0.22)", color: "#F7F5F0", fontWeight: 700, fontSize: 13,
+            background: acknowledged ? "#1A1224" : "rgba(26,18,36,0.22)", color: "#FAF8F4", fontWeight: 700, fontSize: 13,
             cursor: acknowledged ? "pointer" : "not-allowed" }}>
           <Video size={14} /> {file ? "Choose different video" : "Choose video"}
         </button>
@@ -116,8 +116,8 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
       <div className="mt-5 flex items-center justify-end">
         <button type="button" onClick={save} disabled={busy || !file || !acknowledged}
           style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 0,
-            background: (!file || !acknowledged) ? "rgba(20,19,31,0.22)" : "#5B4CD6",
-            color: "#F7F5F0", fontWeight: 700, fontSize: 13,
+            background: (!file || !acknowledged) ? "rgba(26,18,36,0.22)" : "#7A1F3D",
+            color: "#FAF8F4", fontWeight: 700, fontSize: 13,
             opacity: busy ? 0.7 : 1, cursor: busy ? "wait" : "pointer" }}>
           {busy ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
           {busy ? "Uploading…" : "Save recording"}

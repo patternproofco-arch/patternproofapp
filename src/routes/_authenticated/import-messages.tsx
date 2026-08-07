@@ -259,7 +259,7 @@ function ImportMessagesPage() {
         {phase === "working" ? (
           <>
             {stage && (
-              <p className="text-[13.5px]" style={{ color: "rgba(20,19,31,0.62)" }}>{stage}</p>
+              <p className="text-[13.5px]" style={{ color: "rgba(26,18,36,0.62)" }}>{stage}</p>
             )}
             <OcrProgress done={done} total={total} currentName={currentName} found={found} />
           </>
@@ -282,7 +282,7 @@ function ImportMessagesPage() {
                 <div
                   key={t.id}
                   className="flex items-center justify-between gap-3"
-                  style={{ background: "#FFFFFF", border: "1px solid rgba(20,19,31,0.14)", borderRadius: 2, padding: "10px 12px" }}
+                  style={{ background: "#FFFFFF", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2, padding: "10px 12px" }}
                 >
                   <span style={{ fontSize: 14 }}>
                     {t.conversation_participant || "Untitled conversation"}
@@ -294,7 +294,7 @@ function ImportMessagesPage() {
                     type="button"
                     onClick={() => onDelete(t.id)}
                     aria-label="Permanently delete this import"
-                    style={{ padding: 8, color: "rgba(20,19,31,0.6)" }}
+                    style={{ padding: 8, color: "rgba(26,18,36,0.6)" }}
                   >
                     <Trash2 size={15} />
                   </button>
@@ -306,7 +306,7 @@ function ImportMessagesPage() {
 
         <section>
           <h2 className="font-serif text-[20px]">Your conversation record</h2>
-          <p className="mb-3 mt-1 text-[13.5px]" style={{ color: "rgba(20,19,31,0.62)" }}>
+          <p className="mb-3 mt-1 text-[13.5px]" style={{ color: "rgba(26,18,36,0.62)" }}>
             Every message sits beside the screenshot it came from. Change anything — we keep the
             original reading alongside your correction, never instead of it.
           </p>
@@ -314,10 +314,10 @@ function ImportMessagesPage() {
         </section>
 
         <section
-          style={{ background: "#F7F5F0", border: "1px solid rgba(20,19,31,0.14)", borderRadius: 2, padding: 16 }}
+          style={{ background: "#FAF8F4", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2, padding: 16 }}
         >
           <span className="exhibit-tag">COMING LATER</span>
-          <p className="mt-2 text-[13.5px]" style={{ color: "rgba(20,19,31,0.65)" }}>
+          <p className="mt-2 text-[13.5px]" style={{ color: "rgba(26,18,36,0.65)" }}>
             Later we&apos;ll add importing exported chat files and pasted text. Screenshots and screen
             recordings are read entirely on your device — nothing on this page is sent to an AI.
           </p>

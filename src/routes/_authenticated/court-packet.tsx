@@ -116,10 +116,10 @@ function CourtPacket() {
         </div>
       </div>
 
-      <div id="packet" style={{ background: "#fff", color: "#14131F", padding: "32px 36px", border: "1px solid rgba(20,19,31,0.14)", borderRadius: 2, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 14, lineHeight: 1.55 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(20,19,31,0.14)", paddingBottom: 14 }}>
+      <div id="packet" style={{ background: "#fff", color: "#1A1224", padding: "32px 36px", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 14, lineHeight: 1.55 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(26,18,36,0.14)", paddingBottom: 14 }}>
           <BrandLogo size={40} showTagline={false} />
-          <div style={{ fontFamily: "'Space Grotesk', ui-monospace, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#8A8894" }}>Prepared {today}</div>
+          <div style={{ fontFamily: "'Space Grotesk', ui-monospace, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#6E6579" }}>Prepared {today}</div>
         </div>
 
         <Section title="Case Overview">

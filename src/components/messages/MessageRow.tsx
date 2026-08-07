@@ -41,9 +41,9 @@ function Badge({ state }: { state: string | undefined }) {
       className="mono-meta"
       style={{
         fontSize: 10, padding: "1px 5px", borderRadius: 2,
-        border: "1px solid rgba(20,19,31,0.14)",
-        background: corrected ? "#14131F" : "transparent",
-        color: corrected ? "#F7F5F0" : "rgba(20,19,31,0.55)",
+        border: "1px solid rgba(26,18,36,0.14)",
+        background: corrected ? "#1A1224" : "transparent",
+        color: corrected ? "#FAF8F4" : "rgba(26,18,36,0.55)",
       }}
     >
       {corrected ? "corrected" : "extracted"}
@@ -72,8 +72,8 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
   return (
     <div
       style={{
-        background: "#FFFFFF", border: "1px solid rgba(20,19,31,0.14)", borderRadius: 2,
-        borderLeft: `3px solid ${mine ? "#14131F" : "rgba(20,19,31,0.25)"}`,
+        background: "#FFFFFF", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2,
+        borderLeft: `3px solid ${mine ? "#1A1224" : "rgba(26,18,36,0.25)"}`,
         padding: 14,
       }}
     >
@@ -124,7 +124,7 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
         style={{ fontSize: 14.5, lineHeight: 1.5 }}
       />
       {hardToRead && (
-        <p className="mt-1 text-[12px]" style={{ color: "rgba(20,19,31,0.6)" }}>
+        <p className="mt-1 text-[12px]" style={{ color: "rgba(26,18,36,0.6)" }}>
           This one came out unclear. Type what it says if you can — or leave it and come back later.
           It stays in your record either way.
         </p>
@@ -145,7 +145,7 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
             <img
               src={u}
               alt={`Original screenshot ${i + 1} for this message`}
-              style={{ width: 44, height: 44, objectFit: "cover", border: "1px solid rgba(20,19,31,0.14)", borderRadius: 2 }}
+              style={{ width: 44, height: 44, objectFit: "cover", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2 }}
             />
           </a>
         ))}
@@ -154,7 +154,7 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
             type="button"
             onClick={() => setShowHistory((v) => !v)}
             className="mono-meta"
-            style={{ fontSize: 10.5, textDecoration: "underline", color: "rgba(20,19,31,0.6)" }}
+            style={{ fontSize: 10.5, textDecoration: "underline", color: "rgba(26,18,36,0.6)" }}
           >
             <History size={11} style={{ display: "inline", marginRight: 3 }} />
             {corrections.length} correction{corrections.length === 1 ? "" : "s"}
@@ -163,7 +163,7 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
       </div>
 
       {showHistory && (
-        <ul className="mt-2 space-y-1" style={{ fontSize: 12, color: "rgba(20,19,31,0.65)" }}>
+        <ul className="mt-2 space-y-1" style={{ fontSize: 12, color: "rgba(26,18,36,0.65)" }}>
           {corrections.map((c) => (
             <li key={c.id}>
               <span className="mono-meta mono-meta--muted">{new Date(c.created_at).toLocaleString()}</span>{" "}

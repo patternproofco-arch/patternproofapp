@@ -56,15 +56,15 @@ const DOC_TYPES: { value: DocType; label: string }[] = [
 ];
 
 const BADGE: Record<DocType, { label: string; bg: string; fg: string }> = {
-  tro:                { label: "TRO",            bg: "#8A5A2E", fg: "#14131F" },
-  fro:                { label: "FRO",            bg: "#8A5A2E", fg: "#14131F" },
-  police_report:      { label: "Police Report",  bg: "#5B4CD6", fg: "#14131F" },
-  "911_log":          { label: "911 Log",        bg: "#5B4CD6", fg: "#14131F" },
-  custody_order:      { label: "Custody Order",  bg: "#A8D8B9", fg: "#14131F" },
-  court_order:        { label: "Court Order",    bg: "#A8D8B9", fg: "#14131F" },
-  cps_report:         { label: "CPS",            bg: "#D2B48C", fg: "#14131F" },
-  hearing_transcript: { label: "Transcript",     bg: "#14131F", fg: "#F7F5F0" },
-  other:              { label: "Other",          bg: "#14131F", fg: "#F7F5F0" },
+  tro:                { label: "TRO",            bg: "#8A5A2E", fg: "#1A1224" },
+  fro:                { label: "FRO",            bg: "#8A5A2E", fg: "#1A1224" },
+  police_report:      { label: "Police Report",  bg: "#7A1F3D", fg: "#1A1224" },
+  "911_log":          { label: "911 Log",        bg: "#7A1F3D", fg: "#1A1224" },
+  custody_order:      { label: "Custody Order",  bg: "#A8D8B9", fg: "#1A1224" },
+  court_order:        { label: "Court Order",    bg: "#A8D8B9", fg: "#1A1224" },
+  cps_report:         { label: "CPS",            bg: "#D2B48C", fg: "#1A1224" },
+  hearing_transcript: { label: "Transcript",     bg: "#1A1224", fg: "#FAF8F4" },
+  other:              { label: "Other",          bg: "#1A1224", fg: "#FAF8F4" },
 };
 
 const GROUPS: { label: string; types: DocType[] }[] = [

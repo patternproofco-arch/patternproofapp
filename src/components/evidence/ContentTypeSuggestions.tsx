@@ -88,12 +88,12 @@ export function ContentTypeSuggestions() {
   return (
     <div
       className="mt-6 rounded-[2px] p-5"
-      style={{ background: "rgba(91,76,214,0.07)", border: "1px dashed rgba(91,76,214,0.35)" }}
+      style={{ background: "rgba(122,31,61,0.07)", border: "1px dashed rgba(122,31,61,0.35)" }}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Sparkles size={15} style={{ color: "#5B4CD6" }} />
-          <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#5B4CD6" }}>
+          <Sparkles size={15} style={{ color: "#7A1F3D" }} />
+          <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#7A1F3D" }}>
             AI suggestion — content type only
           </span>
         </div>
@@ -120,10 +120,10 @@ export function ContentTypeSuggestions() {
             {thumbs[s.evidence_id] ? (
               <img src={thumbs[s.evidence_id]} alt="" style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 2 }} />
             ) : (
-              <div style={{ width: 48, height: 48, borderRadius: 2, background: "rgba(20,19,31,0.08)" }} />
+              <div style={{ width: 48, height: 48, borderRadius: 2, background: "rgba(26,18,36,0.08)" }} />
             )}
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[14px]" style={{ color: "#14131F" }}>{s.title ?? "Untitled file"}</div>
+              <div className="truncate text-[14px]" style={{ color: "#1A1224" }}>{s.title ?? "Untitled file"}</div>
               <div className="text-[12px]" style={{ color: "#3A3849" }}>
                 {KIND_LABELS[s.suggested_kind as SuggestedKind] ?? s.suggested_kind}
                 {s.rationale ? ` · ${s.rationale}` : ""}

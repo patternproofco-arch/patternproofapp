@@ -102,7 +102,7 @@ function ClientCaseView() {
 
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
   const densityColor: Record<string, string> = {
-    low: "var(--att-navy)", moderate: "#8A8894", elevated: "#8A8894", high: "var(--att-navy)",
+    low: "var(--att-navy)", moderate: "#6E6579", elevated: "#6E6579", high: "var(--att-navy)",
   };
 
   return (
@@ -528,7 +528,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
             {data.flags.slice(0, 8).map((f) => (
-              <li key={f.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, padding: "8px 10px", background: "#FFFFFF", borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "var(--att-navy)" : "#8A8894"}`, borderRadius: 2 }}>
+              <li key={f.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, padding: "8px 10px", background: "#FFFFFF", borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "var(--att-navy)" : "#6E6579"}`, borderRadius: 2 }}>
                 <span>{f.details ?? f.flag_type ?? "Escalation flagged"}</span>
                 <span className="att-mono" style={{ color: "var(--att-text-2)" }}>sev {f.severity_tier ?? "?"}</span>
               </li>
@@ -836,7 +836,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
       {!firmSet ? (
         <div className="att-card" style={{ background: "#FFFFFF", borderColor: "var(--att-border-strong)" }}>
           <div style={{ fontSize: 13 }}>
-            Set your firm in <Link to="/settings" style={{ color: "#152038", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
+            Set your firm in <Link to="/settings" style={{ color: "#4A2A6B", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
           </div>
         </div>
       ) : (
@@ -909,7 +909,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
 
 
 function IntegrityStat({ label, value, tone }: { label: string; value: number | string; tone?: "green" | "amber" | "red" }) {
-  const color = tone === "green" ? "var(--att-navy)" : tone === "amber" ? "#8A8894" : tone === "red" ? "var(--att-navy)" : "var(--att-text)";
+  const color = tone === "green" ? "var(--att-navy)" : tone === "amber" ? "#6E6579" : tone === "red" ? "var(--att-navy)" : "var(--att-text)";
   return (
     <div style={{ padding: 10, background: "#fff", border: "1px solid var(--att-border)", borderRadius: 2 }}>
       <div className="att-eyebrow">{label}</div>
@@ -1239,7 +1239,7 @@ function GapsTab({ data }: { data: CaseData }) {
   const [openBucket, setOpenBucket] = useState<Record<string, boolean>>({ high: true, moderate: true, low: false });
   const [bulkSending, setBulkSending] = useState<string | null>(null);
 
-  const sevColor: Record<string, string> = { high: "var(--att-navy)", moderate: "#8A8894", low: "#8A8894" };
+  const sevColor: Record<string, string> = { high: "var(--att-navy)", moderate: "#6E6579", low: "#6E6579" };
 
   const requestClarification = async (idx: number, g: CaseData["gaps"][number]) => {
     setSendingIdx(idx);
@@ -1282,7 +1282,7 @@ function GapsTab({ data }: { data: CaseData }) {
   const readinessColor = totalGaps === 0 || closedGaps === totalGaps
     ? "var(--att-navy)"
     : closedGaps > 0
-      ? "#8A8894"
+      ? "#6E6579"
       : "var(--att-navy)";
 
   const sendBucket = async (sev: "high" | "moderate" | "low") => {
@@ -1301,7 +1301,7 @@ function GapsTab({ data }: { data: CaseData }) {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <div className="att-card" style={{ background: "#FFFFFF", borderColor: "rgba(20,19,31,0.14)" }}>
+      <div className="att-card" style={{ background: "#FFFFFF", borderColor: "rgba(26,18,36,0.14)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div className="att-eyebrow">Documentation completeness</div>
@@ -1460,7 +1460,7 @@ function UnlinkedIncidentsSection({ data, clientId }: { data: CaseData; clientId
           {unlinked.slice(0, 40).map((i) => {
             const already = sent.has(i.id);
             return (
-              <li key={i.id} style={{ padding: "10px 12px", background: "var(--att-surface-2)", borderRadius: 2, borderLeft: "3px solid #8A8894" }}>
+              <li key={i.id} style={{ padding: "10px 12px", background: "var(--att-surface-2)", borderRadius: 2, borderLeft: "3px solid #6E6579" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600 }}>{i.date ?? "Undated"}</div>
@@ -1535,12 +1535,12 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
   };
 
   const STATUS_OPTIONS: { value: string; label: string; color: string }[] = [
-    { value: "unreviewed", label: "Unreviewed", color: "#8A8894" },
+    { value: "unreviewed", label: "Unreviewed", color: "#6E6579" },
     { value: "useful", label: "Useful", color: "var(--att-navy)" },
-    { value: "needs_context", label: "Needs context", color: "#8A8894" },
-    { value: "duplicate", label: "Duplicate", color: "#8A8894" },
+    { value: "needs_context", label: "Needs context", color: "#6E6579" },
+    { value: "duplicate", label: "Duplicate", color: "#6E6579" },
     { value: "exclude", label: "Exclude", color: "var(--att-navy)" },
-    { value: "privileged", label: "Privileged", color: "#152038" },
+    { value: "privileged", label: "Privileged", color: "#4A2A6B" },
     { value: "exhibit_candidate", label: "Exhibit candidate", color: "var(--att-navy)" },
   ];
   const statusMeta = (v: string) => STATUS_OPTIONS.find((s) => s.value === v) ?? STATUS_OPTIONS[0];
@@ -1592,7 +1592,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div>
-      <div className="att-card" style={{ marginBottom: 14, background: "#FFFFFF", borderColor: "rgba(20,19,31,0.14)" }}>
+      <div className="att-card" style={{ marginBottom: 14, background: "#FFFFFF", borderColor: "rgba(26,18,36,0.14)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
           <ShieldCheck size={16} style={{ color: "var(--att-green)" }} />
           <SectionTitle>Evidence integrity record</SectionTitle>
@@ -1750,14 +1750,14 @@ function DepoTab({ depo, loading, onRun }: { depo: DepoResult | null; loading: b
           <DepoSection title="Talking points (narrative spine)" items={depo.prep.talking_points} />
           <DepoComplex title="Strongest evidence" items={depo.prep.strongest_evidence} keys={["item", "why_it_helps", "tied_to_incident"]} accent="var(--att-navy)" />
           <DepoComplex title="Weakest evidence" items={depo.prep.weakest_evidence} keys={["item", "risk", "recommended_action"]} accent="var(--att-navy)" />
-          <DepoComplex title="Contradictions to reconcile" items={depo.prep.contradictions} keys={["topic", "conflicting_accounts", "how_to_reconcile"]} accent="#8A8894" />
+          <DepoComplex title="Contradictions to reconcile" items={depo.prep.contradictions} keys={["topic", "conflicting_accounts", "how_to_reconcile"]} accent="#6E6579" />
           <DepoComplex title="Weak spots" items={depo.prep.weak_spots} keys={["issue", "risk", "suggested_fix"]} />
           <DepoComplex title="Credibility gaps" items={depo.prep.credibility_gaps} keys={["gap", "address_before_testimony"]} />
           <DepoSection title="Direct examination questions" items={depo.prep.prep_questions} ordered />
           <DepoSection title="Cross-examination warnings" items={depo.prep.cross_warnings} />
           {depo.phrasing_consent && depo.prep.court_safe_phrasing?.length ? (
             <div>
-              <div style={{ background: "#FFFFFF", border: "1px solid #8A8894", borderRadius: 2, padding: "8px 12px", marginBottom: 10, fontSize: 12, color: "var(--att-text)" }}>
+              <div style={{ background: "#FFFFFF", border: "1px solid #6E6579", borderRadius: 2, padding: "8px 12px", marginBottom: 10, fontSize: 12, color: "var(--att-text)" }}>
                 <strong>AI-suggested phrasing for deposition prep — not the survivor's own words.</strong> Do not export or attribute to your client as her statement. This is internal work product only.
               </div>
               <DepoComplex title="Court-safe phrasing (AI-suggested — not client's words)" items={depo.prep.court_safe_phrasing} keys={["instead_of", "say"]} accent="var(--att-navy)" />
@@ -1793,7 +1793,7 @@ function DepoComplex({ title, items, keys, accent }: { title: string; items?: Ar
       <h3 style={{ fontSize: 16, marginBottom: 6 }}>{title}</h3>
       <ul style={{ display: "grid", gap: 8, listStyle: "none", padding: 0 }}>
         {items.map((row, i) => (
-          <li key={i} style={{ borderLeft: `3px solid ${accent ?? "#8A8894"}`, paddingLeft: 12 }}>
+          <li key={i} style={{ borderLeft: `3px solid ${accent ?? "#6E6579"}`, paddingLeft: 12 }}>
             {keys.map((k) => (
               <div key={k}><span className="att-eyebrow">{k.replace(/_/g, " ")}: </span>{row[k]}</div>
             ))}
@@ -2028,7 +2028,7 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
 
   const strengthPct = totalEv === 0 ? 0 : Math.round(((useful * 2 + linked) / (totalEv * 3)) * 100);
   const strengthLabel = strengthPct >= 70 ? "Strong" : strengthPct >= 40 ? "Building" : totalEv === 0 ? "No evidence yet" : "Thin";
-  const strengthColor = strengthPct >= 70 ? "var(--att-navy)" : strengthPct >= 40 ? "#8A8894" : "var(--att-navy)";
+  const strengthColor = strengthPct >= 70 ? "var(--att-navy)" : strengthPct >= 40 ? "#6E6579" : "var(--att-navy)";
 
   const reviewPct = totalEv === 0 ? 0 : Math.round((reviewed / totalEv) * 100);
   const highRisk = data.flags.filter((f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3).length;
@@ -2081,7 +2081,7 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
         </ul>
       </div>
 
-      <div className="att-card" style={{ background: "#FFFFFF", borderColor: "rgba(20,19,31,0.14)" }}>
+      <div className="att-card" style={{ background: "#FFFFFF", borderColor: "rgba(26,18,36,0.14)" }}>
         <SectionTitle icon={<Briefcase size={14} />}>Case management import</SectionTitle>
         <p style={{ fontSize: 11.5, color: "var(--att-text-2)", lineHeight: 1.5, margin: 0 }}>
           The Export tab generates a ZIP of CSVs plus every evidence file, ready to import into
@@ -2200,7 +2200,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <div className="att-card" style={{ background: "#152038", color: "#fff", borderColor: "transparent" }}>
+      <div className="att-card" style={{ background: "#4A2A6B", color: "#fff", borderColor: "transparent" }}>
         <div style={{ fontSize: 10, letterSpacing: 1.4, opacity: 0.75 }}>ATTORNEY INTAKE SUMMARY</div>
         <h2 style={{ fontSize: 28, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4, color: "#fff" }}>Case {caseId}</h2>
         <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
@@ -2872,22 +2872,22 @@ function CrossReferenceSection({ clientId }: { clientId: string }) {
             <div
               key={i}
               style={{
-                borderLeft: "2px solid #14131F",
+                borderLeft: "2px solid #1A1224",
                 padding: "8px 12px",
-                background: "#F7F5F0",
+                background: "#FAF8F4",
               }}
             >
               <div style={{ fontFamily: "'Space Grotesk', ui-monospace, monospace", fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6B6A78" }}>
                 {c.anchor_type} anchor · {c.exhibits.length} exhibits
               </div>
-              <div style={{ marginTop: 4, fontSize: 13, color: "#14131F" }}>{c.detail}</div>
+              <div style={{ marginTop: 4, fontSize: 13, color: "#1A1224" }}>{c.detail}</div>
               <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0", display: "grid", gap: 4 }}>
                 {c.exhibits.map((e) => (
-                  <li key={`${e.kind}-${e.id}`} style={{ fontFamily: "'Space Grotesk', ui-monospace, monospace", fontSize: 11, color: "#14131F" }}>
+                  <li key={`${e.kind}-${e.id}`} style={{ fontFamily: "'Space Grotesk', ui-monospace, monospace", fontSize: 11, color: "#1A1224" }}>
                     <span style={{ color: "#6B6A78" }}>{e.kind.toUpperCase()}</span>
                     {e.date ? ` · ${e.date}` : " · date unknown"}
                     {" · "}
-                    <span style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: "#14131F" }}>
+                    <span style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: "#1A1224" }}>
                       {e.label}
                     </span>
                   </li>

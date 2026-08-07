@@ -95,7 +95,7 @@ function AdminOrgRequests() {
               </div>
               {r.status === "pending" && (
                 <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                  <button disabled={busy === r.id} onClick={() => approve(r.id)} style={{ padding: "8px 12px", borderRadius: 2, border: "none", background: "#7FA189", color: "#14131F", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                  <button disabled={busy === r.id} onClick={() => approve(r.id)} style={{ padding: "8px 12px", borderRadius: 2, border: "none", background: "#5E3785", color: "#1A1224", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
                     Approve + create partner login
                   </button>
                   <button disabled={busy === r.id} onClick={() => deny(r.id)} style={{ padding: "8px 12px", borderRadius: 2, border: "1px solid var(--border)", background: "#FFFFFF", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
@@ -113,7 +113,7 @@ function AdminOrgRequests() {
 
 function Wrap({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ minHeight: "100vh", background: "#F7F5F0", padding: "48px 20px" }}>
+    <div style={{ minHeight: "100vh", background: "#FAF8F4", padding: "48px 20px" }}>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>{children}</div>
     </div>
   );

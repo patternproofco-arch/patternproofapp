@@ -37,7 +37,7 @@ interface LegalItem {
 
 const LEGAL_COLOR: Record<string, string> = {
   tro: "#8A5A2E", fro: "#8A5A2E",
-  police_report: "#5B4CD6", "911_log": "#5B4CD6",
+  police_report: "#7A1F3D", "911_log": "#7A1F3D",
   custody_order: "#A8D8B9", court_order: "#A8D8B9",
   cps_report: "#D2B48C", hearing_transcript: "#B57E60", other: "#B57E60",
 };
@@ -64,12 +64,12 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
   const label = (t: XrefCluster["anchor_type"]) =>
     t === "date" ? "SHARED DATE" : t === "location" ? "SHARED PLACE" : "REPEATED PATTERN";
   return (
-    <section className="mt-6" style={{ background: "#F7F5F0", padding: 20, border: "1px solid rgba(20,19,31,0.14)" }}>
+    <section className="mt-6" style={{ background: "#FAF8F4", padding: 20, border: "1px solid rgba(26,18,36,0.14)" }}>
       <div className="flex items-baseline gap-3">
         <span className="exhibit-tag">CORROBORATION</span>
         <span className="mono-meta mono-meta--muted">Records that reinforce each other</span>
       </div>
-      <p style={{ marginTop: 8, fontSize: 13, color: "rgba(20,19,31,0.65)" }}>
+      <p style={{ marginTop: 8, fontSize: 13, color: "rgba(26,18,36,0.65)" }}>
         These Marks share a date, place, or repeated pattern. Nothing is flagged as wrong — this
         is where your own records line up.
       </p>
@@ -82,7 +82,7 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
             </div>
             <ul style={{ marginTop: 6, paddingLeft: 14, listStyle: "square" }}>
               {c.exhibits.map((e) => (
-                <li key={e.kind + e.id} style={{ fontSize: 13, color: "#14131F", lineHeight: 1.5 }}>
+                <li key={e.kind + e.id} style={{ fontSize: 13, color: "#1A1224", lineHeight: 1.5 }}>
                   <span className="mono-meta mono-meta--muted" style={{ marginRight: 6 }}>
                     {e.kind.toUpperCase()}
                   </span>
@@ -296,14 +296,14 @@ function TimelinePage() {
                 return (
                   <div key={`l-${l.id}`} className="relative">
                     <span className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4" style={{ background: color, boxShadow: "none" }}>
-                      <FileText size={10} color="#14131F" />
+                      <FileText size={10} color="#1A1224" />
                     </span>
                     <div className="card-pp" style={{ borderLeft: `3px solid ${color}` }}>
                       <div className="font-serif italic text-[16px]">
                         {new Date(row.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
                       </div>
                       <div className="mt-1">
-                        <span className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold" style={{ background: color, color: "#14131F" }}>
+                        <span className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold" style={{ background: color, color: "#1A1224" }}>
                           {LEGAL_LABEL[l.document_type] ?? "Document"}
                         </span>
                       </div>
@@ -323,14 +323,14 @@ function TimelinePage() {
                 return (
                   <div key={`m-${d.key}`} className="relative">
                     <span className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4" style={{ background: "#C7E9E3", boxShadow: "none" }}>
-                      <MessageSquare size={10} color="#14131F" />
+                      <MessageSquare size={10} color="#1A1224" />
                     </span>
                     <div className="card-pp" style={{ borderLeft: "3px solid #C7E9E3" }}>
                       <div className="font-serif italic text-[16px]">
                         {new Date(row.date + "T00:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
                       </div>
                       <div className="mt-1">
-                        <span className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold" style={{ background: "#C7E9E3", color: "#14131F" }}>
+                        <span className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold" style={{ background: "#C7E9E3", color: "#1A1224" }}>
                           IMPORTED MESSAGES
                         </span>
                       </div>

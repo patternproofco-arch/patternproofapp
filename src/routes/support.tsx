@@ -195,20 +195,20 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const page = {
   minHeight: "100vh",
-  background: "#F7F5F0",
-  color: "#14131F",
+  background: "#FAF8F4",
+  color: "#1A1224",
   fontFamily: "'Space Grotesk', system-ui, sans-serif",
   padding: "32px 20px 96px",
 } as const;
 
 const backLink = {
   display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13,
-  color: "#5B4CD6", textDecoration: "none", fontWeight: 500,
+  color: "#7A1F3D", textDecoration: "none", fontWeight: 500,
 } as const;
 
 const eyebrow = {
   fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase",
-  color: "#5B4CD6", fontWeight: 700, marginBottom: 10,
+  color: "#7A1F3D", fontWeight: 700, marginBottom: 10,
   fontFamily: "'Space Grotesk', monospace",
 } as const;
 
@@ -218,15 +218,15 @@ const sub = { fontSize: 16, lineHeight: 1.6, color: "#3A3849", margin: "12px 0 0
 const bodyText = { fontSize: 14, lineHeight: 1.65, color: "#3A3849", margin: "0 0 12px" } as const;
 
 const safetyNote = {
-  background: "rgba(91,76,214,0.07)",
-  border: "1px solid rgba(91,76,214,0.22)",
+  background: "rgba(122,31,61,0.07)",
+  border: "1px solid rgba(122,31,61,0.22)",
   borderRadius: 2, padding: "12px 14px", fontSize: 13.5,
-  lineHeight: 1.6, color: "#14131F", marginBottom: 24,
+  lineHeight: 1.6, color: "#1A1224", marginBottom: 24,
 } as const;
 
 const card = {
   background: "#FFFFFF",
-  border: "1px solid rgba(20,19,31,0.10)",
+  border: "1px solid rgba(26,18,36,0.10)",
   borderRadius: 2, padding: 20,
   clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)",
 } as const;
@@ -239,31 +239,31 @@ const labelText = {
 const input = {
   width: "100%", padding: "10px 12px", fontSize: 15,
   fontFamily: "'Space Grotesk', system-ui, sans-serif",
-  color: "#14131F", background: "#F7F5F0",
-  border: "1px solid rgba(20,19,31,0.16)", borderRadius: 2,
+  color: "#1A1224", background: "#FAF8F4",
+  border: "1px solid rgba(26,18,36,0.16)", borderRadius: 2,
 } as const;
 
-const errorText = { fontSize: 13.5, color: "#5B4CD6", margin: "0 0 12px", lineHeight: 1.55 } as const;
+const errorText = { fontSize: 13.5, color: "#7A1F3D", margin: "0 0 12px", lineHeight: 1.55 } as const;
 
 const submitBtn = {
-  background: "#14131F", color: "#F7F5F0", border: "none",
+  background: "#1A1224", color: "#FAF8F4", border: "none",
   borderRadius: 2, padding: "11px 22px", fontSize: 14, fontWeight: 600,
   cursor: "pointer", fontFamily: "'Space Grotesk', system-ui, sans-serif",
 } as const;
 
 const emailRow = {
   display: "inline-flex", alignItems: "center", gap: 12,
-  background: "#FFFFFF", border: "1px solid rgba(20,19,31,0.10)",
+  background: "#FFFFFF", border: "1px solid rgba(26,18,36,0.10)",
   borderRadius: 2, padding: "10px 12px",
 } as const;
 
-const emailText = { fontFamily: "'Space Grotesk', monospace", fontSize: 14, color: "#14131F" } as const;
+const emailText = { fontFamily: "'Space Grotesk', monospace", fontSize: 14, color: "#1A1224" } as const;
 
 const copyBtn = {
   display: "inline-flex", alignItems: "center", gap: 6,
-  background: "#F7F5F0", border: "1px solid rgba(20,19,31,0.16)",
+  background: "#FAF8F4", border: "1px solid rgba(26,18,36,0.16)",
   borderRadius: 2, padding: "6px 12px", fontSize: 12.5, fontWeight: 600,
-  color: "#14131F", cursor: "pointer",
+  color: "#1A1224", cursor: "pointer",
 } as const;
 
-const inlineLink = { color: "#5B4CD6", textDecoration: "underline", textUnderlineOffset: 3 } as const;
+const inlineLink = { color: "#7A1F3D", textDecoration: "underline", textUnderlineOffset: 3 } as const;

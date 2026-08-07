@@ -66,7 +66,7 @@ function Index() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: "#F7F5F0", color: "#14131F" }}
+      style={{ background: "#FAF8F4", color: "#1A1224" }}
     >
       <section
         style={{
@@ -85,7 +85,7 @@ function Index() {
             fontSize: "clamp(2.2rem, 5.2vw, 3.6rem)",
             lineHeight: 1.08,
             letterSpacing: "-0.02em",
-            color: "#14131F",
+            color: "#1A1224",
             marginBottom: 0,
           }}
         >
@@ -129,7 +129,7 @@ function Index() {
               to="/for-attorneys"
               style={{
                 display: "inline-block",
-                background: "#152038",
+                background: "#4A2A6B",
                 color: "#F4F6FB",
                 padding: "14px 26px",
                 fontFamily: "'Space Grotesk', ui-monospace, monospace",
@@ -183,7 +183,7 @@ function Index() {
           >
             {/* faint ripple rings where the thread passes behind each card */}
             {[250, 500, 750].map((cx) => (
-              <g key={cx} fill="none" stroke="#14131F" pointerEvents="none">
+              <g key={cx} fill="none" stroke="#1A1224" pointerEvents="none">
                 <circle cx={cx} cy={60} r={16} strokeOpacity={0.16} strokeWidth={1.4} />
                 <circle cx={cx} cy={60} r={26} strokeOpacity={0.10} strokeWidth={1.4} />
                 <circle cx={cx} cy={60} r={36} strokeOpacity={0.05} strokeWidth={1.4} />
@@ -192,15 +192,15 @@ function Index() {
             <path
               d="M0,60 Q62.5,53 125,60 T250,60 T375,60 T500,60 T625,60 T750,60 T875,60 T1000,60"
               fill="none"
-              stroke="#14131F"
+              stroke="#1A1224"
               strokeWidth={1.5}
               strokeOpacity={0.18}
               vectorEffect="non-scaling-stroke"
             />
           </svg>
           <PathCard
-            accent="#5B4CD6"
-            gradient="linear-gradient(135deg, #5B4CD6, #7C6DE0)"
+            accent="#7A1F3D"
+            gradient="linear-gradient(135deg, #7A1F3D, #7C6DE0)"
             icon={FileText}
             label="Survivor"
             eyebrow="Survivor"
@@ -209,8 +209,8 @@ function Index() {
             cta="Start documenting →"
           />
           <PathCard
-            accent="#152038"
-            gradient="linear-gradient(135deg, #152038, #253652)"
+            accent="#4A2A6B"
+            gradient="linear-gradient(135deg, #4A2A6B, #253652)"
             icon={Briefcase}
             label="Attorney"
             eyebrow="Attorney"
@@ -248,13 +248,13 @@ function Index() {
         </div>
         Every entry keeps its source. Private by default. Encrypted in transit and at rest. You control what you share, and you can export your records at any time.
         <div style={{ marginTop: 18 }}>
-          <Link to="/how-it-works" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>How it works</Link>
-          <Link to="/privacy" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>
-          <Link to="/resources" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Resources</Link>
-          <Link to="/safety" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Safety</Link>
-          <Link to="/terms" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Terms</Link>
-          <Link to="/support" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3 }}>Support</Link>
-          <Link to="/waitlist" style={{ color: "#14131F", textDecoration: "underline", textUnderlineOffset: 3, marginLeft: 16 }}>Get updates</Link>
+          <Link to="/how-it-works" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>How it works</Link>
+          <Link to="/privacy" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>
+          <Link to="/resources" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Resources</Link>
+          <Link to="/safety" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Safety</Link>
+          <Link to="/terms" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Terms</Link>
+          <Link to="/support" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>Support</Link>
+          <Link to="/waitlist" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginLeft: 16 }}>Get updates</Link>
         </div>
       </footer>
     </div>
@@ -290,10 +290,10 @@ function PathCard({
         flexDirection: "column",
         justifyContent: "flex-start",
         textDecoration: "none",
-        color: "#14131F",
-        border: "1px solid rgba(20,19,31,0.14)",
+        color: "#1A1224",
+        border: "1px solid rgba(26,18,36,0.14)",
         borderLeft: `3px solid ${accent}`,
-        background: "#F7F5F0",
+        background: "#FAF8F4",
       }}
     >
       <div
@@ -313,19 +313,19 @@ function PathCard({
             left: 12,
             padding: "4px 10px",
             borderRadius: 9999,
-            background: "rgba(247,245,240,0.86)",
+            background: "rgba(250,248,244,0.86)",
             fontFamily: "'Space Grotesk', ui-monospace, monospace",
             fontSize: 10,
             fontWeight: 500,
             letterSpacing: "0.12em",
             textTransform: "uppercase",
-            color: "#14131F",
+            color: "#1A1224",
           }}
         >
           {label}
         </span>
         <span aria-hidden="true">
-          <Icon color="#F7F5F0" size={32} strokeWidth={1.5} />
+          <Icon color="#FAF8F4" size={32} strokeWidth={1.5} />
         </span>
       </div>
 
@@ -357,7 +357,7 @@ function PathCard({
               fontWeight: 300,
               fontSize: 18,
               lineHeight: 1.5,
-              color: "#14131F",
+              color: "#1A1224",
             }}
           >
             {body}

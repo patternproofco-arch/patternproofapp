@@ -7,11 +7,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
  * "before" vs. single navy "after" — no more than two colors.
  */
 
-const INK = "#14131F";
-const PAPER = "#F7F5F0";
-const NAVY = "#152038";
+const INK = "#1A1224";
+const PAPER = "#FAF8F4";
+const NAVY = "#4A2A6B";
 const MUTED = "#6B6A78";
-const RULE = "rgba(20,19,31,0.14)";
+const RULE = "rgba(26,18,36,0.14)";
 
 const SERIF = "'Fraunces', Georgia, serif";
 const SANS = "'Space Grotesk', system-ui, sans-serif";
@@ -196,7 +196,7 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
         {label}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
-        <div style={{ borderLeft: `3px solid rgba(20,19,31,0.25)`, paddingLeft: 14 }}>
+        <div style={{ borderLeft: `3px solid rgba(26,18,36,0.25)`, paddingLeft: 14 }}>
           <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: MUTED, textTransform: "uppercase", marginBottom: 4 }}>
             Before
           </div>
@@ -218,8 +218,8 @@ function PriceCard({ name, price, per, bullets, highlight }: { name: string; pri
     <div
       style={{
         background: PAPER,
-        border: `1px solid ${highlight ? NAVY : "rgba(20,19,31,0.18)"}`,
-        borderLeft: `3px solid ${highlight ? NAVY : "rgba(20,19,31,0.35)"}`,
+        border: `1px solid ${highlight ? NAVY : "rgba(26,18,36,0.18)"}`,
+        borderLeft: `3px solid ${highlight ? NAVY : "rgba(26,18,36,0.35)"}`,
         padding: "24px",
         clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
       }}

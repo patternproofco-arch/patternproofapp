@@ -9,10 +9,10 @@ import { useAuth } from "@/lib/auth-context";
 import { BrandMark } from "@/components/BrandMark";
 import { US_STATES, STATE_RESOURCES, type StateResource } from "@/lib/state-resources";
 
-const INK = "#14131F";
-const PAPER = "#F7F5F0";
-const RULE = "rgba(20,19,31,0.14)";
-const MUTED = "#8A8894";
+const INK = "#1A1224";
+const PAPER = "#FAF8F4";
+const RULE = "rgba(26,18,36,0.14)";
+const MUTED = "#6E6579";
 const SERIF = "'Fraunces', Georgia, serif";
 const SANS = "'Space Grotesk', system-ui, sans-serif";
 const MONO = "'Space Grotesk', ui-monospace, monospace";
