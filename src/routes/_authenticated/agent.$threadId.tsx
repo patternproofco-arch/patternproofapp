@@ -5,7 +5,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
 import { Send, ShieldAlert, Paperclip, Mic, Sparkles } from "lucide-react";
-import { AppMark } from "@/components/brand/AppMark";
+import { BrandMark } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 import { getAgentThreadMessages, renameAgentThread } from "@/lib/agent-threads.functions";
 
@@ -127,7 +127,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-5 sm:px-7 py-4" style={{ borderBottom: "1px solid #EAF7EF" }}>
-        <AppMark size={30} />
+        <BrandMark size={30} />
         <div className="min-w-0">
           <h1 className="text-[17px] font-semibold leading-tight" style={{ color: "#1F2933" }}>
             PatternProof Evidence Assistant

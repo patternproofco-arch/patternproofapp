@@ -6,7 +6,7 @@ import { QuickExitButton } from "@/components/QuickExitButton";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { HubTabs, RESOURCE_TABS } from "@/components/HubTabs";
 import { useAuth } from "@/lib/auth-context";
-import { MicroMark } from "@/components/brand/MicroMark";
+import { BrandMark } from "@/components/BrandMark";
 import { US_STATES, STATE_RESOURCES, type StateResource } from "@/lib/state-resources";
 
 const INK = "#14131F";
@@ -195,7 +195,7 @@ function ResourcesPage() {
         </Section>
 
         <div style={{ marginTop: 56, paddingTop: 20, borderTop: `1px solid ${RULE}`, color: MUTED, fontSize: 13 }}>
-          <MicroMark size={22} />
+          <BrandMark size={22} />
           <div style={{ marginTop: 10 }}>
             PatternProof is not a crisis service and not a law firm.
           </div>

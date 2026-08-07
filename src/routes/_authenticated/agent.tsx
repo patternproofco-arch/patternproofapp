@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Plus, MessageCircle, Trash2, FolderLock, Clock3, Sparkles, FileText, LifeBuoy, Settings as SettingsIcon, Menu, X } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { AppMark } from "@/components/brand/AppMark";
+import { BrandMark } from "@/components/BrandMark";
 import {
   listAgentThreads,
   createAgentThread,
@@ -67,7 +67,7 @@ function AgentLayout() {
       }}
     >
       <div className="flex items-center gap-2 px-1">
-        <AppMark size={26} />
+        <BrandMark size={26} />
         <div className="font-semibold text-[15px]" style={{ color: "#1F2933" }}>PatternProof</div>
       </div>
       <button

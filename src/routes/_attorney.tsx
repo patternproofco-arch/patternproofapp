@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, getAttorneyProfile } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
-import { CubeMark } from "@/components/brand/CubeMark";
+import { BrandMark } from "@/components/BrandMark";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -193,7 +193,7 @@ function AttorneySidebar() {
   return (
     <aside className="att-sidebar">
       <Link to="/clients" className="att-sidebar-brand">
-        <CubeMark size={26} />
+        <BrandMark size={26} />
         <span>PatternProof</span>
       </Link>
       <div className="att-sidebar-section">Practice</div>

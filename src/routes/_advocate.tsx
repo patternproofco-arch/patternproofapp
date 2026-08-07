@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyAdvocateRole } from "@/lib/advocate.functions";
 import { AccessDisclaimerBar } from "@/components/AccessDisclaimer";
-import { CubeMark } from "@/components/brand/CubeMark";
+import { BrandMark } from "@/components/BrandMark";
 
 export const Route = createFileRoute("/_advocate")({
   head: () => ({
@@ -54,7 +54,7 @@ function AdvocateLayout() {
         }}
       >
         <Link to="/advocate-cases" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "inherit" }}>
-          <CubeMark size={22} />
+          <BrandMark size={22} />
           <span style={{ fontWeight: 700, fontSize: 14 }}>PatternProof</span>
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Advocate access</span>
         </Link>

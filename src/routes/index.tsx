@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import type { ComponentType } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Link } from "@tanstack/react-router";
-import { BrandLockup } from "@/components/brand/BrandLockup";
-import { MicroMark } from "@/components/brand/MicroMark";
+import { BrandLogo } from "@/components/BrandLogo";
+import { BrandMark } from "@/components/BrandMark";
 import { Briefcase, FileText, Users } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -57,7 +57,7 @@ function Index() {
   if (loading || user) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <MicroMark size={34} />
+        <BrandMark size={34} />
         <div className="label-eyebrow">Preparing your space…</div>
       </div>
     );
@@ -75,7 +75,7 @@ function Index() {
           padding: "clamp(56px,9vw,104px) 24px 24px",
         }}
       >
-        <BrandLockup size={70} />
+        <BrandLogo size={70} />
 
         <h1
           style={{
@@ -244,7 +244,7 @@ function Index() {
         }}
       >
         <div style={{ marginBottom: 20 }}>
-          <MicroMark size={26} />
+          <BrandMark size={26} />
         </div>
         Every entry keeps its source. Private by default. Encrypted in transit and at rest. You control what you share, and you can export your records at any time.
         <div style={{ marginTop: 18 }}>

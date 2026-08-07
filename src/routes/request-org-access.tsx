@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Check } from "lucide-react";
-import { BrandLockup } from "@/components/brand/BrandLockup";
+import { BrandLogo } from "@/components/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/request-org-access")({
@@ -53,7 +53,7 @@ function RequestOrgAccess() {
           <ArrowLeft size={14} /> Back to PatternProof
         </Link>
         <div style={{ background: "#FFFFFF", borderRadius: 2, padding: 36, border: "1px solid var(--border)" }}>
-          <BrandLockup size={44} />
+          <BrandLogo size={44} />
           <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700, marginTop: 20 }}>
             DV organizations · invite-only
           </div>

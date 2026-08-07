@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { AppMark } from "@/components/brand/AppMark";
-import { BrandLockup } from "@/components/brand/BrandLockup";
+import { BrandMark } from "@/components/BrandMark";
+import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 
@@ -206,7 +206,7 @@ function PricingPage() {
         >
           <ArrowLeft size={16} /> Home
         </Link>
-        <BrandLockup size={36} showTagline={false} />
+        <BrandLogo size={36} showTagline={false} />
       </header>
 
       <main className="app-surface" style={{ maxWidth: 1180, margin: "0 auto", padding: "40px 24px 120px" }}>
@@ -424,7 +424,7 @@ function TierCard({ tier }: { tier: Tier }) {
       )}
 
       <div style={{ marginBottom: 20 }}>
-        <AppMark size={44} onDark={isAttorney} />
+        <BrandMark size={44} onDark={isAttorney} />
       </div>
 
       <div

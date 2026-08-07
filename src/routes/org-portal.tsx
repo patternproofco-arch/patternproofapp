@@ -5,7 +5,7 @@ import { Copy, LogOut, Power } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { CubeMark } from "@/components/brand/CubeMark";
+import { BrandMark } from "@/components/BrandMark";
 import { getMyOrgPartnerStats, setReferralCodeActive, type OrgPartnerStats } from "@/lib/org-portal.functions";
 
 export const Route = createFileRoute("/org-portal")({
@@ -184,7 +184,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
     <div data-persona="org" style={{ minHeight: "100vh", background: "#F7F5F0", color: "var(--foreground)" }}>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px", borderBottom: "1px solid var(--border)", background: "#FFFFFF" }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <CubeMark size={22} />
+          <BrandMark size={22} />
           <span style={{ fontWeight: 700, fontSize: 14 }}>PatternProof</span>
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Partner</span>
         </span>

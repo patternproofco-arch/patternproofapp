@@ -5,7 +5,7 @@ import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
 import { QuickExitButton } from "@/components/QuickExitButton";
-import { AppMark } from "@/components/brand/AppMark";
+import { BrandMark } from "@/components/BrandMark";
 import { toast } from "sonner";
 import { US_STATES } from "@/lib/state-resources";
 
@@ -55,7 +55,7 @@ function Onboarding() {
   return (
     <div className="relative mx-auto max-w-2xl px-5 py-10 md:py-14">
       <div className="mb-6 flex items-center justify-between">
-        <AppMark size={40} />
+        <BrandMark size={40} />
         <QuickExitButton />
       </div>
 
