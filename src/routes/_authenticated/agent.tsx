@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Plus, MessageCircle, Trash2, FolderLock, Clock3, Sparkles, FileText, LifeBuoy, Settings as SettingsIcon, Menu, X } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { AppMark } from "@/components/brand/AppMark";
+import { BrandMark } from "@/components/BrandMark";
 import {
   listAgentThreads,
   createAgentThread,
@@ -67,13 +67,13 @@ function AgentLayout() {
       }}
     >
       <div className="flex items-center gap-2 px-1">
-        <AppMark size={26} />
+        <BrandMark size={26} />
         <div className="font-semibold text-[15px]" style={{ color: "#1F2933" }}>PatternProof</div>
       </div>
       <button
         onClick={handleNew}
         className="w-full rounded-[2px] px-3 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:brightness-105"
-        style={{ background: "#4E8C8A", color: "#FFFFFF", boxShadow: "none" }}
+        style={{ background: "#5E1730", color: "#FFFFFF", boxShadow: "none" }}
       >
         <Plus size={16} /> New case chat
       </button>

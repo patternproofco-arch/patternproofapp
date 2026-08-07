@@ -9,7 +9,7 @@ export const ACCESS_DISCLAIMER =
 export const ADVOCATE_DISCLAIMER = ACCESS_DISCLAIMER;
 
 export function AccessDisclaimerBar({ persona = "org" }: { persona?: "org" | "attorney" }) {
-  const accent = persona === "attorney" ? "#152038" : "var(--pp-accent-org)";
+  const accent = persona === "attorney" ? "#4A2A6B" : "var(--pp-accent-org)";
   return (
     <div
       role="note"

@@ -3,20 +3,20 @@ import { useState } from "react";
 
 // Reuses the redaction/exhibit vernacular already established on
 // for-attorneys.tsx and for-organizations.tsx: ink on paper, one accent per
-// audience, mono eyebrows, Newsreader serif headings, exhibit-row layout with
+// audience, mono eyebrows, Fraunces serif headings, exhibit-row layout with
 // a leading two-digit index.
 
-const INK = "#14131F";
-const PAPER = "#F7F5F0";
+const INK = "#1A1224";
+const PAPER = "#FAF8F4";
 const MUTED = "#6B6A78";
 const SUBTEXT = "#3A3849";
-const RULE = "rgba(20,19,31,0.14)";
-const NAVY = "#152038";
+const RULE = "rgba(26,18,36,0.14)";
+const NAVY = "#4A2A6B";
 const SAGE = "#3F5A48";
 
-const SERIF = "'Newsreader', Georgia, serif";
-const SANS = "'IBM Plex Sans', system-ui, sans-serif";
-const MONO = "'IBM Plex Mono', ui-monospace, monospace";
+const SERIF = "'Fraunces', Georgia, serif";
+const SANS = "'Space Grotesk', system-ui, sans-serif";
+const MONO = "'Space Grotesk', ui-monospace, monospace";
 
 type Audience = "survivor" | "attorney" | "org";
 

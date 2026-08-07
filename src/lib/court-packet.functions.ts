@@ -5,7 +5,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 /**
  * Court-Packet PDF export. Intentionally de-branded:
- *  - no PatternProof logo, gradient, thread-purple accent, or Newsreader.
+ *  - no PatternProof logo, gradient, thread-purple accent, or Fraunces.
  *  - Times-Roman serif + Courier mono only.
  *  - Exhibits numbered EXHIBIT 001, 002, ... on a standard index page.
  *  - Dates rendered as: confirmed = "Apr 12, 2025", approximate = "~ Apr 2025,

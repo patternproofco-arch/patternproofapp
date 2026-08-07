@@ -47,10 +47,10 @@ export const template = {
   },
 } satisfies TemplateEntry
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'IBM Plex Sans', Arial, sans-serif" }
+const main = { backgroundColor: '#ffffff', fontFamily: "'Space Grotesk', Arial, sans-serif" }
 const container = { padding: '24px 28px', maxWidth: '560px' }
-const eyebrow = { fontSize: '11px', letterSpacing: '0.18em', color: '#5B4CD6', fontWeight: 700 as const, margin: '0 0 8px' }
-const h1 = { fontSize: '22px', color: '#14131F', margin: '0 0 16px' }
-const meta = { background: '#F7F5F0', borderRadius: '10px', padding: '12px 14px', margin: '0 0 16px' }
-const row = { fontSize: '13px', color: '#14131F', margin: '2px 0' }
-const body = { fontSize: '15px', lineHeight: 1.6, color: '#14131F', whiteSpace: 'pre-wrap' as const }
+const eyebrow = { fontSize: '11px', letterSpacing: '0.18em', color: '#7A1F3D', fontWeight: 700 as const, margin: '0 0 8px' }
+const h1 = { fontSize: '22px', color: '#1A1224', margin: '0 0 16px' }
+const meta = { background: '#FAF8F4', borderRadius: '10px', padding: '12px 14px', margin: '0 0 16px' }
+const row = { fontSize: '13px', color: '#1A1224', margin: '2px 0' }
+const body = { fontSize: '15px', lineHeight: 1.6, color: '#1A1224', whiteSpace: 'pre-wrap' as const }

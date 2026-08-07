@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { AppMark } from "@/components/brand/AppMark";
-import { BrandLockup } from "@/components/brand/BrandLockup";
+import { BrandMark } from "@/components/BrandMark";
+import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 
@@ -206,7 +206,7 @@ function PricingPage() {
         >
           <ArrowLeft size={16} /> Home
         </Link>
-        <BrandLockup size={36} showTagline={false} />
+        <BrandLogo size={36} showTagline={false} />
       </header>
 
       <main className="app-surface" style={{ maxWidth: 1180, margin: "0 auto", padding: "40px 24px 120px" }}>
@@ -236,7 +236,7 @@ function PricingPage() {
                 width: 6,
                 height: 6,
                 borderRadius: 2,
-                background: "#4E8C8A",
+                background: "#5E1730",
               }}
             />
             Simple, transparent pricing
@@ -254,7 +254,7 @@ function PricingPage() {
             <br />
             <span
               style={{
-                background: "#5B4CD6",
+                background: "#7A1F3D",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -266,7 +266,7 @@ function PricingPage() {
           <p
             style={{
               fontSize: 17,
-              color: "#8A8894",
+              color: "#6E6579",
               maxWidth: 520,
               margin: "0 auto",
               fontWeight: 500,
@@ -359,7 +359,7 @@ function TierCard({ tier }: { tier: Tier }) {
   const isOrg = tier.key === "organization";
 
   const cardBg = isAttorney
-    ? "#152038"
+    ? "#4A2A6B"
     : isOrg
       ? "#FFFFFF"
       : "#FFFFFF";
@@ -376,16 +376,16 @@ function TierCard({ tier }: { tier: Tier }) {
       ? "0 20px 60px -20px rgba(90,122,79,0.35), 0 0 70px -30px rgba(140,180,120,0.45), 0 0 0 1px rgba(122,155,110,0.18)"
       : "0 20px 60px -20px rgba(124,92,196,0.35), 0 0 0 1px rgba(196,176,232,0.30)";
 
-  const textColor = isAttorney ? "#FFFFFF" : isOrg ? "#1F2D1A" : "#14131F";
-  const mutedColor = isAttorney ? "rgba(226,232,240,0.78)" : isOrg ? "#36422F" : "#8A8894";
-  const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#5B4CD6";
-  const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#5B4CD6";
+  const textColor = isAttorney ? "#FFFFFF" : isOrg ? "#1F2D1A" : "#1A1224";
+  const mutedColor = isAttorney ? "rgba(226,232,240,0.78)" : isOrg ? "#36422F" : "#6E6579";
+  const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#7A1F3D";
+  const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#7A1F3D";
 
   const ctaBg = isAttorney
     ? "#FFFFFF"
     : isOrg
-      ? "#7FA189"
-      : "#5B4CD6";
+      ? "#5E3785"
+      : "#7A1F3D";
   const ctaColor = isAttorney ? "#0F1B3D" : "#FFFFFF";
 
   return (
@@ -408,8 +408,8 @@ function TierCard({ tier }: { tier: Tier }) {
             top: -12,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "#152038",
-            color: "#F7F5F0",
+            background: "#4A2A6B",
+            color: "#FAF8F4",
             padding: "6px 16px",
             borderRadius: 2,
             fontSize: 11,
@@ -424,7 +424,7 @@ function TierCard({ tier }: { tier: Tier }) {
       )}
 
       <div style={{ marginBottom: 20 }}>
-        <AppMark size={44} onDark={isAttorney} />
+        <BrandMark size={44} onDark={isAttorney} />
       </div>
 
       <div
@@ -586,7 +586,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         style={{
           fontSize: 15,
           fontWeight: 700,
-          color: "#14131F",
+          color: "#1A1224",
           marginBottom: 8,
           display: "flex",
           alignItems: "center",
@@ -596,7 +596,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         <HelpCircle size={16} style={{ color: "var(--primary)", flexShrink: 0 }} />
         {q}
       </h4>
-      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#8A8894", margin: 0 }}>
+      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6E6579", margin: 0 }}>
         {a}
       </p>
     </div>

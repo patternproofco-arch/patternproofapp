@@ -5,7 +5,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
 import { Send, ShieldAlert, Paperclip, Mic, Sparkles } from "lucide-react";
-import { AppMark } from "@/components/brand/AppMark";
+import { BrandMark } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 import { getAgentThreadMessages, renameAgentThread } from "@/lib/agent-threads.functions";
 
@@ -127,7 +127,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-5 sm:px-7 py-4" style={{ borderBottom: "1px solid #EAF7EF" }}>
-        <AppMark size={30} />
+        <BrandMark size={30} />
         <div className="min-w-0">
           <h1 className="text-[17px] font-semibold leading-tight" style={{ color: "#1F2933" }}>
             PatternProof Evidence Assistant
@@ -153,11 +153,11 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                 <div className="flex items-center gap-2">
                   <div
                     className="rounded-[2px] p-1.5"
-                    style={{ background: "#FFFFFF", color: "#4E8C8A", border: "1px solid #D8F0E0" }}
+                    style={{ background: "#FFFFFF", color: "#5E1730", border: "1px solid #D8F0E0" }}
                   >
                     <Sparkles size={14} />
                   </div>
-                  <div className="text-[12px] font-semibold tracking-wide" style={{ color: "#4E8C8A" }}>
+                  <div className="text-[12px] font-semibold tracking-wide" style={{ color: "#5E1730" }}>
                     WELCOME
                   </div>
                 </div>
@@ -210,7 +210,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
 
           {status === "submitted" && (
             <div className="text-sm italic flex items-center gap-2" style={{ color: "#667085" }}>
-              <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#4E8C8A" }} />
+              <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#5E1730" }} />
               Thinking…
             </div>
           )}
@@ -277,7 +277,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                 disabled={busy || !input.trim()}
                 className="rounded-[2px] p-2.5 transition-all disabled:opacity-40"
                 style={{
-                  background: "#5B4CD6",
+                  background: "#7A1F3D",
                   color: "#FFFFFF",
                   boxShadow: "none",
                 }}

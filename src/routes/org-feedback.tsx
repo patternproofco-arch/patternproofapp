@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Check } from "lucide-react";
-import { BrandLockup } from "@/components/brand/BrandLockup";
+import { BrandLogo } from "@/components/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/org-feedback")({
@@ -75,7 +75,7 @@ function OrgFeedbackPage() {
       <div style={{ maxWidth: 680, margin: "0 auto" }}>
         <Link to="/" style={backLink}><ArrowLeft size={14} /> Back to PatternProof</Link>
         <div style={cardStyle}>
-          <BrandLockup size={40} />
+          <BrandLogo size={40} />
           <div style={eyebrow}>DV organizations · your voice matters</div>
 
           {done ? (
@@ -174,7 +174,7 @@ const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "60px 24px 100px",
   background:
-    "#F7F5F0",
+    "#FAF8F4",
 };
 const cardStyle: React.CSSProperties = {
   background: "#FFFFFF",
@@ -213,8 +213,8 @@ const inputStyle: React.CSSProperties = {
 const ctaBtn: React.CSSProperties = {
   padding: "14px 26px",
   borderRadius: 2,
-  background: "#7FA189",
-  color: "#14131F",
+  background: "#5E3785",
+  color: "#1A1224",
   fontWeight: 700,
   fontSize: 15,
   border: "none",
@@ -225,9 +225,9 @@ function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
     borderRadius: 2,
-    border: active ? "1px solid #7FA189" : "1px solid rgba(62,90,51,0.25)",
-    background: active ? "#7FA189" : "#FFFFFF",
-    color: active ? "#14131F" : "#1F2D1A",
+    border: active ? "1px solid #5E3785" : "1px solid rgba(62,90,51,0.25)",
+    background: active ? "#5E3785" : "#FFFFFF",
+    color: active ? "#1A1224" : "#1F2D1A",
     fontWeight: 600,
     fontSize: 13,
     cursor: "pointer",

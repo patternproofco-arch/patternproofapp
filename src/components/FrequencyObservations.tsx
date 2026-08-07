@@ -61,7 +61,7 @@ export function FrequencyObservations({ compact = false }: { compact?: boolean }
         {items.map((o) => (
           <li key={o.id} className="rounded-[2px] p-3" style={{ background: "rgba(255,255,255,0.6)" }}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-[14px]" style={{ color: "#14131F" }}>{o.text}</span>
+              <span className="text-[14px]" style={{ color: "#1A1224" }}>{o.text}</span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -74,7 +74,7 @@ export function FrequencyObservations({ compact = false }: { compact?: boolean }
               </div>
             </div>
             {open === o.id && (
-              <ul className="mt-2 space-y-1 text-[12px]" style={{ color: "#3A3849", fontFamily: "'IBM Plex Mono', monospace" }}>
+              <ul className="mt-2 space-y-1 text-[12px]" style={{ color: "#3A3849", fontFamily: "'Space Grotesk', monospace" }}>
                 {o.rows.map((r) => (
                   <li key={r.id}>· {r.label} <span style={{ opacity: 0.55 }}>#{r.id.slice(0, 8)}</span></li>
                 ))}
@@ -91,15 +91,15 @@ export function FrequencyObservations({ compact = false }: { compact?: boolean }
 }
 
 const AI_SURFACE = {
-  background: "rgba(91,76,214,0.07)",
-  border: "1px dashed rgba(91,76,214,0.35)",
+  background: "rgba(122,31,61,0.07)",
+  border: "1px dashed rgba(122,31,61,0.35)",
 } as const;
 
 function ObsHeader() {
   return (
     <div className="flex items-center gap-2">
-      <BarChart3 size={15} style={{ color: "#5B4CD6" }} />
-      <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#5B4CD6" }}>
+      <BarChart3 size={15} style={{ color: "#7A1F3D" }} />
+      <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#7A1F3D" }}>
         Observation — counts only
       </span>
     </div>

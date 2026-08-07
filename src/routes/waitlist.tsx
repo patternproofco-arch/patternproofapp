@@ -3,13 +3,13 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { joinWaitlist } from "@/lib/waitlist.functions";
 
-const INK = "#14131F";
-const PAPER = "#F7F5F0";
+const INK = "#1A1224";
+const PAPER = "#FAF8F4";
 const MUTED = "#6B6A78";
-const RULE = "rgba(20,19,31,0.14)";
-const SERIF = "'Newsreader', Georgia, serif";
-const SANS = "'IBM Plex Sans', system-ui, sans-serif";
-const MONO = "'IBM Plex Mono', ui-monospace, monospace";
+const RULE = "rgba(26,18,36,0.14)";
+const SERIF = "'Fraunces', Georgia, serif";
+const SANS = "'Space Grotesk', system-ui, sans-serif";
+const MONO = "'Space Grotesk', ui-monospace, monospace";
 
 type Interest = "survivor" | "attorney" | "organization" | "other";
 const INTERESTS: { value: Interest; label: string }[] = [

@@ -5,7 +5,7 @@ import { Copy, LogOut, Power } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { CubeMark } from "@/components/brand/CubeMark";
+import { BrandMark } from "@/components/BrandMark";
 import { getMyOrgPartnerStats, setReferralCodeActive, type OrgPartnerStats } from "@/lib/org-portal.functions";
 
 export const Route = createFileRoute("/org-portal")({
@@ -71,7 +71,7 @@ function OrgPortal() {
     return (
       <Shell>
         <p style={{ fontSize: 14 }}>{error}</p>
-        <Link to="/" style={{ fontSize: 13, color: "#4E8C8A", fontWeight: 600 }}>Back to PatternProof</Link>
+        <Link to="/" style={{ fontSize: 13, color: "#5E1730", fontWeight: 600 }}>Back to PatternProof</Link>
       </Shell>
     );
   }
@@ -181,10 +181,10 @@ const btnStyle: React.CSSProperties = {
 function Shell({ children, orgName }: { children: React.ReactNode; orgName?: string | null }) {
   const navigate = useNavigate();
   return (
-    <div data-persona="org" style={{ minHeight: "100vh", background: "#F7F5F0", color: "var(--foreground)" }}>
+    <div data-persona="org" style={{ minHeight: "100vh", background: "#FAF8F4", color: "var(--foreground)" }}>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px", borderBottom: "1px solid var(--border)", background: "#FFFFFF" }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <CubeMark size={22} />
+          <BrandMark size={22} />
           <span style={{ fontWeight: 700, fontSize: 14 }}>PatternProof</span>
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Partner</span>
         </span>

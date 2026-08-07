@@ -17,19 +17,19 @@ export function ImportIntro({ participant, notes, onParticipant, onNotes, onPick
         Turn your screenshots into a <em>timeline you can search.</em>
       </h2>
 
-      <p className="mt-3" style={{ fontSize: 14.5, lineHeight: 1.6, color: "rgba(20,19,31,0.72)" }}>
+      <p className="mt-3" style={{ fontSize: 14.5, lineHeight: 1.6, color: "rgba(26,18,36,0.72)" }}>
         To be straightforward with you: PatternProof cannot open your phone&apos;s Messages app.
         No app can — iPhone and Android both keep that history closed to other apps. This works
         only from screenshots you choose to add here. Because of that, it works the same whether
         the conversation happened on an iPhone or an Android.
       </p>
 
-      <p className="mt-2" style={{ fontSize: 14.5, lineHeight: 1.6, color: "rgba(20,19,31,0.72)" }}>
+      <p className="mt-2" style={{ fontSize: 14.5, lineHeight: 1.6, color: "rgba(26,18,36,0.72)" }}>
         If the conversation is long, you can add a screen recording of yourself scrolling through it
         instead. We take still frames from it here on your device and read those the same way.
       </p>
 
-      <ul className="mt-4 space-y-2" style={{ fontSize: 13.5, color: "rgba(20,19,31,0.72)" }}>
+      <ul className="mt-4 space-y-2" style={{ fontSize: 13.5, color: "rgba(26,18,36,0.72)" }}>
         <li className="flex gap-2">
           <ShieldCheck size={16} style={{ marginTop: 2, flexShrink: 0 }} />
           Reading the text happens on your own device, in this browser. Nothing is sent to an AI.
@@ -69,14 +69,14 @@ export function ImportIntro({ participant, notes, onParticipant, onNotes, onPick
         disabled={busy}
         className="mt-5 inline-flex w-full items-center justify-center gap-2 sm:w-auto"
         style={{
-          background: "#14131F", color: "#F7F5F0", borderRadius: 2,
+          background: "#1A1224", color: "#FAF8F4", borderRadius: 2,
           padding: "16px 24px", fontWeight: 700, fontSize: 15,
           minHeight: 52, opacity: busy ? 0.6 : 1,
         }}
       >
         <Camera size={18} /> Add screenshots or a recording
       </button>
-      <p className="mt-2" style={{ fontSize: 12.5, color: "rgba(20,19,31,0.55)" }}>
+      <p className="mt-2" style={{ fontSize: 12.5, color: "rgba(26,18,36,0.55)" }}>
         You can stop at any point and pick this back up later.
       </p>
     </div>

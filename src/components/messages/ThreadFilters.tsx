@@ -19,10 +19,10 @@ export function ThreadFilters({
   return (
     <div
       className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4"
-      style={{ background: "#FFFFFF", border: "1px solid rgba(20,19,31,0.14)", borderRadius: 2, padding: 12 }}
+      style={{ background: "#FFFFFF", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2, padding: 12 }}
     >
       <div className="relative">
-        <Search size={14} style={{ position: "absolute", left: 10, top: 14, color: "rgba(20,19,31,0.45)" }} />
+        <Search size={14} style={{ position: "absolute", left: 10, top: 14, color: "rgba(26,18,36,0.45)" }} />
         <input
           className="input-pp"
           style={{ paddingLeft: 30, minHeight: 44 }}

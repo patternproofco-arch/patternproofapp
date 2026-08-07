@@ -124,12 +124,12 @@ export function ReviewThread({ userId, threads, initialThreadId }: Props) {
       {loading ? (
         <div className="space-y-2">
           {[0, 1, 2].map((i) => (
-            <div key={i} style={{ height: 96, background: "rgba(20,19,31,0.05)", borderRadius: 2 }} />
+            <div key={i} style={{ height: 96, background: "rgba(26,18,36,0.05)", borderRadius: 2 }} />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="card-pp">
-          <p style={{ fontSize: 14, color: "rgba(20,19,31,0.65)" }}>
+          <p style={{ fontSize: 14, color: "rgba(26,18,36,0.65)" }}>
             {rows.length === 0
               ? "Nothing here yet — when you're ready, add a few screenshots and they'll appear as a thread."
               : "Nothing matches those filters right now."}

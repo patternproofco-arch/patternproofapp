@@ -7,7 +7,7 @@ import { QuickExitButton } from "@/components/QuickExitButton";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { UtilityBar } from "@/components/UtilityBar";
-import { AppMark } from "@/components/brand/AppMark";
+import { BrandMark } from "@/components/BrandMark";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { quickExit } from "@/lib/quick-exit";
 
@@ -44,7 +44,7 @@ export function AppShell() {
         className="no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 pt-5 md:px-10 md:pt-6"
       >
         <span aria-hidden style={{ width: 1 }} />
-        <AppMark size={42} />
+        <BrandMark size={42} />
         <UtilityBar />
       </header>
 

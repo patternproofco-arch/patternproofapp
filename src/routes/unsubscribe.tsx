@@ -57,7 +57,7 @@ function UnsubscribePage() {
   };
 
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#F7F5F0" }}>
+    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#FAF8F4" }}>
       <div className="card-pp" style={{ maxWidth: 460, width: "100%" }}>
         <div className="label-eyebrow">Email preferences</div>
         {state === "checking" && <p className="mt-3 text-[14px]">One moment — checking this link…</p>}

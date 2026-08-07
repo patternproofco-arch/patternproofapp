@@ -372,17 +372,17 @@ function ClioMattersBrowser() {
           <table className="att-table">
             <thead>
               <tr>
-                <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>MATTER</th>
-                <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>DESCRIPTION</th>
-                <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>CLIENT</th>
-                <th style={{ fontFamily: "'IBM Plex Mono', monospace" }}>STATUS</th>
+                <th style={{ fontFamily: "'Space Grotesk', monospace" }}>MATTER</th>
+                <th style={{ fontFamily: "'Space Grotesk', monospace" }}>DESCRIPTION</th>
+                <th style={{ fontFamily: "'Space Grotesk', monospace" }}>CLIENT</th>
+                <th style={{ fontFamily: "'Space Grotesk', monospace" }}>STATUS</th>
                 <th />
               </tr>
             </thead>
             <tbody>
               {rows.map((m) => (
                 <tr key={m.id}>
-                  <td style={{ fontFamily: "'IBM Plex Mono', monospace", whiteSpace: "nowrap" }}>
+                  <td style={{ fontFamily: "'Space Grotesk', monospace", whiteSpace: "nowrap" }}>
                     {m.display_number ?? m.id}
                   </td>
                   <td>{m.description ?? "—"}</td>

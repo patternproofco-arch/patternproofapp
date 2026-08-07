@@ -34,38 +34,62 @@
   --color-type-physical: #8A5A2E;
   --color-type-emotional: #3A4FA8;
   --color-type-financial: #0F6E56;
-  --color-type-coercive: #4E8C8A;
-  --color-type-custody: #5B4CD6;
-  --color-type-other: #8A8894;
+  --color-type-coercive: #5E1730;
+  --color-type-custody: #7A1F3D;
+  --color-type-other: #6E6579;
 
-  --font-serif: "Newsreader", Georgia, serif;
-  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Newsreader", Georgia, serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-serif: "Fraunces", Georgia, serif;
+  --font-sans: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-mono: "Space Grotesk", ui-monospace, monospace;
+
+  /* Brand palette — oxblood & deep purple moiré system */
+  --color-oxblood: var(--oxblood);
+  --color-oxblood-deep: var(--oxblood-deep);
+  --color-purple: var(--purple);
+  --color-purple-mid: var(--purple-mid);
+  --color-red-bright: var(--red-bright);
+  --color-lav: var(--lav);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-line: var(--line);
 }
 
 :root {
+  /* ---- Brand system: oxblood & deep purple moiré ---- */
+  --oxblood:      #7A1F3D;
+  --oxblood-deep: #5E1730;
+  --purple:       #4A2A6B;
+  --purple-mid:   #5E3785;
+  --red-bright:   #C7405F;
+  --lav:          #8A6BC7;
+  --ink:          #1A1224;
+  --paper:        #FAF8F4;
+  --paper-2:      #F1ECE4;
+  --line:         #E4DDD3;
+
   /* ---- Global tokens (single source of truth) ---- */
-  --pp-ink:        #14131F;
-  --pp-paper:      #F7F5F0;
-  --pp-hairline:   rgba(20,19,31,0.14);
-  --pp-muted:      #8A8894;
+  --pp-ink:        var(--ink);
+  --pp-paper:      var(--paper);
+  --pp-hairline:   var(--line);
+  --pp-muted:      #6E6579;
 
   /* Certainty — identical in every persona, never tinted */
   --pp-confirmed:   #0F6E56;
   --pp-approximate: #3A4FA8;
-  --pp-unknown:     #14131F;
+  --pp-unknown:     #1A1224;
   --pp-urgent:      #8A5A2E;
 
   /* Persona accents — chrome + primary buttons ONLY */
-  --pp-accent-attorney: #152038;
-  --pp-accent-org:      #7FA189;
-  --pp-accent-survivor: #5B4CD6;
-  --pp-accent-shared:   #4E8C8A;
+  --pp-accent-attorney: var(--purple);
+  --pp-accent-org:      var(--purple-mid);
+  --pp-accent-survivor: var(--oxblood);
+  --pp-accent-shared:   var(--oxblood-deep);
 
   /* Default accent for un-scoped surfaces */
   --pp-accent: var(--pp-accent-survivor);
-  --pp-accent-fg: #F7F5F0;
+  --pp-accent-fg: var(--paper);
 
   /* ---- Legacy aliases mapped onto the locked palette ---- */
   --background: var(--pp-paper);
@@ -74,10 +98,10 @@
   --panel: var(--pp-ink);
   --sidebar: var(--pp-ink);
   --sidebar-active: var(--pp-paper);
-  --sidebar-inactive: rgba(247,245,240,0.62);
+  --sidebar-inactive: rgba(250,248,244,0.62);
 
   --primary: var(--pp-accent-survivor);
-  --primary-foreground: #F7F5F0;
+  --primary-foreground: var(--paper);
   --accent: var(--pp-accent-survivor);
   --safe: var(--pp-confirmed);
   --gold: var(--pp-urgent);
@@ -85,7 +109,7 @@
   --brand-pink: var(--pp-accent-survivor);
   --brand-pink-strong: var(--pp-accent-survivor);
   --brand-pink-soft: #FFFFFF;
-  --brand-pink-tint: rgba(91,76,214,0.06);
+  --brand-pink-tint: rgba(122,31,61,0.06);
   --teal-dark: var(--pp-accent-shared);
   --purple-dark: var(--pp-accent-survivor);
 
@@ -96,12 +120,12 @@
   --input: #FFFFFF;
   --ring: var(--pp-accent-survivor);
   --destructive: var(--pp-urgent);
-  --destructive-foreground: #F7F5F0;
+  --destructive-foreground: var(--paper);
   --popover: #FFFFFF;
   --popover-foreground: var(--pp-ink);
   --secondary: #FFFFFF;
   --secondary-foreground: var(--pp-ink);
-  --muted: rgba(20,19,31,0.04);
+  --muted: rgba(26,18,36,0.04);
 
   /* Flat surfaces — every tint collapses to paper/white */
   --pastel-teal: var(--pp-accent-shared);
@@ -136,7 +160,7 @@
   --pp-fg:            var(--pp-ink);
   --pp-card:          #FFFFFF;
   --pp-border:        var(--pp-hairline);
-  --pp-border-strong: rgba(20,19,31,0.24);
+  --pp-border-strong: rgba(26,18,36,0.24);
   --pp-muted-fg:      var(--pp-muted);
   --pp-teal:          var(--pp-accent-shared);
   --pp-navy:          var(--pp-accent-attorney);
@@ -172,8 +196,8 @@
 /* Persona scoping — one accent per screen */
 [data-persona="attorney"] { --pp-accent: var(--pp-accent-attorney); --pp-accent-fg: #FFFFFF; }
 [data-persona="org"]      { --pp-accent: var(--pp-accent-org);      --pp-accent-fg: var(--pp-ink); }
-[data-persona="survivor"] { --pp-accent: var(--pp-accent-survivor); --pp-accent-fg: #F7F5F0; }
-[data-persona="shared"]   { --pp-accent: var(--pp-accent-shared);   --pp-accent-fg: #F7F5F0; }
+[data-persona="survivor"] { --pp-accent: var(--pp-accent-survivor); --pp-accent-fg: var(--paper); }
+[data-persona="shared"]   { --pp-accent: var(--pp-accent-shared);   --pp-accent-fg: var(--paper); }
 
 @layer base {
   * { border-color: var(--pp-hairline); }
@@ -205,7 +229,7 @@
   h2 { font-size: clamp(1.6rem, 2.6vw, 2.1rem); }
   h3 { font-size: clamp(1.25rem, 1.9vw, 1.5rem); }
   h4 { font-size: clamp(1.05rem, 1.4vw, 1.2rem); }
-  p, li { font-size: 16px; line-height: 1.65; font-weight: 400; color: #3A3849; }
+  p, li { font-size: 16px; line-height: 1.65; font-weight: 400; color: #3A3444; }
   small { font-size: 12px; color: var(--pp-muted); }
   label { font-weight: 600; color: var(--pp-ink); font-size: 13px; }
   button, a { font-weight: 500; color: var(--pp-ink); }
@@ -294,7 +318,7 @@ em, .font-serif em, h1 em, h2 em, h3 em { font-style: italic; color: var(--pp-in
   border: 1px solid var(--pp-hairline);
   box-shadow: none;
 }
-.btn-ghost:hover, .pp-btn-secondary:hover:not(:disabled) { background: rgba(20,19,31,0.04); box-shadow: none; }
+.btn-ghost:hover, .pp-btn-secondary:hover:not(:disabled) { background: rgba(26,18,36,0.04); box-shadow: none; }
 
 .pp-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -308,7 +332,7 @@ em, .font-serif em, h1 em, h2 em, h3 em { font-style: italic; color: var(--pp-in
 .pp-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .pp-btn-navy { background: var(--pp-accent-attorney); color: #FFFFFF; box-shadow: none; }
 .pp-btn-navy:hover:not(:disabled) { filter: brightness(1.15); transform: none; }
-.pp-btn-danger { background: var(--pp-urgent); color: #F7F5F0; }
+.pp-btn-danger { background: var(--pp-urgent); color: #FAF8F4; }
 .pp-btn-danger:hover:not(:disabled) { filter: brightness(0.94); }
 
 /* ---- Inputs ---- */
@@ -371,7 +395,7 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
 .pp-badge-danger  { color: var(--pp-urgent); border-color: rgba(138,90,46,0.45); }
 .pp-badge-info    { color: var(--pp-approximate); border-color: rgba(58,79,168,0.35); }
 .pp-badge-teal    { color: var(--pp-accent-shared); border-color: rgba(78,140,138,0.4); }
-.pp-badge-purple  { color: var(--pp-accent-survivor); border-color: rgba(91,76,214,0.35); }
+.pp-badge-purple  { color: var(--pp-accent-survivor); border-color: rgba(122,31,61,0.35); }
 .pp-badge-outline { color: var(--pp-muted); border-color: var(--pp-hairline); }
 
 /* ---- Page header ---- */
@@ -498,7 +522,7 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
   text-transform: uppercase;
   color: var(--pp-ink);
   background: transparent;
-  border: 1px solid rgba(20,19,31,0.35);
+  border: 1px solid rgba(26,18,36,0.35);
   padding: 3px 8px;
   border-radius: 0;
 }
@@ -533,7 +557,7 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
 .highlight-thread {
   background-image: linear-gradient(90deg,
     rgba(230,139,214,0.55) 0%,
-    rgba(91,76,214,0.55) 50%,
+    rgba(122,31,61,0.55) 50%,
     rgba(78,140,138,0.55) 100%);
   background-repeat: no-repeat;
   background-size: 100% 6px;
@@ -549,7 +573,7 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
 }
 .xref-tag {
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--pp-ink); padding: 2px 6px; border: 1px solid rgba(20,19,31,0.35);
+  color: var(--pp-ink); padding: 2px 6px; border: 1px solid rgba(26,18,36,0.35);
   display: inline-block; margin-right: 6px;
 }
 

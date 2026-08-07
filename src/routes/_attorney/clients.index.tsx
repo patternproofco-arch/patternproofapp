@@ -266,7 +266,7 @@ function DiagnosisCard({ clientCount, tier }: { clientCount: number | null; tier
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div>
           <div className="att-eyebrow">Portal status</div>
-          <h2 style={{ fontSize: 22, margin: "4px 0 6px", fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif" }}>
+          <h2 style={{ fontSize: 22, margin: "4px 0 6px", fontFamily: "\"Space Grotesk\", system-ui, sans-serif" }}>
             {status === "loading" && "Opening your portal…"}
             {status === "empty" && "You're ready. The first invite is the next move."}
             {status === "active" && `${clientCount} client case file${clientCount === 1 ? "" : "s"} active.`}
@@ -304,7 +304,7 @@ function Stat({ icon, label, v }: { icon: React.ReactNode; label: string; v: num
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--att-slate)", fontSize: 11, fontWeight: 600, letterSpacing: 0.6, textTransform: "uppercase" }}>{icon}{label}</div>
-      <div style={{ fontSize: 24, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 2 }}>{v}</div>
+      <div style={{ fontSize: 24, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 2 }}>{v}</div>
     </div>
   );
 }
@@ -554,7 +554,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 12, flexWrap: "wrap" }}>
         <div>
           <div className="att-eyebrow">Survivor invites</div>
-          <h2 style={{ fontSize: 22, marginTop: 4, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif" }}>
+          <h2 style={{ fontSize: 22, marginTop: 4, fontFamily: "\"Space Grotesk\", system-ui, sans-serif" }}>
             Invite a survivor to share their case
           </h2>
         </div>

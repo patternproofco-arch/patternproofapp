@@ -321,7 +321,7 @@ function EvidencePage() {
         className="mt-5 flex items-start gap-3 rounded-[2px] p-4"
         style={{
           background: "#FFFFFF",
-          border: "1px solid rgba(20,19,31,0.14)",
+          border: "1px solid rgba(26,18,36,0.14)",
           color: "var(--foreground)",
           textDecoration: "none",
         }}
@@ -335,7 +335,7 @@ function EvidencePage() {
             Add screenshots of a text conversation in any order. They&apos;re read here on your device — no app can open your phone&apos;s Messages history, so this works from your own screenshots.
           </div>
         </div>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#5B4CD6" }}>Open →</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#7A1F3D" }}>Open →</span>
       </Link>
 
       <Link
@@ -357,7 +357,7 @@ function EvidencePage() {
             Import iPhone, iMessage, or SMS exports (PDF, CSV/Excel, TXT, RSMF, ZIP) into a searchable, flagged timeline.
           </div>
         </div>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#5B4CD6" }}>Open →</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#7A1F3D" }}>Open →</span>
       </Link>
 
       <BatchDropzone onDone={load} />

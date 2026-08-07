@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Check } from "lucide-react";
-import { BrandLockup } from "@/components/brand/BrandLockup";
+import { BrandLogo } from "@/components/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/request-org-access")({
@@ -47,13 +47,13 @@ function RequestOrgAccess() {
   };
 
   return (
-    <div data-persona="org" style={{ minHeight: "100vh", background: "#F7F5F0", padding: "60px 24px" }}>
+    <div data-persona="org" style={{ minHeight: "100vh", background: "#FAF8F4", padding: "60px 24px" }}>
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
         <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted-foreground)", textDecoration: "none", marginBottom: 24 }}>
           <ArrowLeft size={14} /> Back to PatternProof
         </Link>
         <div style={{ background: "#FFFFFF", borderRadius: 2, padding: 36, border: "1px solid var(--border)" }}>
-          <BrandLockup size={44} />
+          <BrandLogo size={44} />
           <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700, marginTop: 20 }}>
             DV organizations · invite-only
           </div>
@@ -106,7 +106,7 @@ function RequestOrgAccess() {
               <button
                 type="submit"
                 disabled={sending}
-                style={{ marginTop: 8, padding: "14px 24px", borderRadius: 2, background: "#7FA189", color: "#14131F", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
+                style={{ marginTop: 8, padding: "14px 24px", borderRadius: 2, background: "#5E3785", color: "#1A1224", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
               >
                 {sending ? "Sending…" : "Request org access"}
               </button>
@@ -115,7 +115,7 @@ function RequestOrgAccess() {
         </div>
         <div style={{ marginTop: 20, textAlign: "center", fontSize: 13, color: "var(--muted-foreground)" }}>
           Already partnering with us?{" "}
-          <Link to="/org-feedback" style={{ color: "#4E8C8A", fontWeight: 600, textDecoration: "underline" }}>
+          <Link to="/org-feedback" style={{ color: "#5E1730", fontWeight: 600, textDecoration: "underline" }}>
             Share feedback about PatternProof
           </Link>
         </div>

@@ -6,16 +6,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
  * shows what advocate intake looks like without and with PatternProof.
  */
 
-const INK = "#14131F";
-const PAPER = "#F7F5F0";
-const SAGE = "#7FA189";
+const INK = "#1A1224";
+const PAPER = "#FAF8F4";
+const SAGE = "#5E3785";
 const SAGE_DEEP = "#2E4A38";
 const MUTED = "#6B6A78";
-const RULE = "rgba(20,19,31,0.14)";
+const RULE = "rgba(26,18,36,0.14)";
 
-const SERIF = "'Newsreader', Georgia, serif";
-const SANS = "'IBM Plex Sans', system-ui, sans-serif";
-const MONO = "'IBM Plex Mono', ui-monospace, monospace";
+const SERIF = "'Fraunces', Georgia, serif";
+const SANS = "'Space Grotesk', system-ui, sans-serif";
+const MONO = "'Space Grotesk', ui-monospace, monospace";
 
 export const Route = createFileRoute("/for-organizations")({
   head: () => ({
@@ -54,7 +54,7 @@ function ForOrganizations() {
         <Link
           to="/request-org-access"
           style={{
-            display: "inline-block", marginTop: 34, background: SAGE, color: "#14131F",
+            display: "inline-block", marginTop: 34, background: SAGE, color: "#1A1224",
             padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
             textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
           }}
@@ -117,7 +117,7 @@ function ForOrganizations() {
           <Link
             to="/request-org-access"
             style={{
-              display: "inline-block", background: SAGE, color: "#14131F",
+              display: "inline-block", background: SAGE, color: "#1A1224",
               padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
               textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
             }}
@@ -215,7 +215,7 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
         {label}
       </div>
       <div style={{ display: "grid", gap: 12 }}>
-        <div style={{ borderLeft: `3px solid rgba(20,19,31,0.25)`, paddingLeft: 14 }}>
+        <div style={{ borderLeft: `3px solid rgba(26,18,36,0.25)`, paddingLeft: 14 }}>
           <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: MUTED, textTransform: "uppercase", marginBottom: 4 }}>
             Before
           </div>

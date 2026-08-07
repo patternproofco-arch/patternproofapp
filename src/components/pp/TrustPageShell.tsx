@@ -8,7 +8,7 @@ export function TrustPage({ title, subtitle, children }: { title: string; subtit
       style={{
         minHeight: "100vh",
         background:
-          "#F7F5F0",
+          "#FAF8F4",
         color: "#1F1A2E",
         fontFamily: "Inter, system-ui, -apple-system, sans-serif",
         padding: "32px 20px 80px",
@@ -18,7 +18,7 @@ export function TrustPage({ title, subtitle, children }: { title: string; subtit
         <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#6B5FA4", textDecoration: "none", fontWeight: 500, marginBottom: 20 }}>
           <ArrowLeft size={14} /> Back to home
         </Link>
-        <h1 style={{ fontFamily: "'Newsreader', Georgia, serif", fontSize: 40, lineHeight: 1.15, margin: "8px 0 12px", fontWeight: 500 }}>{title}</h1>
+        <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 40, lineHeight: 1.15, margin: "8px 0 12px", fontWeight: 500 }}>{title}</h1>
         {subtitle ? <p style={{ fontSize: 17, color: "#4A4560", margin: "0 0 28px", lineHeight: 1.55 }}>{subtitle}</p> : null}
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>{children}</div>
         <hr style={{ margin: "48px 0 20px", border: 0, borderTop: "1px solid rgba(0,0,0,0.08)" }} />
@@ -40,7 +40,7 @@ const linkS = { color: "#6B5FA4", textDecoration: "none", fontWeight: 500 } as c
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
-      <h2 style={{ fontFamily: "'Newsreader', Georgia, serif", fontSize: 22, margin: "0 0 10px", fontWeight: 500 }}>{title}</h2>
+      <h2 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 22, margin: "0 0 10px", fontWeight: 500 }}>{title}</h2>
       <div style={{ fontSize: 15, lineHeight: 1.65, color: "#2A2540" }}>{children}</div>
     </section>
   );

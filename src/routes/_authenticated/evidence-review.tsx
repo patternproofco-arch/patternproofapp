@@ -137,7 +137,7 @@ function EvidenceReviewPage() {
                       </div>
                       {it.in_image_timestamp_text && (
                         <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                          Timestamp printed in image: <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{it.in_image_timestamp_text}</span>
+                          Timestamp printed in image: <span style={{ fontFamily: "'Space Grotesk', monospace" }}>{it.in_image_timestamp_text}</span>
                         </div>
                       )}
                       <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
