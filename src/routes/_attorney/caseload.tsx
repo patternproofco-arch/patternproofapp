@@ -162,7 +162,7 @@ function Kpi({ icon, label, value, tone }: { icon: React.ReactNode; label: strin
       <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--att-text-2)" }}>
         {icon}<span>{label}</span>
       </div>
-      <div style={{ fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", fontSize: 26, marginTop: 6 }}>{value}</div>
+      <div style={{ fontFamily: "\"Space Grotesk\", system-ui, sans-serif", fontSize: 26, marginTop: 6 }}>{value}</div>
     </div>
   );
 }

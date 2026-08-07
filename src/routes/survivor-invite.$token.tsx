@@ -161,7 +161,7 @@ function SurvivorInvitePage() {
           <ShieldCheck size={12} /> Attorney invite
         </div>
       </div>
-      <h1 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 32, marginBottom: 8 }}>
+      <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 32, marginBottom: 8 }}>
         {attorneyDisplay} invited you to share your case.
       </h1>
       <p style={{ color: "#475569", fontSize: 14, marginBottom: 18 }}>
@@ -235,7 +235,7 @@ function SurvivorInvitePage() {
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
           <div>
-            <h2 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 22, margin: 0 }}>What would you like to share?</h2>
+            <h2 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 22, margin: 0 }}>What would you like to share?</h2>
             <p style={{ fontSize: 13, color: "#475569", marginTop: 6 }}>
               Everything is selected by default so you can continue in one click, but you can narrow what this attorney sees before accepting.
             </p>

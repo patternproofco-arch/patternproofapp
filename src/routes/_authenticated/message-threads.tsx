@@ -214,7 +214,7 @@ function MessageThreadsPage() {
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
         <div className="label-eyebrow" style={{ color: "#5B4CD6" }}>Evidence Portal · Conversations</div>
-        <h1 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 40, lineHeight: 1.05, color: "#14131F" }}>
+        <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 40, lineHeight: 1.05, color: "#14131F" }}>
           Upload a Message Thread
         </h1>
         <p style={{ fontSize: 16, lineHeight: 1.6, color: "#3A3849", maxWidth: 720 }}>
@@ -300,7 +300,7 @@ function MessageThreadsPage() {
           <div className="flex items-start justify-between">
             <div>
               <div className="label-eyebrow" style={{ color: "#5B4CD6" }}>Tier 2 · Strongest</div>
-              <h3 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#14131F", marginTop: 4 }}>Backup export walkthrough</h3>
+              <h3 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#14131F", marginTop: 4 }}>Backup export walkthrough</h3>
             </div>
             <button type="button" onClick={() => setTier("picker")} className="text-sm underline" style={{ color: "rgba(20,19,31,0.55)" }}>Back</button>
           </div>
@@ -382,7 +382,7 @@ function MessageThreadsPage() {
 
       {/* Threads list */}
       <section className="flex flex-col gap-4">
-        <h2 style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 300, fontSize: 28, color: "#14131F" }}>
+        <h2 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 28, color: "#14131F" }}>
           Your uploaded conversations
         </h2>
         {threads.length === 0 ? (

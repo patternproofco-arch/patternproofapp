@@ -47,7 +47,7 @@ export const template = {
   },
 } satisfies TemplateEntry
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'IBM Plex Sans', Arial, sans-serif" }
+const main = { backgroundColor: '#ffffff', fontFamily: "'Space Grotesk', Arial, sans-serif" }
 const container = { padding: '24px 28px', maxWidth: '560px' }
 const eyebrow = { fontSize: '11px', letterSpacing: '0.18em', color: '#5B4CD6', fontWeight: 700 as const, margin: '0 0 8px' }
 const h1 = { fontSize: '22px', color: '#14131F', margin: '0 0 16px' }

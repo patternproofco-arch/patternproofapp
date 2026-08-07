@@ -115,7 +115,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   return (
     <div className="att-card">
       <div className="att-eyebrow" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>{icon} {label}</div>
-      <div style={{ fontSize: 28, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>{value}</div>
+      <div style={{ fontSize: 28, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4 }}>{value}</div>
     </div>
   );
 }

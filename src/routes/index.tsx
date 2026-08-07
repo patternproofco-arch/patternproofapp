@@ -80,7 +80,7 @@ function Index() {
         <h1
           style={{
             marginTop: 34,
-            fontFamily: "'Newsreader', Georgia, serif",
+            fontFamily: "'Fraunces', Georgia, serif",
             fontWeight: 300,
             fontSize: "clamp(2.2rem, 5.2vw, 3.6rem)",
             lineHeight: 1.08,
@@ -114,7 +114,7 @@ function Index() {
             fontSize: 17,
             lineHeight: 1.6,
             color: "#3A3849",
-            fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+            fontFamily: "'Space Grotesk', system-ui, sans-serif",
             maxWidth: 620,
           }}
         >
@@ -132,7 +132,7 @@ function Index() {
                 background: "#152038",
                 color: "#F4F6FB",
                 padding: "14px 26px",
-                fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+                fontFamily: "'Space Grotesk', ui-monospace, monospace",
                 fontSize: 13,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
@@ -146,7 +146,7 @@ function Index() {
                 to="/"
                 search={{ ref: undefined }}
                 style={{
-                  fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+                  fontFamily: "'Space Grotesk', system-ui, sans-serif",
                   fontSize: 13,
                   color: "#3A3849",
                   textDecoration: "underline",
@@ -237,7 +237,7 @@ function Index() {
           maxWidth: 780,
           margin: "0 auto",
           padding: "44px 24px 96px",
-          fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+          fontFamily: "'Space Grotesk', system-ui, sans-serif",
           fontSize: 13,
           color: "#3A3849",
           lineHeight: 1.7,
@@ -314,7 +314,7 @@ function PathCard({
             padding: "4px 10px",
             borderRadius: 9999,
             background: "rgba(247,245,240,0.86)",
-            fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+            fontFamily: "'Space Grotesk', ui-monospace, monospace",
             fontSize: 10,
             fontWeight: 500,
             letterSpacing: "0.12em",
@@ -341,7 +341,7 @@ function PathCard({
         <div>
           <div
             style={{
-              fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+              fontFamily: "'Space Grotesk', ui-monospace, monospace",
               fontSize: 11,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
@@ -353,7 +353,7 @@ function PathCard({
           <p
             style={{
               marginTop: 12,
-              fontFamily: "'Newsreader', Georgia, serif",
+              fontFamily: "'Fraunces', Georgia, serif",
               fontWeight: 300,
               fontSize: 18,
               lineHeight: 1.5,
@@ -367,7 +367,7 @@ function PathCard({
           style={{
             display: "inline-block",
             marginTop: 18,
-            fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+            fontFamily: "'Space Grotesk', ui-monospace, monospace",
             fontSize: 12,
             letterSpacing: "0.1em",
             textTransform: "uppercase",

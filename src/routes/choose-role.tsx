@@ -8,9 +8,9 @@ const VIOLET = "#5B4CD6";
 const NAVY = "#152038";
 const SAGE = "#2E4A38";
 
-const SERIF = "'Newsreader', Georgia, serif";
-const SANS = "'IBM Plex Sans', system-ui, sans-serif";
-const MONO = "'IBM Plex Mono', ui-monospace, monospace";
+const SERIF = "'Fraunces', Georgia, serif";
+const SANS = "'Space Grotesk', system-ui, sans-serif";
+const MONO = "'Space Grotesk', ui-monospace, monospace";
 
 export const Route = createFileRoute("/choose-role")({
   head: () => ({

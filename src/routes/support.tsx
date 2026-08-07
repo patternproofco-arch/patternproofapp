@@ -197,7 +197,7 @@ const page = {
   minHeight: "100vh",
   background: "#F7F5F0",
   color: "#14131F",
-  fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+  fontFamily: "'Space Grotesk', system-ui, sans-serif",
   padding: "32px 20px 96px",
 } as const;
 
@@ -209,11 +209,11 @@ const backLink = {
 const eyebrow = {
   fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase",
   color: "#5B4CD6", fontWeight: 700, marginBottom: 10,
-  fontFamily: "'IBM Plex Mono', monospace",
+  fontFamily: "'Space Grotesk', monospace",
 } as const;
 
-const h1 = { fontFamily: "'Newsreader', Georgia, serif", fontSize: 38, lineHeight: 1.15, fontWeight: 500, margin: 0 } as const;
-const h2 = { fontFamily: "'Newsreader', Georgia, serif", fontSize: 21, fontWeight: 500, margin: "0 0 8px" } as const;
+const h1 = { fontFamily: "'Fraunces', Georgia, serif", fontSize: 38, lineHeight: 1.15, fontWeight: 500, margin: 0 } as const;
+const h2 = { fontFamily: "'Fraunces', Georgia, serif", fontSize: 21, fontWeight: 500, margin: "0 0 8px" } as const;
 const sub = { fontSize: 16, lineHeight: 1.6, color: "#3A3849", margin: "12px 0 0" } as const;
 const bodyText = { fontSize: 14, lineHeight: 1.65, color: "#3A3849", margin: "0 0 12px" } as const;
 
@@ -233,12 +233,12 @@ const card = {
 
 const labelText = {
   display: "block", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase",
-  fontFamily: "'IBM Plex Mono', monospace", color: "#3A3849", fontWeight: 600, marginBottom: 6,
+  fontFamily: "'Space Grotesk', monospace", color: "#3A3849", fontWeight: 600, marginBottom: 6,
 } as const;
 
 const input = {
   width: "100%", padding: "10px 12px", fontSize: 15,
-  fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+  fontFamily: "'Space Grotesk', system-ui, sans-serif",
   color: "#14131F", background: "#F7F5F0",
   border: "1px solid rgba(20,19,31,0.16)", borderRadius: 2,
 } as const;
@@ -248,7 +248,7 @@ const errorText = { fontSize: 13.5, color: "#5B4CD6", margin: "0 0 12px", lineHe
 const submitBtn = {
   background: "#14131F", color: "#F7F5F0", border: "none",
   borderRadius: 2, padding: "11px 22px", fontSize: 14, fontWeight: 600,
-  cursor: "pointer", fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+  cursor: "pointer", fontFamily: "'Space Grotesk', system-ui, sans-serif",
 } as const;
 
 const emailRow = {
@@ -257,7 +257,7 @@ const emailRow = {
   borderRadius: 2, padding: "10px 12px",
 } as const;
 
-const emailText = { fontFamily: "'IBM Plex Mono', monospace", fontSize: 14, color: "#14131F" } as const;
+const emailText = { fontFamily: "'Space Grotesk', monospace", fontSize: 14, color: "#14131F" } as const;
 
 const copyBtn = {
   display: "inline-flex", alignItems: "center", gap: 6,

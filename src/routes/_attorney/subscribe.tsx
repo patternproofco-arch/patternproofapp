@@ -171,7 +171,7 @@ function SubscribePage() {
                 </span>
               )}
               <div className="att-eyebrow">{tier.name}</div>
-              <div style={{ fontSize: 36, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif", marginTop: 4 }}>
+              <div style={{ fontSize: 36, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4 }}>
                 {tier.priceStrike && (
                   <span style={{ fontSize: 18, color: "var(--att-text-2)", textDecoration: "line-through", marginRight: 8, fontFamily: "inherit" }}>
                     {tier.priceStrike}
@@ -201,7 +201,7 @@ function SubscribePage() {
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 32, marginTop: 32 }}>
         <div>
           <div className="att-eyebrow">Selected: {t.name}</div>
-          <h2 style={{ fontSize: 26, marginTop: 4, marginBottom: 8, fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif" }}>
+          <h2 style={{ fontSize: 26, marginTop: 4, marginBottom: 8, fontFamily: "\"Space Grotesk\", system-ui, sans-serif" }}>
             {t.close}
           </h2>
           <p style={{ color: "var(--att-text-2)", fontSize: 14 }}>

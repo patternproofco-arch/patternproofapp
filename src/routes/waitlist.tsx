@@ -7,9 +7,9 @@ const INK = "#14131F";
 const PAPER = "#F7F5F0";
 const MUTED = "#6B6A78";
 const RULE = "rgba(20,19,31,0.14)";
-const SERIF = "'Newsreader', Georgia, serif";
-const SANS = "'IBM Plex Sans', system-ui, sans-serif";
-const MONO = "'IBM Plex Mono', ui-monospace, monospace";
+const SERIF = "'Fraunces', Georgia, serif";
+const SANS = "'Space Grotesk', system-ui, sans-serif";
+const MONO = "'Space Grotesk', ui-monospace, monospace";
 
 type Interest = "survivor" | "attorney" | "organization" | "other";
 const INTERESTS: { value: Interest; label: string }[] = [

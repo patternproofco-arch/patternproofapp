@@ -2,7 +2,7 @@
    PatternProof — Attorney Portal Design System (v2)
    Dense navy practice-management UI. Deliberately NOT the
    survivor register: no serif, no warm paper, no wide spacing.
-   Typography: IBM Plex Sans (UI) + IBM Plex Mono (all data).
+   Typography: Space Grotesk (UI) + Space Grotesk (all data).
    Accent: muted gold — actions/status only.
    Loaded only by routes under /_attorney/* and /accept-invite.
    Everything is scoped under .att-root.
@@ -39,7 +39,7 @@
   color: var(--att-text);
   --pp-accent: #152038;
   --pp-accent-fg: #FFFFFF;
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-family: "Space Grotesk", system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.45;
   min-height: 100vh;
@@ -50,7 +50,7 @@
 
 /* No serif anywhere in the attorney portal. */
 .att-root h1, .att-root h2, .att-root h3, .att-root h4, .att-root .att-serif {
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-family: "Space Grotesk", system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.012em;
   color: var(--att-text);
@@ -59,9 +59,9 @@
 }
 .att-root h1 { font-size: 21px; }
 
-/* Newsreader is reserved for page titles only. */
+/* Fraunces is reserved for page titles only. */
 .att-root .att-page-title {
-  font-family: "Newsreader", Georgia, serif;
+  font-family: "Fraunces", Georgia, serif;
   font-weight: 400;
   font-size: 26px;
   letter-spacing: -0.01em;
@@ -73,13 +73,13 @@
 
 .att-root .att-mono,
 .att-root .att-num {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
 
 .att-root .att-eyebrow {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -123,7 +123,7 @@
 }
 .att-exhibit--accent { border-left: 2px solid var(--att-accent); }
 .att-exhibit-label {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--att-slate);
 }
@@ -187,7 +187,7 @@
 .att-search-wrap { position: relative; display: inline-flex; align-items: center; }
 .att-search-wrap .att-input { padding-left: 28px; padding-right: 30px; }
 .att-kbd {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 10px; color: var(--att-slate);
   border: 1px solid var(--att-border-strong); border-radius: 2px;
   padding: 1px 4px; background: var(--att-surface-2);
@@ -218,7 +218,7 @@
   border-bottom: 1px solid var(--att-border);
   text-align: left;
   padding: 7px 10px;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--att-slate);
   white-space: nowrap;
@@ -240,7 +240,7 @@
   background: #E7EDF7;
   box-shadow: inset 2px 0 0 var(--att-navy);
 }
-.att-table td.num { text-align: right; font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.att-table td.num { text-align: right; font-family: "Space Grotesk", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 .att-table a { color: var(--att-navy); text-decoration: none; font-weight: 600; }
 .att-table a:hover { text-decoration: underline; }
 .att-table-scroll { max-height: none; overflow-x: auto; }
@@ -249,7 +249,7 @@
 .att-tag {
   display: inline-flex; align-items: center;
   padding: 2px 7px; border-radius: 2px;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 10px; font-weight: 500;
   letter-spacing: 0.06em; text-transform: uppercase;
   white-space: nowrap;
@@ -273,7 +273,7 @@
   display: inline-flex; align-items: center; gap: 4px;
   min-width: 22px; justify-content: center;
   padding: 1px 6px; border-radius: 2px;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 11px; font-weight: 500;
   border: 1px solid var(--att-border-strong);
   background: var(--att-surface-2); color: var(--att-text-2);
@@ -297,7 +297,7 @@
   color: #fff;
   --pp-accent: #152038;
   --pp-accent-fg: #FFFFFF;
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-family: "Space Grotesk", system-ui, sans-serif;
   font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
   text-decoration: none;
 }
@@ -327,7 +327,7 @@
   background: var(--att-surface-2);
   border-bottom: 1px solid var(--att-border);
   padding: 5px 20px;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 10.5px;
   letter-spacing: 0.04em;
   color: var(--att-slate);
@@ -339,7 +339,7 @@
 /* ---------- breadcrumb ---------- */
 .att-breadcrumb {
   padding: 12px 20px 0;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 10.5px; letter-spacing: 0.05em;
   color: var(--att-slate);
 }
@@ -352,7 +352,7 @@
   border-top: 1px solid var(--att-border);
   padding: 12px 20px;
   margin-top: 36px;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 10.5px;
   color: var(--att-slate);
   display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
@@ -370,7 +370,7 @@
 .att-divider { height: 1px; background: var(--att-border); margin: 10px 0; }
 .att-kpi-strip { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 1px; background: var(--att-border); border: 1px solid var(--att-border); border-radius: 2px; overflow: hidden; }
 .att-kpi { background: var(--att-surface); padding: 10px 12px; }
-.att-kpi-value { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 20px; font-weight: 500; color: var(--att-text); font-variant-numeric: tabular-nums; }
+.att-kpi-value { font-family: "Space Grotesk", ui-monospace, monospace; font-size: 20px; font-weight: 500; color: var(--att-text); font-variant-numeric: tabular-nums; }
 
 @media (max-width: 768px) {
   .att-nav { padding: 0 12px; height: auto; flex-wrap: wrap; gap: 6px; padding-top: 8px; padding-bottom: 8px; }
@@ -411,12 +411,12 @@
   text-decoration: none;
 }
 .att-sidebar-brand span {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--att-slate);
 }
 .att-sidebar-section {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--att-muted);
   padding: 14px 8px 6px;
@@ -472,7 +472,7 @@
 .att-table-toolbar .att-input { width: 240px; }
 .att-table-count {
   margin-left: auto;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--att-slate);
 }

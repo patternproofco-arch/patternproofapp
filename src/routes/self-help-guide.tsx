@@ -7,9 +7,9 @@ const RULE = "rgba(20,19,31,0.14)";
 const VIOLET = "#5B4CD6";
 const CAUTION = "#8A5A2E";
 
-const SERIF = "'Newsreader', Georgia, serif";
-const SANS = "'IBM Plex Sans', system-ui, sans-serif";
-const MONO = "'IBM Plex Mono', ui-monospace, monospace";
+const SERIF = "'Fraunces', Georgia, serif";
+const SANS = "'Space Grotesk', system-ui, sans-serif";
+const MONO = "'Space Grotesk', ui-monospace, monospace";
 
 export const Route = createFileRoute("/self-help-guide")({
   head: () => ({
