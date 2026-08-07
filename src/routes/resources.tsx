@@ -290,6 +290,22 @@ function ResourceCard({ r }: { r: StateResource }) {
           <Globe size={13} /> {r.url.replace(/^https?:\/\//, "")}
         </a>
       </div>
+      <VerificationLine dateLastChecked={r.dateLastChecked} />
+    </div>
+  );
+}
+
+function VerificationLine({ dateLastChecked }: { dateLastChecked: string | null }) {
+  if (dateLastChecked) {
+    return (
+      <div style={{ marginTop: 10, fontFamily: MONO, fontSize: 11, letterSpacing: "0.04em", color: MUTED }}>
+        Verified {dateLastChecked}
+      </div>
+    );
+  }
+  return (
+    <div style={{ marginTop: 10, fontFamily: MONO, fontSize: 11, letterSpacing: "0.04em", color: "#7A1F3D" }}>
+      Not yet independently re-verified — confirm before relying on this number
     </div>
   );
 }
