@@ -31,11 +31,55 @@ export const Route = createFileRoute("/resources")({
   component: ResourcesRoute,
 });
 
+const SAFE_DEVICE_WARNING = "Call or visit from a device the other person cannot check.";
+/** These four are nationally standardized, published lines — checked on this date. */
+const NATIONAL_CHECKED = "2026-08-07";
+
 const NATIONAL: StateResource[] = [
-  { name: "National Domestic Violence Hotline", url: "https://www.thehotline.org", phone: "1-800-799-7233" },
-  { name: "StrongHearts Native Helpline", url: "https://strongheartshelpline.org", phone: "1-844-762-8483" },
-  { name: "National Sexual Assault Hotline (RAINN)", url: "https://www.rainn.org", phone: "1-800-656-4673" },
-  { name: "988 Suicide & Crisis Lifeline", url: "https://988lifeline.org", phone: "988" },
+  {
+    name: "National Domestic Violence Hotline",
+    url: "https://www.thehotline.org",
+    phone: "1-800-799-7233",
+    resourceOwner: "National Domestic Violence Hotline / The Hotline",
+    jurisdiction: "US",
+    issueCovered: "Domestic violence — 24/7 crisis support and safety planning",
+    dateLastChecked: NATIONAL_CHECKED,
+    safeDeviceWarning: SAFE_DEVICE_WARNING,
+    humanContactMethod: "Phone",
+  },
+  {
+    name: "StrongHearts Native Helpline",
+    url: "https://strongheartshelpline.org",
+    phone: "1-844-762-8483",
+    resourceOwner: "StrongHearts Native Helpline",
+    jurisdiction: "US",
+    issueCovered: "Domestic and sexual violence — Native-specific advocacy",
+    dateLastChecked: NATIONAL_CHECKED,
+    safeDeviceWarning: SAFE_DEVICE_WARNING,
+    humanContactMethod: "Phone",
+  },
+  {
+    name: "National Sexual Assault Hotline (RAINN)",
+    url: "https://www.rainn.org",
+    phone: "1-800-656-4673",
+    resourceOwner: "RAINN",
+    jurisdiction: "US",
+    issueCovered: "Sexual assault — crisis support",
+    dateLastChecked: NATIONAL_CHECKED,
+    safeDeviceWarning: SAFE_DEVICE_WARNING,
+    humanContactMethod: "Phone",
+  },
+  {
+    name: "988 Suicide & Crisis Lifeline",
+    url: "https://988lifeline.org",
+    phone: "988",
+    resourceOwner: "988 Suicide & Crisis Lifeline",
+    jurisdiction: "US",
+    issueCovered: "Suicide and mental health crisis",
+    dateLastChecked: NATIONAL_CHECKED,
+    safeDeviceWarning: SAFE_DEVICE_WARNING,
+    humanContactMethod: "Phone",
+  },
 ];
 
 const GUIDANCE: { title: string; body: string; to?: string; label?: string }[] = [
@@ -139,6 +183,7 @@ function ResourcesPage() {
                 <span style={{ ...linkStyle, borderColor: "transparent", color: MUTED }}><MessageSquare size={13} /> Text START to 88788</span>
                 <a href="https://www.thehotline.org" target="_blank" rel="noreferrer" style={linkStyle}><Globe size={13} /> thehotline.org</a>
               </div>
+              <VerificationLine dateLastChecked={NATIONAL[0].dateLastChecked} />
             </div>
             {NATIONAL.slice(1).map((r) => <ResourceCard key={r.name} r={r} />)}
           </div>
