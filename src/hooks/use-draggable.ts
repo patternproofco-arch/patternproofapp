@@ -22,6 +22,10 @@ export function useDraggable(
   const dragging = useRef(false);
   const moved = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
+  const start = useRef({ x: 0, y: 0 });
+  /** Below this many px of travel we treat the gesture as a tap, not a drag —
+   *  otherwise a shaky finger swallows the click on a safety-critical button. */
+  const DRAG_THRESHOLD = 6;
 
   useEffect(() => {
     const el = ref.current;
@@ -32,6 +36,8 @@ export function useDraggable(
       const h = rect.height;
       const left = Math.max(4, Math.min(window.innerWidth - w - 4, cx - offset.current.x));
       const top = Math.max(4, Math.min(window.innerHeight - h - 4, cy - offset.current.y));
+      const dist = Math.hypot(cx - start.current.x, cy - start.current.y);
+      if (dist < DRAG_THRESHOLD && !moved.current) return;
       moved.current = true;
       setPos({ left, top });
     };
@@ -65,6 +71,7 @@ export function useDraggable(
     if (!el) return;
     const rect = el.getBoundingClientRect();
     offset.current = { x: clientX - rect.left, y: clientY - rect.top };
+    start.current = { x: clientX, y: clientY };
     moved.current = false;
     dragging.current = true;
   };
