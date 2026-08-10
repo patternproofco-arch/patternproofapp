@@ -91,6 +91,97 @@ function SelfHelpGuide() {
         />
 
         <Exchange
+          question="What actually happens when I file? Walk me through the day."
+          kind="general"
+          answer={
+            <>
+              Generally: you go to the clerk's window (family, civil, or domestic-relations, depending
+              on the county) and ask for the protective-order petition packet. It's free to file —
+              you should not be charged for a DV petition. You fill in who the other person is, your
+              relationship, and what happened, with dates. Write plainly and specifically: “On March 4
+              he blocked the door and took my phone” carries more than “he is controlling.” The clerk
+              takes the packet to a judge, often the same day. Many courts now have a self-help desk
+              or a DV advocate stationed in the building who will sit with you while you fill it out —
+              ask at the window. Expect the whole visit to take a few hours, so bring what you'd need
+              for a long wait, and arrange childcare if you can.
+            </>
+          }
+          link={{ label: "Find a free DV advocate in your state →", to: "/resources" }}
+        />
+
+        <Exchange
+          question="What is the hearing like?"
+          kind="general"
+          answer={
+            <>
+              The full hearing is usually scheduled within a couple of weeks of a temporary order.
+              Both people are told to appear. It is generally short — often under an hour — and it is
+              not a criminal trial. You'll be sworn in and asked to describe what happened; the other
+              person, or their lawyer, may ask you questions. You may also be able to ask them
+              questions. Judges are looking for specifics: dates, what was said, what was done, what
+              you did afterwards. Answer only what is asked, say “I don't remember” when you don't,
+              and don't guess. If the other person has a lawyer and you don't, you can ask the court
+              for time to find one — legal aid or a DV program may be able to appear with you.
+              If you're afraid to be in the same room, tell the clerk or the advocate <em>before</em>
+              the hearing: many courts allow separate waiting areas, remote appearance, or a screen.
+            </>
+          }
+          link={{ label: "Talk to a free legal-aid attorney →", to: "/resources" }}
+        />
+
+        <Exchange
+          question="What should I bring with me?"
+          kind="general"
+          answer={
+            <>
+              A practical list:
+              <ul style={{ margin: "12px 0 0", paddingLeft: 20, display: "grid", gap: 6 }}>
+                <li>Photo ID, and any existing court paperwork — custody orders, prior protective orders, police report numbers.</li>
+                <li>Your written timeline: dates, times, places, what happened, who saw it.</li>
+                <li>Printed copies of anything you want the judge to see — messages, photos, call logs, medical or repair records. Bring <strong>three</strong> sets: one for the judge, one for the other side, one for you. Phones are often not enough; some courts won't scroll through a device.</li>
+                <li>Names and contact details for witnesses, and whether they can attend.</li>
+                <li>The other person's address, workplace, and vehicle, if you know them — orders have to be served, and the court needs somewhere to send the server.</li>
+                <li>A list of exactly what you're asking for: no contact, stay-away distance, who stays in the home, temporary custody or a parenting-time schedule, pets, firearm surrender.</li>
+                <li>A support person. They usually can't speak for you, but they can sit with you.</li>
+              </ul>
+            </>
+          }
+          link={{ label: "Build a printable packet from your records →", to: "/how-it-works" }}
+        />
+
+        <Exchange
+          question="What if the other person doesn't show up, or the order gets denied?"
+          kind="general"
+          answer={
+            <>
+              If they were properly served and don't appear, a judge can often still grant the order.
+              If service hasn't happened yet, the hearing is usually continued and any temporary order
+              extended — ask the clerk to confirm that in writing before you leave. If the petition is
+              denied, that is not the end of the road: in most states you can re-file if something new
+              happens, and denial of a civil order doesn't stop a criminal case or a custody filing.
+              Ask the court for the written reason, and take it to an advocate or legal-aid attorney —
+              a denial is often about missing specifics rather than disbelief.
+            </>
+          }
+          link={{ label: "Find a free DV advocate in your state →", to: "/resources" }}
+        />
+
+        <Exchange
+          question="How long will my case take, and what will it cost?"
+          kind="cant-answer"
+          answer={
+            <>
+              This varies too much for anyone online to answer honestly — it depends on your county's
+              docket, whether the other person contests, whether custody is also in play, and how
+              quickly service happens. What's generally true: filing a DV protective order should be
+              free, DV programs and legal aid cost nothing, and you should be skeptical of anyone who
+              quotes you a timeline without knowing your court.
+            </>
+          }
+          link={{ label: "Talk to a free legal-aid attorney →", to: "/resources" }}
+        />
+
+        <Exchange
           question="Will the judge believe me?"
           kind="cant-answer"
           answer={
