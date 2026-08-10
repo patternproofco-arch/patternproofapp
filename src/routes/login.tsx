@@ -35,6 +35,11 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+  const homeForRole = (r: { role: string; is_org_partner?: boolean }) => {
+    if (r.role === "attorney") return "/clients";
+    if (r.role === "advocate") return r.is_org_partner ? "/org-portal" : "/advocate-cases";
+    return "/dashboard";
+  };
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { redirect: redirectTo, ref: refSlug } = Route.useSearch();
