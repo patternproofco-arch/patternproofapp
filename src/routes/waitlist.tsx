@@ -97,7 +97,18 @@ function Waitlist() {
         <div style={{ marginTop: 26, display: "grid", gap: 12 }}>
           <Aside
             label="Attorneys"
-            body="The attorney portal isn't open yet. Leave your email and we'll reach out when it is."
+            body={
+              <>
+                The attorney portal is open — you don't need this list.{" "}
+                <Link
+                  to="/lawyer-signup"
+                  style={{ color: INK, textDecoration: "underline", textUnderlineOffset: 3 }}
+                >
+                  Create your attorney account
+                </Link>{" "}
+                and you can start reviewing client documentation today.
+              </>
+            }
           />
           <Aside
             label="DV organizations"
@@ -191,7 +202,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Aside({ label, body }: { label: string; body: string }) {
+function Aside({ label, body }: { label: string; body: React.ReactNode }) {
   return (
     <div style={{ borderLeft: `3px solid ${RULE}`, paddingLeft: 14 }}>
       <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", color: MUTED, marginBottom: 4 }}>{label}</div>

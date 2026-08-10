@@ -123,7 +123,7 @@ const GUIDANCE: { title: string; body: string; to?: string; label?: string }[] =
 
 function ResourcesRoute() {
   return (
-    <SettingsProvider>
+    <SettingsProvider applyDisguiseTitle={false}>
       <ResourcesPage />
     </SettingsProvider>
   );
