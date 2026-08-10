@@ -222,10 +222,19 @@ export const getMyRole = createServerFn({ method: "GET" })
     ]);
     const roles = (rolesData ?? []).map((r) => r.role as string);
     const hasCollaborations = (collabCount ?? 0) > 0 || (grantCount ?? 0) > 0;
-    let role: "attorney" | "collaborator" | "survivor" = "survivor";
+    let is_org_partner = false;
+    if (roles.includes("advocate")) {
+      const { count } = await supabaseAdmin
+        .from("referral_links")
+        .select("code", { count: "exact", head: true })
+        .eq("org_user_id", context.userId);
+      is_org_partner = (count ?? 0) > 0;
+    }
+    let role: "attorney" | "collaborator" | "advocate" | "survivor" = "survivor";
     if (roles.includes("attorney")) role = "attorney";
+    else if (roles.includes("advocate") && !roles.includes("survivor")) role = "advocate";
     else if (hasCollaborations) role = "collaborator";
-    return { role, roles, hasCollaborations };
+    return { role, roles, hasCollaborations, is_org_partner };
   });
 
 export const upsertAttorneyProfile = createServerFn({ method: "POST" })

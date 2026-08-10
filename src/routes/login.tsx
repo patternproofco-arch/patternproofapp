@@ -65,7 +65,7 @@ function LoginPage() {
         return;
       }
       fetchRole()
-        .then((r) => navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true }))
+        .then((r) => navigate({ to: homeForRole(r), replace: true }))
         .catch(() => navigate({ to: "/dashboard", replace: true }));
     }
   }, [user, loading, navigate, fetchRole, redirectTo, refSlug, recordReferral]);
@@ -102,7 +102,7 @@ function LoginPage() {
           return;
         }
         const r = await fetchRole().catch(() => ({ role: "survivor" as const }));
-        navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true });
+        navigate({ to: homeForRole(r), replace: true });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Something didn't work. Try again in a moment.";
