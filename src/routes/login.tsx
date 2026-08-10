@@ -35,6 +35,11 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+  const homeForRole = (r: { role: string; is_org_partner?: boolean }) => {
+    if (r.role === "attorney") return "/clients";
+    if (r.role === "advocate") return r.is_org_partner ? "/org-portal" : "/advocate-cases";
+    return "/dashboard";
+  };
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { redirect: redirectTo, ref: refSlug } = Route.useSearch();
@@ -65,7 +70,7 @@ function LoginPage() {
         return;
       }
       fetchRole()
-        .then((r) => navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true }))
+        .then((r) => navigate({ to: homeForRole(r), replace: true }))
         .catch(() => navigate({ to: "/dashboard", replace: true }));
     }
   }, [user, loading, navigate, fetchRole, redirectTo, refSlug, recordReferral]);
@@ -102,7 +107,7 @@ function LoginPage() {
           return;
         }
         const r = await fetchRole().catch(() => ({ role: "survivor" as const }));
-        navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true });
+        navigate({ to: homeForRole(r), replace: true });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Something didn't work. Try again in a moment.";
