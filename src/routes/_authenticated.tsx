@@ -57,6 +57,10 @@ function Gate() {
       .then((r) => {
         if (!r.is_survivor && r.roles.includes("attorney")) {
           navigate({ to: "/clients", replace: true });
+          return;
+        }
+        if (!r.is_survivor && r.roles.includes("advocate")) {
+          navigate({ to: r.is_org_partner ? "/org-portal" : "/advocate-cases", replace: true });
         }
       })
       .catch(() => undefined);

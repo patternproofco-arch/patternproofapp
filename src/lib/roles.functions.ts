@@ -20,13 +20,25 @@ export const ensureSurvivorRole = createServerFn({ method: "POST" })
       .eq("user_id", context.userId);
 
     const roles = (existing ?? []).map((r) => String(r.role));
+
+    // Org partners are advocates who own at least one referral code — they
+    // belong in /org-portal, not the survivor app and not the advocate caseload.
+    let is_org_partner = false;
+    if (roles.includes("advocate")) {
+      const { count } = await supabaseAdmin
+        .from("referral_links")
+        .select("code", { count: "exact", head: true })
+        .eq("org_user_id", context.userId);
+      is_org_partner = (count ?? 0) > 0;
+    }
+
     if (roles.length > 0) {
-      return { roles, is_survivor: roles.includes("survivor"), created: false };
+      return { roles, is_survivor: roles.includes("survivor"), is_org_partner, created: false };
     }
 
     const { error } = await supabaseAdmin
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "survivor" }, { onConflict: "user_id,role" });
     if (error) throw new Error(error.message);
-    return { roles: ["survivor"], is_survivor: true, created: true };
+    return { roles: ["survivor"], is_survivor: true, is_org_partner: false, created: true };
   });
