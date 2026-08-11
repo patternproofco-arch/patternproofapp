@@ -126,7 +126,7 @@ function Index() {
         {attorneyMode ? (
           <div style={{ marginTop: 34 }}>
             <Link
-              to="/for-attorneys"
+              to="/sample-case"
               style={{
                 display: "inline-block",
                 background: "#4A2A6B",
@@ -215,7 +215,7 @@ function Index() {
             label="Attorney"
             eyebrow="Attorney"
             body="Get a source-linked chronology on day one instead of a shoebox of screenshots. Hearing prep starts with strategy, not sorting."
-            to="/for-attorneys"
+            to="/sample-case"
             cta="See a sample case →"
           />
           <PathCard
