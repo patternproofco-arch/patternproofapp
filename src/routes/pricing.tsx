@@ -55,6 +55,22 @@ const BASE_TIERS: Tier[] = [
     ctaTo: "/login",
   },
   {
+    key: "court_ready",
+    name: "Court Ready",
+    price: "Pay what you can",
+    sub: "$1 – $500",
+    quote: "For survivors actively preparing for a court date who need extra support without a fixed price barrier.",
+    features: [
+      "Everything in Survivor",
+      "Priority court packet generation",
+      "Expanded export formats (PDF, Markdown, printable packet)",
+      "AI-assisted pattern summary for your records",
+      "One-time unlock — no recurring subscription",
+    ],
+    cta: "Start Court Ready",
+    ctaTo: "/login",
+  },
+  {
     key: "attorney_solo",
     name: "Solo Attorney",
     price: "$297",
@@ -139,8 +155,8 @@ function buildTiers(remainingCharter: number | null): Tier[] {
         ctaTo: "/lawyer-signup",
         featured: true,
       };
-  // Order: Survivor · Solo · Firm (featured, middle) · DV Organization
-  return [BASE_TIERS[0], BASE_TIERS[1], firm, BASE_TIERS[2]];
+  // Order: Survivor · Court Ready · Solo · Firm (featured, middle) · DV Organization
+  return [BASE_TIERS[0], BASE_TIERS[1], BASE_TIERS[2], firm, BASE_TIERS[3]];
 }
 
 const FAQS = [
