@@ -2779,6 +2779,17 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      list_my_oauth_consents: {
+        Args: never
+        Returns: {
+          client_id: string
+          client_name: string
+          client_uri: string
+          granted_at: string
+          id: string
+          scopes: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -2807,6 +2818,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      revoke_my_oauth_consent: {
+        Args: { _consent_id: string }
+        Returns: boolean
       }
     }
     Enums: {
