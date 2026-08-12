@@ -114,13 +114,13 @@ function buildTiers(remainingCharter: number | null): Tier[] {
         key: "attorney_firm",
         name: "Firm",
         price: "$897",
-        sub: "/month · up to 15 seats",
+        sub: "/month · shared firm workspace",
         eyebrowNote: "Charter cohort is full — thank you.",
         quote: "Built for 3–15 attorney family-law firms.",
         features: [
-          "Up to 15 attorney seats in one firm workspace",
+          "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
           "Everything in Solo Attorney",
-          "Unlimited active client matters",
+          "No matter limit enforced today",
           "Multi-attorney collaboration and shared case notes",
           "Caseload and capacity view across the firm",
           "Conflict-of-interest check across your own PatternProof caseload",
@@ -142,9 +142,9 @@ function buildTiers(remainingCharter: number | null): Tier[] {
             : `${remainingCharter} of 10 Charter spots remaining`,
         quote: "Built for 3–15 attorney family-law firms.",
         features: [
-          "Up to 15 attorney seats in one firm workspace",
+          "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
           "Everything in Solo Attorney",
-          "Unlimited active client matters",
+          "No matter limit enforced today",
           "Multi-attorney collaboration and shared case notes",
           "Caseload and capacity view across the firm",
           "Conflict-of-interest check across your own PatternProof caseload",
@@ -182,7 +182,7 @@ const FAQS = [
   },
   {
     q: "Is my data safe?",
-    a: "All data is encrypted in transit (HTTPS/TLS) and scoped to its owning account by row-level security. At-rest encryption is provided by our infrastructure host as part of their platform; we have not independently audited that configuration. Row-level security scopes each record to its owning account. We do not currently offer end-to-end (zero-knowledge) encryption — if that's a hard requirement for you, tell us.",
+    a: "All data is encrypted in transit (HTTPS/TLS) and scoped to its owning account by row-level security. At-rest encryption is provided by our infrastructure host as part of their platform; we have not independently audited that configuration. We do not currently offer end-to-end (zero-knowledge) encryption — if that's a hard requirement for you, tell us.",
   },
 ];
 

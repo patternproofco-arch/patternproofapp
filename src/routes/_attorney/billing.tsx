@@ -30,7 +30,7 @@ const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: st
     per: "/mo · locked 12 months",
     priceId: "attorney_firm_charter_monthly",
     recommended: true,
-    bullets: ["Up to 15 attorney seats", "Unlimited active client matters", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Charter rate locked 12 months, then $897/mo"],
+    bullets: ["Shared firm workspace — invite colleagues to a case (seats not metered today)", "No matter limit enforced today", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Charter rate locked 12 months, then $897/mo"],
   },
   {
     key: "firm",
@@ -38,7 +38,7 @@ const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: st
     price: "$897",
     per: "/mo",
     priceId: "attorney_firm_monthly",
-    bullets: ["Up to 15 attorney seats", "Unlimited active client matters", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Priority client onboarding support"],
+    bullets: ["Shared firm workspace — invite colleagues to a case (seats not metered today)", "No matter limit enforced today", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Priority client onboarding support"],
   },
 ];
 

@@ -46,9 +46,9 @@ const TIERS: Record<TierKey, {
     priceId: "attorney_firm_charter_monthly",
     recommended: true,
     bullets: [
-      "Up to 15 attorney seats in one firm workspace",
+      "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
       "Everything in Solo Attorney",
-      "Unlimited active client matters",
+      "No matter limit enforced today",
       "Multi-attorney collaboration and shared case notes",
       "Caseload and capacity view across the firm",
       "Conflict check across your own caseload",
@@ -64,9 +64,9 @@ const TIERS: Record<TierKey, {
     cadence: "/month",
     priceId: "attorney_firm_monthly",
     bullets: [
-      "Up to 15 attorney seats in one firm workspace",
+      "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
       "Everything in Solo Attorney",
-      "Unlimited active client matters",
+      "No matter limit enforced today",
       "Multi-attorney collaboration and shared case notes",
       "Caseload and capacity view across the firm",
       "Conflict check across your own caseload",
