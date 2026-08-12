@@ -142,8 +142,12 @@ bullet, two FAQ answers), `how-it-works.tsx`, and `_authenticated/court-ready.ts
   (`how-it-works.tsx`).
 - Outcome claim "difference between a case that moves and one that stalls" removed.
 - "Judges tend to weigh contemporaneous records more heavily" softened (`self-help-guide.tsx`).
-- Demo severity labels → entry counts; "Export (.docx)" → "Export packet (PDF)" (`demo.tsx`);
-  no `.docx` export exists in the codebase.
+- Demo severity labels → entry counts. The demo's "Export (.docx)" button was changed to
+  "Export packet (PDF)": the demo shows a survivor record, and survivor-side exports emit PDF
+  and a ZIP of CSV/MD/JSON, not .docx. **Correction to the first pass:** a real .docx export
+  *does* exist, but only on the attorney side — `_attorney/clients.$clientId.tsx` builds a
+  Professional-Review Packet with the `docx` library (`Packer.toBlob`). Attorney-facing copy may
+  accurately mention .docx; survivor-facing copy may not.
 - AI neutrality constraints in `pattern-analysis.functions.ts`, `ai-chat.functions.ts`,
   `agent-prompt.ts`; unreviewed AI claims filtered from exports by `pattern-export.ts`.
 
@@ -183,12 +187,22 @@ checked.
 ## Commands run
 
 ```
-bunx tsgo --noEmit                 # typecheck
-bun run build                      # production build
-curl -sI https://app.clio.com/oauth/authorize?client_id=…   # → 302 /session/new (inconclusive)
+bunx tsgo --noEmit    # PASS — no output, exit 0
+bun run build         # PASS — "✓ built in 24.65s", nitro/cloudflare output generated, exit 0
+bun run lint          # FAIL — 9,487 problems, ~all prettier/prettier formatting errors,
+                      #   pre-existing and repo-wide (9,409 auto-fixable). No correctness
+                      #   errors attributable to this audit's edits. Not fixed here: a
+                      #   repo-wide reformat would bury the audit diff.
+curl -sI "https://app.clio.com/oauth/authorize?client_id=…&redirect_uri=…"
+                      # → HTTP 302, Location: /session/new  (INCONCLUSIVE — Clio redirects
+                      #   unauthenticated callers to login before validating client_id)
 ```
 
-Results are recorded in the section below at the time of the audit.
+**Tests:** the project has no test suite. `package.json` scripts are dev/build/build:dev/
+preview/lint/format/seo:check/security:audit — there is no `test` script, and a repo-wide
+search for `*.test.*` / `*.spec.*` outside `node_modules` returned nothing. So "run the tests"
+could not be satisfied: there are none to run. Typecheck and production build are the only
+automated gates that exist.
 
 ## Standing rules for future copy
 
