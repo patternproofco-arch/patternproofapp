@@ -30,13 +30,13 @@ const TIERS: Record<TierKey, {
     priceId: "attorney_solo_monthly",
     bullets: [
       "One attorney seat",
-      "Up to 10 active client matters",
+      "Single attorney account (matter counts are not metered today)",
       "Structured chronological timeline + pattern analysis",
       "Exportable case summary (ZIP) — imports into practice management systems",
       "Private attorney notes per incident",
       "Conflict check across your own caseload",
     ],
-    close: "$297/month — one seat, up to 10 active matters.",
+    close: "$297/month — a single attorney account.",
   },
   firm_charter: {
     name: "Firm",

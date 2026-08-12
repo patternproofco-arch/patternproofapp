@@ -170,7 +170,7 @@ const FAQS = [
   },
   {
     q: "How is the Firm tier different from Solo?",
-    a: "Firm gives you up to 15 attorney seats in one shared workspace, unlimited active matters, multi-attorney collaboration, a caseload view across the firm, and a conflict-of-interest check across your own PatternProof caseload. Solo is a single-attorney seat capped at 10 matters.",
+    a: "Firm gives you a shared firm workspace: colleagues can be added to a firm and cases can be shared between them, with shared case notes and a caseload view of the cases shared with you. A conflict-of-interest check runs across your own PatternProof caseload. Solo is a single attorney account. We do not currently meter seats or matter counts on either plan — those limits are commercial expectations, not technical caps.",
   },
   {
     q: "Why don't you sell to DV organizations?",
