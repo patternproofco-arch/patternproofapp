@@ -62,7 +62,7 @@ function PrivacyPage() {
             Privacy Policy
           </h1>
           <p style={{ marginTop: 12, fontSize: 13, color: "#6B6478" }}>
-            Effective Date: June 2026 &nbsp;|&nbsp; Last Updated: June 2026
+            Effective Date: June 2026 &nbsp;|&nbsp; Last Updated: August 2026
           </p>
         </header>
 
@@ -136,11 +136,17 @@ function PrivacyPage() {
 
           <H2>4. AI Processing</H2>
           <p>
-            PatternProof uses AI to analyze documentation and identify patterns. AI processing
-            occurs in real time and is used only to generate outputs for you or your authorized
-            attorney. Your documentation content is not stored by third-party AI providers for
-            training purposes. We use API-based AI services that process data transiently and
-            do not retain it.
+            PatternProof uses AI to group and summarize your documentation. AI outputs — pattern
+            analyses, summaries, and voice-note or recording transcripts — are stored by
+            PatternProof in our database as part of your case record, and are retained on the same
+            terms as the rest of your documentation (see Section 8). They are visible to you and to
+            anyone you choose to share them with.
+          </p>
+          <p>
+            What is not retained is the raw inference call at the third-party model provider: the
+            content sent for a given request is processed to return that result and is not used to
+            train their models. We do not independently control those providers' internal handling
+            or retention beyond the terms of the gateway agreement described in Section 5.
           </p>
 
           <H2>5. How We Share Your Information</H2>
@@ -167,10 +173,10 @@ function PrivacyPage() {
             sub-processors include:
           </p>
           <ul>
-            <li><strong>Lovable</strong> — application hosting and infrastructure</li>
-            <li><strong>Supabase</strong> — database storage</li>
-            <li><strong>Google (Gemini), via the Lovable AI Gateway</strong> — AI pattern analysis and other AI features (transient processing only, data not retained)</li>
-            <li><strong>OpenAI, via the Lovable AI Gateway</strong> — audio transcription of voice notes and recordings only</li>
+            <li><strong>Lovable</strong> — application hosting, infrastructure, and AI Gateway (routes AI requests to underlying model providers)</li>
+            <li><strong>Google (Gemini models)</strong> — AI pattern analysis and voice note transcription, via Lovable's AI Gateway. Processed per-request; PatternProof does not control Google's retention terms independently of Lovable's gateway agreement.</li>
+            <li><strong>Supabase</strong> — database and file storage</li>
+            <li><strong>Google Calendar / Google Drive</strong> — only if you choose to connect these integrations. Used to sync court dates or import files you select. Disconnect anytime; we stop syncing immediately.</li>
             <li><strong>Stripe</strong> — payment processing</li>
           </ul>
           <H3>Legal Requirements</H3>
@@ -197,6 +203,25 @@ function PrivacyPage() {
             and <a href="https://openai.com/policies/" target="_blank" rel="noreferrer">OpenAI</a>).
             If you would prefer not to have content processed this way, avoid the AI features
             listed above; the rest of PatternProof works without them.
+          </p>
+
+          <H2>5.5 Connecting Third-Party AI Tools (MCP)</H2>
+          <p>
+            You may optionally connect an external AI assistant or client application to your
+            PatternProof account using OAuth (the Model Context Protocol, or MCP). This is entirely
+            your choice — nothing is connected unless you approve it on the consent screen.
+          </p>
+          <p>
+            A connected app acts as you. With your approval it can read your documented incidents
+            and evidence records, search your case, and log new incidents on your behalf. Access is
+            scoped strictly to your own data — a connected app can never see another user's records,
+            and it cannot see anything you could not see yourself.
+          </p>
+          <p>
+            Once connected, the external app and its provider handle the data they retrieve under
+            their own privacy terms, which we do not control. You can review your connected apps and
+            revoke access at any time from Settings → Connected apps. Revoking takes effect
+            immediately for new requests.
           </p>
 
           <H2>6. Data Security</H2>
