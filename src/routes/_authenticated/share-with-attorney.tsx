@@ -314,7 +314,7 @@ function ShareWithAttorney() {
                     <span>
                       Share my case with {l.profile?.full_name ?? "this attorney"}'s Clio account?
                       <span style={{ display: "block", color: "var(--muted-foreground)", marginTop: 2 }}>
-                        This shares matter reference info only — the matter number and description — not your case content. Off by default.
+                        This shares matter reference info only — the matter number and description — not your case content. Off by default. Our Clio integration is unverified beta, so this may do nothing yet.
                       </span>
                     </span>
                   </label>
