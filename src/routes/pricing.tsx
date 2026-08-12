@@ -161,7 +161,7 @@ function buildTiers(remainingCharter: number | null): Tier[] {
 const FAQS = [
   {
     q: "Is it really free for survivors?",
-    a: "Yes. Always. No credit card, no trial, no catch. Survivors never pay — and that includes the court packet export and sharing your case with an attorney. Professional Review is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.",
+    a: "Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the court packet export and sharing your case with an attorney. Professional Review is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.",
   },
   {
     q: "What's the Charter Firm program?",
