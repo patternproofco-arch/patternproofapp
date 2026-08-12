@@ -49,7 +49,7 @@ const BASE_TIERS: Tier[] = [
       "Pattern detection",
       "Court packet export — printable case summary (HTML/PDF), free",
       "Attorney sharing — send a secure link to your attorney, free",
-      "Encrypted in transit and at rest",
+      "Encrypted in transit; per-user access controls",
     ],
     cta: "Start Documenting Free",
     ctaTo: "/login",

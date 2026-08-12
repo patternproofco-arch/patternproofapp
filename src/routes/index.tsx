@@ -204,7 +204,7 @@ function Index() {
             icon={FileText}
             label="Survivor"
             eyebrow="Survivor"
-            body="Write down what happened, at your own pace. Photos, messages, and dates stay together — private to your account, encrypted in transit and at rest, shared only when you choose."
+            body="Write down what happened, at your own pace. Photos, messages, and dates stay together — private to your account, protected with per-user access controls and encrypted in transit, shared only when you choose."
             to="/login"
             cta="Start documenting →"
           />
@@ -246,7 +246,7 @@ function Index() {
         <div style={{ marginBottom: 20 }}>
           <BrandMark size={26} />
         </div>
-        Every entry keeps its source. Private by default. Encrypted in transit and at rest. You control what you share, and you can export your records at any time.
+        Every entry keeps its source. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share, and you can export your records at any time.
         <div style={{ marginTop: 18 }}>
           <Link to="/how-it-works" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>How it works</Link>
           <Link to="/privacy" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>

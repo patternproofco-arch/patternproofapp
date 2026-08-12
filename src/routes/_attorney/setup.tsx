@@ -246,7 +246,7 @@ function OnboardingPage() {
               gap: 6,
             }}
           >
-            <Lock size={12} /> Encrypted in transit and at rest · provenance & integrity logged
+            <Lock size={12} /> Encrypted in transit · provenance & integrity logged
           </div>
           <button type="submit" disabled={saving} className="att-btn-primary">
             {saving ? "Saving…" : (
