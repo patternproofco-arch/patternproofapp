@@ -62,10 +62,6 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
     },
     { onConflict: "stripe_subscription_id" },
   );
-
-  // Signal failure only after the rest of the record is persisted, so Stripe
-  // retries the event and the entitlement eventually lands.
-  if (entErr) throw new Error(`entitlement write failed for session ${session.id}`);
 }
 
 async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
@@ -171,6 +167,10 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     },
     { onConflict: "stripe_subscription_id" },
   );
+
+  // Signal failure only after the rest of the record is persisted, so Stripe
+  // retries the event and the entitlement eventually lands.
+  if (entErr) throw new Error(`entitlement write failed for session ${session.id}`);
 }
 
 /**
