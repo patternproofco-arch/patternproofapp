@@ -241,7 +241,13 @@ function ClioPanel() {
 
   return (
     <div className="att-card" id="clio">
-      <div className="att-eyebrow">Clio connection</div>
+      <div className="att-eyebrow">Clio connection · unverified beta</div>
+      <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, borderLeft: "2px solid var(--att-border)", paddingLeft: 10 }}>
+        Our Clio application is still going through Clio's approval process, and this connection has
+        not been confirmed working end-to-end against a live Clio account. Treat it as unverified:
+        it may fail to connect, and matter browsing or linking may not return anything. Nothing here
+        is required — the case-management import package below works on its own.
+      </div>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
           <div style={{ width: 44, height: 44, borderRadius: 2, background: "var(--att-surface-2)", border: "1px solid var(--att-border)", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
@@ -256,7 +262,7 @@ function ClioPanel() {
                 ? "Checking connection…"
                 : state.connected
                   ? `${state.email ?? "Signed in"} · connected ${new Date(state.connectedAt).toLocaleDateString()}`
-                  : "Link your Clio account. The ZIP import package stays available either way."}
+                  : "Try linking your Clio account. The ZIP import package stays available either way."}
             </div>
           </div>
         </div>
@@ -267,7 +273,7 @@ function ClioPanel() {
             </button>
           ) : (
             <button className="att-btn-primary" onClick={connect} disabled={busy || state === null}>
-              {busy ? "Opening Clio…" : "Connect to Clio"}
+              {busy ? "Opening Clio…" : "Try connecting to Clio (beta)"}
             </button>
           )}
         </div>
