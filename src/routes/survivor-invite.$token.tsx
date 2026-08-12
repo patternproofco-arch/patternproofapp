@@ -229,7 +229,7 @@ function SurvivorInvitePage() {
             {busy ? "Connecting…" : mode === "signup" ? "Create account & continue" : "Sign in & continue"}
           </button>
           <div style={{ fontSize: 11, color: "#667085", display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <Lock size={11} /> Encrypted in transit and at rest. You can revoke access at any time from Settings.
+            <Lock size={11} /> Protected with per-user access controls and encrypted in transit. You can revoke access at any time from Settings.
           </div>
         </form>
       ) : (

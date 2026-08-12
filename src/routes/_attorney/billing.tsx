@@ -20,7 +20,7 @@ const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: st
     price: "$297",
     per: "/mo",
     priceId: "attorney_solo_monthly",
-    bullets: ["1 attorney seat", "Up to 10 active client matters", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"],
+    bullets: ["Single attorney account (seats and matter counts are not metered today)", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"],
   },
   {
     key: "firm_charter",
@@ -30,7 +30,7 @@ const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: st
     per: "/mo · locked 12 months",
     priceId: "attorney_firm_charter_monthly",
     recommended: true,
-    bullets: ["Up to 15 attorney seats", "Unlimited active client matters", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Charter rate locked 12 months, then $897/mo"],
+    bullets: ["Shared firm workspace — invite colleagues to a case (seats not metered today)", "No matter limit enforced today", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Charter rate locked 12 months, then $897/mo"],
   },
   {
     key: "firm",
@@ -38,7 +38,7 @@ const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: st
     price: "$897",
     per: "/mo",
     priceId: "attorney_firm_monthly",
-    bullets: ["Up to 15 attorney seats", "Unlimited active client matters", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Priority client onboarding support"],
+    bullets: ["Shared firm workspace — invite colleagues to a case (seats not metered today)", "No matter limit enforced today", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Priority client onboarding support"],
   },
 ];
 
@@ -241,7 +241,13 @@ function ClioPanel() {
 
   return (
     <div className="att-card" id="clio">
-      <div className="att-eyebrow">Clio connection</div>
+      <div className="att-eyebrow">Clio connection · unverified beta</div>
+      <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, borderLeft: "2px solid var(--att-border)", paddingLeft: 10 }}>
+        Our Clio application is still going through Clio's approval process, and this connection has
+        not been confirmed working end-to-end against a live Clio account. Treat it as unverified:
+        it may fail to connect, and matter browsing or linking may not return anything. Nothing here
+        is required — the case-management import package below works on its own.
+      </div>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
           <div style={{ width: 44, height: 44, borderRadius: 2, background: "var(--att-surface-2)", border: "1px solid var(--att-border)", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
@@ -256,7 +262,7 @@ function ClioPanel() {
                 ? "Checking connection…"
                 : state.connected
                   ? `${state.email ?? "Signed in"} · connected ${new Date(state.connectedAt).toLocaleDateString()}`
-                  : "Link your Clio account. The ZIP import package stays available either way."}
+                  : "Try linking your Clio account. The ZIP import package stays available either way."}
             </div>
           </div>
         </div>
@@ -267,7 +273,7 @@ function ClioPanel() {
             </button>
           ) : (
             <button className="att-btn-primary" onClick={connect} disabled={busy || state === null}>
-              {busy ? "Opening Clio…" : "Connect to Clio"}
+              {busy ? "Opening Clio…" : "Try connecting to Clio (beta)"}
             </button>
           )}
         </div>
@@ -347,7 +353,7 @@ function ClioMattersBrowser() {
     <div style={{ marginTop: 18, borderTop: "1px solid var(--att-border)", paddingTop: 16 }}>
       <div className="att-eyebrow">Browse Clio matters</div>
       <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
-        Read-only view of your own Clio matters. Nothing is linked to a PatternProof case here.
+        Read-only view of your own Clio matters, if the connection works. This path has not been verified against a live Clio account. Nothing is linked to a PatternProof case here.
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
         <input

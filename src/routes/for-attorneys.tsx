@@ -62,7 +62,7 @@ function ForAttorneys() {
           See a sample case →
         </Link>
         <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.06em" }}>
-          $297 / mo · one seat · up to 10 active matters
+          $297 / mo · single attorney account
         </div>
       </section>
 
@@ -123,8 +123,8 @@ function ForAttorneys() {
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
         <SectionRule label="Pricing" />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
-          <PriceCard name="Solo" price="$297" per="/ month" bullets={["One attorney seat", "Up to 10 active matters", "Structured chronology + source-linked exhibits", "Cross-reference / inconsistency analysis", "De-branded court-packet PDF export"]} />
-          <PriceCard name="Firm" price="$897" per="/ month" bullets={["3–15 attorney seats", "Unlimited active matters", "Shared caseload + collaborator roles", "Firm-wide document requests"]} highlight />
+          <PriceCard name="Solo" price="$297" per="/ month" bullets={["Single attorney account", "Structured chronology + source-linked exhibits", "Cross-reference / inconsistency analysis", "De-branded court-packet PDF export"]} />
+          <PriceCard name="Firm" price="$897" per="/ month" bullets={["Shared firm workspace for colleagues", "Case sharing between attorneys in your firm", "Shared caseload view + collaborator roles", "Per-client document requests"]} highlight />
           <PriceCard name="Charter Firm" price="$597" per="/ month · locked 12 mo" bullets={["First 10 firms only", "Same as Firm tier", "Rate locked for 12 months", "Direct line to the PatternProof team"]} />
         </div>
         <div style={{ marginTop: 32 }}>

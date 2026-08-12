@@ -23,10 +23,10 @@ export const Route = createFileRoute("/login")({
       { title: "Sign in — PatternProof" },
       { name: "description", content: "Sign in or create your PatternProof account to privately document incidents, evidence, and build your case." },
       { property: "og:title", content: "Sign in — PatternProof" },
-      { property: "og:description", content: "Access your private documentation space. Encrypted in transit and at rest." },
+      { property: "og:description", content: "Access your private documentation space. Protected with per-user access controls and encrypted in transit." },
       { property: "og:url", content: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/login" },
       { name: "twitter:title", content: "Sign in — PatternProof" },
-      { name: "twitter:description", content: "Access your private documentation space. Encrypted in transit and at rest." },
+      { name: "twitter:description", content: "Access your private documentation space. Protected with per-user access controls and encrypted in transit." },
       { name: "robots", content: "noindex" },
     ],
     links: [{ rel: "canonical", href: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/login" }],
@@ -171,7 +171,7 @@ function LoginPage() {
           <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             {mode === "login"
               ? "\n"
-              : "Create an account. Private by default. Encrypted in transit and at rest. You control what you share."}
+              : "Create an account. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share."}
           </p>
 
           <div className="space-y-3 mb-4">

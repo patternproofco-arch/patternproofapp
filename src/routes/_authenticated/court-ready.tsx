@@ -21,7 +21,7 @@ function CourtReadyPage() {
         <h1 className="font-serif text-[28px]">You have Professional Review.</h1>
         <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
           AI-enhanced pattern analysis, premium packet formatting, and priority processing are
-          active on your account. Your packet and attorney sharing were always free.
+          active on your account. Your packet and attorney sharing are free.
         </p>
         <Link to="/court-packet" className="btn-primary inline-block">Open court packet</Link>
       </div>
@@ -37,8 +37,7 @@ function CourtReadyPage() {
           An optional layer, if it helps.
         </h1>
         <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "var(--foreground)" }}>
-          You already have full access to your case, your court packet, and attorney sharing —
-          free, and always. Professional Review is an optional add-on for AI-enhanced pattern
+          You already have full access to your case, your court packet, and attorney sharing at no cost. Professional Review is an optional add-on for AI-enhanced pattern
           analysis and premium formatting. Nothing here is required to take your case to court.
         </p>
       </div>

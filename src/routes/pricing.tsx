@@ -10,9 +10,9 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — PatternProof | Evidence Documentation for Survivors & Attorneys" },
-      { name: "description", content: "PatternProof pricing: free forever for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms." },
+      { name: "description", content: "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms." },
       { property: "og:title", content: "Pricing — PatternProof" },
-      { property: "og:description", content: "Free forever for survivors. Real multi-seat pricing for family-law firms. DV organizations partner with us at no cost." },
+      { property: "og:description", content: "Free for survivors. Firm pricing for family-law practices. DV organizations partner with us at no cost." },
       { property: "og:url", content: "https://pattern-proof.tech/pricing" },
       { property: "og:type", content: "website" },
     ],
@@ -40,8 +40,8 @@ const BASE_TIERS: Tier[] = [
     key: "survivor",
     name: "Survivor",
     price: "Free",
-    sub: "forever",
-    quote: "Built by a survivor, for survivors. Always free.",
+    sub: "no cost",
+    quote: "Built by a survivor, for survivors. Free for survivors.",
     features: [
       "Unlimited incident logging",
       "Photo, document & audio evidence upload",
@@ -49,7 +49,7 @@ const BASE_TIERS: Tier[] = [
       "Pattern detection",
       "Court packet export — printable case summary (HTML/PDF), free",
       "Attorney sharing — send a secure link to your attorney, free",
-      "Encrypted in transit and at rest",
+      "Encrypted in transit; per-user access controls",
     ],
     cta: "Start Documenting Free",
     ctaTo: "/login",
@@ -77,8 +77,7 @@ const BASE_TIERS: Tier[] = [
     sub: "/month · Solo",
     quote: "For solo practitioners taking DV and custody cases one at a time.",
     features: [
-      "One attorney seat",
-      "Up to 10 active client matters",
+      "Single attorney account (seats and matter counts are not metered today)",
       "Structured chronological timeline",
       "Source-linked supporting records",
       "Exportable case summary (ZIP) — imports into practice management systems",
@@ -96,7 +95,7 @@ const BASE_TIERS: Tier[] = [
     sub: "for every survivor you refer",
     quote: "You are a partner, not a customer. Your survivors never pay.",
     features: [
-      "Free forever for every survivor your organization refers",
+      "Free for every survivor your organization refers",
       "Referral link so we can attribute outcomes back to your advocacy",
       "Priority support for your intake team",
       "Direct line to the PatternProof team",
@@ -114,13 +113,13 @@ function buildTiers(remainingCharter: number | null): Tier[] {
         key: "attorney_firm",
         name: "Firm",
         price: "$897",
-        sub: "/month · up to 15 seats",
+        sub: "/month · shared firm workspace",
         eyebrowNote: "Charter cohort is full — thank you.",
         quote: "Built for 3–15 attorney family-law firms.",
         features: [
-          "Up to 15 attorney seats in one firm workspace",
+          "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
           "Everything in Solo Attorney",
-          "Unlimited active client matters",
+          "No matter limit enforced today",
           "Multi-attorney collaboration and shared case notes",
           "Caseload and capacity view across the firm",
           "Conflict-of-interest check across your own PatternProof caseload",
@@ -142,9 +141,9 @@ function buildTiers(remainingCharter: number | null): Tier[] {
             : `${remainingCharter} of 10 Charter spots remaining`,
         quote: "Built for 3–15 attorney family-law firms.",
         features: [
-          "Up to 15 attorney seats in one firm workspace",
+          "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
           "Everything in Solo Attorney",
-          "Unlimited active client matters",
+          "No matter limit enforced today",
           "Multi-attorney collaboration and shared case notes",
           "Caseload and capacity view across the firm",
           "Conflict-of-interest check across your own PatternProof caseload",
@@ -162,7 +161,7 @@ function buildTiers(remainingCharter: number | null): Tier[] {
 const FAQS = [
   {
     q: "Is it really free for survivors?",
-    a: "Yes. Always. No credit card, no trial, no catch. Survivors never pay — and that includes the court packet export and sharing your case with an attorney. Professional Review is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.",
+    a: "Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the court packet export and sharing your case with an attorney. Professional Review is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.",
   },
   {
     q: "What's the Charter Firm program?",
@@ -170,11 +169,11 @@ const FAQS = [
   },
   {
     q: "How is the Firm tier different from Solo?",
-    a: "Firm gives you up to 15 attorney seats in one shared workspace, unlimited active matters, multi-attorney collaboration, a caseload view across the firm, and a conflict-of-interest check across your own PatternProof caseload. Solo is a single-attorney seat capped at 10 matters.",
+    a: "Firm gives you a shared firm workspace: colleagues can be added to a firm and cases can be shared between them, with shared case notes and a caseload view of the cases shared with you. A conflict-of-interest check runs across your own PatternProof caseload. Solo is a single attorney account. We do not currently meter seats or matter counts on either plan — those limits are commercial expectations, not technical caps.",
   },
   {
     q: "Why don't you sell to DV organizations?",
-    a: "Organizations are our referral partners, not our customers. Every survivor a partner organization refers to PatternProof gets full access, free forever — no cost to the organization or the survivor. We work directly with a small number of organizations at a time so we can support your advocates properly.",
+    a: "Organizations are our referral partners, not our customers. Every survivor a partner organization refers to PatternProof gets full access at no cost — no cost to the organization or the survivor. We work directly with a small number of organizations at a time so we can support your advocates properly.",
   },
   {
     q: "Does this work with my practice management system?",
@@ -182,7 +181,7 @@ const FAQS = [
   },
   {
     q: "Is my data safe?",
-    a: "All data is encrypted in transit (HTTPS/TLS) and at rest via our infrastructure provider (Supabase). Row-level security scopes each record to its owning account. We do not currently offer end-to-end (zero-knowledge) encryption — if that's a hard requirement for you, tell us.",
+    a: "All data is encrypted in transit (HTTPS/TLS) and scoped to its owning account by row-level security. At-rest encryption is provided by our infrastructure host as part of their platform; we have not independently audited that configuration. We do not currently offer end-to-end (zero-knowledge) encryption — if that's a hard requirement for you, tell us.",
   },
 ];
 

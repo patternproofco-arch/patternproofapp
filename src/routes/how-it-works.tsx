@@ -145,7 +145,7 @@ function SurvivorFlow({ accent }: { accent: string }) {
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="Survivor · What happens" accent={accent} />
       <Step n="01" accent={accent} title="Add something whenever you're ready."
-        body="A screenshot, a voice note, a few lines about what happened. No forms to finish, no pressure to be complete. Private by default. Encrypted in transit and at rest. You control what you share." />
+        body="A screenshot, a voice note, a few lines about what happened. No forms to finish, no pressure to be complete. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share." />
       <Step n="02" accent={accent} title="It becomes a timeline on its own."
         body="Entries organize themselves by date, place, and type — including approximate dates like 'around April.' You can keep adding out of order; the record stays chronological." />
       <Step n="03" accent={accent} title="Corroboration surfaces what repeats."
@@ -177,7 +177,7 @@ function OrgFlow({ accent }: { accent: string }) {
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="DV org / advocate · What happens" accent={accent} />
       <Step n="01" accent={accent} title="Hand a survivor the free tool at intake."
-        body="PatternProof is free for survivors, always. You share your org's referral link — no seats to buy, no accounts to provision on your side." />
+        body="PatternProof is free for survivors. You share your org's referral link — no seats to buy, no accounts to provision on your side." />
       <Step n="02" accent={accent} title="She documents at her own pace. You see nothing unless she shares it."
         body="Her account is hers. Your organization has no automatic visibility into what she writes. If she chooses to share with an advocate at your org, she grants a scoped, revocable link and can end it at any time." />
       <Step n="03" accent={accent} title="At referral to counsel, she shares a structured record."

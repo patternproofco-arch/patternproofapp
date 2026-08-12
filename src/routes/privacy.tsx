@@ -228,7 +228,7 @@ function PrivacyPage() {
           <p>We take the security of your data seriously. Measures we have implemented include:</p>
           <ul>
             <li>HTTPS/TLS encryption for all data in transit</li>
-            <li>Encryption at rest provided by our infrastructure hosts (Supabase / Postgres and object storage)</li>
+            <li>At-rest encryption is provided by our infrastructure hosts (managed Postgres and object storage) as a platform feature. We rely on their published controls and have not independently audited or certified that configuration.</li>
             <li>Row-level security policies scoping data access to the owning account</li>
             <li>Optional client-side screen lock (PIN or biometric) on your device</li>
             <li>Regular security monitoring, dependency patching, and access review</li>
