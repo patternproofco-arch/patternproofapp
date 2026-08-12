@@ -160,7 +160,7 @@ function CollaboratorInvitePage() {
       )}
       <p style={{ textAlign: "center", marginTop: 16, fontSize: 11, color: "var(--att-muted)" }}>
         <Scale size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }} />
-        Encrypted session · attorney.pattern-proof.tech
+        Encrypted in transit · attorney.pattern-proof.tech
       </p>
     </Frame>
   );

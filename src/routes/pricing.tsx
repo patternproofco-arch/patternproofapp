@@ -123,7 +123,7 @@ function buildTiers(remainingCharter: number | null): Tier[] {
           "Unlimited active client matters",
           "Multi-attorney collaboration and shared case notes",
           "Caseload and capacity view across the firm",
-          "Firm-wide conflict-of-interest detection",
+          "Conflict-of-interest check across your own PatternProof caseload",
           "Priority client onboarding + practice-management-ready exports",
         ],
         cta: "Start with Firm",
@@ -147,7 +147,7 @@ function buildTiers(remainingCharter: number | null): Tier[] {
           "Unlimited active client matters",
           "Multi-attorney collaboration and shared case notes",
           "Caseload and capacity view across the firm",
-          "Firm-wide conflict-of-interest detection",
+          "Conflict-of-interest check across your own PatternProof caseload",
           "Charter program: personal setup, case import, and staff training",
           "$597/month rate locked for 12 months, then $897/month list",
         ],
@@ -170,7 +170,7 @@ const FAQS = [
   },
   {
     q: "How is the Firm tier different from Solo?",
-    a: "Firm gives you up to 15 attorney seats in one shared workspace, unlimited active matters, multi-attorney collaboration, a caseload view across the firm, and firm-wide conflict-of-interest detection. Solo is a single-attorney seat capped at 10 matters.",
+    a: "Firm gives you up to 15 attorney seats in one shared workspace, unlimited active matters, multi-attorney collaboration, a caseload view across the firm, and a conflict-of-interest check across your own PatternProof caseload. Solo is a single-attorney seat capped at 10 matters.",
   },
   {
     q: "Why don't you sell to DV organizations?",

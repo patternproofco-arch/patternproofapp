@@ -178,10 +178,10 @@ function OrgFlow({ accent }: { accent: string }) {
       <Eyebrow text="DV org / advocate · What happens" accent={accent} />
       <Step n="01" accent={accent} title="Hand a survivor the free tool at intake."
         body="PatternProof is free for survivors, always. You share your org's referral link — no seats to buy, no accounts to provision on your side." />
-      <Step n="02" accent={accent} title="She documents at her own pace. You never see her records."
-        body="Her account is hers. Your organization has no back-door visibility into what she writes — that stays true whether she's actively working with you or not." />
+      <Step n="02" accent={accent} title="She documents at her own pace. You see nothing unless she shares it."
+        body="Her account is hers. Your organization has no automatic visibility into what she writes. If she chooses to share with an advocate at your org, she grants a scoped, revocable link and can end it at any time." />
       <Step n="03" accent={accent} title="At referral to counsel, she shares a structured record."
-        body="Instead of arriving at an attorney's office with a bag of screenshots, she arrives with a chronology. That's often the difference between a case that moves and one that stalls." />
+        body="Instead of arriving at an attorney's office with a bag of screenshots, she arrives with a dated, source-linked chronology she wrote herself." />
     </div>
   );
 }

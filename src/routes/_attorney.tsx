@@ -148,7 +148,7 @@ function AttorneyLayout() {
         <span>·</span>
         <span>attorney.pattern-proof.tech</span>
         <span>·</span>
-        <span>Encrypted &amp; confidential</span>
+        <span>Encrypted in transit · confidential</span>
         <span>·</span>
         <span>Session logged · {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
         <span>·</span>
@@ -285,7 +285,7 @@ function SecurityBannerInner() {
     <div className="att-security-banner">
       <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
         <Lock size={12} />
-        This session is encrypted. Case ID: <span className="att-mono">{caseId}</span>.
+        This session is encrypted in transit. Case ID: <span className="att-mono">{caseId}</span>.
         All access is recorded for provenance & integrity.
       </span>
       <button

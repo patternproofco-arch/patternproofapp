@@ -204,7 +204,7 @@ function Index() {
             icon={FileText}
             label="Survivor"
             eyebrow="Survivor"
-            body="Write down what happened, at your own pace. Photos, messages, and dates stay together — private, encrypted, only yours."
+            body="Write down what happened, at your own pace. Photos, messages, and dates stay together — private to your account, encrypted in transit and at rest, shared only when you choose."
             to="/login"
             cta="Start documenting →"
           />
