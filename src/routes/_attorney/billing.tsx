@@ -353,7 +353,7 @@ function ClioMattersBrowser() {
     <div style={{ marginTop: 18, borderTop: "1px solid var(--att-border)", paddingTop: 16 }}>
       <div className="att-eyebrow">Browse Clio matters</div>
       <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
-        Read-only view of your own Clio matters. Nothing is linked to a PatternProof case here.
+        Read-only view of your own Clio matters, if the connection works. This path has not been verified against a live Clio account. Nothing is linked to a PatternProof case here.
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
         <input
