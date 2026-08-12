@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ShieldCheck, KeyRound, Clock3, ScrollText, AlertTriangle, Mic, Trash2 } from "lucide-react";
+import { ShieldCheck, KeyRound, Clock3, ScrollText, AlertTriangle, Mic, Trash2, Plug } from "lucide-react";
 import { MessageCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useSettings } from "@/lib/settings-context";
@@ -23,6 +23,90 @@ interface AuditRow {
   actor: string;
   record_reference: string | null;
   entry_hash: string | null;
+}
+
+interface ConsentRow {
+  id: string;
+  client_id: string;
+  client_name: string | null;
+  client_uri: string | null;
+  scopes: string | null;
+  granted_at: string;
+}
+
+function ConnectedApps() {
+  const [rows, setRows] = useState<ConsentRow[] | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = async () => {
+    const { data, error } = await supabase.rpc("list_my_oauth_consents");
+    if (error) {
+      setRows([]);
+      return;
+    }
+    setRows((data ?? []) as ConsentRow[]);
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const revoke = async (id: string) => {
+    setBusyId(id);
+    const { data, error } = await supabase.rpc("revoke_my_oauth_consent", { _consent_id: id });
+    setBusyId(null);
+    if (error || data !== true) {
+      toast("We couldn't turn off that connection. Try again in a moment.");
+      return;
+    }
+    toast("Access revoked. That app can no longer reach your records.");
+    void load();
+  };
+
+  return (
+    <div className="card-pp mt-6">
+      <div className="flex items-center gap-2">
+        <Plug size={18} style={{ color: "var(--accent)" }} />
+        <h2 className="font-serif text-[19px]">Connected apps</h2>
+      </div>
+      <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+        Outside AI assistants and apps you've allowed to act as you — reading your incidents and
+        evidence, and logging new incidents on your behalf. They can only ever see your own records.
+      </p>
+      {rows === null ? (
+        <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>Checking…</p>
+      ) : rows.length === 0 ? (
+        <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          Nothing connected right now. If you ever approve an app, it'll show up here so you can turn it off.
+        </p>
+      ) : (
+        <div className="mt-4 flex flex-col gap-3">
+          {rows.map((r) => (
+            <div
+              key={r.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] p-3"
+              style={{ background: "var(--input)" }}
+            >
+              <div>
+                <div className="text-[14px] font-semibold">{r.client_name ?? "Connected app"}</div>
+                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  Connected {new Date(r.granted_at).toLocaleDateString()}
+                  {r.scopes ? ` · ${r.scopes}` : ""}
+                </div>
+              </div>
+              <button
+                onClick={() => revoke(r.id)}
+                disabled={busyId === r.id}
+                className="btn-primary"
+              >
+                {busyId === r.id ? "One moment…" : "Revoke access"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 const DISGUISES = [
