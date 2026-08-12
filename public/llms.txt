@@ -2,7 +2,7 @@
 
 > Private documentation app for survivors of domestic abuse and high-conflict custody cases. Helps log incidents, organize evidence, and generate source-linked evidence exports for professional review.
 
-PatternProof is a private journal and case-building tool. Data is encrypted in transit (TLS) and at rest by the hosting provider; it is not end-to-end (zero-knowledge) encrypted. All data is per-user and protected by row-level security. Most pages live behind authentication.
+PatternProof is a private journal and case-building tool. Data is encrypted in transit (TLS) and scoped per user by row-level security. It is not end-to-end (zero-knowledge) encrypted. At-rest encryption is provided by the infrastructure host and has not been independently verified by us. All data is per-user and protected by row-level security. Most pages live behind authentication.
 
 ## Pages
 

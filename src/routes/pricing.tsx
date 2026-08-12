@@ -182,7 +182,7 @@ const FAQS = [
   },
   {
     q: "Is my data safe?",
-    a: "All data is encrypted in transit (HTTPS/TLS) and at rest via our infrastructure provider (Supabase). Row-level security scopes each record to its owning account. We do not currently offer end-to-end (zero-knowledge) encryption — if that's a hard requirement for you, tell us.",
+    a: "All data is encrypted in transit (HTTPS/TLS) and scoped to its owning account by row-level security. At-rest encryption is provided by our infrastructure host as part of their platform; we have not independently audited that configuration. Row-level security scopes each record to its owning account. We do not currently offer end-to-end (zero-knowledge) encryption — if that's a hard requirement for you, tell us.",
   },
 ];
 

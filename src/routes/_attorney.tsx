@@ -148,7 +148,7 @@ function AttorneyLayout() {
         <span>·</span>
         <span>attorney.pattern-proof.tech</span>
         <span>·</span>
-        <span>Encrypted in transit · confidential</span>
+        <span>Encrypted in transit · access logged</span>
         <span>·</span>
         <span>Session logged · {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
         <span>·</span>
