@@ -186,7 +186,7 @@ function SelfHelpGuide() {
           kind="cant-answer"
           answer={
             <>
-              We can't answer this — and honestly, nobody online can. Whether a judge finds you credible depends on the specific judge, the evidence in front of them, how the other side testifies, and dozens of details in your case. What we <em>can</em> say: judges tend to weigh contemporaneous, source-linked records more heavily than reconstructed narratives — which is one reason documenting as things happen matters.
+              We can't answer this — and honestly, nobody online can. Whether a judge finds you credible depends on the specific judge, the evidence in front of them, how the other side testifies, and dozens of details in your case. What we <em>can</em> say: records written close to the time of an event, with their sources attached, are generally easier to present and harder to dispute than a narrative reconstructed later — which is one reason documenting as things happen can help.
             </>
           }
           link={{ label: "Talk to a free legal-aid attorney →", to: "/resources" }}
