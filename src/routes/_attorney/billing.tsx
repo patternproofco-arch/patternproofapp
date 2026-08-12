@@ -20,7 +20,7 @@ const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: st
     price: "$297",
     per: "/mo",
     priceId: "attorney_solo_monthly",
-    bullets: ["1 attorney seat", "Single attorney account (matter counts are not metered today)", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"],
+    bullets: ["Single attorney account (seats and matter counts are not metered today)", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"],
   },
   {
     key: "firm_charter",

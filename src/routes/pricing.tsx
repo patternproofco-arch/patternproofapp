@@ -10,9 +10,9 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — PatternProof | Evidence Documentation for Survivors & Attorneys" },
-      { name: "description", content: "PatternProof pricing: free forever for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms." },
+      { name: "description", content: "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms." },
       { property: "og:title", content: "Pricing — PatternProof" },
-      { property: "og:description", content: "Free forever for survivors. Real multi-seat pricing for family-law firms. DV organizations partner with us at no cost." },
+      { property: "og:description", content: "Free for survivors. Firm pricing for family-law practices. DV organizations partner with us at no cost." },
       { property: "og:url", content: "https://pattern-proof.tech/pricing" },
       { property: "og:type", content: "website" },
     ],
@@ -41,7 +41,7 @@ const BASE_TIERS: Tier[] = [
     name: "Survivor",
     price: "Free",
     sub: "forever",
-    quote: "Built by a survivor, for survivors. Always free.",
+    quote: "Built by a survivor, for survivors. Free for survivors.",
     features: [
       "Unlimited incident logging",
       "Photo, document & audio evidence upload",
@@ -77,8 +77,7 @@ const BASE_TIERS: Tier[] = [
     sub: "/month · Solo",
     quote: "For solo practitioners taking DV and custody cases one at a time.",
     features: [
-      "One attorney seat",
-      "Up to 10 active client matters",
+      "Single attorney account (seats and matter counts are not metered today)",
       "Structured chronological timeline",
       "Source-linked supporting records",
       "Exportable case summary (ZIP) — imports into practice management systems",
@@ -96,7 +95,7 @@ const BASE_TIERS: Tier[] = [
     sub: "for every survivor you refer",
     quote: "You are a partner, not a customer. Your survivors never pay.",
     features: [
-      "Free forever for every survivor your organization refers",
+      "Free for every survivor your organization refers",
       "Referral link so we can attribute outcomes back to your advocacy",
       "Priority support for your intake team",
       "Direct line to the PatternProof team",
@@ -174,7 +173,7 @@ const FAQS = [
   },
   {
     q: "Why don't you sell to DV organizations?",
-    a: "Organizations are our referral partners, not our customers. Every survivor a partner organization refers to PatternProof gets full access, free forever — no cost to the organization or the survivor. We work directly with a small number of organizations at a time so we can support your advocates properly.",
+    a: "Organizations are our referral partners, not our customers. Every survivor a partner organization refers to PatternProof gets full access at no cost — no cost to the organization or the survivor. We work directly with a small number of organizations at a time so we can support your advocates properly.",
   },
   {
     q: "Does this work with my practice management system?",
