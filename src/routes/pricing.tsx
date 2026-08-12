@@ -40,7 +40,7 @@ const BASE_TIERS: Tier[] = [
     key: "survivor",
     name: "Survivor",
     price: "Free",
-    sub: "forever",
+    sub: "no cost",
     quote: "Built by a survivor, for survivors. Free for survivors.",
     features: [
       "Unlimited incident logging",
