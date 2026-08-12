@@ -1326,6 +1326,39 @@ export type Database = {
         }
         Relationships: []
       }
+      entitlements: {
+        Row: {
+          amount_paid: number | null
+          court_ready_paid: boolean
+          created_at: string
+          id: string
+          paid_at: string | null
+          stripe_checkout_session_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number | null
+          court_ready_paid?: boolean
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          stripe_checkout_session_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number | null
+          court_ready_paid?: boolean
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          stripe_checkout_session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       escalation_flags: {
         Row: {
           created_at: string
