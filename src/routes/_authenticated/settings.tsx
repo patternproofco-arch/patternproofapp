@@ -276,6 +276,8 @@ function SettingsPage() {
         )}
       </div>
 
+      <ConnectedApps />
+
       <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--primary)" }}>
         <div className="flex items-center gap-2"><AlertTriangle size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">A note on safety</h2></div>
         <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>
