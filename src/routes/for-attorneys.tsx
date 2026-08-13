@@ -141,7 +141,7 @@ function ForAttorneys() {
             See a sample case →
           </Link>
           <Link
-            to="/lawyer-signup"
+            to="/subscribe"
             style={{
               display: "inline-block", background: "transparent", color: INK,
               padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
@@ -204,7 +204,7 @@ function ForAttorneys() {
           />
         </div>
         <div style={{ marginTop: 32 }}>
-          <Link to="/lawyer-signup"
+          <Link to="/subscribe"
             style={{
               display: "inline-block", background: NAVY, color: "#F4F6FB",
               padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
@@ -212,6 +212,10 @@ function ForAttorneys() {
             }}>
             Create your attorney account →
           </Link>
+          <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.06em", maxWidth: 640, lineHeight: 1.6 }}>
+            Plans start at $297 / month. Firm plans available — charter rate $597 / month locked for 12 months,
+            limited to 10 firms.
+          </div>
         </div>
       </section>
 
