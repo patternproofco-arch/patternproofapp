@@ -126,8 +126,8 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         sub: "/month · locked for 12 months",
         eyebrowNote:
           remainingCharter === null
-            ? "Charter program — limited to 10 firms"
-            : `${remainingCharter} of 10 Charter spots remaining`,
+            ? `Charter program — limited to ${CHARTER_COHORT_CAP} firms`
+            : `${remainingCharter} of ${CHARTER_COHORT_CAP} Charter spots remaining`,
         quote: "Built for 3–15 attorney family-law firms.",
         features: [
           "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
