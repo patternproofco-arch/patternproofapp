@@ -1,4 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { buildTiers } from "@/lib/pricing-tiers";
+import { getCharterAvailability } from "@/lib/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 
 /**
  * Attorney landing — redaction/exhibit vernacular, navy accent only.
@@ -35,6 +39,17 @@ export const Route = createFileRoute("/for-attorneys")({
 });
 
 function ForAttorneys() {
+  // Tier data comes from the shared pricing module so this page can never
+  // drift from /pricing or from the live Charter cohort count.
+  const [remaining, setRemaining] = useState<number | null>(null);
+  useEffect(() => {
+    let env: ReturnType<typeof getStripeEnvironment>;
+    try { env = getStripeEnvironment(); } catch { return; }
+    getCharterAvailability({ data: { environment: env } })
+      .then((r) => setRemaining(r.remaining))
+      .catch(() => setRemaining(null));
+  }, []);
+  const attorneyTiers = buildTiers(remaining).filter((t) => t.key.startsWith("attorney_"));
   return (
     <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
       <TopBar />
@@ -157,51 +172,18 @@ function ForAttorneys() {
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
         <SectionRule label="Pricing" />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
-          <PriceCard
-            name="Solo"
-            price="$297"
-            per="/ month"
-            bullets={[
-              "One attorney seat",
-              "Single attorney account (matter counts are not metered today)",
-              "Structured chronological timeline + pattern analysis",
-              "Exportable case summary (ZIP) — imports into practice management systems",
-              "Private attorney notes per incident",
-              "Conflict check across your own caseload",
-            ]}
-          />
-          <PriceCard
-            name="Firm"
-            price="$597"
-            strike="$897"
-            per="/ month · locked 12 months"
-            note="Charter program — limited to 10 firms."
-            highlight
-            bullets={[
-              "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
-              "Everything in Solo Attorney",
-              "No matter limit enforced today",
-              "Multi-attorney collaboration and shared case notes",
-              "Caseload and capacity view across the firm",
-              "Conflict check across your own caseload",
-              "Charter program: personal setup, case import, and staff training",
-              "$597/month rate locked for 12 months, then $897/month list",
-            ]}
-          />
-          <PriceCard
-            name="Firm"
-            price="$897"
-            per="/ month"
-            bullets={[
-              "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
-              "Everything in Solo Attorney",
-              "No matter limit enforced today",
-              "Multi-attorney collaboration and shared case notes",
-              "Caseload and capacity view across the firm",
-              "Conflict check across your own caseload",
-              "Priority client onboarding support",
-            ]}
-          />
+          {attorneyTiers.map((t) => (
+            <PriceCard
+              key={t.key}
+              name={t.name}
+              price={t.price}
+              strike={t.priceStrike}
+              per={t.sub}
+              note={t.eyebrowNote}
+              highlight={t.featured}
+              bullets={t.features}
+            />
+          ))}
         </div>
         <div style={{ marginTop: 32 }}>
           <Link to="/subscribe"
