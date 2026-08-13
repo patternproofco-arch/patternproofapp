@@ -238,7 +238,7 @@ function TopBar() {
           <Link to="/waitlist" search={{ as: "attorney" as const }} style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
             Get updates
           </Link>
-          <Link to="/lawyer-signup" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
+          <Link to="/subscribe" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
             Attorney portal
           </Link>
         </div>
