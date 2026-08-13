@@ -13,7 +13,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "PatternProof — Turn scattered evidence into structured patterns" },
-      { name: "description", content: "PatternProof turns scattered incidents, evidence, and timelines into organized patterns survivors can document, attorneys can review, and advocates can understand faster." },
+      { name: "description", content: "Turn scattered incidents, evidence, and timelines into organized patterns survivors can document, attorneys can review, and advocates understand faster." },
       { property: "og:title", content: "PatternProof — The truth is in the pattern." },
       { property: "og:description", content: "Pattern infrastructure for DV, custody, and coercive control documentation." },
       { property: "og:url", content: "https://pattern-proof.tech/" },

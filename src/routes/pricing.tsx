@@ -9,7 +9,7 @@ import { getStripeEnvironment } from "@/lib/stripe";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Pricing — PatternProof | Evidence Documentation for Survivors & Attorneys" },
+      { title: "Pricing — PatternProof" },
       { name: "description", content: "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms." },
       { property: "og:title", content: "Pricing — PatternProof" },
       { property: "og:description", content: "Free for survivors. Firm pricing for family-law practices. DV organizations partner with us at no cost." },
@@ -17,6 +17,20 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:type", content: "website" },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/pricing" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQS.map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: { "@type": "Answer", text: faq.a },
+          })),
+        }),
+      },
+    ],
   }),
   component: PricingPage,
 });

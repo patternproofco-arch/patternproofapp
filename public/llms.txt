@@ -6,8 +6,19 @@ PatternProof is a private journal and case-building tool. Data is encrypted in t
 
 ## Pages
 
-- [Home](/): Entry point that routes to dashboard or sign in.
-- [Sign in / Create account](/login): Account access for survivors.
+- [Home](/): What PatternProof is and who it's for.
+- [How it works](/how-it-works): The documentation workflow, step by step.
+- [Pricing](/pricing): Free for survivors; attorney and firm plans.
+- [For attorneys](/for-attorneys): What family-law practices get.
+- [For organizations](/for-organizations): Referral partnership for DV organizations.
+- [Sample case](/sample-case): Read-only fictional case preview.
+- [Resources](/resources): National and state-by-state DV resources.
+- [Self-help guide](/self-help-guide): Plain-language guidance on hearings and filings.
+- [Safety](/safety): Safety features, including Quick Exit and PIN lock.
+- [Evidence integrity](/evidence-integrity): How records and files are handled.
+- [AI transparency](/ai-transparency): What the AI does and does not do.
+- [Privacy](/privacy): Privacy policy and sub-processors.
+- [Terms](/terms): Terms of service.
 
 ## Optional
 
