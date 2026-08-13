@@ -178,7 +178,6 @@ const NAV_ITEMS = [
   { to: "/clients", label: "Matters", icon: Users },
   { to: "/conflict-check", label: "Conflict check", icon: ScanSearch },
   { to: "/billing", label: "Billing", icon: CreditCard },
-  { to: "/billing", label: "Clio (beta)", icon: Plug, hash: "clio" },
   { to: "/trust", label: "Settings", icon: ShieldCheck },
   { to: "/attorney-feedback", label: "Feedback", icon: MessageSquare },
 ] as const;

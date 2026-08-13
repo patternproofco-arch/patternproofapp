@@ -303,6 +303,7 @@ function ShareWithAttorney() {
                       type="checkbox"
                       style={{ marginTop: 3 }}
                       checked={!!l.clio_share_consent}
+                      disabled
                       onChange={async (e) => {
                         try {
                           await setClioConsent({ data: { link_id: l.id, consent: e.target.checked } });
@@ -314,7 +315,7 @@ function ShareWithAttorney() {
                     <span>
                       Share my case with {l.profile?.full_name ?? "this attorney"}'s Clio account?
                       <span style={{ display: "block", color: "var(--muted-foreground)", marginTop: 2 }}>
-                        This shares matter reference info only — the matter number and description — not your case content. Off by default. Our Clio integration is unverified beta, so this may do nothing yet.
+                        Turned off. Clio has not approved our application, so no case reference can be shared with Clio today. Nothing about your case is sent anywhere by this setting.
                       </span>
                     </span>
                   </label>
