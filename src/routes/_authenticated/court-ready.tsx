@@ -11,7 +11,6 @@ export const Route = createFileRoute("/_authenticated/court-ready")({
 
 function CourtReadyPage() {
   const sub = useSubscription();
-  const [mode, setMode] = useState<"monthly" | "pwyc">("pwyc");
   const [amount, setAmount] = useState(5);
 
   if (sub.tier === "court_ready") {
@@ -54,7 +53,7 @@ function CourtReadyPage() {
           <Link to="/court-packet" style={{ textDecoration: "underline" }}>Open your packet</Link>.
         </p>
 
-        {mode === "pwyc" && (
+        {(
           <div className="mb-4">
             <label className="label-eyebrow">One-time amount (USD)</label>
             <div className="mt-2 flex items-center gap-3">
