@@ -711,31 +711,20 @@ export const getClientCase = createServerFn({ method: "POST" })
       }
     }
 
-    /* ---- abuser tactics come from the reviewed AI pattern analysis ---- */
+    /* ---- documented-category counts come from the survivor's own structured
+       abuse_types tags. AI-generated behaviour labels ("abuser_tactics") are
+       never surfaced: the app reports frequency only, never interpretation. ---- */
     const patternAnalysis = pattern?.analysis ?? {};
     const patternReviewedStatus = (pattern?.reviewed_status ?? {}) as Record<string, AnyJson>;
-    const rawTactics = Array.isArray(patternAnalysis.abuser_tactics) ? patternAnalysis.abuser_tactics : [];
-    const abuser_tactics = rawTactics.map((t: AnyJson, idx: number) => ({
-      tactic: String(t?.tactic ?? ""),
-      description: String(t?.description ?? ""),
-      examples_count: Number(t?.examples_count ?? 0),
-      why_it_matters: String(t?.why_it_matters ?? ""),
-      example_dates: Array.isArray(t?.example_dates) ? (t.example_dates as string[]) : [],
-      review_status: patternReviewedStatus[`tactic:${idx}`] ?? null,
-    }));
-    // Preserve old `checklist` shape for downstream consumers (export/intake/dashboard)
-    // but source it from the AI tactics rather than regex.
-    const checklist = abuser_tactics.map((t) => ({
-      item: t.tactic,
-      key: t.tactic,
-      documented: t.examples_count > 0,
-      count: t.examples_count,
-      incident_ids: [] as string[],
-      description: t.description,
-      why_it_matters: t.why_it_matters,
-      example_dates: t.example_dates,
-      review_status: t.review_status,
-    }));
+    const checklist = Object.entries(categoryCounts)
+      .sort(([, a], [, b]) => b - a)
+      .map(([type, count]) => ({
+        item: type,
+        key: type,
+        documented: count > 0,
+        count,
+        incident_ids: incidents.filter((i) => ((i.abuse_types ?? []) as string[]).includes(type)).map((i) => i.id),
+      }));
 
     /* ---- gaps: deterministic checks + AI pattern-analysis gaps.
        No more regex-derived "Missing category" or "No escalation flags" gaps —
@@ -830,7 +819,6 @@ export const getClientCase = createServerFn({ method: "POST" })
       legal_documents: legalQ.data ?? [],
       pattern_analysis: pattern,
       pattern_analysis_present: !!pattern,
-      abuser_tactics,
       pattern_reviewed_status: patternReviewedStatus,
       categories: Object.entries(categoryCounts).map(([type, count]) => ({ type, count })),
       checklist,
