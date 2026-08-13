@@ -96,7 +96,7 @@ function ForAttorneys() {
           See a sample case →
         </Link>
         <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.06em" }}>
-          $297 / mo · single attorney account
+          Plans start at $297 / month for a solo attorney seat
         </div>
       </section>
 
