@@ -1140,55 +1140,37 @@ function Patterns({ data, clientId }: { data: CaseData; clientId: string }) {
 /* ---------------- Checklist ---------------- */
 
 function ChecklistTab({ data }: { data: CaseData }) {
-  const tactics = data.abuser_tactics ?? [];
-  if (!data.pattern_analysis_present) {
-    return <PatternAnalysisEmpty area="reported behaviors" />;
-  }
-  if (tactics.length === 0) {
+  const rows = data.checklist ?? [];
+  if (rows.length === 0) {
     return (
       <div className="att-card">
-        <SectionTitle>Behaviors reported by the client</SectionTitle>
+        <SectionTitle>Documented categories</SectionTitle>
         <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
-          This client's records did not contain any behavior reported more than once.
+          No categories have been tagged on this client's incidents yet.
         </p>
       </div>
     );
   }
   return (
     <div className="att-card">
-      <SectionTitle>Behaviors reported by the client</SectionTitle>
+      <SectionTitle>Documented categories</SectionTitle>
       <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 6 }}>
-        {tactics.length} behavior{tactics.length === 1 ? "" : "s"} the client reported on more than one occasion, grouped from their confirmed incidents.
+        {rows.length} categor{rows.length === 1 ? "y" : "ies"} tagged by the client across their own incidents, with a count of how many incidents carry each tag.
       </p>
       <p style={{ fontSize: 11, color: "var(--att-text-2)", marginBottom: 14, fontStyle: "italic" }}>
-        Generated from the client's own entries and reviewed by them. These are the client's reports, not findings that the described behavior occurred, and not a clinical, forensic, or legal assessment.
+        Counts of the client's own tags on their own entries. Not findings that any described behavior occurred, and not a clinical, forensic, or legal assessment.
       </p>
       <ul style={{ display: "grid", gap: 14, listStyle: "none", padding: 0, margin: 0 }}>
-        {tactics.map((t, i) => (
+        {rows.map((t, i) => (
           <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, paddingBottom: 12, borderBottom: "1px solid var(--att-border)" }}>
             <CheckCircle2 size={16} style={{ color: "var(--att-green)", marginTop: 3 }} />
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <strong>{t.tactic}</strong>
-                <ReviewStatusBadge status={t.review_status?.status ?? "unsure"} />
+                <strong>{t.item}</strong>
                 <span style={{ fontSize: 11, color: "var(--att-text-2)" }}>
-                  · {t.examples_count} example{t.examples_count === 1 ? "" : "s"}
+                  · {t.count} incident{t.count === 1 ? "" : "s"}
                 </span>
               </div>
-              {t.description && (
-                <div style={{ fontSize: 12.5, color: "var(--att-text-2)", marginTop: 4, lineHeight: 1.5 }}>{t.description}</div>
-              )}
-              {t.why_it_matters && (
-                <div style={{ fontSize: 11.5, marginTop: 6 }}>
-                  <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Why it matters</span>
-                  <span style={{ color: "var(--att-text-2)" }}>{t.why_it_matters}</span>
-                </div>
-              )}
-              {t.example_dates && t.example_dates.length > 0 && (
-                <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 6 }}>
-                  Cited from: {t.example_dates.join(", ")}
-                </div>
-              )}
             </div>
           </li>
         ))}

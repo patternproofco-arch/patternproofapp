@@ -46,28 +46,15 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
   const redacted: AnyAnalysis = {};
   if (a.generated_at) redacted.generated_at = a.generated_at;
 
-  // Primary pattern label — reviewable.
-  const mainStatus = statusOf("main_pattern");
-  if (a.main_pattern_label) {
-    tally(mainStatus);
-    if (included(mainStatus)) {
-      const label = textOf("main_pattern", String(a.main_pattern_label));
-      lines.push(`## Primary pattern (confirmed by the survivor)`, ``, label, ``);
-      redacted.main_pattern_label = label;
-      if (typeof a.corroborating_incident_count === "number") {
-        redacted.corroborating_incident_count = a.corroborating_incident_count;
-        lines.push(`Corroborating incidents in the record: ${a.corroborating_incident_count}`, ``);
-      }
-      if (Array.isArray(a.secondary_patterns) && a.secondary_patterns.length) {
-        redacted.secondary_patterns = a.secondary_patterns;
-      }
-    }
+  // Interpretive fields (main_pattern_label, secondary_patterns,
+  // what_pattern_may_show, abuser_tactics) are no longer generated and are
+  // deliberately NEVER exported, even when present on older cached rows.
+  if (typeof a.corroborating_incident_count === "number") {
+    redacted.corroborating_incident_count = a.corroborating_incident_count;
+    lines.push(`Incidents counted in the record: ${a.corroborating_incident_count}`, ``);
   }
 
-  // Narrative summary / escalation arc have no individual review control in the
-  // app today, so they inherit the primary-pattern decision: if the survivor
-  // rejected the primary pattern, the narrative built on it is withheld too.
-  if (mainStatus !== "rejected") {
+  {
     if (a.pattern_summary) {
       lines.push(`## Overview`, ``, String(a.pattern_summary), ``);
       redacted.pattern_summary = a.pattern_summary;
@@ -81,34 +68,6 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
         `_These two narrative sections are AI-generated from the survivor's own records and are not individually confirmed claim-by-claim._`,
         ``,
       );
-    }
-  }
-
-  // Interpretation — reviewable.
-  if (a.what_pattern_may_show) {
-    const s = statusOf("interpretation");
-    tally(s);
-    if (included(s)) {
-      const t = textOf("interpretation", String(a.what_pattern_may_show));
-      lines.push(`## What this pattern may be showing (confirmed by the survivor)`, ``, t, ``);
-      redacted.what_pattern_may_show = t;
-    }
-  }
-
-  // Behavioural tactics — reviewable per item.
-  if (Array.isArray(a.abuser_tactics) && a.abuser_tactics.length) {
-    const kept: AnyAnalysis[] = [];
-    a.abuser_tactics.forEach((t: AnyAnalysis, i: number) => {
-      const s = statusOf(`tactic:${i}`);
-      tally(s);
-      if (!included(s)) return;
-      kept.push({ ...t, description: textOf(`tactic:${i}`, String(t.description ?? "")) });
-    });
-    if (kept.length) {
-      lines.push(`## Recurring behaviours the survivor reported and confirmed`, ``, `_Reported by the survivor and confirmed by them on review. Not a finding that these behaviours occurred._`, ``);
-      kept.forEach((t) => lines.push(`- **${t.tactic ?? "—"}** — ${t.description ?? ""}`.trim()));
-      lines.push(``);
-      redacted.abuser_tactics = kept;
     }
   }
 
