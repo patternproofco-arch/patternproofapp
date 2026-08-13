@@ -37,7 +37,9 @@ export const Route = createFileRoute("/integrations/clio/callback")({
           .maybeSingle();
         // Single use: consume the state regardless of what happens next.
         if (stateRow) await supabaseAdmin.from("clio_oauth_states").delete().eq("state", state);
-        if (!stateRow || new Date(stateRow.expires_at).getTime() < Date.now()) {
+        const { checkClioState } = await import("@/lib/clio-state");
+        const check = checkClioState(stateRow, state);
+        if (!check.ok) {
           return done("That connection link expired. Please start again.", false);
         }
 
@@ -47,7 +49,7 @@ export const Route = createFileRoute("/integrations/clio/callback")({
           if (!tokens.refresh_token) return done("Clio didn't return a refresh token.", false);
           // Only mark connected after an authenticated Clio API call succeeds.
           const identity = await fetchClioIdentity(tokens.access_token);
-          await storeClioTokens(stateRow.user_id, tokens, identity);
+          await storeClioTokens(check.userId, tokens, identity);
           return done("", true);
         } catch (e) {
           // Log the failure shape, never the code, token, or provider body.
