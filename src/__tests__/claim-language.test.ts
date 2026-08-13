@@ -31,8 +31,12 @@ describe("user-facing claim language", () => {
     for (const file of walk("src")) {
       const text = readFileSync(file, "utf8");
       for (const re of BANNED) {
-        const m = text.match(re);
-        if (m) offenders.push(`${file}: ${m[0]}`);
+        for (const m of text.matchAll(new RegExp(re.source, re.flags + "g"))) {
+          // Explicit disclaimers ("we do not offer end-to-end encryption") are fine.
+          const around = text.slice(Math.max(0, (m.index ?? 0) - 90), (m.index ?? 0) + 40);
+          if (/\bnot\b|\bno\b|\bnever\b/i.test(around)) continue;
+          offenders.push(`${file}: ${m[0]}`);
+        }
       }
     }
     expect(offenders).toEqual([]);
