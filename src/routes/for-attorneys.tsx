@@ -157,9 +157,51 @@ function ForAttorneys() {
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
         <SectionRule label="Pricing" />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
-          <PriceCard name="Solo" price="$297" per="/ month" bullets={["Single attorney account", "Structured chronology + source-linked exhibits", "Cross-reference / inconsistency analysis", "De-branded court-packet PDF export"]} />
-          <PriceCard name="Firm" price="$897" per="/ month" bullets={["Shared firm workspace for colleagues", "Case sharing between attorneys in your firm", "Shared caseload view + collaborator roles", "Per-client document requests"]} highlight />
-          <PriceCard name="Charter Firm" price="$597" per="/ month · locked 12 mo" bullets={["First 10 firms only", "Same as Firm tier", "Rate locked for 12 months", "Direct line to the PatternProof team"]} />
+          <PriceCard
+            name="Solo"
+            price="$297"
+            per="/ month"
+            bullets={[
+              "One attorney seat",
+              "Single attorney account (matter counts are not metered today)",
+              "Structured chronological timeline + pattern analysis",
+              "Exportable case summary (ZIP) — imports into practice management systems",
+              "Private attorney notes per incident",
+              "Conflict check across your own caseload",
+            ]}
+          />
+          <PriceCard
+            name="Firm"
+            price="$597"
+            strike="$897"
+            per="/ month · locked 12 months"
+            note="Charter program — limited to 10 firms."
+            highlight
+            bullets={[
+              "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+              "Everything in Solo Attorney",
+              "No matter limit enforced today",
+              "Multi-attorney collaboration and shared case notes",
+              "Caseload and capacity view across the firm",
+              "Conflict check across your own caseload",
+              "Charter program: personal setup, case import, and staff training",
+              "$597/month rate locked for 12 months, then $897/month list",
+            ]}
+          />
+          <PriceCard
+            name="Firm"
+            price="$897"
+            per="/ month"
+            bullets={[
+              "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+              "Everything in Solo Attorney",
+              "No matter limit enforced today",
+              "Multi-attorney collaboration and shared case notes",
+              "Caseload and capacity view across the firm",
+              "Conflict check across your own caseload",
+              "Priority client onboarding support",
+            ]}
+          />
         </div>
         <div style={{ marginTop: 32 }}>
           <Link to="/lawyer-signup"
@@ -249,7 +291,7 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
   );
 }
 
-function PriceCard({ name, price, per, bullets, highlight }: { name: string; price: string; per: string; bullets: string[]; highlight?: boolean }) {
+function PriceCard({ name, price, strike, per, bullets, note, highlight }: { name: string; price: string; strike?: string; per: string; bullets: string[]; note?: string; highlight?: boolean }) {
   return (
     <div
       style={{
@@ -262,8 +304,14 @@ function PriceCard({ name, price, per, bullets, highlight }: { name: string; pri
     >
       <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.16em", color: highlight ? NAVY : MUTED, textTransform: "uppercase" }}>{name}</div>
       <div style={{ fontFamily: SERIF, fontSize: 40, marginTop: 6, color: INK }}>
+        {strike ? (
+          <span style={{ fontFamily: MONO, fontSize: 16, color: MUTED, marginRight: 8, textDecoration: "line-through" }}>{strike}</span>
+        ) : null}
         {price}<span style={{ fontFamily: MONO, fontSize: 12, color: MUTED, marginLeft: 6, letterSpacing: "0.06em" }}>{per}</span>
       </div>
+      {note ? (
+        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", color: NAVY, marginTop: 4 }}>{note}</div>
+      ) : null}
       <ul style={{ listStyle: "none", padding: 0, marginTop: 14, display: "grid", gap: 8 }}>
         {bullets.map((b) => (
           <li key={b} style={{ display: "grid", gridTemplateColumns: "16px 1fr", gap: 8, fontSize: 13, lineHeight: 1.5, color: INK }}>
