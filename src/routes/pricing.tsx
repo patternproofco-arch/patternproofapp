@@ -5,7 +5,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { buildTiers } from "@/lib/pricing-tiers";
+import { buildTiers, type Tier } from "@/lib/pricing-tiers";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
