@@ -28,7 +28,8 @@ export function TrustPage({ title, subtitle, children }: { title: string; subtit
           <Link to="/safety" style={linkS}>Safety</Link> · {" "}
           <Link to="/evidence-integrity" style={linkS}>Evidence integrity</Link> · {" "}
           <Link to="/ai-transparency" style={linkS}>AI transparency</Link> · {" "}
-          <Link to="/professional-access" style={linkS}>Professional access</Link>
+          <Link to="/professional-access" style={linkS}>Professional access</Link> · {" "}
+          <Link to="/connect" style={linkS}>Connect an AI assistant</Link>
         </p>
       </div>
     </div>
