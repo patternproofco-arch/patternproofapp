@@ -184,8 +184,7 @@ const NAV_ITEMS = [
 
 function AttorneySidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isActive = (to: string, hash?: string) => {
-    if (hash) return false;
+  const isActive = (to: string) => {
     if (to === "/clients") return pathname.startsWith("/clients");
     return pathname === to;
   };
@@ -200,8 +199,7 @@ function AttorneySidebar() {
         <Link
           key={item.label}
           to={item.to}
-          hash={"hash" in item ? item.hash : undefined}
-          className={`att-side-link ${isActive(item.to, "hash" in item ? item.hash : undefined) ? "active" : ""}`}
+          className={`att-side-link ${isActive(item.to) ? "active" : ""}`}
         >
           <item.icon size={14} /> {item.label}
         </Link>
