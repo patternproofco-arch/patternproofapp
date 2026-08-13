@@ -200,59 +200,6 @@ function PatternsPage() {
             </div>
           )}
 
-          {/* 3b. Recurring behaviours the survivor reported */}
-          {analysis.abuser_tactics && analysis.abuser_tactics.length > 0 && (
-            <div className="card-pp lg:col-span-2">
-              <div className="label-eyebrow">Behaviors you've reported more than once</div>
-              <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                Grouped from your own confirmed Marks — your reports, not a finding about anyone. Review each: confirm, edit, or reject.
-              </p>
-              <ul className="mt-4 space-y-4">
-                {analysis.abuser_tactics.map((t, i) => {
-                  const key = `tactic:${i}`;
-                  const rejected = reviewed[key]?.status === "rejected";
-                  return (
-                    <li
-                      key={i}
-                      className="rounded-[2px] p-4"
-                      style={{ background: "var(--input)", opacity: rejected ? 0.5 : 1 }}
-                    >
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h4 className="font-serif text-[17px] leading-tight">{t.tactic}</h4>
-                        <span className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                          {t.examples_count} {t.examples_count === 1 ? "example" : "examples"}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-[14px] leading-relaxed">{t.description}</p>
-                      <p className="mt-2 text-[13px] italic" style={{ color: "var(--muted-foreground)" }}>
-                        Why it matters: {t.why_it_matters}
-                      </p>
-                      {t.example_dates && t.example_dates.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {t.example_dates.map((d, j) => (
-                            <Link
-                              key={j}
-                              to="/journal"
-                              className="rounded-[2px] px-2 py-1 text-[12px] font-semibold"
-                              style={{ background: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)" }}
-                            >
-                              {d}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                      <ClaimReview
-                        claimKey={key}
-                        state={reviewed[key]}
-                        onUpdate={updateClaim}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-
           {/* 4. Pattern Timeline */}
           {analysis.pattern_timeline_text && (
             <div className="card-pp lg:col-span-2">
