@@ -28,15 +28,16 @@ export const Route = createFileRoute("/integrations/clio/deauthorize")({
 
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          let query = supabaseAdmin
+          const query = supabaseAdmin
             .from("clio_connections")
             .update({ revoked_at: new Date().toISOString(), updated_at: new Date().toISOString() })
             .eq("clio_user_id", clioUserId)
             .is("revoked_at", null);
 
-          if (accessToken !== "all") {
-            query = query.eq("access_token", accessToken);
-          }
+          // Stored tokens are encrypted with a random IV, so we cannot match
+          // on the plaintext token Clio sends. We hold at most one connection
+          // per Clio user, so revoking by clio_user_id is equivalent.
+          void accessToken;
 
           const { error } = await query;
           if (error) console.error("[clio] deauthorize update failed", error);
