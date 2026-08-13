@@ -241,12 +241,12 @@ function ClioPanel() {
 
   return (
     <div className="att-card" id="clio">
-      <div className="att-eyebrow">Clio connection · unverified beta</div>
+      <div className="att-eyebrow">Clio connection · unavailable</div>
       <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, borderLeft: "2px solid var(--att-border)", paddingLeft: 10 }}>
-        Our Clio application is still going through Clio's approval process, and this connection has
-        not been confirmed working end-to-end against a live Clio account. Treat it as unverified:
-        it may fail to connect, and matter browsing or linking may not return anything. Nothing here
-        is required — the case-management import package below works on its own.
+        Clio is not available. Our Clio application has not been approved, and Clio rejects our
+        credentials at the token step (verified 13 Aug 2026), so connecting cannot succeed today.
+        The button is disabled until that changes. Nothing here is required — the case-management
+        import package below works on its own.
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
@@ -262,7 +262,7 @@ function ClioPanel() {
                 ? "Checking connection…"
                 : state.connected
                   ? `${state.email ?? "Signed in"} · connected ${new Date(state.connectedAt).toLocaleDateString()}`
-                  : "Try linking your Clio account. The ZIP import package stays available either way."}
+                  : "Connecting is disabled. Use the case-management import package below instead."}
             </div>
           </div>
         </div>
@@ -272,8 +272,8 @@ function ClioPanel() {
               {busy ? "Working…" : "Disconnect"}
             </button>
           ) : (
-            <button className="att-btn-primary" onClick={connect} disabled={busy || state === null}>
-              {busy ? "Opening Clio…" : "Try connecting to Clio (beta)"}
+            <button className="att-btn-secondary" disabled title="Clio has not approved our application yet.">
+              Unavailable
             </button>
           )}
         </div>

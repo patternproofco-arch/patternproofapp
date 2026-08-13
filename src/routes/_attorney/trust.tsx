@@ -37,7 +37,7 @@ function SettingsPage() {
           <div style={{ fontWeight: 600, fontSize: 14 }}>Read-only access · Survivor-owned data</div>
           <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 4, lineHeight: 1.6 }}>
             You can review and export. You cannot edit, delete, or modify a survivor's incidents, evidence, or
-            communications. Every view, download, and export is logged for provenance & integrity. Private attorney notes
+            communications. Case opens, evidence downloads, and packet exports are recorded for provenance & integrity. Private attorney notes
             never sync back to the survivor.
           </p>
         </div>

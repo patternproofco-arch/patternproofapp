@@ -351,6 +351,13 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     const includeAllIncidents = link.include_all_incidents !== false;
     const includeAllEvidence = link.include_all_evidence !== false;
     const includePatterns = link.include_patterns !== false;
+    await supabaseAdmin.rpc("record_audit_event", {
+      p_user_id: data.clientId,
+      p_event_type: "export.professional_review_packet",
+      p_subject_kind: "export",
+      p_actor_kind: "attorney",
+      p_actor_id: context.userId,
+    }).then(() => undefined, (e: unknown) => console.error("[audit] export log failed", e));
 
     const incidentsQuery = includeAllIncidents
       ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).order("date")
@@ -709,6 +716,13 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
     if (!link) return { ok: false as const, reason: "no-active-link" as const };
 
     const includeAllIncidents = link.include_all_incidents !== false;
+    await supabaseAdmin.rpc("record_audit_event", {
+      p_user_id: data.clientId,
+      p_event_type: "export.case_management_package",
+      p_subject_kind: "export",
+      p_actor_kind: "attorney",
+      p_actor_id: context.userId,
+    }).then(() => undefined, (e: unknown) => console.error("[audit] export log failed", e));
     const includeAllEvidence = link.include_all_evidence !== false;
     const scopeIncidents = (link.scope_incidents as string[] | null) ?? [];
     const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut, Lock, LayoutGrid, Users, CreditCard, Plug, ShieldCheck, MessageSquare, ScanSearch } from "lucide-react";
+import { LogOut, Lock, LayoutGrid, Users, CreditCard, ShieldCheck, MessageSquare, ScanSearch } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -152,7 +152,7 @@ function AttorneyLayout() {
         <span>·</span>
         <span>Session logged · {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
         <span>·</span>
-        <span>All access recorded for provenance & integrity</span>
+        <span>Case opens, downloads & exports recorded</span>
         <span>·</span>
         <span>
           PatternProof organises the client&apos;s own records. It does not draw legal conclusions
@@ -178,15 +178,13 @@ const NAV_ITEMS = [
   { to: "/clients", label: "Matters", icon: Users },
   { to: "/conflict-check", label: "Conflict check", icon: ScanSearch },
   { to: "/billing", label: "Billing", icon: CreditCard },
-  { to: "/billing", label: "Clio (beta)", icon: Plug, hash: "clio" },
   { to: "/trust", label: "Settings", icon: ShieldCheck },
   { to: "/attorney-feedback", label: "Feedback", icon: MessageSquare },
 ] as const;
 
 function AttorneySidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isActive = (to: string, hash?: string) => {
-    if (hash) return false;
+  const isActive = (to: string) => {
     if (to === "/clients") return pathname.startsWith("/clients");
     return pathname === to;
   };
@@ -201,8 +199,7 @@ function AttorneySidebar() {
         <Link
           key={item.label}
           to={item.to}
-          hash={"hash" in item ? item.hash : undefined}
-          className={`att-side-link ${isActive(item.to, "hash" in item ? item.hash : undefined) ? "active" : ""}`}
+          className={`att-side-link ${isActive(item.to) ? "active" : ""}`}
         >
           <item.icon size={14} /> {item.label}
         </Link>
@@ -286,7 +283,7 @@ function SecurityBannerInner() {
       <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
         <Lock size={12} />
         This session is encrypted in transit. Case ID: <span className="att-mono">{caseId}</span>.
-        All access is recorded for provenance & integrity.
+        Case opens, evidence downloads, and packet exports are recorded.
       </span>
       <button
         onClick={() => { sessionStorage.setItem("att-security-dismissed", "1"); setDismissed(true); }}

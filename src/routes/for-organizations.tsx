@@ -107,7 +107,7 @@ function ForOrganizations() {
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 96px" }}>
         <SectionRule label="What this doesn't do" />
         <p style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 20, lineHeight: 1.55, color: INK, margin: 0 }}>
-          Caseworkers report spending 45–50% of their time on documentation alone (NASW, Ferguson time-use studies) — reclaiming even part of that is real capacity, though the actual gain depends on your intake process.
+          Documentation takes up a large share of an advocate's day. We haven't measured how much time PatternProof saves your team, and we won't quote a number we can't stand behind — any gain depends on your intake process.
         </p>
         <p style={{ marginTop: 18, fontFamily: SERIF, fontWeight: 300, fontSize: 20, lineHeight: 1.55, color: INK }}>
           Every record stays under the survivor's control. This doesn't replace your judgment, your relationship with her, or your team's expertise — it gives you more of your day back to use it.

@@ -623,6 +623,16 @@ export const getClientCase = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { link } = await assertCaseAccess(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Provenance: record that this professional opened the case file.
+    await supabaseAdmin.rpc("record_audit_event", {
+      p_user_id: data.clientId,
+      p_event_type: "case.viewed_by_professional",
+      p_subject_kind: "case",
+      p_subject_id: undefined,
+      p_actor_kind: "attorney",
+      p_actor_id: context.userId,
+      p_meta: { link_id: link.id ?? null },
+    }).then(() => undefined, (e: unknown) => console.error("[audit] case view log failed", e));
     const scopedIncidentIds = link.scope_incidents ?? [];
     const scopedEvidenceIds = link.scope_evidence ?? [];
 
@@ -1270,6 +1280,15 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
       .eq("user_id", data.clientId)
       .maybeSingle();
     if (!ev) throw new Error("Evidence not found");
+    await supabaseAdmin.rpc("record_audit_event", {
+      p_user_id: data.clientId,
+      p_event_type: "evidence.downloaded_by_professional",
+      p_subject_kind: "evidence",
+      p_subject_id: data.evidenceId,
+      p_actor_kind: "attorney",
+      p_actor_id: context.userId,
+      p_meta: { link_id: link.id ?? null },
+    }).then(() => undefined, (e: unknown) => console.error("[audit] evidence download log failed", e));
     // file_url may be a storage path inside evidence-files bucket OR an absolute URL.
     if (/^https?:\/\//i.test(ev.file_url)) return { url: ev.file_url, file_type: ev.file_type, title: ev.title };
     const { data: signed } = await supabaseAdmin.storage

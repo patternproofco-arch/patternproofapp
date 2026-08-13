@@ -110,7 +110,7 @@ function AcceptInvite() {
             {mode === "signup" ? "Verify your credentials" : "Sign in to access this case"}
           </h2>
           <p style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 16 }}>
-            All access is logged for provenance & integrity. Your bar number is recorded with this case file.
+            Case opens, downloads, and exports are recorded for provenance & integrity. Your bar number is recorded with this case file.
           </p>
           <form onSubmit={auth} style={{ display: "grid", gap: 12 }}>
             {mode === "signup" && (
