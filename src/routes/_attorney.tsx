@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut, Lock, LayoutGrid, Users, CreditCard, Plug, ShieldCheck, MessageSquare, ScanSearch } from "lucide-react";
+import { LogOut, Lock, LayoutGrid, Users, CreditCard, ShieldCheck, MessageSquare, ScanSearch } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
