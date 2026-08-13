@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { Check, ExternalLink, Lock, Star, Plug, Clock } from "lucide-react";
 import { createPortalSession } from "@/lib/payments.functions";
-import { getClioStatus, startClioConnect, disconnectClio, listMyClioMatters } from "@/lib/clio.functions";
+import { getClioAvailability, getClioStatus, startClioConnect, disconnectClio, listMyClioMatters } from "@/lib/clio.functions";
 import { listClioConsentedClients, linkClioMatter } from "@/lib/clio-matter-links.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
@@ -197,7 +197,9 @@ function ClioPanel() {
   const statusFn = useServerFn(getClioStatus);
   const connectFn = useServerFn(startClioConnect);
   const disconnectFn = useServerFn(disconnectClio);
+  const availabilityFn = useServerFn(getClioAvailability);
   const [state, setState] = useState<ClioState | null>(null);
+  const [available, setAvailable] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -210,10 +212,13 @@ function ClioPanel() {
 
   useEffect(() => {
     void load();
+    void availabilityFn({})
+      .then((r) => setAvailable(Boolean((r as { available?: boolean }).available)))
+      .catch(() => setAvailable(false));
     const params = new URLSearchParams(window.location.search);
     if (params.get("clio") === "connected") toast("Connected to Clio.");
     if (params.get("clio") === "error") toast(params.get("reason") || "We couldn't finish connecting Clio.");
-  }, [load]);
+  }, [load, availabilityFn]);
 
   const connect = async () => {
     setBusy(true);
@@ -241,12 +246,11 @@ function ClioPanel() {
 
   return (
     <div className="att-card" id="clio">
-      <div className="att-eyebrow">Clio connection · unavailable</div>
+      <div className="att-eyebrow">Clio connection · {available ? "beta" : "unavailable"}</div>
       <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, borderLeft: "2px solid var(--att-border)", paddingLeft: 10 }}>
-        Clio is not available. Our Clio application has not been approved, and Clio rejects our
-        credentials at the token step (verified 13 Aug 2026), so connecting cannot succeed today.
-        The button is disabled until that changes. Nothing here is required — the case-management
-        import package below works on its own.
+        {available
+          ? "Connecting links your own Clio Manage account so you can browse your matters here. We have not been through Clio's App Directory review, and nothing is shared with Clio unless a client has approved it."
+          : "Clio connection is not available yet. Nothing here is required — the case-management import package below works on its own."}
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
@@ -262,7 +266,9 @@ function ClioPanel() {
                 ? "Checking connection…"
                 : state.connected
                   ? `${state.email ?? "Signed in"} · connected ${new Date(state.connectedAt).toLocaleDateString()}`
-                  : "Connecting is disabled. Use the case-management import package below instead."}
+                  : available
+                    ? "Not connected."
+                    : "Clio connection is not available yet."}
             </div>
           </div>
         </div>
@@ -271,8 +277,12 @@ function ClioPanel() {
             <button className="att-btn-secondary" onClick={disconnect} disabled={busy}>
               {busy ? "Working…" : "Disconnect"}
             </button>
+          ) : available ? (
+            <button className="att-btn-secondary" onClick={connect} disabled={busy}>
+              {busy ? "Opening Clio…" : "Connect Clio"}
+            </button>
           ) : (
-            <button className="att-btn-secondary" disabled title="Clio has not approved our application yet.">
+            <button className="att-btn-secondary" disabled title="Clio connection is not available yet.">
               Unavailable
             </button>
           )}
