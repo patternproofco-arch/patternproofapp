@@ -25,7 +25,7 @@ const TABS: Tab[] = [
   {
     to: "/patterns",
     label: "Recurline",
-    match: ["/patterns", "/calendar", "/abuser-tactics"],
+    match: ["/patterns", "/calendar"],
     render: (c) => <DotCirclePatternIcon size={20} strokeWidth={1.75} color={c} />,
   },
   {
