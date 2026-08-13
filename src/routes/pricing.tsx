@@ -17,6 +17,20 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:type", content: "website" },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/pricing" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQS.map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: { "@type": "Answer", text: faq.a },
+          })),
+        }),
+      },
+    ],
   }),
   component: PricingPage,
 });
