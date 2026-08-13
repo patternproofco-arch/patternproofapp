@@ -217,3 +217,42 @@ automated gates that exist.
 7. Do not price a feature that has no enforcement. If seats or matter caps are sold, meter them first.
 8. Clio stays labeled unverified beta until an end-to-end run against a live Clio account is recorded here.
 9. No "forever" / "always" pricing promises.
+
+## Pass 3 — verification round (Aug 2026)
+
+Commands run: `bun run build` (exit 0), `bunx tsgo --noEmit` (exit 0, clean),
+`bunx vitest run` (exit 0, 4 tests / 2 files).
+
+Fixed this pass:
+- **Access logging was claimed but not implemented on the attorney side.**
+  `audit_events` only ever contained `evidence.preserved` /
+  `evidence.duplicate_detected` rows. Added `record_audit_event` calls for
+  `case.viewed_by_professional` (getClientCase), `evidence.downloaded_by_professional`
+  (getSignedEvidenceUrl) and `export.*` (both attorney packet exports), and
+  narrowed the copy on /trust, the attorney shell, /clients, and both invite
+  pages from "every view … logged" to "case opens, evidence downloads, and
+  packet exports are recorded".
+- **Invented citation removed.** /for-organizations claimed "45–50% of time on
+  documentation (NASW, Ferguson time-use studies)". Those citations were not
+  verifiable; replaced with a no-number statement that we have not measured
+  time savings.
+- Repaired the attorney sidebar `isActive` regression from the Clio removal.
+
+Verified, unchanged:
+- Every `public` table has RLS enabled. Only `clio_oauth_states`,
+  `email_relay_attempts`, `share_link_access_log` have zero policies — these are
+  service-role-only internal tables, which is intended.
+- All five storage buckets (`evidence-files`, `voice-notes`,
+  `conversation-recordings`, `exports`, `message-exports`) are private.
+
+Tests added (`src/__tests__/`):
+- `pattern-export.test.ts` — unreviewed and rejected AI claims never reach an
+  export; survivor edits win over AI wording.
+- `claim-language.test.ts` — source-wide guard against "end-to-end encrypted",
+  "zero-knowledge", "tamper-proof", "bank-level", "court-admissible",
+  "guaranteed outcome", "military-grade" (explicit disclaimers allowed).
+
+Still not verified in this environment: Clio OAuth (credentials rejected with
+`invalid_client` — integration remains disabled in the UI), live Stripe
+end-to-end checkout, and firm seat metering (claims already say "not metered
+today").
