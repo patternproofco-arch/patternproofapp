@@ -10,24 +10,16 @@ export interface PatternAnalysisResult {
   severity_trajectory: "decreasing" | "stable" | "increasing" | "volatile" | "unknown";
   gaps: Array<{ gap: string; suggestion: string }>;
   suggested_followups: string[];
-  // NOTE: the JSON key stays `abuser_tactics` for compatibility with pattern
-  // analyses already stored in the database and with the `tactic:i` review
-  // keys survivors have already set. Its meaning is survivor-reported
-  // recurring behaviour, never an assertion about the other party.
-  abuser_tactics?: Array<{
-    tactic: string;
-    description: string;
-    examples_count: number;
-    why_it_matters: string;
-    example_dates?: string[];
-  }>;
-  main_pattern_label?: string;
+  /**
+   * REMOVED (never diagnose rule): `abuser_tactics`, `main_pattern_label`,
+   * `secondary_patterns` and `what_pattern_may_show` are no longer generated,
+   * typed, displayed or exported. Older jsonb rows may still contain them;
+   * nothing in the app reads them.
+   */
   /** Plain count of incidents in the record that support the primary pattern. */
   corroborating_incident_count?: number;
   /** @deprecated Legacy evidentiary-sounding label on pre-existing rows. No longer generated or displayed. */
   confidence_level?: "Low" | "Moderate" | "Strong";
-  secondary_patterns?: string[];
-  what_pattern_may_show?: string;
   evidence_list?: Array<{
     date: string;
     description: string;
@@ -58,25 +50,7 @@ const TOOL_SCHEMA = {
     severity_trajectory: { type: "string", enum: ["decreasing", "stable", "increasing", "volatile", "unknown"] },
     gaps: { type: "array", items: { type: "object", properties: { gap: { type: "string", description: "What's missing or unclear in the record" }, suggestion: { type: "string", description: "Gentle, specific suggestion of what to add" } }, required: ["gap", "suggestion"] } },
     suggested_followups: { type: "array", items: { type: "string" }, description: "Concrete next documentation steps in the user's voice" },
-    abuser_tactics: {
-      type: "array",
-      description: "Recurring behaviours the survivor has reported across their own entries, grouped and counted. These are the survivor's reports read back to them — never an assertion that the other party did something, and never a finding that any behaviour amounts to abuse. Only group behaviours that actually appear more than once in the records provided. Do not infer, extrapolate, or add behaviours the records do not describe.",
-      items: {
-        type: "object",
-        properties: {
-          tactic: { type: "string", description: "Short plain-language label for the reported behaviour, drawn from what the survivor described (e.g. 'Contact after being asked to stop', 'Disputed account of a prior conversation'). Do not use clinical or diagnostic terms such as DARVO, gaslighting, or narcissistic abuse unless the survivor used that exact word in their own entries." },
-          description: { type: "string", description: "One sentence describing what the survivor reported, attributed to them: 'You reported ...' / 'Your entries describe ...'. Never phrase it as an established fact about the other party." },
-          examples_count: { type: "integer", description: "Number of the survivor's own entries that describe this behaviour." },
-          why_it_matters: { type: "string", description: "One sentence on why this may be worth continuing to document — for the survivor's own understanding. Not legal advice, not a conclusion that it is significant." },
-          example_dates: { type: "array", items: { type: "string" }, description: "Up to 3 dates (YYYY-MM-DD) of entries that describe it." },
-        },
-        required: ["tactic", "description", "examples_count", "why_it_matters"],
-      },
-    },
-    main_pattern_label: { type: "string", description: "Short label for the primary detected pattern (e.g. 'Escalation After Boundary-Setting')." },
     corroborating_incident_count: { type: "integer", description: "Plain count of incidents in the provided records that describe the primary pattern. A count only — do not interpret it, rate it, or convert it into a strength or confidence judgement." },
-    secondary_patterns: { type: "array", items: { type: "string" } },
-    what_pattern_may_show: { type: "string", description: "2-3 sentences in calm plain language explaining what this behavioral pattern may indicate. Do NOT diagnose. Do NOT use the words narcissist, sociopath, or abuser unless those words appear in the survivor's own notes." },
     evidence_list: {
       type: "array",
       items: {
@@ -95,7 +69,7 @@ const TOOL_SCHEMA = {
     escalation_during: { type: "string" },
     escalation_after: { type: "string" },
     what_to_document_next: { type: "array", items: { type: "string" } },
-    attorney_summary: { type: "string", description: "Professional, neutral, evidence-based restatement suitable for legal review. Reference specific dates and frequencies. Do not editorialize." },
+    attorney_summary: { type: "string", description: "Neutral restatement of frequency only, suitable for professional review. State counts, date ranges and dates drawn from the records provided (e.g. 'The records contain 14 entries between 3 March and 2 August 2026; 6 fall on custody-exchange dates.'). Do NOT characterise the record as a cycle, escalation, pattern of abuse, or any named dynamic. Do NOT interpret, diagnose, rate, or draw conclusions. Counts, dates and the survivor's own wording only." },
     severity_indicators: {
       type: "array",
       description: "Documented behaviors already present in the survivor's confirmed incidents that commonly co-occur with safety escalation (e.g. threats involving weapons, strangulation/choking, threats to kill). Descriptive only — never a prediction, tier, score, or clinical assessment. Every item MUST cite at least one source incident id it is drawn from.",
@@ -110,7 +84,7 @@ const TOOL_SCHEMA = {
       },
     },
   },
-  required: ["pattern_summary", "escalation_arc", "frequency_trends", "abuse_type_breakdown", "severity_trajectory", "gaps", "suggested_followups", "abuser_tactics", "main_pattern_label", "corroborating_incident_count", "secondary_patterns", "what_pattern_may_show", "evidence_list", "pattern_timeline_text", "common_triggers", "escalation_before", "escalation_during", "escalation_after", "what_to_document_next", "attorney_summary", "severity_indicators"],
+  required: ["pattern_summary", "escalation_arc", "frequency_trends", "abuse_type_breakdown", "severity_trajectory", "gaps", "suggested_followups", "corroborating_incident_count", "evidence_list", "pattern_timeline_text", "common_triggers", "escalation_before", "escalation_during", "escalation_after", "what_to_document_next", "attorney_summary", "severity_indicators"],
   additionalProperties: false,
 };
 
