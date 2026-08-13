@@ -152,7 +152,7 @@ function AttorneyLayout() {
         <span>·</span>
         <span>Session logged · {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
         <span>·</span>
-        <span>All access recorded for provenance & integrity</span>
+        <span>Case opens, downloads & exports recorded</span>
         <span>·</span>
         <span>
           PatternProof organises the client&apos;s own records. It does not draw legal conclusions
@@ -283,7 +283,7 @@ function SecurityBannerInner() {
       <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
         <Lock size={12} />
         This session is encrypted in transit. Case ID: <span className="att-mono">{caseId}</span>.
-        All access is recorded for provenance & integrity.
+        Case opens, evidence downloads, and packet exports are recorded.
       </span>
       <button
         onClick={() => { sessionStorage.setItem("att-security-dismissed", "1"); setDismissed(true); }}
