@@ -628,7 +628,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       p_user_id: data.clientId,
       p_event_type: "case.viewed_by_professional",
       p_subject_kind: "case",
-      p_subject_id: null,
+      p_subject_id: undefined,
       p_actor_kind: "attorney",
       p_actor_id: context.userId,
       p_meta: { link_id: link.id ?? null },
