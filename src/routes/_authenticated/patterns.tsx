@@ -162,60 +162,26 @@ function PatternsPage() {
 
       {analysis && (
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
-          {/* 1. Report header bar */}
-          {(analysis.main_pattern_label || typeof analysis.corroborating_incident_count === "number") && (() => {
-            const count = analysis.corroborating_incident_count;
-            const rejected = reviewed["main_pattern"]?.status === "rejected";
-            return (
-              <div className="card-pp lg:col-span-2" style={rejected ? { opacity: 0.5 } : undefined}>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="label-eyebrow">Most repeated in your record</div>
-                  <h2 className="mt-1 font-serif text-[26px] leading-tight">{analysis.main_pattern_label}</h2>
-                  {analysis.secondary_patterns && analysis.secondary_patterns.length > 0 && (
-                    <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-                      Also detected: {analysis.secondary_patterns.join(" · ")}
-                    </p>
-                  )}
-                </div>
-                {typeof count === "number" && (
-                  <span
-                    className="inline-flex items-center rounded-[2px] px-4 py-2 text-[12px] font-bold"
-                    style={{ background: "var(--input)", color: "var(--foreground)", border: "1px solid var(--border)" }}
-                    title="A count of your entries describing this — not a rating"
-                  >
-                    Corroborating incidents: {count}
-                  </span>
-                )}
-                </div>
-                {analysis.main_pattern_label && (
-                  <ClaimReview
-                    claimKey="main_pattern"
-                    state={reviewed["main_pattern"]}
-                    onUpdate={updateClaim}
-                  />
-                )}
+          {/* 1. Count header — a count of your own entries, nothing more. */}
+          {typeof analysis.corroborating_incident_count === "number" && (
+            <div className="card-pp lg:col-span-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="label-eyebrow">Entries counted in this record</div>
+                <span
+                  className="inline-flex items-center rounded-[2px] px-4 py-2 text-[12px] font-bold"
+                  style={{ background: "var(--input)", color: "var(--foreground)", border: "1px solid var(--border)" }}
+                  title="A count of your entries — not a rating or a conclusion"
+                >
+                  Corroborating incidents: {analysis.corroborating_incident_count}
+                </span>
               </div>
-            );
-          })()}
+            </div>
+          )}
 
           <div className="card-pp lg:col-span-2">
             <div className="label-eyebrow">Summary</div>
             <p className="mt-2 font-serif text-[18px] leading-relaxed">{analysis.pattern_summary}</p>
           </div>
-
-          {/* 2. What This Pattern May Be Showing */}
-          {analysis.what_pattern_may_show && (
-            <div className="card-pp lg:col-span-2" style={reviewed["interpretation"]?.status === "rejected" ? { opacity: 0.5 } : undefined}>
-              <div className="label-eyebrow">What this pattern may be showing</div>
-              <p className="mt-2 font-serif text-[17px] leading-relaxed">{analysis.what_pattern_may_show}</p>
-              <ClaimReview
-                claimKey="interpretation"
-                state={reviewed["interpretation"]}
-                onUpdate={updateClaim}
-              />
-            </div>
-          )}
 
           {/* 3. Evidence Supporting This Pattern */}
           {analysis.evidence_list && analysis.evidence_list.length > 0 && (
