@@ -50,6 +50,12 @@ function ForAttorneys() {
       .catch(() => setRemaining(null));
   }, []);
   const attorneyTiers = buildTiers(remaining).filter((t) => t.key.startsWith("attorney_"));
+  const solo = attorneyTiers.find((t) => t.key === "attorney_solo");
+  const firm = attorneyTiers.find((t) => t.key === "attorney_firm");
+  const startsAt = `Plans start at ${solo?.price ?? "$297"} / month for a solo attorney seat`;
+  const firmLine = firm
+    ? `Firm plans available — ${firm.price} / month${firm.priceStrike ? ` (list ${firm.priceStrike})` : ""}${firm.eyebrowNote ? `. ${firm.eyebrowNote}.` : "."}`
+    : "";
   return (
     <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
       <TopBar />
@@ -111,7 +117,7 @@ function ForAttorneys() {
           See a sample case →
         </Link>
         <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.06em" }}>
-          Plans start at $297 / month for a solo attorney seat
+          {startsAt}
         </div>
       </section>
 
@@ -195,8 +201,7 @@ function ForAttorneys() {
             Create your attorney account →
           </Link>
           <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.06em", maxWidth: 640, lineHeight: 1.6 }}>
-            Plans start at $297 / month. Firm plans available — charter rate $597 / month locked for 12 months,
-            limited to 10 firms.
+            {startsAt}. {firmLine}
           </div>
         </div>
       </section>
