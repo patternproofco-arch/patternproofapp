@@ -82,7 +82,8 @@ describe("AI safety: never diagnose", () => {
     const src = readFileSync("src/lib/pattern-analysis.functions.ts", "utf8");
     expect(src).toMatch(/attorney_summary/);
     expect(src).toMatch(/FREQUENCY ONLY/);
-    expect(src).not.toMatch(/tactic/i);
+    // No live line may mention tactics (the removal comment is allowed).
+    expect(liveLines(src).filter((l) => /tactic/i.test(l))).toEqual([]);
   });
 
   it("has no /abuser-tactics route or route-tree entry", () => {
