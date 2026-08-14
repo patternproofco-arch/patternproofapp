@@ -46,6 +46,9 @@ describe("AI safety: never diagnose", () => {
   // or name psychological tactics. Comment lines documenting the removal are
   // allowed, but NO file is exempt wholesale.
   const FORBIDDEN = [/abuser_tactics/, /main_pattern_label/, /secondary_patterns/, /what_pattern_may_show/, /DARVO/i, /love[- ]bomb/i, /\/abuser-tactics/];
+  // Interpretive narrative fields: frequency/recurrence only, no inferred
+  // cycles, phases, triggers, trajectories, or continuation framing.
+  const INTERPRETIVE = [/escalation_arc/, /severity_trajectory/, /pattern_timeline_text/, /common_triggers/, /escalation_(?:before|during|after)/, /if this pattern continues/i];
   // Guardrail prompts name terms only to forbid the model from using them.
   const GUARDRAIL = /ai-chat\.functions\.ts|agent-prompt\.ts/;
 
@@ -78,6 +81,30 @@ describe("AI safety: never diagnose", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("has no live reference to the removed interpretive narrative fields", () => {
+    const offenders: string[] = [];
+    for (const [file, text] of SOURCES) {
+      if (GUARDRAIL.test(file)) continue;
+      liveLines(text).forEach((line, i) => {
+        for (const re of INTERPRETIVE) {
+          if (re.test(line)) offenders.push(`${file}:${i + 1}: ${line.trim().slice(0, 80)}`);
+        }
+      });
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps the AI analysis schema to frequency-only fields", () => {
+    const src = readFileSync("src/lib/pattern-analysis.functions.ts", "utf8");
+    const live = liveLines(src).join("\n");
+    // Deterministic / guarded fields that must survive.
+    for (const keep of ["frequency_trends", "abuse_type_breakdown", "evidence_list", "gaps", "what_to_document_next", "attorney_summary", "severity_indicators", "source_incident_ids"]) {
+      expect(live).toContain(keep);
+    }
+    // pattern_summary must not be generated or written anywhere in the analysis fn.
+    expect(live).not.toMatch(/pattern_summary/);
+  });
+
   it("keeps the attorney_summary prompt to dates, counts, and frequency only", () => {
     const src = readFileSync("src/lib/pattern-analysis.functions.ts", "utf8");
     expect(src).toMatch(/attorney_summary/);
@@ -97,11 +124,19 @@ describe("AI safety: never diagnose", () => {
       main_pattern_label: "Legacy primary pattern",
       secondary_patterns: ["Legacy secondary"],
       what_pattern_may_show: "Legacy interpretation",
+      pattern_summary: "Legacy narrative overview",
+      escalation_arc: "Legacy escalation arc",
+      severity_trajectory: "increasing",
+      pattern_timeline_text: "Calm → Threat → Repeat",
+      common_triggers: ["Legacy trigger"],
+      escalation_before: "Legacy before",
+      escalation_during: "Legacy during",
+      escalation_after: "Legacy after",
       attorney_summary: "12 entries between March and August.",
     };
     const r = buildPatternExport(legacy, { attorney_summary: { status: "confirmed" } });
     const blob = JSON.stringify(r.redactedAnalysis) + r.lines.join("\n");
-    for (const s of ["Legacy label", "legacy description", "Legacy primary pattern", "Legacy secondary", "Legacy interpretation"]) {
+    for (const s of ["Legacy label", "legacy description", "Legacy primary pattern", "Legacy secondary", "Legacy interpretation", "Legacy narrative overview", "Legacy escalation arc", "increasing", "Calm → Threat", "Legacy trigger", "Legacy before", "Legacy during", "Legacy after"]) {
       expect(blob).not.toContain(s);
     }
     expect(r.redactedAnalysis.attorney_summary).toBe("12 entries between March and August.");

@@ -3,11 +3,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export interface PatternAnalysisResult {
-  pattern_summary: string;
-  escalation_arc: string;
   frequency_trends: Array<{ period: string; count: number; note?: string }>;
   abuse_type_breakdown: Array<{ type: string; count: number; percent: number }>;
-  severity_trajectory: "decreasing" | "stable" | "increasing" | "volatile" | "unknown";
   gaps: Array<{ gap: string; suggestion: string }>;
   suggested_followups: string[];
   /**
@@ -15,6 +12,13 @@ export interface PatternAnalysisResult {
    * `secondary_patterns` and `what_pattern_may_show` are no longer generated,
    * typed, displayed or exported. Older jsonb rows may still contain them;
    * nothing in the app reads them.
+   *
+   * REMOVED (frequency-only rule): the interpretive narrative fields
+   * `pattern_summary`, `escalation_arc`, `severity_trajectory`,
+   * `pattern_timeline_text`, `common_triggers`, `escalation_before`,
+   * `escalation_during` and `escalation_after` are likewise no longer
+   * generated, typed, rendered or exported. Legacy rows may carry them; the
+   * export whitelist drops them.
    */
   /** Plain count of incidents in the record that support the primary pattern. */
   corroborating_incident_count?: number;
@@ -25,11 +29,6 @@ export interface PatternAnalysisResult {
     description: string;
     category: "threat" | "accusation" | "silence" | "charm" | "financial" | "custody" | "stalking" | "post-incident" | "other";
   }>;
-  pattern_timeline_text?: string;
-  common_triggers?: string[];
-  escalation_before?: string;
-  escalation_during?: string;
-  escalation_after?: string;
   what_to_document_next?: string[];
   attorney_summary?: string;
   severity_indicators?: Array<{
@@ -43,11 +42,8 @@ export interface PatternAnalysisResult {
 const TOOL_SCHEMA = {
   type: "object",
   properties: {
-    pattern_summary: { type: "string", description: "2-4 sentence plain-language summary of the overall pattern, suitable to drop into a court packet. First-person about the survivor's experience, factual, no legal conclusions." },
-    escalation_arc: { type: "string", description: "Brief narrative describing whether and how severity has shifted over time. Use phrases like 'increased frequency in spring', not statistics." },
     frequency_trends: { type: "array", items: { type: "object", properties: { period: { type: "string" }, count: { type: "integer" }, note: { type: "string" } }, required: ["period", "count"] } },
     abuse_type_breakdown: { type: "array", items: { type: "object", properties: { type: { type: "string" }, count: { type: "integer" }, percent: { type: "number" } }, required: ["type", "count", "percent"] } },
-    severity_trajectory: { type: "string", enum: ["decreasing", "stable", "increasing", "volatile", "unknown"] },
     gaps: { type: "array", items: { type: "object", properties: { gap: { type: "string", description: "What's missing or unclear in the record" }, suggestion: { type: "string", description: "Gentle, specific suggestion of what to add" } }, required: ["gap", "suggestion"] } },
     suggested_followups: { type: "array", items: { type: "string" }, description: "Concrete next documentation steps in the user's voice" },
     corroborating_incident_count: { type: "integer", description: "Plain count of incidents in the provided records that describe the primary pattern. A count only — do not interpret it, rate it, or convert it into a strength or confidence judgement." },
@@ -63,11 +59,6 @@ const TOOL_SCHEMA = {
         required: ["date", "description", "category"],
       },
     },
-    pattern_timeline_text: { type: "string", description: "Left-to-right text representation of the cycle using arrows, e.g. 'Calm → Boundary Set → Accusation → Threat → Silence → Charm → Calm → Repeat'." },
-    common_triggers: { type: "array", items: { type: "string" } },
-    escalation_before: { type: "string" },
-    escalation_during: { type: "string" },
-    escalation_after: { type: "string" },
     what_to_document_next: { type: "array", items: { type: "string" } },
     attorney_summary: { type: "string", description: "Neutral restatement of frequency only, suitable for professional review. State counts, date ranges and dates drawn from the records provided (e.g. 'The records contain 14 entries between 3 March and 2 August 2026; 6 fall on custody-exchange dates.'). Do NOT characterise the record as a cycle, escalation, pattern of abuse, or any named dynamic. Do NOT interpret, diagnose, rate, or draw conclusions. Counts, dates and the survivor's own wording only." },
     severity_indicators: {
@@ -84,7 +75,7 @@ const TOOL_SCHEMA = {
       },
     },
   },
-  required: ["pattern_summary", "escalation_arc", "frequency_trends", "abuse_type_breakdown", "severity_trajectory", "gaps", "suggested_followups", "corroborating_incident_count", "evidence_list", "pattern_timeline_text", "common_triggers", "escalation_before", "escalation_during", "escalation_after", "what_to_document_next", "attorney_summary", "severity_indicators"],
+  required: ["frequency_trends", "abuse_type_breakdown", "gaps", "suggested_followups", "corroborating_incident_count", "evidence_list", "what_to_document_next", "attorney_summary", "severity_indicators"],
   additionalProperties: false,
 };
 
@@ -147,7 +138,7 @@ export const analyzePatterns = createServerFn({ method: "POST" })
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: "You are a pattern analyst for a documentation app. You read the survivor's own records and describe trends, change over time, gaps in documentation, and useful next steps. You are NOT a lawyer, therapist, or diagnostician. You never label the other party, never diagnose, never state a legal or clinical conclusion, never rate the legal strength of the case, and never assert that any described behaviour occurred or amounts to abuse. Everything you produce is a restatement of what the survivor themselves reported, attributed to them. You never predict or forecast future incidents. You describe what the documented record shows, not what may happen next. You speak in the survivor's voice — calm, factual, plain language. You always call the survivor 'you' or 'the user'. Always return your analysis via the record_pattern_analysis tool.\n\nIn addition to your existing analysis, you must now also generate:\n- corroborating_incident_count: a plain integer count of how many incidents in the provided records describe the primary pattern. It is a count and nothing more. Do NOT convert it into a confidence, strength, severity, or evidentiary rating, and do NOT characterise it as low, moderate, strong, weak, or sufficient.\n- evidence_list: a structured list of the most significant supporting incidents with date, description, and category.\n- pattern_timeline_text: a simple left-to-right text representation of the repeating cycle using arrows.\n- common_triggers: list of what typically precedes escalation in the documented record.\n- escalation_before / escalation_during / escalation_after: describe the three phases as they appear in the record.\n- what_to_document_next: a checklist of evidence types to capture going forward. This is descriptive guidance about documentation gaps, not a prediction of future behavior.\n- attorney_summary: a neutral restatement of FREQUENCY ONLY, suitable for professional review. State counts, dates and date ranges taken from the records provided (e.g. 'The records contain 14 entries dated between 3 March and 2 August 2026, 6 of which fall on custody-exchange dates.'). Do NOT characterise the record as a cycle, an escalation, a pattern of abuse, or any named dynamic. Do NOT interpret, diagnose, rate, or draw any conclusion. Counts, dates, and the survivor's own wording only.\n- severity_indicators: documented behaviors already present in the survivor's confirmed incidents that commonly co-occur with safety escalation (for example threats involving weapons, strangulation or choking described, threats to kill). STRICT RULES for severity_indicators:\n  * Draw ONLY from the confirmed incidents in the records provided in this request. If a behavior is not documented in these incidents, do not include it. Do not invent or infer beyond what is written.\n  * Every item MUST cite the specific incident id(s) it is drawn from in source_incident_ids, using the exact id strings from the input. An item with no source citation is invalid — omit it entirely.\n  * Use short, factual labels: 'Non-fatal strangulation described', 'Verbal threat to kill', 'Threat involving a weapon'. Never use the words 'risk', 'risk level', 'high risk', 'tier', 'score', 'probability', 'detected', or 'likely'. Descriptive labeling only.\n  * The note field is one calm sentence describing what the record shows, always hedged, and must make clear this is 'documented in your records, not a prediction or clinical assessment'.\n  * Do NOT assign a tier, score, or probability. Do NOT rank items. Do NOT say 'research shows' or cite any named clinical framework, checklist, or methodology.\n  * If no such behaviors appear in the confirmed incidents, return an empty array. An empty array is the correct answer when the record does not contain these behaviors.\n\nLanguage rules: Never use the words narcissist, sociopath, or abuser unless the survivor wrote them. Never state predictions as certainties. Never forecast dates, windows, or timelines for future incidents. Always hedge with 'may', 'based on documented evidence', 'if this pattern continues'. Survivor-facing sections: warm, calm, validating. Attorney sections: neutral, professional, evidence-based." },
+          { role: "system", content: "You are a documentation analyst for a records app. You read the survivor's own records and report FREQUENCY AND RECURRENCE ONLY: dates, counts, date ranges, the survivor's own abuse-type tags, gaps in documentation, and source-linked examples. You are NOT a lawyer, therapist, or diagnostician. You never label the other party, never diagnose, never state a legal or clinical conclusion, never rate the legal strength of the case, and never assert that any described behaviour occurred or amounts to abuse. You never infer or describe cycles, phases, triggers, escalation, trajectories, or any named dynamic — even if the records appear to show one. You never predict or forecast future incidents and never use continuation framing such as 'if this continues'. Everything you produce is a restatement of what the survivor themselves reported, attributed to them. You speak plainly and calmly and always call the survivor 'you'. Always return your analysis via the record_pattern_analysis tool.\n\nField rules:\n- frequency_trends: counts per period taken directly from the record dates. Counts and periods only.\n- abuse_type_breakdown: counts and percentages of the survivor's OWN abuse_types tags. Never invent a category the survivor did not tag.\n- gaps: purely missing-documentation observations (e.g. 'no time recorded on four entries'), never interpretation of behaviour.\n- suggested_followups / what_to_document_next: concrete documentation steps. Descriptive guidance about documentation gaps, not a prediction of future behaviour.\n- corroborating_incident_count: a plain integer count of entries in the provided records. It is a count and nothing more. Do NOT convert it into a confidence, strength, severity, or evidentiary rating, and do NOT characterise it as low, moderate, strong, weak, or sufficient.\n- evidence_list: the most significant entries with date, description, and category, drawn verbatim from the records.\n- attorney_summary: a neutral restatement of FREQUENCY ONLY, suitable for professional review. State counts, dates and date ranges taken from the records provided (e.g. 'The records contain 14 entries dated between 3 March and 2 August 2026, 6 of which fall on custody-exchange dates.'). Do NOT characterise the record as a cycle, an escalation, a pattern of abuse, or any named dynamic. Do NOT interpret, diagnose, rate, or draw any conclusion. Counts, dates, and the survivor's own wording only.\n- severity_indicators: documented behaviors already present in the survivor's confirmed incidents that commonly co-occur with safety escalation (for example threats involving weapons, strangulation or choking described, threats to kill). STRICT RULES for severity_indicators:\n  * Draw ONLY from the confirmed incidents in the records provided in this request. If a behavior is not documented in these incidents, do not include it. Do not invent or infer beyond what is written.\n  * Every item MUST cite the specific incident id(s) it is drawn from in source_incident_ids, using the exact id strings from the input. An item with no source citation is invalid — omit it entirely.\n  * Use short, factual labels: 'Non-fatal strangulation described', 'Verbal threat to kill', 'Threat involving a weapon'. Never use the words 'risk', 'risk level', 'high risk', 'tier', 'score', 'probability', 'detected', or 'likely'. Descriptive labeling only.\n  * The note field is one calm sentence describing what the record shows, always hedged, and must make clear this is 'documented in your records, not a prediction or clinical assessment'.\n  * Do NOT assign a tier, score, or probability. Do NOT rank items. Do NOT say 'research shows' or cite any named clinical framework, checklist, or methodology.\n  * If no such behaviors appear in the confirmed incidents, return an empty array. An empty array is the correct answer when the record does not contain these behaviors.\n\nLanguage rules: Never use the words narcissist, sociopath, or abuser unless the survivor wrote them. Never state predictions as certainties. Never forecast dates, windows, or timelines for future incidents. Hedge with 'may' and 'based on documented evidence'. Keep all wording calm, factual, and plain." },
           { role: "user", content: `Today is ${new Date().toISOString().slice(0,10)}. Analyze the following records and call record_pattern_analysis with your findings:\n\n${JSON.stringify(summary)}` },
         ],
         tools: [{ type: "function", function: { name: "record_pattern_analysis", description: "Record the pattern analysis", parameters: TOOL_SCHEMA } }],
@@ -201,16 +192,6 @@ export const analyzePatterns = createServerFn({ method: "POST" })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       reviewed_status: seededStatus as any,
     }).select("id").single();
-
-    // Push summary into the most recent case row, if one exists.
-    const { data: caseRows } = await supabase
-      .from("cases").select("id").eq("user_id", userId)
-      .order("updated_at", { ascending: false }).limit(1);
-    if (caseRows && caseRows[0]) {
-      await supabase.from("cases")
-        .update({ pattern_summary: parsed.pattern_summary })
-        .eq("id", caseRows[0].id);
-    }
 
     return { ok: true as const, id: insertRes.data?.id ?? null, analysis: parsed, reviewed_status: seededStatus, cached: false };
   });

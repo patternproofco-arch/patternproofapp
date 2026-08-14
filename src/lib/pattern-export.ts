@@ -47,28 +47,14 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
   if (a.generated_at) redacted.generated_at = a.generated_at;
 
   // Interpretive fields (main_pattern_label, secondary_patterns,
-  // what_pattern_may_show, abuser_tactics) are no longer generated and are
+  // what_pattern_may_show, abuser_tactics, pattern_summary, escalation_arc,
+  // severity_trajectory, pattern_timeline_text, common_triggers,
+  // escalation_before/during/after) are no longer generated and are
   // deliberately NEVER exported, even when present on older cached rows.
+  // Only the whitelist below ever reaches an export.
   if (typeof a.corroborating_incident_count === "number") {
     redacted.corroborating_incident_count = a.corroborating_incident_count;
     lines.push(`Incidents counted in the record: ${a.corroborating_incident_count}`, ``);
-  }
-
-  {
-    if (a.pattern_summary) {
-      lines.push(`## Overview`, ``, String(a.pattern_summary), ``);
-      redacted.pattern_summary = a.pattern_summary;
-    }
-    if (a.escalation_arc) {
-      lines.push(`## Change over time`, ``, String(a.escalation_arc), ``);
-      redacted.escalation_arc = a.escalation_arc;
-    }
-    if (a.pattern_summary || a.escalation_arc) {
-      lines.push(
-        `_These two narrative sections are AI-generated from the survivor's own records and are not individually confirmed claim-by-claim._`,
-        ``,
-      );
-    }
   }
 
   // Severity indicators — reviewable per item.
@@ -99,9 +85,10 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
     }
   }
 
-  // Non-interpretive, count-based fields are factual restatements of the
-  // survivor's own records, not AI claims — they are not review-gated.
-  for (const key of ["frequency_trends", "abuse_type_breakdown", "severity_trajectory", "pattern_timeline_text"]) {
+  // Whitelist: only these count-based fields are factual restatements of the
+  // survivor's own records, not AI claims — they are not review-gated. Any
+  // other key on the row (including legacy interpretive fields) is dropped.
+  for (const key of ["frequency_trends", "abuse_type_breakdown"]) {
     if (a[key] !== undefined) redacted[key] = a[key];
   }
 
