@@ -3,11 +3,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export interface PatternAnalysisResult {
-  pattern_summary: string;
-  escalation_arc: string;
   frequency_trends: Array<{ period: string; count: number; note?: string }>;
   abuse_type_breakdown: Array<{ type: string; count: number; percent: number }>;
-  severity_trajectory: "decreasing" | "stable" | "increasing" | "volatile" | "unknown";
   gaps: Array<{ gap: string; suggestion: string }>;
   suggested_followups: string[];
   /**
@@ -15,6 +12,13 @@ export interface PatternAnalysisResult {
    * `secondary_patterns` and `what_pattern_may_show` are no longer generated,
    * typed, displayed or exported. Older jsonb rows may still contain them;
    * nothing in the app reads them.
+   *
+   * REMOVED (frequency-only rule): the interpretive narrative fields
+   * `pattern_summary`, `escalation_arc`, `severity_trajectory`,
+   * `pattern_timeline_text`, `common_triggers`, `escalation_before`,
+   * `escalation_during` and `escalation_after` are likewise no longer
+   * generated, typed, rendered or exported. Legacy rows may carry them; the
+   * export whitelist drops them.
    */
   /** Plain count of incidents in the record that support the primary pattern. */
   corroborating_incident_count?: number;
@@ -25,11 +29,6 @@ export interface PatternAnalysisResult {
     description: string;
     category: "threat" | "accusation" | "silence" | "charm" | "financial" | "custody" | "stalking" | "post-incident" | "other";
   }>;
-  pattern_timeline_text?: string;
-  common_triggers?: string[];
-  escalation_before?: string;
-  escalation_during?: string;
-  escalation_after?: string;
   what_to_document_next?: string[];
   attorney_summary?: string;
   severity_indicators?: Array<{
