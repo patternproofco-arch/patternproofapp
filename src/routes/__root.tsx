@@ -11,6 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
+import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
 
 function NotFoundComponent() {
   return (
@@ -75,14 +76,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "PatternProof — Private documentation for your case" },
-      { name: "description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
+      { name: "description", content: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit." },
       { property: "og:site_name", content: "PatternProof" },
       { property: "og:type", content: "website" },
       { property: "og:title", content: "PatternProof — Private documentation for your case" },
-      { property: "og:description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
+      { property: "og:description", content: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit." },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "PatternProof — Private documentation for your case" },
-      { name: "twitter:description", content: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases." },
+      { name: "twitter:description", content: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit." },
       { name: "twitter:site", content: "@PatternProof" },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169" },
@@ -96,23 +97,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap",
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
-      },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&display=swap",
-      },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap",
-      },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&display=swap",
       },
       {
         rel: "manifest",
@@ -121,10 +110,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "icon",
         type: "image/svg+xml",
-        href: "/icons/icon.svg",
+        href: "/favicon.svg",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        href: "/icons/icon-192.png",
+        sizes: "192x192",
+      },
+      {
+        rel: "apple-touch-icon",
+        href: "/icons/icon-192.png",
       },
     ],
     scripts: [
+      {
+        async: true,
+        src: `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`,
+      },
+      {
+        children: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+window.gtag = gtag;
+gtag('js', new Date());
+gtag('config', '${GA_MEASUREMENT_ID}');`,
+      },
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -132,18 +142,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@graph": [
             {
               "@type": "Organization",
-              "@id": "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/#organization",
+              "@id": "https://pattern-proof.tech/#organization",
               name: "PatternProof",
-              url: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/",
-              description: "Private, encrypted documentation for survivors of domestic abuse and high-conflict custody cases.",
+              url: "https://pattern-proof.tech/",
+              description: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
             },
             {
               "@type": "WebSite",
-              "@id": "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/#website",
+              "@id": "https://pattern-proof.tech/#website",
               name: "PatternProof",
-              url: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/",
-              description: "Private documentation for your case — encrypted and only visible to you.",
-              publisher: { "@id": "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/#organization" },
+              url: "https://pattern-proof.tech/",
+              description: "Private documentation for your case, encrypted in transit and protected with per-user access controls. Visible only to you and anyone you choose to share it with.",
+              publisher: { "@id": "https://pattern-proof.tech/#organization" },
             },
           ],
         }),
@@ -176,6 +186,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <GoogleAnalyticsRouteTracker />
         <Outlet />
         <Toaster position="top-center" toastOptions={{ style: { background: "#FFFCF1", color: "#1F1A14", border: "1px solid rgba(31,26,20,0.12)", borderRadius: "14px", fontFamily: "Inter, system-ui" } }} />
       </AuthProvider>

@@ -5,23 +5,28 @@ export interface PpSettings {
   exitUrl: string;
   sessionTimeoutSec: number;
   state: string;
+  city: string;
   notificationsEnabled: boolean;
   iconStyle: string;
   onboarded: boolean;
   quickRecordVisible: boolean;
   quickRecordFrozen: boolean;
+  /** Neutral frequency observations. Off unless she turns it on. */
+  frequencyObservationsEnabled: boolean;
 }
 
 const DEFAULTS: PpSettings = {
   disguiseName: "Daily Planner",
   exitUrl: "https://weather.com",
   sessionTimeoutSec: 60,
-  state: "NJ",
+  state: "",
+  city: "",
   notificationsEnabled: false,
   iconStyle: "Calendar",
   onboarded: false,
   quickRecordVisible: true,
   quickRecordFrozen: false,
+  frequencyObservationsEnabled: false,
 };
 
 const KEY = "pp_settings_v1";
@@ -33,7 +38,15 @@ interface Ctx {
 
 const SettingsCtx = createContext<Ctx>({ settings: DEFAULTS, update: () => {} });
 
-export function SettingsProvider({ children }: { children: ReactNode }) {
+export function SettingsProvider({
+  children,
+  applyDisguiseTitle = true,
+}: {
+  children: ReactNode;
+  /** Only the signed-in app wears the disguise title. Public pages keep their
+   *  own route metadata so search results and tabs stay branded. */
+  applyDisguiseTitle?: boolean;
+}) {
   const [settings, setSettings] = useState<PpSettings>(DEFAULTS);
 
   useEffect(() => {
@@ -47,10 +60,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (typeof document !== "undefined") {
+    if (applyDisguiseTitle && typeof document !== "undefined") {
       document.title = settings.disguiseName || "Daily Planner";
     }
-  }, [settings.disguiseName]);
+  }, [settings.disguiseName, applyDisguiseTitle]);
 
   const update = (patch: Partial<PpSettings>) => {
     setSettings((prev) => {

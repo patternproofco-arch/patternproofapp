@@ -119,7 +119,7 @@ function LiveRecording() {
       <h1 className="mt-2 font-serif text-[34px]">Record a conversation.</h1>
 
       {!warned && (
-        <div className="mt-4 rounded-2xl p-4" style={{ background: "var(--tint-purple)", border: "1px solid var(--border)" }}>
+        <div className="mt-4 rounded-[2px] p-4" style={{ background: "var(--tint-purple)", border: "1px solid var(--border)" }}>
           <p className="text-[13px] leading-relaxed">
             Recording-consent laws vary by state. In NJ you can record any conversation you're part of; other states may require consent. PatternProof can't give legal advice — if you're unsure, ask an attorney. Your safety comes first.
           </p>
@@ -129,7 +129,7 @@ function LiveRecording() {
         </div>
       )}
 
-      <div className="mt-6 rounded-2xl p-8 text-center" style={{ background: "var(--sidebar)", color: "var(--sidebar-active)" }}>
+      <div className="mt-6 rounded-[2px] p-8 text-center" style={{ background: "var(--sidebar)", color: "var(--sidebar-active)" }}>
         {!isRecording && !item && (
           <>
             <button onClick={beginLocal} className="mx-auto flex h-24 w-24 items-center justify-center rounded-full" style={{ background: "var(--primary)" }}>
@@ -150,11 +150,11 @@ function LiveRecording() {
         {item && !isRecording && (
           <div className="space-y-3 text-left">
             {accidental?.accidental && accidental.confidence === "high" && (
-              <div className="rounded-xl px-4 py-3" style={{ background: "rgba(242,232,216,0.95)", color: "#2A1A10", border: "1px solid rgba(78,59,49,0.15)" }}>
+              <div className="rounded-[2px] px-4 py-3" style={{ background: "rgba(242,232,216,0.95)", color: "#2A1A10", border: "1px solid rgba(78,59,49,0.15)" }}>
                 <p className="text-[13px]">This looks like it may have been accidental. Discard it?</p>
                 <div className="mt-2 flex gap-2">
-                  <button onClick={discard} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold" style={{ background: "#B57E60", color: "#F5E6DF" }}>Discard</button>
-                  <button onClick={() => setAccidental(null)} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold" style={{ background: "transparent", color: "#2A1A10" }}>Keep it</button>
+                  <button onClick={discard} className="rounded-[2px] px-3 py-1.5 text-[12px] font-semibold" style={{ background: "#1A1224", color: "#FAF8F4" }}>Discard</button>
+                  <button onClick={() => setAccidental(null)} className="rounded-[2px] px-3 py-1.5 text-[12px] font-semibold" style={{ background: "transparent", color: "#2A1A10" }}>Keep it</button>
                 </div>
               </div>
             )}
@@ -172,7 +172,7 @@ function LiveRecording() {
 
       <h2 className="mt-10 font-serif text-[20px]">Your recordings</h2>
       {list.length === 0 ? (
-        <div className="card-pp mt-3"><p style={{ color: "var(--muted-foreground)" }}>Tap the button above to start recording. Everything is encrypted and only you can access it.</p></div>
+        <div className="card-pp mt-3"><p style={{ color: "var(--muted-foreground)" }}>Tap the button above to start recording. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share.</p></div>
       ) : (
         <div className="mt-3 space-y-3">
           {list.map((r) => <RecCard key={r.id} r={r} onChanged={load} />)}
@@ -207,7 +207,7 @@ function RecCard({ r, onChanged }: { r: Rec; onChanged: () => void }) {
       </div>
       {url && <audio src={url} controls className="mt-3 w-full" />}
       {r.transcript && (
-        <div className="mt-3 rounded-xl p-3 text-[13px]" style={{ background: "var(--input)" }}>
+        <div className="mt-3 rounded-[2px] p-3 text-[13px]" style={{ background: "var(--input)" }}>
           <div className="label-eyebrow mb-1">Auto-generated — review before using in court</div>
           {r.transcript}
         </div>

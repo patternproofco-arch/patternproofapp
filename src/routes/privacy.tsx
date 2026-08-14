@@ -19,7 +19,7 @@ function PrivacyPage() {
       style={{
         minHeight: "100vh",
         background:
-          "radial-gradient(ellipse 80% 60% at 15% 10%, rgba(196,176,232,0.18), transparent 60%), radial-gradient(ellipse 70% 50% at 90% 90%, rgba(158,216,208,0.18), transparent 60%), #FAFBFD",
+          "#FAF8F4",
         color: "#1F1A2E",
         fontFamily: "Inter, system-ui, -apple-system, sans-serif",
         padding: "32px 20px 80px",
@@ -55,14 +55,14 @@ function PrivacyPage() {
         </div>
 
         <header style={{ marginBottom: 36 }}>
-          <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#7C5CC4", fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#7A1F3D", fontWeight: 700, marginBottom: 12 }}>
             PatternProof
           </div>
           <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.02em", margin: 0, color: "#1F1A2E" }}>
             Privacy Policy
           </h1>
           <p style={{ marginTop: 12, fontSize: 13, color: "#6B6478" }}>
-            Effective Date: June 2026 &nbsp;|&nbsp; Last Updated: June 2026
+            Effective Date: June 2026 &nbsp;|&nbsp; Last Updated: August 2026
           </p>
         </header>
 
@@ -113,7 +113,7 @@ function PrivacyPage() {
           </ul>
           <H3>Information From Third-Party Integrations</H3>
           <p>
-            If you connect PatternProof to a third-party service such as Clio (legal practice
+            If you connect PatternProof to a third-party service (for example, legal practice
             management software), we may receive information from that service as authorized
             by you. We only request access to the data necessary for the integration to function.
           </p>
@@ -122,7 +122,7 @@ function PrivacyPage() {
           <p>We use the information we collect to:</p>
           <ul>
             <li>Provide, maintain, and improve the Services</li>
-            <li>Generate timelines, pattern analyses, and attorney-ready summaries from your documentation</li>
+            <li>Generate timelines, pattern groupings, and summaries for professional review from your documentation</li>
             <li>Authenticate your account and protect against unauthorized access</li>
             <li>Respond to support requests</li>
             <li>Send you product updates and important notices (you may opt out at any time)</li>
@@ -136,11 +136,17 @@ function PrivacyPage() {
 
           <H2>4. AI Processing</H2>
           <p>
-            PatternProof uses AI to analyze documentation and identify patterns. AI processing
-            occurs in real time and is used only to generate outputs for you or your authorized
-            attorney. Your documentation content is not stored by third-party AI providers for
-            training purposes. We use API-based AI services that process data transiently and
-            do not retain it.
+            PatternProof uses AI to group and summarize your documentation. AI outputs — pattern
+            analyses, summaries, and voice-note or recording transcripts — are stored by
+            PatternProof in our database as part of your case record, and are retained on the same
+            terms as the rest of your documentation (see Section 8). They are visible to you and to
+            anyone you choose to share them with.
+          </p>
+          <p>
+            What is not retained is the raw inference call at the third-party model provider: the
+            content sent for a given request is processed to return that result and is not used to
+            train their models. We do not independently control those providers' internal handling
+            or retention beyond the terms of the gateway agreement described in Section 5.
           </p>
 
           <H2>5. How We Share Your Information</H2>
@@ -154,7 +160,7 @@ function PrivacyPage() {
             the platform, that attorney will receive the information you designate. You control
             what is shared.
           </p>
-          <H3>With Third-Party Integrations (e.g., Clio)</H3>
+          <H3>With Third-Party Integrations</H3>
           <p>
             If you authorize integration with a third-party legal platform, we will share only
             the information necessary for that integration to function, as directed by you.
@@ -167,9 +173,10 @@ function PrivacyPage() {
             sub-processors include:
           </p>
           <ul>
-            <li><strong>Lovable</strong> — application hosting and infrastructure</li>
-            <li><strong>Supabase</strong> — database storage</li>
-            <li><strong>Anthropic / OpenAI</strong> — AI pattern analysis (transient processing only, data not retained)</li>
+            <li><strong>Lovable</strong> — application hosting, infrastructure, and AI Gateway (routes AI requests to underlying model providers)</li>
+            <li><strong>Google (Gemini models)</strong> — AI pattern analysis and voice note transcription, via Lovable's AI Gateway. Processed per-request; PatternProof does not control Google's retention terms independently of Lovable's gateway agreement.</li>
+            <li><strong>Supabase</strong> — database and file storage</li>
+            <li><strong>Google Calendar / Google Drive</strong> — only if you choose to connect these integrations. Used to sync court dates or import files you select. Disconnect anytime; we stop syncing immediately.</li>
             <li><strong>Stripe</strong> — payment processing</li>
           </ul>
           <H3>Legal Requirements</H3>
@@ -179,11 +186,49 @@ function PrivacyPage() {
             permitted to do so.
           </p>
 
+          <H3>AI providers and subprocessors</H3>
+          <p>
+            Several features rely on third-party AI providers reached through the Lovable AI
+            Gateway: Google (Gemini models) and OpenAI (GPT-4o transcription). Features that use
+            them include Recurline pattern grouping, the Co-Pilot assistant, evidence content-type
+            suggestions, and voice/recording transcription.
+          </p>
+          <p>
+            When you use those features, the content involved — your entry text, message text,
+            file names and extracted text, or audio — is transmitted to and processed by those
+            providers. PatternProof does not control their internal handling or retention terms
+            directly, and we are still finalizing the specific data-processing terms we can state
+            publicly. Their own published policies are the authoritative source
+            (<a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noreferrer">Google</a>{" "}
+            and <a href="https://openai.com/policies/" target="_blank" rel="noreferrer">OpenAI</a>).
+            If you would prefer not to have content processed this way, avoid the AI features
+            listed above; the rest of PatternProof works without them.
+          </p>
+
+          <H2>5.5 Connecting Third-Party AI Tools (MCP)</H2>
+          <p>
+            You may optionally connect an external AI assistant or client application to your
+            PatternProof account using OAuth (the Model Context Protocol, or MCP). This is entirely
+            your choice — nothing is connected unless you approve it on the consent screen.
+          </p>
+          <p>
+            A connected app acts as you. With your approval it can read your documented incidents
+            and evidence records, search your case, and log new incidents on your behalf. Access is
+            scoped strictly to your own data — a connected app can never see another user's records,
+            and it cannot see anything you could not see yourself.
+          </p>
+          <p>
+            Once connected, the external app and its provider handle the data they retrieve under
+            their own privacy terms, which we do not control. You can review your connected apps and
+            revoke access at any time from Settings → Connected apps. Revoking takes effect
+            immediately for new requests.
+          </p>
+
           <H2>6. Data Security</H2>
           <p>We take the security of your data seriously. Measures we have implemented include:</p>
           <ul>
             <li>HTTPS/TLS encryption for all data in transit</li>
-            <li>Encryption at rest provided by our infrastructure hosts (Supabase / Postgres and object storage)</li>
+            <li>At-rest encryption is provided by our infrastructure hosts (managed Postgres and object storage) as a platform feature. We rely on their published controls and have not independently audited or certified that configuration.</li>
             <li>Row-level security policies scoping data access to the owning account</li>
             <li>Optional client-side screen lock (PIN or biometric) on your device</li>
             <li>Regular security monitoring, dependency patching, and access review</li>
@@ -274,8 +319,8 @@ function PrivacyPage() {
             Philadelphia, PA, United States
           </p>
 
-          <p style={{ marginTop: 32, fontStyle: "italic", color: "#7C5CC4", textAlign: "center" }}>
-            The proof is in the patterns.
+          <p style={{ marginTop: 32, fontStyle: "italic", color: "#7A1F3D", textAlign: "center" }}>
+            The truth is in the pattern.
           </p>
         </Prose>
       </div>
@@ -320,7 +365,7 @@ function H3({ children }: { children: React.ReactNode }) {
   return (
     <h3 style={{
       fontSize: 15, fontWeight: 600, marginTop: 20, marginBottom: 8,
-      color: "#2F8D85",
+      color: "#5E1730",
     }}>
       {children}
     </h3>

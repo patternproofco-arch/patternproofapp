@@ -6,9 +6,10 @@ import { useAuth } from "@/lib/auth-context";
 import { lovable } from "@/integrations/lovable";
 import { getMyRole } from "@/lib/attorney-portal.functions";
 import { recordOrgReferral } from "@/lib/payments.functions";
+import { ensureSurvivorRole } from "@/lib/roles.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Logo } from "@/components/Logo";
+import { BrandMark } from "@/components/BrandMark";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (s: Record<string, unknown>) => {
@@ -19,26 +20,32 @@ export const Route = createFileRoute("/login")({
   },
   head: () => ({
     meta: [
-      { title: "Sign in — PatternProof" },
+      { title: "PatternProof — Sign in" },
       { name: "description", content: "Sign in or create your PatternProof account to privately document incidents, evidence, and build your case." },
       { property: "og:title", content: "Sign in — PatternProof" },
-      { property: "og:description", content: "Access your private, encrypted documentation space." },
-      { property: "og:url", content: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/login" },
+      { property: "og:description", content: "Access your private documentation space. Protected with per-user access controls and encrypted in transit." },
+      { property: "og:url", content: "https://pattern-proof.tech/login" },
       { name: "twitter:title", content: "Sign in — PatternProof" },
-      { name: "twitter:description", content: "Access your private, encrypted documentation space." },
+      { name: "twitter:description", content: "Access your private documentation space. Protected with per-user access controls and encrypted in transit." },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "https://project--f496a23a-1a8f-408f-b5e0-e96d5947d49c.lovable.app/login" }],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/login" }],
   }),
   component: LoginPage,
 });
 
 function LoginPage() {
+  const homeForRole = (r: { role: string; is_org_partner?: boolean }) => {
+    if (r.role === "attorney") return "/clients";
+    if (r.role === "advocate") return r.is_org_partner ? "/org-portal" : "/advocate-cases";
+    return "/dashboard";
+  };
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { redirect: redirectTo, ref: refSlug } = Route.useSearch();
   const fetchRole = useServerFn(getMyRole);
   const recordReferral = useServerFn(recordOrgReferral);
+  const ensureRole = useServerFn(ensureSurvivorRole);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,7 +70,7 @@ function LoginPage() {
         return;
       }
       fetchRole()
-        .then((r) => navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true }))
+        .then((r) => navigate({ to: homeForRole(r), replace: true }))
         .catch(() => navigate({ to: "/dashboard", replace: true }));
     }
   }, [user, loading, navigate, fetchRole, redirectTo, refSlug, recordReferral]);
@@ -84,6 +91,9 @@ function LoginPage() {
           },
         });
         if (error) throw error;
+        // Persist the survivor role immediately so it's a real grant, not an
+        // absence of one. Best-effort: never block sign-up on it.
+        await ensureRole().catch(() => undefined);
         if (redirectTo && redirectTo.startsWith("/")) {
           navigate({ to: redirectTo, replace: true });
         } else {
@@ -97,7 +107,7 @@ function LoginPage() {
           return;
         }
         const r = await fetchRole().catch(() => ({ role: "survivor" as const }));
-        navigate({ to: r.role === "attorney" ? "/clients" : "/dashboard", replace: true });
+        navigate({ to: homeForRole(r), replace: true });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Something didn't work. Try again in a moment.";
@@ -148,7 +158,7 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center px-5 py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <Logo variant="survivor" size={88} />
+          <BrandMark size={76} />
           <p className="font-nunito mt-3 text-[15px]" style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>
             Private documentation for your case.
           </p>
@@ -161,7 +171,7 @@ function LoginPage() {
           <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             {mode === "login"
               ? "\n"
-              : "Create an account. Only you can see what you write here."}
+              : "Create an account. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share."}
           </p>
 
           <div className="space-y-3 mb-4">

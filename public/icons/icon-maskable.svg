@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#4E3B31"/>
-  <text x="50%" y="55%" text-anchor="middle" font-family="Georgia, serif" font-size="180" fill="#F5E6DF" dominant-baseline="middle">P</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" fill="#FAF8F4"/><g transform="translate(100,100) scale(0.62) translate(-100,-100)" style="mix-blend-mode:multiply"><g stroke="#7A1F3D" stroke-width="7" fill="none"><circle cx="88" cy="100" r="14"/><circle cx="88" cy="100" r="27"/><circle cx="88" cy="100" r="40"/><circle cx="88" cy="100" r="53"/><circle cx="88" cy="100" r="66"/><circle cx="88" cy="100" r="79"/><circle cx="88" cy="100" r="92"/></g><g stroke="#4A2A6B" stroke-width="7" fill="none"><circle cx="112" cy="100" r="14"/><circle cx="112" cy="100" r="27"/><circle cx="112" cy="100" r="40"/><circle cx="112" cy="100" r="53"/><circle cx="112" cy="100" r="66"/><circle cx="112" cy="100" r="79"/><circle cx="112" cy="100" r="92"/></g></g></svg>

@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Logo } from "@/components/Logo";
+import { BrandMark } from "@/components/BrandMark";
 
 // Supabase's auth.oauth namespace is beta — narrow the surface we use so
 // TypeScript is happy without pulling internals.
@@ -78,7 +78,7 @@ function ConsentPage() {
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-md card-pp">
         <div className="flex flex-col items-center text-center mb-5">
-          <Logo variant="survivor" size={64} />
+          <BrandMark size={58} />
           <h1 className="font-serif text-[22px] mt-3">
             Connect <span className="italic">{clientName}</span> to PatternProof
           </h1>

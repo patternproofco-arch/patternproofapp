@@ -9,6 +9,7 @@ import { CommCard } from "@/components/communications/CommCard";
 import { CommFilters, type Filter } from "@/components/communications/CommFilters";
 import type { Comm, IncidentLite } from "@/components/communications/types";
 import { CognitiveClose } from "@/components/CognitiveClose";
+import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/communications")({
   component: CommunicationsPage,
@@ -81,6 +82,7 @@ function CommunicationsPage() {
 
   return (
     <div>
+      <HubTabs tabs={CASE_TABS} />
       <div className="label-eyebrow">Communication log</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Every message, <em>every call.</em>
@@ -139,8 +141,8 @@ function CommunicationsPage() {
       </div>
       <CognitiveClose
         title="Link a message to the day it happened"
-        body="Open the journal entry for that date and attach this communication — context makes it count."
-        cta="Go to journal"
+        body="Open the Mark for that date and attach this communication — context makes it count."
+        cta="Go to Archive"
         to="/journal"
       />
     </div>

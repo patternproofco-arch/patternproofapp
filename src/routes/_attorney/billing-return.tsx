@@ -20,7 +20,7 @@ function BillingReturn() {
   return (
     <div className="att-card" style={{ maxWidth: 560, margin: "60px auto", textAlign: "center" }}>
       <Check size={36} style={{ color: "var(--att-green)", margin: "0 auto 12px" }} />
-      <h1 style={{ fontSize: 28, marginBottom: 8, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>
+      <h1 className="att-page-title">
         {sub.isActive ? "Subscription active" : "Finalizing your subscription…"}
       </h1>
       <p style={{ color: "var(--att-text-2)", fontSize: 14, marginBottom: 20 }}>

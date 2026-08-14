@@ -40,7 +40,7 @@ function CaseloadPage() {
     <div style={{ display: "grid", gap: 20 }}>
       <div>
         <div className="att-eyebrow">Overview</div>
-        <h1 style={{ fontFamily: "Georgia, 'Palatino Linotype', serif", fontSize: 28, margin: "4px 0 0" }}>
+        <h1 className="att-page-title">
           Caseload capacity
         </h1>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 6, maxWidth: 640 }}>
@@ -57,7 +57,7 @@ function CaseloadPage() {
       </div>
 
       {disengaged_clients.length > 0 && (
-        <div style={{ border: "1px solid var(--att-border)", borderRadius: 8, padding: 14 }}>
+        <div style={{ border: "1px solid var(--att-border)", borderRadius: 2, padding: 14 }}>
           <div className="att-eyebrow" style={{ marginBottom: 6 }}>Disengaged clients — no incident or evidence added in 30 days</div>
           <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 4 }}>
             {disengaged_clients.map((c) => (
@@ -75,7 +75,7 @@ function CaseloadPage() {
       )}
 
       {conflicts?.firm_id && conflicts.flags.length > 0 && (
-        <div style={{ border: "1px solid var(--att-border)", borderRadius: 8, padding: 14, background: "rgba(231, 123, 86, 0.05)", borderLeft: "3px solid var(--accent, #E77B56)" }}>
+        <div style={{ border: "1px solid var(--att-border)", borderRadius: 2, padding: 14, background: "transparent", borderLeft: "3px solid var(--att-accent)" }}>
           <div className="att-eyebrow" style={{ marginBottom: 6 }}>Possible name overlap — worth a firm conflict check</div>
           <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
             {conflicts.flags.map((f, i) => (
@@ -98,7 +98,7 @@ function CaseloadPage() {
         </div>
       )}
 
-      <div style={{ border: "1px solid var(--att-border)", borderRadius: 8, overflow: "hidden" }}>
+      <div style={{ border: "1px solid var(--att-border)", borderRadius: 2, overflow: "hidden" }}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(140px,1.4fr) 1fr 0.8fr 0.8fr 0.8fr 32px", gap: 8, padding: "10px 14px", background: "var(--att-surface-2, #f7f7f5)", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--att-text-2)" }}>
           <div>Client</div>
           <div>Last activity</div>
@@ -128,7 +128,7 @@ function CaseloadPage() {
                 textDecoration: "none",
                 color: "inherit",
                 background: attention ? "rgba(231, 123, 86, 0.05)" : "transparent",
-                borderLeft: attention ? "3px solid var(--accent, #E77B56)" : "3px solid transparent",
+                borderLeft: attention ? "3px solid var(--att-accent)" : "3px solid transparent",
               }}
             >
               <div style={{ fontWeight: 600 }}>Client {c.client_user_id.slice(0, 8)}</div>
@@ -155,14 +155,14 @@ function Kpi({ icon, label, value, tone }: { icon: React.ReactNode; label: strin
   return (
     <div style={{
       border: "1px solid var(--att-border)",
-      borderRadius: 8,
+      borderRadius: 2,
       padding: 14,
       background: tone === "warn" ? "rgba(231, 123, 86, 0.06)" : "transparent",
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--att-text-2)" }}>
         {icon}<span>{label}</span>
       </div>
-      <div style={{ fontFamily: "Georgia, 'Palatino Linotype', serif", fontSize: 26, marginTop: 6 }}>{value}</div>
+      <div style={{ fontFamily: "\"Space Grotesk\", system-ui, sans-serif", fontSize: 26, marginTop: 6 }}>{value}</div>
     </div>
   );
 }
@@ -175,11 +175,11 @@ function Chip({ value, warn }: { value: number | string; warn?: boolean }) {
       justifyContent: "center",
       minWidth: 32,
       padding: "2px 8px",
-      borderRadius: 999,
+      borderRadius: 2,
       fontSize: 12,
       fontWeight: 600,
       background: warn ? "rgba(231, 123, 86, 0.15)" : "transparent",
-      color: warn ? "var(--accent, #E77B56)" : "var(--att-text-2)",
+      color: warn ? "var(--att-accent)" : "var(--att-text-2)",
       width: "fit-content",
     }}>{value}</div>
   );

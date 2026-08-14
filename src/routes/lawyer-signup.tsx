@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Logo } from "@/components/Logo";
+import { BrandMark } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { upsertAttorneyProfile } from "@/lib/attorney-portal.functions";
@@ -73,8 +73,8 @@ function LawyerSignup() {
           email: user.email ?? email,
         },
       });
-      toast("Welcome to the litigation portal.");
-      navigate({ to: "/clients" });
+      toast("Saved. One last step to open the portal.");
+      navigate({ to: "/setup" });
     } catch (err) {
       toast(err instanceof Error ? err.message : "Couldn't save profile.");
     } finally {
@@ -86,10 +86,10 @@ function LawyerSignup() {
     <div className="flex min-h-screen items-center justify-center px-5 py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <Logo variant="attorney" size={80} />
+          <BrandMark size={72} />
           <div className="font-serif text-[28px] font-bold mt-3">Attorney portal</div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            Turn 40 hours of evidence review into 2.
+            A source-linked chronology instead of a folder of screenshots.
           </p>
         </div>
 

@@ -2,11 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Upload, FileText, FileSpreadsheet, FileCode2, FileArchive, FileType2, Shield, Sparkles, AlertTriangle, MessageSquare, Loader2, Trash2 } from "lucide-react";
+import { Upload, FileText, FileSpreadsheet, FileCode2, FileArchive, FileType2, Shield, Sparkles, AlertTriangle, MessageSquare, Loader2, Trash2, Camera, Video, Laptop, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { parseMessageThread } from "@/lib/message-threads.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { ScreenshotStitcher } from "@/components/threads/ScreenshotStitcher";
+import { ScreenRecordingUpload } from "@/components/threads/ScreenRecordingUpload";
+import { CallLogPhotos } from "@/components/threads/CallLogPhotos";
+import { checkUploadSize } from "@/lib/upload-limits";
 
 export const Route = createFileRoute("/_authenticated/message-threads")({
   component: MessageThreadsPage,
@@ -79,6 +83,12 @@ interface ThreadRow {
   flags: Array<{ type: string; label: string; evidence: string; severity: string }>;
   exhibit_label: string | null;
   created_at: string;
+  capture_method: string | null;
+  captured_at: string | null;
+  capture_notes: string | null;
+  screenshot_count: number | null;
+  video_duration_sec: number | null;
+  primary_artifact_urls: string[] | null;
 }
 
 function typeForFile(file: File, hint: SourceType): SourceType {
@@ -98,6 +108,9 @@ function MessageThreadsPage() {
   const parseFn = useServerFn(parseMessageThread);
   const [threads, setThreads] = useState<ThreadRow[]>([]);
   const [busyType, setBusyType] = useState<SourceType | null>(null);
+  const [tier, setTier] = useState<"picker" | "tier1" | "tier2" | "tier3" | "call_log">("picker");
+  const [tier2Notes, setTier2Notes] = useState<string>("");
+  const [tier2Participant, setTier2Participant] = useState<string>("");
   const inputs = useRef<Record<SourceType, HTMLInputElement | null>>({
     pdf: null, csv: null, txt: null, rsmf: null, zip: null, excel: null,
   });
@@ -121,8 +134,9 @@ function MessageThreadsPage() {
 
   const onFile = async (cardType: SourceType, file: File | undefined) => {
     if (!user || !file) return;
-    if (file.size > 20 * 1024 * 1024) {
-      toast.error("That file is over 20 MB. Try splitting the export.");
+    const sizeProblem = checkUploadSize(file);
+    if (sizeProblem) {
+      toast.error(sizeProblem);
       return;
     }
     setBusyType(cardType);
@@ -146,6 +160,11 @@ function MessageThreadsPage() {
           source_filename: file.name,
           file_url: path,
           parse_status: "pending",
+          capture_method: "backup_export",
+          captured_at: new Date().toISOString(),
+          capture_notes: tier2Notes || null,
+          conversation_participant: tier2Participant || null,
+          primary_artifact_urls: [path],
         })
         .select("id")
         .single();
@@ -171,6 +190,9 @@ function MessageThreadsPage() {
       toast.error(e instanceof Error ? e.message : "Upload failed.");
     } finally {
       setBusyType(null);
+      setTier("picker");
+      setTier2Notes("");
+      setTier2Participant("");
     }
   };
 
@@ -191,32 +213,31 @@ function MessageThreadsPage() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        <div className="label-eyebrow" style={{ color: "#7C5CC4" }}>Evidence Portal · Conversations</div>
-        <h1 style={{ fontFamily: '"Instrument Serif", serif', fontWeight: 400, fontSize: 40, lineHeight: 1.05, color: "#1A1714" }}>
+        <div className="label-eyebrow" style={{ color: "#7A1F3D" }}>Evidence Portal · Conversations</div>
+        <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 40, lineHeight: 1.05, color: "#1A1224" }}>
           Upload a Message Thread
         </h1>
-        <p style={{ fontSize: 16, lineHeight: 1.6, color: "#3D3832", maxWidth: 720 }}>
-          Bring your texts, iMessages, and SMS conversations into PatternProof. We can&apos;t reach into your phone
-          for you — you export the messages yourself using a lawful method, and we organize them into a searchable
-          timeline with pattern, threat, and escalation flags.
+        <p style={{ fontSize: 16, lineHeight: 1.6, color: "#3A3849", maxWidth: 720 }}>
+          Three ways to bring a conversation in — pick the one that fits where you are and what you have access to right now.
+          There&apos;s no wrong choice. All three land in Documentation first and stay private to you.
         </p>
       </header>
 
       {/* Safety notice */}
       <div
         style={{
-          display: "flex", gap: 14, padding: 18, borderRadius: 18,
-          background: "linear-gradient(135deg, rgba(196,167,255,0.18), rgba(164,255,239,0.18))",
-          border: "1px solid rgba(124,92,196,0.25)",
-          color: "#1A1714",
+          display: "flex", gap: 14, padding: 18, borderRadius: 0,
+          background: "rgba(122,31,61,0.10), rgba(164,255,239,0.18))",
+          border: "1px solid rgba(122,31,61,0.25)",
+          color: "#1A1224",
         }}
       >
-        <Shield size={22} color="#7C5CC4" style={{ flexShrink: 0, marginTop: 2 }} />
+        <Shield size={22} color="#7A1F3D" style={{ flexShrink: 0, marginTop: 2 }} />
         <div>
           <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 14, letterSpacing: "0.02em" }}>
             A note about lawful use
           </div>
-          <p style={{ fontSize: 14, lineHeight: 1.55, color: "#3D3832" }}>
+          <p style={{ fontSize: 14, lineHeight: 1.55, color: "#3A3849" }}>
             Only upload messages from your own device, account, or records you are legally allowed to access.
             PatternProof does not hack, scrape, bypass Apple security, or access another person&apos;s private messages.
             We help you organize what you already have the right to keep.
@@ -224,8 +245,83 @@ function MessageThreadsPage() {
         </div>
       </div>
 
-      {/* Upload cards */}
-      <section className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+      {tier === "picker" && (
+        <section className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
+          <TierCard
+            eyebrow="Tier 1 · Fastest"
+            title="Take screenshots"
+            body="On your own, need this fast. You screenshot the thread as you scroll; we stitch them together and pull out searchable text. Your screenshots stay the primary evidence."
+            hint="Best when you're alone and time matters — least re-exposure."
+            accent="#7A1F3D"
+            Icon={Camera}
+            cta="Start with screenshots"
+            onClick={() => setTier("tier1")}
+          />
+          <TierCard
+            eyebrow="Tier 2 · Strongest"
+            title="Backup with a computer"
+            body="You (or an advocate/attorney) sit down with a computer and do a real phone backup, then upload the export. Most court-defensible option — but never required."
+            hint="Recommended when you have help or a laptop available."
+            accent="#7A1F3D"
+            Icon={Laptop}
+            cta="Show me how"
+            onClick={() => setTier("tier2")}
+            recommended
+          />
+          <TierCard
+            eyebrow="Tier 3 · Fallback"
+            title="Screen recording"
+            body="Only when nothing else works — for hundreds of messages you can't screenshot one by one. The video itself is your evidence; the AI transcript is a searchable index only."
+            hint="Takes longer and means more time looking at the conversation."
+            accent="#8A5A2E"
+            Icon={Video}
+            cta="Use screen recording"
+            onClick={() => setTier("tier3")}
+          />
+          <TierCard
+            eyebrow="Call log · Photos"
+            title="Import your call history"
+            body="Screenshots of your Recents / Calls screen. Same photo-based path on iPhone and Android — no special permissions, no computer needed. We read each call row from the images."
+            hint="Best for showing frequency, missed calls, and late-night patterns."
+            accent="#7A1F3D"
+            Icon={Phone}
+            cta="Import call log photos"
+            onClick={() => setTier("call_log")}
+          />
+        </section>
+      )}
+
+      {tier === "tier1" && <ScreenshotStitcher onDone={() => { setTier("picker"); load(); }} onCancel={() => setTier("picker")} />}
+      {tier === "tier3" && <ScreenRecordingUpload onDone={() => { setTier("picker"); load(); }} onCancel={() => setTier("picker")} />}
+      {tier === "call_log" && <CallLogPhotos onDone={() => { setTier("picker"); load(); }} onCancel={() => setTier("picker")} />}
+
+      {tier === "tier2" && (
+        <section style={{ borderRadius: 0, padding: 22, background: "#FAF8F4", border: "1px solid rgba(122,31,61,0.25)" }} className="flex flex-col gap-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="label-eyebrow" style={{ color: "#7A1F3D" }}>Tier 2 · Strongest</div>
+              <h3 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#1A1224", marginTop: 4 }}>Backup export walkthrough</h3>
+            </div>
+            <button type="button" onClick={() => setTier("picker")} className="text-sm underline" style={{ color: "rgba(26,18,36,0.55)" }}>Back</button>
+          </div>
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
+            <StepCard n="1" title="iPhone (Finder or iTunes)" body="Connect your iPhone to a Mac or PC. Use Finder (macOS) or iTunes (Windows) to make an encrypted local backup. Then use a reputable tool like iMazing or Decipher TextMessage to export your messages as a PDF, CSV, or TXT file." />
+            <StepCard n="2" title="Android (Google Takeout or backup app)" body="Sign in to Google Takeout on a computer and export SMS/Chats — or use a reputable Android backup app that produces an export file. Save the export somewhere you can find it." />
+            <StepCard n="3" title="Upload the export below" body="Any of the file formats below work. All uploads are private to you; nothing is shared unless you choose to." />
+          </div>
+          <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 1fr" }}>
+            <div>
+              <label className="label-eyebrow">Who is this conversation with?</label>
+              <input value={tier2Participant} onChange={(e) => setTier2Participant(e.target.value)} className="input-pp mt-1" placeholder="e.g. Alex — ex-partner" />
+            </div>
+            <div>
+              <label className="label-eyebrow">Anything to remember?</label>
+              <input value={tier2Notes} onChange={(e) => setTier2Notes(e.target.value)} className="input-pp mt-1" placeholder="e.g. iPhone, Finder backup, laptop present" />
+            </div>
+          </div>
+
+          {/* Existing file-format cards, reused as the Tier-2 uploaders */}
+          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
         {CARDS.map((c) => {
           const Icon = c.icon;
           const busy = busyType === c.type;
@@ -234,36 +330,36 @@ function MessageThreadsPage() {
               key={c.type}
               style={{
                 position: "relative",
-                borderRadius: 20,
+                borderRadius: 0,
                 padding: 20,
                 background: "rgba(255,255,255,0.7)",
-                border: "1px solid rgba(124,92,196,0.18)",
-                boxShadow: "0 12px 36px -20px rgba(124,92,196,0.35)",
-                backdropFilter: "blur(14px)",
-                WebkitBackdropFilter: "blur(14px)",
+                border: "1px solid rgba(122,31,61,0.18)",
+                boxShadow: "none",
+                backdropFilter: "none",
+                WebkitBackdropFilter: "none",
                 display: "flex", flexDirection: "column", gap: 12,
               }}
             >
               <div
                 style={{
-                  width: 46, height: 46, borderRadius: 14, display: "grid", placeItems: "center",
-                  background: `linear-gradient(135deg, ${c.swatch[0]}, ${c.swatch[1]})`,
+                  width: 46, height: 46, borderRadius: 0, display: "grid", placeItems: "center",
+                  background: `rgba(122,31,61,0.10)`,
                   color: "#3D2C5C",
                 }}
               >
                 <Icon size={22} color="#3D2C5C" />
               </div>
-              <div style={{ fontWeight: 700, fontSize: 16, color: "#1A1714" }}>{c.title}</div>
-              <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#3D3832", flex: 1 }}>{c.blurb}</p>
+              <div style={{ fontWeight: 700, fontSize: 16, color: "#1A1224" }}>{c.title}</div>
+              <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#3A3849", flex: 1 }}>{c.blurb}</p>
               <button
                 type="button"
                 onClick={() => onPick(c.type)}
                 disabled={busy}
                 style={{
                   display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  padding: "10px 14px", borderRadius: 999,
-                  background: "linear-gradient(90deg, #7C5CC4, #2F8D85)",
-                  color: "#fff", fontWeight: 700, fontSize: 13,
+                  padding: "10px 14px", borderRadius: 0,
+                  background: "#7A1F3D",
+                  color: "#FAF8F4", fontWeight: 700, fontSize: 13,
                   opacity: busy ? 0.7 : 1, cursor: busy ? "wait" : "pointer",
                 }}
               >
@@ -280,20 +376,22 @@ function MessageThreadsPage() {
             </div>
           );
         })}
-      </section>
+          </div>
+        </section>
+      )}
 
       {/* Threads list */}
       <section className="flex flex-col gap-4">
-        <h2 style={{ fontFamily: '"Instrument Serif", serif', fontWeight: 400, fontSize: 28, color: "#1A1714" }}>
+        <h2 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 28, color: "#1A1224" }}>
           Your uploaded conversations
         </h2>
         {threads.length === 0 ? (
           <div
             style={{
-              padding: 28, borderRadius: 20, textAlign: "center",
+              padding: 28, borderRadius: 0, textAlign: "center",
               background: "rgba(255,255,255,0.6)",
-              border: "1px dashed rgba(124,92,196,0.3)",
-              color: "#3D3832", fontSize: 14, lineHeight: 1.6,
+              border: "1px dashed rgba(122,31,61,0.3)",
+              color: "#3A3849", fontSize: 14, lineHeight: 1.6,
             }}
           >
             Nothing here yet. When you&apos;re ready, upload an export above — your file stays private to you.
@@ -308,31 +406,54 @@ function MessageThreadsPage() {
 }
 
 function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
+  const captureLabel = t.capture_method === "multi_screenshot"
+    ? `📱 Multi-screenshot · ${t.screenshot_count ?? 0} images`
+    : t.capture_method === "screen_recording"
+      ? `🎬 Screen recording${t.video_duration_sec ? ` · ${Math.round(t.video_duration_sec / 60)} min` : ""}`
+      : t.capture_method === "backup_export"
+        ? "💻 Backup export"
+        : null;
   const statusColor =
-    t.parse_status === "parsed" ? "#2F8D85"
-    : t.parse_status === "queued" ? "#7C5CC4"
+    t.parse_status === "parsed" ? "#7A1F3D"
+    : t.parse_status === "queued" ? "#7A1F3D"
     : t.parse_status === "partial" ? "#B88B2A"
-    : t.parse_status === "failed" ? "#B0556A"
-    : "#7C5CC4";
+    : t.parse_status === "failed" ? "#8A5A2E"
+    : "#7A1F3D";
   return (
     <article
       style={{
-        borderRadius: 20, padding: 22,
+        borderRadius: 0, padding: 22,
         background: "rgba(255,255,255,0.75)",
-        border: "1px solid rgba(124,92,196,0.18)",
-        boxShadow: "0 16px 40px -24px rgba(47,141,133,0.35)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        border: "1px solid rgba(122,31,61,0.18)",
+        boxShadow: "none",
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
       }}
     >
+      {captureLabel && (
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11,
+          padding: "4px 10px", borderRadius: 0, marginBottom: 10,
+          background: "rgba(26,23,20,0.06)", color: "#3A3849", fontWeight: 600, letterSpacing: "0.03em",
+        }}>
+          How this was captured · {captureLabel}
+          {t.captured_at && <span style={{ opacity: 0.7 }}> · {new Date(t.captured_at).toLocaleString()}</span>}
+        </div>
+      )}
+      {(t.capture_method === "multi_screenshot" || t.capture_method === "screen_recording") && (
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+          color: "#8A5A2E", marginBottom: 8 }}>
+          AI-{t.capture_method === "screen_recording" ? "generated" : "extracted"} — unverified
+        </div>
+      )}
       <header className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-start gap-3">
-          <div style={{ width: 38, height: 38, borderRadius: 12, background: "linear-gradient(135deg,#E2DCFA,#C7E9E3)", display: "grid", placeItems: "center" }}>
+          <div style={{ width: 38, height: 38, borderRadius: 0, background: "rgba(122,31,61,0.10)", display: "grid", placeItems: "center" }}>
             <MessageSquare size={18} color="#3D2C5C" />
           </div>
           <div>
-            <div style={{ fontWeight: 700, color: "#1A1714", fontSize: 15 }}>{t.source_filename}</div>
-            <div style={{ fontSize: 12, color: "#6B5A4F", letterSpacing: "0.04em", textTransform: "uppercase", marginTop: 2 }}>
+            <div style={{ fontWeight: 700, color: "#1A1224", fontSize: 15 }}>{t.source_filename}</div>
+            <div style={{ fontSize: 12, color: "rgba(26,18,36,0.55)", letterSpacing: "0.04em", textTransform: "uppercase", marginTop: 2 }}>
               {t.source_type.toUpperCase()} · {new Date(t.created_at).toLocaleDateString()} · {t.message_count} messages
             </div>
           </div>
@@ -341,7 +462,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
           <span
             style={{
               fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-              padding: "4px 10px", borderRadius: 999,
+              padding: "4px 10px", borderRadius: 0,
               background: `${statusColor}1A`, color: statusColor,
             }}
           >
@@ -349,7 +470,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
           </span>
           <button
             type="button" onClick={onDelete} aria-label="Delete"
-            style={{ padding: 6, borderRadius: 8, color: "#6B5A4F", background: "transparent" }}
+            style={{ padding: 6, borderRadius: 2, color: "rgba(26,18,36,0.55)", background: "transparent" }}
           >
             <Trash2 size={15} />
           </button>
@@ -357,7 +478,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
       </header>
 
       {t.parse_error && (
-        <p style={{ fontSize: 13, color: "#6B5A4F", marginBottom: 12, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13, color: "rgba(26,18,36,0.55)", marginBottom: 12, lineHeight: 1.5 }}>
           <AlertTriangle size={12} style={{ display: "inline", marginRight: 6, color: "#B88B2A" }} />
           {t.parse_error}
         </p>
@@ -365,21 +486,21 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
 
       {t.summary && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#7C5CC4", marginBottom: 6 }}>Summary</div>
-          <p style={{ fontSize: 14, lineHeight: 1.6, color: "#1A1714" }}>{t.summary}</p>
+          <div className="label-eyebrow" style={{ color: "#7A1F3D", marginBottom: 6 }}>Summary</div>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: "#1A1224" }}>{t.summary}</p>
         </div>
       )}
 
       {t.attorney_summary && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#2F8D85", marginBottom: 6 }}>Attorney-ready summary</div>
-          <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "#3D3832" }}>{t.attorney_summary}</p>
+          <div className="label-eyebrow" style={{ color: "#7A1F3D", marginBottom: 6 }}>Summary for professional review</div>
+          <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "#3A3849" }}>{t.attorney_summary}</p>
         </div>
       )}
 
       {Array.isArray(t.flags) && t.flags.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#B0556A", marginBottom: 8 }}>Flags & patterns</div>
+          <div className="label-eyebrow" style={{ color: "#8A5A2E", marginBottom: 8 }}>Flags & patterns</div>
           <div className="flex flex-wrap gap-2">
             {t.flags.map((f, i) => (
               <span
@@ -387,9 +508,9 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
                 title={f.evidence}
                 style={{
                   fontSize: 12, fontWeight: 600,
-                  padding: "5px 10px", borderRadius: 999,
+                  padding: "5px 10px", borderRadius: 0,
                   background: f.severity === "high" ? "#F7DDE3" : f.severity === "medium" ? "#FAEAD3" : "#E4F3EE",
-                  color: f.severity === "high" ? "#7E2A3D" : f.severity === "medium" ? "#7A5613" : "#1F5E55",
+                  color: f.severity === "high" ? "#8A5A2E" : f.severity === "medium" ? "#8A5A2E" : "#0F6E56",
                 }}
               >
                 {f.label}
@@ -403,7 +524,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
         <div
           style={{
             marginTop: 14, padding: "10px 14px",
-            borderRadius: 12, background: "rgba(124,92,196,0.08)",
+            borderRadius: 0, background: "rgba(122,31,61,0.08)",
             fontSize: 12.5, color: "#3D2C5C", fontWeight: 600, letterSpacing: "0.02em",
             display: "inline-flex", alignItems: "center", gap: 8,
           }}
@@ -412,5 +533,47 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
         </div>
       )}
     </article>
+  );
+}
+
+function TierCard({ eyebrow, title, body, hint, accent, Icon, cta, onClick, recommended }: {
+  eyebrow: string; title: string; body: string; hint: string; accent: string;
+  Icon: React.ComponentType<{ size?: number; color?: string }>;
+  cta: string; onClick: () => void; recommended?: boolean;
+}) {
+  return (
+    <button type="button" onClick={onClick}
+      style={{
+        position: "relative", textAlign: "left",
+        borderRadius: 0, padding: 22,
+        background: "#FAF8F4",
+        border: `1px solid ${accent}44`,
+        boxShadow: "none",
+        display: "flex", flexDirection: "column", gap: 10,
+      }}>
+      {recommended && (
+        <span style={{ position: "absolute", top: 12, right: 12, fontSize: 10, fontWeight: 800,
+          letterSpacing: "0.1em", textTransform: "uppercase", color: accent,
+          background: `${accent}18`, padding: "3px 8px", borderRadius: 0 }}>Recommended</span>
+      )}
+      <div style={{ width: 44, height: 44, borderRadius: 0, background: `${accent}18`, display: "grid", placeItems: "center" }}>
+        <Icon size={20} color={accent} />
+      </div>
+      <div className="label-eyebrow" style={{ color: accent }}>{eyebrow}</div>
+      <div style={{ fontWeight: 700, fontSize: 17, color: "#1A1224" }}>{title}</div>
+      <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#3A3849" }}>{body}</p>
+      <p style={{ fontSize: 12.5, lineHeight: 1.5, color: "rgba(26,18,36,0.55)", fontStyle: "italic" }}>{hint}</p>
+      <span style={{ marginTop: 4, fontSize: 13, fontWeight: 700, color: accent }}>{cta} →</span>
+    </button>
+  );
+}
+
+function StepCard({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div style={{ borderRadius: 0, padding: 14, background: "rgba(255,255,255,0.6)", border: "1px solid rgba(122,31,61,0.2)" }}>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", color: "#7A1F3D", marginBottom: 6 }}>STEP {n}</div>
+      <div style={{ fontWeight: 700, color: "#1A1224", fontSize: 14, marginBottom: 4 }}>{title}</div>
+      <p style={{ fontSize: 13, lineHeight: 1.5, color: "#3A3849" }}>{body}</p>
+    </div>
   );
 }

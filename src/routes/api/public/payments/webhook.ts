@@ -118,9 +118,40 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   if (session.metadata?.tier !== "court_ready_pwyc") return;
   const userId = session.metadata?.userId;
   if (!userId) return;
+  if (session.payment_status === "unpaid") return;
   const now = new Date();
   const oneYear = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
-  await getSupabase().from("subscriptions").upsert(
+  const supabase = getSupabase();
+
+  // Source of truth for the Court Ready export paywall. Written with the
+  // service role only — the client can read its own row, never write it.
+  const { error: entErr } = await supabase.from("entitlements").upsert(
+    {
+      user_id: userId,
+      court_ready_paid: true,
+      paid_at: now.toISOString(),
+      amount_paid: typeof session.amount_total === "number" ? session.amount_total / 100 : null,
+      stripe_checkout_session_id: session.id,
+      updated_at: now.toISOString(),
+    },
+    { onConflict: "user_id" },
+  );
+  if (entErr) {
+    // Never swallow this: the payment succeeded even though we failed to
+    // record entitlement. Log loudly so it can be reconciled by hand.
+    console.error(
+      "[payments] ENTITLEMENT WRITE FAILED",
+      JSON.stringify({
+        user_id: userId,
+        session_id: session.id,
+        amount_total: session.amount_total,
+        environment: env,
+        error: entErr.message,
+      }),
+    );
+  }
+
+  await supabase.from("subscriptions").upsert(
     {
       user_id: userId,
       stripe_subscription_id: `pwyc_${session.id}`,
@@ -136,6 +167,10 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     },
     { onConflict: "stripe_subscription_id" },
   );
+
+  // Signal failure only after the rest of the record is persisted, so Stripe
+  // retries the event and the entitlement eventually lands.
+  if (entErr) throw new Error(`entitlement write failed for session ${session.id}`);
 }
 
 /**

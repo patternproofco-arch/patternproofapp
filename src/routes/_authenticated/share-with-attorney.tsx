@@ -1,14 +1,16 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback } from "react";
 import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check, MessageSquare, Send, X, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } from "@/lib/attorney-invitations.functions";
+import { sendTransactionalEmail } from "@/lib/email/send";
 import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts, setDepositionPrepConsent } from "@/lib/attorney-portal.functions";
-import { useSubscription } from "@/hooks/useSubscription";
+import { setClioShareConsent } from "@/lib/clio-matter-links.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/share-with-attorney")({
   component: ShareWithAttorney,
@@ -17,20 +19,14 @@ export const Route = createFileRoute("/_authenticated/share-with-attorney")({
 type Listing = Awaited<ReturnType<typeof listMyInvitations>>;
 
 function ShareWithAttorney() {
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const sub = useSubscription();
   const { confirm, dialog } = useConfirm();
-  useEffect(() => {
-    if (!sub.loading && sub.tier === "core") {
-      navigate({ to: "/court-ready", replace: true });
-    }
-  }, [sub.loading, sub.tier, navigate]);
   const list = useServerFn(listMyInvitations);
   const create = useServerFn(createInvitation);
   const revokeInv = useServerFn(revokeInvitation);
   const revokeLk = useServerFn(revokeLink);
   const setPhrasingConsent = useServerFn(setDepositionPrepConsent);
+  const setClioConsent = useServerFn(setClioShareConsent);
 
   const [data, setData] = useState<Listing | null>(null);
   const [open, setOpen] = useState(false);
@@ -47,13 +43,13 @@ function ShareWithAttorney() {
   const [personalNote, setPersonalNote] = useState("");
   const [days, setDays] = useState(30);
   const [busy, setBusy] = useState(false);
-  const [justCreated, setJustCreated] = useState<{ url: string; email: string } | null>(null);
-  const [cases, setCases] = useState<Array<{ id: string; case_name: string | null; other_party: string | null }>>([]);
+  const [justCreated, setJustCreated] = useState<{ url: string; email: string; sent: boolean } | null>(null);
+  const [cases, setCases] = useState<Array<{ id: string; case_name: string | null; other_party: string | null; highlighted_incident_ids: string[] | null; attached_evidence_ids: string[] | null }>>([]);
   const [caseId, setCaseId] = useState<string>(""); // "" = all cases (legacy)
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("cases").select("id,case_name,other_party").eq("user_id", user.id).order("updated_at", { ascending: false })
+    supabase.from("cases").select("id,case_name,other_party,highlighted_incident_ids,attached_evidence_ids").eq("user_id", user.id).order("updated_at", { ascending: false })
       .then(({ data }) => setCases((data ?? []) as typeof cases));
   }, [user]);
 
@@ -88,7 +84,20 @@ function ShareWithAttorney() {
         case_id: caseId || null,
       } });
       const url = `${window.location.origin}/accept-invite/${r.invitation.invite_token}`;
-      setJustCreated({ url, email: email.trim() });
+      const recipient = email.trim();
+      const sent = await sendTransactionalEmail({
+        templateName: "attorney-invitation",
+        recipientEmail: recipient,
+        idempotencyKey: `attorney-invitation-${r.invitation.id}`,
+        templateData: {
+          attorneyName: name.trim() || undefined,
+          clientLabel: "Your client",
+          personalNote: personalNote.trim() || undefined,
+          acceptUrl: url,
+          expiresLabel: `${days} days`,
+        },
+      });
+      setJustCreated({ url, email: recipient, sent });
       setOpen(false);
       setEmail(""); setName(""); setFirm(""); setPersonalNote("");
       setRangeFrom(""); setRangeTo("");
@@ -105,6 +114,7 @@ function ShareWithAttorney() {
 
   return (
     <div>
+      <HubTabs tabs={CASE_TABS} />
       <div className="label-eyebrow">Share with attorney</div>
       <h1 className="mt-2 font-serif text-[30px]">Share your case with <em>your attorney</em>.</h1>
       <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
@@ -120,7 +130,12 @@ function ShareWithAttorney() {
       {justCreated && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--safe)" }}>
           <div className="flex items-center gap-2"><Check size={16} style={{ color: "var(--safe)" }} /><div className="font-serif text-[18px]">Secure access link generated</div></div>
-          <div className="mt-2 break-all rounded-lg px-3 py-2 text-[12px]" style={{ background: "var(--input)", fontFamily: "monospace" }}>{justCreated.url}</div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            {justCreated.sent
+              ? `We emailed the link to ${justCreated.email}. You can also copy it below.`
+              : `We couldn't send the email just now — copy the link below and send it to ${justCreated.email} yourself.`}
+          </p>
+          <div className="mt-2 break-all rounded-[2px] px-3 py-2 text-[12px]" style={{ background: "var(--input)", fontFamily: "monospace" }}>{justCreated.url}</div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={() => { navigator.clipboard.writeText(justCreated.url); toast("Link copied."); }} className="btn-primary inline-flex items-center gap-2"><Copy size={14} /> Copy link</button>
             <a
@@ -150,6 +165,18 @@ function ShareWithAttorney() {
                       <option key={c.id} value={c.id}>{(c.case_name?.trim() || c.other_party?.trim() || "Untitled case")}</option>
                     ))}
                   </select>
+                  {(() => {
+                    const sel = cases.find((c) => c.id === caseId);
+                    if (!sel) return null;
+                    const empty = (sel.highlighted_incident_ids ?? []).length === 0 && (sel.attached_evidence_ids ?? []).length === 0;
+                    if (!empty) return null;
+                    return (
+                      <div className="mt-2 rounded-[2px] p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}>
+                        This case doesn't have any incidents or files added to it yet, so your attorney would open an empty file.{" "}
+                        <Link to="/case-builder" style={{ textDecoration: "underline" }}>Add them in Case Builder</Link> first, or share all cases instead.
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
               <div>
@@ -179,7 +206,7 @@ function ShareWithAttorney() {
               {[
                 ["Include all logged incidents", incIncidents, setIncIncidents],
                 ["Include uploaded evidence",   incEvidence,   setIncEvidence],
-                ["Include pattern analysis",    incPatterns,   setIncPatterns],
+                ["Include Recurline",    incPatterns,   setIncPatterns],
               ].map(([label, val, set]) => (
                 <label key={String(label)} className="flex items-center gap-3 text-[13px]" style={{ color: "var(--foreground)" }}>
                   <input type="checkbox" checked={val as boolean} onChange={(e) => (set as (b: boolean) => void)(e.target.checked)} />
@@ -224,6 +251,33 @@ function ShareWithAttorney() {
                   <div className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
                     linked {new Date(l.created_at).toLocaleDateString()}
                   </div>
+                  <div
+                    className="mt-2 rounded-[2px] px-3 py-2 text-[12px]"
+                    style={{ background: "var(--input)", lineHeight: 1.55 }}
+                  >
+                    <div className="label-eyebrow" style={{ marginBottom: 4 }}>What they can see</div>
+                    <div>
+                      {l.include_all_incidents ? "All Marks" : "Selected Marks only"}
+                      {" · "}
+                      {l.include_all_evidence ? "all evidence files" : "selected evidence only"}
+                      {" · "}
+                      {l.include_patterns ? "Recurline included" : "no Recurline"}
+                    </div>
+                    <div style={{ color: "var(--muted-foreground)", marginTop: 3 }}>
+                      When evidence is shared, they can open the actual files — not just titles and dates.
+                    </div>
+                    <div style={{ color: "var(--muted-foreground)", marginTop: 3 }}>
+                      {l.case_label ? `Case: ${l.case_label}` : "All cases"}
+                      {" · "}
+                      {l.grant?.date_range_start || l.grant?.date_range_end
+                        ? `Dates ${l.grant.date_range_start ?? "any"} to ${l.grant.date_range_end ?? "any"}`
+                        : "No date limit"}
+                      {" · "}
+                      {l.grant?.expires_at
+                        ? `Access expires ${new Date(l.grant.expires_at).toLocaleDateString()}`
+                        : "No expiry set"}
+                    </div>
+                  </div>
                   <label className="mt-3 flex items-start gap-2 text-[12px]" style={{ color: "var(--foreground)", cursor: "pointer" }}>
                     <input
                       type="checkbox"
@@ -244,6 +298,27 @@ function ShareWithAttorney() {
                       </span>
                     </span>
                   </label>
+                  <label className="mt-3 flex items-start gap-2 text-[12px]" style={{ color: "var(--foreground)", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      style={{ marginTop: 3 }}
+                      checked={!!l.clio_share_consent}
+                      disabled
+                      onChange={async (e) => {
+                        try {
+                          await setClioConsent({ data: { link_id: l.id, consent: e.target.checked } });
+                          toast(e.target.checked ? "Clio sharing approved." : "Clio sharing turned off.");
+                          load();
+                        } catch { toast("We couldn't update that setting. Try again in a moment."); }
+                      }}
+                    />
+                    <span>
+                      Share my case with {l.profile?.full_name ?? "this attorney"}'s Clio account?
+                      <span style={{ display: "block", color: "var(--muted-foreground)", marginTop: 2 }}>
+                        Turned off. Clio has not approved our application, so no case reference can be shared with Clio today. Nothing about your case is sent anywhere by this setting.
+                      </span>
+                    </span>
+                  </label>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -255,11 +330,11 @@ function ShareWithAttorney() {
                     {(unread[l.id] ?? 0) > 0 && (
                       <span style={{
                         marginLeft: 4, background: "var(--primary)", color: "#fff",
-                        borderRadius: 999, fontSize: 10, padding: "1px 6px", fontWeight: 600,
+                        borderRadius: 2, fontSize: 10, padding: "1px 6px", fontWeight: 600,
                       }}>{unread[l.id]}</span>
                     )}
                   </button>
-                  <button onClick={async () => { const ok = await confirm({ title: "Revoke this attorney's access?", body: "The share link will stop working immediately.", confirmLabel: "Revoke", cancelLabel: "Keep" }); if (ok) { await revokeLk({ data: { id: l.id } }); toast("Access revoked."); load(); } }} className="btn-ghost inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--primary)" }}>
+                  <button onClick={async () => { const ok = await confirm({ title: "Revoke this attorney's access?", body: "They'll lose access immediately — the link stops working and they can't open your records again. One thing to know: anything they already downloaded or printed stays on their computer. Revoking can't reach files that have already left PatternProof.", confirmLabel: "Revoke", cancelLabel: "Keep" }); if (ok) { await revokeLk({ data: { id: l.id } }); toast("Access revoked."); load(); } }} className="btn-ghost inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--primary)" }}>
                     <Trash2 size={13} /> Revoke
                   </button>
                 </div>
@@ -350,7 +425,7 @@ function MessagePanel({ linkId, onClose }: { linkId: string; onClose: () => void
             const mine = m.sender_role === "survivor";
             return (
               <div key={m.id} style={{ display: "flex", justifyContent: mine ? "flex-end" : "flex-start" }}>
-                <div style={{ maxWidth: "80%", padding: "8px 12px", borderRadius: 10, background: mine ? "#A8CCE0" : "var(--input)", color: "#1A1714" }}>
+                <div style={{ maxWidth: "80%", padding: "8px 12px", borderRadius: 2, background: mine ? "#A8CCE0" : "var(--input)", color: "#1A1714" }}>
                   <div className="text-[13px]" style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{m.content}</div>
                   <div className="text-[10px] mt-1" style={{ opacity: 0.7, display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <span>{mine ? "You" : "Attorney"}</span>

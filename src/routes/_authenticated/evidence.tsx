@@ -11,7 +11,10 @@ import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { BatchDropzone } from "@/components/evidence/BatchDropzone";
+import { ContentTypeSuggestions } from "@/components/evidence/ContentTypeSuggestions";
 import { ABUSE_TYPES } from "@/lib/abuse-types";
+import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
+import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/evidence")({
   component: EvidencePage,
@@ -25,8 +28,29 @@ interface EvidenceRow {
   file_url: string;
   file_type: string;
   linked_incident_id: string | null;
+  preservation_status?: string | null;
+  integrity_verified_at?: string | null;
+  exif_captured_at?: string | null;
+  sha256?: string | null;
+  review_status?: string | null;
 }
+  // review_status: "suggested" rows are held back from exports/attorney views
+  // until the survivor confirms the match on /evidence-review.
 interface IncOption { id: string; date: string; description: string }
+
+type EvidenceTab = "documentation" | "evidence";
+
+// Documentation vs Evidence classifier. Evidence = anything with device
+// metadata intact (EXIF), a verified integrity hash, or official preservation
+// status. Everything else — screenshots without EXIF, message-thread exports,
+// personal notes — is Documentation: still preserved, still useful, but not
+// yet independently verifiable.
+function classifyEvidence(r: EvidenceRow): EvidenceTab {
+  if (r.integrity_verified_at) return "evidence";
+  if (r.exif_captured_at) return "evidence";
+  if (r.preservation_status && r.preservation_status !== "pending" && r.preservation_status !== "unknown") return "evidence";
+  return "documentation";
+}
 
 type ExtractedDraft = {
   date: string | null;
@@ -55,6 +79,7 @@ function EvidencePage() {
   const [items, setItems] = useState<EvidenceRow[]>([]);
   const [incidents, setIncidents] = useState<IncOption[]>([]);
   const [pending, setPending] = useState<File | null>(null);
+  const [sizeError, setSizeError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(today());
   const [description, setDescription] = useState("");
@@ -70,11 +95,14 @@ function EvidencePage() {
   const [draft, setDraft] = useState<ExtractedDraft | null>(null);
   const [savingIncident, setSavingIncident] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<EvidenceRow | null>(null);
+  const [tab, setTab] = useState<EvidenceTab>("documentation");
 
   const load = useCallback(async () => {
     if (!user) return;
     const [ev, inc] = await Promise.all([
-      supabase.from("evidence").select("*").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
+      supabase.from("evidence")
+        .select("id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status")
+        .eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("incidents").select("id,date,description").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }),
     ]);
     const rows = (ev.data as EvidenceRow[] | null) ?? [];
@@ -92,8 +120,21 @@ function EvidencePage() {
   useEffect(() => { load(); }, [load]);
 
   const onFile = (f: File | null) => {
+    if (!f) {
+      setPending(null);
+      setSizeError(null);
+      return;
+    }
+    const problem = checkUploadSize(f);
+    if (problem) {
+      setSizeError(problem);
+      setPending(null);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+    setSizeError(null);
     setPending(f);
-    if (f && !title) setTitle(f.name.replace(/\.[^.]+$/, ""));
+    if (!title) setTitle(f.name.replace(/\.[^.]+$/, ""));
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -269,22 +310,45 @@ function EvidencePage() {
 
   return (
     <div>
+      <HubTabs tabs={ARCHIVE_TABS} />
       <div className="label-eyebrow">Evidence</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Keep the proof <em>close.</em>
       </h1>
 
       <Link
-        to="/message-threads"
-        className="mt-5 flex items-start gap-3 rounded-2xl p-4"
+        to="/import-messages"
+        className="mt-5 flex items-start gap-3 rounded-[2px] p-4"
         style={{
-          background: "linear-gradient(135deg, rgba(196,167,255,0.16), rgba(164,255,239,0.16))",
+          background: "#FFFFFF",
+          border: "1px solid rgba(26,18,36,0.14)",
+          color: "var(--foreground)",
+          textDecoration: "none",
+        }}
+      >
+        <div style={{ width: 38, height: 38, borderRadius: 2, display: "grid", placeItems: "center", flexShrink: 0 }}>
+          <MessageSquare size={18} color="#3D2C5C" />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#1A1714" }}>Import Messages from screenshots</div>
+          <div style={{ fontSize: 13, color: "#3D3832", marginTop: 2, lineHeight: 1.5 }}>
+            Add screenshots of a text conversation in any order. They&apos;re read here on your device — no app can open your phone&apos;s Messages history, so this works from your own screenshots.
+          </div>
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#7A1F3D" }}>Open →</span>
+      </Link>
+
+      <Link
+        to="/message-threads"
+        className="mt-3 flex items-start gap-3 rounded-[2px] p-4"
+        style={{
+          background: "#FFFFFF",
           border: "1px solid rgba(124,92,196,0.22)",
           color: "var(--foreground)",
           textDecoration: "none",
         }}
       >
-        <div style={{ width: 38, height: 38, borderRadius: 12, background: "linear-gradient(135deg,#E2DCFA,#C7E9E3)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+        <div style={{ width: 38, height: 38, borderRadius: 2, background: "transparent", display: "grid", placeItems: "center", flexShrink: 0 }}>
           <MessageSquare size={18} color="#3D2C5C" />
         </div>
         <div style={{ flex: 1 }}>
@@ -293,21 +357,38 @@ function EvidencePage() {
             Import iPhone, iMessage, or SMS exports (PDF, CSV/Excel, TXT, RSMF, ZIP) into a searchable, flagged timeline.
           </div>
         </div>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#7C5CC4" }}>Open →</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#7A1F3D" }}>Open →</span>
       </Link>
 
       <BatchDropzone onDone={load} />
+      <ContentTypeSuggestions />
 
       <form onSubmit={submit} className="card-pp mt-6 space-y-4">
-        <label className="block cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center"
+        <label className="block cursor-pointer rounded-[2px] border-2 border-dashed p-8 text-center"
           style={{ borderColor: "var(--border)" }}>
           <Upload size={26} className="mx-auto mb-2" style={{ color: "var(--muted-foreground)" }} />
           <div className="font-serif text-[16px]">{pending ? pending.name : "Drop a file here, or tap to choose"}</div>
-          <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>Images, PDF, audio, video</div>
+          <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            Images, PDF, audio, video · up to {humanSize(UPLOAD_LIMITS.document)} for photos and
+            documents, {humanSize(UPLOAD_LIMITS.video)} for video
+          </div>
           <input ref={inputRef} type="file" className="hidden"
             accept="image/jpeg,image/png,image/webp,application/pdf,audio/mpeg,audio/mp4,audio/wav,audio/x-m4a,video/mp4"
             onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
         </label>
+        {sizeError && (
+          <div
+            className="rounded-[2px] px-3 py-2 text-[13px]"
+            style={{
+              background: "var(--tint-purple)",
+              border: "1px solid var(--border)",
+              color: "var(--foreground)",
+              lineHeight: 1.5,
+            }}
+          >
+            {sizeError}
+          </div>
+        )}
         {pending && (
           <div className="grid gap-3 md:grid-cols-2">
             <div>
@@ -341,15 +422,50 @@ function EvidencePage() {
       </form>
 
       <div className="mt-8">
-        {items.length === 0 ? (
+        {(() => {
+          const docItems = items.filter((r) => classifyEvidence(r) === "documentation");
+          const evItems = items.filter((r) => classifyEvidence(r) === "evidence");
+          const shown = tab === "documentation" ? docItems : evItems;
+          return (
+            <>
+              <div className="flex flex-col gap-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={() => setTab("documentation")}
+                    className="rounded-[2px] px-4 py-1.5 text-[13px] font-semibold"
+                    style={{
+                      background: tab === "documentation" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
+                      color: tab === "documentation" ? "#FFFDD0" : "var(--foreground)",
+                      border: tab === "documentation" ? "1px solid var(--foreground)" : "1px solid rgba(0,0,0,0.10)",
+                    }}>
+                    Documentation · {docItems.length}
+                  </button>
+                  <button type="button" onClick={() => setTab("evidence")}
+                    className="rounded-[2px] px-4 py-1.5 text-[13px] font-semibold"
+                    style={{
+                      background: tab === "evidence" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
+                      color: tab === "evidence" ? "#FFFDD0" : "var(--foreground)",
+                      border: tab === "evidence" ? "1px solid var(--foreground)" : "1px solid rgba(0,0,0,0.10)",
+                    }}>
+                    Evidence · {evItems.length}
+                  </button>
+                </div>
+                <p className="text-[12px]" style={{ color: "var(--muted-foreground)", lineHeight: 1.5 }}>
+                  {tab === "documentation"
+                    ? "Your records — screenshots, notes, and message-thread exports. Preserved and searchable, but not yet independently verified. Items move to Evidence automatically when device metadata (EXIF) or an integrity hash is confirmed."
+                    : "Files with intact device metadata, verified integrity hashes, or official-record status. These carry more evidentiary weight in court because their origin and authenticity can be independently checked."}
+                </p>
+              </div>
+              {shown.length === 0 ? (
           <div className="card-pp">
             <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-              Nothing uploaded yet. Screenshots, voice memos, documents — anything that captures what happened belongs here.
+                    {tab === "documentation"
+                      ? "Nothing here yet. Screenshots, voice memos, message exports — anything that captures what happened belongs here first."
+                      : "Nothing here yet. Photos taken directly with your phone camera (EXIF intact) and files with verified integrity checks will show up here."}
             </p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((it) => {
+                  {shown.map((it) => {
               const url = previewUrls[it.id];
               const linked = incidents.find((i) => i.id === it.linked_incident_id);
               return (
@@ -358,11 +474,17 @@ function EvidencePage() {
                     <div className="flex items-center gap-2"><KindIcon kind={it.file_type} /><div className="font-serif text-[15px] leading-tight">{it.title}</div></div>
                   </div>
                   <div className="label-eyebrow mt-2">{new Date(it.date).toLocaleDateString()}</div>
+                  {it.review_status === "suggested" && (
+                    <div className="mt-2 rounded-[2px] p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}>
+                      Held back from court packets and anything you share with an attorney until you review the suggested match.{" "}
+                      <Link to="/evidence-review" style={{ textDecoration: "underline" }}>Review it now</Link>
+                    </div>
+                  )}
                   {it.file_type === "image" && url && (
-                    <img src={url} alt={it.title} className="mt-3 max-h-48 w-full rounded-xl object-cover" />
+                    <img src={url} alt={it.title} className="mt-3 max-h-48 w-full rounded-[2px] object-cover" />
                   )}
                   {it.file_type === "audio" && url && <audio controls src={url} className="mt-3 w-full" />}
-                  {it.file_type === "video" && url && <video controls src={url} className="mt-3 max-h-48 w-full rounded-xl" />}
+                  {it.file_type === "video" && url && <video controls src={url} className="mt-3 max-h-48 w-full rounded-[2px]" />}
                   {it.description && <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>{it.description}</p>}
                   {linked && <div className="mt-2 text-[12px]" style={{ color: "var(--accent)" }}>Linked: {linked.date}</div>}
                   <div className="mt-3 flex items-center gap-2">
@@ -379,6 +501,9 @@ function EvidencePage() {
             })}
           </div>
         )}
+            </>
+          );
+        })()}
       </div>
 
       {/* AI Review Modal */}
@@ -413,7 +538,7 @@ function EvidencePage() {
             )}
 
             {!reviewBusy && reviewError && (
-              <div className="my-4 rounded-xl bg-white/40 p-4 text-[13px]" style={{ color: "#2A1A10" }}>
+              <div className="my-4 rounded-[2px] bg-white/40 p-4 text-[13px]" style={{ color: "#2A1A10" }}>
                 {reviewError}
               </div>
             )}
@@ -455,7 +580,7 @@ function EvidencePage() {
                               if (set.has(t)) set.delete(t); else set.add(t);
                               setDraft({ ...draft, abuse_types: Array.from(set) });
                             }}
-                            className="rounded-full px-3 py-1 text-[12px] font-semibold"
+                            className="rounded-[2px] px-3 py-1 text-[12px] font-semibold"
                             style={{
                               background: active ? opt.color : "rgba(255,255,255,0.55)",
                               color: active ? "#FFFFFF" : "#2A1A10",
@@ -507,8 +632,8 @@ function EvidencePage() {
 
       <CognitiveClose
         title="Tie evidence to an incident"
-        body="A screenshot becomes much stronger when it sits next to the day it happened. Open the journal to link them up."
-        cta="Go to journal"
+        body="A screenshot becomes much stronger when it sits next to the day it happened. Open your Archive to link them up."
+        cta="Go to Archive"
         to="/journal"
       />
       <ConfirmDialog

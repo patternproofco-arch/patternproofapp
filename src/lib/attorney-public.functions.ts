@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 interface SharedBundle {
-  status: "ok" | "not-found" | "revoked" | "expired";
+  status: "ok" | "not-found" | "revoked" | "expired" | "rate-limited";
   attorney_name?: string;
   attorney_type?: string;
   access_level?: string;
@@ -21,7 +21,65 @@ interface SharedBundle {
 export const fetchSharedBundle = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ token: z.string().min(8).max(100) }).parse(input))
   .handler(async ({ data }): Promise<SharedBundle> => {
+    const { getRequest } = await import("@tanstack/react-start/server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const hash = async (value: string) => {
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+      return Array.from(new Uint8Array(digest))
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("");
+    };
+
+    const request = getRequest();
+    const forwardedIp =
+      request?.headers.get("cf-connecting-ip") ||
+      request?.headers.get("x-forwarded-for") ||
+      request?.headers.get("x-real-ip");
+    const ip = forwardedIp?.split(",")[0]?.trim() || null;
+    const tokenHash = await hash(data.token);
+    const ipHash = ip ? await hash(ip) : null;
+    const userAgent = request?.headers.get("user-agent")?.slice(0, 300) ?? null;
+    const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+    const log = async (outcome: SharedBundle["status"]): Promise<boolean> => {
+      const { error } = await supabaseAdmin.from("share_link_access_log").insert({
+        token_hash: tokenHash,
+        ip_hash: ipHash,
+        outcome,
+        user_agent: userAgent,
+      });
+      if (error) {
+        return false;
+      }
+      return true;
+    };
+
+    // Rolling-window throttle: per token, and globally per IP to slow token guessing.
+    const [tokenAttempts, ipAttempts] = await Promise.all([
+      supabaseAdmin
+        .from("share_link_access_log")
+        .select("id", { count: "exact", head: true })
+        .eq("token_hash", tokenHash)
+        .gte("created_at", since),
+      ipHash
+        ? supabaseAdmin
+            .from("share_link_access_log")
+            .select("id", { count: "exact", head: true })
+            .eq("ip_hash", ipHash)
+            .gte("created_at", since)
+        : Promise.resolve({ count: 0 }),
+    ]);
+
+    if (tokenAttempts.error || ("error" in ipAttempts && ipAttempts.error)) {
+      await log("rate-limited");
+      return { status: "rate-limited" };
+    }
+
+    if ((tokenAttempts.count ?? 0) >= 10 || (ipAttempts.count ?? 0) >= 30) {
+      await log("rate-limited");
+      return { status: "rate-limited" };
+    }
 
     const { data: access } = await supabaseAdmin
       .from("attorney_access")
@@ -29,9 +87,12 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
       .eq("access_token", data.token)
       .maybeSingle();
 
-    if (!access) return { status: "not-found" };
-    if (access.revoked_at) return { status: "revoked" };
-    if (access.expires_at && new Date(access.expires_at) < new Date()) return { status: "expired" };
+    if (!access) return { status: (await log("not-found")) ? "not-found" : "rate-limited" };
+    if (access.revoked_at) return { status: (await log("revoked")) ? "revoked" : "rate-limited" };
+    if (access.expires_at && new Date(access.expires_at) < new Date()) {
+      return { status: (await log("expired")) ? "expired" : "rate-limited" };
+    }
+    if (!(await log("ok"))) return { status: "rate-limited" };
 
     await supabaseAdmin
       .from("attorney_access")

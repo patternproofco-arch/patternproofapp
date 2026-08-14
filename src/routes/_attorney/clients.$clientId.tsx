@@ -1,5 +1,6 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { formatEvidenceDate } from "@/lib/dates";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, ArrowLeft, CheckCircle2, Circle, Clock, Download, FileText,
@@ -28,7 +29,8 @@ import {
 import {
   listFirmColleagues, listCaseGrants, grantCaseAccess, revokeCaseGrant,
 } from "@/lib/firm-grants.functions";
-import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateClioPackage } from "@/lib/payments.functions";
+import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateCaseManagementPackage } from "@/lib/payments.functions";
+import { findClientCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
@@ -100,7 +102,7 @@ function ClientCaseView() {
 
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
   const densityColor: Record<string, string> = {
-    low: "#10B981", moderate: "#FBBF24", elevated: "#F59E0B", high: "#EF4444",
+    low: "var(--att-navy)", moderate: "#6E6579", elevated: "#6E6579", high: "var(--att-navy)",
   };
 
   return (
@@ -111,7 +113,7 @@ function ClientCaseView() {
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginTop: 12 }}>
         <div>
           <div className="att-eyebrow">Case File</div>
-          <h1 style={{ fontSize: 34, marginTop: 4, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>Client {clientId.slice(0, 8)}</h1>
+          <h1 className="att-page-title">Client {clientId.slice(0, 8)}</h1>
           <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
             <span className="att-mono">{caseId}</span>
             {data.incidents.length > 0 && (
@@ -161,7 +163,7 @@ function ClientCaseView() {
         {tab === "Intake" && <IntakeTab data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
         {tab === "Timeline" && <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} />}
-        {tab === "Patterns" && <Patterns data={data} />}
+        {tab === "Patterns" && <Patterns data={data} clientId={clientId} />}
         {tab === "Checklist" && <ChecklistTab data={data} />}
         {tab === "Gaps" && <Gaps data={data} />}
         {tab === "Evidence" && <EvidenceTab data={data} clientId={clientId} />}
@@ -447,13 +449,13 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div style={{ display: "grid", gap: 18 }}>
-      <div className="att-card" style={{ background: "#F8FAFC" }}>
+      <div className="att-card" style={{ background: "var(--att-surface-2)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div className="att-eyebrow">Court packet</div>
             <h2 style={{ fontSize: 20, marginTop: 4 }}>Download professional-review ZIP</h2>
             <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 4 }}>
-              Includes incidents, evidence files, communications, pattern summary, and a tamper-evident manifest.
+              Includes incidents, evidence files, communications, pattern summary, and a SHA-256 hash manifest for the included files.
             </p>
           </div>
           <button className="att-btn-export" onClick={download} disabled={downloading} style={{ padding: "12px 18px" }}>
@@ -461,6 +463,8 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
           </button>
         </div>
       </div>
+
+      <ConsentGrantPanel data={data} />
 
       <DashboardKpiRow data={data} reviews={reviews} />
 
@@ -475,7 +479,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
                 <div key={m.month} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12 }}>
                   <div style={{ width: 70, color: "var(--att-text-2)" }} className="att-mono">{m.month}</div>
                   <div style={{ flex: 1, height: 6, background: "var(--att-border)", borderRadius: 999 }}>
-                    <div style={{ height: "100%", borderRadius: 999, width: `${(m.count / tMax) * 100}%`, background: m.avg_severity >= 3 ? "#EF4444" : "var(--att-navy-mid)" }} />
+                    <div style={{ height: "100%", borderRadius: 999, width: `${(m.count / tMax) * 100}%`, background: m.avg_severity >= 3 ? "var(--att-navy)" : "var(--att-navy-mid)" }} />
                   </div>
                   <div style={{ width: 80, textAlign: "right" }}>{m.count} · sev {m.avg_severity.toFixed(1)}</div>
                 </div>
@@ -524,7 +528,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
             {data.flags.slice(0, 8).map((f) => (
-              <li key={f.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, padding: "8px 10px", background: "#FEF2F2", borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "#EF4444" : "#F59E0B"}`, borderRadius: 4 }}>
+              <li key={f.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, padding: "8px 10px", background: "#FFFFFF", borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "var(--att-navy)" : "#6E6579"}`, borderRadius: 2 }}>
                 <span>{f.details ?? f.flag_type ?? "Escalation flagged"}</span>
                 <span className="att-mono" style={{ color: "var(--att-text-2)" }}>sev {f.severity_tier ?? "?"}</span>
               </li>
@@ -567,7 +571,7 @@ function CaseNotesCard({ clientId }: { clientId: string }) {
   };
 
   return (
-    <div className="att-card" style={{ background: "#FFFBEB", borderColor: "#FCD34D" }}>
+    <div className="att-card" style={{ background: "#FFFFFF", borderColor: "var(--att-border-strong)" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
         <SectionTitle icon={<Lock size={16} />}>Private attorney notes</SectionTitle>
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--att-text-2)" }}>
@@ -583,7 +587,7 @@ function CaseNotesCard({ clientId }: { clientId: string }) {
         rows={6}
         style={{
           width: "100%", padding: 12, fontSize: 13, lineHeight: 1.6,
-          border: "1px solid #FCD34D", borderRadius: 8, background: "#FFFFFF",
+          border: "1px solid var(--att-border-strong)", borderRadius: 2, background: "#FFFFFF",
           fontFamily: "inherit", resize: "vertical",
         }}
       />
@@ -597,7 +601,7 @@ function Metric({ label, v, help }: { label: string; v: number | string; help?: 
       <div className="att-eyebrow" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
         {label}{help && <HelpCircle size={10} style={{ opacity: 0.6 }} />}
       </div>
-      <div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>{v}</div>
+      <div style={{ fontSize: 26, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4 }}>{v}</div>
     </div>
   );
 }
@@ -657,9 +661,9 @@ function TeamCard({ clientId }: { clientId: string }) {
   };
 
   const STATUS: Record<string, { bg: string; fg: string; label: string }> = {
-    pending: { bg: "#FEF3C7", fg: "#92400E", label: "Pending" },
-    active: { bg: "#D1FAE5", fg: "#065F46", label: "Active" },
-    revoked: { bg: "#FEE2E2", fg: "#991B1B", label: "Revoked" },
+    pending: { bg: "#FFFFFF", fg: "var(--att-text-2)", label: "Pending" },
+    active: { bg: "rgba(21,32,56,0.07)", fg: "var(--att-navy)", label: "Active" },
+    revoked: { bg: "#FFFFFF", fg: "var(--att-text)", label: "Revoked" },
   };
 
   return (
@@ -675,7 +679,7 @@ function TeamCard({ clientId }: { clientId: string }) {
       </p>
 
       {open && (
-        <form onSubmit={submit} style={{ display: "grid", gap: 10, padding: 12, background: "#F8FAFC", border: "1px solid var(--att-border)", borderRadius: 8, marginBottom: 12 }}>
+        <form onSubmit={submit} style={{ display: "grid", gap: 10, padding: 12, background: "var(--att-surface-2)", border: "1px solid var(--att-border)", borderRadius: 2, marginBottom: 12 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 160px", gap: 10 }}>
             <label style={{ display: "grid", gap: 4 }}>
               <span className="att-eyebrow">Email *</span>
@@ -710,12 +714,12 @@ function TeamCard({ clientId }: { clientId: string }) {
             const s = STATUS[c.status] ?? STATUS.pending;
             const link = `${typeof window === "undefined" ? "" : window.location.origin}/collaborator-invite/${c.invite_token}`;
             return (
-              <div key={c.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: 10, border: "1px solid var(--att-border)", borderRadius: 8 }}>
+              <div key={c.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: 10, border: "1px solid var(--att-border)", borderRadius: 2 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                     <strong style={{ fontSize: 14 }}>{c.collaborator_name || c.collaborator_email}</strong>
                     <span className="att-tag" style={{ background: s.bg, color: s.fg }}>{s.label}</span>
-                    <span className="att-tag" style={{ background: "#EEF2FF", color: "#3730A3", textTransform: "capitalize" }}>{c.role}</span>
+                    <span className="att-tag" style={{ background: "rgba(21,32,56,0.07)", color: "var(--att-navy)", textTransform: "capitalize" }}>{c.role}</span>
                     {c.collaborator_name && (
                       <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>{c.collaborator_email}</span>
                     )}
@@ -830,9 +834,9 @@ function FirmShareCard({ clientId }: { clientId: string }) {
       </p>
 
       {!firmSet ? (
-        <div className="att-card" style={{ background: "#FFFBEB", borderColor: "#FCD34D" }}>
+        <div className="att-card" style={{ background: "#FFFFFF", borderColor: "var(--att-border-strong)" }}>
           <div style={{ fontSize: 13 }}>
-            Set your firm in <Link to="/settings" style={{ color: "#1D4ED8", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
+            Set your firm in <Link to="/settings" style={{ color: "#4A2A6B", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
           </div>
         </div>
       ) : (
@@ -868,11 +872,11 @@ function FirmShareCard({ clientId }: { clientId: string }) {
       ) : (
         <div style={{ display: "grid", gap: 8 }}>
           {activeGrants.map((g) => (
-            <div key={g.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: 10, border: "1px solid var(--att-border)", borderRadius: 8 }}>
+            <div key={g.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: 10, border: "1px solid var(--att-border)", borderRadius: 2 }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <strong style={{ fontSize: 14 }}>{g.full_name || g.email || "Colleague"}</strong>
-                  <span className="att-tag" style={{ background: "#D1FAE5", color: "#065F46" }}>Granted</span>
+                  <span className="att-tag" style={{ background: "rgba(21,32,56,0.07)", color: "var(--att-navy)" }}>Granted</span>
                   {g.full_name && g.email && (
                     <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>{g.email}</span>
                   )}
@@ -905,11 +909,11 @@ function FirmShareCard({ clientId }: { clientId: string }) {
 
 
 function IntegrityStat({ label, value, tone }: { label: string; value: number | string; tone?: "green" | "amber" | "red" }) {
-  const color = tone === "green" ? "#10B981" : tone === "amber" ? "#F59E0B" : tone === "red" ? "#EF4444" : "var(--att-text)";
+  const color = tone === "green" ? "var(--att-navy)" : tone === "amber" ? "#6E6579" : tone === "red" ? "var(--att-navy)" : "var(--att-text)";
   return (
-    <div style={{ padding: 10, background: "#fff", border: "1px solid var(--att-border)", borderRadius: 6 }}>
+    <div style={{ padding: 10, background: "#fff", border: "1px solid var(--att-border)", borderRadius: 2 }}>
       <div className="att-eyebrow">{label}</div>
-      <div style={{ fontSize: 20, fontFamily: '"Instrument Serif", serif', marginTop: 2, color }}>{value}</div>
+      <div style={{ fontSize: 20, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 2, color }}>{value}</div>
     </div>
   );
 }
@@ -953,7 +957,7 @@ function Overview({ data }: { data: CaseData }) {
             <Row k="Span" v={data.timeline.length > 0 ? `${data.timeline[0].month} – ${data.timeline[data.timeline.length - 1].month}` : "—"} />
           </dl>
         </div>
-        <div className="att-card" style={{ background: "#F8FAFC" }}>
+        <div className="att-card" style={{ background: "var(--att-surface-2)" }}>
           <div className="att-eyebrow">Quick actions</div>
           <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
             <button className="att-btn-secondary" onClick={() => window.print()}>
@@ -1019,7 +1023,7 @@ function TimelineTab({ data, clientId, notes, onNotes }: { data: CaseData; clien
                 const n = noteMap[i.id];
                 const evCount = data.evidence.filter((e) => e.linked_incident_id === i.id).length;
                 return (
-                  <li key={i.id} style={{ borderLeft: "3px solid var(--att-navy)", padding: "10px 14px", background: "#F8FAFC", borderRadius: 8 }}>
+                  <li key={i.id} style={{ borderLeft: "3px solid var(--att-navy)", padding: "10px 14px", background: "var(--att-surface-2)", borderRadius: 2 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>
@@ -1037,7 +1041,7 @@ function TimelineTab({ data, clientId, notes, onNotes }: { data: CaseData; clien
                       <div style={{ display: "flex", gap: 6 }}>
                         <button
                           className="att-btn-ghost"
-                          style={{ color: n?.flagged ? "#EF4444" : "var(--att-text-2)" }}
+                          style={{ color: n?.flagged ? "var(--att-navy)" : "var(--att-text-2)" }}
                           onClick={() => update(i.id, { flagged: !n?.flagged })}
                           title="Flag for review"
                         >
@@ -1086,10 +1090,11 @@ function TimelineTab({ data, clientId, notes, onNotes }: { data: CaseData; clien
 
 /* ---------------- Patterns ---------------- */
 
-function Patterns({ data }: { data: CaseData }) {
+function Patterns({ data, clientId }: { data: CaseData; clientId: string }) {
   const max = Math.max(1, ...data.categories.map((c) => c.count));
   return (
     <div style={{ display: "grid", gap: 16 }}>
+      <CrossReferenceSection clientId={clientId} />
       <div className="att-card">
         <SectionTitle icon={<TrendingUp size={16} />}>Behavior categories</SectionTitle>
         {data.categories.length === 0 ? (
@@ -1120,7 +1125,7 @@ function Patterns({ data }: { data: CaseData }) {
               <div key={m.month} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12 }}>
                 <div style={{ width: 80, color: "var(--att-text-2)" }} className="att-mono">{m.month}</div>
                 <div style={{ flex: 1, height: 6, background: "var(--att-border)", borderRadius: 999 }}>
-                  <div style={{ height: "100%", borderRadius: 999, width: `${(m.count / tMax) * 100}%`, background: m.avg_severity >= 3 ? "#EF4444" : "var(--att-navy-mid)" }} />
+                  <div style={{ height: "100%", borderRadius: 999, width: `${(m.count / tMax) * 100}%`, background: m.avg_severity >= 3 ? "var(--att-navy)" : "var(--att-navy-mid)" }} />
                 </div>
                 <div style={{ width: 90, textAlign: "right" }}>{m.count} · sev {m.avg_severity.toFixed(1)}</div>
               </div>
@@ -1135,55 +1140,37 @@ function Patterns({ data }: { data: CaseData }) {
 /* ---------------- Checklist ---------------- */
 
 function ChecklistTab({ data }: { data: CaseData }) {
-  const tactics = data.abuser_tactics ?? [];
-  if (!data.pattern_analysis_present) {
-    return <PatternAnalysisEmpty area="abuser tactics" />;
-  }
-  if (tactics.length === 0) {
+  const rows = data.checklist ?? [];
+  if (rows.length === 0) {
     return (
       <div className="att-card">
-        <SectionTitle>Abuser tactics</SectionTitle>
+        <SectionTitle>Documented categories</SectionTitle>
         <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
-          The pattern analysis for this client did not surface any recurring tactics with clear evidence in the records.
+          No categories have been tagged on this client's incidents yet.
         </p>
       </div>
     );
   }
   return (
     <div className="att-card">
-      <SectionTitle>Abuser tactics</SectionTitle>
+      <SectionTitle>Documented categories</SectionTitle>
       <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 6 }}>
-        {tactics.length} recurring tactic{tactics.length === 1 ? "" : "s"} identified from the survivor's confirmed incidents.
+        {rows.length} categor{rows.length === 1 ? "y" : "ies"} tagged by the client across their own incidents, with a count of how many incidents carry each tag.
       </p>
       <p style={{ fontSize: 11, color: "var(--att-text-2)", marginBottom: 14, fontStyle: "italic" }}>
-        Generated from the survivor-reviewed pattern analysis. Each item is drawn from cited incidents — not a clinical or forensic assessment.
+        Counts of the client's own tags on their own entries. Not findings that any described behavior occurred, and not a clinical, forensic, or legal assessment.
       </p>
       <ul style={{ display: "grid", gap: 14, listStyle: "none", padding: 0, margin: 0 }}>
-        {tactics.map((t, i) => (
+        {rows.map((t, i) => (
           <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, paddingBottom: 12, borderBottom: "1px solid var(--att-border)" }}>
             <CheckCircle2 size={16} style={{ color: "var(--att-green)", marginTop: 3 }} />
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <strong>{t.tactic}</strong>
-                <ReviewStatusBadge status={t.review_status?.status ?? "unsure"} />
+                <strong>{t.item}</strong>
                 <span style={{ fontSize: 11, color: "var(--att-text-2)" }}>
-                  · {t.examples_count} example{t.examples_count === 1 ? "" : "s"}
+                  · {t.count} incident{t.count === 1 ? "" : "s"}
                 </span>
               </div>
-              {t.description && (
-                <div style={{ fontSize: 12.5, color: "var(--att-text-2)", marginTop: 4, lineHeight: 1.5 }}>{t.description}</div>
-              )}
-              {t.why_it_matters && (
-                <div style={{ fontSize: 11.5, marginTop: 6 }}>
-                  <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Why it matters</span>
-                  <span style={{ color: "var(--att-text-2)" }}>{t.why_it_matters}</span>
-                </div>
-              )}
-              {t.example_dates && t.example_dates.length > 0 && (
-                <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 6 }}>
-                  Cited from: {t.example_dates.join(", ")}
-                </div>
-              )}
             </div>
           </li>
         ))}
@@ -1194,14 +1181,14 @@ function ChecklistTab({ data }: { data: CaseData }) {
 
 function ReviewStatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; bg: string; fg: string }> = {
-    confirmed: { label: "Confirmed", bg: "#DCFCE7", fg: "#166534" },
-    rejected:  { label: "Rejected",  bg: "#FEE2E2", fg: "#991B1B" },
-    edited:    { label: "Edited",    bg: "#DBEAFE", fg: "#1E40AF" },
-    unsure:    { label: "Unreviewed",bg: "#F1F5F9", fg: "#475569" },
+    confirmed: { label: "Confirmed", bg: "rgba(21,32,56,0.07)", fg: "var(--att-navy)" },
+    rejected:  { label: "Rejected",  bg: "#FFFFFF", fg: "var(--att-text)" },
+    edited:    { label: "Edited",    bg: "#FFFFFF", fg: "#3A4FA8" },
+    unsure:    { label: "Unreviewed",bg: "var(--att-surface-2)", fg: "var(--att-text-2)" },
   };
   const m = map[status] ?? map.unsure;
   return (
-    <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 999, background: m.bg, color: m.fg, fontWeight: 600, letterSpacing: 0.3 }}>
+    <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 2, background: m.bg, color: m.fg, fontWeight: 600, letterSpacing: 0.3 }}>
       {m.label.toUpperCase()}
     </span>
   );
@@ -1234,7 +1221,7 @@ function GapsTab({ data }: { data: CaseData }) {
   const [openBucket, setOpenBucket] = useState<Record<string, boolean>>({ high: true, moderate: true, low: false });
   const [bulkSending, setBulkSending] = useState<string | null>(null);
 
-  const sevColor: Record<string, string> = { high: "#EF4444", moderate: "#F59E0B", low: "#94A3B8" };
+  const sevColor: Record<string, string> = { high: "var(--att-navy)", moderate: "#6E6579", low: "#6E6579" };
 
   const requestClarification = async (idx: number, g: CaseData["gaps"][number]) => {
     setSendingIdx(idx);
@@ -1275,10 +1262,10 @@ function GapsTab({ data }: { data: CaseData }) {
       ? "All flagged gaps addressed"
       : `${closedGaps} of ${totalGaps} flagged gap${totalGaps === 1 ? "" : "s"} addressed`;
   const readinessColor = totalGaps === 0 || closedGaps === totalGaps
-    ? "#10B981"
+    ? "var(--att-navy)"
     : closedGaps > 0
-      ? "#F59E0B"
-      : "#EF4444";
+      ? "#6E6579"
+      : "var(--att-navy)";
 
   const sendBucket = async (sev: "high" | "moderate" | "low") => {
     setBulkSending(sev);
@@ -1296,7 +1283,7 @@ function GapsTab({ data }: { data: CaseData }) {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <div className="att-card" style={{ background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
+      <div className="att-card" style={{ background: "#FFFFFF", borderColor: "rgba(26,18,36,0.14)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div className="att-eyebrow">Documentation completeness</div>
@@ -1358,7 +1345,7 @@ function GapsTab({ data }: { data: CaseData }) {
                   {gapsInBucket.map(({ g, i }) => {
                     const sent = sentIdx.has(i);
                     return (
-                      <li key={i} style={{ padding: "12px 14px", background: "#F8FAFC", borderRadius: 6, borderLeft: `3px solid ${sevColor[sev]}` }}>
+                      <li key={i} style={{ padding: "12px 14px", background: "var(--att-surface-2)", borderRadius: 2, borderLeft: `3px solid ${sevColor[sev]}` }}>
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
                           <strong style={{ fontSize: 14 }}>{g.kind}</strong>
                           {sent && <span className="att-tag att-tag-auth" style={{ fontSize: 10 }}>REQUESTED</span>}
@@ -1396,6 +1383,90 @@ function GapsTab({ data }: { data: CaseData }) {
         })
       )}
       <MissingEvidenceChecklistSection clientId={clientId} />
+      <UnlinkedIncidentsSection data={data} clientId={clientId} />
+    </div>
+  );
+}
+
+function UnlinkedIncidentsSection({ data, clientId }: { data: CaseData; clientId: string }) {
+  const reqFn = useServerFn(createDocRequest);
+  const [sent, setSent] = useState<Set<string>>(new Set());
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [open, setOpen] = useState(true);
+
+  const evidenceByIncident = new Map<string, number>();
+  for (const e of data.evidence) {
+    if (!e.linked_incident_id) continue;
+    evidenceByIncident.set(e.linked_incident_id, (evidenceByIncident.get(e.linked_incident_id) ?? 0) + 1);
+  }
+  const unlinked = data.incidents.filter((i) => !evidenceByIncident.has(i.id));
+  if (unlinked.length === 0) return null;
+
+  const summary = (i: CaseData["incidents"][number]) =>
+    (i.description ?? "").slice(0, 80).trim() || "Incident on file";
+
+  const request = async (i: CaseData["incidents"][number]) => {
+    setSendingId(i.id);
+    try {
+      await reqFn({
+        data: {
+          clientId,
+          title: `Corroborating evidence — ${i.date ?? "undated incident"}`,
+          details: `The incident on ${i.date ?? "an unspecified date"} ("${summary(i)}") has no linked evidence. If you have anything from that time — a photo, screenshot, message, medical note, receipt — please attach it to this incident in your account.`,
+        },
+      });
+      setSent((s) => new Set(s).add(i.id));
+      toast("Evidence request sent.");
+    } catch {
+      toast("Couldn't send request.");
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+  return (
+    <div className="att-card">
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{ display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center", background: "transparent", border: 0, padding: 0, cursor: "pointer" }}>
+        <div style={{ textAlign: "left" }}>
+          <div className="att-eyebrow">Incidents without evidence</div>
+          <h3 style={{ fontSize: 16, marginTop: 4 }}>{unlinked.length} incident{unlinked.length === 1 ? "" : "s"} have no linked file</h3>
+          <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
+            Descriptive check — the incident is documented but stands on the survivor&apos;s testimony alone.
+          </p>
+        </div>
+        <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>{open ? "Hide" : "Show"}</span>
+      </button>
+      {open && (
+        <ul style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 8 }}>
+          {unlinked.slice(0, 40).map((i) => {
+            const already = sent.has(i.id);
+            return (
+              <li key={i.id} style={{ padding: "10px 12px", background: "var(--att-surface-2)", borderRadius: 2, borderLeft: "3px solid #6E6579" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{i.date ?? "Undated"}</div>
+                    <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>{summary(i)}{i.description && i.description.length > 80 ? "…" : ""}</div>
+                  </div>
+                  <button
+                    className="att-btn-secondary"
+                    style={{ padding: "5px 10px", fontSize: 11, whiteSpace: "nowrap" }}
+                    disabled={already || sendingId === i.id}
+                    onClick={() => request(i)}
+                  >
+                    {already ? "Requested" : sendingId === i.id ? "Sending…" : "Request evidence"}
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+          {unlinked.length > 40 && (
+            <li style={{ fontSize: 12, color: "var(--att-text-2)", padding: "6px 12px" }}>
+              …and {unlinked.length - 40} more.
+            </li>
+          )}
+        </ul>
+      )}
     </div>
   );
 }
@@ -1446,13 +1517,13 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
   };
 
   const STATUS_OPTIONS: { value: string; label: string; color: string }[] = [
-    { value: "unreviewed", label: "Unreviewed", color: "#94A3B8" },
-    { value: "useful", label: "Useful", color: "#10B981" },
-    { value: "needs_context", label: "Needs context", color: "#FBBF24" },
-    { value: "duplicate", label: "Duplicate", color: "#94A3B8" },
-    { value: "exclude", label: "Exclude", color: "#EF4444" },
-    { value: "privileged", label: "Privileged", color: "#8B5CF6" },
-    { value: "exhibit_candidate", label: "Exhibit candidate", color: "#2D4A8A" },
+    { value: "unreviewed", label: "Unreviewed", color: "#6E6579" },
+    { value: "useful", label: "Useful", color: "var(--att-navy)" },
+    { value: "needs_context", label: "Needs context", color: "#6E6579" },
+    { value: "duplicate", label: "Duplicate", color: "#6E6579" },
+    { value: "exclude", label: "Exclude", color: "var(--att-navy)" },
+    { value: "privileged", label: "Privileged", color: "#4A2A6B" },
+    { value: "exhibit_candidate", label: "Exhibit candidate", color: "var(--att-navy)" },
   ];
   const statusMeta = (v: string) => STATUS_OPTIONS.find((s) => s.value === v) ?? STATUS_OPTIONS[0];
 
@@ -1503,7 +1574,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div>
-      <div className="att-card" style={{ marginBottom: 14, background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
+      <div className="att-card" style={{ marginBottom: 14, background: "#FFFFFF", borderColor: "rgba(26,18,36,0.14)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
           <ShieldCheck size={16} style={{ color: "var(--att-green)" }} />
           <SectionTitle>Evidence integrity record</SectionTitle>
@@ -1546,7 +1617,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
       </div>
 
       {items.length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "#F8FAFC", border: "1px solid var(--att-border)", borderRadius: 6, marginBottom: 14, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--att-surface-2)", border: "1px solid var(--att-border)", borderRadius: 2, marginBottom: 14, flexWrap: "wrap" }}>
           <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>
             <strong>{items.length}</strong> item{items.length === 1 ? "" : "s"} visible · bulk apply:
           </span>
@@ -1578,12 +1649,12 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
               </div>
               <h3 style={{ fontSize: 16, marginTop: 8 }}>{e.title}</h3>
               <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
-                {new Date(e.date).toLocaleDateString()}
+                {formatEvidenceDate(e)}
                 {e.linked_incident_id ? " · linked to incident" : " · unlinked"}
               </div>
               {e.description && <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8 }}>{e.description.slice(0, 120)}</p>}
               {r?.notes && !isEditing && (
-                <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8, padding: 8, background: "#F8FAFC", borderLeft: "2px solid var(--att-navy)", borderRadius: 4 }}>
+                <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8, padding: 8, background: "var(--att-surface-2)", borderLeft: "2px solid var(--att-navy)", borderRadius: 2 }}>
                   <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>Attorney note</span>
                   {r.notes}
                 </p>
@@ -1653,28 +1724,28 @@ function DepoTab({ depo, loading, onRun }: { depo: DepoResult | null; loading: b
         Surfaces chronology strengths, credibility gaps, and likely cross-examination angles. Internal work product.
       </p>
       {depo && !depo.ok && (
-        <p style={{ marginTop: 12, fontSize: 13, color: "#EF4444" }}>Couldn't generate: {depo.reason}</p>
+        <p style={{ marginTop: 12, fontSize: 13, color: "var(--att-navy)" }}>Couldn't generate: {depo.reason}</p>
       )}
       {depo?.ok && depo.prep && (
         <div style={{ marginTop: 18, display: "grid", gap: 18, fontSize: 13 }}>
           <DepoSection title="Chronology strengths" items={depo.prep.chronology_strengths} />
           <DepoSection title="Talking points (narrative spine)" items={depo.prep.talking_points} />
-          <DepoComplex title="Strongest evidence" items={depo.prep.strongest_evidence} keys={["item", "why_it_helps", "tied_to_incident"]} accent="#10B981" />
-          <DepoComplex title="Weakest evidence" items={depo.prep.weakest_evidence} keys={["item", "risk", "recommended_action"]} accent="#EF4444" />
-          <DepoComplex title="Contradictions to reconcile" items={depo.prep.contradictions} keys={["topic", "conflicting_accounts", "how_to_reconcile"]} accent="#F59E0B" />
+          <DepoComplex title="Strongest evidence" items={depo.prep.strongest_evidence} keys={["item", "why_it_helps", "tied_to_incident"]} accent="var(--att-navy)" />
+          <DepoComplex title="Weakest evidence" items={depo.prep.weakest_evidence} keys={["item", "risk", "recommended_action"]} accent="var(--att-navy)" />
+          <DepoComplex title="Contradictions to reconcile" items={depo.prep.contradictions} keys={["topic", "conflicting_accounts", "how_to_reconcile"]} accent="#6E6579" />
           <DepoComplex title="Weak spots" items={depo.prep.weak_spots} keys={["issue", "risk", "suggested_fix"]} />
           <DepoComplex title="Credibility gaps" items={depo.prep.credibility_gaps} keys={["gap", "address_before_testimony"]} />
           <DepoSection title="Direct examination questions" items={depo.prep.prep_questions} ordered />
           <DepoSection title="Cross-examination warnings" items={depo.prep.cross_warnings} />
           {depo.phrasing_consent && depo.prep.court_safe_phrasing?.length ? (
             <div>
-              <div style={{ background: "#FEF3C7", border: "1px solid #F59E0B", borderRadius: 8, padding: "8px 12px", marginBottom: 10, fontSize: 12, color: "#78350F" }}>
+              <div style={{ background: "#FFFFFF", border: "1px solid #6E6579", borderRadius: 2, padding: "8px 12px", marginBottom: 10, fontSize: 12, color: "var(--att-text)" }}>
                 <strong>AI-suggested phrasing for deposition prep — not the survivor's own words.</strong> Do not export or attribute to your client as her statement. This is internal work product only.
               </div>
-              <DepoComplex title="Court-safe phrasing (AI-suggested — not client's words)" items={depo.prep.court_safe_phrasing} keys={["instead_of", "say"]} accent="#2D4A8A" />
+              <DepoComplex title="Court-safe phrasing (AI-suggested — not client's words)" items={depo.prep.court_safe_phrasing} keys={["instead_of", "say"]} accent="var(--att-navy)" />
             </div>
           ) : !depo.phrasing_consent ? (
-            <div style={{ background: "var(--att-surface-2)", border: "1px dashed var(--att-border)", borderRadius: 8, padding: 12, fontSize: 12, color: "var(--att-text-2)" }}>
+            <div style={{ background: "var(--att-surface-2)", border: "1px dashed var(--att-border)", borderRadius: 2, padding: 12, fontSize: 12, color: "var(--att-text-2)" }}>
               <strong>Court-safe phrasing unavailable.</strong> {depo.phrasing_consent_note}
             </div>
           ) : null}
@@ -1704,7 +1775,7 @@ function DepoComplex({ title, items, keys, accent }: { title: string; items?: Ar
       <h3 style={{ fontSize: 16, marginBottom: 6 }}>{title}</h3>
       <ul style={{ display: "grid", gap: 8, listStyle: "none", padding: 0 }}>
         {items.map((row, i) => (
-          <li key={i} style={{ borderLeft: `3px solid ${accent ?? "#F59E0B"}`, paddingLeft: 12 }}>
+          <li key={i} style={{ borderLeft: `3px solid ${accent ?? "#6E6579"}`, paddingLeft: 12 }}>
             {keys.map((k) => (
               <div key={k}><span className="att-eyebrow">{k.replace(/_/g, " ")}: </span>{row[k]}</div>
             ))}
@@ -1721,13 +1792,15 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   const [include, setInclude] = useState({
     overview: true, timeline: true, patterns: true, checklist: true, gaps: true, evidence: true,
   });
-  const [format, setFormat] = useState<"pdf" | "print" | "word">("print");
+  // "zip" was previously mislabelled "PDF" in the UI while actually producing a
+  // ZIP bundle, and "print" produced the same ZIP rather than printing.
+  const [format, setFormat] = useState<"zip" | "print" | "word">("zip");
   const [certify, setCertify] = useState(false);
   const [attorneyNotes, setAttorneyNotes] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [clioDownloading, setClioDownloading] = useState(false);
+  const [pkgDownloading, setPkgDownloading] = useState(false);
   const packetFn = useServerFn(generateAttorneyCourtPacket);
-  const clioFn = useServerFn(generateClioPackage);
+  const pkgFn = useServerFn(generateCaseManagementPackage);
 
   const toggle = (k: keyof typeof include) => setInclude((s) => ({ ...s, [k]: !s[k] }));
 
@@ -1743,6 +1816,11 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
       } finally { setDownloading(false); }
       return;
     }
+    if (format === "print") {
+      // Browser print dialog — the attorney chooses "Save as PDF" there.
+      window.print();
+      return;
+    }
     setDownloading(true);
     try {
       const r = await packetFn({ data: { clientId: caseId, includeAttorneyNotes: attorneyNotes } });
@@ -1752,18 +1830,18 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
     } finally { setDownloading(false); }
   };
 
-  const generateClio = async () => {
-    setClioDownloading(true);
+  const generatePackage = async () => {
+    setPkgDownloading(true);
     try {
-      const r = await clioFn({ data: { clientId: caseId } });
-      if (!r.ok) { toast("Couldn't prepare Clio package: " + r.reason); return; }
+      const r = await pkgFn({ data: { clientId: caseId } });
+      if (!r.ok) { toast("Couldn't prepare the import package: " + r.reason); return; }
       window.open(r.url, "_blank");
-      toast(`Clio package ready — ${r.counts.documents} documents, ${r.counts.tasks} tasks.`);
-    } finally { setClioDownloading(false); }
+      toast(`Import package ready — ${r.counts.documents} documents, ${r.counts.tasks} tasks.`);
+    } finally { setPkgDownloading(false); }
   };
 
   const Item = ({ k, label, note }: { k: keyof typeof include; label: string; note: string }) => (
-    <label style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: 10, borderRadius: 8, background: include[k] ? "#F8FAFC" : "transparent", border: "1px solid var(--att-border)" }}>
+    <label style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: 10, borderRadius: 2, background: include[k] ? "var(--att-surface-2)" : "transparent", border: "1px solid var(--att-border)" }}>
       <input type="checkbox" checked={include[k]} onChange={() => toggle(k)} style={{ marginTop: 3 }} />
       <div>
         <div style={{ fontSize: 14, fontWeight: 500 }}>{label}</div>
@@ -1788,16 +1866,23 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         <div style={{ marginTop: 18 }}>
           <div className="att-eyebrow">Format</div>
           <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-            {(["print", "pdf", "word"] as const).map((f) => (
+            {(["zip", "print", "word"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFormat(f)}
                 className={format === f ? "att-btn-primary" : "att-btn-secondary"}
                 style={{ padding: "6px 14px", fontSize: 12 }}
               >
-                {f === "print" ? "Print / Save PDF" : f === "pdf" ? "PDF" : "Word (.docx)"}
+                {f === "zip" ? "Files (.zip)" : f === "print" ? "Print / Save as PDF" : "Word (.docx)"}
               </button>
             ))}
+          </div>
+          <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--att-text-2)", lineHeight: 1.5 }}>
+            {format === "zip"
+              ? "A ZIP archive containing Markdown, CSV and JSON files plus the evidence index — not a single PDF."
+              : format === "print"
+                ? "Opens your browser's print dialog; choose \u201cSave as PDF\u201d to get a single document."
+                : "A single .docx document you can edit before filing."}
           </div>
         </div>
 
@@ -1812,10 +1897,17 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         </label>
 
         <button className="att-btn-export" onClick={generate} disabled={downloading} style={{ marginTop: 18, width: "100%", padding: "12px 20px" }}>
-          <Download size={14} /> {downloading ? "Preparing packet…" : "Generate professional-review packet (ZIP)"}
+          <Download size={14} />{" "}
+          {downloading
+            ? "Preparing packet…"
+            : format === "zip"
+              ? "Generate professional-review packet (.zip)"
+              : format === "print"
+                ? "Open print dialog"
+                : "Generate professional-review packet (.docx)"}
         </button>
       </div>
-      <div className="att-card" style={{ background: "#F8FAFC" }}>
+      <div className="att-card" style={{ background: "var(--att-surface-2)" }}>
         <div className="att-eyebrow">Provenance & integrity</div>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 8, lineHeight: 1.6 }}>
           Every generated report carries case ID <span className="att-mono">{caseId}</span>, the generating attorney's
@@ -1826,20 +1918,20 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
           <Clock size={11} /> Export logged · {new Date().toLocaleString()}
         </div>
         <div className="att-divider" />
-        <div className="att-eyebrow" style={{ marginTop: 4 }}>Prepare for Clio</div>
+        <div className="att-eyebrow" style={{ marginTop: 4 }}>Case management import</div>
         <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, lineHeight: 1.6 }}>
-          Drop-in import package for Clio Manage. Contains <span className="att-mono">contacts.csv</span>,
+          Drop-in import package for your practice management system. Contains <span className="att-mono">contacts.csv</span>,
           <span className="att-mono"> matter.csv</span>, <span className="att-mono">events.csv</span>,
           <span className="att-mono"> documents.csv</span>, <span className="att-mono">tasks.csv</span>, and a
           <span className="att-mono"> /documents</span> folder with every evidence file.
         </p>
         <button
           className="att-btn-secondary"
-          onClick={generateClio}
-          disabled={clioDownloading}
+          onClick={generatePackage}
+          disabled={pkgDownloading}
           style={{ marginTop: 10, width: "100%", padding: "10px 14px", fontSize: 13 }}
         >
-          <Briefcase size={13} /> {clioDownloading ? "Preparing…" : "Download Clio package (ZIP)"}
+          <Briefcase size={13} /> {pkgDownloading ? "Preparing…" : "Download import package (ZIP)"}
         </button>
       </div>
     </div>
@@ -1851,6 +1943,64 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
 type ReviewLite = { evidence_id: string; status: string; exhibit_label: string | null };
 
 function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLite[] }) {
+  return <DashboardKpiRowInner data={data} reviews={reviews} />;
+}
+
+/**
+ * Shows the attorney the exact terms of the client's consent grant. Access is
+ * the client's to give and to withdraw, and that should be visible, not buried.
+ */
+function ConsentGrantPanel({ data }: { data: CaseData }) {
+  const c = data.consent;
+  if (!c) return null;
+  const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString() : null);
+  const expired = c.expires_at ? new Date(c.expires_at) < new Date() : false;
+  const row = (label: string, value: string) => (
+    <div style={{ display: "flex", gap: 8, fontSize: 12.5, lineHeight: 1.6 }}>
+      <span style={{ color: "var(--att-text-2)", minWidth: 118 }}>{label}</span>
+      <span className="att-mono" style={{ color: "var(--att-text)" }}>{value}</span>
+    </div>
+  );
+  return (
+    <div className="att-card" style={{ borderLeft: "3px solid var(--att-navy)" }}>
+      <div className="att-eyebrow">Access granted by client</div>
+      <div style={{ marginTop: 8, display: "grid", gap: 2 }}>
+        {row("Granted", fmt(c.granted_at) ?? "—")}
+        {row(
+          "Records",
+          c.include_all_incidents
+            ? "All journal entries"
+            : `${c.scoped_incident_count ?? 0} selected entries`,
+        )}
+        {row(
+          "Evidence",
+          c.include_all_evidence
+            ? "All evidence files"
+            : `${c.scoped_evidence_count ?? 0} selected files`,
+        )}
+        {row("Pattern analysis", c.include_patterns ? "Included" : "Not shared")}
+        {row("Scope", c.case_scoped ? "Single case" : "All of client's cases")}
+        {row(
+          "Date window",
+          c.date_range_start || c.date_range_end
+            ? `${fmt(c.date_range_start) ?? "any"} — ${fmt(c.date_range_end) ?? "any"}`
+            : "No date limit",
+        )}
+        {row(
+          "Expires",
+          c.expires_at ? `${fmt(c.expires_at)}${expired ? " (expired)" : ""}` : "No expiry set",
+        )}
+      </div>
+      <p style={{ fontSize: 11.5, color: "var(--att-text-2)", marginTop: 10, lineHeight: 1.55 }}>
+        The client may revoke this access at any time, which ends live access immediately. Material
+        you have already exported remains in your possession and is governed by your own retention
+        and professional-conduct obligations.
+      </p>
+    </div>
+  );
+}
+
+function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: ReviewLite[] }) {
   const totalEv = data.evidence.length;
   const reviewed = reviews.filter((r) => r.status && r.status !== "unreviewed").length;
   const useful = reviews.filter((r) => r.status === "useful" || r.status === "exhibit_candidate").length;
@@ -1860,7 +2010,7 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
 
   const strengthPct = totalEv === 0 ? 0 : Math.round(((useful * 2 + linked) / (totalEv * 3)) * 100);
   const strengthLabel = strengthPct >= 70 ? "Strong" : strengthPct >= 40 ? "Building" : totalEv === 0 ? "No evidence yet" : "Thin";
-  const strengthColor = strengthPct >= 70 ? "#10B981" : strengthPct >= 40 ? "#F59E0B" : "#EF4444";
+  const strengthColor = strengthPct >= 70 ? "var(--att-navy)" : strengthPct >= 40 ? "#6E6579" : "var(--att-navy)";
 
   const reviewPct = totalEv === 0 ? 0 : Math.round((reviewed / totalEv) * 100);
   const highRisk = data.flags.filter((f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3).length;
@@ -1877,7 +2027,7 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
     <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}>
       <div className="att-card">
         <SectionTitle icon={<Gauge size={14} />}>Evidence strength</SectionTitle>
-        <div style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', color: strengthColor }}>{strengthPct}%</div>
+        <div style={{ fontSize: 28, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", color: strengthColor }}>{strengthPct}%</div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 8 }}>{strengthLabel} · {linked}/{totalEv || 0} linked to incidents</div>
         <div style={{ height: 6, background: "var(--att-border)", borderRadius: 999 }}>
           <div style={{ width: `${strengthPct}%`, height: "100%", background: strengthColor, borderRadius: 999 }} />
@@ -1886,7 +2036,7 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
 
       <div className="att-card">
         <SectionTitle icon={<ListChecks size={14} />}>Review status</SectionTitle>
-        <div style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif' }}>{reviewed}<span style={{ fontSize: 14, color: "var(--att-text-2)" }}> / {totalEv}</span></div>
+        <div style={{ fontSize: 28, fontFamily: "\"Space Grotesk\", system-ui, sans-serif" }}>{reviewed}<span style={{ fontSize: 14, color: "var(--att-text-2)" }}> / {totalEv}</span></div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 8 }}>{reviewPct}% reviewed · {exhibits} exhibit{exhibits === 1 ? "" : "s"} · {excluded} excluded</div>
         <div style={{ height: 6, background: "var(--att-border)", borderRadius: 999 }}>
           <div style={{ width: `${reviewPct}%`, height: "100%", background: "var(--att-navy)", borderRadius: 999 }} />
@@ -1895,13 +2045,13 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
 
       <div className="att-card">
         <SectionTitle icon={<Shield size={14} />}>Urgent risk flags</SectionTitle>
-        <div style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', color: highRisk > 0 ? "#EF4444" : "var(--att-text)" }}>{highRisk}</div>
+        <div style={{ fontSize: 28, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", color: highRisk > 0 ? "var(--att-navy)" : "var(--att-text)" }}>{highRisk}</div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
           {highRisk === 0 ? "No high-severity flags active" : `High-severity escalation${highRisk === 1 ? "" : "s"} on record`}
         </div>
       </div>
 
-      <div className="att-card" style={{ background: "#F8FAFC" }}>
+      <div className="att-card" style={{ background: "var(--att-surface-2)" }}>
         <SectionTitle icon={<Scale size={14} />}>Documentation status</SectionTitle>
         <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
           {moves.slice(0, 3).map((m, i) => (
@@ -1913,14 +2063,11 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
         </ul>
       </div>
 
-      <div className="att-card" style={{ background: "linear-gradient(135deg,#F8FAFC,#EFF6FF)", borderColor: "#BFDBFE" }}>
-        <SectionTitle icon={<Briefcase size={14} />}>Clio integration</SectionTitle>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-          <span style={{ width: 8, height: 8, borderRadius: 999, background: "#F59E0B" }} />
-          <span style={{ fontSize: 13, fontWeight: 600 }}>Not connected</span>
-        </div>
+      <div className="att-card" style={{ background: "#FFFFFF", borderColor: "rgba(26,18,36,0.14)" }}>
+        <SectionTitle icon={<Briefcase size={14} />}>Case management import</SectionTitle>
         <p style={{ fontSize: 11.5, color: "var(--att-text-2)", lineHeight: 1.5, margin: 0 }}>
-          Use <strong>Prepare for Clio</strong> on the Export tab to generate a Clio-ready ZIP today. Live sync coming soon.
+          The Export tab generates a ZIP of CSVs plus every evidence file, ready to import into
+          your practice management system.
         </p>
       </div>
     </div>
@@ -2035,9 +2182,9 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <div className="att-card" style={{ background: "linear-gradient(135deg,#0F2547,#1E3A6B)", color: "#fff", borderColor: "transparent" }}>
+      <div className="att-card" style={{ background: "#4A2A6B", color: "#fff", borderColor: "transparent" }}>
         <div style={{ fontSize: 10, letterSpacing: 1.4, opacity: 0.75 }}>ATTORNEY INTAKE SUMMARY</div>
-        <h2 style={{ fontSize: 28, fontFamily: '"Instrument Serif", serif', marginTop: 4, color: "#fff" }}>Case {caseId}</h2>
+        <h2 style={{ fontSize: 28, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4, color: "#fff" }}>Case {caseId}</h2>
         <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
           Auto-generated from survivor-uploaded evidence · Print or include in the professional-review packet
         </div>
@@ -2148,7 +2295,7 @@ function ThreadsTab({ clientId }: { clientId: string }) {
               style={{
                 textAlign: "left", cursor: "pointer", padding: 14,
                 border: active ? "1.5px solid var(--att-navy)" : "1px solid var(--att-border)",
-                background: active ? "#F8FAFC" : "#fff",
+                background: active ? "var(--att-surface-2)" : "#fff",
                 fontFamily: "inherit",
               }}
             >
@@ -2162,7 +2309,7 @@ function ThreadsTab({ clientId }: { clientId: string }) {
                   </div>
                 </div>
                 {high > 0 && (
-                  <span className="att-tag" style={{ background: "#FEE2E2", color: "#B91C1C", fontSize: 10 }}>
+                  <span className="att-tag" style={{ background: "#FFFFFF", color: "var(--att-navy)", fontSize: 10 }}>
                     {high} high
                   </span>
                 )}
@@ -2192,12 +2339,12 @@ function ThreadsTab({ clientId }: { clientId: string }) {
 
 function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[] }) {
   const flags = toFlags(t.flags);
-  const sevColor = (s?: string) => s === "high" ? "#B91C1C" : s === "medium" ? "#B45309" : "#0F2547";
+  const sevColor = (s?: string) => s === "high" ? "var(--att-navy)" : s === "medium" ? "var(--att-navy)" : "#0F2547";
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div>
         <div className="att-eyebrow">Exhibit</div>
-        <h3 style={{ fontSize: 18, marginTop: 4, fontFamily: '"Instrument Serif", serif' }}>
+        <h3 style={{ fontSize: 18, marginTop: 4, fontFamily: "\"Space Grotesk\", system-ui, sans-serif" }}>
           {t.exhibit_label || t.conversation_participant || t.source_filename}
         </h3>
         <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 2 }}>
@@ -2206,7 +2353,7 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
       </div>
 
       {t.attorney_summary && (
-        <div style={{ padding: 14, background: "#F8FAFC", borderLeft: "3px solid var(--att-navy)", borderRadius: 4 }}>
+        <div style={{ padding: 14, background: "var(--att-surface-2)", borderLeft: "3px solid var(--att-navy)", borderRadius: 2 }}>
           <div className="att-eyebrow" style={{ marginBottom: 6 }}>Attorney summary</div>
           <p style={{ fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap", margin: 0 }}>{t.attorney_summary}</p>
         </div>
@@ -2217,7 +2364,7 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
           <div className="att-eyebrow" style={{ marginBottom: 8 }}>Flagged passages ({flags.length})</div>
           <div style={{ display: "grid", gap: 8 }}>
             {flags.map((f, i) => (
-              <div key={i} style={{ padding: 10, borderLeft: `3px solid ${sevColor(f.severity)}`, background: "#FEF9F4", borderRadius: 4 }}>
+              <div key={i} style={{ padding: 10, borderLeft: `3px solid ${sevColor(f.severity)}`, background: "var(--att-surface-2)", borderRadius: 2 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
                   <span>{f.label || f.type}</span>
                   <span className="att-mono" style={{ color: sevColor(f.severity), textTransform: "uppercase", fontSize: 10 }}>
@@ -2240,7 +2387,7 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
         ) : (
           <div style={{ display: "grid", gap: 6, maxHeight: 500, overflowY: "auto", paddingRight: 6 }}>
             {messages.map((m) => (
-              <div key={m.id} style={{ padding: "8px 10px", background: "#fff", border: "1px solid var(--att-border)", borderRadius: 6 }}>
+              <div key={m.id} style={{ padding: "8px 10px", background: "#fff", border: "1px solid var(--att-border)", borderRadius: 2 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--att-text-2)", marginBottom: 2 }}>
                   <span style={{ fontWeight: 600, color: "var(--att-navy)" }}>{m.sender || "Unknown"}</span>
                   <span className="att-mono">
@@ -2314,7 +2461,7 @@ function MessagesTab({ linkId }: { linkId: string }) {
     <div className="att-card" style={{ display: "grid", gap: 12, maxWidth: 780 }}>
       <div>
         <div className="att-eyebrow">Messages</div>
-        <h3 style={{ fontFamily: '"Instrument Serif", serif', fontSize: 22, marginTop: 4 }}>Attorney ↔ client conversation</h3>
+        <h3 style={{ fontFamily: "\"Space Grotesk\", system-ui, sans-serif", fontSize: 22, marginTop: 4 }}>Attorney ↔ client conversation</h3>
         <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
           Private thread between you and your client. Do not use for evidence — upload evidence in the Evidence tab.
         </p>
@@ -2332,8 +2479,8 @@ function MessagesTab({ linkId }: { linkId: string }) {
               <div style={{
                 maxWidth: "78%",
                 padding: "9px 12px",
-                borderRadius: 10,
-                background: mine ? "var(--att-navy)" : "#F1F5F9",
+                borderRadius: 2,
+                background: mine ? "var(--att-navy)" : "var(--att-surface-2)",
                 color: mine ? "#fff" : "var(--att-text)",
                 border: mine ? "none" : "1px solid var(--att-border)",
               }}>
@@ -2464,9 +2611,9 @@ function TimeTab({ clientId }: { clientId: string }) {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 12 }}>
-        <div className="att-card"><div className="att-eyebrow">Total logged</div><div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>{fmtHrs(total)}</div></div>
-        <div className="att-card"><div className="att-eyebrow">Billable</div><div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4, color: "var(--att-navy)" }}>{fmtHrs(billable)}</div></div>
-        <div className="att-card"><div className="att-eyebrow">Non-billable</div><div style={{ fontSize: 26, fontFamily: '"Instrument Serif", serif', marginTop: 4, color: "var(--att-text-2)" }}>{fmtHrs(total - billable)}</div></div>
+        <div className="att-card"><div className="att-eyebrow">Total logged</div><div style={{ fontSize: 26, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4 }}>{fmtHrs(total)}</div></div>
+        <div className="att-card"><div className="att-eyebrow">Billable</div><div style={{ fontSize: 26, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4, color: "var(--att-navy)" }}>{fmtHrs(billable)}</div></div>
+        <div className="att-card"><div className="att-eyebrow">Non-billable</div><div style={{ fontSize: 26, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4, color: "var(--att-text-2)" }}>{fmtHrs(total - billable)}</div></div>
       </div>
 
       <div className="att-card" style={{ display: "grid", gap: 10 }}>
@@ -2501,7 +2648,7 @@ function TimeTab({ clientId }: { clientId: string }) {
         {rows?.length === 0 && <div style={{ fontSize: 13, color: "var(--att-text-2)" }}>No time entries yet.</div>}
         <div style={{ display: "grid", gap: 6 }}>
           {rows?.map((r) => (
-            <div key={r.id} style={{ display: "grid", gridTemplateColumns: "110px 90px 90px 1fr auto", gap: 8, padding: "8px 10px", border: "1px solid var(--att-border)", borderRadius: 6, alignItems: "center", background: "#fff" }}>
+            <div key={r.id} style={{ display: "grid", gridTemplateColumns: "110px 90px 90px 1fr auto", gap: 8, padding: "8px 10px", border: "1px solid var(--att-border)", borderRadius: 2, alignItems: "center", background: "#fff" }}>
               {editingId === r.id && editDraft ? (
                 <>
                   <input className="att-input" type="date" value={editDraft.entry_date} onChange={(e) => setEditDraft({ ...editDraft, entry_date: e.target.value })} />
@@ -2519,13 +2666,13 @@ function TimeTab({ clientId }: { clientId: string }) {
                 <>
                   <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>{r.entry_date}</span>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{fmtHrs(r.minutes)}</span>
-                  <span className="att-tag" style={{ background: r.billable ? "var(--att-navy)" : "#F1F5F9", color: r.billable ? "#fff" : "var(--att-text-2)", justifySelf: "start" }}>
+                  <span className="att-tag" style={{ background: r.billable ? "var(--att-navy)" : "var(--att-surface-2)", color: r.billable ? "#fff" : "var(--att-text-2)", justifySelf: "start" }}>
                     {r.billable ? "Billable" : "Non-bill"}
                   </span>
                   <span style={{ fontSize: 13 }}>{r.description}</span>
                   <div style={{ display: "flex", gap: 6 }}>
                     <button className="att-btn-ghost" onClick={() => startEdit(r)}>Edit</button>
-                    <button className="att-btn-ghost" onClick={() => remove(r.id)} style={{ color: "#B91C1C" }}>Delete</button>
+                    <button className="att-btn-ghost" onClick={() => remove(r.id)} style={{ color: "var(--att-navy)" }}>Delete</button>
                   </div>
                 </>
               )}
@@ -2650,12 +2797,93 @@ function MissingEvidenceChecklistSection({ clientId }: { clientId: string }) {
           onKeyDown={(e) => { if (e.key === "Enter") onAdd(); }}
           placeholder="Add a checklist item…"
           disabled={busy}
-          style={{ flex: 1, padding: "6px 10px", border: "1px solid var(--att-border)", borderRadius: 6, fontSize: 13 }}
+          style={{ flex: 1, padding: "6px 10px", border: "1px solid var(--att-border)", borderRadius: 2, fontSize: 13 }}
         />
         <button onClick={onAdd} disabled={busy || !newLabel.trim()} className="att-btn" style={{ fontSize: 12 }}>
           Add
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ---------------- Cross-reference / inconsistency analysis ---------------- */
+/**
+ * Attorney-facing view of the same engine survivors see as "Corroboration".
+ * Framed here for the OTHER party's account — inconsistencies to verify,
+ * repeated locations / dates / tactics to cross-check. Never label this
+ * "contradictions in the client's own record" in the survivor view.
+ */
+function CrossReferenceSection({ clientId }: { clientId: string }) {
+  const fetchXrefs = useServerFn(findClientCrossReferences);
+  const [clusters, setClusters] = useState<XrefCluster[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setErr(null);
+    fetchXrefs({ data: { clientId } })
+      .then((r) => { if (!cancelled) setClusters(r.clusters); })
+      .catch((e) => { if (!cancelled) setErr(String(e?.message ?? e)); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [clientId, fetchXrefs]);
+
+  return (
+    <div className="att-card">
+      <SectionTitle icon={<Hash size={16} />}>
+        Cross-reference · Inconsistencies to verify
+      </SectionTitle>
+      <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
+        Deterministic clusters — exhibits that share a date anchor, location,
+        or repeat tactic. Use these to test the other party's account against
+        the record, not to fact-check the client.
+      </p>
+      {loading && <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 10 }}>Computing…</p>}
+      {err && <p style={{ fontSize: 13, color: "var(--att-navy)", marginTop: 10 }}>Could not compute: {err}</p>}
+      {!loading && !err && clusters && clusters.length === 0 && (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 10 }}>
+          No cross-references yet. Add more incidents or link evidence to build shared anchors.
+        </p>
+      )}
+      {!loading && !err && clusters && clusters.length > 0 && (
+        <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+          {clusters.slice(0, 30).map((c, i) => (
+            <div
+              key={i}
+              style={{
+                borderLeft: "2px solid #1A1224",
+                padding: "8px 12px",
+                background: "#FAF8F4",
+              }}
+            >
+              <div style={{ fontFamily: "'Space Grotesk', ui-monospace, monospace", fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6B6A78" }}>
+                {c.anchor_type} anchor · {c.exhibits.length} exhibits
+              </div>
+              <div style={{ marginTop: 4, fontSize: 13, color: "#1A1224" }}>{c.detail}</div>
+              <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0", display: "grid", gap: 4 }}>
+                {c.exhibits.map((e) => (
+                  <li key={`${e.kind}-${e.id}`} style={{ fontFamily: "'Space Grotesk', ui-monospace, monospace", fontSize: 11, color: "#1A1224" }}>
+                    <span style={{ color: "#6B6A78" }}>{e.kind.toUpperCase()}</span>
+                    {e.date ? ` · ${e.date}` : " · date unknown"}
+                    {" · "}
+                    <span style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: "#1A1224" }}>
+                      {e.label}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          {clusters.length > 30 && (
+            <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+              …and {clusters.length - 30} more clusters.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

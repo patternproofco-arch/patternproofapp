@@ -2,6 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useSettings } from "@/lib/settings-context";
 import { useDraggable } from "@/hooks/use-draggable";
+import { quickExit } from "@/lib/quick-exit";
 
 export function QuickExitButton() {
   const { settings } = useSettings();
@@ -11,29 +12,8 @@ export function QuickExitButton() {
     { right: 16, top: 70 }
   );
 
-  const exit = () => {
-    const url = settings.exitUrl || "https://weather.com";
-    // Best-effort cleanup: clear session-unlock state and neutralize the tab
-    // title before navigating away. We do NOT and cannot clear browser history,
-    // downloads, notifications, or artifacts outside this document.
-    try {
-      window.sessionStorage.removeItem("pp.pinUnlocked");
-      window.sessionStorage.removeItem("pp.session.unlocked");
-      // Clear any transient PP session state.
-      Object.keys(window.sessionStorage).forEach((k) => {
-        if (k.startsWith("pp.")) window.sessionStorage.removeItem(k);
-      });
-    } catch { /* ignore */ }
-    try { document.title = "Weather"; } catch { /* ignore */ }
-    try {
-      window.history.replaceState(null, "", "/");
-    } catch {
-      /* ignore */
-    }
-    // Full-page navigation that overwrites the current history entry so
-    // pressing Back on the cover site cannot return to PatternProof.
-    window.location.replace(url);
-  };
+  // Signs the user out for real, then redirects. See src/lib/quick-exit.ts.
+  const exit = () => quickExit(settings.exitUrl);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -55,12 +35,12 @@ export function QuickExitButton() {
       onTouchStart={dragHandlers.onTouchStart}
       onClick={() => { if (!wasDragged()) exit(); }}
       aria-label="Quick exit"
-      title="Quick exit — drag to move, double-press Esc to exit"
+      title="Quick exit — signs you out and leaves. Drag to move, double-press Esc to exit"
       className="no-print fixed z-[9999] inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold"
       style={{
         background: "#B7D8B0", /* pastel green */
         color: "#1F3A1B",
-        boxShadow: "0 4px 14px rgba(31,26,20,0.18)",
+        boxShadow: "none",
         letterSpacing: "0.04em",
         touchAction: "none",
         cursor: "grab",

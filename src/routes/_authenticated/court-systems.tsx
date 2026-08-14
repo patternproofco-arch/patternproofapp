@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Scale, Gavel, Shield, FileText, Users, AlertTriangle, BookOpen, ArrowRight } from "lucide-react";
 import { CollapsibleCard } from "@/components/CollapsibleCard";
+import { HubTabs, RESOURCE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/court-systems")({
   head: () => ({
@@ -22,6 +23,7 @@ function CourtSystemsPage() {
   return (
     <div className="space-y-10">
       {/* Header */}
+      <HubTabs tabs={RESOURCE_TABS} />
       <header>
         <div className="label-eyebrow inline-flex items-center gap-2">
           <Scale size={12} /> Court systems guide
@@ -113,7 +115,7 @@ function CourtSystemsPage() {
 
       {/* CTAs */}
       <section
-        className="rounded-2xl px-7 py-7 md:px-9"
+        className="rounded-[2px] px-7 py-7 md:px-9"
         style={{ background: "var(--card)", border: `1px solid var(--border)` }}
       >
         <h2 className="text-xl font-extrabold" style={{ color: BROWN }}>Ready to put this into practice?</h2>
@@ -122,7 +124,7 @@ function CourtSystemsPage() {
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link to="/patterns" className="btn-primary inline-flex items-center gap-2">
-            Run pattern analysis <ArrowRight size={16} />
+            Open Recurline <ArrowRight size={16} />
           </Link>
           <Link to="/court-packet" className="btn-ghost">Build professional-review packet</Link>
           <Link to="/share-with-attorney" className="btn-ghost">Share with attorney</Link>
@@ -137,15 +139,15 @@ function CourtCard({ icon: Icon, title, burden, purpose, whatMatters, yourEdge }
 }) {
   return (
     <div
-      className="flex flex-col rounded-2xl border p-6"
-      style={{ background: "var(--card)", borderColor: "var(--border)", boxShadow: "0 6px 18px -12px rgba(26,20,14,0.25)", borderLeft: `3px solid ${ROSE}` }}
+      className="flex flex-col rounded-[2px] border p-6"
+      style={{ background: "var(--card)", borderColor: "var(--border)", boxShadow: "none", borderLeft: `3px solid ${ROSE}` }}
     >
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: `${BROWN}12`, color: BROWN }}>
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-[2px]" style={{ background: `${BROWN}12`, color: BROWN }}>
         <Icon size={20} />
       </div>
       <h3 className="text-[19px] font-extrabold" style={{ color: BROWN }}>{title}</h3>
       <div
-        className="mt-1 inline-block rounded-md px-2.5 py-1 text-[12px] font-extrabold uppercase tracking-[2px]"
+        className="mt-1 inline-block rounded-[2px] px-2.5 py-1 text-[12px] font-extrabold uppercase tracking-[2px]"
         style={{ background: ROSE, color: BROWN }}
       >
         {burden}
@@ -161,7 +163,7 @@ function CourtCard({ icon: Icon, title, burden, purpose, whatMatters, yourEdge }
 
 function InfoCard({ icon: Icon, title, body }: { icon: typeof FileText; title: string; body: string }) {
   return (
-    <div className="rounded-2xl border p-6" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+    <div className="rounded-[2px] border p-6" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
       <div className="mb-3 flex items-center gap-2">
         <Icon size={18} style={{ color: BROWN }} />
         <h3 className="text-[17px] font-extrabold" style={{ color: BROWN }}>{title}</h3>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { Logo } from "@/components/Logo";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
@@ -22,14 +22,14 @@ function H2({ children }: { children: React.ReactNode }) {
 }
 
 function Terms() {
-  const updated = "November 2025";
+  const updated = "August 2026";
   return (
     <div style={{ background: "var(--background)", minHeight: "100vh" }}>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", maxWidth: 1100, margin: "0 auto" }}>
         <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--muted-foreground)", textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
           <ArrowLeft size={16} /> Home
         </Link>
-        <Logo variant="survivor" size={36} />
+        <BrandLogo size={34} showTagline={false} />
       </header>
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "24px 24px 96px" }}>
         <div style={{ fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700 }}>
@@ -40,7 +40,7 @@ function Terms() {
 
         <section style={{ fontSize: 15, lineHeight: 1.7, color: "var(--foreground)" }}>
           <H2>1. Who we are</H2>
-          <p>PatternProof is operated by PatternProof, Inc. ("PatternProof", "we", "us"). By creating an account or using the service you agree to these Terms.</p>
+          <p>PatternProof is operated by Grace Burns, an individual, doing business as PatternProof ("PatternProof", "we", "us"). By creating an account or using the service you agree to these Terms.</p>
 
           <H2>2. What PatternProof is — and isn't</H2>
           <p>PatternProof is a documentation and evidence-organization tool. It is <strong>not a law firm</strong>, does not provide legal advice, and does not create an attorney-client relationship. AI outputs (patterns, summaries, drafts) are informational and may contain errors — always verify before relying on them in legal proceedings.</p>

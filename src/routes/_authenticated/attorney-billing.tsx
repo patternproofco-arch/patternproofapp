@@ -83,7 +83,7 @@ function AttorneyBillingPage() {
                         <Clock size={12} style={{ color: "var(--muted-foreground)" }} />
                         <span style={{ color: "var(--muted-foreground)" }}>{new Date(e.entry_date).toLocaleDateString()}</span>
                         <span
-                          className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                          className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold"
                           style={{
                             background: e.billable ? "rgba(168,204,224,0.35)" : "var(--input)",
                             color: e.billable ? "#1A1714" : "var(--muted-foreground)",
@@ -111,7 +111,7 @@ function AttorneyBillingPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg px-3 py-2" style={{ background: "var(--input)" }}>
+    <div className="rounded-[2px] px-3 py-2" style={{ background: "var(--input)" }}>
       <div className="label-eyebrow">{label}</div>
       <div className="mt-1 font-serif text-[20px]">{value}</div>
     </div>

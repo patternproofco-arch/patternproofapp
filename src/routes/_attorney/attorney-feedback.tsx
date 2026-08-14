@@ -63,10 +63,10 @@ function AttorneyFeedbackPage() {
     return (
       <div style={{ display: "grid", gap: 20 }}>
         <div className="att-card" style={{ padding: 32, textAlign: "left" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 6, background: "rgba(16,185,129,0.10)", color: "var(--att-green)", fontWeight: 700, fontSize: 12, marginBottom: 16 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 2, background: "rgba(16,185,129,0.10)", color: "var(--att-green)", fontWeight: 700, fontSize: 12, marginBottom: 16 }}>
             <Check size={14} /> Received
           </div>
-          <h1 style={{ fontFamily: "Georgia, 'Palatino Linotype', serif", fontSize: 26, margin: "0 0 10px" }}>Thank you.</h1>
+          <h1 className="att-page-title">Thank you.</h1>
           <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 20 }}>
             Product feedback goes directly to the team building PatternProof. If you flagged something urgent, we'll follow up.
           </p>
@@ -80,7 +80,7 @@ function AttorneyFeedbackPage() {
     <div style={{ display: "grid", gap: 20, maxWidth: 720 }}>
       <div>
         <div className="att-eyebrow">Product feedback</div>
-        <h1 style={{ fontFamily: "Georgia, 'Palatino Linotype', serif", fontSize: 28, margin: "4px 0 0" }}>
+        <h1 className="att-page-title">
           Attorney feedback
         </h1>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 6, maxWidth: 620 }}>
@@ -114,7 +114,7 @@ function AttorneyFeedbackPage() {
                 style={{
                   minWidth: 40,
                   padding: "8px 10px",
-                  borderRadius: 6,
+                  borderRadius: 2,
                   border: nps === n ? "1px solid var(--att-navy)" : "1px solid var(--att-border)",
                   background: nps === n ? "var(--att-navy)" : "#FFFFFF",
                   color: nps === n ? "#FFFFFF" : "var(--att-text)",
@@ -171,7 +171,7 @@ function ATextArea({ value, onChange, rows }: { value: string; onChange: (v: str
       style={{
         width: "100%",
         padding: "10px 12px",
-        borderRadius: 6,
+        borderRadius: 2,
         border: "1px solid var(--att-border)",
         background: "#FFFFFF",
         color: "var(--att-text)",
@@ -187,7 +187,7 @@ function ATextArea({ value, onChange, rows }: { value: string; onChange: (v: str
 const selectStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
-  borderRadius: 6,
+  borderRadius: 2,
   border: "1px solid var(--att-border)",
   background: "#FFFFFF",
   color: "var(--att-text)",

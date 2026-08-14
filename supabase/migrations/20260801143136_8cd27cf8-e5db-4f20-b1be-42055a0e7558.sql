@@ -1,0 +1,1 @@
+ALTER TABLE public.clio_connections ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMP WITH TIME ZONE;

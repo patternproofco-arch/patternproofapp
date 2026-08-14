@@ -75,14 +75,14 @@ function SurvivorFeedbackPage() {
     return (
       <div style={pageWrap}>
         <div style={cardStyle}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 999, background: "rgba(189,230,212,0.35)", color: "#1E5A3E", fontWeight: 700, fontSize: 13, marginBottom: 18 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 2, background: "rgba(127,161,137,0.20)", color: "#0F6E56", fontWeight: 700, fontSize: 13, marginBottom: 18 }}>
             <Check size={16} /> Thank you
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px", color: "#2A1A10" }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px", color: "#1A1224" }}>
             Received. Every word you shared helps.
           </h1>
           <p style={{ color: "#4E3B31", lineHeight: 1.6, marginBottom: 24 }}>
-            Your response is stored privately. We only see the words you chose to share here — not anything from your journal or evidence.
+            Your response is stored privately. We only see the words you chose to share here — not anything from your Archive or evidence.
           </p>
           <button onClick={() => navigate({ to: "/dashboard" })} style={ctaBtn}>Back to dashboard</button>
         </div>
@@ -95,7 +95,7 @@ function SurvivorFeedbackPage() {
       <Link to="/dashboard" style={backLink}><ArrowLeft size={14} /> Back to dashboard</Link>
       <div style={cardStyle}>
         <div style={eyebrow}>Your voice · shared privately</div>
-        <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", margin: "10px 0 12px", color: "#2A1A10", fontFamily: "Georgia, 'Palatino Linotype', serif" }}>
+        <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", margin: "10px 0 12px", color: "#1A1224", fontFamily: "Georgia, 'Palatino Linotype', serif" }}>
           How is PatternProof feeling for you?
         </h1>
         <p style={{ color: "#4E3B31", lineHeight: 1.65, marginBottom: 24 }}>
@@ -176,7 +176,7 @@ function SurvivorFeedbackPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#2A1A10", marginBottom: 10, lineHeight: 1.4 }}>{label}</label>
+      <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#1A1224", marginBottom: 10, lineHeight: 1.4 }}>{label}</label>
       {children}
     </div>
   );
@@ -200,16 +200,16 @@ const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "40px 20px 80px",
   background:
-    "radial-gradient(ellipse 70% 55% at 15% 0%, rgba(180,220,220,0.35), transparent 60%), radial-gradient(ellipse 60% 50% at 85% 100%, rgba(220,180,220,0.30), transparent 60%), linear-gradient(180deg, #F5EFE6 0%, #EBDFCE 100%)",
+    "#FAF8F4",
 };
 
 const cardStyle: React.CSSProperties = {
   maxWidth: 640,
   margin: "0 auto",
-  background: "#DEB896",
-  borderRadius: 20,
+  background: "#FAF8F4",
+  borderRadius: 2,
   padding: "36px 32px",
-  boxShadow: "0 20px 60px -30px rgba(78,59,49,0.35)",
+  boxShadow: "none",
   border: "1px solid rgba(255,255,255,0.4)",
 };
 
@@ -239,33 +239,33 @@ const eyebrow: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "12px 14px",
-  borderRadius: 12,
-  border: "1px solid rgba(78,59,49,0.25)",
-  background: "#F5E9D6",
-  color: "#2A1A10",
+  borderRadius: 2,
+  border: "1px solid rgba(26,18,36,0.25)",
+  background: "#FAF8F4",
+  color: "#1A1224",
   fontSize: 14,
   outline: "none",
 };
 
 const ctaBtn: React.CSSProperties = {
   padding: "14px 28px",
-  borderRadius: 999,
-  background: "#E77B56",
+  borderRadius: 2,
+  background: "#7A1F3D",
   color: "#FFFFFF",
   fontWeight: 700,
   fontSize: 15,
   border: "none",
   cursor: "pointer",
-  boxShadow: "0 8px 24px -12px rgba(231,123,86,0.6)",
+  boxShadow: "none",
 };
 
 function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
-    borderRadius: 999,
-    border: active ? "1px solid #E77B56" : "1px solid rgba(78,59,49,0.25)",
-    background: active ? "#E77B56" : "#F5E9D6",
-    color: active ? "#FFFFFF" : "#2A1A10",
+    borderRadius: 2,
+    border: active ? "1px solid #7A1F3D" : "1px solid rgba(26,18,36,0.25)",
+    background: active ? "#7A1F3D" : "#FAF8F4",
+    color: active ? "#FFFFFF" : "#1A1224",
     fontWeight: 600,
     fontSize: 14,
     cursor: "pointer",

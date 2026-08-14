@@ -8,6 +8,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { transcribeVoiceNote } from "@/lib/transcribe-voice-note.functions";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { checkUploadSize } from "@/lib/upload-limits";
+import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/voice-notes")({
   component: VoiceNotesPage,
@@ -82,6 +84,8 @@ function VoiceNotesPage() {
 
   const save = async () => {
     if (!user || !pendingBlob) return;
+    const problem = checkUploadSize({ name: "Voice note", size: pendingBlob.size, type: "audio/webm" });
+    if (problem) { toast(problem); return; }
     setBusy(true);
     const key = `${user.id}/${Date.now()}.webm`;
     const up = await supabase.storage.from("voice-notes").upload(key, pendingBlob, { contentType: "audio/webm" });
@@ -135,6 +139,7 @@ function VoiceNotesPage() {
 
   return (
     <div>
+      <HubTabs tabs={ARCHIVE_TABS} />
       <div className="label-eyebrow">Voice notes</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">Speak it. <em>It still counts.</em></h1>
 
@@ -199,7 +204,7 @@ function VoiceNotesPage() {
                   <div className="label-eyebrow mt-1">{new Date(n.date).toLocaleDateString()} {n.duration_seconds != null && `· ${mmss(n.duration_seconds)}`}</div>
                   {audioUrls[n.id] && <audio controls src={audioUrls[n.id]} className="mt-3 w-full" />}
                   {n.transcript ? (
-                    <div className="mt-3 rounded-xl p-3 text-[13px] leading-relaxed" style={{ background: "var(--input)" }}>
+                    <div className="mt-3 rounded-[2px] p-3 text-[13px] leading-relaxed" style={{ background: "var(--input)" }}>
                       <div className="label-eyebrow mb-1">Transcript</div>
                       {n.transcript}
                     </div>
@@ -213,7 +218,7 @@ function VoiceNotesPage() {
                     </button>
                   )}
                 </div>
-                <button onClick={() => remove(n)} aria-label="Remove" className="rounded-lg p-2 hover:bg-black/5"><Trash2 size={15} /></button>
+                <button onClick={() => remove(n)} aria-label="Remove" className="rounded-[2px] p-2 hover:bg-black/5"><Trash2 size={15} /></button>
               </div>
             </div>
           ))
@@ -221,8 +226,8 @@ function VoiceNotesPage() {
       </div>
       <CognitiveClose
         title="Turn a voice note into a written record"
-        body="When you're ready, log the moment in your journal so it joins your timeline."
-        cta="Open journal"
+        body="When you're ready, add the moment to your Archive so it joins your timeline."
+        cta="Open Archive"
         to="/journal"
       />
       {dialog}

@@ -5,7 +5,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
 import { Send, ShieldAlert, Paperclip, Mic, Sparkles } from "lucide-react";
-import { Logo } from "@/components/Logo";
+import { BrandMark } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 import { getAgentThreadMessages, renameAgentThread } from "@/lib/agent-threads.functions";
 
@@ -45,7 +45,7 @@ function AgentThreadPage() {
   if (initialMessages === null || token === null) {
     return (
       <div
-        className="h-[calc(100vh-2rem)] rounded-2xl flex items-center justify-center"
+        className="h-[calc(100vh-2rem)] rounded-[2px] flex items-center justify-center"
         style={{ background: "#FFFFFF", border: "1px solid #EAF7EF" }}
       >
         <div className="text-sm" style={{ color: "#667085" }}>Opening conversation…</div>
@@ -118,16 +118,16 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
 
   return (
     <div
-      className="h-[calc(100vh-2rem)] rounded-2xl flex flex-col overflow-hidden"
+      className="h-[calc(100vh-2rem)] rounded-[2px] flex flex-col overflow-hidden"
       style={{
-        background: "linear-gradient(180deg, #FFFFFF 0%, #FBFEFC 60%, #F4FBF7 100%)",
+        background: "#FFFFFF",
         border: "1px solid #EAF7EF",
-        boxShadow: "0 8px 30px -22px rgba(31,41,51,0.18)",
+        boxShadow: "none",
       }}
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-5 sm:px-7 py-4" style={{ borderBottom: "1px solid #EAF7EF" }}>
-        <Logo variant="survivor" size={30} />
+        <BrandMark size={30} />
         <div className="min-w-0">
           <h1 className="text-[17px] font-semibold leading-tight" style={{ color: "#1F2933" }}>
             PatternProof Evidence Assistant
@@ -144,20 +144,20 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
           {showGreeting && (
             <div className="space-y-5">
               <div
-                className="rounded-2xl p-5 sm:p-6 space-y-3"
+                className="rounded-[2px] p-5 sm:p-6 space-y-3"
                 style={{
-                  background: "linear-gradient(135deg, #EAF7EF 0%, #F1ECFF 100%)",
+                  background: "#FFFFFF",
                   border: "1px solid #D8F0E0",
                 }}
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className="rounded-full p-1.5"
-                    style={{ background: "#FFFFFF", color: "#4FAFA7", border: "1px solid #D8F0E0" }}
+                    className="rounded-[2px] p-1.5"
+                    style={{ background: "#FFFFFF", color: "#5E1730", border: "1px solid #D8F0E0" }}
                   >
                     <Sparkles size={14} />
                   </div>
-                  <div className="text-[12px] font-semibold tracking-wide" style={{ color: "#4FAFA7" }}>
+                  <div className="text-[12px] font-semibold tracking-wide" style={{ color: "#5E1730" }}>
                     WELCOME
                   </div>
                 </div>
@@ -182,9 +182,9 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               return (
                 <div key={m.id} className="flex justify-end">
                   <div
-                    className="max-w-[82%] rounded-2xl px-4 py-2.5 text-[15px] whitespace-pre-wrap"
+                    className="max-w-[82%] rounded-[2px] px-4 py-2.5 text-[15px] whitespace-pre-wrap"
                     style={{
-                      background: "linear-gradient(135deg, #D8F0E0 0%, #E4DDFF 100%)",
+                      background: "transparent",
                       color: "#1F2933",
                       border: "1px solid #D8F0E0",
                     }}
@@ -197,7 +197,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
             return (
               <div key={m.id} className="flex">
                 <div
-                  className="max-w-[90%] rounded-2xl px-5 py-3.5"
+                  className="max-w-[90%] rounded-[2px] px-5 py-3.5"
                   style={{ background: "#FFFFFF", border: "1px solid #EAF7EF", color: "#1F2933" }}
                 >
                   <div className="prose prose-sm max-w-none prose-strong:text-[#1F2933] prose-p:my-2 prose-ul:my-2 prose-li:my-0.5">
@@ -210,13 +210,13 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
 
           {status === "submitted" && (
             <div className="text-sm italic flex items-center gap-2" style={{ color: "#667085" }}>
-              <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#4FAFA7" }} />
+              <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#5E1730" }} />
               Thinking…
             </div>
           )}
           {error && (
             <div
-              className="flex items-start gap-2 text-sm rounded-xl px-3 py-2"
+              className="flex items-start gap-2 text-sm rounded-[2px] px-3 py-2"
               style={{ background: "#FDECEF", color: "#9B2C3E", border: "1px solid #F5C2CB" }}
             >
               <ShieldAlert size={16} className="mt-0.5 shrink-0" />
@@ -231,16 +231,16 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
         <div className="max-w-3xl mx-auto">
           <form onSubmit={(e) => { e.preventDefault(); void handleSend(); }}>
             <div
-              className="flex items-end gap-2 rounded-2xl px-2.5 py-2"
+              className="flex items-end gap-2 rounded-[2px] px-2.5 py-2"
               style={{
                 background: "#FFFFFF",
                 border: "1px solid #D8F0E0",
-                boxShadow: "0 1px 0 rgba(79,175,167,0.06), 0 8px 24px -16px rgba(79,175,167,0.25)",
+                boxShadow: "none",
               }}
             >
               <button
                 type="button"
-                className="rounded-full p-2 transition-colors hover:bg-[#EAF7EF]"
+                className="rounded-[2px] p-2 transition-colors hover:bg-[#EAF7EF]"
                 style={{ color: "#667085" }}
                 aria-label="Attach evidence"
                 title="Attach evidence (upload from Evidence Vault)"
@@ -265,7 +265,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               />
               <button
                 type="button"
-                className="rounded-full p-2 transition-colors hover:bg-[#EAF7EF]"
+                className="rounded-[2px] p-2 transition-colors hover:bg-[#EAF7EF]"
                 style={{ color: "#667085" }}
                 aria-label="Voice note"
                 title="Record a voice note"
@@ -275,11 +275,11 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               <button
                 type="submit"
                 disabled={busy || !input.trim()}
-                className="rounded-full p-2.5 transition-all disabled:opacity-40"
+                className="rounded-[2px] p-2.5 transition-all disabled:opacity-40"
                 style={{
-                  background: "linear-gradient(135deg, #4FAFA7 0%, #C9B8FF 140%)",
+                  background: "#7A1F3D",
                   color: "#FFFFFF",
-                  boxShadow: "0 4px 14px -4px rgba(79,175,167,0.45)",
+                  boxShadow: "none",
                 }}
                 aria-label="Send"
               >
@@ -300,7 +300,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                     type="button"
                     onClick={() => handleSend(s)}
                     disabled={busy}
-                    className="text-[13px] rounded-full px-3.5 py-1.5 transition-all hover:bg-[#D8F0E0] disabled:opacity-50"
+                    className="text-[13px] rounded-[2px] px-3.5 py-1.5 transition-all hover:bg-[#D8F0E0] disabled:opacity-50"
                     style={{
                       background: "#EAF7EF",
                       color: "#1F2933",

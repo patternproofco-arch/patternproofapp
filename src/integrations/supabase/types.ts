@@ -14,6 +14,161 @@ export type Database = {
   }
   public: {
     Tables: {
+      advocate_client_links: {
+        Row: {
+          advocate_user_id: string
+          case_id: string | null
+          client_user_id: string
+          created_at: string
+          id: string
+          include_all_evidence: boolean
+          include_all_incidents: boolean
+          include_patterns: boolean
+          invitation_id: string | null
+          revoked_at: string | null
+          scope_evidence: string[]
+          scope_incidents: string[]
+          status: string
+        }
+        Insert: {
+          advocate_user_id: string
+          case_id?: string | null
+          client_user_id: string
+          created_at?: string
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invitation_id?: string | null
+          revoked_at?: string | null
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Update: {
+          advocate_user_id?: string
+          case_id?: string | null
+          client_user_id?: string
+          created_at?: string
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invitation_id?: string | null
+          revoked_at?: string | null
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advocate_client_links_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "advocate_invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advocate_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          advocate_email: string
+          advocate_name: string | null
+          case_id: string | null
+          client_user_id: string
+          created_at: string
+          date_range_end: string | null
+          date_range_start: string | null
+          expires_at: string | null
+          id: string
+          include_all_evidence: boolean
+          include_all_incidents: boolean
+          include_patterns: boolean
+          invite_token: string
+          org_name: string | null
+          personal_note: string | null
+          scope_evidence: string[]
+          scope_incidents: string[]
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_email: string
+          advocate_name?: string | null
+          case_id?: string | null
+          client_user_id: string
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          expires_at?: string | null
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invite_token?: string
+          org_name?: string | null
+          personal_note?: string | null
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_email?: string
+          advocate_name?: string | null
+          case_id?: string | null
+          client_user_id?: string
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          expires_at?: string | null
+          id?: string
+          include_all_evidence?: boolean
+          include_all_incidents?: boolean
+          include_patterns?: boolean
+          invite_token?: string
+          org_name?: string | null
+          personal_note?: string | null
+          scope_evidence?: string[]
+          scope_incidents?: string[]
+          status?: string
+        }
+        Relationships: []
+      }
+      advocate_profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          onboarded: boolean
+          org_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          onboarded?: boolean
+          org_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          onboarded?: boolean
+          org_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_messages: {
         Row: {
           created_at: string
@@ -130,6 +285,8 @@ export type Database = {
           attorney_user_id: string
           case_id: string | null
           client_user_id: string
+          clio_share_consent: boolean
+          clio_share_consent_at: string | null
           created_at: string
           deposition_prep_consent: boolean
           deposition_prep_consent_at: string | null
@@ -149,6 +306,8 @@ export type Database = {
           attorney_user_id: string
           case_id?: string | null
           client_user_id: string
+          clio_share_consent?: boolean
+          clio_share_consent_at?: string | null
           created_at?: string
           deposition_prep_consent?: boolean
           deposition_prep_consent_at?: string | null
@@ -168,6 +327,8 @@ export type Database = {
           attorney_user_id?: string
           case_id?: string | null
           client_user_id?: string
+          clio_share_consent?: boolean
+          clio_share_consent_at?: string | null
           created_at?: string
           deposition_prep_consent?: boolean
           deposition_prep_consent_at?: string | null
@@ -809,6 +970,7 @@ export type Database = {
       cases: {
         Row: {
           attached_evidence_ids: string[]
+          attached_thread_ids: string[]
           case_name: string | null
           case_types: string[]
           created_at: string
@@ -824,6 +986,7 @@ export type Database = {
         }
         Insert: {
           attached_evidence_ids?: string[]
+          attached_thread_ids?: string[]
           case_name?: string | null
           case_types?: string[]
           created_at?: string
@@ -839,6 +1002,7 @@ export type Database = {
         }
         Update: {
           attached_evidence_ids?: string[]
+          attached_thread_ids?: string[]
           case_name?: string | null
           case_types?: string[]
           created_at?: string
@@ -856,34 +1020,108 @@ export type Database = {
       }
       clio_connections: {
         Row: {
-          access_token: string | null
-          attorney_user_id: string
-          clio_account_id: string | null
+          access_token: string
+          clio_user_email: string | null
+          clio_user_id: string | null
           created_at: string
-          expires_at: string | null
+          expires_at: string
+          firm_name: string | null
           id: string
-          refresh_token: string | null
+          refresh_token: string
+          revoked_at: string | null
           updated_at: string
+          user_id: string
         }
         Insert: {
-          access_token?: string | null
-          attorney_user_id: string
-          clio_account_id?: string | null
+          access_token: string
+          clio_user_email?: string | null
+          clio_user_id?: string | null
           created_at?: string
-          expires_at?: string | null
+          expires_at: string
+          firm_name?: string | null
           id?: string
-          refresh_token?: string | null
+          refresh_token: string
+          revoked_at?: string | null
           updated_at?: string
+          user_id: string
         }
         Update: {
-          access_token?: string | null
-          attorney_user_id?: string
-          clio_account_id?: string | null
+          access_token?: string
+          clio_user_email?: string | null
+          clio_user_id?: string | null
           created_at?: string
-          expires_at?: string | null
+          expires_at?: string
+          firm_name?: string | null
           id?: string
-          refresh_token?: string | null
+          refresh_token?: string
+          revoked_at?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      clio_matter_links: {
+        Row: {
+          attorney_client_link_id: string
+          clio_matter_description: string | null
+          clio_matter_display_number: string | null
+          clio_matter_id: string
+          id: string
+          linked_at: string
+          linked_by: string
+          unlinked_at: string | null
+        }
+        Insert: {
+          attorney_client_link_id: string
+          clio_matter_description?: string | null
+          clio_matter_display_number?: string | null
+          clio_matter_id: string
+          id?: string
+          linked_at?: string
+          linked_by: string
+          unlinked_at?: string | null
+        }
+        Update: {
+          attorney_client_link_id?: string
+          clio_matter_description?: string | null
+          clio_matter_display_number?: string | null
+          clio_matter_id?: string
+          id?: string
+          linked_at?: string
+          linked_by?: string
+          unlinked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clio_matter_links_attorney_client_link_id_fkey"
+            columns: ["attorney_client_link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clio_oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          redirect_to: string | null
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          redirect_to?: string | null
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          redirect_to?: string | null
+          state?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -974,6 +1212,33 @@ export type Database = {
         }
         Relationships: []
       }
+      email_relay_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          ip_hash: string | null
+          outcome: string
+          template_name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          outcome: string
+          template_name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          outcome?: string
+          template_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -1061,6 +1326,39 @@ export type Database = {
         }
         Relationships: []
       }
+      entitlements: {
+        Row: {
+          amount_paid: number | null
+          court_ready_paid: boolean
+          created_at: string
+          id: string
+          paid_at: string | null
+          stripe_checkout_session_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number | null
+          court_ready_paid?: boolean
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          stripe_checkout_session_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number | null
+          court_ready_paid?: boolean
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          stripe_checkout_session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       escalation_flags: {
         Row: {
           created_at: string
@@ -1104,20 +1402,33 @@ export type Database = {
       }
       evidence: {
         Row: {
+          anchor_label: string | null
           bytes: number | null
           created_at: string
-          date: string
+          date: string | null
+          date_precision: string
+          date_range_end: string | null
+          date_range_start: string | null
           deleted_at: string | null
           derivative_kind: string | null
           description: string | null
+          exif_captured_at: string | null
+          exif_choice: string
           family_id: string | null
           file_type: string
           file_url: string
+          gps_lat: number | null
+          gps_lon: number | null
+          gps_reveal_opt_in: boolean
           id: string
           import_batch_id: string | null
+          in_image_timestamp_at: string | null
+          in_image_timestamp_text: string | null
+          ingested_at: string | null
           integrity_verified_at: string | null
           linked_incident_id: string | null
           linked_recording_id: string | null
+          match_reason: string | null
           mime: string | null
           near_duplicate_of: string | null
           near_duplicate_status: string | null
@@ -1127,25 +1438,47 @@ export type Database = {
           preservation_status: string | null
           preserved_at: string | null
           raw_metadata: Json | null
+          review_status: string
           sha256: string | null
+          suggested_incident_id: string | null
           title: string
+          transcript: string | null
+          transcript_segments: Json | null
+          transcript_status: string
+          transcript_verified_at: string | null
+          transcript_verified_by: string | null
           user_id: string
+          voice_caption: string | null
+          voice_caption_audio_url: string | null
         }
         Insert: {
+          anchor_label?: string | null
           bytes?: number | null
           created_at?: string
-          date: string
+          date?: string | null
+          date_precision?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
           deleted_at?: string | null
           derivative_kind?: string | null
           description?: string | null
+          exif_captured_at?: string | null
+          exif_choice?: string
           family_id?: string | null
           file_type: string
           file_url: string
+          gps_lat?: number | null
+          gps_lon?: number | null
+          gps_reveal_opt_in?: boolean
           id?: string
           import_batch_id?: string | null
+          in_image_timestamp_at?: string | null
+          in_image_timestamp_text?: string | null
+          ingested_at?: string | null
           integrity_verified_at?: string | null
           linked_incident_id?: string | null
           linked_recording_id?: string | null
+          match_reason?: string | null
           mime?: string | null
           near_duplicate_of?: string | null
           near_duplicate_status?: string | null
@@ -1155,25 +1488,47 @@ export type Database = {
           preservation_status?: string | null
           preserved_at?: string | null
           raw_metadata?: Json | null
+          review_status?: string
           sha256?: string | null
+          suggested_incident_id?: string | null
           title: string
+          transcript?: string | null
+          transcript_segments?: Json | null
+          transcript_status?: string
+          transcript_verified_at?: string | null
+          transcript_verified_by?: string | null
           user_id: string
+          voice_caption?: string | null
+          voice_caption_audio_url?: string | null
         }
         Update: {
+          anchor_label?: string | null
           bytes?: number | null
           created_at?: string
-          date?: string
+          date?: string | null
+          date_precision?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
           deleted_at?: string | null
           derivative_kind?: string | null
           description?: string | null
+          exif_captured_at?: string | null
+          exif_choice?: string
           family_id?: string | null
           file_type?: string
           file_url?: string
+          gps_lat?: number | null
+          gps_lon?: number | null
+          gps_reveal_opt_in?: boolean
           id?: string
           import_batch_id?: string | null
+          in_image_timestamp_at?: string | null
+          in_image_timestamp_text?: string | null
+          ingested_at?: string | null
           integrity_verified_at?: string | null
           linked_incident_id?: string | null
           linked_recording_id?: string | null
+          match_reason?: string | null
           mime?: string | null
           near_duplicate_of?: string | null
           near_duplicate_status?: string | null
@@ -1183,9 +1538,18 @@ export type Database = {
           preservation_status?: string | null
           preserved_at?: string | null
           raw_metadata?: Json | null
+          review_status?: string
           sha256?: string | null
+          suggested_incident_id?: string | null
           title?: string
+          transcript?: string | null
+          transcript_segments?: Json | null
+          transcript_status?: string
+          transcript_verified_at?: string | null
+          transcript_verified_by?: string | null
           user_id?: string
+          voice_caption?: string | null
+          voice_caption_audio_url?: string | null
         }
         Relationships: [
           {
@@ -1212,6 +1576,60 @@ export type Database = {
           {
             foreignKeyName: "evidence_parent_evidence_id_fkey"
             columns: ["parent_evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_suggested_incident_id_fkey"
+            columns: ["suggested_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evidence_classification_suggestions: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          evidence_id: string
+          id: string
+          model: string | null
+          rationale: string | null
+          status: string
+          suggested_kind: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          evidence_id: string
+          id?: string
+          model?: string | null
+          rationale?: string | null
+          status?: string
+          suggested_kind: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          evidence_id?: string
+          id?: string
+          model?: string | null
+          rationale?: string | null
+          status?: string
+          suggested_kind?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_classification_suggestions_evidence_id_fkey"
+            columns: ["evidence_id"]
             isOneToOne: false
             referencedRelation: "evidence"
             referencedColumns: ["id"]
@@ -1419,6 +1837,39 @@ export type Database = {
           },
         ]
       }
+      intake_batches: {
+        Row: {
+          created_at: string
+          id: string
+          kind_counts: Json
+          note: string | null
+          queued_files: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind_counts?: Json
+          note?: string | null
+          queued_files?: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind_counts?: Json
+          note?: string | null
+          queued_files?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       legal_documents: {
         Row: {
           ai_extracted: boolean
@@ -1494,54 +1945,81 @@ export type Database = {
       message_threads: {
         Row: {
           attorney_summary: string | null
+          capture_method: string | null
+          capture_notes: string | null
+          captured_at: string | null
           conversation_participant: string | null
           created_at: string
           exhibit_label: string | null
           file_url: string
           flags: Json
+          frame_interval_sec: number | null
           id: string
+          import_status: string
           message_count: number
           parse_error: string | null
           parse_status: string
+          primary_artifact_urls: string[]
+          processed_count: number
+          screenshot_count: number | null
           source_filename: string
           source_type: string
           summary: string | null
           updated_at: string
           user_id: string
+          video_duration_sec: number | null
         }
         Insert: {
           attorney_summary?: string | null
+          capture_method?: string | null
+          capture_notes?: string | null
+          captured_at?: string | null
           conversation_participant?: string | null
           created_at?: string
           exhibit_label?: string | null
           file_url: string
           flags?: Json
+          frame_interval_sec?: number | null
           id?: string
+          import_status?: string
           message_count?: number
           parse_error?: string | null
           parse_status?: string
+          primary_artifact_urls?: string[]
+          processed_count?: number
+          screenshot_count?: number | null
           source_filename: string
           source_type: string
           summary?: string | null
           updated_at?: string
           user_id: string
+          video_duration_sec?: number | null
         }
         Update: {
           attorney_summary?: string | null
+          capture_method?: string | null
+          capture_notes?: string | null
+          captured_at?: string | null
           conversation_participant?: string | null
           created_at?: string
           exhibit_label?: string | null
           file_url?: string
           flags?: Json
+          frame_interval_sec?: number | null
           id?: string
+          import_status?: string
           message_count?: number
           parse_error?: string | null
           parse_status?: string
+          primary_artifact_urls?: string[]
+          processed_count?: number
+          screenshot_count?: number | null
           source_filename?: string
           source_type?: string
           summary?: string | null
           updated_at?: string
           user_id?: string
+          video_duration_sec?: number | null
         }
         Relationships: []
       }
@@ -1620,6 +2098,51 @@ export type Database = {
           record_types?: string[]
           status?: Database["public"]["Enums"]["opra_status"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      org_access_requests: {
+        Row: {
+          contact_name: string
+          contact_role: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          org_name: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          survivors_per_month: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_name: string
+          contact_role?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          org_name: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          survivors_per_month?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_name?: string
+          contact_role?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          org_name?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          survivors_per_month?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1710,23 +2233,70 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          deactivated_at: string | null
           id: string
+          is_active: boolean
           notes: string | null
           org_name: string
+          org_user_id: string | null
+          request_id: string | null
         }
         Insert: {
           code: string
           created_at?: string
+          deactivated_at?: string | null
           id?: string
+          is_active?: boolean
           notes?: string | null
           org_name: string
+          org_user_id?: string | null
+          request_id?: string | null
         }
         Update: {
           code?: string
           created_at?: string
+          deactivated_at?: string | null
           id?: string
+          is_active?: boolean
           notes?: string | null
           org_name?: string
+          org_user_id?: string | null
+          request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_links_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "org_access_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      share_link_access_log: {
+        Row: {
+          created_at: string
+          id: string
+          ip_hash: string | null
+          outcome: string
+          token_hash: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          outcome: string
+          token_hash: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          outcome?: string
+          token_hash?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -1784,6 +2354,42 @@ export type Database = {
         }
         Relationships: []
       }
+      support_requests: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          message: string
+          name: string | null
+          reply_email: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          message: string
+          name?: string | null
+          reply_email: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          name?: string | null
+          reply_email?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -1808,55 +2414,189 @@ export type Database = {
         }
         Relationships: []
       }
+      thread_message_corrections: {
+        Row: {
+          created_at: string
+          field: string
+          id: string
+          message_id: string
+          new_value: string | null
+          old_value: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          field: string
+          id?: string
+          message_id: string
+          new_value?: string | null
+          old_value?: string | null
+          source?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          field?: string
+          id?: string
+          message_id?: string
+          new_value?: string | null
+          old_value?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_message_corrections_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "thread_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       thread_messages: {
         Row: {
+          attachment_marker_text: string | null
           attachment_name: string | null
           attachment_url: string | null
           body: string | null
           created_at: string
+          date_confidence: string
+          field_provenance: Json
           flags: Json
+          has_attachment_marker: boolean
           id: string
+          ocr_confidence: number | null
           position: number
           recipient: string | null
           sender: string | null
+          sender_side: string
           sent_at_time: string | null
           sent_on: string | null
+          source_document_id: string | null
+          source_document_ids: string[]
           thread_id: string
           user_id: string
         }
         Insert: {
+          attachment_marker_text?: string | null
           attachment_name?: string | null
           attachment_url?: string | null
           body?: string | null
           created_at?: string
+          date_confidence?: string
+          field_provenance?: Json
           flags?: Json
+          has_attachment_marker?: boolean
           id?: string
+          ocr_confidence?: number | null
           position?: number
           recipient?: string | null
           sender?: string | null
+          sender_side?: string
           sent_at_time?: string | null
           sent_on?: string | null
+          source_document_id?: string | null
+          source_document_ids?: string[]
           thread_id: string
           user_id: string
         }
         Update: {
+          attachment_marker_text?: string | null
           attachment_name?: string | null
           attachment_url?: string | null
           body?: string | null
           created_at?: string
+          date_confidence?: string
+          field_provenance?: Json
           flags?: Json
+          has_attachment_marker?: boolean
           id?: string
+          ocr_confidence?: number | null
           position?: number
           recipient?: string | null
           sender?: string | null
+          sender_side?: string
           sent_at_time?: string | null
           sent_on?: string | null
+          source_document_id?: string | null
+          source_document_ids?: string[]
           thread_id?: string
           user_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "thread_messages_source_document_id_fkey"
+            columns: ["source_document_id"]
+            isOneToOne: false
+            referencedRelation: "thread_source_documents"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "thread_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thread_source_documents: {
+        Row: {
+          bytes: number | null
+          created_at: string
+          frame_time_sec: number | null
+          id: string
+          kind: string
+          mime: string | null
+          ocr_confidence: number | null
+          ocr_status: string
+          original_filename: string | null
+          sha256: string | null
+          storage_path: string
+          thread_id: string
+          updated_at: string
+          upload_index: number
+          user_id: string
+        }
+        Insert: {
+          bytes?: number | null
+          created_at?: string
+          frame_time_sec?: number | null
+          id?: string
+          kind?: string
+          mime?: string | null
+          ocr_confidence?: number | null
+          ocr_status?: string
+          original_filename?: string | null
+          sha256?: string | null
+          storage_path: string
+          thread_id: string
+          updated_at?: string
+          upload_index?: number
+          user_id: string
+        }
+        Update: {
+          bytes?: number | null
+          created_at?: string
+          frame_time_sec?: number | null
+          id?: string
+          kind?: string
+          mime?: string | null
+          ocr_confidence?: number | null
+          ocr_status?: string
+          original_filename?: string | null
+          sha256?: string | null
+          storage_path?: string
+          thread_id?: string
+          updated_at?: string
+          upload_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_source_documents_thread_id_fkey"
             columns: ["thread_id"]
             isOneToOne: false
             referencedRelation: "message_threads"
@@ -1992,6 +2732,39 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          interest: string
+          name: string | null
+          note: string | null
+          source_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          interest?: string
+          name?: string | null
+          note?: string | null
+          source_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          interest?: string
+          name?: string | null
+          note?: string | null
+          source_path?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -2005,6 +2778,17 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      list_my_oauth_consents: {
+        Args: never
+        Returns: {
+          client_id: string
+          client_name: string
+          client_uri: string
+          granted_at: string
+          id: string
+          scopes: string
+        }[]
       }
       move_to_dlq: {
         Args: {
@@ -2035,6 +2819,10 @@ export type Database = {
         }
         Returns: string
       }
+      revoke_my_oauth_consent: {
+        Args: { _consent_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       access_level:
@@ -2042,7 +2830,7 @@ export type Database = {
         | "court_packet_only"
         | "incidents_only"
         | "evidence_only"
-      app_role: "survivor" | "attorney" | "admin"
+      app_role: "survivor" | "attorney" | "admin" | "advocate"
       attorney_type: "attorney" | "advocate"
       legal_document_type:
         | "tro"
@@ -2188,7 +2976,7 @@ export const Constants = {
         "incidents_only",
         "evidence_only",
       ],
-      app_role: ["survivor", "attorney", "admin"],
+      app_role: ["survivor", "attorney", "admin", "advocate"],
       attorney_type: ["attorney", "advocate"],
       legal_document_type: [
         "tro",

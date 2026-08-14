@@ -197,7 +197,7 @@ export const getMySubscription = createServerFn({ method: "POST" })
   });
 
 /**
- * Charter Firm cohort — capped at 15 active seats. Publicly readable so the
+ * Charter Firm cohort — capped at 10 active seats. Publicly readable so the
  * marketing pricing page can show remaining spots without requiring auth.
  */
 export const getCharterAvailability = createServerFn({ method: "POST" })
@@ -244,6 +244,7 @@ export const recordOrgReferral = createServerFn({ method: "POST" })
       .from("referral_links")
       .select("code, org_name")
       .eq("code", data.code)
+      .eq("is_active", true)
       .maybeSingle();
     if (!link) return { ok: true };
     await supabaseAdmin.from("user_referrals").insert({
@@ -277,6 +278,7 @@ async function isAttorneyEntitled(attorneyId: string, clientId: string): Promise
     const attorneyPlans = new Set([
       "attorney_solo_monthly",
       "attorney_firm_monthly",
+      "attorney_firm_charter_monthly",
       "attorney_enterprise_monthly",
       // legacy price id used during The Pilot rollout
       "attorney_portal_monthly_297",
@@ -349,6 +351,13 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     const includeAllIncidents = link.include_all_incidents !== false;
     const includeAllEvidence = link.include_all_evidence !== false;
     const includePatterns = link.include_patterns !== false;
+    await supabaseAdmin.rpc("record_audit_event", {
+      p_user_id: data.clientId,
+      p_event_type: "export.professional_review_packet",
+      p_subject_kind: "export",
+      p_actor_kind: "attorney",
+      p_actor_id: context.userId,
+    }).then(() => undefined, (e: unknown) => console.error("[audit] export log failed", e));
 
     const incidentsQuery = includeAllIncidents
       ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).order("date")
@@ -364,7 +373,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
         ? supabaseAdmin.from("communications").select("*").eq("user_id", data.clientId).order("date")
         : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
       includePatterns
-        ? supabaseAdmin.from("pattern_analyses").select("analysis,created_at").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1)
+        ? supabaseAdmin.from("pattern_analyses").select("analysis,reviewed_status,created_at").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1)
         : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
       supabaseAdmin.from("cases").select("*").eq("user_id", data.clientId).order("updated_at", { ascending: false }).limit(1),
       supabaseAdmin.from("escalation_flags").select("*").eq("user_id", data.clientId).order("created_at"),
@@ -424,7 +433,30 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     zip.file("evidence.csv", toCsv(evidence as Array<Record<string, unknown>>));
     zip.file("communications.csv", toCsv(comms as Array<Record<string, unknown>>));
     zip.file("escalation_flags.csv", toCsv(flags as Array<Record<string, unknown>>));
-    if (latestAnalysis) zip.file("pattern_analysis.json", JSON.stringify(latestAnalysis, null, 2));
+    // Pattern analysis JSON — survivor-review gated. Anything the survivor
+    // marked "rejected" (or left "unsure") is stripped before it can reach the
+    // packet; if nothing survives the gate the file is omitted entirely.
+    const { buildPatternExport } = await import("@/lib/pattern-export");
+    const gatedAnalysis = latestAnalysis
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? buildPatternExport((latestAnalysis as any).analysis, (latestAnalysis as any).reviewed_status)
+      : null;
+    if (latestAnalysis && gatedAnalysis && Object.keys(gatedAnalysis.redactedAnalysis).length > 0) {
+      zip.file(
+        "pattern_analysis.json",
+        JSON.stringify(
+          {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            generated: (latestAnalysis as any).created_at,
+            analysis: gatedAnalysis.redactedAnalysis,
+            excluded_rejected_claims: gatedAnalysis.rejectedCount,
+            withheld_unsure_claims: gatedAnalysis.unsureCount,
+          },
+          null,
+          2,
+        ),
+      );
+    }
     if (latestCase) zip.file("case.json", JSON.stringify(latestCase, null, 2));
 
     const evFolder = zip.folder("evidence");
@@ -484,16 +516,11 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
 
     // 02_pattern_summary.md
     const patternLines: string[] = [`# Pattern Summary`, ``];
-    if (latestAnalysis) {
-      const a = (latestAnalysis as any).analysis as any;
+    if (latestAnalysis && gatedAnalysis) {
+      const gated = gatedAnalysis;
       patternLines.push(`_Generated: ${(latestAnalysis as any).created_at}_`, ``);
-      if (a?.pattern_summary) patternLines.push(`## Overview`, ``, a.pattern_summary, ``);
-      if (a?.escalation_arc) patternLines.push(`## Escalation arc`, ``, a.escalation_arc, ``);
-      if (Array.isArray(a?.behavior_categories)) {
-        patternLines.push(`## Behavior categories`, ``);
-        a.behavior_categories.forEach((c: any) => patternLines.push(`- **${c.name ?? c.category ?? "—"}** — ${c.count ?? c.frequency ?? ""} ${c.description ?? ""}`.trim()));
-        patternLines.push(``);
-      }
+      if (gated.lines.length) patternLines.push(...gated.lines);
+      else patternLines.push(`_No AI-suggested pattern content has been confirmed by the survivor for inclusion._`, ``);
     } else {
       patternLines.push(`_No pattern analysis on file._`);
     }
@@ -656,7 +683,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       upsert: false,
     });
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
-    const signed = await supabaseAdmin.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 24);
+    const signed = await supabaseAdmin.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 1);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
     return {
       ok: true as const,
@@ -666,9 +693,9 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     };
   });
 
-/* ------------------------- Prepare for Clio ZIP ------------------------- */
+/* ------------------ Case management import package (ZIP) ------------------ */
 
-export const generateClioPackage = createServerFn({ method: "POST" })
+export const generateCaseManagementPackage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
     z.object({ clientId: z.string().uuid() }).parse(input),
@@ -689,6 +716,13 @@ export const generateClioPackage = createServerFn({ method: "POST" })
     if (!link) return { ok: false as const, reason: "no-active-link" as const };
 
     const includeAllIncidents = link.include_all_incidents !== false;
+    await supabaseAdmin.rpc("record_audit_event", {
+      p_user_id: data.clientId,
+      p_event_type: "export.case_management_package",
+      p_subject_kind: "export",
+      p_actor_kind: "attorney",
+      p_actor_id: context.userId,
+    }).then(() => undefined, (e: unknown) => console.error("[audit] export log failed", e));
     const includeAllEvidence = link.include_all_evidence !== false;
     const scopeIncidents = (link.scope_incidents as string[] | null) ?? [];
     const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];
@@ -735,8 +769,8 @@ export const generateClioPackage = createServerFn({ method: "POST" })
     const zip = new JSZip();
 
     // README
-    zip.file("README_clio_import.md", [
-      `# Prepare for Clio — Import Package`,
+    zip.file("README_import.md", [
+      `# Case Management Import Package`,
       ``,
       `**Matter:** ${matterName}`,
       `**Prepared:** ${exportedAt}`,
@@ -744,24 +778,24 @@ export const generateClioPackage = createServerFn({ method: "POST" })
       ``,
       `## How to import`,
       ``,
-      `1. **Contacts** → Clio › Contacts › Import — upload \`contacts.csv\`.`,
-      `2. **Matter** → Clio › Matters › New — use \`matter.csv\` for field mapping.`,
-      `3. **Documents** → Open the matter in Clio › Documents › Upload — drag the entire \`/documents\` folder. Use \`documents.csv\` as the index.`,
-      `4. **Tasks** → Clio › Tasks › Import — upload \`tasks.csv\`.`,
+      `1. **Contacts** → import \`contacts.csv\` into your practice management system.`,
+      `2. **Matter** → create the matter and use \`matter.csv\` for field mapping.`,
+      `3. **Documents** → upload the entire \`/documents\` folder to the matter. Use \`documents.csv\` as the index.`,
+      `4. **Tasks** → import \`tasks.csv\` as matter tasks.`,
       `5. **Calendar / Notes** → \`events.csv\` lists each documented incident as a timestamped matter note.`,
       ``,
       `## What's included`,
       ``,
       `- ${incidents.length} incident notes`,
       `- ${evidence.length} evidence documents`,
-      `- ${docRequests.length} pending document requests (as Clio Tasks)`,
+      `- ${docRequests.length} pending document requests (as tasks)`,
       `- Contacts: client + opposing party${otherParty ? ` (${otherParty})` : ""}`,
       ``,
       `All evidence files are stored under \`/documents/\` with sanitized filenames.`,
       `The \`manifest.json\` records SHA-256 hashes for every file for provenance & integrity.`,
     ].join("\n"));
 
-    // contacts.csv (Clio-friendly column names)
+    // contacts.csv (standard column names)
     const contacts = [
       {
         type: "Person",
@@ -820,7 +854,7 @@ export const generateClioPackage = createServerFn({ method: "POST" })
     });
     zip.file("events.csv", toCsv(events));
 
-    // documents.csv — Clio Document index
+    // documents.csv — document index
     const docFolder = zip.folder("documents");
     const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
     const docRows: Array<Record<string, unknown>> = [];
@@ -853,7 +887,7 @@ export const generateClioPackage = createServerFn({ method: "POST" })
     }));
     zip.file("documents.csv", toCsv(docRows));
 
-    // tasks.csv — open doc requests + high-severity gaps as Clio tasks
+    // tasks.csv — open doc requests + high-severity gaps as tasks
     const taskRows: Array<Record<string, unknown>> = docRequests.map((d) => ({
       matter_reference: caseShort,
       task_name: d.title ?? "Document request",
@@ -869,28 +903,28 @@ export const generateClioPackage = createServerFn({ method: "POST" })
     // manifest.json
     zip.file("manifest.json", JSON.stringify({
       exported_at: exportedAt,
-      target_system: "Clio Manage",
+      target_system: "Practice management import",
       matter_reference: caseShort,
       counts: { incidents: incidents.length, evidence: evidence.length, documents_stored: fileHashes.length, doc_requests: docRequests.length, contacts: contacts.length },
       file_hashes: fileHashes,
-      generator: "PatternProof Prepare-for-Clio v1",
+      generator: "PatternProof case-management export v1",
     }, null, 2));
 
     const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
     const ts = exportedAt.replace(/[:.]/g, "-");
-    const objectPath = `${context.userId}/clio-package-${data.clientId}-${ts}.zip`;
+    const objectPath = `${context.userId}/case-package-${data.clientId}-${ts}.zip`;
     const up = await supabaseAdmin.storage.from("exports").upload(objectPath, zipBuf, {
       contentType: "application/zip",
       upsert: false,
     });
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
-    const signed = await supabaseAdmin.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 24);
+    const signed = await supabaseAdmin.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 1);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
     return {
       ok: true as const,
       url: signed.data.signedUrl,
       bytes: zipBuf.byteLength,
-      filename: `clio-package-${caseShort}-${ts}.zip`,
+      filename: `case-package-${caseShort}-${ts}.zip`,
       counts: { incidents: incidents.length, documents: fileHashes.length, tasks: taskRows.length, contacts: contacts.length },
     };
   });

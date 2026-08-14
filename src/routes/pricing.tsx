@@ -1,156 +1,45 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Logo, type LogoVariant } from "@/components/Logo";
+import { BrandMark } from "@/components/BrandMark";
+import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
+import { buildTiers, type Tier } from "@/lib/pricing-tiers";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Pricing — PatternProof | Evidence Documentation for Survivors & Attorneys" },
-      { name: "description", content: "PatternProof pricing: free forever for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 15 firms." },
+      { title: "PatternProof — Pricing" },
+      { name: "description", content: "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms." },
       { property: "og:title", content: "Pricing — PatternProof" },
-      { property: "og:description", content: "Free forever for survivors. Real multi-seat pricing for family-law firms. DV organizations partner with us at no cost." },
+      { property: "og:description", content: "Free for survivors. Firm pricing for family-law practices. DV organizations partner with us at no cost." },
       { property: "og:url", content: "https://pattern-proof.tech/pricing" },
       { property: "og:type", content: "website" },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/pricing" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQS.map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: { "@type": "Answer", text: faq.a },
+          })),
+        }),
+      },
+    ],
   }),
   component: PricingPage,
 });
 
-type Tier = {
-  key: string;
-  name: string;
-  price: string;
-  priceStrike?: string;
-  sub: string;
-  eyebrowNote?: string;
-  logoVariant: LogoVariant;
-  quote: string;
-  features: string[];
-  cta: string;
-  ctaTo: string;
-  featured?: boolean;
-};
-
-const BASE_TIERS: Tier[] = [
-  {
-    key: "survivor",
-    name: "Survivor",
-    price: "Free",
-    sub: "forever",
-    logoVariant: "survivor",
-    quote: "Built by a survivor, for survivors. Always free.",
-    features: [
-      "Unlimited incident logging",
-      "Photo, document & audio evidence upload",
-      "Structured chronological timeline",
-      "Pattern detection",
-      "Printable case summary (HTML/PDF)",
-      "Encrypted in transit and at rest",
-    ],
-    cta: "Start Documenting Free",
-    ctaTo: "/login",
-  },
-  {
-    key: "attorney_solo",
-    name: "Solo Attorney",
-    price: "$297",
-    sub: "/month · Solo",
-    logoVariant: "attorney",
-    quote: "For solo practitioners taking DV and custody cases one at a time.",
-    features: [
-      "One attorney seat",
-      "Up to 10 active client matters",
-      "Structured chronological timeline",
-      "Source-linked supporting records",
-      "Exportable case summary (ZIP) — Clio-compatible",
-      "Survivor vs. AI-suggested content clearly distinguished",
-    ],
-    cta: "Start with Solo",
-    ctaTo: "/lawyer-signup",
-  },
-  // The Firm tier is inserted at runtime (see buildTiers below) so the
-  // Charter rate + remaining-seat copy stays in sync with live cohort state.
-  {
-    key: "organization",
-    name: "DV Organization",
-    price: "Free",
-    sub: "for every survivor you refer",
-    logoVariant: "org",
-    quote: "You are a partner, not a customer. Your survivors never pay.",
-    features: [
-      "Free forever for every survivor your organization refers",
-      "Referral link so we can attribute outcomes back to your advocacy",
-      "Priority support for your intake team",
-      "Direct line to the PatternProof team",
-      "We onboard a limited number of organizations at a time",
-    ],
-    cta: "Partner with us",
-    ctaTo: "/request-org-access",
-  },
-];
-
-function buildTiers(remainingCharter: number | null): Tier[] {
-  const charterFull = remainingCharter !== null && remainingCharter <= 0;
-  const firm: Tier = charterFull
-    ? {
-        key: "attorney_firm",
-        name: "Firm",
-        price: "$897",
-        sub: "/month · up to 15 seats",
-        eyebrowNote: "Charter cohort is full — thank you.",
-        logoVariant: "attorney",
-        quote: "Built for 3–15 attorney family-law firms.",
-        features: [
-          "Up to 15 attorney seats in one firm workspace",
-          "Everything in Solo Attorney",
-          "Unlimited active client matters",
-          "Multi-attorney collaboration and shared case notes",
-          "Caseload and capacity view across the firm",
-          "Firm-wide conflict-of-interest detection",
-          "Priority client onboarding + Clio-compatible exports",
-        ],
-        cta: "Start with Firm",
-        ctaTo: "/lawyer-signup",
-        featured: true,
-      }
-    : {
-        key: "attorney_firm",
-        name: "Firm",
-        price: "$597",
-        priceStrike: "$897",
-        sub: "/month · locked for 12 months",
-        eyebrowNote:
-          remainingCharter === null
-            ? "Charter program — limited to 10 firms"
-            : `${remainingCharter} of 10 Charter spots remaining`,
-        logoVariant: "attorney",
-        quote: "Built for 3–15 attorney family-law firms.",
-        features: [
-          "Up to 15 attorney seats in one firm workspace",
-          "Everything in Solo Attorney",
-          "Unlimited active client matters",
-          "Multi-attorney collaboration and shared case notes",
-          "Caseload and capacity view across the firm",
-          "Firm-wide conflict-of-interest detection",
-          "Charter program: personal setup, case import, and staff training",
-          "$597/month rate locked for 12 months, then $897/month list",
-        ],
-        cta: "Apply for the Charter program",
-        ctaTo: "/lawyer-signup",
-        featured: true,
-      };
-  // Order: Survivor · Solo · Firm (featured, middle) · DV Organization
-  return [BASE_TIERS[0], BASE_TIERS[1], firm, BASE_TIERS[2]];
-}
-
 const FAQS = [
   {
     q: "Is it really free for survivors?",
-    a: "Yes. Always. No credit card, no trial, no catch. Survivors never pay.",
+    a: "Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the court packet export and sharing your case with an attorney. Professional Review is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.",
   },
   {
     q: "What's the Charter Firm program?",
@@ -158,19 +47,19 @@ const FAQS = [
   },
   {
     q: "How is the Firm tier different from Solo?",
-    a: "Firm gives you up to 15 attorney seats in one shared workspace, unlimited active matters, multi-attorney collaboration, a caseload view across the firm, and firm-wide conflict-of-interest detection. Solo is a single-attorney seat capped at 10 matters.",
+    a: "Firm gives you a shared firm workspace: colleagues can be added to a firm and cases can be shared between them, with shared case notes and a caseload view of the cases shared with you. A conflict-of-interest check runs across your own PatternProof caseload. Solo is a single attorney account. We do not currently meter seats or matter counts on either plan — those limits are commercial expectations, not technical caps.",
   },
   {
     q: "Why don't you sell to DV organizations?",
-    a: "Organizations are our referral partners, not our customers. Every survivor a partner organization refers to PatternProof gets full access, free forever — no cost to the organization or the survivor. We work directly with a small number of organizations at a time so we can support your advocates properly.",
+    a: "Organizations are our referral partners, not our customers. Every survivor a partner organization refers to PatternProof gets full access at no cost — no cost to the organization or the survivor. We work directly with a small number of organizations at a time so we can support your advocates properly.",
   },
   {
-    q: "Do you integrate with Clio?",
-    a: "Not natively. Attorney and Organization plans include a Clio-compatible ZIP export you can import into a Clio matter today. A native Clio Manage connection is not yet available.",
+    q: "Does this work with my practice management system?",
+    a: "There is no live sync. Attorney and Organization plans include a ZIP export of standard CSVs plus every evidence file, which you can import into the practice management system you already use.",
   },
   {
     q: "Is my data safe?",
-    a: "All data is encrypted in transit (HTTPS/TLS) and at rest via our infrastructure provider (Supabase). Row-level security scopes each record to its owning account. We do not currently offer end-to-end (zero-knowledge) encryption — if that's a hard requirement for you, tell us.",
+    a: "All data is encrypted in transit (HTTPS/TLS) and scoped to its owning account by row-level security. At-rest encryption is provided by our infrastructure host as part of their platform; we have not independently audited that configuration. We do not currently offer end-to-end (zero-knowledge) encryption — if that's a hard requirement for you, tell us.",
   },
 ];
 
@@ -210,7 +99,7 @@ function PricingPage() {
         >
           <ArrowLeft size={16} /> Home
         </Link>
-        <Logo variant="survivor" size={40} />
+        <BrandLogo size={36} showTagline={false} />
       </header>
 
       <main className="app-surface" style={{ maxWidth: 1180, margin: "0 auto", padding: "40px 24px 120px" }}>
@@ -222,11 +111,11 @@ function PricingPage() {
               alignItems: "center",
               gap: 8,
               padding: "6px 14px",
-              borderRadius: 999,
+              borderRadius: 2,
               background: "rgba(255,255,255,0.6)",
               border: "1px solid rgba(20,23,31,0.08)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
+              backdropFilter: "none",
+              WebkitBackdropFilter: "none",
               fontSize: 12,
               fontWeight: 700,
               letterSpacing: "0.16em",
@@ -239,8 +128,8 @@ function PricingPage() {
               style={{
                 width: 6,
                 height: 6,
-                borderRadius: 999,
-                background: "linear-gradient(90deg,#9ED8D0,#C4B0E8)",
+                borderRadius: 2,
+                background: "#5E1730",
               }}
             />
             Simple, transparent pricing
@@ -258,7 +147,7 @@ function PricingPage() {
             <br />
             <span
               style={{
-                background: "linear-gradient(90deg,#2F8D85,#7C5CC4)",
+                background: "#7A1F3D",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -270,7 +159,7 @@ function PricingPage() {
           <p
             style={{
               fontSize: 17,
-              color: "#6B5D4F",
+              color: "#6E6579",
               maxWidth: 520,
               margin: "0 auto",
               fontWeight: 500,
@@ -363,10 +252,10 @@ function TierCard({ tier }: { tier: Tier }) {
   const isOrg = tier.key === "organization";
 
   const cardBg = isAttorney
-    ? "radial-gradient(ellipse 90% 70% at 80% 0%, rgba(80,130,230,0.30), transparent 60%), linear-gradient(160deg, #0F1B3D 0%, #1B2A4A 100%)"
+    ? "#4A2A6B"
     : isOrg
-      ? "radial-gradient(ellipse 90% 70% at 80% 0%, rgba(140,180,120,0.28), transparent 60%), linear-gradient(160deg, #EEF3E8 0%, #DCE7D2 100%)"
-      : "linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(248,243,255,0.88) 100%)";
+      ? "#FFFFFF"
+      : "#FFFFFF";
 
   const border = isAttorney
     ? "1px solid rgba(181,199,240,0.18)"
@@ -380,16 +269,16 @@ function TierCard({ tier }: { tier: Tier }) {
       ? "0 20px 60px -20px rgba(90,122,79,0.35), 0 0 70px -30px rgba(140,180,120,0.45), 0 0 0 1px rgba(122,155,110,0.18)"
       : "0 20px 60px -20px rgba(124,92,196,0.35), 0 0 0 1px rgba(196,176,232,0.30)";
 
-  const textColor = isAttorney ? "#FFFFFF" : isOrg ? "#1F2D1A" : "#2A2218";
-  const mutedColor = isAttorney ? "rgba(226,232,240,0.78)" : isOrg ? "#36422F" : "#6B5D4F";
-  const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#7C5CC4";
-  const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#7C5CC4";
+  const textColor = isAttorney ? "#FFFFFF" : isOrg ? "#1F2D1A" : "#1A1224";
+  const mutedColor = isAttorney ? "rgba(226,232,240,0.78)" : isOrg ? "#36422F" : "#6E6579";
+  const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#7A1F3D";
+  const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#7A1F3D";
 
   const ctaBg = isAttorney
     ? "#FFFFFF"
     : isOrg
-      ? "linear-gradient(90deg,#5A7A4F,#7A9B6E)"
-      : "linear-gradient(90deg,#2F8D85,#7C5CC4)";
+      ? "#5E3785"
+      : "#7A1F3D";
   const ctaColor = isAttorney ? "#0F1B3D" : "#FFFFFF";
 
   return (
@@ -397,15 +286,13 @@ function TierCard({ tier }: { tier: Tier }) {
       style={{
         background: cardBg,
         border,
-        borderRadius: 24,
+        borderRadius: 2,
         padding: 36,
-        boxShadow: tier.featured ? glow : "0 8px 32px rgba(26,23,20,0.08)",
+        boxShadow: "none",
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
       }}
-      className="card-lift"
     >
       {tier.featured && (
         <div
@@ -414,10 +301,10 @@ function TierCard({ tier }: { tier: Tier }) {
             top: -12,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "linear-gradient(90deg,#B5C7F0,#9CB3E8)",
-            color: "#0F1B3D",
+            background: "#4A2A6B",
+            color: "#FAF8F4",
             padding: "6px 16px",
-            borderRadius: 999,
+            borderRadius: 2,
             fontSize: 11,
             fontWeight: 700,
             letterSpacing: "0.12em",
@@ -430,7 +317,7 @@ function TierCard({ tier }: { tier: Tier }) {
       )}
 
       <div style={{ marginBottom: 20 }}>
-        <Logo variant={tier.logoVariant} size={48} onDark={isAttorney} />
+        <BrandMark size={44} onDark={isAttorney} />
       </div>
 
       <div
@@ -592,7 +479,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         style={{
           fontSize: 15,
           fontWeight: 700,
-          color: "#2A2218",
+          color: "#1A1224",
           marginBottom: 8,
           display: "flex",
           alignItems: "center",
@@ -602,7 +489,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         <HelpCircle size={16} style={{ color: "var(--primary)", flexShrink: 0 }} />
         {q}
       </h4>
-      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6B5D4F", margin: 0 }}>
+      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6E6579", margin: 0 }}>
         {a}
       </p>
     </div>

@@ -44,9 +44,9 @@ const INCIDENTS: Incident[] = [
 ];
 
 const PATTERNS = [
-  { title: "Escalation around separation triggers", severity: "high" as const, body: "Each time you raised separation, housing, or legal steps, retaliatory behavior occurred within 72 hours (Sept 14, Oct 19, Nov 3). Courts recognize this temporal pattern as evidence of coercive control.", incidents: ["i1", "i3", "i4"] },
-  { title: "Children used as leverage", severity: "high" as const, body: "Three incidents involve direct manipulation of the children — withholding medication, telling them you don't love them, refusing medical consent. This pattern is documented in custody cases as parental alienation behavior.", incidents: ["i2", "i5", "i6"] },
-  { title: "Financial control alongside emotional escalation", severity: "medium" as const, body: "The Nov 3 unauthorized withdrawal happened the same week as the school counselor incident, suggesting coordinated pressure across multiple domains rather than isolated outbursts.", incidents: ["i4", "i5"] },
+  { title: "Entries clustered after separation steps", body: "Three logged entries (Sept 14, Oct 19, Nov 3) each fall within 72 hours of an entry mentioning separation, housing, or legal steps. This is a count of what was logged, not a legal conclusion.", incidents: ["i1", "i3", "i4"] },
+  { title: "Entries involving the children", body: "Three entries describe the children directly — withholding medication, statements made to them, and a refused medical consent. Grouped by shared subject, as recorded by the survivor.", incidents: ["i2", "i5", "i6"] },
+  { title: "Financial entry in the same week as another entry", body: "The Nov 3 unauthorized-withdrawal entry and the school counselor entry were logged in the same week. Dates and counts only — PatternProof does not interpret intent.", incidents: ["i4", "i5"] },
 ];
 
 type Tab = "overview" | "journal" | "timeline" | "patterns" | "evidence" | "packet";
@@ -54,7 +54,7 @@ type Tab = "overview" | "journal" | "timeline" | "patterns" | "evidence" | "pack
 function DemoPage() {
   const [tab, setTab] = useState<Tab>("overview");
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse 80% 60% at 15% 10%, rgba(196,176,232,0.18), transparent 60%), radial-gradient(ellipse 70% 50% at 90% 90%, rgba(158,216,208,0.18), transparent 60%), #FAFBFD", color: "#1F1A2E", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#FAF8F4", color: "#1F1A2E", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
       <DemoHeader />
       <DemoBanner />
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px 80px" }}>
@@ -80,11 +80,11 @@ function DemoHeader() {
       </Link>
       <div style={{ marginTop: 18, display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#7C5CC4", fontWeight: 700, marginBottom: 8 }}>Interactive demo</div>
+          <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#7A1F3D", fontWeight: 700, marginBottom: 8 }}>Interactive demo</div>
           <h1 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.4rem)", fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>A sample case, end-to-end</h1>
           <p style={{ marginTop: 8, fontSize: 14, color: "#6B6478", maxWidth: 620 }}>This is fictional composite data based on common patterns in coercive-control cases. Click around — nothing here is saved.</p>
         </div>
-        <Link to="/login" style={{ background: "#5B4BA4", color: "white", padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>Start your own case →</Link>
+        <Link to="/login" style={{ background: "#5B4BA4", color: "white", padding: "10px 18px", borderRadius: 2, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>Start your own case →</Link>
       </div>
     </div>
   );
@@ -93,7 +93,7 @@ function DemoHeader() {
 function DemoBanner() {
   return (
     <div style={{ maxWidth: 1080, margin: "16px auto 0", padding: "0 20px" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "rgba(255, 235, 180, 0.45)", border: "1px solid rgba(180, 140, 60, 0.25)", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#5C4520" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "rgba(255, 235, 180, 0.45)", border: "1px solid rgba(180, 140, 60, 0.25)", borderRadius: 2, padding: "10px 14px", fontSize: 13, color: "#5C4520" }}>
         <Info size={16} style={{ flexShrink: 0, marginTop: 1 }} />
         <div><strong>Demo mode.</strong> Buttons like "Save", "Upload", or "Export" won't do anything — this case is read-only sample data. To document a real case, <Link to="/login" style={{ color: "#5B4BA4", fontWeight: 600 }}>create an account</Link>.</div>
       </div>
@@ -111,12 +111,12 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
     { key: "packet", label: "Court Packet", icon: FileText },
   ];
   return (
-    <div style={{ marginTop: 28, display: "flex", gap: 4, overflowX: "auto", background: "white", padding: 6, borderRadius: 12, border: "1px solid rgba(91,75,164,0.12)", boxShadow: "0 1px 3px rgba(15,12,40,0.04)" }}>
+    <div style={{ marginTop: 28, display: "flex", gap: 4, overflowX: "auto", background: "white", padding: 6, borderRadius: 2, border: "1px solid rgba(91,75,164,0.12)", boxShadow: "none" }}>
       {tabs.map((t) => {
         const Icon = t.icon;
         const active = tab === t.key;
         return (
-          <button key={t.key} onClick={() => setTab(t.key)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer", whiteSpace: "nowrap", background: active ? "#5B4BA4" : "transparent", color: active ? "white" : "#5A5469" }}>
+          <button key={t.key} onClick={() => setTab(t.key)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 2, fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer", whiteSpace: "nowrap", background: active ? "#5B4BA4" : "transparent", color: active ? "white" : "#5A5469" }}>
             <Icon size={14} /> {t.label}
           </button>
         );
@@ -126,7 +126,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
 }
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <div style={{ background: "white", borderRadius: 14, padding: 20, border: "1px solid rgba(91,75,164,0.10)", boxShadow: "0 1px 3px rgba(15,12,40,0.04)", ...style }}>{children}</div>;
+  return <div style={{ background: "white", borderRadius: 2, padding: 20, border: "1px solid rgba(91,75,164,0.10)", boxShadow: "none", ...style }}>{children}</div>;
 }
 
 function Overview({ onJump }: { onJump: (t: Tab) => void }) {
@@ -145,8 +145,8 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
           {stats.map((s) => {
             const I = s.icon;
             return (
-              <div key={s.label} style={{ background: "rgba(91,75,164,0.05)", borderRadius: 10, padding: 14 }}>
-                <I size={16} style={{ color: "#7C5CC4" }} />
+              <div key={s.label} style={{ background: "rgba(91,75,164,0.05)", borderRadius: 2, padding: 14 }}>
+                <I size={16} style={{ color: "#7A1F3D" }} />
                 <div style={{ fontSize: 22, fontWeight: 700, marginTop: 6 }}>{s.value}</div>
                 <div style={{ fontSize: 12, color: "#6B6478" }}>{s.label}</div>
               </div>
@@ -160,10 +160,10 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
           {([
             ["journal", "Journal — see how survivors capture an incident in under a minute"],
             ["timeline", "Timeline — six events plotted chronologically"],
-            ["patterns", "Patterns — what the AI surfaces that one-off incidents miss"],
-            ["packet", "Court Packet — the attorney-ready output"],
+            ["patterns", "Patterns — recurrence across entries, counted not interpreted"],
+            ["packet", "Professional-review packet — the shareable output"],
           ] as Array<[Tab, string]>).map(([key, label]) => (
-            <button key={key} onClick={() => onJump(key)} style={{ textAlign: "left", background: "transparent", border: "1px solid rgba(91,75,164,0.15)", padding: "10px 14px", borderRadius: 8, fontSize: 13, color: "#1F1A2E", cursor: "pointer" }}>{label} →</button>
+            <button key={key} onClick={() => onJump(key)} style={{ textAlign: "left", background: "transparent", border: "1px solid rgba(91,75,164,0.15)", padding: "10px 14px", borderRadius: 2, fontSize: 13, color: "#1F1A2E", cursor: "pointer" }}>{label} →</button>
           ))}
         </div>
       </Card>
@@ -172,13 +172,13 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  "Physical": "#C2553B", "Emotional": "#7C5CC4", "Coercive control": "#5B4BA4",
+  "Physical": "#C2553B", "Emotional": "#7A1F3D", "Coercive control": "#5B4BA4",
   "Financial": "#3F8A6E", "Custody interference": "#B5732A",
 };
 
 function TypeBadge({ t }: { t: string }) {
   const color = TYPE_COLORS[t] ?? "#5A5469";
-  return <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 999, background: color + "18", color, border: "1px solid " + color + "30" }}>{t}</span>;
+  return <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 2, background: color + "18", color, border: "1px solid " + color + "30" }}>{t}</span>;
 }
 
 function formatDate(iso: string) {
@@ -204,7 +204,7 @@ function IncidentRow({ inc }: { inc: Incident }) {
       {evidence.length > 0 && (
         <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px dashed rgba(91,75,164,0.15)", display: "flex", flexWrap: "wrap", gap: 8 }}>
           {evidence.map((e) => (
-            <span key={e.id} style={{ fontSize: 11, color: "#5A5469", background: "rgba(91,75,164,0.06)", padding: "3px 8px", borderRadius: 6, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <span key={e.id} style={{ fontSize: 11, color: "#5A5469", background: "rgba(91,75,164,0.06)", padding: "3px 8px", borderRadius: 2, display: "inline-flex", alignItems: "center", gap: 4 }}>
               <Paperclip size={11} /> {e.title}
             </span>
           ))}
@@ -241,7 +241,7 @@ function Timeline() {
         <div style={{ position: "absolute", left: 7, top: 6, bottom: 6, width: 2, background: "rgba(91,75,164,0.18)" }} />
         {sorted.map((inc) => (
           <div key={inc.id} style={{ position: "relative", marginBottom: 14 }}>
-            <div style={{ position: "absolute", left: -22, top: 16, width: 12, height: 12, borderRadius: 999, background: TYPE_COLORS[inc.abuse_types[0]] ?? "#5B4BA4", border: "2px solid white", boxShadow: "0 0 0 1px rgba(91,75,164,0.3)" }} />
+            <div style={{ position: "absolute", left: -22, top: 16, width: 12, height: 12, borderRadius: 999, background: TYPE_COLORS[inc.abuse_types[0]] ?? "#5B4BA4", border: "2px solid white", boxShadow: "none" }} />
             <IncidentRow inc={inc} />
           </div>
         ))}
@@ -258,13 +258,13 @@ function Patterns() {
         <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6478" }}>What's hard to see one incident at a time — surfaced across the whole record.</p>
       </Card>
       {PATTERNS.map((p) => {
-        const sev = p.severity === "high" ? "#C2553B" : "#B5732A";
+        const sev = "#5B4BA4";
         return (
           <Card key={p.title} style={{ borderLeft: "3px solid " + sev }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <AlertTriangle size={16} style={{ color: sev }} />
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{p.title}</h3>
-              <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: sev }}>{p.severity} severity</span>
+              <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: sev }}>{p.incidents.length} entries</span>
             </div>
             <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: "#2A2440" }}>{p.body}</p>
             <div style={{ marginTop: 10, fontSize: 12, color: "#6B6478" }}>Drawn from {p.incidents.length} incidents: {p.incidents.map((id) => formatDate(INCIDENTS.find((i) => i.id === id)!.date)).join(" · ")}</div>
@@ -292,7 +292,7 @@ function EvidenceLibrary() {
           return (
             <Card key={e.id}>
               <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(91,75,164,0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#5B4BA4", flexShrink: 0 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 2, background: "rgba(91,75,164,0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#5B4BA4", flexShrink: 0 }}>
                   <I size={16} />
                 </div>
                 <div style={{ minWidth: 0 }}>
@@ -315,13 +315,13 @@ function CourtPacket() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Court packet preview</h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6478" }}>Attorney-ready summary of the entire case — generated from your records.</p>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6478" }}>A source-linked summary of the case — generated from your records for professional review.</p>
         </div>
-        <button onClick={() => toast.info("Demo mode — exports are disabled. Sign up to generate a real packet.")} style={demoButton}>Export (.docx)</button>
+        <button onClick={() => toast.info("Demo mode — exports are disabled. Sign up to generate a real packet.")} style={demoButton}>Export packet (PDF)</button>
       </div>
       <Card>
         <div style={{ borderBottom: "1px solid rgba(91,75,164,0.12)", paddingBottom: 14, marginBottom: 14 }}>
-          <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#7C5CC4", fontWeight: 700 }}>Case Summary</div>
+          <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#7A1F3D", fontWeight: 700 }}>Case Summary</div>
           <h3 style={{ margin: "6px 0 0", fontSize: 18, fontWeight: 700 }}>M.R. v. T.R. — Custody &amp; Coercive Control</h3>
           <div style={{ fontSize: 12, color: "#6B6478", marginTop: 4 }}>Reporting period: Sept 14, 2025 – Dec 8, 2025 · {INCIDENTS.length} incidents · {EVIDENCE.length} evidence items</div>
         </div>
@@ -344,7 +344,7 @@ function CourtPacket() {
           </ol>
         </Section>
         <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid rgba(91,75,164,0.12)", display: "flex", gap: 8, alignItems: "center", fontSize: 12, color: "#3F8A6E" }}>
-          <CheckCircle2 size={14} /> Certified: every incident in this packet is linked to dated, timestamped evidence in the survivor's record.
+          <CheckCircle2 size={14} /> Every incident in this packet links back to a dated entry in the survivor's record. PatternProof does not certify content or determine admissibility.
         </div>
       </Card>
     </div>
@@ -362,4 +362,4 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 const prose: React.CSSProperties = { margin: 0, fontSize: 14, lineHeight: 1.65, color: "#2A2440" };
 const list: React.CSSProperties = { ...prose, paddingLeft: 20, display: "grid", gap: 6 };
-const demoButton: React.CSSProperties = { background: "white", color: "#5B4BA4", padding: "8px 14px", borderRadius: 8, border: "1px solid rgba(91,75,164,0.25)", fontSize: 13, fontWeight: 600, cursor: "pointer" };
+const demoButton: React.CSSProperties = { background: "white", color: "#5B4BA4", padding: "8px 14px", borderRadius: 2, border: "1px solid rgba(91,75,164,0.25)", fontSize: 13, fontWeight: 600, cursor: "pointer" };

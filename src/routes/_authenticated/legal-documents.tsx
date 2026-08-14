@@ -56,15 +56,15 @@ const DOC_TYPES: { value: DocType; label: string }[] = [
 ];
 
 const BADGE: Record<DocType, { label: string; bg: string; fg: string }> = {
-  tro:                { label: "TRO",            bg: "#E77B56", fg: "#2A1A10" },
-  fro:                { label: "FRO",            bg: "#E77B56", fg: "#2A1A10" },
-  police_report:      { label: "Police Report",  bg: "#6A92D6", fg: "#2A1A10" },
-  "911_log":          { label: "911 Log",        bg: "#6A92D6", fg: "#2A1A10" },
-  custody_order:      { label: "Custody Order",  bg: "#A8D8B9", fg: "#2A1A10" },
-  court_order:        { label: "Court Order",    bg: "#A8D8B9", fg: "#2A1A10" },
-  cps_report:         { label: "CPS",            bg: "#D2B48C", fg: "#2A1A10" },
-  hearing_transcript: { label: "Transcript",     bg: "#B57E60", fg: "#F5E6DF" },
-  other:              { label: "Other",          bg: "#B57E60", fg: "#F5E6DF" },
+  tro:                { label: "TRO",            bg: "#8A5A2E", fg: "#1A1224" },
+  fro:                { label: "FRO",            bg: "#8A5A2E", fg: "#1A1224" },
+  police_report:      { label: "Police Report",  bg: "#7A1F3D", fg: "#1A1224" },
+  "911_log":          { label: "911 Log",        bg: "#7A1F3D", fg: "#1A1224" },
+  custody_order:      { label: "Custody Order",  bg: "#A8D8B9", fg: "#1A1224" },
+  court_order:        { label: "Court Order",    bg: "#A8D8B9", fg: "#1A1224" },
+  cps_report:         { label: "CPS",            bg: "#D2B48C", fg: "#1A1224" },
+  hearing_transcript: { label: "Transcript",     bg: "#1A1224", fg: "#FAF8F4" },
+  other:              { label: "Other",          bg: "#1A1224", fg: "#FAF8F4" },
 };
 
 const GROUPS: { label: string; types: DocType[] }[] = [
@@ -308,7 +308,7 @@ function LegalDocumentsPage() {
       {/* Upload card */}
       <div className="card-pp mt-6 space-y-4">
         <label
-          className={`block cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition ${phase === "extracting" ? "animate-pulse" : ""}`}
+          className={`block cursor-pointer rounded-[2px] border-2 border-dashed p-8 text-center transition ${phase === "extracting" ? "animate-pulse" : ""}`}
           style={{ borderColor: "var(--border)" }}
         >
           <Upload size={26} className="mx-auto mb-2" style={{ color: "var(--muted-foreground)" }} />
@@ -417,7 +417,7 @@ function LegalDocumentsPage() {
                       return (
                         <div key={d.id} className="card-pp" style={{ borderLeft: `3px solid ${b.bg}` }}>
                           <div className="flex items-start justify-between gap-2">
-                            <span className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold" style={{ background: b.bg, color: b.fg }}>
+                            <span className="inline-block rounded-[2px] px-2.5 py-0.5 text-[11px] font-semibold" style={{ background: b.bg, color: b.fg }}>
                               {b.label}
                             </span>
                             {d.expiration_date && (
@@ -436,7 +436,7 @@ function LegalDocumentsPage() {
                             </button>
                             <details className="text-[12px]">
                               <summary className="btn-ghost inline-flex cursor-pointer items-center gap-1"><LinkIcon size={13} /> Link to incident</summary>
-                              <div className="mt-2 max-h-40 overflow-auto rounded-xl bg-[rgba(0,0,0,0.05)] p-2">
+                              <div className="mt-2 max-h-40 overflow-auto rounded-[2px] bg-[rgba(0,0,0,0.05)] p-2">
                                 {incidents.length === 0 && <div style={{ color: "var(--muted-foreground)" }}>No incidents yet.</div>}
                                 {incidents.map((i) => (
                                   <button key={i.id} onClick={() => linkIncident(d, i.id)} className="block w-full text-left text-[12px] hover:underline">
@@ -502,7 +502,7 @@ function ConfirmationCard({
   onCancel: () => void;
 }) {
   return (
-    <div className="rounded-2xl p-4" style={{ background: "rgba(0,0,0,0.05)" }}>
+    <div className="rounded-[2px] p-4" style={{ background: "rgba(0,0,0,0.05)" }}>
       <h3 className="font-serif text-[18px]">
         {phase === "confirm" ? "Here's what I found. Does this look right?" : "Fill in what you know — it's okay to leave fields blank."}
       </h3>
@@ -533,7 +533,7 @@ function ConfirmationCard({
         </div>
       </div>
       {extracted.cross_reference_note && (
-        <div className="mt-4 rounded-xl p-3" style={{ background: "rgba(106,146,214,0.15)", border: "1px solid rgba(106,146,214,0.3)" }}>
+        <div className="mt-4 rounded-[2px] p-3" style={{ background: "rgba(106,146,214,0.15)", border: "1px solid rgba(106,146,214,0.3)" }}>
           <span className="text-[12px] font-semibold">AI notice: </span>
           <span className="text-[12px]">{extracted.cross_reference_note}</span>
         </div>
@@ -566,7 +566,7 @@ function DrivePickerModal({
             <div className="label-eyebrow">Google Drive</div>
             <h3 className="mt-1 font-serif text-[20px]">Choose a document to import</h3>
           </div>
-          <button onClick={onClose} className="rounded-lg p-2 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+          <button onClick={onClose} className="rounded-[2px] p-2 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
         </div>
         <div className="mt-3 flex gap-2">
           <input
@@ -593,7 +593,7 @@ function DrivePickerModal({
                 <li key={f.id}>
                   <button
                     onClick={() => onPick(f)}
-                    className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-black/5"
+                    className="flex w-full items-center gap-3 rounded-[2px] p-2.5 text-left hover:bg-black/5"
                   >
                     <FileText size={16} style={{ color: "var(--muted-foreground)" }} />
                     <div className="min-w-0 flex-1">

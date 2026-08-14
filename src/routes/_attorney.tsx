@@ -1,13 +1,14 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut, Lock } from "lucide-react";
+import { LogOut, Lock, LayoutGrid, Users, CreditCard, ShieldCheck, MessageSquare, ScanSearch } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, getAttorneyProfile } from "@/lib/attorney-portal.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
-import { Logo } from "@/components/Logo";
+import { BrandMark } from "@/components/BrandMark";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -26,15 +27,21 @@ function AttorneyLayout() {
   const getRole = useServerFn(getMyRole);
   const getProfile = useServerFn(getAttorneyProfile);
   const [checking, setChecking] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
   const [userRole, setUserRole] = useState<"attorney" | "collaborator" | null>(null);
+  const [firmName, setFirmName] = useState<string | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sub = useSubscription();
 
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate({ to: "/lawyer-signup", replace: true }); return; }
+    let cancelled = false;
+    setLoadError(null);
     getRole().then(async (r) => {
+      if (cancelled) return;
       if (r.role !== "attorney" && r.role !== "collaborator") {
         navigate({ to: "/lawyer-signup", replace: true });
         return;
@@ -47,13 +54,21 @@ function AttorneyLayout() {
         try {
           const { profile } = await getProfile();
           setOnboarded(profile?.onboarded === true);
+          setFirmName(profile?.firm_name ?? profile?.full_name ?? null);
         } catch {
           setOnboarded(false);
         }
       }
+      if (cancelled) return;
       setChecking(false);
-    }).catch(() => navigate({ to: "/lawyer-signup", replace: true }));
-  }, [user, loading, getRole, getProfile, navigate]);
+    }).catch(() => {
+      if (cancelled) return;
+      // Never leave the portal stuck on "Opening portal…" — surface a retry.
+      setLoadError("We couldn't reach your account just now.");
+      setChecking(false);
+    });
+    return () => { cancelled = true; };
+  }, [user, loading, getRole, getProfile, navigate, retryKey]);
 
   // Hard paywall: any non-billing route requires an active subscription.
   // /subscribe, /billing-return, and /setup are reachable without one.
@@ -70,6 +85,10 @@ function AttorneyLayout() {
     if (loading || checking) return;
     if (!user) return;
     if (onboarded === false && !onSetup) {
+      toast("Finish setting up your account to continue", {
+        id: "attorney-onboarding-redirect",
+        description: "We've brought you to setup — it only takes a moment.",
+      });
       navigate({ to: "/setup", replace: true });
     }
   }, [loading, checking, onboarded, onSetup, navigate, user]);
@@ -87,41 +106,65 @@ function AttorneyLayout() {
 
   if (loading || checking || sub.loading) {
     return (
-      <div className="att-root" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="att-root" data-persona="attorney" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <span className="att-eyebrow">Opening portal…</span>
       </div>
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="att-root" data-persona="attorney" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center", display: "grid", gap: 12, maxWidth: 420, padding: 24 }}>
+          <span className="att-eyebrow">Portal unavailable</span>
+          <p style={{ margin: 0 }}>{loadError} Check your connection and try again.</p>
+          <div>
+            <button
+              type="button"
+              className="att-btn att-btn-primary"
+              onClick={() => { setLoadError(null); setChecking(true); setRetryKey((k) => k + 1); }}
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="att-root att-cockpit">
-      <AttorneyTopNav />
-      <SecurityBanner />
-      <AttorneyBreadcrumb />
-      <main style={{ maxWidth: 1280, margin: "0 auto", padding: "20px 2rem 0" }}>
-        <Outlet />
-      </main>
-      <footer className="att-footer">
+    <div className="att-root att-cockpit att-shell" data-persona="attorney">
+      <AttorneySidebar />
+      <div style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+        <AttorneyTopBar firmName={firmName} />
+        <SecurityBanner />
+        <LegalDisclaimerBar />
+        <AttorneyBreadcrumb />
+        <main className="att-content">
+          <Outlet />
+        </main>
+        <footer className="att-footer">
         <span>PatternProof</span>
         <span>·</span>
         <span>attorney.pattern-proof.tech</span>
         <span>·</span>
-        <span>Encrypted &amp; confidential</span>
+        <span>Encrypted in transit · access logged</span>
         <span>·</span>
         <span>Session logged · {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
         <span>·</span>
-        <span>All access recorded for provenance & integrity</span>
+        <span>Case opens, downloads & exports recorded</span>
         <span>·</span>
-        <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
-      </footer>
+        <span>
+          PatternProof organises the client&apos;s own records. It does not draw legal conclusions
+          and is not legal advice.
+        </span>
+        <span>·</span>
+          <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
+        </footer>
+      </div>
     </div>
   );
 }
-
-/* ---------- top nav ---------- */
-const CASE_TABS = [
-  { key: "overview", label: "Case File", to: "/clients/$clientId" },
-] as const;
 
 function useClientIdFromPath(): string | null {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -129,67 +172,105 @@ function useClientIdFromPath(): string | null {
   return m?.[1] ?? null;
 }
 
-function AttorneyTopNav() {
-  const navigate = useNavigate();
+/* ---------- persistent left sidebar ---------- */
+const NAV_ITEMS = [
+  { to: "/caseload", label: "Dashboard", icon: LayoutGrid },
+  { to: "/clients", label: "Matters", icon: Users },
+  { to: "/conflict-check", label: "Conflict check", icon: ScanSearch },
+  { to: "/billing", label: "Billing", icon: CreditCard },
+  { to: "/trust", label: "Settings", icon: ShieldCheck },
+  { to: "/attorney-feedback", label: "Feedback", icon: MessageSquare },
+] as const;
+
+function AttorneySidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isActive = (to: string) => {
+    if (to === "/clients") return pathname.startsWith("/clients");
+    return pathname === to;
+  };
+  return (
+    <aside className="att-sidebar">
+      <Link to="/clients" className="att-sidebar-brand">
+        <BrandMark size={26} />
+        <span>PatternProof</span>
+      </Link>
+      <div className="att-sidebar-section">Practice</div>
+      {NAV_ITEMS.map((item) => (
+        <Link
+          key={item.label}
+          to={item.to}
+          className={`att-side-link ${isActive(item.to) ? "active" : ""}`}
+        >
+          <item.icon size={14} /> {item.label}
+        </Link>
+      ))}
+      <div className="att-sidebar-foot">
+        <span className="att-eyebrow">Attorney portal</span>
+      </div>
+    </aside>
+  );
+}
+
+/* ---------- minimal top bar ---------- */
+function AttorneyTopBar({ firmName }: { firmName: string | null }) {
+  const navigate = useNavigate();
   const clientId = useClientIdFromPath();
   const caseId = clientId ? `PP-${clientId.slice(0, 4).toUpperCase()}` : null;
-
-  const onCase = !!clientId;
-
   return (
-    <nav className="att-nav">
-      <Link to="/clients" className="att-nav-brand" style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-        <Logo variant="attorney" size={36} />
-        <span style={{ opacity: 0.55, fontSize: 13 }}>· Attorney Portal</span>
-      </Link>
-
-      <div className="att-nav-tabs">
-        {onCase && clientId ? (
-          CASE_TABS.map((t) => {
-            const href = t.to.replace("$clientId", clientId);
-            const active = t.key === "overview"
-              ? pathname === `/clients/${clientId}`
-              : pathname.startsWith(href);
-            return (
-              <Link
-                key={t.key}
-                to={t.to}
-                params={{ clientId }}
-                className={`att-nav-tab ${active ? "active" : ""}`}
-              >
-                {t.label}
-              </Link>
-            );
-          })
-        ) : (
-          <>
-            <Link to="/clients" className={`att-nav-tab ${pathname === "/clients" ? "active" : ""}`}>Clients</Link>
-            <Link to="/billing" className={`att-nav-tab ${pathname === "/billing" ? "active" : ""}`}>Billing</Link>
-            <Link to="/trust" className={`att-nav-tab ${pathname === "/trust" ? "active" : ""}`}>Trust</Link>
-            <Link to="/attorney-feedback" className={`att-nav-tab ${pathname === "/attorney-feedback" ? "active" : ""}`}>Feedback</Link>
-          </>
-        )}
+    <div className="att-topbar">
+      <div className="att-topbar-firm">
+        <span>{firmName ?? "Your firm"}</span>
+        {caseId && <span className="att-mono">Case {caseId}</span>}
       </div>
-
-      <div className="att-nav-meta">
-        {caseId && (
-          <span>Case ID: <span className="att-mono">{caseId}</span></span>
-        )}
-        <button
-          onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/lawyer-signup" }); }}
-          className="att-nav-tab"
-          style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-        >
-          <LogOut size={13} /> Sign out
-        </button>
-      </div>
-    </nav>
+      <button
+        onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/lawyer-signup" }); }}
+        className="att-btn-ghost"
+        style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+      >
+        <LogOut size={13} /> Sign out
+      </button>
+    </div>
   );
 }
 
 /* ---------- security banner ---------- */
 function SecurityBanner() {
+  return <SecurityBannerInner />;
+}
+
+/**
+ * Permanent, non-dismissible. Attorneys must never be able to hide the fact
+ * that this tool organises a client's own records rather than assessing them.
+ */
+function LegalDisclaimerBar() {
+  return (
+    <div
+      role="note"
+      style={{
+        borderBottom: "1px solid rgba(21,32,56,0.12)",
+        background: "rgba(21,32,56,0.04)",
+        color: "#4A2A6B",
+        fontSize: 11.5,
+        lineHeight: 1.5,
+        letterSpacing: "0.01em",
+        padding: "7px 2rem",
+        display: "flex",
+        justifyContent: "center",
+        textAlign: "center",
+      }}
+    >
+      <span style={{ maxWidth: 1280 }}>
+        <strong style={{ fontWeight: 600 }}>No legal conclusions.</strong>{" "}
+        PatternProof compiles and organises records supplied by the client. Summaries, pattern
+        groupings, gap lists and flagged inconsistencies are generated from that material and are{" "}
+        <strong style={{ fontWeight: 600 }}>not findings of fact, legal advice, or an opinion on
+        the merits</strong>. Verify every item against its source before relying on it.
+      </span>
+    </div>
+  );
+}
+
+function SecurityBannerInner() {
   const clientId = useClientIdFromPath();
   const caseId = clientId ? `PP-${clientId.slice(0, 4).toUpperCase()}` : "—";
   const [dismissed, setDismissed] = useState(false);
@@ -201,13 +282,13 @@ function SecurityBanner() {
     <div className="att-security-banner">
       <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
         <Lock size={12} />
-        This session is encrypted. Case ID: <span className="att-mono">{caseId}</span>.
-        All access is recorded for provenance & integrity.
+        This session is encrypted in transit. Case ID: <span className="att-mono">{caseId}</span>.
+        Case opens, evidence downloads, and packet exports are recorded.
       </span>
       <button
         onClick={() => { sessionStorage.setItem("att-security-dismissed", "1"); setDismissed(true); }}
         className="att-btn-ghost"
-        style={{ padding: "2px 8px", fontSize: 11, color: "#1E40AF" }}
+        style={{ padding: "2px 8px", fontSize: 11, color: "var(--att-navy)" }}
       >
         Dismiss
       </button>

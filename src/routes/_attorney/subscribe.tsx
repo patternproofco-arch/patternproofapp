@@ -30,12 +30,13 @@ const TIERS: Record<TierKey, {
     priceId: "attorney_solo_monthly",
     bullets: [
       "One attorney seat",
-      "Up to 10 active client matters",
+      "Single attorney account (matter counts are not metered today)",
       "Structured chronological timeline + pattern analysis",
-      "Exportable case summary (ZIP) — Clio-compatible",
+      "Exportable case summary (ZIP) — imports into practice management systems",
       "Private attorney notes per incident",
+      "Conflict check across your own caseload",
     ],
-    close: "$297/month — one seat, up to 10 active matters.",
+    close: "$297/month — a single attorney account.",
   },
   firm_charter: {
     name: "Firm",
@@ -45,12 +46,12 @@ const TIERS: Record<TierKey, {
     priceId: "attorney_firm_charter_monthly",
     recommended: true,
     bullets: [
-      "Up to 15 attorney seats in one firm workspace",
+      "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
       "Everything in Solo Attorney",
-      "Unlimited active client matters",
+      "No matter limit enforced today",
       "Multi-attorney collaboration and shared case notes",
       "Caseload and capacity view across the firm",
-      "Firm-wide conflict-of-interest detection",
+      "Conflict check across your own caseload",
       "Charter program: personal setup, case import, and staff training",
       "$597/month rate locked for 12 months, then $897/month list",
     ],
@@ -63,12 +64,12 @@ const TIERS: Record<TierKey, {
     cadence: "/month",
     priceId: "attorney_firm_monthly",
     bullets: [
-      "Up to 15 attorney seats in one firm workspace",
+      "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
       "Everything in Solo Attorney",
-      "Unlimited active client matters",
+      "No matter limit enforced today",
       "Multi-attorney collaboration and shared case notes",
       "Caseload and capacity view across the firm",
-      "Firm-wide conflict-of-interest detection",
+      "Conflict check across your own caseload",
       "Priority client onboarding support",
     ],
     close: "Built for 3–15 attorney family-law firms.",
@@ -99,7 +100,7 @@ function SubscribePage() {
     return (
       <div className="att-card" style={{ maxWidth: 640, margin: "40px auto", textAlign: "center" }}>
         <Check size={32} style={{ color: "var(--att-green)", margin: "0 auto 12px" }} />
-        <h1 style={{ fontSize: 30, marginBottom: 8, fontFamily: '"Instrument Serif", serif', fontWeight: 400 }}>You're subscribed.</h1>
+        <h1 className="att-page-title">You're subscribed.</h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 14, marginBottom: 16 }}>
           Plan: PatternProof {sub.tier === "firm" ? "Firm" : sub.tier === "enterprise" ? "Enterprise" : "Solo"} · {sub.status}
           {sub.currentPeriodEnd && <> · renews {new Date(sub.currentPeriodEnd).toLocaleDateString()}</>}
@@ -122,7 +123,7 @@ function SubscribePage() {
       <PaymentTestModeBanner />
       <div style={{ marginTop: 24, marginBottom: 24 }}>
         <div className="att-eyebrow">Attorney Portal · Pricing</div>
-        <h1 style={{ fontSize: 36, marginTop: 4, marginBottom: 10, fontFamily: '"Instrument Serif", serif' }}>
+        <h1 className="att-page-title">
           See the pattern before the hearing.
         </h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 15, maxWidth: 640 }}>
@@ -136,8 +137,8 @@ function SubscribePage() {
       </div>
 
       {/* Grace's signature story — decisions happen here */}
-      <div className="att-card" style={{ marginBottom: 28, background: "#FFFBEB", borderColor: "#FCD34D" }}>
-        <div className="att-eyebrow" style={{ color: "#92400E" }}>From Grace, founder</div>
+      <div className="att-card" style={{ marginBottom: 28, background: "#FFFFFF", borderColor: "var(--att-border-strong)" }}>
+        <div className="att-eyebrow" style={{ color: "var(--att-text-2)" }}>From Grace, founder</div>
         <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.65, color: "var(--att-text)", fontStyle: "italic" }}>
           "I documented everything. Nobody believed me anyway. I walked into that courtroom with folders of notes and screenshots and I still couldn't show the pattern. The judge couldn't see it. I built PatternProof because the evidence was always there — I just needed something that could show it."
         </p>
@@ -161,7 +162,7 @@ function SubscribePage() {
                     ? "2px solid var(--att-green)"
                     : "1px solid var(--att-border)",
                 position: "relative",
-                background: active ? "#F8FAFC" : "var(--att-surface)",
+                background: active ? "var(--att-surface-2)" : "var(--att-surface)",
               }}
             >
               {tier.recommended && (
@@ -170,7 +171,7 @@ function SubscribePage() {
                 </span>
               )}
               <div className="att-eyebrow">{tier.name}</div>
-              <div style={{ fontSize: 36, fontFamily: '"Instrument Serif", serif', marginTop: 4 }}>
+              <div style={{ fontSize: 36, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4 }}>
                 {tier.priceStrike && (
                   <span style={{ fontSize: 18, color: "var(--att-text-2)", textDecoration: "line-through", marginRight: 8, fontFamily: "inherit" }}>
                     {tier.priceStrike}
@@ -200,7 +201,7 @@ function SubscribePage() {
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 32, marginTop: 32 }}>
         <div>
           <div className="att-eyebrow">Selected: {t.name}</div>
-          <h2 style={{ fontSize: 26, marginTop: 4, marginBottom: 8, fontFamily: '"Instrument Serif", serif' }}>
+          <h2 style={{ fontSize: 26, marginTop: 4, marginBottom: 8, fontFamily: "\"Space Grotesk\", system-ui, sans-serif" }}>
             {t.close}
           </h2>
           <p style={{ color: "var(--att-text-2)", fontSize: 14 }}>

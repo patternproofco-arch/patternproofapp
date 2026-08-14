@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef } from "react";
-import { Logo } from "@/components/Logo";
+import { BrandMark } from "@/components/BrandMark";
 import { createAgentThread } from "@/lib/agent-threads.functions";
 
 export const Route = createFileRoute("/_authenticated/agent/")({
@@ -27,9 +27,9 @@ function AgentIndex() {
   }, [createFn, navigate]);
 
   return (
-    <div className="h-full rounded-2xl flex items-center justify-center p-10 bg-card border border-border">
+    <div className="h-full rounded-[2px] flex items-center justify-center p-10 bg-card border border-border">
       <div className="flex flex-col items-center gap-3 text-muted-foreground">
-        <Logo variant="survivor" size={56} />
+        <BrandMark size={52} />
         <p className="text-sm">Opening a safe space…</p>
       </div>
     </div>

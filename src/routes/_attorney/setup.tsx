@@ -95,19 +95,13 @@ function OnboardingPage() {
   return (
     <div style={{ maxWidth: 760, margin: "32px auto" }}>
       <div className="att-eyebrow">Attorney Portal · Onboarding</div>
-      <h1
-        style={{
-          fontSize: 36,
-          marginTop: 6,
-          marginBottom: 8,
-          fontFamily: '"Instrument Serif", serif',
-        }}
-      >
+      <h1 className="att-page-title" style={{ marginBottom: 8 }}>
         Set up your attorney profile.
       </h1>
       <p style={{ color: "var(--att-text-2)", fontSize: 15, marginBottom: 24 }}>
-        A few details before we open your client case files. Everything here stays on your
-        attorney profile — survivors only see your name and firm.
+        We've carried over what you already entered — confirm your role and the
+        confidentiality acknowledgement to open your client case files. Everything here stays
+        on your attorney profile; survivors only see your name and firm.
       </p>
 
       <form onSubmit={onSubmit} className="att-card" style={{ display: "grid", gap: 18 }}>
@@ -186,7 +180,7 @@ function OnboardingPage() {
                     border: active
                       ? "2px solid var(--att-navy)"
                       : "1px solid var(--att-border)",
-                    background: active ? "#F8FAFC" : "var(--att-surface)",
+                    background: active ? "var(--att-surface-2)" : "var(--att-surface)",
                   }}
                 >
                   <div style={{ fontSize: 14, fontWeight: 600 }}>{r.label}</div>
@@ -205,8 +199,8 @@ function OnboardingPage() {
             gap: 10,
             alignItems: "flex-start",
             padding: 14,
-            background: "#F8FAFC",
-            borderRadius: 8,
+            background: "var(--att-surface-2)",
+            borderRadius: 2,
             border: "1px solid var(--att-border)",
             cursor: "pointer",
             fontSize: 13,
@@ -252,7 +246,7 @@ function OnboardingPage() {
               gap: 6,
             }}
           >
-            <Lock size={12} /> Encrypted · provenance & integrity logged
+            <Lock size={12} /> Encrypted in transit · provenance & integrity logged
           </div>
           <button type="submit" disabled={saving} className="att-btn-primary">
             {saving ? "Saving…" : (

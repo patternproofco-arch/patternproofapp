@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ShieldCheck, KeyRound, Clock3, ScrollText, AlertTriangle, Mic } from "lucide-react";
+import { ShieldCheck, KeyRound, Clock3, ScrollText, AlertTriangle, Mic, Trash2, Plug } from "lucide-react";
 import { MessageCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useSettings } from "@/lib/settings-context";
@@ -23,6 +23,90 @@ interface AuditRow {
   actor: string;
   record_reference: string | null;
   entry_hash: string | null;
+}
+
+interface ConsentRow {
+  id: string;
+  client_id: string;
+  client_name: string | null;
+  client_uri: string | null;
+  scopes: string | null;
+  granted_at: string;
+}
+
+function ConnectedApps() {
+  const [rows, setRows] = useState<ConsentRow[] | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = async () => {
+    const { data, error } = await supabase.rpc("list_my_oauth_consents");
+    if (error) {
+      setRows([]);
+      return;
+    }
+    setRows((data ?? []) as ConsentRow[]);
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const revoke = async (id: string) => {
+    setBusyId(id);
+    const { data, error } = await supabase.rpc("revoke_my_oauth_consent", { _consent_id: id });
+    setBusyId(null);
+    if (error || data !== true) {
+      toast("We couldn't turn off that connection. Try again in a moment.");
+      return;
+    }
+    toast("Access revoked. That app can no longer reach your records.");
+    void load();
+  };
+
+  return (
+    <div className="card-pp mt-6">
+      <div className="flex items-center gap-2">
+        <Plug size={18} style={{ color: "var(--accent)" }} />
+        <h2 className="font-serif text-[19px]">Connected apps</h2>
+      </div>
+      <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+        Outside AI assistants and apps you've allowed to act as you — reading your incidents and
+        evidence, and logging new incidents on your behalf. They can only ever see your own records.
+      </p>
+      {rows === null ? (
+        <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>Checking…</p>
+      ) : rows.length === 0 ? (
+        <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          Nothing connected right now. If you ever approve an app, it'll show up here so you can turn it off.
+        </p>
+      ) : (
+        <div className="mt-4 flex flex-col gap-3">
+          {rows.map((r) => (
+            <div
+              key={r.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] p-3"
+              style={{ background: "var(--input)" }}
+            >
+              <div>
+                <div className="text-[14px] font-semibold">{r.client_name ?? "Connected app"}</div>
+                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  Connected {new Date(r.granted_at).toLocaleDateString()}
+                  {r.scopes ? ` · ${r.scopes}` : ""}
+                </div>
+              </div>
+              <button
+                onClick={() => revoke(r.id)}
+                disabled={busyId === r.id}
+                className="btn-primary"
+              >
+                {busyId === r.id ? "One moment…" : "Revoke access"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 const DISGUISES = [
@@ -93,7 +177,7 @@ function SettingsPage() {
           <div className="flex items-center gap-2"><Mic size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">Quick Record Button</h2></div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>The record button floats on every screen so you can start recording instantly.</p>
           <div className="mt-4 space-y-3">
-            <label className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: "var(--input)" }}>
+            <label className="flex items-center justify-between rounded-[2px] px-3 py-2.5" style={{ background: "var(--input)" }}>
               <span className="text-[14px]">Show quick record button</span>
               <input
                 type="checkbox"
@@ -101,7 +185,7 @@ function SettingsPage() {
                 onChange={(e) => update({ quickRecordVisible: e.target.checked })}
               />
             </label>
-            <label className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: "var(--input)" }}>
+            <label className="flex items-center justify-between rounded-[2px] px-3 py-2.5" style={{ background: "var(--input)" }}>
               <span className="text-[14px]">Freeze button <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>(prevents accidental taps)</span></span>
               <input
                 type="checkbox"
@@ -112,13 +196,28 @@ function SettingsPage() {
           </div>
         </div>
 
+        <div className="card-pp md:col-span-2">
+          <h2 className="font-serif text-[19px]">Frequency observations</h2>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            Off by default. When on, Recurline shows plain counts of things you've already logged — like "4 files added this month" — with a link to the exact entries. Counts and dates only, never a conclusion.
+          </p>
+          <label className="mt-4 flex items-center justify-between rounded-[2px] px-3 py-2.5" style={{ background: "var(--input)" }}>
+            <span className="text-[14px]">Show frequency observations</span>
+            <input
+              type="checkbox"
+              checked={settings.frequencyObservationsEnabled}
+              onChange={(e) => update({ frequencyObservationsEnabled: e.target.checked })}
+            />
+          </label>
+        </div>
+
         <div className="card-pp">
           <div className="flex items-center gap-2"><ShieldCheck size={18} style={{ color: "var(--safe)" }} /><h2 className="font-serif text-[19px]">Disguise this app</h2></div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>The browser tab and sidebar will use this name. Pick something that fits your day.</p>
           <div className="mt-3 space-y-2">
             {DISGUISES.map((d) => (
               <button key={d.name} onClick={() => update({ disguiseName: d.name, exitUrl: d.url })}
-                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left"
+                className="flex w-full items-center justify-between rounded-[2px] px-3 py-2 text-left"
                 style={{ background: settings.disguiseName === d.name ? "rgba(168,216,185,0.25)" : "var(--input)", border: "1px solid var(--border)" }}>
                 <span className="font-serif text-[15px]">{d.name}</span>
                 <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>exits to {new URL(d.url).hostname}</span>
@@ -153,16 +252,16 @@ function SettingsPage() {
       </div>
 
       <div className="card-pp mt-6">
-        <div className="flex items-center gap-2"><ScrollText size={18} /><h2 className="font-serif text-[19px]">Audit log</h2></div>
+        <div className="flex items-center gap-2"><ScrollText size={18} /><h2 className="font-serif text-[19px]">Activity log</h2></div>
         <p className="mt-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          A tamper-evident record of every action on your account. Each entry is hash-chained to the one before it.
+          A record of key actions on your account, including evidence imports and access grants. It doesn't cover every action in the app.
         </p>
         {audit.length === 0 ? (
           <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>No activity recorded yet.</p>
         ) : (
           <div className="mt-4 space-y-2">
             {audit.map((a) => (
-              <div key={a.id} className="flex items-start justify-between gap-3 rounded-xl px-3 py-2" style={{ background: "var(--input)" }}>
+              <div key={a.id} className="flex items-start justify-between gap-3 rounded-[2px] px-3 py-2" style={{ background: "var(--input)" }}>
                 <div className="min-w-0">
                   <div className="font-serif text-[14px]">{a.action_type}</div>
                   <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
@@ -176,6 +275,8 @@ function SettingsPage() {
           </div>
         )}
       </div>
+
+      <ConnectedApps />
 
       <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--primary)" }}>
         <div className="flex items-center gap-2"><AlertTriangle size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">A note on safety</h2></div>
@@ -195,17 +296,30 @@ function SettingsPage() {
       <div className="card-pp mt-6">
         <div className="flex items-center gap-2"><Download size={18} style={{ color: "var(--accent)" }} /><h2 className="font-serif text-[19px]">Export everything</h2></div>
         <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          One ZIP file with every incident, every piece of evidence, every voice note and transcript, your pattern analysis, and a chronological narrative. SHA-256 hashes are included for integrity. Useful for attorney handoff or a personal backup.
+          One ZIP file with every incident, every piece of evidence, every voice note and transcript, your Recurline, and a chronological narrative. SHA-256 hashes are included for integrity. Useful for attorney handoff or a personal backup.
         </p>
         <button onClick={runExport} disabled={exporting} className="btn-primary mt-4 inline-flex items-center gap-2">
           <Download size={14} /> {exporting ? "Building export…" : "Export everything (.zip)"}
         </button>
         {exportResult && (
-          <div className="mt-4 rounded-xl p-3" style={{ background: "var(--input)" }}>
-            <p className="text-[13px]">Ready: {(exportResult.bytes / (1024 * 1024)).toFixed(1)} MB · link valid 24 hours.</p>
+          <div className="mt-4 rounded-[2px] p-3" style={{ background: "var(--input)" }}>
+            <p className="text-[13px]">Ready: {(exportResult.bytes / (1024 * 1024)).toFixed(1)} MB · link valid 1 hour.</p>
             <a href={exportResult.url} download={exportResult.filename} className="btn-primary mt-2 inline-block">Download {exportResult.filename}</a>
           </div>
         )}
+      </div>
+
+      <div className="card-pp mt-6">
+        <div className="flex items-center gap-2"><Trash2 size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">Request account deletion</h2></div>
+        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          Automatic in-app deletion isn't available yet. You can request deletion of your account and data by emailing us, and we'll confirm once it's complete. Consider exporting your records first.
+        </p>
+        <a
+          href="mailto:gracieburns200@gmail.com?subject=Data%20Deletion%20Request"
+          className="btn-primary mt-4 inline-block"
+        >
+          Request account deletion
+        </a>
       </div>
     </div>
   );

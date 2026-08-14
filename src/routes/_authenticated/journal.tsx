@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2, Sparkles, BookOpen, Clock, ChevronDown, PenLine, List } from "lucide-react";
+import { Pencil, Trash2, Sparkles, BookOpen, Clock, ChevronDown, PenLine, List, Mic } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -14,6 +14,8 @@ import { AddFromJournalModal } from "@/components/AddFromJournalModal";
 import { BulkPastIncidentsModal } from "@/components/BulkPastIncidentsModal";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { checkUploadSize } from "@/lib/upload-limits";
+import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -99,6 +101,50 @@ function JournalPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Files the survivor attaches while writing an entry. They're uploaded and
+  // linked to the incident only once the entry itself saves successfully.
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachError, setAttachError] = useState<string | null>(null);
+
+  const addAttachments = (files: FileList | null) => {
+    if (!files?.length) return;
+    const next: File[] = [];
+    for (const f of Array.from(files)) {
+      const problem = checkUploadSize(f);
+      if (problem) { setAttachError(problem); continue; }
+      next.push(f);
+    }
+    if (next.length) setAttachError(null);
+    setAttachments((p) => [...p, ...next]);
+  };
+
+  const uploadAttachments = async (incidentId: string): Promise<string | null> => {
+    if (!user || attachments.length === 0) return null;
+    let ok = 0;
+    for (const f of attachments) {
+      const key = `${user.id}/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("evidence-files").upload(key, f);
+      if (upErr) continue;
+      const { error: rowErr } = await supabase.from("evidence").insert({
+        user_id: user.id,
+        title: f.name,
+        date: form.date || today(),
+        file_url: key,
+        file_type: f.type || "application/octet-stream",
+        original_filename: f.name,
+        bytes: f.size,
+        mime: f.type || null,
+        linked_incident_id: incidentId,
+        review_status: "confirmed",
+      });
+      if (!rowErr) ok += 1;
+    }
+    if (ok === attachments.length) {
+      return `Saved. Your record and ${ok} file${ok === 1 ? "" : "s"} are safe.`;
+    }
+    return `Saved. ${ok} of ${attachments.length} files attached — you can add the rest from Evidence.`;
+  };
+
   const reset = () => {
     setForm({
       date: today(), time: "", location: "", description: "", abuse_types: [], witnesses: "", emotional_impact: "",
@@ -107,6 +153,8 @@ function JournalPage() {
     });
     setEditingId(null);
     setAiFilled(false);
+    setAttachments([]);
+    setAttachError(null);
   };
 
   const toggleType = (t: string) => {
@@ -156,6 +204,7 @@ function JournalPage() {
       confirmed_at: new Date().toISOString(),
     };
     let error;
+    let savedId: string | null = editingId;
     if (editingId) {
       const current = list.find((i) => i.id === editingId);
       const updatePayload: typeof payload & { confirmed_at?: string } = { ...payload };
@@ -166,11 +215,14 @@ function JournalPage() {
       }
       ({ error } = await supabase.from("incidents").update(updatePayload).eq("id", editingId).eq("user_id", user.id));
     } else {
-      ({ error } = await supabase.from("incidents").insert(insertPayload));
+      const res = await supabase.from("incidents").insert(insertPayload).select("id").single();
+      error = res.error;
+      savedId = res.data?.id ?? null;
     }
+    if (error) { setBusy(false); toast("We couldn't save that. Try again in a moment."); return; }
+    const attachMsg = savedId && attachments.length ? await uploadAttachments(savedId) : null;
     setBusy(false);
-    if (error) { toast("We couldn't save that. Try again in a moment."); return; }
-    toast("Saved. Your record is safe.");
+    toast(attachMsg ?? "Saved. Your record is safe.");
     reset();
     load();
   };
@@ -267,36 +319,45 @@ function JournalPage() {
 
   return (
     <div>
-      <div className="label-eyebrow">Your journal</div>
+      <HubTabs tabs={ARCHIVE_TABS} />
+      <div className="label-eyebrow">Your Archive</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
-        Log what happened.
+        Add what happened.
         <br />
         <em>In your own words.</em>
       </h1>
 
       <div className="mt-4">
         <div className="flex flex-wrap gap-2">
+          <Link
+            to="/voice-notes"
+            className="inline-flex items-center gap-2 rounded-[2px] px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
+            style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
+          >
+            <Mic size={15} />
+            Add a spoken Mark
+          </Link>
           <button
             type="button"
             onClick={() => setJournalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
+            className="inline-flex items-center gap-2 rounded-[2px] px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
             style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
           >
             <BookOpen size={15} />
-            Add from Journal Entry
+            Add from a written page
           </button>
           <button
             type="button"
             onClick={() => setBulkOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
+            className="inline-flex items-center gap-2 rounded-[2px] px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
             style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
           >
             <Clock size={15} />
-            Add Multiple Past Incidents
+            Add Multiple Past Marks
           </button>
         </div>
         <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          Upload a journal page, or recall older incidents one memory at a time.
+          Upload a written page, or recall older Marks one memory at a time.
         </p>
       </div>
 
@@ -304,10 +365,10 @@ function JournalPage() {
         <section
           className="card-pp mt-6"
           style={{ background: "#F4EFE4", borderLeft: "4px solid #6A7FA8" }}
-          aria-label="Same-day entries with different details"
+          aria-label="Same-day Marks with different details"
         >
           <h2 className="font-serif text-[18px]" style={{ color: "var(--foreground)" }}>
-            A few entries on the same day have different details — worth a look
+            A few Marks on the same day have different details — worth a look
           </h2>
           <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
             Nothing has been changed. Review each one and edit whichever feels right — or leave them as they are.
@@ -320,7 +381,7 @@ function JournalPage() {
               return (
                 <li
                   key={`${c.incident_a_id}-${c.incident_b_id}-${c.conflict_type}-${idx}`}
-                  className="rounded-xl p-3"
+                  className="rounded-[2px] p-3"
                   style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(42,37,32,0.08)" }}
                 >
                   <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "#6A7FA8" }}>
@@ -331,19 +392,19 @@ function JournalPage() {
                     <button
                       type="button"
                       onClick={() => edit(a)}
-                      className="rounded-lg p-2 text-left text-[12px] hover:bg-black/5"
+                      className="rounded-[2px] p-2 text-left text-[12px] hover:bg-black/5"
                       style={{ border: "1px solid rgba(42,37,32,0.10)" }}
                     >
-                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review entry A</div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review Mark A</div>
                       <div className="mt-0.5 line-clamp-2">{a.description}</div>
                     </button>
                     <button
                       type="button"
                       onClick={() => edit(b)}
-                      className="rounded-lg p-2 text-left text-[12px] hover:bg-black/5"
+                      className="rounded-[2px] p-2 text-left text-[12px] hover:bg-black/5"
                       style={{ border: "1px solid rgba(42,37,32,0.10)" }}
                     >
-                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review entry B</div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review Mark B</div>
                       <div className="mt-0.5 line-clamp-2">{b.description}</div>
                     </button>
                   </div>
@@ -360,22 +421,22 @@ function JournalPage() {
           type="button"
           onClick={() => { setLogOpen((v) => !v); if (!logOpen) setTimeout(() => window.scrollTo({ top: window.scrollY + 80, behavior: "smooth" }), 50); }}
           aria-expanded={logOpen}
-          className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
+          className="inline-flex items-center gap-2 rounded-[2px] px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
           style={{
             background: "var(--primary)",
             color: "#FFFFFF",
-            boxShadow: "0 6px 18px -6px rgba(122,148,121,0.55)",
+            boxShadow: "none",
           }}
         >
           <PenLine size={17} />
-          {editingId ? "Edit incident" : "Log Incident"}
+          {editingId ? "Edit Mark" : "Add a Mark"}
           <ChevronDown size={16} style={{ transition: "transform 200ms", transform: logOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
         </button>
         <button
           type="button"
           onClick={() => setListOpen((v) => !v)}
           aria-expanded={listOpen}
-          className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
+          className="inline-flex items-center gap-2 rounded-[2px] px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
           style={{
             background: "#E5E2DA",
             color: "#2A2520",
@@ -383,19 +444,19 @@ function JournalPage() {
           }}
         >
           <List size={17} />
-          All Incidents {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
+          All Marks {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
           <ChevronDown size={16} style={{ transition: "transform 200ms", transform: listOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
         </button>
       </div>
 
-      <div className="collapse-shell mt-6" data-open={logOpen} aria-hidden={!logOpen}>
+      <div className="collapse-shell mt-6" data-open={logOpen} inert={!logOpen}>
         <div className="collapse-inner">
         <section
           className="card-pp"
           style={{ background: "var(--linen)", borderLeft: "4px solid var(--primary)" }}
         >
           <form onSubmit={submit} className="space-y-3">
-          <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed p-3 text-[12px]" style={{ borderColor: "var(--border)" }}>
+          <label className="flex cursor-pointer items-center gap-2 rounded-[2px] border border-dashed p-3 text-[12px]" style={{ borderColor: "var(--border)" }}>
             <Sparkles size={14} style={{ color: "var(--accent)" }} />
             <span className="flex-1">
               {aiBusy ? "Reading your image…" : "Upload a screenshot (text, email, photo) and I'll draft the fields for you to review."}
@@ -405,10 +466,43 @@ function JournalPage() {
               onChange={(e) => { const f = e.target.files?.[0] ?? null; e.currentTarget.value = ""; autofillFromImage(f); }} />
           </label>
           {aiFilled && (
-            <div className="rounded-xl p-2 text-[11px]" style={{ background: "rgba(106,146,214,0.15)", color: "var(--foreground)" }}>
+            <div className="rounded-[2px] p-2 text-[11px]" style={{ background: "rgba(106,146,214,0.15)", color: "var(--foreground)" }}>
               AI-drafted — please edit anything that isn't quite right.
             </div>
           )}
+
+          <div>
+            <label className="label-eyebrow">Attach photos, audio or files</label>
+            <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>
+              Anything you attach here is saved with this Mark. You can add more later.
+            </p>
+            <input
+              type="file"
+              multiple
+              accept="image/*,audio/*,video/*,application/pdf"
+              className="input-pp mt-2 text-[12px]"
+              onChange={(e) => { addAttachments(e.target.files); e.currentTarget.value = ""; }}
+            />
+            {attachError && (
+              <p className="text-[11.5px] mt-1" style={{ color: "var(--accent)" }}>{attachError}</p>
+            )}
+            {attachments.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {attachments.map((f, idx) => (
+                  <li key={`${f.name}-${idx}`} className="flex items-center justify-between text-[12px]">
+                    <span className="truncate">{f.name}</span>
+                    <button
+                      type="button"
+                      className="text-[11px] underline"
+                      onClick={() => setAttachments((p) => p.filter((_, i) => i !== idx))}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           <div>
             <label className="label-eyebrow">Date precision</label>
@@ -458,7 +552,7 @@ function JournalPage() {
           </div>
 
           {(form.date_precision === "before_anchor" || form.date_precision === "after_anchor") && (
-            <div className="space-y-2 rounded-xl p-3" style={{ background: "rgba(168,216,185,0.15)", border: "1px solid rgba(78,59,49,0.08)" }}>
+            <div className="space-y-2 rounded-[2px] p-3" style={{ background: "rgba(168,216,185,0.15)", border: "1px solid rgba(78,59,49,0.08)" }}>
               <div>
                 <label className="label-eyebrow">
                   {form.date_precision === "before_anchor" ? "Before which event?" : "After which event?"}
@@ -495,7 +589,7 @@ function JournalPage() {
           )}
 
           {form.date_precision === "unknown" && (
-            <p className="rounded-xl p-3 text-[12px]" style={{ background: "rgba(106,146,214,0.10)", color: "var(--foreground)" }}>
+            <p className="rounded-[2px] p-3 text-[12px]" style={{ background: "rgba(106,146,214,0.10)", color: "var(--foreground)" }}>
               That's okay. Save it now — you can come back and add a date if it comes to you later.
             </p>
           )}
@@ -520,7 +614,7 @@ function JournalPage() {
                     type="button"
                     key={t.value}
                     onClick={() => toggleType(t.value)}
-                    className="rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                    className="rounded-[2px] px-3 py-1.5 text-[12px] font-semibold transition-colors"
                     style={{
                       background: on ? t.color : "transparent",
                       color: on ? "#fff" : "var(--foreground)",
@@ -564,7 +658,7 @@ function JournalPage() {
         </div>
       </div>
 
-      <div className="collapse-shell mt-6" data-open={listOpen} aria-hidden={!listOpen}>
+      <div className="collapse-shell mt-6" data-open={listOpen} inert={!listOpen}>
         <div className="collapse-inner">
         <section
           className="card-pp"
@@ -585,8 +679,8 @@ function JournalPage() {
                    onConfirm={confirmRecord}
                   actions={
                     <>
-                      <button onClick={() => edit(i)} aria-label="Edit" className="rounded-lg p-2 hover:bg-black/5"><Pencil size={15} /></button>
-                      <button onClick={() => remove(i.id)} aria-label="Remove" className="rounded-lg p-2 hover:bg-black/5"><Trash2 size={15} /></button>
+                      <button onClick={() => edit(i)} aria-label="Edit" className="rounded-[2px] p-2 hover:bg-black/5"><Pencil size={15} /></button>
+                      <button onClick={() => remove(i.id)} aria-label="Remove" className="rounded-[2px] p-2 hover:bg-black/5"><Trash2 size={15} /></button>
                     </>
                   }
                 />
@@ -609,7 +703,7 @@ function JournalPage() {
         onCancel={() => setConfirmDelete(null)}
       />
       <CognitiveClose
-        title="See your entries on a timeline"
+        title="See your Marks on a timeline"
         body="One date next to another is where the pattern starts to show. Take a look when you're ready."
         cta="Open timeline"
         to="/timeline"

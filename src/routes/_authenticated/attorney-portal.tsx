@@ -173,9 +173,9 @@ function AttorneyPortal() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {revoked ? (
-                    <span className="rounded-full px-3 py-1 text-[11px] font-semibold" style={{ background: "var(--input)" }}>Revoked</span>
+                    <span className="rounded-[2px] px-3 py-1 text-[11px] font-semibold" style={{ background: "var(--input)" }}>Revoked</span>
                   ) : expired ? (
-                    <span className="rounded-full px-3 py-1 text-[11px] font-semibold" style={{ background: "var(--input)" }}>Expired</span>
+                    <span className="rounded-[2px] px-3 py-1 text-[11px] font-semibold" style={{ background: "var(--input)" }}>Expired</span>
                   ) : (
                     <>
                       <button onClick={() => copyLink(r.access_token)} className="btn-ghost inline-flex items-center gap-1 text-[12px]"><Link2 size={13} /> Copy link</button>

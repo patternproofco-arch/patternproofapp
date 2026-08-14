@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import JSZip from "jszip";
 import { createHash } from "crypto";
 import { z } from "zod";
+import { buildPatternExport } from "@/lib/pattern-export";
 
 function toCsv(rows: Array<Record<string, unknown>>): string {
   if (rows.length === 0) return "";
@@ -29,18 +30,20 @@ function sha256(buf: ArrayBuffer | Uint8Array): string {
  *   - voice-notes/  (audio files + transcripts)
  *
  * Uploaded to the private `exports` bucket under {userId}/{timestamp}.zip
- * and returned as a signed URL valid for 24 hours.
+ * and returned as a signed URL valid for 1 hour.
  */
 export const generateExportZip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
     z.object({
       case_id: z.string().uuid().optional().nullable(),
+      include_message_threads: z.boolean().optional(),
     }).partial().parse(input ?? {}),
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const requestedCaseId = data?.case_id ?? null;
+    const includeThreads = data?.include_message_threads !== false;
 
     // Resolve which case (if any) to scope this export to. When the survivor
     // has more than one case and did not pick one, we export ALL data (legacy
@@ -66,6 +69,9 @@ export const generateExportZip = createServerFn({ method: "POST" })
     const scopedLegalIds: string[] | null = scopedCase
       ? (((scopedCase.legal_document_ids as string[] | null) ?? []))
       : null;
+    const scopedThreadIds: string[] | null = scopedCase
+      ? (((scopedCase.attached_thread_ids as string[] | null) ?? []))
+      : null;
 
     const incQ = scopedIncidentIds
       ? (scopedIncidentIds.length
@@ -74,9 +80,9 @@ export const generateExportZip = createServerFn({ method: "POST" })
       : supabase.from("incidents").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true });
     const evQ = scopedEvidenceIds
       ? (scopedEvidenceIds.length
-          ? supabase.from("evidence").select("*").eq("user_id", userId).in("id", scopedEvidenceIds).is("deleted_at", null).order("date", { ascending: true })
+          ? supabase.from("evidence").select("*").eq("user_id", userId).in("id", scopedEvidenceIds).is("deleted_at", null).neq("review_status", "suggested").order("date", { ascending: true })
           : Promise.resolve({ data: [] as unknown[] }))
-      : supabase.from("evidence").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true });
+      : supabase.from("evidence").select("*").eq("user_id", userId).is("deleted_at", null).neq("review_status", "suggested").order("date", { ascending: true });
     const ldQ = scopedLegalIds
       ? (scopedLegalIds.length
           ? supabase.from("legal_documents").select("*").eq("user_id", userId).in("id", scopedLegalIds)
@@ -90,7 +96,7 @@ export const generateExportZip = createServerFn({ method: "POST" })
       supabase.from("communications").select("*").eq("user_id", userId).order("date", { ascending: true }),
       supabase.from("voice_notes").select("*").eq("user_id", userId).order("date", { ascending: true }),
       ldQ,
-      supabase.from("pattern_analyses").select("analysis,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1),
+      supabase.from("pattern_analyses").select("analysis,reviewed_status,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1),
       // Case metadata: use the scoped case if provided, else the most-recently-updated one (legacy).
       requestedCaseId
         ? Promise.resolve({ data: scopedCase ? [scopedCase] : [] as Record<string, unknown>[] })
@@ -130,11 +136,16 @@ export const generateExportZip = createServerFn({ method: "POST" })
       !e.family_id ? true : familyCanonical.get(e.family_id) === e.id;
 
     // Augment evidence CSV rows with family_id and is_canonical.
-    const evidenceCsvRows = evidence.map((e) => ({
-      ...e,
-      family_id: e.family_id ?? null,
-      is_canonical: isCanonical(e),
-    }));
+    // Strip quarantined GPS fields — location data is opt-in per-item in the
+    // app and MUST NOT leak into any bulk export.
+    const evidenceCsvRows = evidence.map((e) => {
+      const { gps_lat: _lat, gps_lon: _lon, gps_reveal_opt_in: _opt, ...rest } = e;
+      return {
+        ...rest,
+        family_id: e.family_id ?? null,
+        is_canonical: isCanonical(e),
+      };
+    });
 
     const zip = new JSZip();
     const exportedAt = new Date().toISOString();
@@ -147,9 +158,15 @@ export const generateExportZip = createServerFn({ method: "POST" })
     zip.file("voice_notes.csv", toCsv(voiceNotes as Array<Record<string, unknown>>));
     zip.file("legal_documents.csv", toCsv(legalDocs as Array<Record<string, unknown>>));
 
-    // Pattern analysis JSON
-    if (latestAnalysis) {
-      zip.file("pattern_analysis.json", JSON.stringify({ generated: latestAnalysis.created_at, analysis: latestAnalysis.analysis }, null, 2));
+    // Pattern analysis JSON — survivor-review gated (rejected claims stripped).
+    const gatedPattern = latestAnalysis
+      ? buildPatternExport(latestAnalysis.analysis, (latestAnalysis as { reviewed_status?: unknown }).reviewed_status)
+      : null;
+    if (latestAnalysis && gatedPattern) {
+      zip.file(
+        "pattern_analysis.json",
+        JSON.stringify({ generated: latestAnalysis.created_at, analysis: gatedPattern.redactedAnalysis }, null, 2),
+      );
     }
 
     // Case overview JSON
@@ -165,9 +182,9 @@ export const generateExportZip = createServerFn({ method: "POST" })
       `Records included: ${incidents.length} incidents, ${evidence.length} evidence files, ${comms.length} communications, ${voiceNotes.length} voice notes, ${legalDocs.length} legal documents.`,
       "",
     ];
-    if (latestAnalysis) {
-      const a = latestAnalysis.analysis as unknown as { pattern_summary?: string; escalation_arc?: string };
-      lines.push("## Pattern summary", "", a?.pattern_summary ?? "", "", "## Escalation arc", "", a?.escalation_arc ?? "", "");
+    if (gatedPattern) {
+      if (gatedPattern.lines.length) lines.push("# Pattern analysis", "", ...gatedPattern.lines);
+      else lines.push("# Pattern analysis", "", "_No AI-suggested pattern content has been confirmed by the survivor for inclusion._", "");
     }
     lines.push("## Chronology", "");
     type ChronEntry = { date: string; kind: string; text: string };
@@ -229,6 +246,79 @@ export const generateExportZip = createServerFn({ method: "POST" })
         vnFolder.file(`${safeName}.transcript.txt`, n.transcript);
       }
     }));
+
+    // Imported message conversations: original screenshots + extracted text +
+    // the full correction history, so nothing about provenance is lost.
+    if (includeThreads) {
+      const thQ = scopedThreadIds
+        ? (scopedThreadIds.length
+            ? supabase.from("message_threads").select("*").eq("user_id", userId).in("id", scopedThreadIds)
+            : Promise.resolve({ data: [] as unknown[] }))
+        : supabase.from("message_threads").select("*").eq("user_id", userId);
+      const { data: thData } = await thQ;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const threads = (thData ?? []) as any[];
+      const threadIds = threads.map((t) => t.id as string);
+      if (threadIds.length) {
+        const [msgRes, docRes] = await Promise.all([
+          supabase.from("thread_messages").select("*").eq("user_id", userId).in("thread_id", threadIds).order("position", { ascending: true }),
+          supabase.from("thread_source_documents").select("*").eq("user_id", userId).in("thread_id", threadIds).order("upload_index", { ascending: true }),
+        ]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const messages = (msgRes.data ?? []) as any[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const docs = (docRes.data ?? []) as any[];
+        const messageIds = messages.map((m) => m.id as string);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let corrections: any[] = [];
+        if (messageIds.length) {
+          const { data: corrData } = await supabase
+            .from("thread_message_corrections")
+            .select("*")
+            .eq("user_id", userId)
+            .in("message_id", messageIds)
+            .order("created_at", { ascending: true });
+          corrections = corrData ?? [];
+        }
+
+        const mtFolder = zip.folder("message-threads");
+        if (mtFolder) {
+          mtFolder.file("threads.json", JSON.stringify(threads, null, 2));
+          mtFolder.file("messages.json", JSON.stringify(messages, null, 2));
+          mtFolder.file("messages.csv", toCsv(messages as Array<Record<string, unknown>>));
+          mtFolder.file("corrections.json", JSON.stringify(corrections, null, 2));
+          mtFolder.file(
+            "README.txt",
+            [
+              "Imported message conversations",
+              "",
+              "These messages were read from screenshots uploaded by the account holder.",
+              "Text recognition happened on their own device. Each field records whether it",
+              "was extracted automatically or corrected by hand; corrections.json keeps the",
+              "original extracted value alongside every correction — nothing is overwritten.",
+              "The original screenshots are in the screenshots/ folder, hashed in manifest.json.",
+            ].join("\n"),
+          );
+
+          const shotsFolder = mtFolder.folder("screenshots");
+          await Promise.all(docs.map(async (d) => {
+            if (!shotsFolder) return;
+            const buf = await downloadFile("evidence-files", d.storage_path);
+            if (!buf) return;
+            const ext = String(d.storage_path).split(".").pop() || "png";
+            const safeName = `${String(d.upload_index).padStart(3, "0")}_${String(d.id).slice(0, 8)}.${ext}`;
+            shotsFolder.file(safeName, buf);
+            const hash = sha256(buf);
+            fileHashes.push({ path: `message-threads/screenshots/${safeName}`, sha256: hash, bytes: buf.byteLength });
+            shotsFolder.file(`${safeName}.meta.json`, JSON.stringify({
+              id: d.id, thread_id: d.thread_id, upload_index: d.upload_index,
+              original_filename: d.original_filename, ocr_status: d.ocr_status,
+              ocr_confidence: d.ocr_confidence, sha256: hash, original_path: d.storage_path,
+            }, null, 2));
+          }));
+        }
+      }
+    }
 
     // Manifest
     // Hash-of-hashes — tamper-evident root for the whole evidence set
@@ -370,7 +460,7 @@ echo "Done."
     });
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
 
-    const signed = await supabase.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 24);
+    const signed = await supabase.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 1);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" };
 
     return {

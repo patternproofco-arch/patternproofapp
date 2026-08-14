@@ -1,127 +1,68 @@
+# Evidence Intake Expansion — integration plan
 
-# PatternProof — Survivor-Integrity Audit & Phased Plan
+## What already exists (verified by reading the code/schema)
 
-This is a large brief. I've audited the existing codebase against your requirements and grouped the work into safe, shippable phases. Nothing here is destructive; every schema change is additive and RLS-preserving.
+- **Screenshot import**: `src/routes/_authenticated/import-messages.tsx` + `src/components/messages/*`, client-side OCR in `src/lib/ocr/run.ts` (Tesseract.js, browser-only) and `src/lib/ocr/parse.ts` (line grouping, bubble-side guess, timestamp parsing, fuzzy trigram dedupe with a short-text guard). Server side: `src/lib/message-import.functions.ts` with draft/`in_progress`/`complete` resume, append-only `thread_message_corrections`, `field_provenance`.
+- **Threads already flow through**: Timeline (toggle), Case Builder (`cases.attached_thread_ids`), Court Packet PDF, and the evidence ZIP export. No new export path is needed anywhere below.
+- **Evidence ingest** (`src/lib/evidence-ingest.functions.ts`): already computes `sha256` and a dHash `perceptual_hash`, and **already compares against all of the user's prior evidence** — cross-session duplicate detection exists at the data layer; it is the UI surfacing that is thin.
+- **Screen recordings**: `ScreenRecordingUpload.tsx` uploads video and calls a server AI transcription (`transcribeRecordedThread`) — that contradicts the client-side-OCR rule for this feature.
+- **Date certainty**: `incidents` has `date_precision` / `date_range_start|end` / `anchor_label`. **`evidence.date` is `NOT NULL` with no precision column** — this is the regression to restore.
+- **Voice transcription**: `transcribe-voice-note.functions.ts` exists and is reusable.
+- **Patterns**: `pattern-analysis.functions.ts` is an AI narrative analysis; the requested neutral counts are a separate, deterministic thing.
 
----
+## Schema changes (one migration, extends existing tables)
 
-## Audit — what's already in place
+- `evidence`: add `date_precision` (`exact` | `approximate` | `unknown`, default `exact`), `date_range_start`, `date_range_end`, `anchor_label`, and make `date` nullable; add `exif_choice` (`kept` | `stripped` | `none`), `voice_caption`, `voice_caption_audio_url`, `review_status` default stays as-is for "unreviewed" badging.
+- `message_threads`: add `frame_interval_sec` and reuse existing `capture_method='screen_recording'`, `import_status`, `processed_count` for resume.
+- `thread_source_documents`: add `kind` (`screenshot` | `video_frame`) and `frame_time_sec` so frames link back to their video timestamp.
+- New `intake_batches` (owner-RLS): `id`, `user_id`, `status`, `kind_counts` jsonb, `queued_files` jsonb (names/sizes/hashes for resume), `created_at/updated_at` — one row per mixed batch so uploads resume across sessions.
+- New `evidence_classification_suggestions` (owner-RLS): `evidence_id`, `suggested_kind`, `confidence`, `rationale`, `status` (`suggested`|`accepted`|`rejected`), `model`. AI output is never written onto `evidence` directly.
+- GRANTs to `authenticated` + `service_role`, RLS `auth.uid() = user_id` on all new tables, no anon.
 
-Reused as-is (do NOT rebuild):
-- Auth, RLS scaffolding, `_authenticated` gate, attorney portal split, MCP server.
-- Soft-delete (`deleted_at`) + `source` / `confirmed_at` provenance on `incidents` and `evidence` (Phase 1/2 already done).
-- `useConfirm` dialog replacing native `confirm()`.
-- Message-thread ingest + parse pipeline (`message_threads`, `thread_messages`, `parseMessageThread`).
-- Export ZIP with SHA-256 per file, `hash_of_hashes`, chain-of-custody markdown, `verify.sh`.
-- Storage buckets: `evidence-files`, `voice-notes`, `message-exports`, `exports`, `conversation-recordings` (all private).
-- Quick Exit hardening, PIN lock, Privacy/Terms, "encrypted in transit & at rest" language.
-- Pattern analysis fetcher that already excludes soft-deleted + unconfirmed AI records.
+## 1. Screen-recording transcription via client-side OCR
 
-## Critical gaps (survivor-integrity, not cosmetic)
+- New `src/lib/ocr/frames.ts`: decode the video in-browser (`HTMLVideoElement` + `canvas`), sample every ~1.5s, skip frames whose downscaled pixel diff is below a scroll threshold, then feed each kept frame through the **existing** `recognizeImage` + `parse.ts` pipeline.
+- Frames are stored as `thread_source_documents` rows (`kind='video_frame'`), so every extracted message keeps a source thumbnail exactly like screenshots. The original video stays the primary artifact.
+- Same `mergeDuplicates` pass, same thread reconstruction, same Timeline / Case Builder / Court Packet / ZIP wiring. `ScreenRecordingUpload` is repointed at this local path; the old server AI call stays only as an explicitly consented, badged fallback.
 
-1. **No mixed-file "dump everything" uploader.** Evidence upload is one-file-at-a-time and requires title/date up front. Violates "Add what you have. It does not need to be organized."
-2. **No upload state machine or Preservation Receipt.** Users can't tell what was preserved vs. rejected. No `preserved`/`extraction_pending`/`unsupported_but_preserved` states.
-3. **Originals are not hashed on ingest.** `evidence.file_url` exists but no `sha256`, `bytes`, `mime`, `original_filename`, `raw_metadata`, `preservation_status`, `integrity_verified_at`.
-4. **No derivative separation.** Previews/OCR/transcripts are not modeled as derivatives of a preserved original — future edits could overwrite originals.
-5. **Date certainty is a single `date` column.** No `date_certainty` enum, no ranges, no life-anchor placement. AI-approx dates silently become "day 1 of month".
-6. **AI extraction ≠ AI interpretation.** Both currently flow into the same "needs confirmation" bucket; interpretation isn't distinguished from field-level extraction, and there's no explanation panel or provenance record beyond `source`.
-7. **No duplicate/evidence-family grouping.** Duplicate imports inflate apparent corroboration.
-8. **No work modes.** Everything demands full journal-style entry; no Upload-Only, Memory, or Low-Energy path.
-9. **No import-completeness labeling on threads.** Absence of records reads as "nothing happened".
-10. **"Court-ready" language + "chain of custody" still present** in exports, marketing, and route names (`/court-ready`, `/court-packet`, `chain-of-custody.md`). Needs neutral wording ("Professional-review packet", "Provenance & integrity report").
-11. **Dashboard shows task-list pressure**, not "nothing requires action today" + "continue where I left off".
-12. **No audit-event stream.** `audit_log` table exists but is not written on upload/hash/extraction/AI/share events.
-13. **No Promise Registry.**
-14. **Sharing receipts** exist partially via `attorney_access` but no survivor-facing "what was shared / expiration / downloads / revoke" screen with the required warning text.
+## 2. Burden-reduction fixes
 
-## Non-goals for this pass
-Decorative redesign, new marketing pages beyond the required Safety/Privacy/Integrity/AI/Access pages, streak/gamification removal (already absent).
+- **One "Add evidence" entry point**: single dropzone/picker with `multiple`, `accept="image/*,video/*,audio/*,.pdf,..."`, plus a separate `capture="environment"` camera button for photographing paper documents. Type is auto-detected per file (MIME + extension) and routed: images/video-of-a-conversation → message import pipeline; everything else → `evidence-ingest`.
+- **Date certainty on every item**: a shared `DateCertaintyField` component (confirmed / approximate + optional anchor text / no date) used by evidence, batch intake, and threads, writing the new evidence columns. Nothing forces a date.
+- **EXIF choice**: parse EXIF in the browser before upload; if GPS or device timestamp is present, show a per-file choice — keep (strengthens timestamp/location) or strip (safer if shared). Stripping re-encodes the image client-side before upload. Never silent either way; the choice is recorded in `exif_choice` and audited.
+- **Universal resume**: `intake_batches` + IndexedDB-backed local file queue. Closing the tab mid-batch leaves a resume banner; already-uploaded files are not re-asked for.
+- **Offline queue**: the same IndexedDB queue drains automatically on `online`, with a visible "waiting for connection" state instead of a silent failure.
+- **Voice caption**: optional record-while-uploading control on any photo/video; audio goes to the existing `voice-notes` bucket and reuses the existing transcription function to fill the caption.
+- **Cross-session duplicates**: surface the existing `sha256` / `near_duplicate_of` results in the intake UI ("You added this file on 12 March") with keep-both / skip choices, and apply the same fuzzy check for re-imported screenshots.
+- **OCR fallback**: when confidence for an image or message is below threshold, show an inline "type what this says" field instead of a blank row; the typed value is recorded as a `corrected` field with full history.
+- **No correction wall**: low-confidence items save and appear in the Timeline immediately with an "unreviewed" badge and a "review when you're ready" affordance. Nothing blocks usage.
 
----
+## 3. Consent-scoped file organization suggestions
 
-## Phased implementation plan
+- No library access. She picks specific files or a date range per import; a short consent panel states exactly what leaves the device for classification and that it can be skipped entirely.
+- Classification returns a content-type guess only — document / screenshot / photo of physical damage / injury photo / other — written to `evidence_classification_suggestions`, never to `evidence`.
+- Review UI: one tap per item (or accept-all per batch) to confirm or reject. Suggestions render in the app's existing AI-content styling (distinct surface + "AI suggestion — content type only" label) and always link to the file.
+- Copy and code names use "content-type organization" throughout. No scanning-for-abuse framing anywhere.
 
-### Phase A — Public trust surface (small, low-risk, ship first)
-- Rename "Court Ready" → "Professional-review packet" in nav, route titles, CTAs (keep route slugs; only change visible text and metadata to avoid breaking links).
-- Replace "chain of custody" phrasing in ZIP + UI with "Provenance & integrity report" and clarify hash meaning ("proves stored bytes match the preserved version — not truth, authorship, or admissibility").
-- Add 4 short public pages: `/safety`, `/evidence-integrity`, `/ai-transparency`, `/professional-access`. Link from footer + `/privacy`.
-- Sweep marketing copy for "court-ready", "stronger case", "abuse detected", "guaranteed admissibility", "chain of custody" and replace per the brief.
-- Verify `/` renders unauthenticated (already true — regression-guard).
+## 4. Neutral frequency observations
 
-### Phase B — Evidence integrity core (schema + upload state machine)
-Additive migration on `evidence`:
-- `sha256 text`, `bytes bigint`, `mime text`, `original_filename text`, `raw_metadata jsonb`, `preservation_status text` (enum-like: `received|preserved|extraction_pending|needs_attention|unsupported_but_preserved|upload_incomplete`), `preserved_at timestamptz`, `integrity_verified_at timestamptz`, `family_id uuid`, `parent_evidence_id uuid` (for derivatives), `derivative_kind text` (`preview|thumb|ocr|transcript|redaction|export|null`), `import_batch_id uuid`.
-- New table `import_batches` (id, user_id, started_at, finished_at, receipt_json, source_kind). RLS scoped to owner.
-- New table `evidence_families` for duplicate grouping (id, user_id, canonical_evidence_id, note).
-- New table `audit_events` (id, user_id, actor_kind, actor_id, event_type, subject_kind, subject_id, meta jsonb, created_at). RLS: owner-read only; server-only insert via SECURITY DEFINER helper.
-- Grants + RLS per house style.
+- New deterministic `src/lib/frequency-observations.functions.ts` — SQL counts over incidents, communications, thread messages, court dates, and evidence. Examples: "4 late pickups logged this month", "3rd cancelled visitation this quarter", each returning the exact source row IDs.
+- Off until opted in (settings toggle), rendered on the Patterns page and dashboard in the AI/observation styling, each row expanding to the underlying entries.
+- Hard rule enforced in code and copy: counts and dates only — no characterization, no "pattern of abuse", no clinical or legal language. A shared vocabulary constant keeps output phrasing to `{count} {event label} {timeframe}`.
 
-Server function `ingestEvidenceBatch`:
-- Accepts an array of uploaded storage paths + client-provided metadata.
-- Streams each object, computes SHA-256 server-side, stores metadata, writes `audit_events`, returns a `PreservationReceipt`.
-- Never mutates the originally uploaded object.
+## Chronology
 
-New UI at `/evidence` → "Add what you have":
-- Multi-file dropzone (no title/date required).
-- Post-upload Preservation Receipt panel with per-file state chips.
-- Warning banner: "Do not delete your original source based only on this import."
+All new sources normalize to the same timeline item shape already used by threads and evidence: exact dates sort by date, approximate dates sort by range midpoint with a visible "approximate" marker, unknown dates collect in an "undated" section rather than being guessed into place.
 
-### Phase C — Date certainty + memory fragments
-Additive on `incidents`:
-- `date_certainty text` (`exact|approximate|month_year|range|before_anchor|after_anchor|between_anchors|sequence_only|unknown|conflicting`)
-- `date_start date`, `date_end date`, `anchor_before_id uuid`, `anchor_after_id uuid`, `is_memory_fragment boolean default false`.
+## Build order
 
-New table `life_anchors` (id, user_id, label, kind, start_date, end_date, notes) with RLS.
-
-UI:
-- Journal "Memory Mode" toggle → allows saving without a date; renders in timeline with an "Uncertain date" pill.
-- Date input becomes a Certainty selector; existing `date` stays for exact/backfill compat.
-
-### Phase D — AI extraction/interpretation split + explanation panel
-- New table `ai_suggestions` (id, user_id, subject_kind, subject_id, kind: `extraction|interpretation`, payload jsonb, model, model_version, instruction_version, source_record_ids jsonb, status: `pending|confirmed|edited|rejected|unsure|deferred`, decided_at, decided_reason).
-- Every AI-emitted field on incidents/evidence writes a matching `ai_suggestions` row instead of silently mutating the record.
-- UI Explanation panel component (`AiExplanation`) rendered next to any AI-derived field: what/why/sources/uncertainty/next steps + Confirm/Edit/Reject/Unsure/Later.
-- Rejected suggestions are excluded from every export by `ai_suggestions.status <> 'rejected'` filter.
-
-### Phase E — Duplicate/evidence-family grouping + completeness
-- On ingest, compute perceptual + exact duplicate signals; group into `evidence_families`; UI shows "N files represent 1 underlying record".
-- `message_threads.completeness_status text` (`known_complete|complete_for_range|partial|screenshots_only|attachments_missing|possible_gaps|unknown`). Survivor sets it; default `unknown`. Empty-period copy switches to "No records are currently imported for this period."
-
-### Phase F — Work modes + calmer dashboard
-- Settings-persisted `work_mode` on `user_metadata`: `upload_only|low_energy|memory|organize|pattern_review|handoff`.
-- Dashboard rewritten to show: preserved count, organized count, uncertain dates, next 1–3 useful actions, "Continue where I left off", and — when applicable — "Nothing requires action today." No % complete.
-
-### Phase G — Sharing receipts + professional-review export rename
-- Survivor-facing "Share history" view listing every grant: recipient, records, permissions, expiration, downloads, exports, revocation, with the required post-revocation warning.
-- Rename export artifacts: `chain-of-custody.md` → `provenance-and-integrity.md`; ZIP filename prefix `patternproof-professional-review-`; include disclaimer block from brief.
-- Redactions always produce `derivative_kind='redaction'` derivative; originals untouched.
-
-### Phase H — Audit stream wiring + Promise Registry
-- Wire `audit_events` writes into upload, hash, extraction, AI decisions, share grant/revoke, export, view.
-- New file `docs/promise-registry.md` listing every public promise with control, proof, test, owner, failure behavior. Enforced in PR review; no marketing claim ships without a row.
-
----
-
-## First safe code changes (this session, after you approve)
-
-Ship Phase A end-to-end + start Phase B migration (schema only, no data change):
-
-1. Rename user-visible "court-ready" / "chain of custody" strings across nav, dashboard, exports, marketing pages. Keep route slugs.
-2. Add `/safety`, `/evidence-integrity`, `/ai-transparency`, `/professional-access` routes with plain-language copy and correct qualifiers.
-3. Update export ZIP: rename `chain-of-custody.md` inside the archive, adjust integrity note, add professional-review disclaimer, prefix ZIP filename.
-4. Migration: add integrity columns to `evidence` (nullable, no backfill), create `import_batches`, `evidence_families`, `audit_events` with grants + RLS. No UI hooked up yet — safe on prod.
-5. Regression check: `/` renders unauthenticated; existing evidence rows still load (all new columns nullable).
-
-Everything after Phase A/B lands in follow-up turns so each phase is reviewable in isolation.
-
----
-
-## Technical notes
-
-- All new tables follow the mandatory GRANT → RLS → POLICY order; `audit_events` has no user-facing INSERT policy (server-only via SECURITY DEFINER `record_audit_event(...)`).
-- SHA-256 computed inside `createServerFn` handlers using Node `crypto` (already used in `export-zip.functions.ts`) — Worker-runtime safe.
-- No changes to `auth`, `storage`, `vault`, or `supabase_functions` schemas.
-- No secrets moved to client; Clio placeholder stays neutralized.
-- No destructive migrations; existing survivor data is preserved and all new columns are nullable with sane defaults.
-
-Reply "go" to ship Phase A + the Phase B migration, or tell me which phase to start with.
+1. Migration (schema above).
+2. Date-certainty field + evidence nullable-date wiring (restores the lost spec first).
+3. Mixed-batch intake: dropzone, camera capture, type routing, EXIF choice, duplicate surfacing.
+4. IndexedDB queue → universal resume + offline drain.
+5. Video frame extraction into the existing OCR/dedupe/thread pipeline.
+6. OCR fallback + unreviewed badging in Timeline.
+7. Voice caption.
+8. Consent-scoped classification suggestions.
+9. Neutral frequency observations, opt-in.
+10. Playwright pass across intake, resume, and timeline ordering.

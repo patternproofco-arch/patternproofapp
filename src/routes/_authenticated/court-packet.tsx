@@ -4,7 +4,8 @@ import { Printer, Edit3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { typeLabel } from "@/lib/abuse-types";
-import { useSubscription } from "@/hooks/useSubscription";
+import { BrandLogo } from "@/components/BrandLogo";
+import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/court-packet")({
   component: CourtPacket,
@@ -33,12 +34,6 @@ interface LegalDoc {
 function CourtPacket() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const sub = useSubscription();
-  useEffect(() => {
-    if (!sub.loading && sub.tier === "core") {
-      navigate({ to: "/court-ready", replace: true });
-    }
-  }, [sub.loading, sub.tier, navigate]);
   const [caseRow, setCaseRow] = useState<CaseRow | null>(null);
   const [incidents, setIncidents] = useState<Inc[]>([]);
   const [evidence, setEvidence] = useState<Ev[]>([]);
@@ -92,6 +87,7 @@ function CourtPacket() {
   if (!caseRow) {
     return (
       <div>
+        <HubTabs tabs={CASE_TABS} />
           <div className="label-eyebrow">Professional-review packet</div>
         <h1 className="mt-2 font-serif text-[34px] leading-tight">Your packet isn't ready yet.</h1>
         <div className="card-pp mt-6">
@@ -108,6 +104,7 @@ function CourtPacket() {
 
   return (
     <div>
+      <HubTabs tabs={CASE_TABS} />
       <div className="no-print mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="label-eyebrow">Professional-review packet</div>
@@ -119,12 +116,10 @@ function CourtPacket() {
         </div>
       </div>
 
-      <div id="packet" style={{ background: "#fff", color: "#000", padding: "32px 36px", borderRadius: 12, fontFamily: "system-ui, sans-serif", fontSize: 14, lineHeight: 1.55 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderBottom: "2px solid #E77B56", paddingBottom: 10 }}>
-          <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 22, fontWeight: 700 }}>
-            PatternProof
-          </div>
-          <div style={{ fontSize: 12, color: "#444" }}>Prepared {today}</div>
+      <div id="packet" style={{ background: "#fff", color: "#1A1224", padding: "32px 36px", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 14, lineHeight: 1.55 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(26,18,36,0.14)", paddingBottom: 14 }}>
+          <BrandLogo size={40} showTagline={false} />
+          <div style={{ fontFamily: "'Space Grotesk', ui-monospace, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#6E6579" }}>Prepared {today}</div>
         </div>
 
         <Section title="Case Overview">
@@ -146,7 +141,7 @@ function CourtPacket() {
               </thead>
               <tbody>
                 {incidents.map((i, idx) => (
-                  <tr key={i.id} style={{ background: idx % 2 ? "#F5E6DF" : "#fff" }}>
+                  <tr key={i.id} style={{ background: idx % 2 ? "#FAFAF8" : "#fff" }}>
                     <td style={td}>{new Date(i.date).toLocaleDateString()}</td>
                     <td style={td}>{i.abuse_types.map(typeLabel).join(", ")}</td>
                     <td style={td}>{i.description}</td>
@@ -178,8 +173,8 @@ function CourtPacket() {
           {evidence.filter((e) => e.file_type === "image" && evUrls[e.id]).length > 0 && (
             <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
               {evidence.filter((e) => e.file_type === "image" && evUrls[e.id]).map((e) => (
-                <figure key={e.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 6 }}>
-                  <img src={evUrls[e.id]} alt={e.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 4 }} />
+                <figure key={e.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 2 }}>
+                  <img src={evUrls[e.id]} alt={e.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 2 }} />
                   <figcaption style={{ marginTop: 4, fontSize: 11 }}>{e.title} · {new Date(e.date).toLocaleDateString()}</figcaption>
                 </figure>
               ))}
@@ -215,8 +210,8 @@ function CourtPacket() {
           {legalDocs.filter((d) => d.file_type.startsWith("image/") && legalUrls[d.id]).length > 0 && (
             <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
               {legalDocs.filter((d) => d.file_type.startsWith("image/") && legalUrls[d.id]).map((d) => (
-                <figure key={d.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 6 }}>
-                  <img src={legalUrls[d.id]} alt={d.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 4 }} />
+                <figure key={d.id} style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 2 }}>
+                  <img src={legalUrls[d.id]} alt={d.title} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 2 }} />
                   <figcaption style={{ marginTop: 4, fontSize: 11 }}>{d.title}</figcaption>
                 </figure>
               ))}
