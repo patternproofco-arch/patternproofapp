@@ -72,8 +72,10 @@ function RequestOrgAccess() {
                 <div>
                   <div style={{ fontWeight: 700, marginBottom: 4 }}>Request received.</div>
                   <div style={{ fontSize: 14, color: "var(--muted-foreground)" }}>
-                    We'll review it and reply within a few days. Once your organization is approved
-                    we'll set up your referral link and a partner login.
+                    We'll review it and reply within a few days. Once we approve your organization,
+                    survivors who sign up through your link stay free forever. Once your account is
+                    set up, you'll have your own partner dashboard at /org-portal showing referral
+                    counts anytime.
                   </div>
                 </div>
               </div>
@@ -117,6 +119,10 @@ function RequestOrgAccess() {
           Already partnering with us?{" "}
           <Link to="/org-feedback" style={{ color: "#5E1730", fontWeight: 600, textDecoration: "underline" }}>
             Share feedback about PatternProof
+          </Link>{" "}
+          ·{" "}
+          <Link to="/org-portal" style={{ color: "#5E1730", fontWeight: 600, textDecoration: "underline" }}>
+            Go to your partner dashboard
           </Link>
         </div>
       </div>
