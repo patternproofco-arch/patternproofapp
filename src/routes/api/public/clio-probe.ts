@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/api/public/__clio-probe")({
+export const Route = createFileRoute("/api/public/clio-probe")({
   server: {
     handlers: {
       GET: async () => {
