@@ -105,6 +105,37 @@ describe("clio availability gating", () => {
     expect(await availability()).toEqual({ available: true, reason: "ok" });
   });
 
+  it.each(["true", "True", "TRUE", "  true  ", "\ttrue\n"])(
+    "treats %j as enabled",
+    async (flag) => {
+      process.env.CLIO_CLIENT_ID = "id";
+      process.env.CLIO_CLIENT_SECRET = "secret";
+      process.env.CLIO_TOKEN_ENC_KEY = "key";
+      process.env.CLIO_INTEGRATION_ENABLED = flag;
+      expect(await availability()).toEqual({ available: true, reason: "ok" });
+    },
+  );
+
+  it.each(["false", "False", "", "   ", "1", "yes", "truthy", "no"])(
+    "treats %j as not enabled",
+    async (flag) => {
+      process.env.CLIO_CLIENT_ID = "id";
+      process.env.CLIO_CLIENT_SECRET = "secret";
+      process.env.CLIO_TOKEN_ENC_KEY = "key";
+      process.env.CLIO_INTEGRATION_ENABLED = flag;
+      expect(await availability()).toEqual({ available: false, reason: "not_enabled" });
+    },
+  );
+
+  it("normalizer accepts only a normalized 'true'", async () => {
+    const { clioIntegrationFlagEnabled } = await import("@/lib/clio.server");
+    expect(clioIntegrationFlagEnabled("TRUE")).toBe(true);
+    expect(clioIntegrationFlagEnabled(" True ")).toBe(true);
+    expect(clioIntegrationFlagEnabled(undefined)).toBe(false);
+    expect(clioIntegrationFlagEnabled(null)).toBe(false);
+    expect(clioIntegrationFlagEnabled("true false")).toBe(false);
+  });
+
   it("assertClioAvailable throws the user-facing gate message when off", async () => {
     delete process.env.CLIO_CLIENT_ID;
     vi.resetModules();
