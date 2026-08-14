@@ -28,6 +28,28 @@ function computeActive(row: {
   return false;
 }
 
+/**
+ * Realtime topics must be unique per subscribing instance: the Supabase client
+ * keys channels by topic, so two mounts sharing one topic break the second
+ * subscribe(). `instanceId` comes from React's useId.
+ */
+export function subscriptionChannelTopic(userId: string, instanceId: string): string {
+  return `sub-${userId}-${instanceId.replace(/[^A-Za-z0-9_-]/g, "")}`;
+}
+
+function unusedComputeActive(row: {
+  status: string;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+} | null): boolean {
+  if (!row) return false;
+  const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
+  const future = end === null || end > Date.now();
+  if (["active", "trialing", "past_due"].includes(row.status) && future) return true;
+  if (row.status === "canceled" && end && end > Date.now()) return true;
+  return false;
+}
+
 export function useSubscription(): SubscriptionState {
   const fetcher = useServerFn(getMySubscription);
   // The /billing screen mounts this hook twice (once in the _attorney layout,
