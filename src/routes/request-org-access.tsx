@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/request-org-access")({
   head: () => ({
     meta: [
-      { title: "Request DV organization access — PatternProof" },
+      { title: "PatternProof — Request DV organization access" },
       { name: "description", content: "Request invite-only access to PatternProof for your domestic violence organization." },
       { property: "og:title", content: "Request DV organization access — PatternProof" },
       { property: "og:description", content: "Invite-only access for DV organizations and advocates." },

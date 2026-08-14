@@ -24,7 +24,7 @@ const MONO = "'Space Grotesk', ui-monospace, monospace";
 export const Route = createFileRoute("/for-attorneys")({
   head: () => ({
     meta: [
-      { title: "For attorneys — PatternProof" },
+      { title: "PatternProof — For attorneys" },
       { name: "description", content: "Stop rebuilding what your client already lived. PatternProof hands you a structured, source-linked chronology on day one — so hearing prep goes to strategy, not sorting screenshots." },
       { property: "og:title", content: "PatternProof for attorneys" },
       { property: "og:description", content: "A structured, source-linked chronology on day one — not a shoebox of screenshots." },
