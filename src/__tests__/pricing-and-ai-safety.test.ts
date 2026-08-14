@@ -42,37 +42,67 @@ describe("attorney pricing", () => {
 });
 
 describe("AI safety: never diagnose", () => {
-  const FORBIDDEN = [/DARVO/i, /gaslight/i, /love[- ]bomb/i, /abuser_tactics/, /\/abuser-tactics/];
+  // Live (non-comment) source may not reference the removed diagnostic fields
+  // or name psychological tactics. Comment lines documenting the removal are
+  // allowed, but NO file is exempt wholesale.
+  const FORBIDDEN = [/abuser_tactics/, /main_pattern_label/, /secondary_patterns/, /what_pattern_may_show/, /DARVO/i, /love[- ]bomb/i, /\/abuser-tactics/];
+  // Guardrail prompts name terms only to forbid the model from using them.
+  const GUARDRAIL = /ai-chat\.functions\.ts|agent-prompt\.ts/;
 
-  it("never names or infers psychological tactics in product or prompt source", () => {
+  function liveLines(text: string) {
+    let inBlock = false;
+    return text.split("\n").filter((line) => {
+      const t = line.trim();
+      if (inBlock) {
+        if (t.includes("*/")) inBlock = false;
+        return false;
+      }
+      if (t.startsWith("/*")) {
+        if (!t.includes("*/")) inBlock = true;
+        return false;
+      }
+      return !t.startsWith("//") && !t.startsWith("*");
+    });
+  }
+
+  it("has no live reference to the removed diagnostic fields or tactic labels", () => {
     const offenders: string[] = [];
     for (const [file, text] of SOURCES) {
-      // AI guardrail prompts may name terms only to forbid/reflect them.
-      const isGuardrail = /ai-chat\.functions\.ts|agent-prompt\.ts/.test(file);
-      for (const re of FORBIDDEN) {
-        const m = text.match(re);
-        if (!m) continue;
-        if (isGuardrail) continue;
-        // Comments documenting the removal are allowed.
-        offenders.push(`${file}: ${m[0]}`);
-      }
+      if (GUARDRAIL.test(file)) continue;
+      liveLines(text).forEach((line, i) => {
+        for (const re of FORBIDDEN) {
+          if (re.test(line)) offenders.push(`${file}:${i + 1}: ${line.trim().slice(0, 80)}`);
+        }
+      });
     }
-    expect(offenders.filter((o) => !/pattern-analysis\.functions\.ts|pattern-export\.ts|attorney-portal\.functions\.ts/.test(o))).toEqual([]);
+    expect(offenders).toEqual([]);
   });
 
-  it("has no /abuser-tactics route", () => {
+  it("keeps the attorney_summary prompt to dates, counts, and frequency only", () => {
+    const src = readFileSync("src/lib/pattern-analysis.functions.ts", "utf8");
+    expect(src).toMatch(/attorney_summary/);
+    expect(src).toMatch(/FREQUENCY ONLY/);
+    expect(src).not.toMatch(/tactic/i);
+  });
+
+  it("has no /abuser-tactics route or route-tree entry", () => {
     expect(SOURCES.some(([f]) => f.includes("abuser-tactics"))).toBe(false);
+    expect(readFileSync("src/routeTree.gen.ts", "utf8")).not.toContain("abuser-tactics");
   });
 
   it("ignores abuser_tactics on legacy cached analyses", () => {
     const legacy = {
-      abuser_tactics: [{ tactic: "Gaslighting", description: "legacy label" }],
+      abuser_tactics: [{ tactic: "Legacy label", description: "legacy description" }],
+      main_pattern_label: "Legacy primary pattern",
+      secondary_patterns: ["Legacy secondary"],
+      what_pattern_may_show: "Legacy interpretation",
       attorney_summary: "12 entries between March and August.",
     };
     const r = buildPatternExport(legacy, { attorney_summary: { status: "confirmed" } });
     const blob = JSON.stringify(r.redactedAnalysis) + r.lines.join("\n");
-    expect(blob).not.toContain("Gaslighting");
-    expect(blob).not.toContain("legacy label");
+    for (const s of ["Legacy label", "legacy description", "Legacy primary pattern", "Legacy secondary", "Legacy interpretation"]) {
+      expect(blob).not.toContain(s);
+    }
     expect(r.redactedAnalysis.attorney_summary).toBe("12 entries between March and August.");
   });
 });
