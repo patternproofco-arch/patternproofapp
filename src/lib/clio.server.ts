@@ -35,10 +35,18 @@ export function clioAvailability(): ClioAvailability {
   if (!tokenEncryptionAvailable()) {
     return { available: false, reason: "missing_encryption_key" };
   }
-  if (process.env.CLIO_INTEGRATION_ENABLED !== "true") {
+  if (!clioIntegrationFlagEnabled(process.env.CLIO_INTEGRATION_ENABLED)) {
     return { available: false, reason: "not_enabled" };
   }
   return { available: true, reason: "ok" };
+}
+
+/**
+ * The enable flag is entered by a human in a secrets UI, so tolerate casing and
+ * stray whitespace ("True", " TRUE ") while still accepting only "true".
+ */
+export function clioIntegrationFlagEnabled(raw: string | undefined | null): boolean {
+  return (raw ?? "").trim().toLowerCase() === "true";
 }
 
 export function assertClioAvailable(): void {
