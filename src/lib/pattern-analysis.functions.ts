@@ -42,11 +42,8 @@ export interface PatternAnalysisResult {
 const TOOL_SCHEMA = {
   type: "object",
   properties: {
-    pattern_summary: { type: "string", description: "2-4 sentence plain-language summary of the overall pattern, suitable to drop into a court packet. First-person about the survivor's experience, factual, no legal conclusions." },
-    escalation_arc: { type: "string", description: "Brief narrative describing whether and how severity has shifted over time. Use phrases like 'increased frequency in spring', not statistics." },
     frequency_trends: { type: "array", items: { type: "object", properties: { period: { type: "string" }, count: { type: "integer" }, note: { type: "string" } }, required: ["period", "count"] } },
     abuse_type_breakdown: { type: "array", items: { type: "object", properties: { type: { type: "string" }, count: { type: "integer" }, percent: { type: "number" } }, required: ["type", "count", "percent"] } },
-    severity_trajectory: { type: "string", enum: ["decreasing", "stable", "increasing", "volatile", "unknown"] },
     gaps: { type: "array", items: { type: "object", properties: { gap: { type: "string", description: "What's missing or unclear in the record" }, suggestion: { type: "string", description: "Gentle, specific suggestion of what to add" } }, required: ["gap", "suggestion"] } },
     suggested_followups: { type: "array", items: { type: "string" }, description: "Concrete next documentation steps in the user's voice" },
     corroborating_incident_count: { type: "integer", description: "Plain count of incidents in the provided records that describe the primary pattern. A count only — do not interpret it, rate it, or convert it into a strength or confidence judgement." },
@@ -62,11 +59,6 @@ const TOOL_SCHEMA = {
         required: ["date", "description", "category"],
       },
     },
-    pattern_timeline_text: { type: "string", description: "Left-to-right text representation of the cycle using arrows, e.g. 'Calm → Boundary Set → Accusation → Threat → Silence → Charm → Calm → Repeat'." },
-    common_triggers: { type: "array", items: { type: "string" } },
-    escalation_before: { type: "string" },
-    escalation_during: { type: "string" },
-    escalation_after: { type: "string" },
     what_to_document_next: { type: "array", items: { type: "string" } },
     attorney_summary: { type: "string", description: "Neutral restatement of frequency only, suitable for professional review. State counts, date ranges and dates drawn from the records provided (e.g. 'The records contain 14 entries between 3 March and 2 August 2026; 6 fall on custody-exchange dates.'). Do NOT characterise the record as a cycle, escalation, pattern of abuse, or any named dynamic. Do NOT interpret, diagnose, rate, or draw conclusions. Counts, dates and the survivor's own wording only." },
     severity_indicators: {
@@ -83,7 +75,7 @@ const TOOL_SCHEMA = {
       },
     },
   },
-  required: ["pattern_summary", "escalation_arc", "frequency_trends", "abuse_type_breakdown", "severity_trajectory", "gaps", "suggested_followups", "corroborating_incident_count", "evidence_list", "pattern_timeline_text", "common_triggers", "escalation_before", "escalation_during", "escalation_after", "what_to_document_next", "attorney_summary", "severity_indicators"],
+  required: ["frequency_trends", "abuse_type_breakdown", "gaps", "suggested_followups", "corroborating_incident_count", "evidence_list", "what_to_document_next", "attorney_summary", "severity_indicators"],
   additionalProperties: false,
 };
 
