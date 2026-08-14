@@ -20,7 +20,7 @@ const MONO = "'Space Grotesk', ui-monospace, monospace";
 export const Route = createFileRoute("/for-organizations")({
   head: () => ({
     meta: [
-      { title: "For DV organizations — PatternProof" },
+      { title: "PatternProof — For DV organizations" },
       { name: "description", content: "A free, private documentation tool you can hand every survivor at intake. No cost to your org, no data-sharing with PatternProof — just a cleaner referral to counsel." },
       { property: "og:title", content: "PatternProof — Partner referrals for DV organizations" },
       { property: "og:description", content: "Free survivor tool your advocates can hand out at intake. Cleaner referrals, no cost, no data-sharing." },

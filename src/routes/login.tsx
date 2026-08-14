@@ -20,7 +20,7 @@ export const Route = createFileRoute("/login")({
   },
   head: () => ({
     meta: [
-      { title: "Sign in — PatternProof" },
+      { title: "PatternProof — Sign in" },
       { name: "description", content: "Sign in or create your PatternProof account to privately document incidents, evidence, and build your case." },
       { property: "og:title", content: "Sign in — PatternProof" },
       { property: "og:description", content: "Access your private documentation space. Protected with per-user access controls and encrypted in transit." },
