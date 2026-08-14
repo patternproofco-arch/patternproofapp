@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useId, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getMySubscription } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -30,6 +30,11 @@ function computeActive(row: {
 
 export function useSubscription(): SubscriptionState {
   const fetcher = useServerFn(getMySubscription);
+  // The /billing screen mounts this hook twice (once in the _attorney layout,
+  // once in the page). Two Realtime channels sharing one topic makes the second
+  // subscribe() fail ("tried to subscribe multiple times"), which surfaced as a
+  // crash on that route. A per-instance suffix keeps the topics distinct.
+  const instanceId = useId();
   const [row, setRow] = useState<Awaited<ReturnType<typeof getMySubscription>>["subscription"]>(null);
   const [loading, setLoading] = useState(true);
 
@@ -67,7 +72,7 @@ export function useSubscription(): SubscriptionState {
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
-      .channel(`sub-${userId}`)
+      .channel(subscriptionChannelTopic(userId, instanceId))
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${userId}` },
@@ -75,7 +80,7 @@ export function useSubscription(): SubscriptionState {
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [userId]);
+  }, [userId, instanceId]);
 
   return {
     loading,
