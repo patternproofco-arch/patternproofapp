@@ -178,11 +178,6 @@ function PatternsPage() {
             </div>
           )}
 
-          <div className="card-pp lg:col-span-2">
-            <div className="label-eyebrow">Summary</div>
-            <p className="mt-2 font-serif text-[18px] leading-relaxed">{analysis.pattern_summary}</p>
-          </div>
-
           {/* 3. Evidence Supporting This Pattern */}
           {analysis.evidence_list && analysis.evidence_list.length > 0 && (
             <div className="card-pp lg:col-span-2">
@@ -199,46 +194,6 @@ function PatternsPage() {
               </ul>
             </div>
           )}
-
-          {/* 4. Pattern Timeline */}
-          {analysis.pattern_timeline_text && (
-            <div className="card-pp lg:col-span-2">
-              <div className="label-eyebrow">Pattern timeline</div>
-              <div className="mt-3 flex flex-wrap items-center gap-2 font-serif text-[15px]">
-                {analysis.pattern_timeline_text.split(/→|->/).map((seg, i, arr) => (
-                  <span key={i} className="flex items-center gap-2">
-                    <span className="rounded-[2px] px-3 py-1.5" style={{ background: "var(--input)" }}>{seg.trim()}</span>
-                    {i < arr.length - 1 && <span style={{ color: "var(--muted-foreground)" }}>→</span>}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 5. Triggers + Escalation phases */}
-          {analysis.common_triggers && analysis.common_triggers.length > 0 && (
-            <div className="card-pp" style={{ borderLeft: "3px solid var(--accent)" }}>
-              <div className="label-eyebrow">Common triggers</div>
-              <ul className="mt-2 space-y-1 text-[14px]">
-                {analysis.common_triggers.map((t, i) => <li key={i}>· {t}</li>)}
-              </ul>
-            </div>
-          )}
-          {(analysis.escalation_before || analysis.escalation_during || analysis.escalation_after) && (
-            <div className="card-pp">
-              <div className="label-eyebrow">Before, during, after</div>
-              <div className="mt-2 space-y-2 text-[14px] leading-relaxed">
-                {analysis.escalation_before && <p><span className="font-bold">Before: </span>{analysis.escalation_before}</p>}
-                {analysis.escalation_during && <p><span className="font-bold">During: </span>{analysis.escalation_during}</p>}
-                {analysis.escalation_after && <p><span className="font-bold">After: </span>{analysis.escalation_after}</p>}
-              </div>
-            </div>
-          )}
-
-          <div className="card-pp" style={{ borderLeft: "3px solid var(--primary)" }}>
-            <div className="label-eyebrow">Change over time · {analysis.severity_trajectory}</div>
-            <p className="mt-2 text-[14px] leading-relaxed">{analysis.escalation_arc}</p>
-          </div>
 
           <div className="card-pp" style={{ borderLeft: "3px solid var(--accent)" }}>
             <div className="label-eyebrow">Frequency over time</div>
