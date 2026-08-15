@@ -9,35 +9,39 @@
    ============================================================ */
 
 .att-root {
-  --att-bg: #FAF8F4;
+  /* PatternProof cube palette — indigo/violet. Reading surfaces stay white. */
+  --att-bg: #F6F5FB;
   --att-surface: #FFFFFF;
-  --att-surface-2: #FAFAF8;
-  --att-border: rgba(26,18,36,0.14);
-  --att-border-strong: rgba(26,18,36,0.22);
-  --att-navy: #4A2A6B;
-  --att-navy-mid: #22314F;
-  --att-navy-deep: #0E1729;
-  --att-slate: #63708A;
-  --att-text: #1A1224;
-  --att-text-2: #4C596F;
-  --att-muted: #6E6579;
+  --att-surface-2: #F2F1FA;
+  --att-border: rgba(31,33,101,0.16);
+  --att-border-strong: rgba(31,33,101,0.26);
+  --att-ink: #010310;
+  --att-navy: #2A2C95;
+  --att-navy-mid: #1F2165;
+  --att-navy-deep: #010310;
+  --att-slate: #565A86;
+  --att-text: #0B0D2A;
+  --att-text-2: #3B3F6B;
+  --att-muted: #6B6F95;
 
-  /* single accent — navy. No other accent colour on attorney screens. */
-  --att-accent: #4A2A6B;
-  --att-accent-hover: #22314F;
-  --att-accent-soft: rgba(21,32,56,0.06);
-  --att-accent-border: rgba(21,32,56,0.24);
+  /* single accent — violet. No other accent colour on attorney screens. */
+  --att-accent: #4539BD;
+  --att-accent-hover: #6753E0;
+  --att-accent-soft: rgba(69,57,189,0.07);
+  --att-accent-border: rgba(69,57,189,0.28);
+  --att-accent-glow: rgba(103,83,224,0.30);
+  --att-accent-soft-2: #8976E1;
 
-  /* status aliases — all resolve to navy/ink so nothing competes with the accent */
-  --att-green: #4A2A6B;
-  --att-amber: #4C596F;
-  --att-red: #1A1224;
-  --att-blue: #4A2A6B;
-  --att-pp-pink: #4A2A6B;
+  /* status aliases — all resolve to indigo/ink so nothing competes with the accent */
+  --att-green: #2A2C95;
+  --att-amber: #3B3F6B;
+  --att-red: #010310;
+  --att-blue: #4539BD;
+  --att-pp-pink: #4539BD;
 
   background: var(--att-bg);
   color: var(--att-text);
-  --pp-accent: #4A2A6B;
+  --pp-accent: #4539BD;
   --pp-accent-fg: #FFFFFF;
   font-family: "Space Grotesk", system-ui, sans-serif;
   font-size: 13px;
@@ -141,16 +145,16 @@
 }
 .att-btn-primary { background: var(--att-navy); color: #fff; }
 .att-btn-primary:hover:not(:disabled) { background: var(--att-navy-mid); }
-.att-btn-primary:disabled { background: #A6AEBD; cursor: not-allowed; }
+.att-btn-primary:disabled { background: #A9ABC7; cursor: not-allowed; }
 
 .att-btn-accent { background: var(--att-accent); color: #fff; }
 .att-btn-accent:hover:not(:disabled) { background: var(--att-accent-hover); }
-.att-btn-accent:disabled { background: #C9BFA8; cursor: not-allowed; }
+.att-btn-accent:disabled { background: #BDB8DC; cursor: not-allowed; }
 
 /* legacy alias — export actions now read as the accent, not green */
 .att-btn-export { background: var(--att-accent); color: #fff; }
 .att-btn-export:hover:not(:disabled) { background: var(--att-accent-hover); }
-.att-btn-export:disabled { background: #C9BFA8; cursor: not-allowed; }
+.att-btn-export:disabled { background: #BDB8DC; cursor: not-allowed; }
 
 .att-btn-secondary {
   background: var(--att-surface); color: var(--att-navy);
@@ -162,7 +166,7 @@
   background: transparent; color: var(--att-text-2);
   padding: 5px 8px; font-weight: 500;
 }
-.att-btn-ghost:hover { background: #E9EDF4; color: var(--att-text); }
+.att-btn-ghost:hover { background: #EAE8F7; color: var(--att-text); }
 
 .att-btn-xs { padding: 4px 8px; font-size: 11.5px; border-radius: 2px; }
 
@@ -180,8 +184,8 @@
 }
 .att-input:focus, .att-select:focus, .att-textarea:focus {
   outline: none;
-  border-color: var(--att-navy);
-  box-shadow: 0 0 0 2px rgba(21,32,56,0.12);
+  border-color: var(--att-accent);
+  box-shadow: 0 0 0 3px var(--att-accent-glow);
 }
 .att-textarea { min-height: 76px; resize: vertical; }
 .att-search-wrap { position: relative; display: inline-flex; align-items: center; }
@@ -233,7 +237,7 @@
   vertical-align: middle;
 }
 .att-table tbody tr { background: var(--att-surface); }
-.att-table tbody tr:hover { background: #EEF2F8; }
+.att-table tbody tr:hover { background: #F2F1FA; }
 .att-table tbody tr.att-row:focus-visible,
 .att-table tbody tr.att-row.is-cursor {
   outline: none;
@@ -279,12 +283,12 @@
   background: var(--att-surface-2); color: var(--att-text-2);
 }
 .att-badge--zero { color: var(--att-muted); border-color: var(--att-border); }
-.att-badge--flag { background: var(--att-accent-soft); border-color: var(--att-accent-border); color: #7C5A1E; }
-.att-badge--navy { background: transparent; border-color: rgba(21,32,56,0.3); color: var(--att-navy); }
+.att-badge--flag { background: var(--att-accent-soft); border-color: var(--att-accent-border); color: var(--att-accent); }
+.att-badge--navy { background: transparent; border-color: rgba(31,33,101,0.32); color: var(--att-navy); }
 
 /* ---------- top nav ---------- */
 .att-nav {
-  background: var(--att-navy);
+  background: var(--att-ink);
   color: #fff;
   height: 48px;
   padding: 0 18px;
@@ -295,7 +299,7 @@
 .att-nav-brand {
   display: inline-flex; align-items: center; gap: 8px;
   color: #fff;
-  --pp-accent: #4A2A6B;
+  --pp-accent: #8976E1;
   --pp-accent-fg: #FFFFFF;
   font-family: "Space Grotesk", system-ui, sans-serif;
   font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
@@ -310,11 +314,11 @@
   text-decoration: none;
   background: transparent; border: none; cursor: pointer; font-family: inherit;
 }
-.att-nav-tab:hover { color: #fff; background: rgba(255,255,255,0.09); }
+.att-nav-tab:hover { color: #fff; background: rgba(137,118,225,0.18); }
 .att-nav-tab.active {
-  color: #fff; background: rgba(255,255,255,0.12);
+  color: #fff; background: rgba(103,83,224,0.24);
   font-weight: 600;
-  box-shadow: inset 0 -2px 0 var(--att-accent);
+  box-shadow: inset 0 -2px 0 var(--att-accent-soft-2);
 }
 .att-nav-meta {
   display: flex; align-items: center; gap: 12px;
@@ -401,43 +405,50 @@
   flex-direction: column;
   gap: 2px;
   padding: 14px 10px;
-  background: var(--att-surface);
-  border-right: 1px solid var(--att-border);
+  background: var(--att-ink);
+  border-right: 1px solid rgba(255,255,255,0.08);
 }
 .att-sidebar-brand {
   display: flex; align-items: center; gap: 8px;
   padding: 4px 8px 14px;
-  color: var(--att-text);
+  color: #F4F3FB;
   text-decoration: none;
+  --pp-accent: #8976E1;
+  --pp-accent-fg: #FFFFFF;
 }
 .att-sidebar-brand span {
   font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--att-slate);
+  color: rgba(244,243,251,0.82);
 }
 .att-sidebar-section {
   font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--att-muted);
+  color: rgba(224,222,242,0.62);
   padding: 14px 8px 6px;
 }
 .att-side-link {
   display: flex; align-items: center; gap: 9px;
   padding: 6px 8px; border-radius: 2px;
   font-size: 12.5px; font-weight: 500;
-  color: var(--att-text-2); text-decoration: none;
+  color: rgba(232,231,246,0.82); text-decoration: none;
   border: 1px solid transparent;
   cursor: pointer; background: transparent; font-family: inherit; width: 100%; text-align: left;
 }
-.att-side-link:hover { background: rgba(26,18,36,0.045); color: var(--att-text); }
+.att-side-link:hover { background: rgba(137,118,225,0.16); color: #FFFFFF; }
 .att-side-link.active {
-  background: var(--att-navy); color: #fff; font-weight: 600;
+  background: var(--att-accent); color: #fff; font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(137,118,225,0.45);
 }
 .att-side-link.active svg { color: #fff; }
+.att-side-link:focus-visible {
+  outline: 2px solid var(--att-accent-soft-2);
+  outline-offset: 1px;
+}
 .att-sidebar-foot {
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid var(--att-border);
+  border-top: 1px solid rgba(255,255,255,0.12);
   display: grid; gap: 6px;
 }
 
@@ -446,15 +457,25 @@
   height: 46px;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 0 20px;
-  background: var(--att-surface);
-  border-bottom: 1px solid var(--att-border);
+  background: var(--att-navy-mid);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
 }
 .att-topbar-firm {
   display: flex; align-items: baseline; gap: 8px;
-  font-size: 13px; font-weight: 600; color: var(--att-text);
+  font-size: 13px; font-weight: 600; color: #FFFFFF;
 }
-.att-topbar-firm .att-mono { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--att-slate); font-weight: 500; }
+.att-topbar-firm .att-mono { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(233,231,248,0.82); font-weight: 500; }
 .att-content { padding: 20px 20px 40px; max-width: 1320px; }
+
+/* dark chrome overrides — keep controls legible on ink/indigo surfaces */
+.att-sidebar .att-eyebrow { color: rgba(224,222,242,0.66); }
+.att-topbar .att-btn-ghost { color: rgba(233,231,248,0.86); }
+.att-topbar .att-btn-ghost:hover { background: rgba(137,118,225,0.22); color: #fff; }
+.att-topbar .att-btn-ghost:focus-visible,
+.att-sidebar .att-btn-ghost:focus-visible {
+  outline: 2px solid var(--att-accent-soft-2);
+  outline-offset: 1px;
+}
 
 /* ---------- table toolbar ---------- */
 .att-table-wrap {
