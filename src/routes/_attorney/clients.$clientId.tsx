@@ -836,7 +836,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
       {!firmSet ? (
         <div className="att-card" style={{ background: "#FFFFFF", borderColor: "var(--att-border-strong)" }}>
           <div style={{ fontSize: 13 }}>
-            Set your firm in <Link to="/settings" style={{ color: "#4A2A6B", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
+            Set your firm in <Link to="/settings" style={{ color: "var(--att-accent)", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
           </div>
         </div>
       ) : (
@@ -1183,7 +1183,7 @@ function ReviewStatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; bg: string; fg: string }> = {
     confirmed: { label: "Confirmed", bg: "rgba(21,32,56,0.07)", fg: "var(--att-navy)" },
     rejected:  { label: "Rejected",  bg: "#FFFFFF", fg: "var(--att-text)" },
-    edited:    { label: "Edited",    bg: "#FFFFFF", fg: "#3A4FA8" },
+    edited:    { label: "Edited",    bg: "#FFFFFF", fg: "var(--att-navy)" },
     unsure:    { label: "Unreviewed",bg: "var(--att-surface-2)", fg: "var(--att-text-2)" },
   };
   const m = map[status] ?? map.unsure;
@@ -1522,7 +1522,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
     { value: "needs_context", label: "Needs context", color: "#6E6579" },
     { value: "duplicate", label: "Duplicate", color: "#6E6579" },
     { value: "exclude", label: "Exclude", color: "var(--att-navy)" },
-    { value: "privileged", label: "Privileged", color: "#4A2A6B" },
+    { value: "privileged", label: "Privileged", color: "var(--att-accent)" },
     { value: "exhibit_candidate", label: "Exhibit candidate", color: "var(--att-navy)" },
   ];
   const statusMeta = (v: string) => STATUS_OPTIONS.find((s) => s.value === v) ?? STATUS_OPTIONS[0];
@@ -2182,7 +2182,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <div className="att-card" style={{ background: "#4A2A6B", color: "#fff", borderColor: "transparent" }}>
+      <div className="att-card" style={{ background: "var(--att-accent)", color: "#fff", borderColor: "transparent" }}>
         <div style={{ fontSize: 10, letterSpacing: 1.4, opacity: 0.75 }}>ATTORNEY INTAKE SUMMARY</div>
         <h2 style={{ fontSize: 28, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4, color: "#fff" }}>Case {caseId}</h2>
         <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
@@ -2856,7 +2856,7 @@ function CrossReferenceSection({ clientId }: { clientId: string }) {
               style={{
                 borderLeft: "2px solid #1A1224",
                 padding: "8px 12px",
-                background: "#FAF8F4",
+                background: "var(--att-bg)",
               }}
             >
               <div style={{ fontFamily: "'Space Grotesk', ui-monospace, monospace", fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6B6A78" }}>
