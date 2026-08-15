@@ -116,3 +116,18 @@
   color: var(--ox-muted); font-weight: 600; padding: 10px 0;
 }
 .orgx-table td { padding: 14px 0; border-top: 1px solid var(--ox-line); }
+
+.orgx-input {
+  display: block; width: 100%; margin-top: 6px;
+  min-height: 42px; padding: 9px 13px; border-radius: 10px;
+  border: 1px solid var(--ox-line); background: var(--ox-surface); color: var(--ox-ink);
+  font-family: var(--font-sans); font-size: 14px;
+}
+.orgx-input::placeholder { color: var(--ox-muted); }
+.orgx-input:focus-visible { outline: 2px solid var(--ox-sage); outline-offset: 2px; }
+
+.orgx-pill {
+  display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--ox-line); background: rgba(79,107,82,0.07);
+  font-size: 11.5px; font-weight: 600; color: var(--ox-muted);
+}

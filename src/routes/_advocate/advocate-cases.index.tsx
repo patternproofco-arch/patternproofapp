@@ -13,10 +13,14 @@ type Clients = Awaited<ReturnType<typeof listAdvocateClients>>["clients"];
 function AdvocateCases() {
   const listFn = useServerFn(listAdvocateClients);
   const [clients, setClients] = useState<Clients | null>(null);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     listFn().then((r) => setClients(r.clients)).catch(() => setClients([]));
   }, [listFn]);
+
+  const q = query.trim().toLowerCase();
+  const visible = clients?.filter((c) => !q || (c.case_label ?? "shared workspace").toLowerCase().includes(q)) ?? null;
 
   return (
     <>
@@ -40,20 +44,38 @@ function AdvocateCases() {
         </div>
       </div>
 
-      {!clients ? (
+      {clients && clients.length > 0 ? (
+        <label style={{ display: "block", marginTop: 26, maxWidth: 340 }}>
+          <span className="orgx-muted" style={{ fontSize: 12.5 }}>Find a shared workspace</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by workspace label"
+            className="orgx-input"
+          />
+        </label>
+      ) : null}
+
+      {!visible ? (
         <p style={{ fontSize: 13.5, marginTop: 28 }}>Loading…</p>
-      ) : clients.length === 0 ? (
+      ) : visible.length === 0 ? (
         <p className="orgx-muted" style={{ fontSize: 14.5, marginTop: 28 }}>
-          Nothing here yet — a workspace will appear once someone shares one with you.
+          {q
+            ? "No shared workspace matches that search."
+            : "Nothing here yet — a workspace will appear once someone shares one with you."}
         </p>
       ) : (
-        <div className="orgx-rowlist" style={{ marginTop: 28 }}>
-          {clients.map((c) => {
+        <div className="orgx-rowlist" style={{ marginTop: 20 }}>
+          {visible.map((c) => {
             const active = c.status === "active";
             return (
               <div key={c.id} className="orgx-row">
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontFamily: "var(--font-serif)", fontSize: 19 }}>{c.case_label ?? "Shared workspace"}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    <span style={{ fontFamily: "var(--font-serif)", fontSize: 19 }}>{c.case_label ?? "Shared workspace"}</span>
+                    <span className="orgx-pill">{active ? "Sharing active" : "Access withdrawn"}</span>
+                  </div>
                   <div className="orgx-muted" style={{ fontSize: 13 }}>
                     Access granted {new Date(c.created_at).toLocaleDateString()}
                     {!active && c.revoked_at ? ` · withdrawn ${new Date(c.revoked_at).toLocaleDateString()}` : ""}

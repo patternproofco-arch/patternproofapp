@@ -37,7 +37,7 @@ export function OrgShell({
           <Icon size={18} strokeWidth={1.7} aria-hidden />
           <span>{label}</span>
           <span style={{ marginLeft: "auto", fontSize: 11 }} className="orgx-muted">
-            Coming during pilot
+            Coming during the pilot
           </span>
         </span>
       );
@@ -56,11 +56,14 @@ export function OrgShell({
         <nav className="orgx-rail" aria-label="Organization navigation">
           <span style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "4px 14px 22px" }}>
             <BrandMark size={26} />
-            <span style={{ fontFamily: "var(--font-serif)", fontSize: 20 }}>PatternProof</span>
+            <span style={{ display: "grid", lineHeight: 1.2 }}>
+              <span style={{ fontFamily: "var(--font-serif)", fontSize: 20 }}>PatternProof</span>
+              <span className="orgx-muted" style={{ fontSize: 11.5 }}>DV organization workspace</span>
+            </span>
           </span>
 
           <div className="orgx-rail-scroll">
-            {item("home", "Home", showSharedSurvivors ? "/advocate-cases" : showOrganization ? "/org-portal" : undefined)}
+            {item("home", "Home", showOrganization ? "/org-portal" : showSharedSurvivors ? "/advocate-cases" : undefined)}
             {showSharedSurvivors ? item("shared", "Shared survivors", "/advocate-cases") : null}
             {item("follow-up", "Follow-up")}
             {item("resources", "Resources")}
