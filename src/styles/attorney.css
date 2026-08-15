@@ -467,6 +467,16 @@
 .att-topbar-firm .att-mono { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(233,231,248,0.82); font-weight: 500; }
 .att-content { padding: 20px 20px 40px; max-width: 1320px; }
 
+/* dark chrome overrides — keep controls legible on ink/indigo surfaces */
+.att-sidebar .att-eyebrow { color: rgba(224,222,242,0.66); }
+.att-topbar .att-btn-ghost { color: rgba(233,231,248,0.86); }
+.att-topbar .att-btn-ghost:hover { background: rgba(137,118,225,0.22); color: #fff; }
+.att-topbar .att-btn-ghost:focus-visible,
+.att-sidebar .att-btn-ghost:focus-visible {
+  outline: 2px solid var(--att-accent-soft-2);
+  outline-offset: 1px;
+}
+
 /* ---------- table toolbar ---------- */
 .att-table-wrap {
   background: var(--att-surface);
