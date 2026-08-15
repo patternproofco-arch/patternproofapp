@@ -1,0 +1,118 @@
+/* ============================================================
+   Consent Compass — DV organization / advocate surfaces only.
+   Scoped under .orgx so nothing here can leak into survivor or
+   attorney screens. Warm cream canvas, pastel sage accents,
+   editorial serif headings, thin dividers, no shadows.
+   ============================================================ */
+
+.orgx {
+  --ox-canvas: #FBFAF6;
+  --ox-surface: #FFFFFF;
+  --ox-rail: #FCFBF8;
+  --ox-ink: #26302A;
+  --ox-muted: #6E7770;
+  --ox-line: #E7E4DA;
+  --ox-sage: #4F6B52;
+  --ox-sage-soft: #EDF2EA;
+  --ox-sage-ink: #3C5340;
+
+  background: var(--ox-canvas);
+  color: var(--ox-ink);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+.orgx h1, .orgx h2, .orgx h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ox-ink);
+}
+
+.orgx-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+@media (max-width: 900px) { .orgx-layout { grid-template-columns: minmax(0, 1fr); } }
+
+.orgx-rail {
+  background: var(--ox-rail);
+  border-right: 1px solid var(--ox-line);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+@media (max-width: 900px) {
+  .orgx-rail { border-right: 0; border-bottom: 1px solid var(--ox-line); padding: 14px 12px; }
+  .orgx-rail-scroll { display: flex; flex-direction: row; gap: 6px; overflow-x: auto; }
+  .orgx-rail-foot { display: flex; flex-direction: row; gap: 6px; margin-top: 10px; }
+}
+
+.orgx-navitem {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 44px; padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14.5px; font-weight: 500;
+  color: var(--ox-ink); background: transparent;
+  border: 0; width: 100%; text-align: left; cursor: pointer;
+  white-space: nowrap;
+}
+.orgx-navitem:hover { background: rgba(79,107,82,0.07); }
+.orgx-navitem[aria-current="page"] { background: var(--ox-sage-soft); color: var(--ox-sage-ink); font-weight: 600; }
+.orgx-navitem[data-inert="true"] { color: var(--ox-muted); cursor: default; }
+.orgx-navitem[data-inert="true"]:hover { background: transparent; }
+.orgx :focus-visible { outline: 2px solid var(--ox-sage); outline-offset: 2px; }
+
+.orgx-rail-foot { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--ox-line); display: grid; gap: 4px; }
+
+.orgx-main { padding: 40px 48px 72px; max-width: 1180px; }
+@media (max-width: 700px) { .orgx-main { padding: 24px 18px 64px; } }
+
+.orgx-eyebrow {
+  font-size: 11.5px; font-weight: 600; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ox-sage-ink);
+}
+.orgx-muted { color: var(--ox-muted); }
+.orgx-rule { border: 0; border-top: 1px solid var(--ox-line); margin: 28px 0; }
+
+.orgx-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 18px 4px; border-bottom: 1px solid var(--ox-line);
+}
+.orgx-rowlist > .orgx-row:first-child { border-top: 1px solid var(--ox-line); }
+
+.orgx-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 11px 20px; border-radius: 10px;
+  font-family: var(--font-sans); font-size: 14px; font-weight: 600;
+  border: 1px solid var(--ox-sage); background: var(--ox-sage); color: #FFFFFF;
+  cursor: pointer; text-decoration: none;
+}
+.orgx-btn:hover { filter: brightness(0.95); }
+.orgx-btn-quiet { background: var(--ox-surface); color: var(--ox-ink); border-color: var(--ox-line); }
+.orgx-btn-quiet:hover { background: rgba(79,107,82,0.06); filter: none; }
+.orgx-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.orgx-panel {
+  background: var(--ox-surface);
+  border: 1px solid var(--ox-line);
+  border-radius: 14px;
+  padding: 22px 24px;
+}
+
+.orgx-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0; }
+.orgx-fact { padding: 4px 22px; border-left: 1px solid var(--ox-line); }
+.orgx-fact:first-child { border-left: 0; padding-left: 0; }
+@media (max-width: 700px) {
+  .orgx-fact { border-left: 0; padding: 10px 0; border-top: 1px solid var(--ox-line); }
+  .orgx-fact:first-child { border-top: 0; }
+}
+.orgx-fact-label { font-size: 12px; color: var(--ox-muted); }
+.orgx-fact-value { font-size: 15px; font-weight: 500; margin-top: 2px; }
+
+.orgx-metric-value { font-family: var(--font-serif); font-size: 34px; line-height: 1.1; font-weight: 400; }
+
+.orgx-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.orgx-table th {
+  text-align: left; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ox-muted); font-weight: 600; padding: 10px 0;
+}
+.orgx-table td { padding: 14px 0; border-top: 1px solid var(--ox-line); }
