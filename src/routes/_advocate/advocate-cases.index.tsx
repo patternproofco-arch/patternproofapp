@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
+import { Lock } from "lucide-react";
 import { listAdvocateClients } from "@/lib/advocate.functions";
 
 export const Route = createFileRoute("/_advocate/advocate-cases/")({
@@ -19,36 +20,51 @@ function AdvocateCases() {
 
   return (
     <>
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Cases shared with you</h1>
-      <p style={{ fontSize: 13.5, color: "var(--muted-foreground)", marginBottom: 20 }}>
-        Read-only. Access is given by the survivor and can be withdrawn by her at any time.
+      <p className="orgx-eyebrow">Shared workspaces</p>
+      <h1 style={{ fontSize: 40, margin: "8px 0 10px" }}>Shared survivors</h1>
+      <p className="orgx-muted" style={{ fontSize: 15, maxWidth: 620 }}>
+        Each workspace below is shared by the person it belongs to. You can view only what they have chosen to
+        share, and they can withdraw that access at any time.
       </p>
 
-      {!clients ? (
-        <p style={{ fontSize: 13 }}>Loading…</p>
-      ) : clients.length === 0 ? (
-        <div className="card-pp" style={{ padding: 20 }}>
-          <p style={{ fontSize: 14 }}>Nothing here yet — a case will appear once someone shares one with you.</p>
+      <div
+        className="orgx-panel"
+        style={{ display: "flex", alignItems: "flex-start", gap: 14, margin: "28px 0 8px" }}
+      >
+        <Lock size={18} strokeWidth={1.7} aria-hidden style={{ marginTop: 2, color: "var(--ox-sage)" }} />
+        <div>
+          <div style={{ fontSize: 14.5, fontWeight: 600 }}>Unshared material is not visible.</div>
+          <p className="orgx-muted" style={{ fontSize: 13.5, margin: "2px 0 0" }}>
+            Records that were not included in a share never appear here, and nothing is downloadable from this view.
+          </p>
         </div>
+      </div>
+
+      {!clients ? (
+        <p style={{ fontSize: 13.5, marginTop: 28 }}>Loading…</p>
+      ) : clients.length === 0 ? (
+        <p className="orgx-muted" style={{ fontSize: 14.5, marginTop: 28 }}>
+          Nothing here yet — a workspace will appear once someone shares one with you.
+        </p>
       ) : (
-        <div style={{ display: "grid", gap: 10 }}>
+        <div className="orgx-rowlist" style={{ marginTop: 28 }}>
           {clients.map((c) => {
             const active = c.status === "active";
             return (
-              <div key={c.id} className="card-pp" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{c.case_label ?? "Case"}</div>
-                  <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+              <div key={c.id} className="orgx-row">
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontFamily: "var(--font-serif)", fontSize: 19 }}>{c.case_label ?? "Shared workspace"}</div>
+                  <div className="orgx-muted" style={{ fontSize: 13 }}>
                     Access granted {new Date(c.created_at).toLocaleDateString()}
                     {!active && c.revoked_at ? ` · withdrawn ${new Date(c.revoked_at).toLocaleDateString()}` : ""}
                   </div>
                 </div>
                 {active ? (
-                  <Link to="/advocate-cases/$clientId" params={{ clientId: c.client_user_id }} className="btn-pp">
-                    Open
+                  <Link to="/advocate-cases/$clientId" params={{ clientId: c.client_user_id }} className="orgx-btn orgx-btn-quiet">
+                    Open workspace
                   </Link>
                 ) : (
-                  <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Access withdrawn</span>
+                  <span className="orgx-muted" style={{ fontSize: 13 }}>Access withdrawn</span>
                 )}
               </div>
             );
