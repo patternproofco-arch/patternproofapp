@@ -247,9 +247,9 @@ function LegalDisclaimerBar() {
     <div
       role="note"
       style={{
-        borderBottom: "1px solid rgba(21,32,56,0.12)",
-        background: "rgba(21,32,56,0.04)",
-        color: "#4A2A6B",
+        borderBottom: "1px solid rgba(31,33,101,0.14)",
+        background: "rgba(69,57,189,0.06)",
+        color: "var(--att-navy-mid)",
         fontSize: 11.5,
         lineHeight: 1.5,
         letterSpacing: "0.01em",
