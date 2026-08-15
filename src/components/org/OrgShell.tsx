@@ -63,7 +63,7 @@ export function OrgShell({
           </span>
 
           <div className="orgx-rail-scroll">
-            {item("home", "Home", showSharedSurvivors ? "/advocate-cases" : showOrganization ? "/org-portal" : undefined)}
+            {item("home", "Home", showOrganization ? "/org-portal" : showSharedSurvivors ? "/advocate-cases" : undefined)}
             {showSharedSurvivors ? item("shared", "Shared survivors", "/advocate-cases") : null}
             {item("follow-up", "Follow-up")}
             {item("resources", "Resources")}
