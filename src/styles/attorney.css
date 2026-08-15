@@ -405,43 +405,50 @@
   flex-direction: column;
   gap: 2px;
   padding: 14px 10px;
-  background: var(--att-surface);
-  border-right: 1px solid var(--att-border);
+  background: var(--att-ink);
+  border-right: 1px solid rgba(255,255,255,0.08);
 }
 .att-sidebar-brand {
   display: flex; align-items: center; gap: 8px;
   padding: 4px 8px 14px;
-  color: var(--att-text);
+  color: #F4F3FB;
   text-decoration: none;
+  --pp-accent: #8976E1;
+  --pp-accent-fg: #FFFFFF;
 }
 .att-sidebar-brand span {
   font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--att-slate);
+  color: rgba(244,243,251,0.82);
 }
 .att-sidebar-section {
   font-family: "Space Grotesk", ui-monospace, monospace;
   font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--att-muted);
+  color: rgba(224,222,242,0.62);
   padding: 14px 8px 6px;
 }
 .att-side-link {
   display: flex; align-items: center; gap: 9px;
   padding: 6px 8px; border-radius: 2px;
   font-size: 12.5px; font-weight: 500;
-  color: var(--att-text-2); text-decoration: none;
+  color: rgba(232,231,246,0.82); text-decoration: none;
   border: 1px solid transparent;
   cursor: pointer; background: transparent; font-family: inherit; width: 100%; text-align: left;
 }
-.att-side-link:hover { background: rgba(26,18,36,0.045); color: var(--att-text); }
+.att-side-link:hover { background: rgba(137,118,225,0.16); color: #FFFFFF; }
 .att-side-link.active {
-  background: var(--att-navy); color: #fff; font-weight: 600;
+  background: var(--att-accent); color: #fff; font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(137,118,225,0.45);
 }
 .att-side-link.active svg { color: #fff; }
+.att-side-link:focus-visible {
+  outline: 2px solid var(--att-accent-soft-2);
+  outline-offset: 1px;
+}
 .att-sidebar-foot {
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid var(--att-border);
+  border-top: 1px solid rgba(255,255,255,0.12);
   display: grid; gap: 6px;
 }
 
@@ -450,14 +457,14 @@
   height: 46px;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 0 20px;
-  background: var(--att-surface);
-  border-bottom: 1px solid var(--att-border);
+  background: var(--att-navy-mid);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
 }
 .att-topbar-firm {
   display: flex; align-items: baseline; gap: 8px;
-  font-size: 13px; font-weight: 600; color: var(--att-text);
+  font-size: 13px; font-weight: 600; color: #FFFFFF;
 }
-.att-topbar-firm .att-mono { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--att-slate); font-weight: 500; }
+.att-topbar-firm .att-mono { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(233,231,248,0.82); font-weight: 500; }
 .att-content { padding: 20px 20px 40px; max-width: 1320px; }
 
 /* ---------- table toolbar ---------- */
