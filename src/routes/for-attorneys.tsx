@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { buildTiers } from "@/lib/pricing-tiers";
+import { trackEvent } from "@/lib/ga";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 
@@ -110,6 +111,7 @@ function ForAttorneys() {
         </div>
         <Link
           to="/sample-case"
+          onClick={() => trackEvent("for_attorneys_cta_click", { cta_label: "See a sample case" })}
           style={{
             display: "inline-block", marginTop: 34, background: NAVY, color: "#F4F6FB",
             padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
@@ -155,6 +157,7 @@ function ForAttorneys() {
         <div style={{ marginTop: 32, display: "flex", gap: 14, flexWrap: "wrap" }}>
           <Link
             to="/sample-case"
+            onClick={() => trackEvent("for_attorneys_cta_click", { cta_label: "See a sample case" })}
             style={{
               display: "inline-block", background: NAVY, color: "#F4F6FB",
               padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
@@ -165,6 +168,7 @@ function ForAttorneys() {
           </Link>
           <Link
             to="/subscribe"
+            onClick={() => trackEvent("for_attorneys_cta_click", { cta_label: "Create your attorney account" })}
             style={{
               display: "inline-block", background: "transparent", color: INK,
               padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
@@ -195,6 +199,7 @@ function ForAttorneys() {
         </div>
         <div style={{ marginTop: 32 }}>
           <Link to="/subscribe"
+            onClick={() => trackEvent("for_attorneys_cta_click", { cta_label: "Create your attorney account" })}
             style={{
               display: "inline-block", background: NAVY, color: "#F4F6FB",
               padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
