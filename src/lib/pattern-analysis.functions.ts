@@ -154,7 +154,7 @@ export const analyzePatterns = createServerFn({ method: "POST" })
     // The severity-indicator / escalation feature is retired: drop the key if
     // an older model response still returns it, so nothing can be stored,
     // rendered or exported.
-    delete (parsed as Record<string, unknown>)["severity_indicators"];
+    delete (parsed as unknown as Record<string, unknown>)["severity_indicators"];
 
     // Seed reviewed_status. Every AI narrative that can reach an export starts
     // "unsure" and must be explicitly confirmed or edited by the survivor.
