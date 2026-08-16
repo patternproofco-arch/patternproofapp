@@ -7,45 +7,44 @@ import { getClioAvailability, getClioStatus, startClioConnect, disconnectClio, l
 import { listClioConsentedClients, linkClioMatter } from "@/lib/clio-matter-links.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
+import { buildTiers, findTier, type Tier } from "@/lib/pricing-tiers";
 
 export const Route = createFileRoute("/_attorney/billing")({
   component: BillingPage,
 });
 
 type TierKey = "solo" | "firm_charter" | "firm";
-const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: string; per: string; priceId: string; bullets: string[]; recommended?: boolean }> = [
-  {
-    key: "solo",
-    name: "Solo",
-    price: "$297",
-    per: "/mo",
-    priceId: "attorney_solo_monthly",
-    bullets: ["Single attorney account (seats and matter counts are not metered today)", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"],
-  },
-  {
-    key: "firm_charter",
-    name: "Firm Charter",
-    price: "$597",
-    priceStrike: "$897",
-    per: "/mo · locked 12 months",
-    priceId: "attorney_firm_charter_monthly",
-    recommended: true,
-    bullets: ["Shared firm workspace — invite colleagues to a case (seats not metered today)", "No matter limit enforced today", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Charter rate locked 12 months, then $897/mo"],
-  },
-  {
-    key: "firm",
-    name: "Firm",
-    price: "$897",
-    per: "/mo",
-    priceId: "attorney_firm_monthly",
-    bullets: ["Shared firm workspace — invite colleagues to a case (seats not metered today)", "No matter limit enforced today", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Priority client onboarding support"],
-  },
-];
+
+type BillingTier = { key: TierKey; name: string; price: string; priceStrike?: string; per: string; priceId: string; bullets: string[]; recommended?: boolean };
+
+/**
+ * Comparison cards are derived from src/lib/pricing-tiers.ts (the same source
+ * /pricing and /subscribe use) so names, prices, and bullets can't drift.
+ */
+function toBillingTier(key: TierKey, name: string, priceId: string, tier: Tier | undefined, recommended?: boolean): BillingTier | null {
+  if (!tier) return null;
+  return { key, name, price: tier.price, priceStrike: tier.priceStrike, per: tier.sub, priceId, bullets: tier.features, recommended };
+}
+
+function buildBillingTiers(): BillingTier[] {
+  const charterTiers = buildTiers(null);
+  const listTiers = buildTiers(0);
+  return [
+    toBillingTier("solo", "Solo", "attorney_solo_monthly", findTier("attorney_solo", charterTiers)),
+    toBillingTier("firm_charter", "Firm Charter", "attorney_firm_charter_monthly", findTier("attorney_firm", charterTiers), true),
+    toBillingTier("firm", "Firm", "attorney_firm_monthly", findTier("attorney_firm", listTiers)),
+  ].filter((t): t is BillingTier => t !== null);
+}
+
+/** Legacy Stripe price ID that still maps to the Solo plan. */
+const LEGACY_SOLO_PRICE_ID = "attorney_portal_monthly_297";
 
 function BillingPage() {
   const sub = useSubscription();
   const portalFn = useServerFn(createPortalSession);
   const [opening, setOpening] = useState(false);
+  const tiers = buildBillingTiers();
+  const soloName = tiers.find((t) => t.key === "solo")?.name ?? "Solo";
 
   const openPortal = async () => {
     setOpening(true);
@@ -79,9 +78,9 @@ function BillingPage() {
             <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4 }}>
               {sub.isActive
                 ? `PatternProof ${
-                    sub.priceId === "attorney_firm_charter_monthly" ? "Firm Charter"
-                    : sub.priceId === "attorney_firm_monthly" ? "Firm"
-                    : sub.priceId === "attorney_solo_monthly" || sub.priceId === "attorney_portal_monthly_297" ? "Solo"
+                    sub.priceId === "attorney_firm_charter_monthly" ? (tiers.find((t) => t.key === "firm_charter")?.name ?? "Firm Charter")
+                    : sub.priceId === "attorney_firm_monthly" ? (tiers.find((t) => t.key === "firm")?.name ?? "Firm")
+                    : sub.priceId === "attorney_solo_monthly" || sub.priceId === LEGACY_SOLO_PRICE_ID ? soloName
                     : "Plan"
                   }`
                 : "Pick a plan to unlock case files"}
@@ -108,8 +107,10 @@ function BillingPage() {
       <div>
         <div className="att-eyebrow" style={{ marginBottom: 10 }}>Compare plans</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 14 }}>
-          {TIERS.map((t) => {
-            const isCurrent = sub.isActive && sub.priceId === t.priceId;
+          {tiers.map((t) => {
+            const isCurrent = sub.isActive
+              && (sub.priceId === t.priceId
+                || (t.key === "solo" && sub.priceId === LEGACY_SOLO_PRICE_ID));
             return (
               <div
                 key={t.key}
