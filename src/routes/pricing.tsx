@@ -6,6 +6,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { buildTiers, type Tier } from "@/lib/pricing-tiers";
+import { trackEvent } from "@/lib/ga";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
