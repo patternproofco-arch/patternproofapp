@@ -194,3 +194,18 @@ If a secret is accidentally committed, rotate it immediately — do not just del
 
 Security contact: Grace Burns — gracieburns200@gmail.com  
 Response time: 48 hours for acknowledgment, 5 business days for remediation plan.
+## Breach / Security Incident Response
+
+This is separate from the vulnerability-remediation SLAs above.
+
+If we become aware of a security incident affecting user data, we:
+
+1. Investigate and contain the issue, and revoke any credentials involved.
+2. Preserve relevant logs and evidence before remediation where possible.
+3. Assess what data and which users are affected.
+4. Notify affected users and any regulators or authorities as required by
+   applicable law, with what we know and what we are still determining.
+5. Publish a remediation summary once the issue is resolved.
+
+We do not commit to a fixed notification deadline beyond what applicable law
+requires.

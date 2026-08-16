@@ -68,7 +68,7 @@ function PrivacyPage() {
 
         <Prose>
           <p>
-            PatternProof, operating as PatternProof ("PatternProof," "we," "us," or "our"),
+            PatternProof, operated by Grace Burns as an individual ("PatternProof," "we," "us," or "our"),
             is committed to protecting the privacy and safety of our users. This Privacy Policy
             explains how we collect, use, store, and protect your information when you use our
             platform and associated services (collectively, the "Services").
@@ -87,10 +87,10 @@ function PrivacyPage() {
             attorneys and advocates who support them.
           </p>
           <ul>
-            <li><strong>Company:</strong> PatternProof</li>
+            <li><strong>Operated by:</strong> PatternProof, operated by Grace Burns (not an incorporated entity)</li>
             <li><strong>Founder:</strong> Grace Burns</li>
             <li><strong>Contact:</strong> gracieburns200@gmail.com</li>
-            <li><strong>Location:</strong> Philadelphia, PA, United States</li>
+            <li><strong>Location:</strong> United States</li>
           </ul>
 
           <H2>2. Information We Collect</H2>
@@ -143,10 +143,11 @@ function PrivacyPage() {
             anyone you choose to share them with.
           </p>
           <p>
-            What is not retained is the raw inference call at the third-party model provider: the
-            content sent for a given request is processed to return that result and is not used to
-            train their models. We do not independently control those providers' internal handling
-            or retention beyond the terms of the gateway agreement described in Section 5.
+            AI requests are processed through Lovable's AI infrastructure and the model providers
+            it routes to, under those providers' applicable terms and configuration. PatternProof
+            does not use your content to train its own models. We do not independently control or
+            audit those providers' internal handling or retention, and we do not claim on their
+            behalf that nothing is retained.
           </p>
 
           <H2>5. How We Share Your Information</H2>
@@ -250,13 +251,14 @@ function PrivacyPage() {
           <p>You may access and update your account information at any time through the platform.</p>
           <H3>Deletion</H3>
           <p>
-            Automated in-app account deletion is not yet available. To request
-            deletion of your account and associated data, email
-            gracieburns200@gmail.com with the subject line "Data Deletion Request."
-            We aim to process requests within a reasonable time and will confirm
-            when the deletion is complete. Until we can offer an automated
-            deletion flow, this manual request process is the only supported
-            method.
+            You can delete your account yourself in Settings &rarr; Delete your account. You will
+            be asked to type a confirmation phrase; we recommend exporting your records first. On
+            confirmation we remove your uploaded files from private storage, your incidents,
+            evidence, voice notes, recordings, message threads, case records, AI outputs and every
+            attorney or advocate link, and then delete your sign-in, which revokes all sessions.
+            Deletion is immediate and cannot be undone. If any part of the removal fails, the
+            account is left in place and we tell you rather than reporting a completed deletion —
+            email gracieburns200@gmail.com and we will finish it manually.
           </p>
           <H3>Data Export</H3>
           <p>
@@ -278,17 +280,34 @@ function PrivacyPage() {
 
           <H2>8. Data Retention</H2>
           <p>
-            We retain your account and documentation data for as long as your
-            account is active or as needed to provide the Services. When you
-            email us a deletion request (see "Deletion" above), we will remove
-            your data as promptly as our current manual process allows, except
-            where retention is required by law.
+            We retain your account and documentation data for as long as your account exists or as
+            needed to provide the Services. Deleting your account removes your active account data
+            as described above. Infrastructure-level backups and security logs held by our hosting
+            and storage providers may persist for a period defined by those providers; we do not
+            control those schedules and do not state a fixed purge date we cannot verify. We may
+            also retain limited records where retention is required by law.
+
+          </p>
+          <H2>8.5 Legal Requests</H2>
+          <p>
+            If we receive a subpoena, court order, or other legal demand for user data, we review it
+            for legal validity, limit any disclosure to what is legally required, and notify the
+            affected user when we are legally permitted to do so. We cannot promise to resist or
+            defeat a valid legal process.
+
+          </p>
+          <H2>8.6 Security Incidents
+          </H2>
+          <p>
+            If we become aware of a security incident affecting user data, we investigate and
+            contain it, preserve relevant logs, assess which data and users are affected, and
+            notify affected users and any authorities as required by applicable law. We do not
+            promise a fixed notification deadline beyond what the law requires.
           </p>
 
           <H2>9. Minimum Age Requirement</H2>
           <p>
-            PatternProof is intended for adults aged 18 and older. The platform is a legal
-            documentation tool designed to support adult survivors navigating family court,
+            PatternProof is intended for adults aged 18 and older. The platform is a documentation and evidence-organization tool designed to support adult survivors navigating family court,
             custody, and domestic violence proceedings. We do not knowingly collect personal
             information from anyone under the age of 18. If we learn we have collected
             information from a minor, we will delete it immediately. If you believe we may have
@@ -316,7 +335,7 @@ function PrivacyPage() {
             Grace Burns, Founder<br />
             PatternProof<br />
             gracieburns200@gmail.com<br />
-            Philadelphia, PA, United States
+            United States
           </p>
 
           <p style={{ marginTop: 32, fontStyle: "italic", color: "#7A1F3D", textAlign: "center" }}>
