@@ -379,18 +379,12 @@ export const listMyClients = createServerFn({ method: "GET" })
           : scopedEvidenceIds.length
             ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null).neq("review_status", "suggested")
             : Promise.resolve({ data: null, count: 0 });
-        const flagsQ = l.include_all_incidents
-          ? supabaseAdmin.from("escalation_flags").select("severity_tier", { count: "exact" }).eq("user_id", l.client_user_id).is("dismissed_at", null)
-          : scopedIncidentIds.length
-            ? supabaseAdmin.from("escalation_flags").select("severity_tier", { count: "exact" }).eq("user_id", l.client_user_id).is("dismissed_at", null).in("incident_id", scopedIncidentIds)
-            : Promise.resolve({ data: [], count: 0 });
-        const [inc, ev, pat, esc, msg, doc] = await Promise.all([
+        const [inc, ev, pat, msg, doc] = await Promise.all([
           incidentsQ,
           evidenceQ,
           l.include_patterns
             ? supabaseAdmin.from("pattern_analyses").select("analysis,created_at").eq("user_id", l.client_user_id).order("created_at", { ascending: false }).limit(1).maybeSingle()
             : Promise.resolve({ data: null }),
-          flagsQ,
           supabaseAdmin.from("attorney_messages").select("id", { count: "exact", head: true }).eq("link_id", l.id).is("read_at", null).neq("sender_user_id", context.userId),
           supabaseAdmin.from("attorney_document_requests").select("id", { count: "exact", head: true }).eq("link_id", l.id).eq("status", "open"),
         ]);
@@ -404,12 +398,12 @@ export const listMyClients = createServerFn({ method: "GET" })
           : 0;
 
         // "documentation_density" summarises how much the survivor has logged
-        // (volume of incidents + severity ratings they entered + flags they
-        // set). It is NOT a clinical or forensic risk assessment.
-        const flagsHigh = (esc.data ?? []).filter((f) => (f.severity_tier ?? 0) >= 3).length;
+        // (volume of incidents + the 1–5 impact ratings they entered
+        // themselves). It is NOT a clinical, forensic, or risk assessment, and
+        // nothing in it is AI-generated.
         const documentationDensity: "low" | "moderate" | "elevated" | "high" =
-          flagsHigh >= 2 || avgSeverity >= 4 ? "high"
-          : flagsHigh >= 1 || avgSeverity >= 3 ? "elevated"
+          avgSeverity >= 4 ? "high"
+          : avgSeverity >= 3 ? "elevated"
           : incidents.length >= 5 ? "moderate"
           : "low";
 
@@ -419,7 +413,6 @@ export const listMyClients = createServerFn({ method: "GET" })
           linked_at: l.created_at,
           incident_count: inc.count ?? 0,
           evidence_count: ev.count ?? 0,
-          escalation_flag_count: esc.count ?? 0,
           unread_messages: msg.count ?? 0,
           open_doc_requests: doc.count ?? 0,
           last_incident_date: lastIncident,
@@ -427,7 +420,7 @@ export const listMyClients = createServerFn({ method: "GET" })
           avg_severity: avgSeverity,
           documentation_density: documentationDensity,
           documentation_density_note:
-            "Reflects documentation volume and severity ratings the survivor has logged — not a clinical or forensic risk assessment.",
+            "Reflects documentation volume and the 1–5 impact ratings the survivor entered themselves — not a clinical, forensic, or risk assessment, and not AI-generated.",
           has_pattern_analysis: !!pat.data,
           pattern_updated_at: pat.data?.created_at ?? null,
           access_kind: ownerSet.has(l.id) ? ("owner" as const) : grantedSet.has(l.id) ? ("granted" as const) : ("collaborator" as const),

@@ -13,7 +13,6 @@ export interface DashboardStats {
   upcoming_court_dates: number;
   ever_had_court_date: boolean;
   last_activity: "evidence" | "timeline" | "patterns" | "journal" | null;
-  unreviewed_severity_indicator_count: number;
   contradiction_count: number;
 }
 
