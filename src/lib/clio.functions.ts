@@ -115,6 +115,34 @@ export const listMyClioMatters = createServerFn({ method: "POST" })
     return { matters };
   });
 
+/** What this attorney can do with Clio for one client, right now. */
+export const getClioTargetForClient = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { clientId: string }) => ({ clientId: String(input?.clientId ?? "") }))
+  .handler(async ({ data, context }) => {
+    const { clioAvailability } = await import("@/lib/clio.server");
+    const availability = clioAvailability();
+    const { data: link } = await context.supabase
+      .from("attorney_client_links")
+      .select("id, clio_share_consent")
+      .eq("attorney_user_id", context.userId)
+      .eq("client_user_id", data.clientId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (!link) return { available: availability.available, consent: false, matter: null };
+    const { data: matter } = await context.supabase
+      .from("clio_matter_links")
+      .select("clio_matter_id, clio_matter_display_number, clio_matter_description")
+      .eq("attorney_client_link_id", link.id)
+      .is("unlinked_at", null)
+      .maybeSingle();
+    return {
+      available: availability.available,
+      consent: Boolean(link.clio_share_consent),
+      matter: matter ?? null,
+    };
+  });
+
 /**
  * Explicit, one-shot export of a PatternProof-generated professional-review
  * packet into a Clio matter the attorney has already linked to that client.
