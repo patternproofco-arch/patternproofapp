@@ -43,7 +43,7 @@ export const getClioStatus = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from("clio_connections")
-      .select("firm_name, clio_user_email, created_at, expires_at")
+      .select("firm_name, clio_user_email, clio_user_name, clio_region, last_verified_at, created_at, expires_at")
       .eq("user_id", context.userId)
       .is("revoked_at", null)
       .maybeSingle();
@@ -52,6 +52,9 @@ export const getClioStatus = createServerFn({ method: "GET" })
       connected: true as const,
       firmName: data.firm_name,
       email: data.clio_user_email,
+      userName: data.clio_user_name,
+      region: data.clio_region,
+      verifiedAt: data.last_verified_at,
       connectedAt: data.created_at,
     };
   });
@@ -79,6 +82,13 @@ export const disconnectClio = createServerFn({ method: "POST" })
       }
     }
 
+    // Never report "disconnected" when Clio still holds the grant.
+    if (data?.access_token && !revokedAtClio) {
+      throw new Error(
+        "Clio didn't confirm the disconnect, so your credentials are still in place. Try again in a moment — nothing was changed.",
+      );
+    }
+
     const { error } = await supabaseAdmin
       .from("clio_connections")
       .delete()
@@ -103,4 +113,118 @@ export const listMyClioMatters = createServerFn({ method: "POST" })
     const { listClioMatters } = await import("@/lib/clio-matters.server");
     const matters = await listClioMatters(context.userId, { query: data.query });
     return { matters };
+  });
+
+/**
+ * Explicit, one-shot export of a PatternProof-generated professional-review
+ * packet into a Clio matter the attorney has already linked to that client.
+ * No background sync, no raw survivor records, no fuzzy matching.
+ */
+export const exportPacketToClioMatter = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { clientId: string; objectPath: string; matterId: string }) => {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuid.test(input?.clientId ?? "")) throw new Error("That client reference isn't valid.");
+    if (!/^[0-9]{1,20}$/.test(input?.matterId ?? "")) throw new Error("That Clio matter reference isn't valid.");
+    if (typeof input?.objectPath !== "string" || input.objectPath.length > 400 || input.objectPath.includes("..")) {
+      throw new Error("That export reference isn't valid.");
+    }
+    return { clientId: input.clientId, objectPath: input.objectPath, matterId: input.matterId };
+  })
+  .handler(async ({ data, context }) => {
+    const { assertClioAvailable } = await import("@/lib/clio.server");
+    assertClioAvailable();
+
+    const { resolveCallerRole } = await import("@/lib/conflict-check.server");
+    const role = await resolveCallerRole(context.userId);
+    if (role !== "attorney" && role !== "collaborator") {
+      throw new Error("This area is for attorney accounts.");
+    }
+
+    // The export object always lives under the caller's own storage prefix.
+    if (!data.objectPath.startsWith(`${context.userId}/`)) {
+      throw new Error("That export doesn't belong to your account.");
+    }
+
+    // Authorization: active link + survivor's Clio sharing consent + an
+    // explicitly linked matter that matches the one chosen here.
+    const { data: link } = await context.supabase
+      .from("attorney_client_links")
+      .select("id, clio_share_consent")
+      .eq("attorney_user_id", context.userId)
+      .eq("client_user_id", data.clientId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (!link) throw new Error("That client isn't shared with you right now.");
+    if (!link.clio_share_consent) {
+      throw new Error("Your client hasn't approved Clio sharing for this case yet.");
+    }
+
+    const { data: matterLink } = await context.supabase
+      .from("clio_matter_links")
+      .select("clio_matter_id")
+      .eq("attorney_client_link_id", link.id)
+      .is("unlinked_at", null)
+      .maybeSingle();
+    if (!matterLink || matterLink.clio_matter_id !== data.matterId) {
+      throw new Error("Link this case to that Clio matter first, then send the packet.");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const dl = await supabaseAdmin.storage.from("exports").download(data.objectPath);
+    if (dl.error || !dl.data) throw new Error("We couldn't find that packet. Generate it again and retry.");
+    const bytes = new Uint8Array(await dl.data.arrayBuffer());
+    const name = data.objectPath.split("/").pop() || "professional-review-packet.zip";
+
+    const { data: logRow } = await supabaseAdmin
+      .from("clio_document_exports")
+      .insert({
+        attorney_user_id: context.userId,
+        attorney_client_link_id: link.id,
+        clio_matter_id: data.matterId,
+        document_name: name,
+        byte_size: bytes.byteLength,
+        status: "pending",
+      })
+      .select("id")
+      .maybeSingle();
+
+    try {
+      const { uploadDocumentToMatter } = await import("@/lib/clio-documents.server");
+      const result = await uploadDocumentToMatter({
+        userId: context.userId,
+        matterId: data.matterId,
+        name,
+        bytes,
+        contentType: "application/zip",
+      });
+      if (logRow?.id) {
+        await supabaseAdmin
+          .from("clio_document_exports")
+          .update({
+            status: "confirmed",
+            clio_document_id: result.clioDocumentId,
+            confirmed_at: new Date().toISOString(),
+          })
+          .eq("id", logRow.id);
+      }
+      await supabaseAdmin
+        .rpc("record_audit_event", {
+          p_user_id: data.clientId,
+          p_event_type: "clio.document_export",
+          p_subject_kind: "export",
+          p_actor_kind: "attorney",
+          p_actor_id: context.userId,
+        })
+        .then(() => undefined, () => undefined);
+      return { ok: true as const, clioDocumentId: result.clioDocumentId, name: result.name };
+    } catch (e) {
+      if (logRow?.id) {
+        await supabaseAdmin
+          .from("clio_document_exports")
+          .update({ status: "failed", error_code: "upload_failed" })
+          .eq("id", logRow.id);
+      }
+      throw new Error(e instanceof Error ? e.message : "Clio couldn't accept that document. Nothing was filed.");
+    }
   });
