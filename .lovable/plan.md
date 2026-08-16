@@ -1,68 +1,44 @@
-# Evidence Intake Expansion — integration plan
+# NJCEDV Partner Meeting — Read-Only Audit (no changes made)
 
-## What already exists (verified by reading the code/schema)
+Nothing was modified. Everything below is from reading source, config, and a read-only
+database query. Verdicts: CONFIRMED (code/config verified) · PARTLY TRUE · NOT TRUE ·
+NOT VERIFIED (asserted but not demonstrable here).
 
-- **Screenshot import**: `src/routes/_authenticated/import-messages.tsx` + `src/components/messages/*`, client-side OCR in `src/lib/ocr/run.ts` (Tesseract.js, browser-only) and `src/lib/ocr/parse.ts` (line grouping, bubble-side guess, timestamp parsing, fuzzy trigram dedupe with a short-text guard). Server side: `src/lib/message-import.functions.ts` with draft/`in_progress`/`complete` resume, append-only `thread_message_corrections`, `field_provenance`.
-- **Threads already flow through**: Timeline (toggle), Case Builder (`cases.attached_thread_ids`), Court Packet PDF, and the evidence ZIP export. No new export path is needed anywhere below.
-- **Evidence ingest** (`src/lib/evidence-ingest.functions.ts`): already computes `sha256` and a dHash `perceptual_hash`, and **already compares against all of the user's prior evidence** — cross-session duplicate detection exists at the data layer; it is the UI surfacing that is thin.
-- **Screen recordings**: `ScreenRecordingUpload.tsx` uploads video and calls a server AI transcription (`transcribeRecordedThread`) — that contradicts the client-side-OCR rule for this feature.
-- **Date certainty**: `incidents` has `date_precision` / `date_range_start|end` / `anchor_label`. **`evidence.date` is `NOT NULL` with no precision column** — this is the regression to restore.
-- **Voice transcription**: `transcribe-voice-note.functions.ts` exists and is reusable.
-- **Patterns**: `pattern-analysis.functions.ts` is an AI narrative analysis; the requested neutral counts are a separate, deterministic thing.
+## Findings
 
-## Schema changes (one migration, extends existing tables)
+| # | Question | Verdict | Evidence | Meeting-safe wording |
+|---|---|---|---|---|
+| 1 | Legal tool / assesses abuse? | CONFIRMED — it does not assess or diagnose | `src/lib/pattern-analysis.functions.ts` system prompt forbids diagnosis, named dynamics, cycles, escalation, legal conclusions; `professional-access.tsx:36`, `evidence-integrity.tsx:37` say so publicly | "A documentation tool. It organizes what the survivor writes down. It does not assess, diagnose, or determine whether abuse occurred." |
+| 2 | Credibility / legal conclusions / replaces advocates? | CONFIRMED — none | Same prompt bans severity, confidence, strength ratings; `pattern-export.ts` strips unreviewed AI claims; no "credibility" logic anywhere | "No credibility scoring, no legal conclusions, no advocate replacement." |
+| 3 | Sharing model | CONFIRMED | `attorney_client_links` / `advocate_client_links` (invite → accept → scoped grant, revocable: `revoked_at`); scope columns `scope_incidents`, `scope_evidence`, `include_all_*`, `case_id` read in `advocate.functions.ts` ~L339-380 and `attorney-portal.functions.ts`. Advocate view is metadata-only (descriptions/locations stripped, comment at `advocate.functions.ts:383`) | "Nobody sees anything until the survivor invites them and picks a scope. Grants are per-case, revocable. Advocates see counts and dates, not narrative content." |
+| 4 | Survivor cost | PARTLY TRUE | Survivor tier is $0, no card, no trial gate (`src/lib/pricing-tiers.ts`). BUT a paid survivor-side tier exists: "Court Ready" pay-what-you-can $1–$500 (`payments.functions.ts:119`), gating an export path. No storage/usage caps exist in code | "Survivor accounts are free today, no card. There is one optional paid add-on (pay-what-you-can, $1 minimum) for a professional-review export. No storage caps are enforced." Avoid "free forever" — `request-org-access.tsx:76` still says it; that line is the one inconsistency. |
+| 5 | NJCEDV staff burden | CONFIRMED — none required | Org portal (`org-portal.tsx`, `org-portal.functions.ts`) shows referral counts only; no record access, no account admin | "Nothing to administer. You get a referral link and aggregate counts, not records." |
+| 6 | Auth | CONFIRMED | `login.tsx`: email+password (`signUp`/`signInWithPassword`), Google OAuth (L126), passkey (L139). No anonymous sign-in. Leaked-password protection enabled | "Email/password, Google sign-in, or passkey." |
+| 7 | Encryption | PARTLY TRUE / NOT VERIFIED | TLS in transit = confirmed. At-rest = host platform, never independently audited (`TRUTH_AUDIT.md` §3). No E2E/zero-knowledge — explicitly disclaimed at `privacy.tsx:237`, `pricing.tsx:63`, `llms.txt:5` | "Encrypted in transit. At-rest encryption is provided by our hosting platform; we haven't independently audited it. It is **not** end-to-end or zero-knowledge — say this plainly." |
+| 8 | Storage & processors | CONFIRMED | Supabase (Postgres + 5 private buckets: `evidence-files`, `voice-notes`, `conversation-recordings`, `exports`, `message-exports`); Cloudflare Workers hosting (`wrangler.jsonc`); Stripe (payments); Lovable AI Gateway → Google Gemini (`ai-gateway.server.ts`, disclosed `privacy.tsx:177`); Google Analytics | "Data in a managed Postgres + private object storage; app runs on Cloudflare; AI via a gateway to Google Gemini; Stripe for the optional payment." |
+| 9 | RLS | CONFIRMED | Read-only query: RLS enabled on **all 60** public tables. Only `share_link_access_log`, `clio_oauth_states`, `email_relay_attempts` have zero policies — service-role-only internal tables (intended). All 5 buckets private | "Row-level security on every table; every file bucket is private and served only through short-lived signed links." |
+| 10 | Deletion & retention | PARTLY TRUE | Deletion is **manual by email** — `settings.tsx:313-321` states "Automatic in-app deletion isn't available yet" and opens a mailto. `privacy.tsx` §8 retention is qualitative ("as promptly as our current manual process allows"); **no stated retention window, no backup-retention statement anywhere** | "Deletion today is a request by email that we process manually; in-app one-click deletion isn't built yet. We don't yet publish a numeric retention or backup-deletion window." |
+| 11 | Exports | CONFIRMED | `export-zip.functions.ts`: incidents/evidence/communications/voice_notes/legal_documents CSVs, `case.json`, `narrative.md`, `manifest.json`, `provenance-and-integrity.md`, `verify.sh`, plus file folders → private `exports` bucket, signed link **1 hour** (L463). Attorney side also emits .docx. Survivor initiates every export | "The survivor exports their own file; the download link expires in an hour. Nothing is sent anywhere automatically." |
+| 12 | AI | CONFIRMED, with one caveat | Gemini via Lovable gateway. Allowed: counts, date ranges, groupings of the survivor's own tags, documentation-gap notes. Removed fields: `abuser_tactics`, `main_pattern_label`, `escalation_arc`, `severity_trajectory`. `severity_indicators` survives but is restricted to *descriptive labels citing source incident ids*, banned words risk/tier/score. Contradiction detection (`contradictions.functions.ts`) is **deterministic, not AI** (>120 min time gap / location mismatch). Survivor reviews/edits/rejects every AI claim; unreviewed claims are filtered from exports (`pattern-export.ts`, tested in `src/__tests__/pattern-export.test.ts`) | "AI only counts and groups what she already wrote, cites the source entry, and nothing reaches an export until she approves it. Contradiction flags are a plain rule, not AI, and are framed as 'these two entries disagree', not 'you're wrong'." |
+| 13 | Safety features | CONFIRMED, with stated limits | Quick Exit = real sign-out (clears `sb-*-auth-token` + `pp*` session keys, revokes token, redirects to weather.com) — `quick-exit.ts`; PIN with hashed storage + lockout (`pin-lock.tsx`); idle auto-lock, min 15s / default 60s, survives backgrounded tabs (`use-idle-lock.ts`). Limit stated in code comment: cannot clear browser history, downloads, or OS notifications. No disguise/decoy-app mode is implemented | "Quick Exit, PIN lock, and idle auto-lock exist. They do not clear browser history, downloads, or notifications — always pair with a safety-planning conversation. There is no disguised-app mode." |
+| 14 | Crisis wording | CONFIRMED | `safety.tsx:40` "not an emergency service"; `/resources` leads with Call 911 + text-to-911 note; National DV Hotline 1-800-799-7233 and RAINN listed with a `SafetyResourcesLink` component reused across the app | "Every safety surface points to 911 and the National Hotline first and says outright we are not an emergency service." |
+| 15 | Minimum age | CONFIRMED | `terms.tsx:49` 18+ / age of majority; `privacy.tsx` §9 no knowing collection under 18 | "Adults 18+." |
+| 16 | Privacy / Terms | CONFIRMED live, one inconsistency | `/privacy` (effective June 2026, updated Aug 2026) and `/terms`. Inconsistency: Privacy §9 calls the platform "a legal documentation tool" while the rest of the product insists it is not a legal tool | "Both published. Flag: one line in the Privacy Policy calls it a 'legal documentation tool' — worth aligning before launch." |
+| 17 | Analytics | CONFIRMED — and this is the one to raise | GA4 `G-PXNVVNXEV5` loaded globally in `__root.tsx:133-140`; `GoogleAnalyticsRouteTracker` in `ga.tsx` fires `page_view` on **every** route change, including authenticated survivor routes (`/journal`, `/evidence`, `/court-packet`). No route-level exclusion. No cookie banner. No PostHog/Sentry | "Google Analytics currently fires page views on authenticated pages too. Only the URL path — no entry content — but paths are meaningful. Recommend excluding authenticated routes; I'd raise this proactively rather than be asked." |
+| 18 | Breach response | PARTLY TRUE | `SECURITY.md` has vuln reporting, 48h acknowledgement, severity-based remediation SLAs (24h critical → 30d low), dependency scanning, plus `public/.well-known/security.txt` and a CI security-audit workflow. **No user/regulator breach-notification procedure** is documented | "We have a documented vulnerability process and remediation SLAs. We do not yet have a written breach-notification plan for affected users — say that honestly." |
+| 19 | Subpoena / legal process | NOT VERIFIED as adequate | Privacy Policy has no clear "response to legal process / law enforcement" section (grep found no subpoena or law-enforcement language) | "We haven't published a legal-process response policy. Don't imply we'd resist a subpoena — we can't promise that in a meeting." |
+| 20 | Misleading-claim scan | Mostly CONFIRMED clean | `src/__tests__/claim-language.test.ts` is a source-wide CI guard banning "end-to-end encrypted", "zero-knowledge", "tamper-proof", "bank-level", "court-admissible", "military-grade", "guaranteed outcome". "Court Ready" survives only as a product/tier name (`pricing-tiers.ts:49`); `professional-access.tsx:35` explicitly rejects "court-ready packets" as a description. `export-zip.functions.ts:324` uses "tamper-evident root" internally but the shipped manifest text hedges correctly ("a hash does not prove truth, authorship, creation date, or admissibility"). **Outstanding:** "free forever" at `request-org-access.tsx:76` | "Never say authenticated evidence, court-credible, or tamper-proof. Say: preserved with a SHA-256 hash that proves the stored bytes are unchanged — nothing about truth or admissibility." |
 
-- `evidence`: add `date_precision` (`exact` | `approximate` | `unknown`, default `exact`), `date_range_start`, `date_range_end`, `anchor_label`, and make `date` nullable; add `exif_choice` (`kept` | `stripped` | `none`), `voice_caption`, `voice_caption_audio_url`, `review_status` default stays as-is for "unreviewed" badging.
-- `message_threads`: add `frame_interval_sec` and reuse existing `capture_method='screen_recording'`, `import_status`, `processed_count` for resume.
-- `thread_source_documents`: add `kind` (`screenshot` | `video_frame`) and `frame_time_sec` so frames link back to their video timestamp.
-- New `intake_batches` (owner-RLS): `id`, `user_id`, `status`, `kind_counts` jsonb, `queued_files` jsonb (names/sizes/hashes for resume), `created_at/updated_at` — one row per mixed batch so uploads resume across sessions.
-- New `evidence_classification_suggestions` (owner-RLS): `evidence_id`, `suggested_kind`, `confidence`, `rationale`, `status` (`suggested`|`accepted`|`rejected`), `model`. AI output is never written onto `evidence` directly.
-- GRANTs to `authenticated` + `service_role`, RLS `auth.uid() = user_id` on all new tables, no anon.
+## Three things to say first, unprompted
 
-## 1. Screen-recording transcription via client-side OCR
+1. Not end-to-end encrypted, and at-rest encryption is the host's, unaudited by us.
+2. Account deletion is a manual email request today, not a button.
+3. Google Analytics currently fires on authenticated pages (path only) — being fixed.
 
-- New `src/lib/ocr/frames.ts`: decode the video in-browser (`HTMLVideoElement` + `canvas`), sample every ~1.5s, skip frames whose downscaled pixel diff is below a scroll threshold, then feed each kept frame through the **existing** `recognizeImage` + `parse.ts` pipeline.
-- Frames are stored as `thread_source_documents` rows (`kind='video_frame'`), so every extracted message keeps a source thumbnail exactly like screenshots. The original video stays the primary artifact.
-- Same `mergeDuplicates` pass, same thread reconstruction, same Timeline / Case Builder / Court Packet / ZIP wiring. `ScreenRecordingUpload` is repointed at this local path; the old server AI call stays only as an explicitly consented, badged fallback.
+## Fixes worth queuing after the meeting (not done — audit was read-only)
 
-## 2. Burden-reduction fixes
-
-- **One "Add evidence" entry point**: single dropzone/picker with `multiple`, `accept="image/*,video/*,audio/*,.pdf,..."`, plus a separate `capture="environment"` camera button for photographing paper documents. Type is auto-detected per file (MIME + extension) and routed: images/video-of-a-conversation → message import pipeline; everything else → `evidence-ingest`.
-- **Date certainty on every item**: a shared `DateCertaintyField` component (confirmed / approximate + optional anchor text / no date) used by evidence, batch intake, and threads, writing the new evidence columns. Nothing forces a date.
-- **EXIF choice**: parse EXIF in the browser before upload; if GPS or device timestamp is present, show a per-file choice — keep (strengthens timestamp/location) or strip (safer if shared). Stripping re-encodes the image client-side before upload. Never silent either way; the choice is recorded in `exif_choice` and audited.
-- **Universal resume**: `intake_batches` + IndexedDB-backed local file queue. Closing the tab mid-batch leaves a resume banner; already-uploaded files are not re-asked for.
-- **Offline queue**: the same IndexedDB queue drains automatically on `online`, with a visible "waiting for connection" state instead of a silent failure.
-- **Voice caption**: optional record-while-uploading control on any photo/video; audio goes to the existing `voice-notes` bucket and reuses the existing transcription function to fill the caption.
-- **Cross-session duplicates**: surface the existing `sha256` / `near_duplicate_of` results in the intake UI ("You added this file on 12 March") with keep-both / skip choices, and apply the same fuzzy check for re-imported screenshots.
-- **OCR fallback**: when confidence for an image or message is below threshold, show an inline "type what this says" field instead of a blank row; the typed value is recorded as a `corrected` field with full history.
-- **No correction wall**: low-confidence items save and appear in the Timeline immediately with an "unreviewed" badge and a "review when you're ready" affordance. Nothing blocks usage.
-
-## 3. Consent-scoped file organization suggestions
-
-- No library access. She picks specific files or a date range per import; a short consent panel states exactly what leaves the device for classification and that it can be skipped entirely.
-- Classification returns a content-type guess only — document / screenshot / photo of physical damage / injury photo / other — written to `evidence_classification_suggestions`, never to `evidence`.
-- Review UI: one tap per item (or accept-all per batch) to confirm or reject. Suggestions render in the app's existing AI-content styling (distinct surface + "AI suggestion — content type only" label) and always link to the file.
-- Copy and code names use "content-type organization" throughout. No scanning-for-abuse framing anywhere.
-
-## 4. Neutral frequency observations
-
-- New deterministic `src/lib/frequency-observations.functions.ts` — SQL counts over incidents, communications, thread messages, court dates, and evidence. Examples: "4 late pickups logged this month", "3rd cancelled visitation this quarter", each returning the exact source row IDs.
-- Off until opted in (settings toggle), rendered on the Patterns page and dashboard in the AI/observation styling, each row expanding to the underlying entries.
-- Hard rule enforced in code and copy: counts and dates only — no characterization, no "pattern of abuse", no clinical or legal language. A shared vocabulary constant keeps output phrasing to `{count} {event label} {timeframe}`.
-
-## Chronology
-
-All new sources normalize to the same timeline item shape already used by threads and evidence: exact dates sort by date, approximate dates sort by range midpoint with a visible "approximate" marker, unknown dates collect in an "undated" section rather than being guessed into place.
-
-## Build order
-
-1. Migration (schema above).
-2. Date-certainty field + evidence nullable-date wiring (restores the lost spec first).
-3. Mixed-batch intake: dropzone, camera capture, type routing, EXIF choice, duplicate surfacing.
-4. IndexedDB queue → universal resume + offline drain.
-5. Video frame extraction into the existing OCR/dedupe/thread pipeline.
-6. OCR fallback + unreviewed badging in Timeline.
-7. Voice caption.
-8. Consent-scoped classification suggestions.
-9. Neutral frequency observations, opt-in.
-10. Playwright pass across intake, resume, and timeline ordering.
+- Exclude `/_authenticated/*`, `/_attorney/*`, `/_advocate/*` from GA page_view.
+- Remove "free forever" from `request-org-access.tsx:76`.
+- Reword `privacy.tsx` §9 "legal documentation tool".
+- Add a legal-process/subpoena section to the Privacy Policy and a breach-notification section to SECURITY.md.
+- Publish a numeric retention + backup-deletion window, or state that none is set.
