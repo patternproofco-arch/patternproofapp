@@ -523,7 +523,7 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
                 .order("created_at", { ascending: false }).limit(1).maybeSingle()
             : Promise.resolve({ data: null as { created_at: string } | null });
 
-        // Latest pattern analysis (for severity-indicator review counting).
+        // Latest pattern analysis (recency only).
         const patternQ = l.include_patterns
           ? supabaseAdmin.from("pattern_analyses")
               .select("analysis,reviewed_status,created_at")
@@ -548,17 +548,6 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
         const recentEvidenceAdded = lastEvidenceCreated ? lastEvidenceCreated >= thirtyDaysAgo : false;
         const disengaged = !recentIncidentAdded && !recentEvidenceAdded;
 
-        // Unreviewed severity indicators — same "sev:<index>" keying as the survivor dashboard.
-        const indicators = (pattern.data?.analysis as { severity_indicators?: unknown[] } | null)?.severity_indicators;
-        const reviewedStatus = (pattern.data?.reviewed_status ?? {}) as Record<string, { status?: string }>;
-        let unreviewedSeverityIndicatorCount = 0;
-        if (Array.isArray(indicators)) {
-          unreviewedSeverityIndicatorCount = indicators.reduce<number>((count, _item, index) => {
-            const entry = reviewedStatus[`sev:${index}`];
-            return !entry || entry.status === "unsure" ? count + 1 : count;
-          }, 0);
-        }
-
         return {
           link_id: l.id,
           client_user_id: l.client_user_id,
@@ -568,19 +557,18 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
           evidence_count: evTotal.count ?? 0,
           last_activity_at: lastActivity,
           disengaged_30d: disengaged,
-          unreviewed_severity_indicator_count: unreviewedSeverityIndicatorCount,
         };
       }),
     );
 
     const needs_attention = (r: typeof rows[number]) =>
-      r.unconfirmed_ai_draft_count > 0 || r.disengaged_30d || r.unreviewed_severity_indicator_count > 0;
+      r.unconfirmed_ai_draft_count > 0 || r.disengaged_30d;
 
     rows.sort((a, b) => {
       const aa = needs_attention(a), bb = needs_attention(b);
       if (aa !== bb) return aa ? -1 : 1;
-      const aScore = a.unconfirmed_ai_draft_count + a.unreviewed_severity_indicator_count + (a.disengaged_30d ? 1 : 0);
-      const bScore = b.unconfirmed_ai_draft_count + b.unreviewed_severity_indicator_count + (b.disengaged_30d ? 1 : 0);
+      const aScore = a.unconfirmed_ai_draft_count + (a.disengaged_30d ? 1 : 0);
+      const bScore = b.unconfirmed_ai_draft_count + (b.disengaged_30d ? 1 : 0);
       if (aScore !== bScore) return bScore - aScore;
       return (b.last_activity_at ?? "").localeCompare(a.last_activity_at ?? "");
     });
@@ -596,7 +584,6 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
         active_client_count: rows.length,
         total_unconfirmed_ai_drafts: rows.reduce((s, r) => s + r.unconfirmed_ai_draft_count, 0),
         disengaged_client_count: disengaged_clients.length,
-        clients_with_unreviewed_severity_indicators: rows.filter((r) => r.unreviewed_severity_indicator_count > 0).length,
       },
       disengaged_clients,
       clients: rows,

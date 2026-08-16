@@ -53,7 +53,6 @@ function CaseloadPage() {
         <Kpi icon={<Users size={14} />} label="Active clients" value={totals.active_client_count} />
         <Kpi icon={<FileWarning size={14} />} label="Unconfirmed AI drafts" value={totals.total_unconfirmed_ai_drafts} tone={totals.total_unconfirmed_ai_drafts ? "warn" : undefined} />
         <Kpi icon={<Clock size={14} />} label="Disengaged (30d)" value={totals.disengaged_client_count} tone={totals.disengaged_client_count ? "warn" : undefined} />
-        <Kpi icon={<AlertTriangle size={14} />} label="Clients w/ unreviewed severity" value={totals.clients_with_unreviewed_severity_indicators} tone={totals.clients_with_unreviewed_severity_indicators ? "warn" : undefined} />
       </div>
 
       {disengaged_clients.length > 0 && (
