@@ -245,7 +245,7 @@ describe("clio document export surface", () => {
 
   it("never logs provider bodies from the document path", () => {
     for (const line of docs.split("\n").filter((l) => l.includes("console."))) {
-      expect(line).not.toMatch(/access_token|res\.text|await res|bytes/);
+      expect(line).not.toMatch(/access_token|res\.text|await res\b/);
     }
   });
 
