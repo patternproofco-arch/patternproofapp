@@ -1802,6 +1802,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   const [attorneyNotes, setAttorneyNotes] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [pkgDownloading, setPkgDownloading] = useState(false);
+  const [lastPacketPath, setLastPacketPath] = useState<string | null>(null);
   const packetFn = useServerFn(generateAttorneyCourtPacket);
   const pkgFn = useServerFn(generateCaseManagementPackage);
 
@@ -1828,6 +1829,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
     try {
       const r = await packetFn({ data: { clientId: caseId, includeAttorneyNotes: attorneyNotes } });
       if (!r.ok) { toast("Couldn't generate packet: " + r.reason); return; }
+      setLastPacketPath(r.object_path ?? null);
       window.open(r.url, "_blank");
       toast("Packet ready. Includes cover, TOC, timeline, evidence index, and exhibit list.");
     } finally { setDownloading(false); }
