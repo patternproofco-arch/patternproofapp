@@ -104,7 +104,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         price: "$897",
         sub: "/month · shared firm workspace",
         eyebrowNote: "Charter cohort is full — thank you.",
-        quote: "Built for 3–15 attorney family-law firms.",
+        quote: "A shared workspace for family-law firms (seats are not metered today).",
         features: [
           "Firm workspace for 3–15 attorneys (seats are not metered today)",
           "Everything in Solo Attorney",
@@ -128,7 +128,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
           remainingCharter === null
             ? `Charter program — limited to ${CHARTER_COHORT_CAP} firms`
             : `${remainingCharter} of ${CHARTER_COHORT_CAP} Charter spots remaining`,
-        quote: "Built for 3–15 attorney family-law firms.",
+        quote: "Charter program — personal setup and a locked rate for 12 months.",
         features: [
           "Firm workspace for 3–15 attorneys (seats are not metered today)",
           "Everything in Solo Attorney",
