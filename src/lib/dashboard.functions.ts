@@ -75,16 +75,6 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    let unreviewed_severity_indicator_count = 0;
-    const indicators = (latestAnalysis?.analysis as { severity_indicators?: unknown[] } | null)
-      ?.severity_indicators;
-    const reviewedStatus = (latestAnalysis?.reviewed_status ?? {}) as Record<string, { status?: string }>;
-    if (Array.isArray(indicators)) {
-      unreviewed_severity_indicator_count = indicators.reduce<number>((count, _item, index) => {
-        const entry = reviewedStatus[`sev:${index}`];
-        return !entry || entry.status === "unsure" ? count + 1 : count;
-      }, 0);
-    }
 
     // Determine last-used surface (roughly)
     const times: Array<{ key: DashboardStats["last_activity"]; t: number }> = [];
@@ -112,7 +102,6 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       upcoming_court_dates: upcomingCourt.count ?? 0,
       ever_had_court_date: !!anyCourt.data,
       last_activity,
-      unreviewed_severity_indicator_count,
       contradiction_count,
     };
   });
