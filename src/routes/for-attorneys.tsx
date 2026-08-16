@@ -52,7 +52,9 @@ function ForAttorneys() {
   const attorneyTiers = buildTiers(remaining).filter((t) => t.key.startsWith("attorney_"));
   const solo = attorneyTiers.find((t) => t.key === "attorney_solo");
   const firm = attorneyTiers.find((t) => t.key === "attorney_firm");
-  const startsAt = `Plans start at ${solo?.price ?? "$297"} / month for a solo attorney seat`;
+  const startsAt = solo
+    ? `Plans start at ${solo.price} / month for a solo attorney seat`
+    : "Plans are listed on the pricing page";
   const firmLine = firm
     ? `Firm plans available — ${firm.price} / month${firm.priceStrike ? ` (list ${firm.priceStrike})` : ""}${firm.eyebrowNote ? `. ${firm.eyebrowNote}.` : "."}`
     : "";
