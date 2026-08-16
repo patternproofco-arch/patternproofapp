@@ -30,6 +30,7 @@ import {
   listFirmColleagues, listCaseGrants, grantCaseAccess, revokeCaseGrant,
 } from "@/lib/firm-grants.functions";
 import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateCaseManagementPackage } from "@/lib/payments.functions";
+import { getClioTargetForClient, exportPacketToClioMatter } from "@/lib/clio.functions";
 import { findClientCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { findTier } from "@/lib/pricing-tiers";
