@@ -142,12 +142,8 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
       }
     }
 
-    // 3. Revoke sessions, then delete the auth user itself.
-    try {
-      await supabaseAdmin.auth.admin.signOut(userId, "global");
-    } catch {
-      /* best effort — deleteUser below also invalidates sessions */
-    }
+    // 3. Delete the auth user itself. This also revokes every active session
+    //    and refresh token for the account.
     const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(userId);
     if (delErr) failures.push(`auth.user: ${delErr.message}`);
 
