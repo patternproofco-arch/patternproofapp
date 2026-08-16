@@ -6,6 +6,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { buildTiers, type Tier } from "@/lib/pricing-tiers";
+import { trackEvent } from "@/lib/ga";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -251,6 +252,10 @@ function TierCard({ tier }: { tier: Tier }) {
   const isAttorney = tier.key === "attorney_solo" || tier.key === "attorney_firm";
   const isOrg = tier.key === "organization";
 
+  const trackCta = () => {
+    trackEvent("pricing_cta_click", { tier: tier.key, cta_label: tier.cta });
+  };
+
   const cardBg = isAttorney
     ? "#4A2A6B"
     : isOrg
@@ -431,6 +436,7 @@ function TierCard({ tier }: { tier: Tier }) {
       {tier.ctaTo.startsWith("mailto") ? (
         <a
           href={tier.ctaTo}
+          onClick={trackCta}
           className="btn-primary"
           style={{
             display: "inline-flex",
@@ -448,6 +454,7 @@ function TierCard({ tier }: { tier: Tier }) {
       ) : (
         <Link
           to={tier.ctaTo}
+          onClick={trackCta}
           className="btn-primary"
           style={{
             display: "inline-flex",
