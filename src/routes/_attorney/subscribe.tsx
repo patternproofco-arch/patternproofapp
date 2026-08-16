@@ -7,6 +7,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { buildTiers, CHARTER_COHORT_CAP, findTier, type Tier } from "@/lib/pricing-tiers";
+import { trackEvent } from "@/lib/ga";
 
 export const Route = createFileRoute("/_attorney/subscribe")({
   component: SubscribePage,
