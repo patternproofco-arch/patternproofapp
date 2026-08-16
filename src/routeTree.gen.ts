@@ -41,8 +41,16 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as AdvocateRouteImport } from './routes/_advocate'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemoIndexRouteImport } from './routes/demo.index'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as DemoVoiceNotesRouteImport } from './routes/demo.voice-notes'
+import { Route as DemoTimelineRouteImport } from './routes/demo.timeline'
+import { Route as DemoPatternsRouteImport } from './routes/demo.patterns'
+import { Route as DemoJournalRouteImport } from './routes/demo.journal'
+import { Route as DemoEvidenceRouteImport } from './routes/demo.evidence'
+import { Route as DemoCourtPacketRouteImport } from './routes/demo.court-packet'
+import { Route as DemoCaseBuilderRouteImport } from './routes/demo.case-builder'
 import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -264,6 +272,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoIndexRoute = DemoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DemoRoute,
+} as any)
 const SurvivorInviteTokenRoute = SurvivorInviteTokenRouteImport.update({
   id: '/survivor-invite/$token',
   path: '/survivor-invite/$token',
@@ -273,6 +286,41 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DemoVoiceNotesRoute = DemoVoiceNotesRouteImport.update({
+  id: '/voice-notes',
+  path: '/voice-notes',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoTimelineRoute = DemoTimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoPatternsRoute = DemoPatternsRouteImport.update({
+  id: '/patterns',
+  path: '/patterns',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoJournalRoute = DemoJournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoEvidenceRoute = DemoEvidenceRouteImport.update({
+  id: '/evidence',
+  path: '/evidence',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoCourtPacketRoute = DemoCourtPacketRouteImport.update({
+  id: '/court-packet',
+  path: '/court-packet',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoCaseBuilderRoute = DemoCaseBuilderRouteImport.update({
+  id: '/case-builder',
+  path: '/case-builder',
+  getParentRoute: () => DemoRoute,
 } as any)
 const CollaboratorInviteTokenRoute = CollaboratorInviteTokenRouteImport.update({
   id: '/collaborator-invite/$token',
@@ -624,7 +672,7 @@ export interface FileRoutesByFullPath {
   '/attorneys': typeof AttorneysRoute
   '/choose-role': typeof ChooseRoleRoute
   '/connect': typeof ConnectRoute
-  '/demo': typeof DemoRoute
+  '/demo': typeof DemoRouteWithChildren
   '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
@@ -696,8 +744,16 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
+  '/demo/case-builder': typeof DemoCaseBuilderRoute
+  '/demo/court-packet': typeof DemoCourtPacketRoute
+  '/demo/evidence': typeof DemoEvidenceRoute
+  '/demo/journal': typeof DemoJournalRoute
+  '/demo/patterns': typeof DemoPatternsRoute
+  '/demo/timeline': typeof DemoTimelineRoute
+  '/demo/voice-notes': typeof DemoVoiceNotesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/demo/': typeof DemoIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
@@ -720,7 +776,6 @@ export interface FileRoutesByTo {
   '/attorneys': typeof AttorneysRoute
   '/choose-role': typeof ChooseRoleRoute
   '/connect': typeof ConnectRoute
-  '/demo': typeof DemoRoute
   '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
@@ -790,8 +845,16 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
+  '/demo/case-builder': typeof DemoCaseBuilderRoute
+  '/demo/court-packet': typeof DemoCourtPacketRoute
+  '/demo/evidence': typeof DemoEvidenceRoute
+  '/demo/journal': typeof DemoJournalRoute
+  '/demo/patterns': typeof DemoPatternsRoute
+  '/demo/timeline': typeof DemoTimelineRoute
+  '/demo/voice-notes': typeof DemoVoiceNotesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/demo': typeof DemoIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
@@ -818,7 +881,7 @@ export interface FileRoutesById {
   '/attorneys': typeof AttorneysRoute
   '/choose-role': typeof ChooseRoleRoute
   '/connect': typeof ConnectRoute
-  '/demo': typeof DemoRoute
+  '/demo': typeof DemoRouteWithChildren
   '/evidence-integrity': typeof EvidenceIntegrityRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
@@ -890,8 +953,16 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
+  '/demo/case-builder': typeof DemoCaseBuilderRoute
+  '/demo/court-packet': typeof DemoCourtPacketRoute
+  '/demo/evidence': typeof DemoEvidenceRoute
+  '/demo/journal': typeof DemoJournalRoute
+  '/demo/patterns': typeof DemoPatternsRoute
+  '/demo/timeline': typeof DemoTimelineRoute
+  '/demo/voice-notes': typeof DemoVoiceNotesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/demo/': typeof DemoIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_advocate/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
@@ -988,8 +1059,16 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/attorney/$token'
     | '/collaborator-invite/$token'
+    | '/demo/case-builder'
+    | '/demo/court-packet'
+    | '/demo/evidence'
+    | '/demo/journal'
+    | '/demo/patterns'
+    | '/demo/timeline'
+    | '/demo/voice-notes'
     | '/email/unsubscribe'
     | '/survivor-invite/$token'
+    | '/demo/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
@@ -1012,7 +1091,6 @@ export interface FileRouteTypes {
     | '/attorneys'
     | '/choose-role'
     | '/connect'
-    | '/demo'
     | '/evidence-integrity'
     | '/for-attorneys'
     | '/for-organizations'
@@ -1082,8 +1160,16 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/attorney/$token'
     | '/collaborator-invite/$token'
+    | '/demo/case-builder'
+    | '/demo/court-packet'
+    | '/demo/evidence'
+    | '/demo/journal'
+    | '/demo/patterns'
+    | '/demo/timeline'
+    | '/demo/voice-notes'
     | '/email/unsubscribe'
     | '/survivor-invite/$token'
+    | '/demo'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
@@ -1181,8 +1267,16 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/attorney/$token'
     | '/collaborator-invite/$token'
+    | '/demo/case-builder'
+    | '/demo/court-packet'
+    | '/demo/evidence'
+    | '/demo/journal'
+    | '/demo/patterns'
+    | '/demo/timeline'
+    | '/demo/voice-notes'
     | '/email/unsubscribe'
     | '/survivor-invite/$token'
+    | '/demo/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_advocate/advocate-cases/$clientId'
@@ -1209,7 +1303,7 @@ export interface RootRouteChildren {
   AttorneysRoute: typeof AttorneysRoute
   ChooseRoleRoute: typeof ChooseRoleRoute
   ConnectRoute: typeof ConnectRoute
-  DemoRoute: typeof DemoRoute
+  DemoRoute: typeof DemoRouteWithChildren
   EvidenceIntegrityRoute: typeof EvidenceIntegrityRoute
   ForAttorneysRoute: typeof ForAttorneysRoute
   ForOrganizationsRoute: typeof ForOrganizationsRoute
@@ -1480,6 +1574,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo/': {
+      id: '/demo/'
+      path: '/'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof DemoIndexRouteImport
+      parentRoute: typeof DemoRoute
+    }
     '/survivor-invite/$token': {
       id: '/survivor-invite/$token'
       path: '/survivor-invite/$token'
@@ -1493,6 +1594,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/demo/voice-notes': {
+      id: '/demo/voice-notes'
+      path: '/voice-notes'
+      fullPath: '/demo/voice-notes'
+      preLoaderRoute: typeof DemoVoiceNotesRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/timeline': {
+      id: '/demo/timeline'
+      path: '/timeline'
+      fullPath: '/demo/timeline'
+      preLoaderRoute: typeof DemoTimelineRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/patterns': {
+      id: '/demo/patterns'
+      path: '/patterns'
+      fullPath: '/demo/patterns'
+      preLoaderRoute: typeof DemoPatternsRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/journal': {
+      id: '/demo/journal'
+      path: '/journal'
+      fullPath: '/demo/journal'
+      preLoaderRoute: typeof DemoJournalRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/evidence': {
+      id: '/demo/evidence'
+      path: '/evidence'
+      fullPath: '/demo/evidence'
+      preLoaderRoute: typeof DemoEvidenceRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/court-packet': {
+      id: '/demo/court-packet'
+      path: '/court-packet'
+      fullPath: '/demo/court-packet'
+      preLoaderRoute: typeof DemoCourtPacketRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/case-builder': {
+      id: '/demo/case-builder'
+      path: '/case-builder'
+      fullPath: '/demo/case-builder'
+      preLoaderRoute: typeof DemoCaseBuilderRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/collaborator-invite/$token': {
       id: '/collaborator-invite/$token'
@@ -2079,6 +2229,30 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface DemoRouteChildren {
+  DemoCaseBuilderRoute: typeof DemoCaseBuilderRoute
+  DemoCourtPacketRoute: typeof DemoCourtPacketRoute
+  DemoEvidenceRoute: typeof DemoEvidenceRoute
+  DemoJournalRoute: typeof DemoJournalRoute
+  DemoPatternsRoute: typeof DemoPatternsRoute
+  DemoTimelineRoute: typeof DemoTimelineRoute
+  DemoVoiceNotesRoute: typeof DemoVoiceNotesRoute
+  DemoIndexRoute: typeof DemoIndexRoute
+}
+
+const DemoRouteChildren: DemoRouteChildren = {
+  DemoCaseBuilderRoute: DemoCaseBuilderRoute,
+  DemoCourtPacketRoute: DemoCourtPacketRoute,
+  DemoEvidenceRoute: DemoEvidenceRoute,
+  DemoJournalRoute: DemoJournalRoute,
+  DemoPatternsRoute: DemoPatternsRoute,
+  DemoTimelineRoute: DemoTimelineRoute,
+  DemoVoiceNotesRoute: DemoVoiceNotesRoute,
+  DemoIndexRoute: DemoIndexRoute,
+}
+
+const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdvocateRoute: AdvocateRouteWithChildren,
@@ -2088,7 +2262,7 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneysRoute: AttorneysRoute,
   ChooseRoleRoute: ChooseRoleRoute,
   ConnectRoute: ConnectRoute,
-  DemoRoute: DemoRoute,
+  DemoRoute: DemoRouteWithChildren,
   EvidenceIntegrityRoute: EvidenceIntegrityRoute,
   ForAttorneysRoute: ForAttorneysRoute,
   ForOrganizationsRoute: ForOrganizationsRoute,
