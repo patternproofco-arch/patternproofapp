@@ -146,3 +146,13 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
   // Order: Survivor · Court Ready · Solo · Firm (featured, middle) · DV Organization
   return [BASE_TIERS[0], BASE_TIERS[1], BASE_TIERS[2], firm, BASE_TIERS[3]];
 }
+
+/** Look up a tier by key from any tier list (defaults to the static base list). */
+export function findTier(key: string, tiers: Tier[] = BASE_TIERS): Tier | undefined {
+  return tiers.find((t) => t.key === key);
+}
+
+/** "$297" -> "297". Used for structured data that needs a bare amount. */
+export function priceAmount(price: string): string {
+  return price.replace(/[^0-9.]/g, "");
+}
