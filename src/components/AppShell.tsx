@@ -4,17 +4,19 @@ import { useSettings } from "@/lib/settings-context";
 import { AiSidekick } from "@/components/AiSidekick";
 import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { QuickExitButton } from "@/components/QuickExitButton";
-import { AmbientBackground } from "@/components/AmbientBackground";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { UtilityBar } from "@/components/UtilityBar";
-import { BrandMark } from "@/components/BrandMark";
+import { SideNav } from "@/components/survivor/SideNav";
+import { PpCubeMark } from "@/components/survivor/PpCubeMark";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { quickExit } from "@/lib/quick-exit";
+import "@/styles/survivor.css";
 
 /**
- * AppShell — quiet canvas.
- * Five-destination flat bottom tab bar, a small utility row for account-level
- * tools, and a persistent Quick Exit control that is never nested in a menu.
+ * AppShell — forest-green rail + white workspace.
+ * Desktop: fixed left navigation and a sticky utility bar.
+ * Mobile: the same destinations via the bottom tab bar.
+ * Quick Exit stays visible everywhere and is never nested in a menu.
  */
 export function AppShell() {
   const { settings } = useSettings();
@@ -35,31 +37,32 @@ export function AppShell() {
   }, [settings.exitUrl]);
 
   return (
-    <div className="min-h-screen w-full" data-density="survivor" data-persona="survivor" style={{ background: "var(--background)" }}>
-      {/* Ambient pastel canvas behind everything */}
-      <AmbientBackground />
+    <div className="pp-portal pp-shell w-full" data-density="survivor" data-persona="survivor">
+      <SideNav />
 
-      {/* Minimal logo strip (no chrome bar) — sits in normal flow */}
-      <header
-        className="no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 pt-5 md:px-10 md:pt-6"
-      >
-        <span aria-hidden style={{ width: 1 }} />
-        <BrandMark size={42} />
-        <UtilityBar />
-      </header>
+      <div className="pp-main">
+        <header className="pp-topbar no-print">
+          <div className="flex items-center gap-2 lg:hidden">
+            <PpCubeMark size={26} onDark={false} />
+            <span className="pp-sidebar__wordmark" style={{ color: "var(--sv-green-900)" }}>
+              PatternProof
+            </span>
+          </div>
+          <UtilityBar />
+        </header>
 
-      <NotificationBanner />
+        <NotificationBanner />
 
-      <main
-        className="app-surface print-page mx-auto w-full max-w-6xl px-5 md:px-10"
-        style={{
-          paddingTop: 24,
-          // bottom padding: tab bar height + safety
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 108px)",
-        }}
-      >
-        <Outlet />
-      </main>
+        <main
+          className="app-surface print-page mx-auto w-full max-w-6xl px-4 md:px-8"
+          style={{
+            paddingTop: 24,
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 108px)",
+          }}
+        >
+          <Outlet />
+        </main>
+      </div>
 
       {/* Persistent chrome */}
       <BottomTabBar />

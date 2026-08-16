@@ -51,15 +51,13 @@ export function BottomTabBar() {
 
   return (
     <nav
-      className="no-print"
+      className="no-print pp-tabbar"
       aria-label="Main"
       style={{
         position: "fixed",
         insetInline: 0,
         bottom: 0,
         zIndex: 90,
-        background: "var(--background)",
-        borderTop: "1px solid var(--border)",
         boxShadow: "none",
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
@@ -67,7 +65,7 @@ export function BottomTabBar() {
       <div className="mx-auto flex w-full max-w-2xl items-stretch">
         {TABS.map((t) => {
           const active = t.match.some((m) => pathname === m || pathname.startsWith(m + "/"));
-          const color = active ? "var(--foreground)" : "var(--muted-foreground)";
+          const color = active ? "var(--sv-green-700, #17553A)" : "var(--muted-foreground)";
           return (
             <Link
               key={t.to}
@@ -75,7 +73,7 @@ export function BottomTabBar() {
               aria-label={t.label}
               aria-current={active ? "page" : undefined}
               className="flex flex-1 flex-col items-center justify-center gap-1"
-              style={{ padding: "10px 4px 12px", color }}
+              style={{ padding: "10px 4px 12px", color, textDecoration: "none" }}
             >
               {t.render(color)}
               <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, letterSpacing: "0.01em" }}>
