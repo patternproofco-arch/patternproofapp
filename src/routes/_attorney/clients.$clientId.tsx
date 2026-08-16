@@ -32,6 +32,7 @@ import {
 import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateCaseManagementPackage } from "@/lib/payments.functions";
 import { findClientCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { typeLabel } from "@/lib/abuse-types";
+import { findTier } from "@/lib/pricing-tiers";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
 import {
@@ -86,14 +87,16 @@ function ClientCaseView() {
 
   if (ent === null) return <div className="att-card">Checking access…</div>;
   if (!ent.entitled) {
+    const soloTier = findTier("attorney_solo");
     return (
       <div className="att-card" style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}>
         <h2 style={{ fontSize: 22, marginBottom: 6 }}>Subscription required</h2>
         <p style={{ color: "var(--att-text-2)", fontSize: 13, marginBottom: 16 }}>
-          You already have one free client case open. Subscribe to unlock unlimited cases for $297/month.
+          Opening client case files needs an active plan.
+          {soloTier ? ` Solo starts at ${soloTier.price}/month.` : ""}
         </p>
         <Link to="/subscribe" className="att-btn-secondary" style={{ display: "inline-block" }}>
-          Subscribe — $297/mo
+          {soloTier ? `Subscribe — ${soloTier.price}/mo` : "Subscribe to continue"}
         </Link>
       </div>
     );

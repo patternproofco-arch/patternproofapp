@@ -6,13 +6,15 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
+import { buildTiers, CHARTER_COHORT_CAP, findTier, type Tier } from "@/lib/pricing-tiers";
 
 export const Route = createFileRoute("/_attorney/subscribe")({
   component: SubscribePage,
 });
 
 type TierKey = "solo" | "firm_charter" | "firm";
-const TIERS: Record<TierKey, {
+
+type CheckoutTier = {
   name: string;
   price: string;
   priceStrike?: string;
@@ -22,59 +24,44 @@ const TIERS: Record<TierKey, {
   bullets: string[];
   close: string;
   note?: string;
-}> = {
-  solo: {
-    name: "Solo",
-    price: "$297",
-    cadence: "/month",
-    priceId: "attorney_solo_monthly",
-    bullets: [
-      "One attorney seat",
-      "Single attorney account (matter counts are not metered today)",
-      "Structured chronological timeline + pattern analysis",
-      "Exportable case summary (ZIP) — imports into practice management systems",
-      "Private attorney notes per incident",
-      "Conflict check across your own caseload",
-    ],
-    close: "$297/month — a single attorney account.",
-  },
-  firm_charter: {
-    name: "Firm",
-    price: "$597",
-    priceStrike: "$897",
-    cadence: "/month · locked 12 months",
-    priceId: "attorney_firm_charter_monthly",
-    recommended: true,
-    bullets: [
-      "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
-      "Everything in Solo Attorney",
-      "No matter limit enforced today",
-      "Multi-attorney collaboration and shared case notes",
-      "Caseload and capacity view across the firm",
-      "Conflict check across your own caseload",
-      "Charter program: personal setup, case import, and staff training",
-      "$597/month rate locked for 12 months, then $897/month list",
-    ],
-    close: "Charter program — personal setup and locked rate for 12 months.",
-    note: "Charter program — limited to 10 firms.",
-  },
-  firm: {
-    name: "Firm",
-    price: "$897",
-    cadence: "/month",
-    priceId: "attorney_firm_monthly",
-    bullets: [
-      "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
-      "Everything in Solo Attorney",
-      "No matter limit enforced today",
-      "Multi-attorney collaboration and shared case notes",
-      "Caseload and capacity view across the firm",
-      "Conflict check across your own caseload",
-      "Priority client onboarding support",
-    ],
-    close: "Built for 3–15 attorney family-law firms.",
-  },
 };
+
+const PRICE_IDS: Record<TierKey, string> = {
+  solo: "attorney_solo_monthly",
+  firm_charter: "attorney_firm_charter_monthly",
+  firm: "attorney_firm_monthly",
+};
+
+/**
+ * Checkout tiers are derived from src/lib/pricing-tiers.ts so this page — the
+ * real Stripe entry point — can never drift from /pricing. The Charter and
+ * list Firm cards come from the two buildTiers() variants (remaining > 0 vs.
+ * cohort full); only the Stripe price IDs live here.
+ */
+function toCheckoutTier(key: TierKey, tier: Tier | undefined): CheckoutTier | null {
+  if (!tier) return null;
+  return {
+    name: tier.name,
+    price: tier.price,
+    priceStrike: tier.priceStrike,
+    cadence: tier.sub,
+    priceId: PRICE_IDS[key],
+    recommended: key === "firm_charter",
+    bullets: tier.features,
+    close: tier.quote,
+    note: key === "firm_charter" ? tier.eyebrowNote : undefined,
+  };
+}
+
+function buildCheckoutTiers(remaining: number | null): Partial<Record<TierKey, CheckoutTier>> {
+  const withCharter = buildTiers(remaining !== null && remaining <= 0 ? 1 : remaining);
+  const charterFullTiers = buildTiers(0);
+  return {
+    solo: toCheckoutTier("solo", findTier("attorney_solo", withCharter)) ?? undefined,
+    firm_charter: toCheckoutTier("firm_charter", findTier("attorney_firm", withCharter)) ?? undefined,
+    firm: toCheckoutTier("firm", findTier("attorney_firm", charterFullTiers)) ?? undefined,
+  };
+}
 
 function SubscribePage() {
   const sub = useSubscription();
@@ -116,7 +103,9 @@ function SubscribePage() {
   const visibleKeys: TierKey[] = charterFull
     ? ["solo", "firm"]
     : ["solo", "firm_charter", "firm"];
-  const t = TIERS[selected];
+  const tiers = buildCheckoutTiers(remaining);
+  const t = tiers[selected] ?? tiers.solo;
+  if (!t) return <div className="att-card">Loading plans…</div>;
 
   return (
     <div>
@@ -129,10 +118,10 @@ function SubscribePage() {
         <p style={{ color: "var(--att-text-2)", fontSize: 15, maxWidth: 640 }}>
           Pick the plan that fits the firm.{" "}
           {charterFull
-            ? "The Charter Firm cohort is full — thank you to the founding 10."
+            ? `The Charter Firm cohort is full — thank you to the founding ${CHARTER_COHORT_CAP}.`
             : remaining !== null
-              ? `Charter program: personal setup and $597/month locked for 12 months — ${remaining} of 10 spots remaining.`
-              : "Charter program: personal setup and $597/month locked for 12 months — first 10 firms only."}
+              ? `Charter program: personal setup and ${tiers.firm_charter?.price ?? ""}/month locked for 12 months — ${remaining} of ${CHARTER_COHORT_CAP} spots remaining.`
+              : `Charter program: personal setup and ${tiers.firm_charter?.price ?? ""}/month locked for 12 months — first ${CHARTER_COHORT_CAP} firms only.`}
         </p>
       </div>
 
@@ -146,7 +135,8 @@ function SubscribePage() {
 
       <div style={{ display: "grid", gridTemplateColumns: `repeat(${visibleKeys.length}, minmax(0, 1fr))`, gap: 16 }}>
         {visibleKeys.map((k) => {
-          const tier = TIERS[k];
+          const tier = tiers[k];
+          if (!tier) return null;
           const active = selected === k;
           return (
             <button

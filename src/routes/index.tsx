@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { BrandLogo } from "@/components/BrandLogo";
 import { BrandMark } from "@/components/BrandMark";
 import { Briefcase, FileText, Users } from "lucide-react";
+import { findTier, priceAmount } from "@/lib/pricing-tiers";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { ref?: string } =>
@@ -35,7 +36,7 @@ export const Route = createFileRoute("/")({
           url: "https://pattern-proof.tech/",
           offers: [
             { "@type": "Offer", name: "Survivor — Free", price: "0", priceCurrency: "USD", url: "https://pattern-proof.tech/login", availability: "https://schema.org/InStock" },
-            { "@type": "Offer", name: "Attorney Solo", price: "297", priceCurrency: "USD", url: "https://pattern-proof.tech/for-attorneys", availability: "https://schema.org/InStock" },
+            { "@type": "Offer", name: "Attorney Solo", price: priceAmount(findTier("attorney_solo")?.price ?? ""), priceCurrency: "USD", url: "https://pattern-proof.tech/for-attorneys", availability: "https://schema.org/InStock" },
             { "@type": "Offer", name: "DV Organization — Invite", price: "0", priceCurrency: "USD", url: "https://pattern-proof.tech/for-organizations", availability: "https://schema.org/LimitedAvailability" },
           ],
         }),
