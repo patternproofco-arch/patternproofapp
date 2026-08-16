@@ -166,7 +166,7 @@ function BillingPage() {
       </div>
 
       <div className="att-card" style={{ background: "var(--att-surface-2)", display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--att-text-2)" }}>
-        <Lock size={14} /> Cards never touch our servers. Billing handled end-to-end by Stripe.
+        <Lock size={14} /> Cards never touch our servers. Billing is handled entirely by Stripe.
       </div>
 
       <div className="att-card" style={{ marginTop: 16 }}>

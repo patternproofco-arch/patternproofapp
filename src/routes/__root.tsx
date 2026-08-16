@@ -137,7 +137,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function gtag(){dataLayer.push(arguments);}
 window.gtag = gtag;
 gtag('js', new Date());
-gtag('config', '${GA_MEASUREMENT_ID}');`,
+// Automatic pageviews are OFF. Pageviews are sent only by
+// GoogleAnalyticsRouteTracker, and only for public marketing pages, so no
+// survivor-app URL, query string or page title can ever reach Analytics.
+gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false, anonymize_ip: true });`,
       },
       {
         type: "application/ld+json",
@@ -149,14 +152,14 @@ gtag('config', '${GA_MEASUREMENT_ID}');`,
               "@id": "https://pattern-proof.tech/#organization",
               name: "PatternProof",
               url: "https://pattern-proof.tech/",
-              description: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+              description: "Documentation and organization for survivors of domestic abuse and high-conflict custody cases. Authenticated access, per-user row-level access controls, private file storage, and encryption in transit.",
             },
             {
               "@type": "WebSite",
               "@id": "https://pattern-proof.tech/#website",
               name: "PatternProof",
               url: "https://pattern-proof.tech/",
-              description: "Private documentation for your case, encrypted in transit and protected with per-user access controls. Visible only to you and anyone you choose to share it with.",
+              description: "Documentation for your case, encrypted in transit and scoped to your account by per-user access controls. Not end-to-end encrypted.",
               publisher: { "@id": "https://pattern-proof.tech/#organization" },
             },
           ],

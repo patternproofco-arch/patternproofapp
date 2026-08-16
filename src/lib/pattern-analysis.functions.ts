@@ -31,11 +31,12 @@ export interface PatternAnalysisResult {
   }>;
   what_to_document_next?: string[];
   attorney_summary?: string;
-  severity_indicators?: Array<{
-    label: string;
-    note: string;
-    source_incident_ids: string[];
-  }>;
+  /**
+   * @deprecated RETIRED. The "documented severity indicators" / escalation
+   * feature is no longer generated, displayed, counted or exported. Legacy
+   * jsonb rows may still carry this key; nothing in the app reads it.
+   */
+  severity_indicators?: never;
   generated_at: string;
 }
 
@@ -61,21 +62,8 @@ const TOOL_SCHEMA = {
     },
     what_to_document_next: { type: "array", items: { type: "string" } },
     attorney_summary: { type: "string", description: "Neutral restatement of frequency only, suitable for professional review. State counts, date ranges and dates drawn from the records provided (e.g. 'The records contain 14 entries between 3 March and 2 August 2026; 6 fall on custody-exchange dates.'). Do NOT characterise the record as a cycle, escalation, pattern of abuse, or any named dynamic. Do NOT interpret, diagnose, rate, or draw conclusions. Counts, dates and the survivor's own wording only." },
-    severity_indicators: {
-      type: "array",
-      description: "Documented behaviors already present in the survivor's confirmed incidents that commonly co-occur with safety escalation (e.g. threats involving weapons, strangulation/choking, threats to kill). Descriptive only — never a prediction, tier, score, or clinical assessment. Every item MUST cite at least one source incident id it is drawn from.",
-      items: {
-        type: "object",
-        properties: {
-          label: { type: "string", description: "Short factual label of the documented behavior (e.g. 'Non-fatal strangulation described', 'Verbal threat to kill', 'Threat involving a weapon'). Do not use words like 'risk', 'tier', 'high', 'detected'." },
-          note: { type: "string", description: "One calm sentence describing what the record shows, hedged. Include the phrase 'documented in your records, not a prediction or clinical assessment' or an equivalent hedge." },
-          source_incident_ids: { type: "array", items: { type: "string" }, minItems: 1, description: "Incident id(s) from the input list this item is drawn from. Required — no item without a source citation." },
-        },
-        required: ["label", "note", "source_incident_ids"],
-      },
-    },
   },
-  required: ["frequency_trends", "abuse_type_breakdown", "gaps", "suggested_followups", "corroborating_incident_count", "evidence_list", "what_to_document_next", "attorney_summary", "severity_indicators"],
+  required: ["frequency_trends", "abuse_type_breakdown", "gaps", "suggested_followups", "corroborating_incident_count", "evidence_list", "what_to_document_next", "attorney_summary"],
   additionalProperties: false,
 };
 
@@ -163,24 +151,14 @@ export const analyzePatterns = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "parse-failed" };
     }
 
-    // Enforce citation invariant server-side: strip any severity_indicators
-    // item that lacks a source_incident_id or cites an id not in the input.
-    if (Array.isArray(parsed.severity_indicators)) {
-      const validIds = new Set(incidents.map((i) => i.id));
-      parsed.severity_indicators = parsed.severity_indicators
-        .map((s) => ({
-          label: String(s.label ?? "").trim(),
-          note: String(s.note ?? "").trim(),
-          source_incident_ids: (s.source_incident_ids ?? []).filter((id) => validIds.has(id)),
-        }))
-        .filter((s) => s.label && s.note && s.source_incident_ids.length > 0);
-    }
+    // The severity-indicator / escalation feature is retired: drop the key if
+    // an older model response still returns it, so nothing can be stored,
+    // rendered or exported.
+    delete (parsed as unknown as Record<string, unknown>)["severity_indicators"];
 
-    // Seed reviewed_status for every severity indicator with "unsure" default.
+    // Seed reviewed_status. Every AI narrative that can reach an export starts
+    // "unsure" and must be explicitly confirmed or edited by the survivor.
     const seededStatus: Record<string, ClaimReviewState> = {};
-    (parsed.severity_indicators ?? []).forEach((_s, i) => {
-      seededStatus[`sev:${i}`] = { status: "unsure" };
-    });
     if (parsed.attorney_summary) seededStatus["attorney_summary"] = { status: "unsure" };
 
     const insertRes = await supabase.from("pattern_analyses").insert({

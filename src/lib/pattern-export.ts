@@ -57,22 +57,8 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
     lines.push(`Incidents counted in the record: ${a.corroborating_incident_count}`, ``);
   }
 
-  // Severity indicators — reviewable per item.
-  if (Array.isArray(a.severity_indicators) && a.severity_indicators.length) {
-    const kept: AnyAnalysis[] = [];
-    a.severity_indicators.forEach((s0: AnyAnalysis, i: number) => {
-      const s = statusOf(`sev:${i}`);
-      tally(s);
-      if (!included(s)) return;
-      kept.push({ ...s0, note: textOf(`sev:${i}`, String(s0.note ?? "")) });
-    });
-    if (kept.length) {
-      lines.push(`## Documented behaviours the survivor confirmed`, ``);
-      kept.forEach((s0) => lines.push(`- **${s0.label ?? "—"}** — ${s0.note ?? ""}`.trim()));
-      lines.push(``);
-      redacted.severity_indicators = kept;
-    }
-  }
+  // severity_indicators (the retired "documented severity indicators" /
+  // escalation feature) is never exported, even when present on legacy rows.
 
   // Attorney-facing restatement — reviewable.
   if (a.attorney_summary) {

@@ -145,7 +145,9 @@ function ShareWithAttorney() {
             <button onClick={() => setJustCreated(null)} className="btn-ghost">Done</button>
           </div>
           <p className="mt-3 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-            This link expires in {days} days. Your attorney cannot share or download your data without your permission.
+            This link expires in {days} days. You can revoke access at any time, and you control
+            which cases, dates, and records are in scope. Once your attorney has viewed or
+            downloaded material, revoking access cannot recall copies they already have.
           </p>
         </div>
       )}

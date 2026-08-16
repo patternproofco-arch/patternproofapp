@@ -93,7 +93,7 @@ function ClientsIndex() {
   );
 }
 
-type SortKey = "client" | "linked_at" | "incident_count" | "evidence_count" | "escalation_flag_count" | "last_incident_date";
+type SortKey = "client" | "linked_at" | "incident_count" | "evidence_count" | "last_incident_date";
 
 function ClientTable({ clients, sharedBadge, matterLinks, onMatterChange }: {
   clients: ClientRow[] | null;
@@ -170,7 +170,6 @@ function ClientTable({ clients, sharedBadge, matterLinks, onMatterChange }: {
               <th>Density</th>
               {th("incident_count", "Incidents", true)}
               {th("evidence_count", "Evidence", true)}
-              {th("escalation_flag_count", "Flags", true)}
               <th style={{ textAlign: "right" }}>Activity</th>
               {th("last_incident_date", "Latest incident")}
               {th("linked_at", "Linked")}
@@ -233,7 +232,6 @@ function ClientTable({ clients, sharedBadge, matterLinks, onMatterChange }: {
                   </td>
                   <td className="att-td-tight num">{c.incident_count}</td>
                   <td className="att-td-tight num">{c.evidence_count}</td>
-                  <td className="att-td-tight num">{c.escalation_flag_count}</td>
                   <td className="att-td-tight num" style={{ color: activity ? "var(--att-navy)" : "var(--att-muted)", fontWeight: activity ? 600 : 400 }}>
                     {activity || "—"}
                   </td>

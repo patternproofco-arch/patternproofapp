@@ -53,7 +53,6 @@ function CaseloadPage() {
         <Kpi icon={<Users size={14} />} label="Active clients" value={totals.active_client_count} />
         <Kpi icon={<FileWarning size={14} />} label="Unconfirmed AI drafts" value={totals.total_unconfirmed_ai_drafts} tone={totals.total_unconfirmed_ai_drafts ? "warn" : undefined} />
         <Kpi icon={<Clock size={14} />} label="Disengaged (30d)" value={totals.disengaged_client_count} tone={totals.disengaged_client_count ? "warn" : undefined} />
-        <Kpi icon={<AlertTriangle size={14} />} label="Clients w/ unreviewed severity" value={totals.clients_with_unreviewed_severity_indicators} tone={totals.clients_with_unreviewed_severity_indicators ? "warn" : undefined} />
       </div>
 
       {disengaged_clients.length > 0 && (
@@ -99,19 +98,18 @@ function CaseloadPage() {
       )}
 
       <div style={{ border: "1px solid var(--att-border)", borderRadius: 2, overflow: "hidden" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(140px,1.4fr) 1fr 0.8fr 0.8fr 0.8fr 32px", gap: 8, padding: "10px 14px", background: "var(--att-surface-2, #f7f7f5)", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--att-text-2)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(140px,1.4fr) 1fr 0.8fr 0.8fr 32px", gap: 8, padding: "10px 14px", background: "var(--att-surface-2, #f7f7f5)", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--att-text-2)" }}>
           <div>Client</div>
           <div>Last activity</div>
           <div>Unconfirmed AI</div>
           <div>Disengaged</div>
-          <div>Unreviewed severity</div>
           <div />
         </div>
         {clients.length === 0 && (
           <div style={{ padding: 20, fontSize: 13, color: "var(--att-text-2)" }}>No active clients yet.</div>
         )}
         {clients.map((c) => {
-          const attention = c.unconfirmed_ai_draft_count > 0 || c.disengaged_30d || c.unreviewed_severity_indicator_count > 0;
+          const attention = c.unconfirmed_ai_draft_count > 0 || c.disengaged_30d;
           return (
             <Link
               key={c.link_id}
@@ -119,7 +117,7 @@ function CaseloadPage() {
               params={{ clientId: c.client_user_id }}
               style={{
                 display: "grid",
-                gridTemplateColumns: "minmax(140px,1.4fr) 1fr 0.8fr 0.8fr 0.8fr 32px",
+                gridTemplateColumns: "minmax(140px,1.4fr) 1fr 0.8fr 0.8fr 32px",
                 gap: 8,
                 padding: "12px 14px",
                 borderTop: "1px solid var(--att-border)",
@@ -135,7 +133,6 @@ function CaseloadPage() {
               <div style={{ color: "var(--att-text-2)" }}>{c.last_activity_at ? formatDate(c.last_activity_at) : "—"}</div>
               <Chip value={c.unconfirmed_ai_draft_count} warn={c.unconfirmed_ai_draft_count > 0} />
               <Chip value={c.disengaged_30d ? "Yes" : "—"} warn={c.disengaged_30d} />
-              <Chip value={c.unreviewed_severity_indicator_count} warn={c.unreviewed_severity_indicator_count > 0} />
               <ChevronRight size={14} style={{ opacity: 0.5 }} />
             </Link>
           );

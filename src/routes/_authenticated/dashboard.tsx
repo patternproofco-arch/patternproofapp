@@ -159,8 +159,11 @@ function Dashboard() {
                 <span className="pp-panel__title">Safety &amp; privacy</span>
               </div>
               <p className="mt-2 text-[13px]">
-                Your records are visible only to you unless you choose to share them. Data is
-                encrypted in transit and access is enforced per account.
+                Your records are scoped to your account by row-level access controls, and stored
+                files are kept in private storage. Data is encrypted in transit; at-rest encryption
+                is provided by our infrastructure host. This is not end-to-end encryption —
+                authorized PatternProof engineers can technically access account contents in order
+                to operate the service.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link to="/settings" className="btn-ghost inline-flex items-center gap-2 text-[13px]">

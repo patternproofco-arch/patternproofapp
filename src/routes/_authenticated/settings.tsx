@@ -11,10 +11,85 @@ import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
 import { generateExportZip } from "@/lib/export-zip.functions";
 import { Download } from "lucide-react";
+import { deleteMyAccount, DELETE_CONFIRMATION_PHRASE } from "@/lib/account-deletion.functions";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
 });
+
+function DeleteAccountCard() {
+  const run = useServerFn(deleteMyAccount);
+  const [open, setOpen] = useState(false);
+  const [confirmation, setConfirmation] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const onDelete = async () => {
+    setBusy(true);
+    try {
+      const result = await run({ data: { confirmation } });
+      if (!result.ok) {
+        toast(
+          result.reason === "confirmation-mismatch"
+            ? `Type ${DELETE_CONFIRMATION_PHRASE} exactly to continue.`
+            : "Some of your records couldn't be removed, so your account is still here. Email us and we'll finish it by hand.",
+        );
+        return;
+      }
+      await supabase.auth.signOut();
+      window.location.href = "/";
+    } catch {
+      toast("We couldn't complete that. Try again in a moment.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="card-pp mt-6">
+      <div className="flex items-center gap-2">
+        <Trash2 size={18} style={{ color: "var(--primary)" }} />
+        <h2 className="font-serif text-[19px]">Delete your account</h2>
+      </div>
+      <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+        This permanently removes your incidents, evidence files, voice notes, recordings, exports,
+        case records and every attorney or advocate link, then deletes your sign-in and signs you out
+        everywhere. It cannot be undone. Please export everything first if you want to keep a copy.
+        Provider-level infrastructure backups and security logs may persist for a time under the
+        provider's own schedule.
+      </p>
+      {!open ? (
+        <button onClick={() => setOpen(true)} className="btn-primary mt-4 inline-block">
+          Delete my account
+        </button>
+      ) : (
+        <div className="mt-4">
+          <label className="text-[13px]">
+            Type <strong>{DELETE_CONFIRMATION_PHRASE}</strong> to confirm.
+          </label>
+          <input
+            className="input-pp mt-2"
+            value={confirmation}
+            onChange={(e) => setConfirmation(e.target.value)}
+            placeholder={DELETE_CONFIRMATION_PHRASE}
+            style={{ width: "100%", maxWidth: 320 }}
+          />
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={onDelete}
+              disabled={busy || confirmation.trim() !== DELETE_CONFIRMATION_PHRASE}
+              className="btn-primary"
+            >
+              {busy ? "Deleting…" : "Permanently delete"}
+            </button>
+            <button onClick={() => { setOpen(false); setConfirmation(""); }} className="btn-ghost">
+              Keep my account
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface AuditRow {
   id: string;
@@ -309,18 +384,7 @@ function SettingsPage() {
         )}
       </div>
 
-      <div className="card-pp mt-6">
-        <div className="flex items-center gap-2"><Trash2 size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[19px]">Request account deletion</h2></div>
-        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          Automatic in-app deletion isn't available yet. You can request deletion of your account and data by emailing us, and we'll confirm once it's complete. Consider exporting your records first.
-        </p>
-        <a
-          href="mailto:gracieburns200@gmail.com?subject=Data%20Deletion%20Request"
-          className="btn-primary mt-4 inline-block"
-        >
-          Request account deletion
-        </a>
-      </div>
+      <DeleteAccountCard />
     </div>
   );
 }
