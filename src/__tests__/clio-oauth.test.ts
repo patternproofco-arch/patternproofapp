@@ -206,3 +206,60 @@ describe("clio server surface", () => {
     expect(readFileSync(".env.example", "utf8")).not.toMatch(/VITE_CLIO/);
   });
 });
+
+describe("clio document export surface", () => {
+  const fns = readFileSync("src/lib/clio.functions.ts", "utf8");
+  const docs = readFileSync("src/lib/clio-documents.server.ts", "utf8");
+  const block = fns.slice(fns.indexOf("export const exportPacketToClioMatter"));
+
+  it("requires auth, an attorney role, and the availability gate", () => {
+    expect(block).toContain("requireSupabaseAuth");
+    expect(block).toContain("assertClioAvailable");
+    expect(block).toContain("resolveCallerRole");
+  });
+
+  it("requires the survivor's Clio sharing consent and an explicit matter link", () => {
+    expect(block).toContain("clio_share_consent");
+    expect(block).toContain("clio_matter_links");
+    expect(block).toContain("matterLink.clio_matter_id !== data.matterId");
+  });
+
+  it("only reads export objects under the caller's own storage prefix", () => {
+    expect(block).toContain("data.objectPath.startsWith(`${context.userId}/`)");
+  });
+
+  it("records the export attempt and only confirms after Clio confirms", () => {
+    expect(block).toContain('status: "pending"');
+    expect(block).toContain('status: "confirmed"');
+    expect(block).toContain('status: "failed"');
+  });
+
+  it("finalizes the Clio upload before reporting success", async () => {
+    const createIdx = docs.indexOf("/documents.json?fields=id");
+    const putIdx = docs.indexOf("version.put_url, {");
+    const patchIdx = docs.indexOf('method: "PATCH"');
+    expect(createIdx).toBeLessThan(putIdx);
+    expect(putIdx).toBeLessThan(patchIdx);
+    expect(docs.indexOf("return { clioDocumentId")).toBeGreaterThan(patchIdx);
+  });
+
+  it("never logs provider bodies from the document path", () => {
+    for (const line of docs.split("\n").filter((l) => l.includes("console."))) {
+      expect(line).not.toMatch(/access_token|res\.text|await res|bytes/);
+    }
+  });
+
+  it("maps Clio failures to plain, non-leaking messages", async () => {
+    const { uploadMessage } = await import("@/lib/clio-documents.server");
+    expect(uploadMessage(401)).toMatch(/Reconnect Clio/);
+    expect(uploadMessage(403)).toMatch(/Documents \(write\)/);
+    expect(uploadMessage(404)).toMatch(/couldn't find that matter/);
+    expect(uploadMessage(429)).toMatch(/rate-limiting/);
+    expect(uploadMessage(500)).toMatch(/Nothing was filed/);
+  });
+
+  it("does not claim a disconnect Clio didn't confirm", () => {
+    const dc = fns.slice(fns.indexOf("export const disconnectClio"));
+    expect(dc).toContain("still in place");
+  });
+});
