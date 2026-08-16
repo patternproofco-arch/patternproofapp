@@ -38,9 +38,9 @@ export function QuickExitButton() {
       title="Quick exit — signs you out and leaves. Drag to move, double-press Esc to exit"
       className="no-print fixed z-[9999] inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold"
       style={{
-        background: "#B7D8B0", /* pastel green */
-        color: "#1F3A1B",
-        boxShadow: "none",
+        background: "#0D3825",
+        color: "#FFFFFF",
+        boxShadow: "0 6px 18px -8px rgba(13,56,37,0.6)",
         letterSpacing: "0.04em",
         touchAction: "none",
         cursor: "grab",
