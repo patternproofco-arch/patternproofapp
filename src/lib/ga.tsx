@@ -3,6 +3,15 @@ import { useRouterState } from "@tanstack/react-router";
 
 export const GA_MEASUREMENT_ID = "G-PXNVVNXEV5";
 
+/**
+ * Fires a GA4 event. Safe on the server and before gtag.js has loaded —
+ * same guard pattern used by the route tracker below.
+ */
+export function trackEvent(name: string, params: Record<string, unknown> = {}) {
+  if (typeof window === "undefined" || typeof window.gtag !== "function") return;
+  window.gtag("event", name, { ...params, send_to: GA_MEASUREMENT_ID });
+}
+
 declare global {
   interface Window {
     dataLayer: unknown[];
