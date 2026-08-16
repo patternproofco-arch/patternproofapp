@@ -68,14 +68,6 @@ export const getDashboardStats = createServerFn({ method: "GET" })
         .eq("date_precision", "exact").not("date", "is", null),
     ]);
 
-    const { data: latestAnalysis } = await supabase
-      .from("pattern_analyses")
-      .select("analysis, reviewed_status")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
     // Determine last-used surface (roughly)
     const times: Array<{ key: DashboardStats["last_activity"]; t: number }> = [];
     const push = (key: DashboardStats["last_activity"], v?: string | null) => {
