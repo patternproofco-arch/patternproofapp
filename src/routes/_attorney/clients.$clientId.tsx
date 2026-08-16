@@ -30,6 +30,7 @@ import {
   listFirmColleagues, listCaseGrants, grantCaseAccess, revokeCaseGrant,
 } from "@/lib/firm-grants.functions";
 import { getAttorneyEntitlement, generateAttorneyCourtPacket, generateCaseManagementPackage } from "@/lib/payments.functions";
+import { getClioTargetForClient, exportPacketToClioMatter } from "@/lib/clio.functions";
 import { findClientCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { typeLabel } from "@/lib/abuse-types";
 import { findTier } from "@/lib/pricing-tiers";
@@ -1802,6 +1803,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   const [attorneyNotes, setAttorneyNotes] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [pkgDownloading, setPkgDownloading] = useState(false);
+  const [lastPacketPath, setLastPacketPath] = useState<string | null>(null);
   const packetFn = useServerFn(generateAttorneyCourtPacket);
   const pkgFn = useServerFn(generateCaseManagementPackage);
 
@@ -1828,6 +1830,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
     try {
       const r = await packetFn({ data: { clientId: caseId, includeAttorneyNotes: attorneyNotes } });
       if (!r.ok) { toast("Couldn't generate packet: " + r.reason); return; }
+      setLastPacketPath(r.object_path ?? null);
       window.open(r.url, "_blank");
       toast("Packet ready. Includes cover, TOC, timeline, evidence index, and exhibit list.");
     } finally { setDownloading(false); }
@@ -1936,7 +1939,97 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         >
           <Briefcase size={13} /> {pkgDownloading ? "Preparing…" : "Download import package (ZIP)"}
         </button>
+        <div className="att-divider" />
+        <ClioSendPanel clientId={caseId} objectPath={lastPacketPath} />
       </div>
+    </div>
+  );
+}
+
+/**
+ * Sends a packet the attorney just generated into the Clio matter already
+ * linked to this case. Nothing is sent automatically and nothing is sent
+ * without the client's Clio sharing approval.
+ */
+function ClioSendPanel({ clientId, objectPath }: { clientId: string; objectPath: string | null }) {
+  const targetFn = useServerFn(getClioTargetForClient);
+  const sendFn = useServerFn(exportPacketToClioMatter);
+  const [target, setTarget] = useState<{
+    available: boolean;
+    consent: boolean;
+    matter: { clio_matter_id: string; clio_matter_display_number: string | null; clio_matter_description: string | null } | null;
+  } | null>(null);
+  const [sending, setSending] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void targetFn({ data: { clientId } })
+      .then((r) => { if (alive) setTarget(r); })
+      .catch(() => { if (alive) setTarget(null); });
+    return () => { alive = false; };
+  }, [targetFn, clientId]);
+
+  if (!target?.available) {
+    return (
+      <div>
+        <div className="att-eyebrow">Clio Manage</div>
+        <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, lineHeight: 1.6 }}>
+          Sending straight into a Clio matter isn't switched on for this workspace yet. Use the import package above in
+          the meantime.
+        </p>
+      </div>
+    );
+  }
+
+  const matter = target.matter;
+  const send = async () => {
+    if (!matter || !objectPath) return;
+    setSending(true);
+    try {
+      const r = await sendFn({ data: { clientId, objectPath, matterId: matter.clio_matter_id } });
+      setSentTo(r.name);
+      toast(`Filed in Clio as ${r.name}.`);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Clio couldn't accept that document. Nothing was filed.");
+    } finally { setSending(false); }
+  };
+
+  return (
+    <div>
+      <div className="att-eyebrow">Clio Manage</div>
+      {!target.consent ? (
+        <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, lineHeight: 1.6 }}>
+          Your client hasn't approved Clio sharing for this case, so nothing can be sent to Clio.
+        </p>
+      ) : !matter ? (
+        <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, lineHeight: 1.6 }}>
+          Link this case to a Clio matter on the Billing &amp; integrations page first.
+        </p>
+      ) : (
+        <>
+          <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, lineHeight: 1.6 }}>
+            Linked matter:{" "}
+            <span className="att-mono">
+              {matter.clio_matter_display_number || matter.clio_matter_description || matter.clio_matter_id}
+            </span>
+            . Generate the ZIP packet above, then send that exact file across. Nothing syncs on its own.
+          </p>
+          <button
+            className="att-btn-secondary"
+            onClick={send}
+            disabled={sending || !objectPath}
+            style={{ marginTop: 10, width: "100%", padding: "10px 14px", fontSize: 13 }}
+          >
+            {sending ? "Sending to Clio…" : objectPath ? "Send packet to Clio matter" : "Generate a ZIP packet first"}
+          </button>
+          {sentTo ? (
+            <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--att-text-2)" }}>
+              Clio confirmed <span className="att-mono">{sentTo}</span> was filed to the matter.
+            </div>
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

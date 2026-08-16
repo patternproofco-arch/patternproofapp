@@ -688,6 +688,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     return {
       ok: true as const,
       url: signed.data.signedUrl,
+      object_path: objectPath,
       bytes: zipBuf.byteLength,
       filename: `professional-review-packet-${data.clientId.slice(0, 8)}-${ts}.zip`,
     };

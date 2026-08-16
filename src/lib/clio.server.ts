@@ -15,6 +15,12 @@ const CLIO_TOKEN_URL = "https://app.clio.com/oauth/token";
 const CLIO_DEAUTHORIZE_URL = "https://app.clio.com/oauth/deauthorize";
 const CLIO_API_BASE = "https://app.clio.com/api/v4";
 
+/** Region is fixed to US for now — our Clio developer account is US-region. */
+export const CLIO_REGION = "us";
+export function clioApiBase(): string {
+  return CLIO_API_BASE;
+}
+
 /** How long an OAuth state row is valid. Short by design. */
 export const STATE_TTL_MS = 10 * 60 * 1000;
 
@@ -123,6 +129,7 @@ export interface ClioIdentity {
   clioUserId: string | null;
   clioUserEmail: string | null;
   firmName: string | null;
+  userName: string | null;
 }
 
 /**
@@ -145,6 +152,7 @@ export async function fetchClioIdentity(accessToken: string): Promise<ClioIdenti
     clioUserId: d.id != null ? String(d.id) : null,
     clioUserEmail: d.email ?? null,
     firmName: d.account?.name ?? d.name ?? null,
+    userName: d.name ?? null,
   };
 }
 
@@ -164,6 +172,9 @@ export async function storeClioTokens(
       clio_user_id: identity.clioUserId,
       clio_user_email: identity.clioUserEmail,
       firm_name: identity.firmName,
+      clio_user_name: identity.userName,
+      clio_region: CLIO_REGION,
+      last_verified_at: new Date().toISOString(),
       revoked_at: null,
       updated_at: new Date().toISOString(),
     },
@@ -207,6 +218,7 @@ export async function getValidClioAccessToken(userId: string): Promise<string | 
       access_token: encryptToken(tokens.access_token),
       refresh_token: encryptToken(tokens.refresh_token ?? decryptToken(data.refresh_token)),
       expires_at: expiryFrom(tokens.expires_in),
+      last_refresh_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
     .eq("user_id", userId);

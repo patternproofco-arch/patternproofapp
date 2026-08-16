@@ -52,7 +52,9 @@ describe("buildPatternExport", () => {
       "sev:0": { status: "confirmed" },
     });
     expect(r.redactedAnalysis.attorney_summary).toBe("My own wording");
-    expect(r.redactedAnalysis.severity_indicators).toHaveLength(1);
+    // Severity indicators are retired: the export never carries them, even
+    // when a legacy review row still confirms one.
+    expect(r.redactedAnalysis.severity_indicators).toBeUndefined();
   });
 
   it("never exports a rejected claim", () => {
@@ -62,6 +64,7 @@ describe("buildPatternExport", () => {
     });
     expect(JSON.stringify(r.redactedAnalysis)).not.toContain("My own wording");
     expect(r.redactedAnalysis.attorney_summary).toBeUndefined();
-    expect(r.rejectedCount).toBe(2);
+    // Only the summary is a live claim now, so only it can be rejected.
+    expect(r.rejectedCount).toBe(1);
   });
 });
