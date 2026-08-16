@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 
 const ITEMS = [
   { to: "/agent", label: "PatternProof Agent", Icon: Sparkles },
-  { to: "/settings", label: "Safety & privacy settings", Icon: ShieldCheck },
+  { to: "/safety", label: "Safety & privacy", Icon: ShieldCheck },
   { to: "/settings", label: "Settings", Icon: SettingsIcon },
   { to: "/support", label: "Support", Icon: LifeBuoy },
 ] as const;
