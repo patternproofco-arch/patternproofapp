@@ -108,6 +108,39 @@ function SubscribePage() {
   const t = tiers[selected] ?? tiers.solo;
   if (!t) return <div className="att-card">Loading plans…</div>;
 
+  return <SubscribeBody
+    t={t}
+    tiers={tiers}
+    visibleKeys={visibleKeys}
+    selected={selected}
+    setSelected={setSelected}
+    charterFull={charterFull}
+    remaining={remaining}
+  />;
+}
+
+function SubscribeBody({
+  t, tiers, visibleKeys, selected, setSelected, charterFull, remaining,
+}: {
+  t: CheckoutTier;
+  tiers: Partial<Record<TierKey, CheckoutTier>>;
+  visibleKeys: TierKey[];
+  selected: TierKey;
+  setSelected: (k: TierKey) => void;
+  charterFull: boolean;
+  remaining: number | null;
+}) {
+  // Fires when the embedded checkout is rendered for the selected tier;
+  // checkout re-mounts per tier, so `selected` is the right key.
+  useEffect(() => {
+    trackEvent("begin_checkout", {
+      tier: selected,
+      price_id: t.priceId,
+      value: parseInt(t.price.replace(/[^0-9]/g, ""), 10),
+      currency: "USD",
+    });
+  }, [selected, t.priceId, t.price]);
+
   return (
     <div>
       <PaymentTestModeBanner />
@@ -142,7 +175,10 @@ function SubscribePage() {
           return (
             <button
               key={k}
-              onClick={() => setSelected(k)}
+              onClick={() => {
+                trackEvent("subscribe_tier_selected", { tier: k });
+                setSelected(k);
+              }}
               className="att-card att-hover"
               style={{
                 textAlign: "left",
