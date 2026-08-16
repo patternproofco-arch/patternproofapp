@@ -72,16 +72,18 @@ function RequestOrgAccess() {
                 <div>
                   <div style={{ fontWeight: 700, marginBottom: 4 }}>Request received.</div>
                   <div style={{ fontSize: 14, color: "var(--muted-foreground)" }}>
-                    We'll review it and reply within a few days. Once we approve your organization,
-                    survivors who sign up through your link stay free forever. Once your account is
-                    set up, you'll have your own partner dashboard at /org-portal showing referral
-                    counts anytime.
+                    We'll review it and reply within a few days. Survivor accounts are free — there
+                    is no survivor subscription, trial, or paid feature, whether or not someone signs
+                    up through your link. Once your account is set up, you'll have your own partner
+                    dashboard at /org-portal showing referral counts anytime.
                   </div>
                 </div>
               </div>
               <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-                Partner organizations see referral counts only — never survivor names, records, or
-                anything a survivor has documented.
+                Partner organizations see aggregate referral counts only — never survivor names,
+                records, or anything a survivor has documented. Partners do not administer, review,
+                or manage survivor accounts. A survivor's documentation reaches an advocate only if
+                that survivor separately and explicitly shares it through the advocate workflow.
               </p>
             </div>
           ) : (
