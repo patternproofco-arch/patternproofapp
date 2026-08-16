@@ -129,6 +129,7 @@ export interface ClioIdentity {
   clioUserId: string | null;
   clioUserEmail: string | null;
   firmName: string | null;
+  userName: string | null;
 }
 
 /**
@@ -151,6 +152,7 @@ export async function fetchClioIdentity(accessToken: string): Promise<ClioIdenti
     clioUserId: d.id != null ? String(d.id) : null,
     clioUserEmail: d.email ?? null,
     firmName: d.account?.name ?? d.name ?? null,
+    userName: d.name ?? null,
   };
 }
 
@@ -216,6 +218,7 @@ export async function getValidClioAccessToken(userId: string): Promise<string | 
       access_token: encryptToken(tokens.access_token),
       refresh_token: encryptToken(tokens.refresh_token ?? decryptToken(data.refresh_token)),
       expires_at: expiryFrom(tokens.expires_in),
+      last_refresh_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
     .eq("user_id", userId);
