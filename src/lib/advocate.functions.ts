@@ -362,14 +362,14 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
 
     const [incQ, evQ, patQ, caseQ] = await Promise.all([
       includeAllIncidents
-        ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
+        ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).eq("is_sealed", false).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
         : scopedIncidents.length
-          ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopedIncidents).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
+          ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopedIncidents).is("deleted_at", null).eq("is_sealed", false).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
           : Promise.resolve({ data: [] }),
       includeAllEvidence
-        ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).is("deleted_at", null).neq("review_status", "suggested").order("date", { ascending: true })
+        ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested").order("date", { ascending: true })
         : scopedEvidence.length
-          ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopedEvidence).is("deleted_at", null).neq("review_status", "suggested").order("date", { ascending: true })
+          ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopedEvidence).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested").order("date", { ascending: true })
           : Promise.resolve({ data: [] }),
       link.include_patterns
         ? supabaseAdmin.from("pattern_analyses").select("*").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1).maybeSingle()
