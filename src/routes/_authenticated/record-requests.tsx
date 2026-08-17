@@ -54,7 +54,7 @@ function RecordRequestsPage() {
       <HubTabs tabs={CASE_TABS} />
       <PageHeader
         title="Requests for your records"
-        subtitle="Nothing leaves your account unless you say yes here. You can share part of a request, or none of it, and you can withdraw later."
+        description="Nothing leaves your account unless you say yes here. You can share part of a request, or none of it, and you can withdraw later."
       />
 
       <h2 className="mt-6 text-[13px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>
