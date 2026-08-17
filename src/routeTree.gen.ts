@@ -107,6 +107,13 @@ import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integr
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
+import { Route as AdvocateOrgSettingsRouteImport } from './routes/_advocate/org.settings'
+import { Route as AdvocateOrgResourcesRouteImport } from './routes/_advocate/org.resources'
+import { Route as AdvocateOrgReportsRouteImport } from './routes/_advocate/org.reports'
+import { Route as AdvocateOrgReferralsRouteImport } from './routes/_advocate/org.referrals'
+import { Route as AdvocateOrgRecordRequestsRouteImport } from './routes/_advocate/org.record-requests'
+import { Route as AdvocateOrgFollowUpsRouteImport } from './routes/_advocate/org.follow-ups'
+import { Route as AdvocateOrgConsentRouteImport } from './routes/_advocate/org.consent'
 import { Route as AdvocateAdvocateCasesClientIdRouteImport } from './routes/_advocate/advocate-cases.$clientId'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -624,6 +631,42 @@ const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
   path: '/$clientId',
   getParentRoute: () => AttorneyClientsRoute,
 } as any)
+const AdvocateOrgSettingsRoute = AdvocateOrgSettingsRouteImport.update({
+  id: '/org/settings',
+  path: '/org/settings',
+  getParentRoute: () => AdvocateRoute,
+} as any)
+const AdvocateOrgResourcesRoute = AdvocateOrgResourcesRouteImport.update({
+  id: '/org/resources',
+  path: '/org/resources',
+  getParentRoute: () => AdvocateRoute,
+} as any)
+const AdvocateOrgReportsRoute = AdvocateOrgReportsRouteImport.update({
+  id: '/org/reports',
+  path: '/org/reports',
+  getParentRoute: () => AdvocateRoute,
+} as any)
+const AdvocateOrgReferralsRoute = AdvocateOrgReferralsRouteImport.update({
+  id: '/org/referrals',
+  path: '/org/referrals',
+  getParentRoute: () => AdvocateRoute,
+} as any)
+const AdvocateOrgRecordRequestsRoute =
+  AdvocateOrgRecordRequestsRouteImport.update({
+    id: '/org/record-requests',
+    path: '/org/record-requests',
+    getParentRoute: () => AdvocateRoute,
+  } as any)
+const AdvocateOrgFollowUpsRoute = AdvocateOrgFollowUpsRouteImport.update({
+  id: '/org/follow-ups',
+  path: '/org/follow-ups',
+  getParentRoute: () => AdvocateRoute,
+} as any)
+const AdvocateOrgConsentRoute = AdvocateOrgConsentRouteImport.update({
+  id: '/org/consent',
+  path: '/org/consent',
+  getParentRoute: () => AdvocateRoute,
+} as any)
 const AdvocateAdvocateCasesClientIdRoute =
   AdvocateAdvocateCasesClientIdRouteImport.update({
     id: '/advocate-cases/$clientId',
@@ -757,6 +800,13 @@ export interface FileRoutesByFullPath {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
+  '/org/consent': typeof AdvocateOrgConsentRoute
+  '/org/follow-ups': typeof AdvocateOrgFollowUpsRoute
+  '/org/record-requests': typeof AdvocateOrgRecordRequestsRoute
+  '/org/referrals': typeof AdvocateOrgReferralsRoute
+  '/org/reports': typeof AdvocateOrgReportsRoute
+  '/org/resources': typeof AdvocateOrgResourcesRoute
+  '/org/settings': typeof AdvocateOrgSettingsRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -858,6 +908,13 @@ export interface FileRoutesByTo {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
+  '/org/consent': typeof AdvocateOrgConsentRoute
+  '/org/follow-ups': typeof AdvocateOrgFollowUpsRoute
+  '/org/record-requests': typeof AdvocateOrgRecordRequestsRoute
+  '/org/referrals': typeof AdvocateOrgReferralsRoute
+  '/org/reports': typeof AdvocateOrgReportsRoute
+  '/org/resources': typeof AdvocateOrgResourcesRoute
+  '/org/settings': typeof AdvocateOrgSettingsRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -966,6 +1023,13 @@ export interface FileRoutesById {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_advocate/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
+  '/_advocate/org/consent': typeof AdvocateOrgConsentRoute
+  '/_advocate/org/follow-ups': typeof AdvocateOrgFollowUpsRoute
+  '/_advocate/org/record-requests': typeof AdvocateOrgRecordRequestsRoute
+  '/_advocate/org/referrals': typeof AdvocateOrgReferralsRoute
+  '/_advocate/org/reports': typeof AdvocateOrgReportsRoute
+  '/_advocate/org/resources': typeof AdvocateOrgResourcesRoute
+  '/_advocate/org/settings': typeof AdvocateOrgSettingsRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -1072,6 +1136,13 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
+    | '/org/consent'
+    | '/org/follow-ups'
+    | '/org/record-requests'
+    | '/org/referrals'
+    | '/org/reports'
+    | '/org/resources'
+    | '/org/settings'
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1173,6 +1244,13 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
+    | '/org/consent'
+    | '/org/follow-ups'
+    | '/org/record-requests'
+    | '/org/referrals'
+    | '/org/reports'
+    | '/org/resources'
+    | '/org/settings'
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1280,6 +1358,13 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_advocate/advocate-cases/$clientId'
+    | '/_advocate/org/consent'
+    | '/_advocate/org/follow-ups'
+    | '/_advocate/org/record-requests'
+    | '/_advocate/org/referrals'
+    | '/_advocate/org/reports'
+    | '/_advocate/org/resources'
+    | '/_advocate/org/settings'
     | '/_attorney/clients/$clientId'
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
@@ -2036,6 +2121,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyClientsClientIdRouteImport
       parentRoute: typeof AttorneyClientsRoute
     }
+    '/_advocate/org/settings': {
+      id: '/_advocate/org/settings'
+      path: '/org/settings'
+      fullPath: '/org/settings'
+      preLoaderRoute: typeof AdvocateOrgSettingsRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
+    '/_advocate/org/resources': {
+      id: '/_advocate/org/resources'
+      path: '/org/resources'
+      fullPath: '/org/resources'
+      preLoaderRoute: typeof AdvocateOrgResourcesRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
+    '/_advocate/org/reports': {
+      id: '/_advocate/org/reports'
+      path: '/org/reports'
+      fullPath: '/org/reports'
+      preLoaderRoute: typeof AdvocateOrgReportsRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
+    '/_advocate/org/referrals': {
+      id: '/_advocate/org/referrals'
+      path: '/org/referrals'
+      fullPath: '/org/referrals'
+      preLoaderRoute: typeof AdvocateOrgReferralsRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
+    '/_advocate/org/record-requests': {
+      id: '/_advocate/org/record-requests'
+      path: '/org/record-requests'
+      fullPath: '/org/record-requests'
+      preLoaderRoute: typeof AdvocateOrgRecordRequestsRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
+    '/_advocate/org/follow-ups': {
+      id: '/_advocate/org/follow-ups'
+      path: '/org/follow-ups'
+      fullPath: '/org/follow-ups'
+      preLoaderRoute: typeof AdvocateOrgFollowUpsRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
+    '/_advocate/org/consent': {
+      id: '/_advocate/org/consent'
+      path: '/org/consent'
+      fullPath: '/org/consent'
+      preLoaderRoute: typeof AdvocateOrgConsentRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
     '/_advocate/advocate-cases/$clientId': {
       id: '/_advocate/advocate-cases/$clientId'
       path: '/advocate-cases/$clientId'
@@ -2090,11 +2224,25 @@ declare module '@tanstack/react-router' {
 
 interface AdvocateRouteChildren {
   AdvocateAdvocateCasesClientIdRoute: typeof AdvocateAdvocateCasesClientIdRoute
+  AdvocateOrgConsentRoute: typeof AdvocateOrgConsentRoute
+  AdvocateOrgFollowUpsRoute: typeof AdvocateOrgFollowUpsRoute
+  AdvocateOrgRecordRequestsRoute: typeof AdvocateOrgRecordRequestsRoute
+  AdvocateOrgReferralsRoute: typeof AdvocateOrgReferralsRoute
+  AdvocateOrgReportsRoute: typeof AdvocateOrgReportsRoute
+  AdvocateOrgResourcesRoute: typeof AdvocateOrgResourcesRoute
+  AdvocateOrgSettingsRoute: typeof AdvocateOrgSettingsRoute
   AdvocateAdvocateCasesIndexRoute: typeof AdvocateAdvocateCasesIndexRoute
 }
 
 const AdvocateRouteChildren: AdvocateRouteChildren = {
   AdvocateAdvocateCasesClientIdRoute: AdvocateAdvocateCasesClientIdRoute,
+  AdvocateOrgConsentRoute: AdvocateOrgConsentRoute,
+  AdvocateOrgFollowUpsRoute: AdvocateOrgFollowUpsRoute,
+  AdvocateOrgRecordRequestsRoute: AdvocateOrgRecordRequestsRoute,
+  AdvocateOrgReferralsRoute: AdvocateOrgReferralsRoute,
+  AdvocateOrgReportsRoute: AdvocateOrgReportsRoute,
+  AdvocateOrgResourcesRoute: AdvocateOrgResourcesRoute,
+  AdvocateOrgSettingsRoute: AdvocateOrgSettingsRoute,
   AdvocateAdvocateCasesIndexRoute: AdvocateAdvocateCasesIndexRoute,
 }
 
