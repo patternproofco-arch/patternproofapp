@@ -52,46 +52,102 @@ export const ADVOCATE_FORBIDDEN_FIELDS = [
   "user_id",
 ] as const;
 
+export interface AdvocateIncident {
+  id: string;
+  date: string | null;
+  time: string | null;
+  location: string | null;
+  description: string | null;
+  abuse_types: string[] | null;
+  date_precision: string | null;
+  date_range_start: string | null;
+  date_range_end: string | null;
+}
+
+export interface AdvocateEvidence {
+  id: string;
+  title: string | null;
+  date: string | null;
+  description: string | null;
+  file_type: string | null;
+  linked_incident_id: string | null;
+  date_precision: string | null;
+  date_range_start: string | null;
+  date_range_end: string | null;
+}
+
+export interface AdvocateCase {
+  id: string | null;
+  case_name: string | null;
+  other_party: string | null;
+  relationship_type: string | null;
+  jurisdiction: string | null;
+  case_types: string[] | null;
+  pattern_summary: string | null;
+}
+
 type Rec = Record<string, unknown>;
 
-function pick(row: Rec, fields: readonly string[]): Rec {
-  const out: Rec = {};
-  for (const f of fields) out[f] = row[f] ?? null;
-  return out;
+const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
+const arr = (v: unknown): string[] | null =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : null;
+
+export function shapeAdvocateIncident(row: Rec): AdvocateIncident {
+  return {
+    id: str(row["id"]) ?? "",
+    date: str(row["date"]),
+    time: str(row["time"]),
+    location: str(row["location"]),
+    description: str(row["description"]),
+    abuse_types: arr(row["abuse_types"]),
+    date_precision: str(row["date_precision"]),
+    date_range_start: str(row["date_range_start"]),
+    date_range_end: str(row["date_range_end"]),
+  };
 }
 
-export function shapeAdvocateIncident(row: Rec): Rec {
-  return pick(row, ADVOCATE_INCIDENT_FIELDS);
-}
-
-export function shapeAdvocateEvidence(row: Rec): Rec {
-  return pick(row, ADVOCATE_EVIDENCE_FIELDS);
+export function shapeAdvocateEvidence(row: Rec): AdvocateEvidence {
+  return {
+    id: str(row["id"]) ?? "",
+    title: str(row["title"]),
+    date: str(row["date"]),
+    description: str(row["description"]),
+    file_type: str(row["file_type"]),
+    linked_incident_id: str(row["linked_incident_id"]),
+    date_precision: str(row["date_precision"]),
+    date_range_start: str(row["date_range_start"]),
+    date_range_end: str(row["date_range_end"]),
+  };
 }
 
 /** Case summary fields an advocate may see (survivor-authored). */
 export const ADVOCATE_CASE_FIELDS = [
-  "id",
-  "case_name",
-  "other_party",
-  "relationship_type",
-  "jurisdiction",
-  "case_types",
-  "pattern_summary",
+  "id", "case_name", "other_party", "relationship_type", "jurisdiction",
+  "case_types", "pattern_summary",
 ] as const;
 
-export function shapeAdvocateCase(row: Rec | null): Rec | null {
-  return row ? pick(row, ADVOCATE_CASE_FIELDS) : null;
+export function shapeAdvocateCase(row: Rec | null): AdvocateCase | null {
+  if (!row) return null;
+  return {
+    id: str(row["id"]),
+    case_name: str(row["case_name"]),
+    other_party: str(row["other_party"]),
+    relationship_type: str(row["relationship_type"]),
+    jurisdiction: str(row["jurisdiction"]),
+    case_types: arr(row["case_types"]),
+    pattern_summary: str(row["pattern_summary"]),
+  };
 }
 
 /** Keep only rows inside the granted date window (inclusive). */
-export function withinDateWindow(
-  rows: Rec[],
+export function withinDateWindow<T extends Rec>(
+  rows: T[],
   start: string | null,
   end: string | null,
-): Rec[] {
+): T[] {
   if (!start && !end) return rows;
   return rows.filter((r) => {
-    const d = typeof r["date"] === "string" ? (r["date"] as string) : null;
+    const d = str(r["date"]);
     if (!d) return false;
     if (start && d < start) return false;
     if (end && d > end) return false;
