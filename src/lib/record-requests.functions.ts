@@ -1,11 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { z } from "zod";
+import {
+  createRequestSchema, respondSchema, idSchema, grantIdSchema,
+  revokeSchema, downloadSchema, sealSchema,
+} from "@/lib/record-requests.schema";
 import {
   describeScope, emptyScope, evaluateGrant, filterEvidenceForGrant,
-  filterIncidentsForGrant, parseScope, canDownloadItem,
-  DENY_MESSAGE, type GrantLike, type GrantScope,
+  filterIncidentsForGrant, parseScope, canDownloadItem, DENY_MESSAGE,
+  type GrantScope,
 } from "@/lib/consent-scope";
+import {
+  admin, advocateClient, audit, notify, settleExpiry, toGrant,
+} from "@/lib/record-requests.server";
 
 /**
  * Record requests and consent grants.
@@ -15,92 +21,11 @@ import {
  * advocate link, or an org relationship never returns records on its own.
  */
 
-const REQUEST_STATUSES = [
-  "draft", "pending_survivor", "approved", "modified", "declined", "expired", "revoked", "cancelled",
-] as const;
-
-const scopeInput = z.object({
-  purpose: z.string().trim().min(5).max(1000),
-  date_start: z.string().date().nullable().optional(),
-  date_end: z.string().date().nullable().optional(),
-  topics: z.array(z.string().max(60)).max(30).default([]),
-  source_types: z.array(z.string().max(40)).max(20).default([]),
-  include_incidents: z.boolean().default(true),
-  include_evidence: z.boolean().default(true),
-  expires_at: z.string().datetime().nullable().optional(),
-  download_allowed: z.boolean().default(false),
-});
-
-/* --------------------------------- helpers -------------------------------- */
-
-async function advocateClient(userId: string) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: role } = await supabaseAdmin
-    .from("user_roles").select("role")
-    .eq("user_id", userId).eq("role", "advocate").maybeSingle();
-  if (!role) throw new Error("This area is for partner organizations.");
-  return supabaseAdmin;
-}
-
-async function admin() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function audit(db: any, userId: string, eventType: string, subjectKind: string, subjectId: string | null, actorKind: string, actorId: string, meta?: Record<string, unknown>) {
-  // Append-only trail. Never carries record content — ids and statuses only.
-  await db.from("audit_events").insert({
-    user_id: userId,
-    event_type: eventType,
-    subject_kind: subjectKind,
-    subject_id: subjectId,
-    actor_kind: actorKind,
-    actor_id: actorId,
-    meta: meta ?? null,
-  });
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function notify(db: any, userId: string, kind: string, title: string, body: string, metadata?: Record<string, unknown>) {
-  // Neutral wording only — no record content, no sensitive framing.
-  await db.from("notifications").insert({ user_id: userId, kind, title, body, metadata: metadata ?? null });
-}
-
-/** Lazily flip a lapsed grant to "expired" so the stored status matches reality. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function settleExpiry(db: any, row: any) {
-  if (row?.status === "active" && row.expires_at && new Date(row.expires_at) <= new Date()) {
-    await db.from("consent_grants").update({ status: "expired" }).eq("id", row.id);
-    return { ...row, status: "expired" };
-  }
-  return row;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toGrant(row: any): GrantLike {
-  return {
-    id: row.id,
-    survivor_user_id: row.survivor_user_id,
-    recipient_user_id: row.recipient_user_id,
-    status: row.status,
-    effective_at: row.effective_at,
-    expires_at: row.expires_at,
-    download_allowed: row.download_allowed,
-    scope: parseScope(row.scope),
-  };
-}
-
 /* ------------------------------ advocate side ------------------------------ */
 
 export const createRecordRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    scopeInput.extend({
-      survivor_user_id: z.string().uuid(),
-      submit: z.boolean().default(false),
-    }).parse(input),
-  )
+  .inputValidator((input) => createRequestSchema.parse(input))
   .handler(async ({ data, context }) => {
     const db = await advocateClient(context.userId);
 
@@ -110,7 +35,9 @@ export const createRecordRequest = createServerFn({ method: "POST" })
       .eq("advocate_user_id", context.userId)
       .eq("client_user_id", data.survivor_user_id)
       .maybeSingle();
-    if (!link) throw new Error("You can only send a request to someone who has connected with your organization.");
+    if (!link || link.status !== "active") {
+      throw new Error("You can only send a request to someone who has connected with your organization.");
+    }
 
     const { data: profile } = await db
       .from("advocate_profiles").select("org_name,full_name")
@@ -144,7 +71,8 @@ export const createRecordRequest = createServerFn({ method: "POST" })
     }).select("*").single();
     if (error) throw new Error(error.message);
 
-    await audit(db, data.survivor_user_id, data.submit ? "record_request_submitted" : "record_request_created",
+    await audit(db, data.survivor_user_id,
+      data.submit ? "record_request_submitted" : "record_request_created",
       "record_request", row.id, "advocate", context.userId, { org_name: row.org_name });
 
     if (data.submit) {
@@ -158,7 +86,7 @@ export const createRecordRequest = createServerFn({ method: "POST" })
 
 export const submitRecordRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     const db = await advocateClient(context.userId);
     const { data: row } = await db.from("record_requests").select("*")
@@ -177,13 +105,15 @@ export const submitRecordRequest = createServerFn({ method: "POST" })
 
 export const cancelRecordRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     const db = await advocateClient(context.userId);
     const { data: row } = await db.from("record_requests").select("id,status,survivor_user_id")
       .eq("id", data.id).eq("requester_user_id", context.userId).maybeSingle();
     if (!row) throw new Error("That request isn't on your account.");
-    if (["approved", "modified"].includes(row.status)) throw new Error("That request was already answered.");
+    if (row.status === "approved" || row.status === "modified") {
+      throw new Error("That request was already answered.");
+    }
     await db.from("record_requests").update({ status: "cancelled" }).eq("id", row.id);
     await audit(db, row.survivor_user_id, "record_request_cancelled", "record_request", row.id, "advocate", context.userId);
     return { ok: true };
@@ -197,33 +127,38 @@ export const listOrgRecordRequests = createServerFn({ method: "GET" })
       .eq("requester_user_id", context.userId).order("created_at", { ascending: false }).limit(200);
     const { data: rawGrants } = await db.from("consent_grants").select("*")
       .eq("recipient_user_id", context.userId).order("created_at", { ascending: false }).limit(200);
-    const grants = await Promise.all((rawGrants ?? []).map((g) => settleExpiry(db, g)));
+    const grants = await Promise.all((rawGrants ?? []).map((g: { id: string }) => settleExpiry(db, g)));
     const { data: links } = await db.from("advocate_client_links")
       .select("id,client_user_id,status,created_at").eq("advocate_user_id", context.userId);
 
     return {
-      requests: requests ?? [],
-      // Recipients see status + scope, never the survivor's identity beyond the id they already hold.
-      grants: (grants ?? []).map((g) => ({
-        id: g.id,
-        request_id: g.request_id,
-        survivor_user_id: g.survivor_user_id,
-        status: g.status,
-        effective_at: g.effective_at,
-        expires_at: g.expires_at,
-        download_allowed: g.download_allowed,
-        revoked_at: g.revoked_at,
+      requests: (requests ?? []) as Array<Record<string, never> & {
+        id: string; survivor_user_id: string; purpose: string; status: string;
+        scope_summary: string | null; created_at: string; responded_at: string | null;
+        download_allowed: boolean; expires_at: string | null; survivor_note: string | null;
+      }>,
+      // Recipients see status + scope, never anything beyond the id they already hold.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      grants: (grants ?? []).map((g: any) => ({
+        id: g.id as string,
+        request_id: g.request_id as string | null,
+        survivor_user_id: g.survivor_user_id as string,
+        status: g.status as string,
+        effective_at: g.effective_at as string,
+        expires_at: g.expires_at as string | null,
+        download_allowed: g.download_allowed as boolean,
+        revoked_at: g.revoked_at as string | null,
         scope_summary: describeScope(parseScope(g.scope), g.download_allowed, g.expires_at),
-        receipt: g.receipt,
       })),
-      connections: (links ?? []).filter((l) => l.status === "active"),
+      connections: ((links ?? []) as Array<{ id: string; client_user_id: string; status: string; created_at: string }>)
+        .filter((l) => l.status === "active"),
     };
   });
 
 /** The only advocate read path for granted records. Everything is re-checked here. */
 export const getGrantedRecords = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ grant_id: z.string().uuid() }).parse(input))
+  .inputValidator((input) => grantIdSchema.parse(input))
   .handler(async ({ data, context }) => {
     const db = await advocateClient(context.userId);
     const { data: raw } = await db.from("consent_grants").select("*").eq("id", data.grant_id).maybeSingle();
@@ -239,7 +174,7 @@ export const getGrantedRecords = createServerFn({ method: "POST" })
     const grant = evaluation.grant;
     const scope = grant.scope;
 
-    const [{ data: incidents }, { data: evidence }] = await Promise.all([
+    const [incQ, evQ] = await Promise.all([
       scope.include_incidents
         ? db.from("incidents").select("*").eq("user_id", grant.survivor_user_id)
             .is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null")
@@ -253,21 +188,26 @@ export const getGrantedRecords = createServerFn({ method: "POST" })
     ]);
 
     const { shapeAdvocateIncident, shapeAdvocateEvidence } = await import("@/lib/advocate-scope");
-    const inc = filterIncidentsForGrant((incidents ?? []) as Array<Record<string, unknown>>, scope).map(shapeAdvocateIncident);
-    const ev = filterEvidenceForGrant((evidence ?? []) as Array<Record<string, unknown>>, scope).map(shapeAdvocateEvidence);
+    const inc = filterIncidentsForGrant(
+      (incQ.data ?? []) as Array<Record<string, unknown>>, scope,
+    ).map(shapeAdvocateIncident);
+    const ev = filterEvidenceForGrant(
+      (evQ.data ?? []) as Array<Record<string, unknown>>, scope,
+    ).map(shapeAdvocateEvidence);
 
-    await audit(db, grant.survivor_user_id, "advocate_viewed_shared_records", "consent_grant", grant.id ?? null,
-      "advocate", context.userId, { incident_count: inc.length, evidence_count: ev.length });
+    await audit(db, grant.survivor_user_id, "advocate_viewed_shared_records", "consent_grant",
+      grant.id ?? null, "advocate", context.userId,
+      { incident_count: inc.length, evidence_count: ev.length });
 
     return {
       incidents: inc,
       evidence: ev,
       consent: {
-        effective_at: row.effective_at,
-        expires_at: row.expires_at,
-        download_allowed: row.download_allowed,
+        effective_at: row.effective_at as string,
+        expires_at: row.expires_at as string | null,
+        download_allowed: row.download_allowed as boolean,
         scope_summary: describeScope(scope, row.download_allowed, row.expires_at),
-        receipt: row.receipt,
+        receipt: row.receipt as Record<string, unknown>,
       },
     };
   });
@@ -275,21 +215,18 @@ export const getGrantedRecords = createServerFn({ method: "POST" })
 /** Short-lived signed URL, issued only when the grant explicitly allows downloads. */
 export const createGrantedDownloadUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ grant_id: z.string().uuid(), evidence_id: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input) => downloadSchema.parse(input))
   .handler(async ({ data, context }) => {
     const db = await advocateClient(context.userId);
     const { data: raw } = await db.from("consent_grants").select("*").eq("id", data.grant_id).maybeSingle();
     const row = await settleExpiry(db, raw);
     const evaluation = evaluateGrant(row ? toGrant(row) : null, context.userId);
-    if (!evaluation.ok) {
-      throw new Error(DENY_MESSAGE[evaluation.reason]);
-    }
+    if (!evaluation.ok) throw new Error(DENY_MESSAGE[evaluation.reason]);
     const grant = evaluation.grant;
+
     if (!grant.download_allowed) {
-      await audit(db, grant.survivor_user_id, "advocate_access_denied", "consent_grant", grant.id ?? null,
-        "advocate", context.userId, { reason: "download_not_allowed" });
+      await audit(db, grant.survivor_user_id, "advocate_access_denied", "consent_grant",
+        grant.id ?? null, "advocate", context.userId, { reason: "download_not_allowed" });
       throw new Error("This access doesn't include downloads.");
     }
 
@@ -304,12 +241,14 @@ export const createGrantedDownloadUrl = createServerFn({ method: "POST" })
     if (!ev.file_url) throw new Error("There's no file attached to that item.");
 
     const signed = await db.storage.from("evidence-files").createSignedUrl(ev.file_url, 300);
-    if (signed.error || !signed.data?.signedUrl) throw new Error("We couldn't open that file. Try again in a moment.");
+    if (signed.error || !signed.data?.signedUrl) {
+      throw new Error("We couldn't open that file. Try again in a moment.");
+    }
 
     await audit(db, grant.survivor_user_id, "advocate_download_generated", "evidence", ev.id,
       "advocate", context.userId, { grant_id: grant.id });
 
-    return { url: signed.data.signedUrl, expires_in_seconds: 300 };
+    return { url: signed.data.signedUrl as string, expires_in_seconds: 300 };
   });
 
 /* ------------------------------ survivor side ------------------------------ */
@@ -323,23 +262,51 @@ export const listMyRecordRequests = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false }).limit(200);
     const { data: rawGrants } = await db.from("consent_grants").select("*")
       .eq("survivor_user_id", context.userId).order("created_at", { ascending: false }).limit(200);
-    const grants = await Promise.all((rawGrants ?? []).map((g) => settleExpiry(db, g)));
+    const grants = await Promise.all((rawGrants ?? []).map((g: { id: string }) => settleExpiry(db, g)));
 
-    const recipientIds = Array.from(new Set((grants ?? []).map((g) => g.recipient_user_id)
-      .concat((requests ?? []).map((r) => r.requester_user_id))));
-    const { data: profiles } = recipientIds.length
-      ? await db.from("advocate_profiles").select("user_id,full_name,org_name").in("user_id", recipientIds)
-      : { data: [] as Array<{ user_id: string; full_name: string; org_name: string | null }> };
-    const who = new Map((profiles ?? []).map((p) => [p.user_id, p.org_name?.trim() || p.full_name]));
+    const ids = Array.from(new Set([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ...(grants ?? []).map((g: any) => g.recipient_user_id as string),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ...((requests ?? []) as any[]).map((r) => r.requester_user_id as string),
+    ]));
+    const { data: profiles } = ids.length
+      ? await db.from("advocate_profiles").select("user_id,full_name,org_name").in("user_id", ids)
+      : { data: [] };
+    const who = new Map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ((profiles ?? []) as any[]).map((p) => [p.user_id as string, (p.org_name?.trim() || p.full_name) as string]),
+    );
 
     return {
-      requests: (requests ?? []).map((r) => ({
-        ...r,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      requests: ((requests ?? []) as any[]).map((r) => ({
+        id: r.id as string,
+        purpose: r.purpose as string,
+        status: r.status as string,
+        date_start: r.date_start as string | null,
+        date_end: r.date_end as string | null,
+        topics: (r.topics ?? []) as string[],
+        source_types: (r.source_types ?? []) as string[],
+        include_incidents: r.include_incidents as boolean,
+        include_evidence: r.include_evidence as boolean,
+        expires_at: r.expires_at as string | null,
+        download_allowed: r.download_allowed as boolean,
+        scope_summary: r.scope_summary as string | null,
+        created_at: r.created_at as string,
+        responded_at: r.responded_at as string | null,
         requester_label: who.get(r.requester_user_id) ?? r.org_name ?? "An organization",
       })),
-      grants: (grants ?? []).map((g) => ({
-        ...g,
-        recipient_label: who.get(g.recipient_user_id) ?? g.org_name ?? "An organization",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      grants: ((grants ?? []) as any[]).map((g) => ({
+        id: g.id as string,
+        status: g.status as string,
+        effective_at: g.effective_at as string,
+        expires_at: g.expires_at as string | null,
+        revoked_at: g.revoked_at as string | null,
+        download_allowed: g.download_allowed as boolean,
+        receipt: g.receipt as Record<string, unknown>,
+        recipient_label: (who.get(g.recipient_user_id) ?? g.org_name ?? "An organization") as string,
         scope_summary: describeScope(parseScope(g.scope), g.download_allowed, g.expires_at),
       })),
     };
@@ -350,7 +317,7 @@ export const listMyShareableRecords = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = await admin();
-    const [{ data: incidents }, { data: evidence }] = await Promise.all([
+    const [incQ, evQ] = await Promise.all([
       db.from("incidents").select("id,date,description,abuse_types")
         .eq("user_id", context.userId).is("deleted_at", null)
         .order("date", { ascending: false }).limit(500),
@@ -358,14 +325,15 @@ export const listMyShareableRecords = createServerFn({ method: "GET" })
         .eq("user_id", context.userId).is("deleted_at", null)
         .order("date", { ascending: false }).limit(500),
     ]);
-    return { incidents: incidents ?? [], evidence: evidence ?? [] };
+    return {
+      incidents: (incQ.data ?? []) as Array<{ id: string; date: string | null; description: string | null; abuse_types: string[] | null }>,
+      evidence: (evQ.data ?? []) as Array<{ id: string; date: string | null; title: string | null; file_type: string | null; is_sealed: boolean }>,
+    };
   });
 
 export const setEvidenceSealed = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ evidence_id: z.string().uuid(), sealed: z.boolean() }).parse(input),
-  )
+  .inputValidator((input) => sealSchema.parse(input))
   .handler(async ({ data, context }) => {
     const db = await admin();
     const { error } = await db.from("evidence")
@@ -379,24 +347,7 @@ export const setEvidenceSealed = createServerFn({ method: "POST" })
 
 export const respondToRecordRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({
-      id: z.string().uuid(),
-      decision: z.enum(["approve", "modify", "decline"]),
-      note: z.string().trim().max(1000).optional(),
-      // Only read for "modify" — the survivor's edits win over what was asked for.
-      date_start: z.string().date().nullable().optional(),
-      date_end: z.string().date().nullable().optional(),
-      topics: z.array(z.string().max(60)).max(30).optional(),
-      source_types: z.array(z.string().max(40)).max(20).optional(),
-      incident_ids: z.array(z.string().uuid()).max(500).nullable().optional(),
-      evidence_ids: z.array(z.string().uuid()).max(500).nullable().optional(),
-      include_incidents: z.boolean().optional(),
-      include_evidence: z.boolean().optional(),
-      download_allowed: z.boolean().optional(),
-      expires_at: z.string().datetime().nullable().optional(),
-    }).parse(input),
-  )
+  .inputValidator((input) => respondSchema.parse(input))
   .handler(async ({ data, context }) => {
     const db = await admin();
     const { data: req } = await db.from("record_requests").select("*")
@@ -421,8 +372,8 @@ export const respondToRecordRequest = createServerFn({ method: "POST" })
     const scope: GrantScope = {
       date_start: modified ? (data.date_start ?? null) : (req.date_start ?? null),
       date_end: modified ? (data.date_end ?? null) : (req.date_end ?? null),
-      topics: modified ? (data.topics ?? []) : (req.topics ?? []),
-      source_types: modified ? (data.source_types ?? []) : (req.source_types ?? []),
+      topics: modified ? (data.topics ?? []) : ((req.topics ?? []) as string[]),
+      source_types: modified ? (data.source_types ?? []) : ((req.source_types ?? []) as string[]),
       incident_ids: modified ? (data.incident_ids ?? null) : null,
       evidence_ids: modified ? (data.evidence_ids ?? null) : null,
       include_incidents: modified ? (data.include_incidents ?? true) : req.include_incidents,
@@ -434,11 +385,12 @@ export const respondToRecordRequest = createServerFn({ method: "POST" })
       : req.download_allowed;
     const expiresAt = modified ? (data.expires_at ?? req.expires_at ?? null) : (req.expires_at ?? null);
 
-    // A sealed item can never enter a grant, even if the survivor ticked it.
+    // A sealed item can never enter a grant, even if it was ticked in the picker.
     if (scope.evidence_ids?.length) {
       const { data: sealed } = await db.from("evidence").select("id")
         .eq("user_id", context.userId).eq("is_sealed", true).in("id", scope.evidence_ids);
-      const sealedIds = new Set((sealed ?? []).map((s) => s.id));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sealedIds = new Set(((sealed ?? []) as any[]).map((s) => s.id as string));
       scope.evidence_ids = scope.evidence_ids.filter((id) => !sealedIds.has(id));
     }
 
@@ -489,9 +441,7 @@ export const respondToRecordRequest = createServerFn({ method: "POST" })
 
 export const revokeConsentGrant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ id: z.string().uuid(), reason: z.string().trim().max(500).optional() }).parse(input),
-  )
+  .inputValidator((input) => revokeSchema.parse(input))
   .handler(async ({ data, context }) => {
     const db = await admin();
     const { data: grant } = await db.from("consent_grants").select("id,recipient_user_id,status")
@@ -508,5 +458,3 @@ export const revokeConsentGrant = createServerFn({ method: "POST" })
       { grant_id: grant.id });
     return { ok: true };
   });
-
-export const REQUEST_STATUS_VALUES = REQUEST_STATUSES;
