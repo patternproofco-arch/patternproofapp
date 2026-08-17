@@ -1238,6 +1238,68 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_grants: {
+        Row: {
+          created_at: string
+          download_allowed: boolean
+          effective_at: string
+          expires_at: string | null
+          id: string
+          org_name: string | null
+          receipt: Json
+          recipient_user_id: string
+          request_id: string | null
+          revocation_reason: string | null
+          revoked_at: string | null
+          scope: Json
+          status: string
+          survivor_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          download_allowed?: boolean
+          effective_at?: string
+          expires_at?: string | null
+          id?: string
+          org_name?: string | null
+          receipt?: Json
+          recipient_user_id: string
+          request_id?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          scope?: Json
+          status?: string
+          survivor_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          download_allowed?: boolean
+          effective_at?: string
+          expires_at?: string | null
+          id?: string
+          org_name?: string | null
+          receipt?: Json
+          recipient_user_id?: string
+          request_id?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          scope?: Json
+          status?: string
+          survivor_user_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_grants_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "record_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       court_dates: {
         Row: {
           court_name: string
@@ -1488,6 +1550,7 @@ export type Database = {
           in_image_timestamp_text: string | null
           ingested_at: string | null
           integrity_verified_at: string | null
+          is_sealed: boolean
           linked_incident_id: string | null
           linked_recording_id: string | null
           match_reason: string | null
@@ -1501,6 +1564,7 @@ export type Database = {
           preserved_at: string | null
           raw_metadata: Json | null
           review_status: string
+          sealed_at: string | null
           sha256: string | null
           suggested_incident_id: string | null
           title: string
@@ -1538,6 +1602,7 @@ export type Database = {
           in_image_timestamp_text?: string | null
           ingested_at?: string | null
           integrity_verified_at?: string | null
+          is_sealed?: boolean
           linked_incident_id?: string | null
           linked_recording_id?: string | null
           match_reason?: string | null
@@ -1551,6 +1616,7 @@ export type Database = {
           preserved_at?: string | null
           raw_metadata?: Json | null
           review_status?: string
+          sealed_at?: string | null
           sha256?: string | null
           suggested_incident_id?: string | null
           title: string
@@ -1588,6 +1654,7 @@ export type Database = {
           in_image_timestamp_text?: string | null
           ingested_at?: string | null
           integrity_verified_at?: string | null
+          is_sealed?: boolean
           linked_incident_id?: string | null
           linked_recording_id?: string | null
           match_reason?: string | null
@@ -1601,6 +1668,7 @@ export type Database = {
           preserved_at?: string | null
           raw_metadata?: Json | null
           review_status?: string
+          sealed_at?: string | null
           sha256?: string | null
           suggested_incident_id?: string | null
           title?: string
@@ -2208,6 +2276,62 @@ export type Database = {
         }
         Relationships: []
       }
+      org_follow_ups: {
+        Row: {
+          created_at: string
+          created_by: string
+          due_at: string | null
+          grant_id: string | null
+          id: string
+          note: string | null
+          org_user_id: string
+          reference_label: string | null
+          resource_reference: string | null
+          status: string
+          survivor_user_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          due_at?: string | null
+          grant_id?: string | null
+          id?: string
+          note?: string | null
+          org_user_id: string
+          reference_label?: string | null
+          resource_reference?: string | null
+          status?: string
+          survivor_user_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          due_at?: string | null
+          grant_id?: string | null
+          id?: string
+          note?: string | null
+          org_user_id?: string
+          reference_label?: string | null
+          resource_reference?: string | null
+          status?: string
+          survivor_user_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_follow_ups_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pattern_analyses: {
         Row: {
           analysis: Json
@@ -2235,6 +2359,78 @@ export type Database = {
           model_used?: string | null
           reviewed_status?: Json
           user_id?: string
+        }
+        Relationships: []
+      }
+      record_requests: {
+        Row: {
+          created_at: string
+          date_end: string | null
+          date_start: string | null
+          download_allowed: boolean
+          evidence_ids: string[] | null
+          expires_at: string | null
+          id: string
+          incident_ids: string[] | null
+          include_evidence: boolean
+          include_incidents: boolean
+          org_name: string | null
+          purpose: string
+          requester_user_id: string
+          responded_at: string | null
+          scope_summary: string | null
+          source_types: string[]
+          status: string
+          survivor_note: string | null
+          survivor_user_id: string
+          topics: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_end?: string | null
+          date_start?: string | null
+          download_allowed?: boolean
+          evidence_ids?: string[] | null
+          expires_at?: string | null
+          id?: string
+          incident_ids?: string[] | null
+          include_evidence?: boolean
+          include_incidents?: boolean
+          org_name?: string | null
+          purpose: string
+          requester_user_id: string
+          responded_at?: string | null
+          scope_summary?: string | null
+          source_types?: string[]
+          status?: string
+          survivor_note?: string | null
+          survivor_user_id: string
+          topics?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_end?: string | null
+          date_start?: string | null
+          download_allowed?: boolean
+          evidence_ids?: string[] | null
+          expires_at?: string | null
+          id?: string
+          incident_ids?: string[] | null
+          include_evidence?: boolean
+          include_incidents?: boolean
+          org_name?: string | null
+          purpose?: string
+          requester_user_id?: string
+          responded_at?: string | null
+          scope_summary?: string | null
+          source_types?: string[]
+          status?: string
+          survivor_note?: string | null
+          survivor_user_id?: string
+          topics?: string[]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2290,6 +2486,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_engagements: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          org_user_id: string
+          referral_code: string | null
+          status: string
+          survivor_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          org_user_id: string
+          referral_code?: string | null
+          status?: string
+          survivor_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          org_user_id?: string
+          referral_code?: string | null
+          status?: string
+          survivor_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       referral_links: {
         Row: {
