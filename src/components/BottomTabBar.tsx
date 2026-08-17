@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, NotebookPen, Scale, BookOpen } from "lucide-react";
+import { Home, PenLine, Scale, Paperclip } from "lucide-react";
 import { DotCirclePatternIcon } from "@/components/icons/PpIcons";
 
 type Tab = {
@@ -17,28 +17,28 @@ const TABS: Tab[] = [
     render: (c) => <Home size={20} strokeWidth={1.75} color={c} />,
   },
   {
-    to: "/journal",
-    label: "Archive",
-    match: ["/journal", "/voice-notes", "/evidence", "/message-threads", "/timeline", "/import-messages", "/evidence-review", "/live-recording"],
-    render: (c) => <NotebookPen size={20} strokeWidth={1.75} color={c} />,
+    to: "/save-now",
+    label: "Save now",
+    match: ["/save-now", "/journal", "/voice-notes", "/message-threads", "/import-messages", "/live-recording"],
+    render: (c) => <PenLine size={20} strokeWidth={1.75} color={c} />,
+  },
+  {
+    to: "/evidence",
+    label: "Evidence",
+    match: ["/evidence", "/evidence-review", "/timeline", "/calendar"],
+    render: (c) => <Paperclip size={20} strokeWidth={1.75} color={c} />,
   },
   {
     to: "/patterns",
-    label: "Recurline",
-    match: ["/patterns", "/calendar"],
+    label: "Patterns",
+    match: ["/patterns"],
     render: (c) => <DotCirclePatternIcon size={20} strokeWidth={1.75} color={c} />,
   },
   {
     to: "/case",
     label: "Case",
-    match: ["/case", "/case-builder", "/court-packet", "/communications", "/court-dates", "/share-with-attorney", "/attorney-portal", "/legal-documents"],
+    match: ["/case", "/case-builder", "/court-packet", "/communications", "/court-dates", "/share-with-attorney", "/attorney-portal", "/legal-documents", "/record-requests"],
     render: (c) => <Scale size={20} strokeWidth={1.75} color={c} />,
-  },
-  {
-    to: "/resources",
-    label: "Resources",
-    match: ["/resources", "/opra-helper", "/court-systems", "/why-courts-struggle", "/support"],
-    render: (c) => <BookOpen size={20} strokeWidth={1.75} color={c} />,
   },
 ];
 
