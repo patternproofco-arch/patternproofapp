@@ -113,8 +113,9 @@ function OrgPortal() {
         </div>
         <p className="orgx-muted" style={{ fontSize: 12.5, margin: "16px 0 0" }}>
           {stats.codes.length === 0
-            ? "Your referral link isn't set up yet — email us and we'll create one for your organization."
-            : "Record requests aren't switched on yet, so there's no figure to report here — this isn't a count of zero."}
+            ? "Your referral link isn't set up yet — email us and we'll create one for your organization. "
+            : null}
+          Record requests aren't switched on yet, so there's no figure to report here — this isn't a count of zero.
         </p>
       </div>
 
