@@ -91,7 +91,9 @@ function ShareWithAdvocate() {
       <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Share with an advocate</h1>
       <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "var(--muted-foreground)", maxWidth: 640 }}>
         If someone at a domestic violence organization is helping you, you can give them a read-only view of what
-        you've documented. They can't change or delete anything, and you can withdraw access whenever you want.
+        you've documented. Advocates see titles, dates, and counts only — they can't open or download your evidence
+        files, and they can't change or delete anything. You can withdraw access whenever you want, though anything
+        they've already written down or printed stays with them.
       </p>
 
       {justCreated && (
