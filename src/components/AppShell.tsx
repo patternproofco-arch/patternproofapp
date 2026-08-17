@@ -44,8 +44,9 @@ export function AppShell() {
         <header className="pp-topbar no-print">
           <div className="flex items-center gap-2 lg:hidden">
             <PpCubeMark size={26} onDark={false} />
-            <span className="pp-sidebar__wordmark" style={{ color: "var(--sv-green-900)" }}>
+            <span className="pp-sidebar__wordmark" style={{ color: "var(--sv-purple-900)" }}>
               PatternProof
+              <span className="pp-sidebar__portalname">Survivor portal</span>
             </span>
           </div>
           <UtilityBar />

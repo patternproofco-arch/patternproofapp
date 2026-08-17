@@ -370,14 +370,14 @@ export const listMyClients = createServerFn({ method: "GET" })
         const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
         const scopedEvidenceIds = (l.scope_evidence ?? []) as string[];
         const incidentsQ = l.include_all_incidents
-          ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null")
+          ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).is("deleted_at", null).eq("is_sealed", false).or("source.neq.ai_extracted,confirmed_at.not.is.null")
           : scopedIncidentIds.length
-            ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null")
+            ? supabaseAdmin.from("incidents").select("id,date,severity_level", { count: "exact" }).eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null).eq("is_sealed", false).or("source.neq.ai_extracted,confirmed_at.not.is.null")
             : Promise.resolve({ data: [], count: 0 });
         const evidenceQ = l.include_all_evidence
-          ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id).is("deleted_at", null).neq("review_status", "suggested")
+          ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested")
           : scopedEvidenceIds.length
-            ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null).neq("review_status", "suggested")
+            ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested")
             : Promise.resolve({ data: null, count: 0 });
         const [inc, ev, pat, msg, doc] = await Promise.all([
           incidentsQ,
@@ -486,40 +486,40 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
         // Confirmed-only incident count (matches getClientCase / listMyClients filter).
         const confirmedIncidentsQ = l.include_all_incidents
           ? supabaseAdmin.from("incidents").select("id,date,created_at", { count: "exact" })
-              .eq("user_id", l.client_user_id).is("deleted_at", null)
+              .eq("user_id", l.client_user_id).is("deleted_at", null).eq("is_sealed", false)
               .or("source.neq.ai_extracted,confirmed_at.not.is.null")
           : scopedIncidentIds.length
             ? supabaseAdmin.from("incidents").select("id,date,created_at", { count: "exact" })
-                .eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null)
+                .eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null).eq("is_sealed", false)
                 .or("source.neq.ai_extracted,confirmed_at.not.is.null")
             : Promise.resolve({ data: [] as { id: string; date: string | null; created_at: string }[], count: 0 });
 
         // Unconfirmed AI drafts count.
         const unconfirmedQ = l.include_all_incidents
           ? supabaseAdmin.from("incidents").select("id", { count: "exact", head: true })
-              .eq("user_id", l.client_user_id).is("deleted_at", null)
+              .eq("user_id", l.client_user_id).is("deleted_at", null).eq("is_sealed", false)
               .eq("source", "ai_extracted").is("confirmed_at", null)
           : scopedIncidentIds.length
             ? supabaseAdmin.from("incidents").select("id", { count: "exact", head: true })
-                .eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null)
+                .eq("user_id", l.client_user_id).in("id", scopedIncidentIds).is("deleted_at", null).eq("is_sealed", false)
                 .eq("source", "ai_extracted").is("confirmed_at", null)
             : Promise.resolve({ data: null, count: 0 });
 
         // Evidence: total + most recent created_at.
         const evidenceTotalQ = l.include_all_evidence
           ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true })
-              .eq("user_id", l.client_user_id).is("deleted_at", null).neq("review_status", "suggested")
+              .eq("user_id", l.client_user_id).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested")
           : scopedEvidenceIds.length
             ? supabaseAdmin.from("evidence").select("id", { count: "exact", head: true })
-                .eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null).neq("review_status", "suggested")
+                .eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested")
             : Promise.resolve({ data: null, count: 0 });
         const evidenceRecentQ = l.include_all_evidence
           ? supabaseAdmin.from("evidence").select("created_at")
-              .eq("user_id", l.client_user_id).is("deleted_at", null).neq("review_status", "suggested")
+              .eq("user_id", l.client_user_id).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested")
               .order("created_at", { ascending: false }).limit(1).maybeSingle()
           : scopedEvidenceIds.length
             ? supabaseAdmin.from("evidence").select("created_at")
-                .eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null).neq("review_status", "suggested")
+                .eq("user_id", l.client_user_id).in("id", scopedEvidenceIds).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested")
                 .order("created_at", { ascending: false }).limit(1).maybeSingle()
             : Promise.resolve({ data: null as { created_at: string } | null });
 
@@ -618,14 +618,14 @@ export const getClientCase = createServerFn({ method: "POST" })
 
     const [incQ, evQ, patQ, escQ, voiceQ, comsQ, legalQ, caseQ] = await Promise.all([
       link.include_all_incidents
-        ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
+        ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).eq("is_sealed", false).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
         : scopedIncidentIds.length
-          ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopedIncidentIds).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
+          ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopedIncidentIds).is("deleted_at", null).eq("is_sealed", false).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
           : Promise.resolve({ data: [] }),
       link.include_all_evidence
-        ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).is("deleted_at", null).neq("review_status", "suggested").order("date", { ascending: true })
+        ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested").order("date", { ascending: true })
         : scopedEvidenceIds.length
-          ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopedEvidenceIds).is("deleted_at", null).neq("review_status", "suggested").order("date", { ascending: true })
+          ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopedEvidenceIds).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested").order("date", { ascending: true })
           : Promise.resolve({ data: [] }),
       link.include_patterns
         ? supabaseAdmin.from("pattern_analyses").select("*").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1).maybeSingle()
@@ -848,14 +848,14 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
 
     const [{ data: incidents }, { data: evidence }, { data: pattern }] = await Promise.all([
       link.include_all_incidents
-        ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at").eq("user_id", data.clientId).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date")
+        ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at").eq("user_id", data.clientId).is("deleted_at", null).eq("is_sealed", false).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date")
         : (link.scope_incidents ?? []).length
-          ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at").eq("user_id", data.clientId).in("id", link.scope_incidents ?? []).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date")
+          ? supabaseAdmin.from("incidents").select("id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at").eq("user_id", data.clientId).in("id", link.scope_incidents ?? []).is("deleted_at", null).eq("is_sealed", false).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date")
           : Promise.resolve({ data: [] }),
       link.include_all_evidence
-        ? supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId).is("deleted_at", null).neq("review_status", "suggested")
+        ? supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested")
         : (link.scope_evidence ?? []).length
-          ? supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId).in("id", link.scope_evidence ?? []).is("deleted_at", null).neq("review_status", "suggested")
+          ? supabaseAdmin.from("evidence").select("id,title,date,file_type,linked_incident_id").eq("user_id", data.clientId).in("id", link.scope_evidence ?? []).is("deleted_at", null).eq("is_sealed", false).neq("review_status", "suggested")
           : Promise.resolve({ data: [] }),
       link.include_patterns
         ? supabaseAdmin.from("pattern_analyses").select("analysis").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1).maybeSingle()

@@ -1526,8 +1526,10 @@ export type Database = {
       }
       evidence: {
         Row: {
+          ai_permission: string
           anchor_label: string | null
           bytes: number | null
+          conversation_context: string
           created_at: string
           date: string | null
           date_precision: string
@@ -1578,8 +1580,10 @@ export type Database = {
           voice_caption_audio_url: string | null
         }
         Insert: {
+          ai_permission?: string
           anchor_label?: string | null
           bytes?: number | null
+          conversation_context?: string
           created_at?: string
           date?: string | null
           date_precision?: string
@@ -1630,8 +1634,10 @@ export type Database = {
           voice_caption_audio_url?: string | null
         }
         Update: {
+          ai_permission?: string
           anchor_label?: string | null
           bytes?: number | null
+          conversation_context?: string
           created_at?: string
           date?: string | null
           date_precision?: string
@@ -1880,6 +1886,9 @@ export type Database = {
       incidents: {
         Row: {
           abuse_types: string[]
+          actual_outcome: string | null
+          actual_outcome_date: string | null
+          ai_permission: string
           anchor_incident_id: string | null
           anchor_label: string | null
           confidence: number | null
@@ -1892,18 +1901,33 @@ export type Database = {
           deleted_at: string | null
           description: string
           emotional_impact: string | null
+          expectation_status: string
+          expected_due_date: string | null
+          expected_due_range_end: string | null
+          expected_due_range_start: string | null
+          expected_item: string | null
           has_escalation_flag: boolean
           id: string
+          is_draft: boolean
+          is_sealed: boolean
           location: string | null
+          practical_consequence: string | null
+          record_kind: string
+          sealed_at: string | null
           severity_level: number | null
           source: string
           source_evidence_id: string | null
+          source_type: string | null
+          template_key: string | null
           time: string | null
           user_id: string
           witnesses: string | null
         }
         Insert: {
           abuse_types?: string[]
+          actual_outcome?: string | null
+          actual_outcome_date?: string | null
+          ai_permission?: string
           anchor_incident_id?: string | null
           anchor_label?: string | null
           confidence?: number | null
@@ -1916,18 +1940,33 @@ export type Database = {
           deleted_at?: string | null
           description: string
           emotional_impact?: string | null
+          expectation_status?: string
+          expected_due_date?: string | null
+          expected_due_range_end?: string | null
+          expected_due_range_start?: string | null
+          expected_item?: string | null
           has_escalation_flag?: boolean
           id?: string
+          is_draft?: boolean
+          is_sealed?: boolean
           location?: string | null
+          practical_consequence?: string | null
+          record_kind?: string
+          sealed_at?: string | null
           severity_level?: number | null
           source?: string
           source_evidence_id?: string | null
+          source_type?: string | null
+          template_key?: string | null
           time?: string | null
           user_id: string
           witnesses?: string | null
         }
         Update: {
           abuse_types?: string[]
+          actual_outcome?: string | null
+          actual_outcome_date?: string | null
+          ai_permission?: string
           anchor_incident_id?: string | null
           anchor_label?: string | null
           confidence?: number | null
@@ -1940,12 +1979,24 @@ export type Database = {
           deleted_at?: string | null
           description?: string
           emotional_impact?: string | null
+          expectation_status?: string
+          expected_due_date?: string | null
+          expected_due_range_end?: string | null
+          expected_due_range_start?: string | null
+          expected_item?: string | null
           has_escalation_flag?: boolean
           id?: string
+          is_draft?: boolean
+          is_sealed?: boolean
           location?: string | null
+          practical_consequence?: string | null
+          record_kind?: string
+          sealed_at?: string | null
           severity_level?: number | null
           source?: string
           source_evidence_id?: string | null
+          source_type?: string | null
+          template_key?: string | null
           time?: string | null
           user_id?: string
           witnesses?: string | null

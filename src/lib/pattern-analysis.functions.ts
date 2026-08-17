@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { filterForAi } from "@/lib/ai-permissions";
 
 export interface PatternAnalysisResult {
   frequency_trends: Array<{ period: string; count: number; note?: string }>;
@@ -76,15 +77,17 @@ export const analyzePatterns = createServerFn({ method: "POST" })
     if (!apiKey) return { ok: false as const, reason: "missing-key" };
 
     const [incidentsRes, commsRes, flagsRes, cachedRes] = await Promise.all([
-      supabase.from("incidents").select("id,date,time,location,description,abuse_types,witnesses,emotional_impact,severity_level,source,confirmed_at").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true }),
+      supabase.from("incidents").select("id,date,time,location,description,abuse_types,witnesses,emotional_impact,severity_level,source,confirmed_at,is_sealed,ai_permission,is_draft").eq("user_id", userId).is("deleted_at", null).eq("is_sealed", false).order("date", { ascending: true }),
       supabase.from("communications").select("date,channel,direction,from_party,content,harassment_flag").eq("user_id", userId).order("date", { ascending: true }),
       supabase.from("escalation_flags").select("flag_type,severity_tier,details,created_at").eq("user_id", userId).is("dismissed_at", null),
       supabase.from("pattern_analyses").select("id,analysis,incident_count_at_time,created_at,reviewed_status").eq("user_id", userId).order("created_at", { ascending: false }).limit(1),
     ]);
 
     const rawIncidents = incidentsRes.data ?? [];
-    // Exclude unconfirmed AI-extracted drafts from pattern conclusions.
-    const incidents = rawIncidents.filter(
+    // Sealed records never reach a model, and a record whose per-item
+    // permission stops short of sequence work is left out of grouping too.
+    // Unconfirmed AI-extracted drafts are excluded from any conclusion.
+    const incidents = filterForAi(rawIncidents, "analyze_sequences").filter(
       (i) => !(i.source === "ai_extracted" && !i.confirmed_at),
     );
     if (incidents.length < 2) {

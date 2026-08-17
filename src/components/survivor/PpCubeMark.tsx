@@ -1,19 +1,18 @@
 interface PpCubeMarkProps {
   size?: number;
-  /** Rendered on the dark forest sidebar. */
+  /** Kept for call-site compatibility; the survivor mark is light-surface. */
   onDark?: boolean;
   className?: string;
 }
 
 /**
- * PatternProof cube mark — an isometric cube whose front face carries a
- * geometric "P". Drawn in SVG so it stays crisp at any size and needs no
- * raster asset.
+ * PatternProof survivor mark — an isometric cube / portal in the survivor
+ * lavender-and-indigo range, drawn in SVG so it stays crisp at any size.
  */
-export function PpCubeMark({ size = 28, onDark = true, className }: PpCubeMarkProps) {
-  const top = onDark ? "#2A9468" : "#2A9468";
-  const left = onDark ? "#17553A" : "#17553A";
-  const right = onDark ? "#0D3825" : "#0D3825";
+export function PpCubeMark({ size = 28, onDark = false, className }: PpCubeMarkProps) {
+  const top = "#B49FD4";
+  const left = "#5E3A85";
+  const right = "#3D2260";
   const glyph = "#FFFFFF";
   return (
     <svg
@@ -25,7 +24,7 @@ export function PpCubeMark({ size = 28, onDark = true, className }: PpCubeMarkPr
       className={className}
       style={{ display: "block" }}
     >
-      <rect x="0" y="0" width="64" height="64" rx="14" fill={onDark ? "#FFFFFF" : "#0D3825"} opacity={onDark ? 0.06 : 0.04} />
+      <rect x="0" y="0" width="64" height="64" rx="16" fill={onDark ? "#FFFFFF" : "#4A2A6B"} opacity="0.06" />
       <polygon points="32,8 56,21 32,34 8,21" fill={top} />
       <polygon points="8,21 32,34 32,56 8,43" fill={left} />
       <polygon points="56,21 56,43 32,56 32,34" fill={right} />

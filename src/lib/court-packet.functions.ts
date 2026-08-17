@@ -79,11 +79,11 @@ export const generateCourtPacketPdf = createServerFn({ method: "POST" })
     const [incR, evR, lgR, thR, tmR] = await Promise.all([
       incIds.length
         ? supabase.from("incidents").select("id,date,date_precision,date_range_start,date_range_end,anchor_label,location,description,abuse_types")
-            .eq("user_id", userId).in("id", incIds).is("deleted_at", null)
+            .eq("user_id", userId).in("id", incIds).is("deleted_at", null).eq("is_sealed", false)
         : Promise.resolve({ data: [] as unknown[] }),
       evIds.length
         ? supabase.from("evidence").select("id,title,date,file_type,description")
-            .eq("user_id", userId).in("id", evIds).is("deleted_at", null)
+            .eq("user_id", userId).in("id", evIds).is("deleted_at", null).eq("is_sealed", false)
         : Promise.resolve({ data: [] as unknown[] }),
       lgIds.length
         ? supabase.from("legal_documents").select("id,title,document_type,effective_date,incident_date,case_number,key_terms")
