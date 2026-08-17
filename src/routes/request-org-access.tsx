@@ -122,12 +122,32 @@ function RequestOrgAccess() {
             Partner transparency
           </div>
           <ul style={{ marginTop: 12, paddingLeft: 18, fontSize: 13.5, lineHeight: 1.7, color: "var(--foreground)" }}>
-            <li>PatternProof is operated by one person, Grace Burns — not a company with a support team.</li>
-            <li>Partnership costs your organization nothing, and survivors are never charged.</li>
-            <li>Advocates see titles, dates, and counts only — never evidence files or exact locations.</li>
-            <li>Survivors grant and withdraw advocate access themselves; you can't request it on their behalf.</li>
+            <li>
+              PatternProof is currently founder-operated by Grace Burns. Support comes directly from her, by email,
+              rather than from a ticketing desk — so please plan for a human response time, not an instant one.
+            </li>
+            <li>
+              As a matter of our business model, partnership costs your organization nothing and survivor features
+              are not paywalled. There is no charge in the product for survivor accounts.
+            </li>
+            <li>
+              What an advocate can see, once a survivor invites them: the entries that survivor shared, including the
+              date, time, location and description she wrote and the tags on them; a list of her evidence showing
+              title, date, description and file type; and, if she allows it, the recurrence grouping and the case
+              summary she wrote.
+            </li>
+            <li>
+              What an advocate can never see: evidence files themselves (no opening, downloading or playback), GPS
+              coordinates, photo metadata, filenames, transcripts, witness or impact notes, and anything the survivor
+              did not share. Advocates cannot edit or delete anything.
+            </li>
+            <li>Survivors grant and withdraw advocate access themselves; your organization can't request it on their behalf.</li>
             <li>Data is encrypted in transit and at rest by our infrastructure host. This is not zero-knowledge encryption.</li>
-            <li>Funding comes from law-firm subscriptions and voluntary contributions. Survivor data is never sold or shared.</li>
+            <li>
+              Funding: law-firm subscriptions, plus optional pay-what-you-can contributions that unlock no additional
+              features. It is our policy not to sell survivor data or leads, take referral fees or paid placement, or
+              accept advertiser or data-broker funding.
+            </li>
           </ul>
         </div>
         <div style={{ marginTop: 20, textAlign: "center", fontSize: 13, color: "var(--muted-foreground)" }}>

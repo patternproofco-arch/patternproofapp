@@ -162,10 +162,15 @@ function ForOrganizations() {
             How PatternProof is funded
           </div>
           <p style={{ marginTop: 10, fontSize: 14.5, lineHeight: 1.7, maxWidth: 620 }}>
-            PatternProof is operated by one person, Grace Burns. Survivors pay nothing, and organizations pay
-            nothing. The work is funded by law firms who subscribe to the attorney portal, plus optional
-            pay-what-you-can contributions from people who choose to give. We don't sell, rent, or share
-            survivor data, and no advertiser or data broker funds any part of this.
+            PatternProof is currently founder-operated by Grace Burns, who answers partner questions directly by
+            email. The work is funded by law firms who subscribe to the attorney portal, plus optional
+            pay-what-you-can contributions that unlock no additional features. Survivor features are not
+            paywalled, and partner organizations are not charged.
+          </p>
+          <p style={{ marginTop: 10, fontSize: 14.5, lineHeight: 1.7, maxWidth: 620 }}>
+            As a matter of policy, we do not sell survivor data or leads, take referral fees or paid placement from
+            attorneys, route survivors to any particular attorney automatically, or accept advertiser or data-broker
+            funding. Survivors choose who to invite, and only they can grant or withdraw an advocate's access.
           </p>
         </div>
       </section>
