@@ -136,10 +136,6 @@ function LoginPage() {
     }
   };
 
-  const signInWithPasskey = async () => {
-    return signInWithPasskeyImpl();
-  };
-
   const signInWithApple = async () => {
     try {
       const returnTo =
@@ -159,7 +155,7 @@ function LoginPage() {
     }
   };
 
-  const signInWithPasskeyImpl = async () => {
+  const signInWithPasskey = async () => {
     try {
       const credential = await navigator.credentials.get({
         publicKey: {
