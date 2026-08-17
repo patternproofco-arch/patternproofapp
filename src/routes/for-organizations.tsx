@@ -156,6 +156,18 @@ function ForOrganizations() {
             Not ready to sign up your organization yet? Leave your email →
           </Link>
         </div>
+
+        <div style={{ marginTop: 40, borderTop: `1px solid ${RULE}`, paddingTop: 24 }}>
+          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: INK }}>
+            How PatternProof is funded
+          </div>
+          <p style={{ marginTop: 10, fontSize: 14.5, lineHeight: 1.7, maxWidth: 620 }}>
+            PatternProof is operated by one person, Grace Burns. Survivors pay nothing, and organizations pay
+            nothing. The work is funded by law firms who subscribe to the attorney portal, plus optional
+            pay-what-you-can contributions from people who choose to give. We don't sell, rent, or share
+            survivor data, and no advertiser or data broker funds any part of this.
+          </p>
+        </div>
       </section>
 
       <Foot />

@@ -40,7 +40,7 @@ export const Route = createFileRoute("/pricing")({
 const FAQS = [
   {
     q: "Is it really free for survivors?",
-    a: "Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the court packet export and sharing your case with an attorney. Professional Review is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.",
+    a: "Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the court packet export, recurrence grouping, and sharing your case with an attorney. Court Ready is a pay-what-you-can contribution that supports the work; it does not unlock any extra feature.",
   },
   {
     q: "What's the Charter Firm program?",

@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback } from "react";
-import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check, MessageSquare, Send, X, Clock } from "lucide-react";
+import { Copy, Plus, Scale, Trash2, ShieldCheck, Mail, Check, MessageSquare, Send, X, Clock, FileQuestion } from "lucide-react";
 import { toast } from "sonner";
 import { createInvitation, listMyInvitations, revokeInvitation, revokeLink } from "@/lib/attorney-invitations.functions";
 import { sendTransactionalEmail } from "@/lib/email/send";
-import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts, setDepositionPrepConsent } from "@/lib/attorney-portal.functions";
+import { listMessages, sendMessage, markMessagesRead, getMyUnreadCounts, setDepositionPrepConsent, listMyDocumentRequests } from "@/lib/attorney-portal.functions";
 import { setClioShareConsent } from "@/lib/clio-matter-links.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +30,7 @@ function ShareWithAttorney() {
 
   const [data, setData] = useState<Listing | null>(null);
   const [open, setOpen] = useState(false);
+  const [docRequests, setDocRequests] = useState<Awaited<ReturnType<typeof listMyDocumentRequests>>["requests"]>([]);
   const [unread, setUnread] = useState<Record<string, number>>({});
   const [messagingLinkId, setMessagingLinkId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -54,10 +55,12 @@ function ShareWithAttorney() {
   }, [user]);
 
   const unreadFn = useServerFn(getMyUnreadCounts);
+  const docReqFn = useServerFn(listMyDocumentRequests);
   const load = useCallback(() => {
     list().then(setData);
     unreadFn().then((r) => setUnread(r.counts ?? {})).catch(() => setUnread({}));
-  }, [list, unreadFn]);
+    docReqFn().then((r) => setDocRequests(r.requests ?? [])).catch(() => setDocRequests([]));
+  }, [list, unreadFn, docReqFn]);
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     const t = setInterval(() => {
@@ -126,6 +129,30 @@ function ShareWithAttorney() {
           <Clock size={13} /> View attorney time logged on your case
         </Link>
       </div>
+
+      {docRequests.length > 0 && (
+        <div className="card-pp mt-6" style={{ borderLeft: "3px solid #A8CCE0" }}>
+          <div className="flex items-center gap-2">
+            <FileQuestion size={16} />
+            <div className="font-serif text-[18px]">Your attorney asked for a few things</div>
+          </div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            These are open requests. Add them in Evidence whenever you're ready — nothing here is urgent.
+          </p>
+          <div className="mt-3 space-y-2">
+            {docRequests.map((r) => (
+              <div key={r.id} className="rounded-[2px] px-3 py-2 text-[13px]" style={{ background: "var(--input)" }}>
+                <div style={{ fontWeight: 600 }}>{r.title}</div>
+                {r.details && <div style={{ color: "var(--muted-foreground)", marginTop: 2 }}>{r.details}</div>}
+                <div className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                  {r.attorney_name}{r.firm_name ? ` · ${r.firm_name}` : ""} · asked {new Date(r.created_at).toLocaleDateString()}
+                </div>
+              </div>
+            ))}
+          </div>
+          <Link to="/evidence" className="btn-ghost mt-3 inline-flex text-[12px]">Go to Evidence</Link>
+        </div>
+      )}
 
       {justCreated && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--safe)" }}>

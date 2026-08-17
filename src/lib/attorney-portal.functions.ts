@@ -1554,3 +1554,42 @@ export const syncMissingEvidenceChecklistFromGaps = createServerFn({ method: "PO
     }
     return { added, skipped: labels.size - added };
   });
+
+/* ---------------- survivor-side view of document requests ---------------- */
+
+export const listMyDocumentRequests = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: links } = await supabaseAdmin
+      .from("attorney_client_links")
+      .select("id, attorney_user_id")
+      .eq("client_user_id", context.userId)
+      .eq("status", "active");
+    const linkIds = (links ?? []).map((l) => l.id);
+    if (linkIds.length === 0) return { requests: [] };
+
+    const { data: requests } = await supabaseAdmin
+      .from("attorney_document_requests")
+      .select("id, link_id, title, details, status, created_at, attorney_user_id")
+      .in("link_id", linkIds)
+      .eq("status", "open")
+      .order("created_at", { ascending: false });
+
+    const attorneyIds = Array.from(new Set((requests ?? []).map((r) => r.attorney_user_id)));
+    const { data: profiles } = attorneyIds.length
+      ? await supabaseAdmin.from("attorney_profiles").select("user_id, full_name, firm_name").in("user_id", attorneyIds)
+      : { data: [] as Array<{ user_id: string; full_name: string | null; firm_name: string | null }> };
+    const byId = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+
+    return {
+      requests: (requests ?? []).map((r) => ({
+        id: r.id,
+        title: r.title,
+        details: r.details,
+        created_at: r.created_at,
+        attorney_name: byId.get(r.attorney_user_id)?.full_name ?? "Your attorney",
+        firm_name: byId.get(r.attorney_user_id)?.firm_name ?? null,
+      })),
+    };
+  });
