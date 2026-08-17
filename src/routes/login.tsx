@@ -137,6 +137,7 @@ function LoginPage() {
   };
 
   const signInWithPasskey = async () => {
+    void 0;
     try {
       const credential = await navigator.credentials.get({
         publicKey: {
