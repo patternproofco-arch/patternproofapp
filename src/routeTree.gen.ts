@@ -64,6 +64,7 @@ import { Route as AuthenticatedShareWithAttorneyRouteImport } from './routes/_au
 import { Route as AuthenticatedShareWithAdvocateRouteImport } from './routes/_authenticated/share-with-advocate'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
+import { Route as AuthenticatedSaveNowRouteImport } from './routes/_authenticated/save-now'
 import { Route as AuthenticatedRecordRequestsRouteImport } from './routes/_authenticated/record-requests'
 import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
 import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
@@ -398,6 +399,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSaveNowRoute = AuthenticatedSaveNowRouteImport.update({
+  id: '/save-now',
+  path: '/save-now',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedRecordRequestsRoute =
@@ -794,6 +800,7 @@ export interface FileRoutesByFullPath {
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/patterns': typeof AuthenticatedPatternsRoute
   '/record-requests': typeof AuthenticatedRecordRequestsRoute
+  '/save-now': typeof AuthenticatedSaveNowRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
@@ -905,6 +912,7 @@ export interface FileRoutesByTo {
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/patterns': typeof AuthenticatedPatternsRoute
   '/record-requests': typeof AuthenticatedRecordRequestsRoute
+  '/save-now': typeof AuthenticatedSaveNowRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
@@ -1023,6 +1031,7 @@ export interface FileRoutesById {
   '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
   '/_authenticated/record-requests': typeof AuthenticatedRecordRequestsRoute
+  '/_authenticated/save-now': typeof AuthenticatedSaveNowRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
@@ -1139,6 +1148,7 @@ export interface FileRouteTypes {
     | '/opra-helper'
     | '/patterns'
     | '/record-requests'
+    | '/save-now'
     | '/search'
     | '/settings'
     | '/share-with-advocate'
@@ -1250,6 +1260,7 @@ export interface FileRouteTypes {
     | '/opra-helper'
     | '/patterns'
     | '/record-requests'
+    | '/save-now'
     | '/search'
     | '/settings'
     | '/share-with-advocate'
@@ -1367,6 +1378,7 @@ export interface FileRouteTypes {
     | '/_authenticated/opra-helper'
     | '/_authenticated/patterns'
     | '/_authenticated/record-requests'
+    | '/_authenticated/save-now'
     | '/_authenticated/search'
     | '/_authenticated/settings'
     | '/_authenticated/share-with-advocate'
@@ -1857,6 +1869,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof AuthenticatedSearchRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/save-now': {
+      id: '/_authenticated/save-now'
+      path: '/save-now'
+      fullPath: '/save-now'
+      preLoaderRoute: typeof AuthenticatedSaveNowRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/record-requests': {
@@ -2391,6 +2410,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
   AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
   AuthenticatedRecordRequestsRoute: typeof AuthenticatedRecordRequestsRoute
+  AuthenticatedSaveNowRoute: typeof AuthenticatedSaveNowRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShareWithAdvocateRoute: typeof AuthenticatedShareWithAdvocateRoute
@@ -2426,6 +2446,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
   AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
   AuthenticatedRecordRequestsRoute: AuthenticatedRecordRequestsRoute,
+  AuthenticatedSaveNowRoute: AuthenticatedSaveNowRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShareWithAdvocateRoute: AuthenticatedShareWithAdvocateRoute,
