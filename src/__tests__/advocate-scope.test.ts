@@ -37,12 +37,12 @@ describe("advocate scope projection", () => {
   });
 
   it("never returns witnesses, impact, severity or user_id to an advocate", () => {
-    const out = shapeAdvocateIncident(fullIncident) as Record<string, unknown>;
+    const out = shapeAdvocateIncident(fullIncident) as unknown as Record<string, unknown>;
     for (const f of ADVOCATE_FORBIDDEN_FIELDS) expect(out).not.toHaveProperty(f);
   });
 
   it("gives advocates evidence metadata but never files, GPS, EXIF or transcripts", () => {
-    const out = shapeAdvocateEvidence(fullEvidence) as Record<string, unknown>;
+    const out = shapeAdvocateEvidence(fullEvidence) as unknown as Record<string, unknown>;
     expect(out["title"]).toBe("Text screenshot");
     expect(out["file_type"]).toBe("image");
     for (const f of ADVOCATE_FORBIDDEN_FIELDS) expect(out).not.toHaveProperty(f);
@@ -55,7 +55,7 @@ describe("advocate scope projection", () => {
       id: "c1", user_id: "u1", case_name: "Custody", other_party: "R.",
       relationship_type: "ex-partner", jurisdiction: "NJ", case_types: ["custody"],
       pattern_summary: "Summary she wrote.", highlighted_incident_ids: ["i1"],
-    }) as Record<string, unknown>;
+    }) as unknown as Record<string, unknown>;
     expect(out["pattern_summary"]).toBe("Summary she wrote.");
     expect(out).not.toHaveProperty("user_id");
     expect(out).not.toHaveProperty("highlighted_incident_ids");
