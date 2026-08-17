@@ -122,10 +122,10 @@ export function RequestResponsePanel({ request, onDone }: { request: Request; on
       />
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" disabled={busy} className="pp-btn" onClick={() => send(narrow ? "modify" : "approve")}>
+        <button type="button" disabled={busy} className="btn-pp" onClick={() => send(narrow ? "modify" : "approve")}>
           {busy ? "Saving…" : narrow ? "Share only what I picked" : "Share as asked"}
         </button>
-        <button type="button" disabled={busy} className="pp-btn pp-btn--quiet" onClick={() => send("decline")}>
+        <button type="button" disabled={busy} className="btn-ghost" onClick={() => send("decline")}>
           Decline
         </button>
       </div>
