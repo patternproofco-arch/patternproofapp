@@ -122,8 +122,13 @@ export function shapeAdvocateEvidence(row: Rec): AdvocateEvidence {
 
 /** Case summary fields an advocate may see (survivor-authored). */
 export const ADVOCATE_CASE_FIELDS = [
-  "id", "case_name", "other_party", "relationship_type", "jurisdiction",
-  "case_types", "pattern_summary",
+  "id",
+  "case_name",
+  "other_party",
+  "relationship_type",
+  "jurisdiction",
+  "case_types",
+  "pattern_summary",
 ] as const;
 
 export function shapeAdvocateCase(row: Rec | null): AdvocateCase | null {
