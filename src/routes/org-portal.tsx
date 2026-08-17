@@ -107,14 +107,14 @@ function OrgPortal() {
             <div className="orgx-fact-label" style={{ marginTop: 3 }}>Workspaces shared with you now</div>
           </div>
           <div>
-            <div className="orgx-metric-value">0</div>
+            <div className="orgx-metric-value" style={{ fontSize: 20, fontWeight: 600 }}>Not enabled</div>
             <div className="orgx-fact-label" style={{ marginTop: 3 }}>Requests waiting on approval</div>
           </div>
         </div>
         <p className="orgx-muted" style={{ fontSize: 12.5, margin: "16px 0 0" }}>
           {stats.codes.length === 0
             ? "Your referral link isn't set up yet — email us and we'll create one for your organization."
-            : "Record requests aren't switched on yet, so that count will stay at zero for now."}
+            : "Record requests aren't switched on yet, so there's no figure to report here — this isn't a count of zero."}
         </p>
       </div>
 
