@@ -207,7 +207,6 @@ export const getGrantedRecords = createServerFn({ method: "POST" })
         expires_at: row.expires_at as string | null,
         download_allowed: row.download_allowed as boolean,
         scope_summary: describeScope(scope, row.download_allowed, row.expires_at),
-        receipt: row.receipt as Record<string, unknown>,
       },
     };
   });
@@ -305,7 +304,6 @@ export const listMyRecordRequests = createServerFn({ method: "GET" })
         expires_at: g.expires_at as string | null,
         revoked_at: g.revoked_at as string | null,
         download_allowed: g.download_allowed as boolean,
-        receipt: g.receipt as Record<string, unknown>,
         recipient_label: (who.get(g.recipient_user_id) ?? g.org_name ?? "An organization") as string,
         scope_summary: describeScope(parseScope(g.scope), g.download_allowed, g.expires_at),
       })),
