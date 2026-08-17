@@ -2,18 +2,25 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { listAdvocateClients } from "@/lib/advocate.functions";
+import { listOrgRecordRequests } from "@/lib/record-requests.functions";
 
 export const Route = createFileRoute("/_advocate/org/consent")({
   component: ConsentCentre,
 });
 
 type Clients = Awaited<ReturnType<typeof listAdvocateClients>>["clients"];
+type Grants = Awaited<ReturnType<typeof listOrgRecordRequests>>["grants"];
 
 function ConsentCentre() {
   const listFn = useServerFn(listAdvocateClients);
+  const requestsFn = useServerFn(listOrgRecordRequests);
   const [clients, setClients] = useState<Clients | null>(null);
+  const [grants, setGrants] = useState<Grants>([]);
 
-  useEffect(() => { listFn().then((r) => setClients(r.clients)).catch(() => setClients([])); }, [listFn]);
+  useEffect(() => {
+    listFn().then((r) => setClients(r.clients)).catch(() => setClients([]));
+    requestsFn().then((r) => setGrants(r.grants)).catch(() => setGrants([]));
+  }, [listFn, requestsFn]);
 
   return (
     <>
@@ -24,14 +31,57 @@ function ConsentCentre() {
         received access, what it covers, when it started, and whether it is still in force.
       </p>
 
+      <h2 className="orgx-eyebrow" style={{ margin: "28px 0 12px" }}>Approved record requests</h2>
+      {grants.length === 0 ? (
+        <div className="orgx-empty">
+          Nothing here yet — a receipt appears once someone approves a record request.
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: 14 }}>
+          {grants.map((g) => {
+            const live = g.status === "active";
+            return (
+              <div key={g.id} className="orgx-card">
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <h3 style={{ margin: 0 }}>Record request</h3>
+                  <span className="orgx-chip" data-tone={live ? "active" : "ended"}>
+                    {live ? "In force" : g.status === "revoked" ? "Withdrawn" : "Ended"}
+                  </span>
+                </div>
+                <dl style={{ display: "grid", gap: 8, margin: "14px 0 0", fontSize: 13.5 }}>
+                  <Receipt label="Who received access" value="This organization account only." />
+                  <Receipt label="What it covers" value={g.scope_summary} />
+                  <Receipt
+                    label="Download rights"
+                    value={g.download_allowed
+                      ? "Files may be opened and downloaded while this is in force. Anything already downloaded stays downloaded after a withdrawal."
+                      : "None. Descriptions only — no files are produced."}
+                  />
+                  <Receipt label="Started" value={new Date(g.effective_at).toLocaleDateString()} />
+                  <Receipt
+                    label="Ends"
+                    value={g.revoked_at
+                      ? `Withdrawn on ${new Date(g.revoked_at).toLocaleDateString()}. Access is blocked.`
+                      : g.expires_at
+                        ? `${new Date(g.expires_at).toLocaleDateString()}. It can also be withdrawn sooner, which takes effect immediately.`
+                        : "No end date set. It can be withdrawn at any time, which takes effect immediately."}
+                  />
+                </dl>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <h2 className="orgx-eyebrow" style={{ margin: "32px 0 12px" }}>Shared workspaces</h2>
       {!clients ? (
-        <p className="orgx-muted" style={{ fontSize: 14, marginTop: 26 }}>Loading…</p>
+        <p className="orgx-muted" style={{ fontSize: 14 }}>Opening…</p>
       ) : clients.length === 0 ? (
-        <div className="orgx-empty" style={{ marginTop: 24 }}>
+        <div className="orgx-empty">
           Nothing here yet — a consent receipt appears once someone shares a workspace with you.
         </div>
       ) : (
-        <div style={{ display: "grid", gap: 14, marginTop: 24 }}>
+        <div style={{ display: "grid", gap: 14 }}>
           {clients.map((c) => {
             const active = c.status === "active";
             return (
