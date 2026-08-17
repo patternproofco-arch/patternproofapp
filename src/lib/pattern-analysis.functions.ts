@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { filterForAi } from "@/lib/ai-permissions";
 
 export interface PatternAnalysisResult {
   frequency_trends: Array<{ period: string; count: number; note?: string }>;
