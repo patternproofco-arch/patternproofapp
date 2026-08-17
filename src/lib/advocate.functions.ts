@@ -379,16 +379,12 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
         : supabaseAdmin.from("cases").select("*").eq("user_id", data.clientId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
 
-    // GPS stays quarantined — it never leaves the survivor's own view. File
-    // locations are stripped too: the advocate view is metadata-only.
-    const evidence = (evQ.data ?? []).map((e) => ({
-      ...e,
-      gps_lat: null,
-      gps_lon: null,
-      gps_reveal_opt_in: false,
-      file_url: null as string | null,
-      storage_path: null as string | null,
-    }));
+    // Advocates get an allowlisted projection only: survivor-approved
+    // narratives plus evidence titles/dates/descriptions. No files, no GPS,
+    // no EXIF/raw metadata, no filenames, no checksums, no transcripts.
+    const {
+      shapeAdvocateIncident, shapeAdvocateEvidence, shapeAdvocateCase, withinDateWindow,
+    } = await import("@/lib/advocate-scope");
 
     // Pattern analysis is survivor-review gated before it leaves the survivor's
     // account: claims marked "rejected" (or still "unsure") are stripped out.
