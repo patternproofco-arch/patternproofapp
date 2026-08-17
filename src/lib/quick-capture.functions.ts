@@ -140,19 +140,19 @@ export const setItemProcessing = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => permissionSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const patch: Record<string, unknown> = {};
-    if (data.ai_permission) patch["ai_permission"] = data.ai_permission;
-    if (typeof data.is_sealed === "boolean") {
-      patch["is_sealed"] = data.is_sealed;
-      patch["sealed_at"] = data.is_sealed ? new Date().toISOString() : null;
-    }
-    if (!Object.keys(patch).length) return { ok: true };
+    if (!data.ai_permission && typeof data.is_sealed !== "boolean") return { ok: true };
 
-    const { error } = await supabase
-      .from(data.table)
-      .update(patch)
-      .eq("id", data.id)
-      .eq("user_id", userId);
+    const patch = {
+      ...(data.ai_permission ? { ai_permission: data.ai_permission } : {}),
+      ...(typeof data.is_sealed === "boolean"
+        ? { is_sealed: data.is_sealed, sealed_at: data.is_sealed ? new Date().toISOString() : null }
+        : {}),
+    };
+
+    const { error } =
+      data.table === "incidents"
+        ? await supabase.from("incidents").update(patch).eq("id", data.id).eq("user_id", userId)
+        : await supabase.from("evidence").update(patch).eq("id", data.id).eq("user_id", userId);
     if (error) throw new Error("We couldn't change that setting. Try again in a moment.");
     return { ok: true };
   });
