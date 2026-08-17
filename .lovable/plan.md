@@ -1,68 +1,52 @@
-# Evidence Intake Expansion — integration plan
+# Demo Environment — Verification Report (read-only)
 
-## What already exists (verified by reading the code/schema)
+No files were modified, nothing was committed, nothing was deployed.
 
-- **Screenshot import**: `src/routes/_authenticated/import-messages.tsx` + `src/components/messages/*`, client-side OCR in `src/lib/ocr/run.ts` (Tesseract.js, browser-only) and `src/lib/ocr/parse.ts` (line grouping, bubble-side guess, timestamp parsing, fuzzy trigram dedupe with a short-text guard). Server side: `src/lib/message-import.functions.ts` with draft/`in_progress`/`complete` resume, append-only `thread_message_corrections`, `field_provenance`.
-- **Threads already flow through**: Timeline (toggle), Case Builder (`cases.attached_thread_ids`), Court Packet PDF, and the evidence ZIP export. No new export path is needed anywhere below.
-- **Evidence ingest** (`src/lib/evidence-ingest.functions.ts`): already computes `sha256` and a dHash `perceptual_hash`, and **already compares against all of the user's prior evidence** — cross-session duplicate detection exists at the data layer; it is the UI surfacing that is thin.
-- **Screen recordings**: `ScreenRecordingUpload.tsx` uploads video and calls a server AI transcription (`transcribeRecordedThread`) — that contradicts the client-side-OCR rule for this feature.
-- **Date certainty**: `incidents` has `date_precision` / `date_range_start|end` / `anchor_label`. **`evidence.date` is `NOT NULL` with no precision column** — this is the regression to restore.
-- **Voice transcription**: `transcribe-voice-note.functions.ts` exists and is reusable.
-- **Patterns**: `pattern-analysis.functions.ts` is an AI narrative analysis; the requested neutral counts are a separate, deterministic thing.
+## 1. Does demo mode exist and work
+Yes. It is a fully built, self-contained demo living in `src/routes/demo.*`, `src/components/demo/`, and `src/lib/demo/`. All 8 screens rendered locally with zero console errors and zero page errors.
 
-## Schema changes (one migration, extends existing tables)
+## 2. Entry route
+- Local/preview/production path: `/demo` (public, no login, no activation step).
+- Live: `https://pattern-proof.tech/demo` returns 200 with the demo shell. `https://patternproofapp.lovable.app/demo` 302-redirects to the custom domain.
+- Nothing on the homepage or any marketing page links to `/demo` — it must be typed/bookmarked. `/demo` is listed in `sitemap.xml` while the route head sets `robots: noindex` (a contradiction, harmless for the demo itself).
 
-- `evidence`: add `date_precision` (`exact` | `approximate` | `unknown`, default `exact`), `date_range_start`, `date_range_end`, `anchor_label`, and make `date` nullable; add `exif_choice` (`kept` | `stripped` | `none`), `voice_caption`, `voice_caption_audio_url`, `review_status` default stays as-is for "unreviewed" badging.
-- `message_threads`: add `frame_interval_sec` and reuse existing `capture_method='screen_recording'`, `import_status`, `processed_count` for resume.
-- `thread_source_documents`: add `kind` (`screenshot` | `video_frame`) and `frame_time_sec` so frames link back to their video timestamp.
-- New `intake_batches` (owner-RLS): `id`, `user_id`, `status`, `kind_counts` jsonb, `queued_files` jsonb (names/sizes/hashes for resume), `created_at/updated_at` — one row per mixed batch so uploads resume across sessions.
-- New `evidence_classification_suggestions` (owner-RLS): `evidence_id`, `suggested_kind`, `confidence`, `rationale`, `status` (`suggested`|`accepted`|`rejected`), `model`. AI output is never written onto `evidence` directly.
-- GRANTs to `authenticated` + `service_role`, RLS `auth.uid() = user_id` on all new tables, no anon.
+## 3. Persistent "DEMO — FICTIONAL DATA" indicator
+Yes, on every demo screen (verified on all 8):
+- Top-bar chip "DEMO — FICTIONAL DATA"
+- Full-width banner stating every person/date/record is invented and nothing is stored
+- A fixed page watermark "DEMO — FICTIONAL DATA"
+- Sidebar footer "Demo environment — fictional data only."
+- The court packet itself is stamped "Demo — fictional data · not a real case record"
 
-## 1. Screen-recording transcription via client-side OCR
+## 4. Data isolation
+Hard isolation. `rg` over all demo files finds no `supabase`, no `createServerFn`, and no `fetch(` calls. State comes from `seedDemoState()` in `src/lib/demo/demo-data.ts` (fictional "Alex Morgan" case) and lives only in React state mirrored to `sessionStorage` under key `pp-demo-state-v1`. Browser check confirmed: `sessionStorage` holds only `pp-demo-state-v1` (+ router scroll key), `localStorage` empty. Closing the tab clears it. No auth session, no database read or write is possible from these routes.
 
-- New `src/lib/ocr/frames.ts`: decode the video in-browser (`HTMLVideoElement` + `canvas`), sample every ~1.5s, skip frames whose downscaled pixel diff is below a scroll threshold, then feed each kept frame through the **existing** `recognizeImage` + `parse.ts` pipeline.
-- Frames are stored as `thread_source_documents` rows (`kind='video_frame'`), so every extracted message keeps a source thumbnail exactly like screenshots. The original video stays the primary artifact.
-- Same `mergeDuplicates` pass, same thread reconstruction, same Timeline / Case Builder / Court Packet / ZIP wiring. `ScreenRecordingUpload` is repointed at this local path; the old server AI call stays only as an explicitly consented, badged fallback.
+## 5. Reset
+"Reset demo" button in the demo top bar, present on every screen. Verified: an added record disappears and the seed data returns, with a toast "Demo reset to its starting state."
 
-## 2. Burden-reduction fixes
+## 6. Path coverage (verified in a real browser)
+- Dashboard `/demo` — KPIs, recent records, recurrence summary, safety panel. Works.
+- Journal `/demo/journal` — lists records; "Log an incident" opens an inline form (date, time, location, description, witnesses, impact, category chips) and "Save record" works. Verified end to end.
+- Evidence `/demo/evidence` — read-only list of 7 fictional items with linked-record pills. No upload/attach in the demo (the store's `attachEvidence` is unused by any screen).
+- Timeline `/demo/timeline` — month-grouped chronology; a newly added record appears here. Verified.
+- Recurrence `/demo/patterns` — counts/spans by category, neutral framing, no interpretation. Read-only.
+- Case Builder `/demo/case-builder` — case details plus per-record include checkboxes. Selection is local UI state only.
+- Court Packet `/demo/court-packet` — full printable summary with "Print / save as PDF" (`window.print()`). A record added in the journal flows into the packet. Verified.
+- Voice Notes `/demo/voice-notes` — text placeholders only; explicitly says no audio is recorded or played.
 
-- **One "Add evidence" entry point**: single dropzone/picker with `multiple`, `accept="image/*,video/*,audio/*,.pdf,..."`, plus a separate `capture="environment"` camera button for photographing paper documents. Type is auto-detected per file (MIME + extension) and routed: images/video-of-a-conversation → message import pipeline; everything else → `evidence-ingest`.
-- **Date certainty on every item**: a shared `DateCertaintyField` component (confirmed / approximate + optional anchor text / no date) used by evidence, batch intake, and threads, writing the new evidence columns. Nothing forces a date.
-- **EXIF choice**: parse EXIF in the browser before upload; if GPS or device timestamp is present, show a per-file choice — keep (strengthens timestamp/location) or strip (safer if shared). Stripping re-encodes the image client-side before upload. Never silent either way; the choice is recorded in `exif_choice` and audited.
-- **Universal resume**: `intake_batches` + IndexedDB-backed local file queue. Closing the tab mid-batch leaves a resume banner; already-uploaded files are not re-asked for.
-- **Offline queue**: the same IndexedDB queue drains automatically on `online`, with a visible "waiting for connection" state instead of a silent failure.
-- **Voice caption**: optional record-while-uploading control on any photo/video; audio goes to the existing `voice-notes` bucket and reuses the existing transcription function to fill the caption.
-- **Cross-session duplicates**: surface the existing `sha256` / `near_duplicate_of` results in the intake UI ("You added this file on 12 March") with keep-both / skip choices, and apply the same fuzzy check for re-imported screenshots.
-- **OCR fallback**: when confidence for an image or message is below threshold, show an inline "type what this says" field instead of a blank row; the typed value is recorded as a `corrected` field with full history.
-- **No correction wall**: low-confidence items save and appear in the Timeline immediately with an "unreviewed" badge and a "review when you're ready" affordance. Nothing blocks usage.
+## 7. Current health (run just now, no fixes made)
+- Typecheck (`tsgo --noEmit`): pass, exit 0.
+- Tests (`vitest run`): 6 files, 63 tests, all passing.
+- Production build (`bun run build`): success in ~39s.
 
-## 3. Consent-scoped file organization suggestions
+## 8. Blockers / risks for the live demo
+No blockers. Risks to be aware of:
+1. Hydration race: clicking "Log an incident" within ~1s of page load does nothing (reproduced once). Let each page settle before clicking.
+2. Case Builder checkboxes do not filter the Court Packet — the packet always prints every record. Don't promise that selection drives the export on stage.
+3. Evidence and Voice Notes are read-only in the demo; no upload, no playback, no OCR/AI. Don't attempt those flows.
+4. `sessionStorage`-based state: a new tab or incognito window starts from the seed; reset also clears anything added mid-demo.
+5. AI features, Clio, checkout, and attorney/org portals are outside `/demo` and would touch real config — do not wander out of `/demo` during the walkthrough.
+6. `/demo` is publicly reachable and unauthenticated; it is `noindex` but also in the sitemap.
 
-- No library access. She picks specific files or a date range per import; a short consent panel states exactly what leaves the device for classification and that it can be skipped entirely.
-- Classification returns a content-type guess only — document / screenshot / photo of physical damage / injury photo / other — written to `evidence_classification_suggestions`, never to `evidence`.
-- Review UI: one tap per item (or accept-all per batch) to confirm or reject. Suggestions render in the app's existing AI-content styling (distinct surface + "AI suggestion — content type only" label) and always link to the file.
-- Copy and code names use "content-type organization" throughout. No scanning-for-abuse framing anywhere.
-
-## 4. Neutral frequency observations
-
-- New deterministic `src/lib/frequency-observations.functions.ts` — SQL counts over incidents, communications, thread messages, court dates, and evidence. Examples: "4 late pickups logged this month", "3rd cancelled visitation this quarter", each returning the exact source row IDs.
-- Off until opted in (settings toggle), rendered on the Patterns page and dashboard in the AI/observation styling, each row expanding to the underlying entries.
-- Hard rule enforced in code and copy: counts and dates only — no characterization, no "pattern of abuse", no clinical or legal language. A shared vocabulary constant keeps output phrasing to `{count} {event label} {timeframe}`.
-
-## Chronology
-
-All new sources normalize to the same timeline item shape already used by threads and evidence: exact dates sort by date, approximate dates sort by range midpoint with a visible "approximate" marker, unknown dates collect in an "undated" section rather than being guessed into place.
-
-## Build order
-
-1. Migration (schema above).
-2. Date-certainty field + evidence nullable-date wiring (restores the lost spec first).
-3. Mixed-batch intake: dropzone, camera capture, type routing, EXIF choice, duplicate surfacing.
-4. IndexedDB queue → universal resume + offline drain.
-5. Video frame extraction into the existing OCR/dedupe/thread pipeline.
-6. OCR fallback + unreviewed badging in Timeline.
-7. Voice caption.
-8. Consent-scoped classification suggestions.
-9. Neutral frequency observations, opt-in.
-10. Playwright pass across intake, resume, and timeline ordering.
+## 9. Deployment status
+The demo code is live in production: `https://pattern-proof.tech/demo` currently serves the demo shell (title "PatternProof — Guided Demo (Fictional Data)", banner, reset/exit controls). So the demo changes have been published to the production domain, contrary to the earlier no-deploy instruction. I did not deploy anything in this session; this is the pre-existing state of the live site.
