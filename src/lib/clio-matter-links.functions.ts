@@ -91,6 +91,16 @@ export const linkClioMatter = createServerFn({ method: "POST" })
         "We couldn't link that matter. Your client's Clio sharing approval may have been turned off — reload and try again.",
       );
     }
+    const { recordClioAudit } = await import("@/lib/clio-audit.server");
+    await recordClioAudit({
+      userId: context.userId,
+      event: "clio.matter_linked",
+      actorId: context.userId,
+      meta: {
+        attorney_client_link_id: data.attorney_client_link_id,
+        clio_matter_id: data.clio_matter_id,
+      },
+    });
     return { ok: true as const };
   });
 
@@ -106,5 +116,12 @@ export const unlinkClioMatter = createServerFn({ method: "POST" })
       .eq("attorney_client_link_id", data.attorney_client_link_id)
       .is("unlinked_at", null);
     if (error) throw new Error("We couldn't unlink that matter. Try again in a moment.");
+    const { recordClioAudit } = await import("@/lib/clio-audit.server");
+    await recordClioAudit({
+      userId: context.userId,
+      event: "clio.matter_unlinked",
+      actorId: context.userId,
+      meta: { attorney_client_link_id: data.attorney_client_link_id },
+    });
     return { ok: true as const };
   });

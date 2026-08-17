@@ -28,6 +28,12 @@ export const Route = createFileRoute("/integrations/clio/deauthorize")({
 
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: existing } = await supabaseAdmin
+            .from("clio_connections")
+            .select("user_id")
+            .eq("clio_user_id", clioUserId)
+            .is("revoked_at", null)
+            .maybeSingle();
           const query = supabaseAdmin
             .from("clio_connections")
             .update({ revoked_at: new Date().toISOString(), updated_at: new Date().toISOString() })
@@ -41,6 +47,15 @@ export const Route = createFileRoute("/integrations/clio/deauthorize")({
 
           const { error } = await query;
           if (error) console.error("[clio] deauthorize update failed", error);
+          if (!error && existing?.user_id) {
+            const { recordClioAudit } = await import("@/lib/clio-audit.server");
+            await recordClioAudit({
+              userId: existing.user_id,
+              event: "clio.revoked_by_provider",
+              actorId: existing.user_id,
+              meta: { clio_user_id: clioUserId },
+            });
+          }
         } catch (e) {
           console.error("[clio] deauthorize failed", e);
         }

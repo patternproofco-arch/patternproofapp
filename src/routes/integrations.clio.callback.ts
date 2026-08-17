@@ -50,6 +50,13 @@ export const Route = createFileRoute("/integrations/clio/callback")({
           // Only mark connected after an authenticated Clio API call succeeds.
           const identity = await fetchClioIdentity(tokens.access_token);
           await storeClioTokens(check.userId, tokens, identity);
+          const { recordClioAudit } = await import("@/lib/clio-audit.server");
+          await recordClioAudit({
+            userId: check.userId,
+            event: "clio.connected",
+            actorId: check.userId,
+            meta: { clio_user_id: identity.clioUserId, firm_name: identity.firmName },
+          });
           return done("", true);
         } catch (e) {
           // Log the failure shape, never the code, token, or provider body.

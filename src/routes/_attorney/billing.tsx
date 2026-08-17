@@ -190,9 +190,25 @@ function BillingPage() {
   );
 }
 
+type ClioExportRow = {
+  document_name: string | null;
+  clio_matter_id: string | null;
+  status: string | null;
+  created_at: string;
+  confirmed_at: string | null;
+  error_code: string | null;
+} | null;
+
 type ClioState =
-  | { connected: false }
-  | { connected: true; firmName: string | null; email: string | null; connectedAt: string };
+  | { connected: false; needsReconnect: boolean; lastExport: ClioExportRow }
+  | {
+      connected: true;
+      needsReconnect: boolean;
+      firmName: string | null;
+      email: string | null;
+      connectedAt: string;
+      lastExport: ClioExportRow;
+    };
 
 function ClioPanel() {
   const statusFn = useServerFn(getClioStatus);
@@ -207,7 +223,7 @@ function ClioPanel() {
     try {
       setState((await statusFn({})) as ClioState);
     } catch {
-      setState({ connected: false });
+      setState({ connected: false, needsReconnect: false, lastExport: null });
     }
   }, [statusFn]);
 
@@ -267,9 +283,11 @@ function ClioPanel() {
                 ? "Checking connection…"
                 : state.connected
                   ? `${state.email ?? "Signed in"} · connected ${new Date(state.connectedAt).toLocaleDateString()}`
-                  : available
-                    ? "Not connected."
-                    : "Clio connection is not available yet."}
+                  : state.needsReconnect
+                    ? "Clio ended this authorization. Reconnect to browse matters again."
+                    : available
+                      ? "Not connected."
+                      : "Clio connection is not available yet."}
             </div>
           </div>
         </div>
@@ -280,7 +298,7 @@ function ClioPanel() {
             </button>
           ) : available ? (
             <button className="att-btn-secondary" onClick={connect} disabled={busy}>
-              {busy ? "Opening Clio…" : "Connect Clio"}
+              {busy ? "Opening Clio…" : state?.needsReconnect ? "Reconnect Clio" : "Connect Clio"}
             </button>
           ) : (
             <button className="att-btn-secondary" disabled title="Clio connection is not available yet.">
@@ -289,6 +307,22 @@ function ClioPanel() {
           )}
         </div>
       </div>
+      {state?.lastExport ? (
+        <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 10, borderTop: "1px solid var(--att-border)", paddingTop: 10 }}>
+          {state.lastExport.status === "confirmed" ? (
+            <>
+              Last packet Clio confirmed: <span className="att-mono">{state.lastExport.document_name}</span> to matter{" "}
+              <span className="att-mono">{state.lastExport.clio_matter_id}</span> on{" "}
+              {new Date(state.lastExport.confirmed_at ?? state.lastExport.created_at).toLocaleString()}.
+            </>
+          ) : (
+            <>
+              Last send attempt on {new Date(state.lastExport.created_at).toLocaleString()} did not complete, so nothing
+              was filed. Generate the packet again and retry.
+            </>
+          )}
+        </div>
+      ) : null}
       {state?.connected ? <ClioMattersBrowser /> : null}
     </div>
   );

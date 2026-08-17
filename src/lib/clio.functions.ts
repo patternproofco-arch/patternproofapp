@@ -43,19 +43,35 @@ export const getClioStatus = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from("clio_connections")
-      .select("firm_name, clio_user_email, clio_user_name, clio_region, last_verified_at, created_at, expires_at")
+      .select("firm_name, clio_user_email, clio_user_name, clio_region, last_verified_at, created_at, revoked_at")
       .eq("user_id", context.userId)
-      .is("revoked_at", null)
       .maybeSingle();
-    if (!data) return { connected: false as const };
+
+    // Last export attempt, so the status area can show a real outcome rather
+    // than an assumed one. No token or file contents are exposed here.
+    const { data: lastExport } = await context.supabase
+      .from("clio_document_exports")
+      .select("document_name, clio_matter_id, status, created_at, confirmed_at, error_code")
+      .eq("attorney_user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!data) return { connected: false as const, needsReconnect: false, lastExport: lastExport ?? null };
+    if (data.revoked_at) {
+      // Clio (or a failed refresh) ended the grant — never show "connected".
+      return { connected: false as const, needsReconnect: true, lastExport: lastExport ?? null };
+    }
     return {
       connected: true as const,
+      needsReconnect: false,
       firmName: data.firm_name,
       email: data.clio_user_email,
       userName: data.clio_user_name,
       region: data.clio_region,
       verifiedAt: data.last_verified_at,
       connectedAt: data.created_at,
+      lastExport: lastExport ?? null,
     };
   });
 
@@ -94,6 +110,13 @@ export const disconnectClio = createServerFn({ method: "POST" })
       .delete()
       .eq("user_id", context.userId);
     if (error) throw new Error("We couldn't disconnect Clio. Try again in a moment.");
+    const { recordClioAudit } = await import("@/lib/clio-audit.server");
+    await recordClioAudit({
+      userId: context.userId,
+      event: "clio.disconnected",
+      actorId: context.userId,
+      meta: { revoked_at_clio: revokedAtClio },
+    });
     return { ok: true, revokedAtClio };
   });
 
