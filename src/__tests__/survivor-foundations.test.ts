@@ -166,8 +166,9 @@ describe("portal styling and structure stay separated", () => {
     }
   });
   it("does not target the attorney or org portal roots", () => {
-    expect(survivorCss).not.toMatch(/\.pp-attorney/);
-    expect(survivorCss).not.toMatch(/\.pp-org\b/);
+    const withoutComments = survivorCss.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(withoutComments).not.toMatch(/\.pp-attorney/);
+    expect(withoutComments).not.toMatch(/\.pp-org\b/);
   });
   it("leaves the attorney portal navy and the org portal sage", () => {
     expect(attorneyCss.length).toBeGreaterThan(0);
