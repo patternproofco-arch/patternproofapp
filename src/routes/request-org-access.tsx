@@ -117,6 +117,19 @@ function RequestOrgAccess() {
             </form>
           )}
         </div>
+        <div style={{ marginTop: 20, background: "#FFFFFF", border: "1px solid var(--border)", borderRadius: 2, padding: 24 }}>
+          <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700 }}>
+            Partner transparency
+          </div>
+          <ul style={{ marginTop: 12, paddingLeft: 18, fontSize: 13.5, lineHeight: 1.7, color: "var(--foreground)" }}>
+            <li>PatternProof is operated by one person, Grace Burns — not a company with a support team.</li>
+            <li>Partnership costs your organization nothing, and survivors are never charged.</li>
+            <li>Advocates see titles, dates, and counts only — never evidence files or exact locations.</li>
+            <li>Survivors grant and withdraw advocate access themselves; you can't request it on their behalf.</li>
+            <li>Data is encrypted in transit and at rest by our infrastructure host. This is not zero-knowledge encryption.</li>
+            <li>Funding comes from law-firm subscriptions and voluntary contributions. Survivor data is never sold or shared.</li>
+          </ul>
+        </div>
         <div style={{ marginTop: 20, textAlign: "center", fontSize: 13, color: "var(--muted-foreground)" }}>
           Already partnering with us?{" "}
           <Link to="/org-feedback" style={{ color: "#5E1730", fontWeight: 600, textDecoration: "underline" }}>
