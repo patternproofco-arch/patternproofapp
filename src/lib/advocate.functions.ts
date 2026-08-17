@@ -422,10 +422,21 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
       }
     }
 
+    const incidentsForAdvocate = withinDateWindow(
+      (incQ.data ?? []) as Array<Record<string, unknown>>,
+      grant.date_range_start,
+      grant.date_range_end,
+    ).map(shapeAdvocateIncident);
+    const evidenceForAdvocate = withinDateWindow(
+      (evQ.data ?? []) as Array<Record<string, unknown>>,
+      grant.date_range_start,
+      grant.date_range_end,
+    ).map(shapeAdvocateEvidence);
+
     return {
-      case: caseQ.data ?? null,
-      incidents: incQ.data ?? [],
-      evidence,
+      case: shapeAdvocateCase((caseQ.data ?? null) as Record<string, unknown> | null),
+      incidents: incidentsForAdvocate,
+      evidence: evidenceForAdvocate,
       pattern_analysis: patternForAdvocate,
       consent: {
         granted_at: link.created_at,
