@@ -19,7 +19,7 @@ const BUILD: Item[] = [
   { to: "/patterns", label: "Patterns", Icon: LayoutDashboard },
   { to: "/case-builder", label: "Case Builder", Icon: Scale, match: ["/case-builder", "/case", "/court-dates"] },
   { to: "/court-packet", label: "Court Packet", Icon: FileText },
-  { to: "/share-with-attorney", label: "Sharing", Icon: ShieldCheck, match: ["/share-with-attorney", "/share-with-advocate", "/attorney-portal"] },
+  { to: "/share-with-attorney", label: "Sharing", Icon: ShieldCheck, match: ["/share-with-attorney", "/share-with-advocate", "/attorney-portal", "/record-requests"] },
 ];
 
 const SUPPORT: Item[] = [

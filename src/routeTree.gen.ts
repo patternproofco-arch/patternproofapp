@@ -64,6 +64,7 @@ import { Route as AuthenticatedShareWithAttorneyRouteImport } from './routes/_au
 import { Route as AuthenticatedShareWithAdvocateRouteImport } from './routes/_authenticated/share-with-advocate'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
+import { Route as AuthenticatedRecordRequestsRouteImport } from './routes/_authenticated/record-requests'
 import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
 import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -397,6 +398,12 @@ const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedRecordRequestsRoute =
+  AuthenticatedRecordRequestsRouteImport.update({
+    id: '/record-requests',
+    path: '/record-requests',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedPatternsRoute = AuthenticatedPatternsRouteImport.update({
   id: '/patterns',
   path: '/patterns',
@@ -774,6 +781,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/patterns': typeof AuthenticatedPatternsRoute
+  '/record-requests': typeof AuthenticatedRecordRequestsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
@@ -882,6 +890,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/patterns': typeof AuthenticatedPatternsRoute
+  '/record-requests': typeof AuthenticatedRecordRequestsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
@@ -997,6 +1006,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
+  '/_authenticated/record-requests': typeof AuthenticatedRecordRequestsRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
@@ -1110,6 +1120,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opra-helper'
     | '/patterns'
+    | '/record-requests'
     | '/search'
     | '/settings'
     | '/share-with-advocate'
@@ -1218,6 +1229,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opra-helper'
     | '/patterns'
+    | '/record-requests'
     | '/search'
     | '/settings'
     | '/share-with-advocate'
@@ -1332,6 +1344,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/opra-helper'
     | '/_authenticated/patterns'
+    | '/_authenticated/record-requests'
     | '/_authenticated/search'
     | '/_authenticated/settings'
     | '/_authenticated/share-with-advocate'
@@ -1818,6 +1831,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof AuthenticatedSearchRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/record-requests': {
+      id: '/_authenticated/record-requests'
+      path: '/record-requests'
+      fullPath: '/record-requests'
+      preLoaderRoute: typeof AuthenticatedRecordRequestsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/patterns': {
@@ -2330,6 +2350,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
   AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
+  AuthenticatedRecordRequestsRoute: typeof AuthenticatedRecordRequestsRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShareWithAdvocateRoute: typeof AuthenticatedShareWithAdvocateRoute
@@ -2364,6 +2385,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
   AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
+  AuthenticatedRecordRequestsRoute: AuthenticatedRecordRequestsRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShareWithAdvocateRoute: AuthenticatedShareWithAdvocateRoute,
