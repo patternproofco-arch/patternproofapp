@@ -1,73 +1,71 @@
-import { Link } from "@tanstack/react-router";
-import { Building2, BookOpen, Clock, Home, LogOut, ShieldCheck, Users } from "lucide-react";
-import { BrandMark } from "@/components/BrandMark";
+import { Link, useRouterState } from "@tanstack/react-router";
+import {
+  BarChart3, BookOpen, ClipboardList, Clock, Home, LogOut, Settings,
+  ShieldCheck, Share2, Users,
+} from "lucide-react";
+import { OrgCubeMark } from "@/components/org/OrgCubeMark";
 import { quickExit } from "@/lib/quick-exit";
 
-export type OrgNavKey = "home" | "shared" | "follow-up" | "resources" | "organization";
+export type OrgNavKey =
+  | "home" | "shared" | "referrals" | "requests" | "consent"
+  | "follow-up" | "resources" | "reports" | "settings"
+  /** legacy alias kept so existing callers keep compiling */
+  | "organization";
 
 interface OrgShellProps {
-  /** Which rail item is the current page. */
-  active: OrgNavKey;
-  /** Only shown when the signed-in account really has partner access. */
+  /** Optional override; by default the current route decides. */
+  active?: OrgNavKey;
+  /** Kept for callers that pre-date route-derived nav state. */
   showOrganization?: boolean;
-  /** Only shown when the signed-in account really has shared workspaces. */
   showSharedSurvivors?: boolean;
-  /** Small right-aligned line in the rail footer, e.g. the org name. */
+  /** Small line in the rail footer, e.g. the organization name. */
   accountLabel?: string | null;
   onSignOut?: () => void;
   children: React.ReactNode;
 }
 
-const ICONS = { home: Home, shared: Users, "follow-up": Clock, resources: BookOpen, organization: Building2 } as const;
+const NAV = [
+  { key: "home", label: "Dashboard", to: "/org-portal", icon: Home },
+  { key: "shared", label: "Clients", to: "/advocate-cases", icon: Users },
+  { key: "referrals", label: "Referrals", to: "/org/referrals", icon: Share2 },
+  { key: "requests", label: "Record requests", to: "/org/record-requests", icon: ClipboardList },
+  { key: "consent", label: "Consent centre", to: "/org/consent", icon: ShieldCheck },
+  { key: "follow-up", label: "Follow-ups", to: "/org/follow-ups", icon: Clock },
+  { key: "resources", label: "Resources", to: "/org/resources", icon: BookOpen },
+  { key: "reports", label: "Reports", to: "/org/reports", icon: BarChart3 },
+  { key: "settings", label: "Organization", to: "/org/settings", icon: Settings },
+] as const;
 
-export function OrgShell({
-  active,
-  showOrganization = false,
-  showSharedSurvivors = true,
-  accountLabel,
-  onSignOut,
-  children,
-}: OrgShellProps) {
-  const item = (key: OrgNavKey, label: string, to?: string) => {
-    const Icon = ICONS[key];
-    const current = active === key;
-    if (!to) {
-      return (
-        <span key={key} className="orgx-navitem" data-inert="true" aria-disabled="true">
-          <Icon size={18} strokeWidth={1.7} aria-hidden />
-          <span>{label}</span>
-          <span style={{ marginLeft: "auto", fontSize: 11 }} className="orgx-muted">
-            Coming during the pilot
-          </span>
-        </span>
-      );
-    }
-    return (
-      <Link key={key} to={to} className="orgx-navitem" aria-current={current ? "page" : undefined}>
-        <Icon size={18} strokeWidth={1.7} aria-hidden />
-        <span>{label}</span>
-      </Link>
-    );
-  };
+const TABS: OrgNavKey[] = ["home", "shared", "requests", "consent", "resources"];
+
+function keyForPath(pathname: string): OrgNavKey {
+  const hit = [...NAV].sort((a, b) => b.to.length - a.to.length).find((n) => pathname.startsWith(n.to));
+  return (hit?.key ?? "home") as OrgNavKey;
+}
+
+export function OrgShell({ active, accountLabel, onSignOut, children }: OrgShellProps) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const current = active === "organization" ? "home" : (active ?? keyForPath(pathname));
 
   return (
     <div className="orgx" data-persona="org">
       <div className="orgx-layout">
-        <nav className="orgx-rail" aria-label="Organization navigation">
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "4px 14px 22px" }}>
-            <BrandMark size={26} />
-            <span style={{ display: "grid", lineHeight: 1.2 }}>
-              <span style={{ fontFamily: "var(--font-serif)", fontSize: 20 }}>PatternProof</span>
-              <span className="orgx-muted" style={{ fontSize: 11.5 }}>DV organization workspace</span>
+        <nav className="orgx-rail" aria-label="DV organization navigation">
+          <span className="orgx-brand">
+            <OrgCubeMark size={32} />
+            <span style={{ minWidth: 0 }}>
+              <span className="orgx-brand__word">PatternProof</span>
+              <span className="orgx-brand__sub">DV organization portal</span>
             </span>
           </span>
 
           <div className="orgx-rail-scroll">
-            {item("home", "Home", showOrganization ? "/org-portal" : showSharedSurvivors ? "/advocate-cases" : undefined)}
-            {showSharedSurvivors ? item("shared", "Shared survivors", "/advocate-cases") : null}
-            {item("follow-up", "Follow-up")}
-            {item("resources", "Resources")}
-            {showOrganization ? item("organization", "Organization", "/org-portal") : null}
+            {NAV.map(({ key, label, to, icon: Icon }) => (
+              <Link key={key} to={to} className="orgx-navitem" aria-current={current === key ? "page" : undefined}>
+                <Icon size={18} strokeWidth={1.7} aria-hidden />
+                <span>{label}</span>
+              </Link>
+            ))}
           </div>
 
           <div className="orgx-rail-foot">
@@ -91,15 +89,41 @@ export function OrgShell({
               </button>
             ) : null}
             {accountLabel ? (
-              <span className="orgx-muted" style={{ fontSize: 12, padding: "6px 14px" }}>
-                {accountLabel}
-              </span>
+              <span className="orgx-muted" style={{ fontSize: 12, padding: "6px 13px" }}>{accountLabel}</span>
             ) : null}
           </div>
         </nav>
 
-        <main className="orgx-main">{children}</main>
+        <div style={{ minWidth: 0 }}>
+          <header className="orgx-topbar">
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+              <OrgCubeMark size={28} />
+              <span style={{ display: "grid", minWidth: 0 }}>
+                <span className="orgx-brand__word">PatternProof</span>
+                <span className="orgx-brand__sub">DV organization portal</span>
+              </span>
+            </span>
+            <button type="button" className="orgx-btn orgx-btn-quiet" style={{ minHeight: 36, padding: "6px 12px" }} onClick={() => quickExit()}>
+              Quick Exit
+            </button>
+          </header>
+
+          <main className="orgx-main">{children}</main>
+        </div>
       </div>
+
+      <nav className="orgx-tabbar" aria-label="DV organization navigation">
+        {TABS.map((key) => {
+          const item = NAV.find((n) => n.key === key)!;
+          const Icon = item.icon;
+          return (
+            <Link key={key} to={item.to} className="orgx-tab" aria-current={current === key ? "page" : undefined}>
+              <Icon size={19} strokeWidth={1.7} aria-hidden />
+              <span>{item.label === "Record requests" ? "Requests" : item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
