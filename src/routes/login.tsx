@@ -51,6 +51,8 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [passkeyAvailable, setPasskeyAvailable] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const consentBlocked = mode === "signup" && !agreed;
 
   useEffect(() => {
     if (typeof window !== "undefined" && typeof window.PublicKeyCredential !== "undefined") {
@@ -118,6 +120,10 @@ function LoginPage() {
   };
 
   const signInWithGoogle = async () => {
+    if (consentBlocked) {
+      toast("Please review and check the box to agree to the Terms and Privacy Policy first.");
+      return;
+    }
     try {
       const returnTo =
         redirectTo && redirectTo.startsWith("/")
@@ -178,8 +184,9 @@ function LoginPage() {
             <button
               type="button"
               onClick={signInWithGoogle}
+              disabled={consentBlocked}
               className="input-pp w-full flex items-center justify-center gap-2"
-              style={{ background: "#fff", color: "#2A1A10", fontWeight: 600 }}
+              style={{ background: "#fff", color: "#2A1A10", fontWeight: 600, opacity: consentBlocked ? 0.55 : 1 }}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
                 <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.17-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.71-1.58 2.68-3.9 2.68-6.62z"/>
@@ -229,7 +236,28 @@ function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="input-pp"
             />
-            <button type="submit" disabled={busy} className="btn-primary w-full">
+            {mode === "signup" && (
+              <label className="flex items-start gap-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-[3px]"
+                />
+                <span>
+                  I have read and agree to the{" "}
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)", textDecoration: "underline" }}>
+                    Terms of Service
+                  </a>{" "}
+                  and{" "}
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)", textDecoration: "underline" }}>
+                    Privacy Policy
+                  </a>
+                  .
+                </span>
+              </label>
+            )}
+            <button type="submit" disabled={busy || consentBlocked} className="btn-primary w-full">
               {busy ? "One moment…" : mode === "login" ? "Sign in" : "Create my account"}
             </button>
           </form>
