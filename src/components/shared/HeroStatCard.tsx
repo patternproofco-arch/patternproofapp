@@ -72,7 +72,7 @@ export function HeroStatCard({
           <span
             className="mt-1 block"
             style={{
-              fontFamily: "'Fraunces', Georgia, serif",
+              fontFamily: t.displayFont,
               fontSize: 46,
               lineHeight: 1.05,
               fontWeight: 600,
