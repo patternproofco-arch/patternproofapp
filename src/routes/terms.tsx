@@ -40,7 +40,7 @@ function Terms() {
 
         <section style={{ fontSize: 15, lineHeight: 1.7, color: "var(--foreground)" }}>
           <H2>1. Who we are</H2>
-          <p>PatternProof is operated by Grace Burns, an individual, doing business as PatternProof ("PatternProof", "we", "us"). By creating an account or using the service you agree to these Terms.</p>
+          <p>PatternProof is a sole proprietorship operated by Grace Burns, doing business as PatternProof ("PatternProof," "we," "us"). PatternProof is not a separate legal entity from Grace Burns individually. By creating an account or using the Service, you agree to these Terms, including the limitation of liability and indemnification provisions below.</p>
 
           <H2>2. What PatternProof is — and isn't</H2>
           <p>PatternProof is a documentation and evidence-organization tool. It is <strong>not a law firm</strong>, does not provide legal advice, and does not create an attorney-client relationship. AI outputs (patterns, summaries, drafts) are informational and may contain errors — always verify before relying on them in legal proceedings.</p>
@@ -73,8 +73,9 @@ function Terms() {
           <H2>10. Termination</H2>
           <p>You may request deletion of your account at any time by emailing gracieburns200@gmail.com (an automated in-app delete flow is not yet available). We may suspend or terminate accounts that violate these Terms or create legal or safety risk. On termination, we will delete your data per our Privacy Policy retention rules.</p>
 
-          <H2>11. Disclaimers &amp; limitation of liability</H2>
+          <H2>11. Disclaimers, Limitation of Liability &amp; Indemnification</H2>
           <p>The service is provided "as is" without warranties of any kind. To the maximum extent permitted by law, PatternProof's total liability for any claim relating to the service is limited to the amount you paid us in the 12 months before the claim.</p>
+          <p>You agree to indemnify and hold harmless Grace Burns and PatternProof from any claims, damages, losses, or expenses (including reasonable attorney's fees) arising out of: (a) your violation of these Terms; (b) content you upload or submit, including any claim that it was fabricated, obtained illegally, or violates another person's rights; or (c) your violation of any law, including recording-consent laws, in connection with your use of the Service.</p>
 
           <H2>12. Governing law</H2>
           <p>These Terms are governed by the laws of the State of New Jersey, without regard to conflict-of-law rules.</p>
