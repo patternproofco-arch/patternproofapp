@@ -99,6 +99,7 @@ import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
 import { Route as AttorneyCaseloadRouteImport } from './routes/_attorney/caseload'
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
 import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
+import { Route as AttorneyAttorneyHomeRouteImport } from './routes/_attorney/attorney-home'
 import { Route as AttorneyAttorneyFeedbackRouteImport } from './routes/_attorney/attorney-feedback'
 import { Route as AdvocateOrgPortalRouteImport } from './routes/_advocate/org-portal'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -592,6 +593,11 @@ const AttorneyBillingRoute = AttorneyBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AttorneyAttorneyHomeRoute = AttorneyAttorneyHomeRouteImport.update({
+  id: '/attorney-home',
+  path: '/attorney-home',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AttorneyAttorneyFeedbackRoute =
   AttorneyAttorneyFeedbackRouteImport.update({
     id: '/attorney-feedback',
@@ -785,6 +791,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/org-portal': typeof AdvocateOrgPortalRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
+  '/attorney-home': typeof AttorneyAttorneyHomeRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/caseload': typeof AttorneyCaseloadRoute
@@ -902,6 +909,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/org-portal': typeof AdvocateOrgPortalRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
+  '/attorney-home': typeof AttorneyAttorneyHomeRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
   '/caseload': typeof AttorneyCaseloadRoute
@@ -1022,6 +1030,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_advocate/org-portal': typeof AdvocateOrgPortalRoute
   '/_attorney/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
+  '/_attorney/attorney-home': typeof AttorneyAttorneyHomeRoute
   '/_attorney/billing': typeof AttorneyBillingRoute
   '/_attorney/billing-return': typeof AttorneyBillingReturnRoute
   '/_attorney/caseload': typeof AttorneyCaseloadRoute
@@ -1142,6 +1151,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/org-portal'
     | '/attorney-feedback'
+    | '/attorney-home'
     | '/billing'
     | '/billing-return'
     | '/caseload'
@@ -1259,6 +1269,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/org-portal'
     | '/attorney-feedback'
+    | '/attorney-home'
     | '/billing'
     | '/billing-return'
     | '/caseload'
@@ -1378,6 +1389,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_advocate/org-portal'
     | '/_attorney/attorney-feedback'
+    | '/_attorney/attorney-home'
     | '/_attorney/billing'
     | '/_attorney/billing-return'
     | '/_attorney/caseload'
@@ -2152,6 +2164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyBillingRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_attorney/attorney-home': {
+      id: '/_attorney/attorney-home'
+      path: '/attorney-home'
+      fullPath: '/attorney-home'
+      preLoaderRoute: typeof AttorneyAttorneyHomeRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/_attorney/attorney-feedback': {
       id: '/_attorney/attorney-feedback'
       path: '/attorney-feedback'
@@ -2406,6 +2425,7 @@ const AttorneyClientsRouteWithChildren = AttorneyClientsRoute._addFileChildren(
 
 interface AttorneyRouteChildren {
   AttorneyAttorneyFeedbackRoute: typeof AttorneyAttorneyFeedbackRoute
+  AttorneyAttorneyHomeRoute: typeof AttorneyAttorneyHomeRoute
   AttorneyBillingRoute: typeof AttorneyBillingRoute
   AttorneyBillingReturnRoute: typeof AttorneyBillingReturnRoute
   AttorneyCaseloadRoute: typeof AttorneyCaseloadRoute
@@ -2419,6 +2439,7 @@ interface AttorneyRouteChildren {
 
 const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneyAttorneyFeedbackRoute: AttorneyAttorneyFeedbackRoute,
+  AttorneyAttorneyHomeRoute: AttorneyAttorneyHomeRoute,
   AttorneyBillingRoute: AttorneyBillingRoute,
   AttorneyBillingReturnRoute: AttorneyBillingReturnRoute,
   AttorneyCaseloadRoute: AttorneyCaseloadRoute,
