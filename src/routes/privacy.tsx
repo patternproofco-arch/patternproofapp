@@ -90,7 +90,7 @@ function PrivacyPage() {
             <li><strong>Company:</strong> PatternProof</li>
             <li><strong>Founder:</strong> Grace Burns</li>
             <li><strong>Contact:</strong> gracieburns200@gmail.com</li>
-            <li><strong>Location:</strong> Philadelphia, PA, United States</li>
+            <li><strong>Location:</strong> New Jersey, United States</li>
           </ul>
 
           <H2>2. Information We Collect</H2>
@@ -196,9 +196,10 @@ function PrivacyPage() {
           <p>
             When you use those features, the content involved — your entry text, message text,
             file names and extracted text, or audio — is transmitted to and processed by those
-            providers. PatternProof does not control their internal handling or retention terms
-            directly, and we are still finalizing the specific data-processing terms we can state
-            publicly. Their own published policies are the authoritative source
+            providers. PatternProof does not independently contract with Google or OpenAI;
+            processing is governed by Lovable's agreements with those providers and by each
+            provider's own published API terms, which are the authoritative source for how that
+            content is retained and handled. Their own published policies are the authoritative source
             (<a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noreferrer">Google</a>{" "}
             and <a href="https://openai.com/policies/" target="_blank" rel="noreferrer">OpenAI</a>).
             If you would prefer not to have content processed this way, avoid the AI features
