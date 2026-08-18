@@ -25,7 +25,7 @@ export function IconTileGrid({ items, variant = "survivor", ariaLabel = "Quick a
       {items.map(({ icon: Icon, label, count, href, search }) => (
         <Link
           key={label}
-          to={href}
+          to={href as never}
           search={search as never}
           className="pp-tile group flex flex-col gap-3 focus-visible:outline-none"
           style={{
