@@ -17,14 +17,6 @@ export interface OrgMembership {
   role: WorkspaceRole;
 }
 
-/** Included seats on the Firm plan; extra seats are billed per seat. */
-export const FIRM_INCLUDED_SEATS = 3;
-/** Hard cap on total people in one firm workspace. Unrelated to the Charter cohort cap. */
-export const FIRM_MAX_SEATS = 10;
-/** Stripe price lookup key for the $99/mo additional seat. */
-export const SEAT_PRICE_LOOKUP_KEY = "attorney_seat_monthly";
-export const SEAT_PRICE_CENTS = 9900;
-
 export async function getFirmMembership(userId: string): Promise<FirmMembership | null> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
@@ -87,8 +79,3 @@ export async function inSameOrgWorkspace(a: string, b: string): Promise<boolean>
   return !!ma && !!mb && ma.org_id === mb.org_id;
 }
 
-export function newInviteToken(): string {
-  const bytes = new Uint8Array(24);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}

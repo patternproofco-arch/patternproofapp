@@ -1,13 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import {
-  FIRM_INCLUDED_SEATS,
-  FIRM_MAX_SEATS,
-  getFirmMembership,
-  getOrgMembership,
-  newInviteToken,
-} from "@/lib/workspace.server";
+import { FIRM_INCLUDED_SEATS, FIRM_MAX_SEATS, newInviteToken } from "@/lib/workspace-seats";
+
+/** Server-only membership lookups, loaded inside handlers to stay out of the client bundle. */
+async function membershipHelpers() {
+  return await import("@/lib/workspace.server");
+}
 
 const emailSchema = z.string().trim().toLowerCase().email().max(255);
 
@@ -33,7 +32,7 @@ export const getMyFirmWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const membership = await getFirmMembership(context.userId);
+    const membership = await (await membershipHelpers()).getFirmMembership(context.userId);
     if (!membership) return { workspace: null, myRole: null, members: [], invites: [] } as const;
 
     const [{ data: firm }, { data: memberRows }, { data: inviteRows }] = await Promise.all([
@@ -84,7 +83,7 @@ export const createFirmWorkspace = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ name: z.string().trim().min(2).max(200) }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const existing = await getFirmMembership(context.userId);
+    const existing = await (await membershipHelpers()).getFirmMembership(context.userId);
     if (existing) throw new Error("You already belong to a firm workspace.");
 
     const { data: profile } = await supabaseAdmin
@@ -120,7 +119,7 @@ export const inviteFirmMember = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const membership = await getFirmMembership(context.userId);
+    const membership = await (await membershipHelpers()).getFirmMembership(context.userId);
     if (!membership || membership.role !== "owner") throw new Error("Only a workspace owner can invite teammates.");
 
     const [{ data: firm }, { count: memberCount }, { count: pendingCount }] = await Promise.all([
@@ -166,7 +165,7 @@ export const revokeFirmInvite = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const membership = await getFirmMembership(context.userId);
+    const membership = await (await membershipHelpers()).getFirmMembership(context.userId);
     if (!membership || membership.role !== "owner") throw new Error("Only a workspace owner can do that.");
     const { error } = await supabaseAdmin
       .from("firm_member_invitations")
@@ -183,7 +182,7 @@ export const removeFirmMember = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const membership = await getFirmMembership(context.userId);
+    const membership = await (await membershipHelpers()).getFirmMembership(context.userId);
     if (!membership || membership.role !== "owner") throw new Error("Only a workspace owner can remove teammates.");
     if (data.userId === context.userId) throw new Error("You can't remove yourself from the workspace.");
     const { error } = await supabaseAdmin
@@ -201,7 +200,7 @@ export const getMyOrgWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const membership = await getOrgMembership(context.userId);
+    const membership = await (await membershipHelpers()).getOrgMembership(context.userId);
     if (!membership) return { workspace: null, myRole: null, members: [], invites: [] } as const;
 
     const [{ data: org }, { data: memberRows }, { data: inviteRows }] = await Promise.all([
@@ -248,7 +247,7 @@ export const createOrgWorkspace = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ name: z.string().trim().min(2).max(200) }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const existing = await getOrgMembership(context.userId);
+    const existing = await (await membershipHelpers()).getOrgMembership(context.userId);
     if (existing) throw new Error("You already belong to an organization workspace.");
     const { data: profile } = await supabaseAdmin
       .from("advocate_profiles")
@@ -281,7 +280,7 @@ export const inviteOrgMember = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const membership = await getOrgMembership(context.userId);
+    const membership = await (await membershipHelpers()).getOrgMembership(context.userId);
     if (!membership || membership.role !== "owner") throw new Error("Only a workspace owner can invite teammates.");
 
     const { data: dupe } = await supabaseAdmin
@@ -313,7 +312,7 @@ export const revokeOrgInvite = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const membership = await getOrgMembership(context.userId);
+    const membership = await (await membershipHelpers()).getOrgMembership(context.userId);
     if (!membership || membership.role !== "owner") throw new Error("Only a workspace owner can do that.");
     const { error } = await supabaseAdmin
       .from("org_member_invitations")
@@ -330,7 +329,7 @@ export const removeOrgMember = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const membership = await getOrgMembership(context.userId);
+    const membership = await (await membershipHelpers()).getOrgMembership(context.userId);
     if (!membership || membership.role !== "owner") throw new Error("Only a workspace owner can remove teammates.");
     if (data.userId === context.userId) throw new Error("You can't remove yourself from the workspace.");
     const { error } = await supabaseAdmin
@@ -405,7 +404,7 @@ export const acceptTeamInvite = createServerFn({ method: "POST" })
     }
 
     if (firmInv) {
-      const already = await getFirmMembership(context.userId);
+      const already = await (await membershipHelpers()).getFirmMembership(context.userId);
       if (already && already.firm_id !== firmInv.firm_id) {
         throw new Error("You already belong to a different firm workspace.");
       }
@@ -430,7 +429,7 @@ export const acceptTeamInvite = createServerFn({ method: "POST" })
     }
 
     const orgInvite = orgInv as { id: string; org_id: string; role: "owner" | "member" };
-    const already = await getOrgMembership(context.userId);
+    const already = await (await membershipHelpers()).getOrgMembership(context.userId);
     if (already && already.org_id !== orgInvite.org_id) {
       throw new Error("You already belong to a different organization workspace.");
     }
