@@ -1,0 +1,12 @@
+REVOKE ALL ON FUNCTION public.my_firm_id() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.my_org_id() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.is_firm_owner(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.is_org_owner(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.firm_peer_user_ids() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.org_peer_user_ids() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.my_firm_id() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.my_org_id() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_firm_owner(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_org_owner(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.firm_peer_user_ids() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.org_peer_user_ids() TO authenticated, service_role;
