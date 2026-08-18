@@ -85,6 +85,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "PatternProof — Private documentation for your case" },
       { name: "twitter:description", content: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit." },
       { name: "twitter:site", content: "@PatternProof" },
+      // Home-screen identity only (installed app), deliberately low-signal.
+      // Browser tab title and marketing copy above stay branded.
+      { name: "apple-mobile-web-app-title", content: "Notes" },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169" },
     ],
