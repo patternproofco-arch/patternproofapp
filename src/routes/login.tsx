@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { useEffect, useState } from "react";
 import { Lock, Fingerprint } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -162,6 +163,7 @@ function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-5 py-10">
+      <PublicQuickExit />
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
           <BrandMark size={76} />
