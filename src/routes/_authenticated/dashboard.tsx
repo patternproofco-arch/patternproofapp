@@ -1,12 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Plus, Mic, ArrowRight } from "lucide-react";
+import { Plus, Mic, Paperclip, BookOpen, Waves, CalendarClock, ShieldCheck, FileText, Image } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard.functions";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { RecentActivityFeed, type ActivityItem } from "@/components/RecentActivityFeed";
+import { PortalStatHero } from "@/components/shared/PortalStatHero";
+import { QuickActionGrid, type QuickAction } from "@/components/shared/QuickActionGrid";
+import { portalTheme } from "@/components/shared/portal-theme";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -19,8 +22,18 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
+const QUICK_ACTIONS: QuickAction[] = [
+  { label: "Log an Incident", icon: Plus, to: "/journal" },
+  { label: "Evidence", icon: Paperclip, to: "/evidence" },
+  { label: "Archive", icon: BookOpen, to: "/journal" },
+  { label: "Recurline", icon: Waves, to: "/patterns" },
+  { label: "Timeline", icon: CalendarClock, to: "/timeline" },
+  { label: "Safety", icon: ShieldCheck, to: "/safety" },
+];
+
 function Dashboard() {
   const { user } = useAuth();
+  const t = portalTheme("survivor");
   const statsFn = useServerFn(getDashboardStats);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activity, setActivity] = useState<ActivityItem[] | null>(null);
@@ -61,49 +74,58 @@ function Dashboard() {
     stats.evidence_count === 0 &&
     stats.unconfirmed_ai_count === 0;
 
-  return (
-    <div>
-      <div className="label-eyebrow">Home</div>
-      <h1 className="mt-2 font-serif text-[34px] leading-tight">
-        {isFirstTime ? <>Whenever you're ready, <em>start here.</em></> : <>Add a Mark, <em>then rest.</em></>}
-      </h1>
-      <p className="mt-3 max-w-xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-        One thing at a time. Everything you save stays private to you.
-      </p>
+  const entryCount = stats ? stats.incident_count + stats.evidence_count + stats.voice_note_count : 0;
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link to="/journal" className="btn-primary inline-flex items-center gap-2">
+  return (
+    <div style={{ display: "grid", gap: 24 }}>
+      <PortalStatHero
+        variant="survivor"
+        eyebrow="Home"
+        heading={isFirstTime ? <>Whenever you're ready, <em>start here.</em></> : <>Add a Mark, <em>then rest.</em></>}
+        value={entryCount}
+        label={entryCount === 1 ? "entry saved" : "entries saved"}
+        message="One thing at a time. Everything you save stays private to you."
+      >
+        <Link
+          to="/journal"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 999, background: "#FFFFFF", color: t.accent, fontSize: 13.5, fontWeight: 600, textDecoration: "none" }}
+        >
           <Plus size={16} /> Add a Mark
         </Link>
-        <Link to="/voice-notes" className="btn-ghost inline-flex items-center gap-2">
+        <Link
+          to="/voice-notes"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.45)", color: "#FFFFFF", fontSize: 13.5, fontWeight: 600, textDecoration: "none" }}
+        >
           <Mic size={15} /> Say it out loud
         </Link>
-      </div>
+      </PortalStatHero>
+
+      <QuickActionGrid variant="survivor" actions={QUICK_ACTIONS} />
 
       {isFirstTime ? (
-        <div className="mt-8">
-          <OnboardingChecklist
-            counts={{
-              incidents: stats?.incident_count ?? 0,
-              evidence: stats?.evidence_count ?? 0,
-              voiceNotes: stats?.voice_note_count ?? 0,
-              hasCase: stats?.has_case ?? false,
-            }}
-          />
-        </div>
+        <OnboardingChecklist
+          counts={{
+            incidents: stats?.incident_count ?? 0,
+            evidence: stats?.evidence_count ?? 0,
+            voiceNotes: stats?.voice_note_count ?? 0,
+            hasCase: stats?.has_case ?? false,
+          }}
+        />
       ) : (
-        <div className="mt-10">
-          <div className="mb-3 flex items-end justify-between">
-            <h2 className="label-eyebrow">Recently</h2>
-            <Link to="/journal" className="inline-flex items-center gap-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Open your Archive <ArrowRight size={13} />
+        <section style={{ display: "grid", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+            <h2 style={{ margin: 0, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: t.muted }}>
+              Recently
+            </h2>
+            <Link to="/journal" style={{ fontSize: 12.5, color: t.accent, textDecoration: "none" }}>
+              Open your Archive →
             </Link>
           </div>
           <RecentActivityFeed items={activity} />
-        </div>
+        </section>
       )}
 
-      <div className="mt-10 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+      <div style={{ fontSize: 12, color: t.muted }}>
         <Link to="/feedback" style={{ color: "inherit", textDecoration: "underline" }}>
           Share how PatternProof is feeling for you
         </Link>
