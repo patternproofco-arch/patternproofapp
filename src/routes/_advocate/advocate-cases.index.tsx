@@ -1,7 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
+import { FolderOpen, Clock3 } from "lucide-react";
 import { listAdvocateClients } from "@/lib/advocate.functions";
+import { PortalStatHero } from "@/components/shared/PortalStatHero";
+import { RecentActivityList, type ActivityRow } from "@/components/shared/RecentActivityList";
+import { portalTheme } from "@/components/shared/portal-theme";
 
 export const Route = createFileRoute("/_advocate/advocate-cases/")({
   component: AdvocateCases,
@@ -10,6 +14,7 @@ export const Route = createFileRoute("/_advocate/advocate-cases/")({
 type Clients = Awaited<ReturnType<typeof listAdvocateClients>>["clients"];
 
 function AdvocateCases() {
+  const t = portalTheme("advocate");
   const listFn = useServerFn(listAdvocateClients);
   const [clients, setClients] = useState<Clients | null>(null);
 
@@ -17,44 +22,59 @@ function AdvocateCases() {
     listFn().then((r) => setClients(r.clients)).catch(() => setClients([]));
   }, [listFn]);
 
-  return (
-    <>
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Cases shared with you</h1>
-      <p style={{ fontSize: 13.5, color: "var(--muted-foreground)", marginBottom: 20 }}>
-        Read-only. Access is given by the survivor and can be withdrawn by her at any time.
-      </p>
+  const active = (clients ?? []).filter((c) => c.status === "active");
+  const withdrawn = (clients ?? []).filter((c) => c.status !== "active");
 
-      {!clients ? (
-        <p style={{ fontSize: 13 }}>Loading…</p>
-      ) : clients.length === 0 ? (
-        <div className="card-pp" style={{ padding: 20 }}>
-          <p style={{ fontSize: 14 }}>Nothing here yet — a case will appear once someone shares one with you.</p>
-        </div>
-      ) : (
-        <div style={{ display: "grid", gap: 10 }}>
-          {clients.map((c) => {
-            const active = c.status === "active";
-            return (
-              <div key={c.id} className="card-pp" style={{ padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{c.case_label ?? "Case"}</div>
-                  <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-                    Access granted {new Date(c.created_at).toLocaleDateString()}
-                    {!active && c.revoked_at ? ` · withdrawn ${new Date(c.revoked_at).toLocaleDateString()}` : ""}
-                  </div>
-                </div>
-                {active ? (
-                  <Link to="/advocate-cases/$clientId" params={{ clientId: c.client_user_id }} className="btn-pp">
-                    Open
-                  </Link>
-                ) : (
-                  <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Access withdrawn</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </>
+  // Ranked: most recently shared first — the ones most likely to need follow-up.
+  const followUp: ActivityRow[] | null =
+    clients === null
+      ? null
+      : active.map((c) => ({
+          id: c.id,
+          icon: FolderOpen,
+          title: c.case_label ?? "Case",
+          timestamp: `shared ${new Date(c.created_at).toLocaleDateString()}`,
+          to: "/advocate-cases/$clientId",
+          params: { clientId: c.client_user_id },
+          highlight: true,
+        }));
+
+  const closed: ActivityRow[] = withdrawn.map((c) => ({
+    id: c.id,
+    icon: Clock3,
+    title: c.case_label ?? "Case",
+    timestamp: c.revoked_at ? `access withdrawn ${new Date(c.revoked_at).toLocaleDateString()}` : "access withdrawn",
+  }));
+
+  return (
+    <div style={{ display: "grid", gap: 22 }}>
+      <PortalStatHero
+        variant="advocate"
+        eyebrow="Your caseload"
+        heading="Cases shared with you"
+        value={clients === null ? "—" : active.length}
+        label={active.length === 1 ? "case open to you" : "cases open to you"}
+        message="Read-only. Access is given by the survivor and can be withdrawn by her at any time."
+      />
+
+      <RecentActivityList
+        variant="advocate"
+        title="Needs follow-up"
+        rows={followUp}
+        emptyMessage="Nothing here yet — a case will appear once someone shares one with you."
+      />
+
+      {closed.length > 0 ? (
+        <RecentActivityList variant="advocate" title="No longer shared" rows={closed} />
+      ) : null}
+
+      <p style={{ margin: 0, fontSize: 12, color: t.muted }}>
+        Opening a case shows only what the survivor chose to share.{" "}
+        <Link to="/advocate-cases" style={{ color: t.accent }}>
+          Refresh your list
+        </Link>{" "}
+        if something looks out of date.
+      </p>
+    </div>
   );
 }

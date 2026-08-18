@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { AlertTriangle, Users, Clock, FileWarning, ChevronRight } from "lucide-react";
+import { AlertTriangle, Users, Clock, FileWarning, ChevronRight, UserMinus, Scale } from "lucide-react";
 import { getCaseloadOverview, getFirmConflictFlags } from "@/lib/attorney-portal.functions";
+import { PortalStatHero } from "@/components/shared/PortalStatHero";
+import { RecentActivityList, type ActivityRow } from "@/components/shared/RecentActivityList";
+import { portalTheme } from "@/components/shared/portal-theme";
 
 export const Route = createFileRoute("/_attorney/caseload")({
   head: () => ({
@@ -36,18 +39,58 @@ function CaseloadPage() {
 
   const { totals, clients, disengaged_clients } = data;
 
+  const t = portalTheme("attorney");
+
+  // Triage first: everything that needs the attorney's attention is assembled
+  // before the general caseload stats.
+  const attention: ActivityRow[] = [
+    ...disengaged_clients.map((c) => ({
+      id: `dis-${c.link_id}`,
+      icon: UserMinus,
+      title: `Client ${c.client_user_id.slice(0, 8)} — no incident or evidence added in 30 days`,
+      timestamp: c.last_activity_at ? formatDate(c.last_activity_at) : "no recorded activity",
+      to: "/clients/$clientId",
+      params: { clientId: c.client_user_id },
+      highlight: true,
+    })),
+    ...((conflicts?.firm_id ? conflicts.flags : []).map((f, i) => ({
+      id: `cf-${i}`,
+      icon: Scale,
+      title: `Client ${f.my_client_id.slice(0, 8)} and Client ${f.other_client_id.slice(0, 8)} (${f.other_attorney_name}) both reference a similar name — "${f.my_matched_name}" v "${f.other_matched_name}"`,
+      timestamp: "worth a conflict check",
+      to: "/clients/$clientId",
+      params: { clientId: f.my_client_id },
+      highlight: true,
+    }))),
+  ];
+
+  if (totals.clients_with_unreviewed_severity_indicators > 0) {
+    attention.push({
+      id: "unreviewed-severity",
+      icon: AlertTriangle,
+      title: `${totals.clients_with_unreviewed_severity_indicators} client${totals.clients_with_unreviewed_severity_indicators === 1 ? "" : "s"} with unreviewed severity indicators`,
+      timestamp: "needs review",
+      highlight: true,
+    });
+  }
+
   return (
     <div style={{ display: "grid", gap: 20 }}>
-      <div>
-        <div className="att-eyebrow">Overview</div>
-        <h1 className="att-page-title">
-          Caseload capacity
-        </h1>
-        <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 6, maxWidth: 640 }}>
-          Aggregate view across every active client — clients needing attention appear first.
-          Counts reflect documentation activity only; they are not clinical or forensic assessments.
-        </p>
-      </div>
+      <PortalStatHero
+        variant="attorney"
+        eyebrow="Overview"
+        heading="Caseload capacity"
+        value={totals.active_client_count}
+        label={totals.active_client_count === 1 ? "active client" : "active clients"}
+        message="Aggregate view across every active client — items needing attention appear first. Counts reflect documentation activity only; they are not clinical or forensic assessments."
+      />
+
+      <RecentActivityList
+        variant="attorney"
+        title="Needs your attention"
+        rows={attention}
+        emptyMessage="Nothing needs attention right now."
+      />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
         <Kpi icon={<Users size={14} />} label="Active clients" value={totals.active_client_count} />
@@ -56,47 +99,7 @@ function CaseloadPage() {
         <Kpi icon={<AlertTriangle size={14} />} label="Clients w/ unreviewed severity" value={totals.clients_with_unreviewed_severity_indicators} tone={totals.clients_with_unreviewed_severity_indicators ? "warn" : undefined} />
       </div>
 
-      {disengaged_clients.length > 0 && (
-        <div style={{ border: "1px solid var(--att-border)", borderRadius: 2, padding: 14 }}>
-          <div className="att-eyebrow" style={{ marginBottom: 6 }}>Disengaged clients — no incident or evidence added in 30 days</div>
-          <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 4 }}>
-            {disengaged_clients.map((c) => (
-              <li key={c.link_id} style={{ fontSize: 13 }}>
-                <Link to="/clients/$clientId" params={{ clientId: c.client_user_id }} style={{ color: "var(--att-navy)", textDecoration: "none" }}>
-                  Client {c.client_user_id.slice(0, 8)}
-                </Link>
-                <span style={{ color: "var(--att-text-2)", marginLeft: 8 }}>
-                  {c.last_activity_at ? `last activity ${formatDate(c.last_activity_at)}` : "no recorded activity"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {conflicts?.firm_id && conflicts.flags.length > 0 && (
-        <div style={{ border: "1px solid var(--att-border)", borderRadius: 2, padding: 14, background: "transparent", borderLeft: "3px solid var(--att-accent)" }}>
-          <div className="att-eyebrow" style={{ marginBottom: 6 }}>Possible name overlap — worth a firm conflict check</div>
-          <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
-            {conflicts.flags.map((f, i) => (
-              <li key={i} style={{ fontSize: 13, lineHeight: 1.5 }}>
-                <Link to="/clients/$clientId" params={{ clientId: f.my_client_id }} style={{ color: "var(--att-navy)", textDecoration: "none", fontWeight: 600 }}>
-                  Client {f.my_client_id.slice(0, 8)}
-                </Link>
-                {" and "}
-                <span style={{ fontWeight: 600 }}>Client {f.other_client_id.slice(0, 8)}</span>
-                {" (represented by "}
-                <span style={{ fontWeight: 600 }}>{f.other_attorney_name}</span>
-                {") both reference someone with a similar name — "}
-                <span style={{ color: "var(--att-text-2)" }}>
-                  "{f.my_matched_name}" vs "{f.other_matched_name}"
-                </span>
-                {". This may or may not be a conflict — worth checking directly with your firm before proceeding."}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: t.muted }}>All clients</div>
 
       <div style={{ border: "1px solid var(--att-border)", borderRadius: 2, overflow: "hidden" }}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(140px,1.4fr) 1fr 0.8fr 0.8fr 0.8fr 32px", gap: 8, padding: "10px 14px", background: "var(--att-surface-2, #f7f7f5)", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--att-text-2)" }}>
