@@ -479,6 +479,40 @@ function ClioMattersBrowser() {
           </div>
         </div>
       ) : null}
+
+      {matterLinks.length > 0 ? (
+        <div style={{ marginTop: 18, borderTop: "1px solid var(--att-border)", paddingTop: 16 }}>
+          <div className="att-eyebrow">Send a packet to Clio</div>
+          <div style={{ fontSize: 12, color: "var(--att-text-2)", margin: "4px 0 10px" }}>
+            Sends the most recent professional-review packet you generated for that client into the linked matter. Nothing is generated or sent automatically.
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            {matterLinks.map((ml) => {
+              const c = consented.find((x) => x.link_id === ml.attorney_client_link_id);
+              return (
+                <div
+                  key={ml.attorney_client_link_id}
+                  style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}
+                >
+                  <div style={{ fontSize: 12 }}>
+                    {c ? `${c.client_label} · ${c.case_label}` : "Linked case"}
+                    <span style={{ color: "var(--att-text-2)" }}>
+                      {" "}→ {ml.clio_matter_display_number ?? ml.clio_matter_id}
+                    </span>
+                  </div>
+                  <button
+                    className="att-btn-secondary"
+                    disabled={pushing === ml.attorney_client_link_id}
+                    onClick={() => void doPush(ml.attorney_client_link_id)}
+                  >
+                    {pushing === ml.attorney_client_link_id ? "Sending…" : "Send latest packet"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
