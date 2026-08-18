@@ -239,6 +239,60 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_log: {
+        Row: {
+          completion_tokens: number | null
+          created_at: string
+          duration_ms: number | null
+          evidence_id: string | null
+          feature: string
+          file_type: string | null
+          http_status: number | null
+          id: string
+          meta: Json
+          model: string | null
+          prompt_tokens: number | null
+          status: string
+          thread_id: string | null
+          total_tokens: number | null
+          user_id: string
+        }
+        Insert: {
+          completion_tokens?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          evidence_id?: string | null
+          feature: string
+          file_type?: string | null
+          http_status?: number | null
+          id?: string
+          meta?: Json
+          model?: string | null
+          prompt_tokens?: number | null
+          status?: string
+          thread_id?: string | null
+          total_tokens?: number | null
+          user_id: string
+        }
+        Update: {
+          completion_tokens?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          evidence_id?: string | null
+          feature?: string
+          file_type?: string | null
+          http_status?: number | null
+          id?: string
+          meta?: Json
+          model?: string | null
+          prompt_tokens?: number | null
+          status?: string
+          thread_id?: string | null
+          total_tokens?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       attorney_access: {
         Row: {
           access_level: Database["public"]["Enums"]["access_level"]
@@ -1833,6 +1887,66 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      evidence_incident_drafts: {
+        Row: {
+          created_at: string
+          created_incident_id: string | null
+          draft: Json
+          evidence_id: string
+          frame_count: number
+          id: string
+          model: string | null
+          source: string
+          status: string
+          transcript_excerpt: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_incident_id?: string | null
+          draft?: Json
+          evidence_id: string
+          frame_count?: number
+          id?: string
+          model?: string | null
+          source: string
+          status?: string
+          transcript_excerpt?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_incident_id?: string | null
+          draft?: Json
+          evidence_id?: string
+          frame_count?: number
+          id?: string
+          model?: string | null
+          source?: string
+          status?: string
+          transcript_excerpt?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_incident_drafts_created_incident_id_fkey"
+            columns: ["created_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_incident_drafts_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: true
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       feedback_submissions: {
         Row: {
