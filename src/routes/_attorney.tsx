@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut, Lock, LayoutGrid, Users, CreditCard, ShieldCheck, MessageSquare, ScanSearch } from "lucide-react";
+import { LogOut, Lock, LayoutGrid, Users, CreditCard, ShieldCheck, MessageSquare, ScanSearch, Home } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,6 +174,7 @@ function useClientIdFromPath(): string | null {
 
 /* ---------- persistent left sidebar ---------- */
 const NAV_ITEMS = [
+  { to: "/attorney-home", label: "Home", icon: Home },
   { to: "/caseload", label: "Dashboard", icon: LayoutGrid },
   { to: "/clients", label: "Matters", icon: Users },
   { to: "/conflict-check", label: "Conflict check", icon: ScanSearch },
