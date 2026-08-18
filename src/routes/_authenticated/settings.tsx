@@ -119,7 +119,7 @@ const DISGUISES = [
 function SettingsPage() {
   const { user } = useAuth();
   const { settings, update } = useSettings();
-  const { hasPin, setRealPin } = usePinLock();
+  const { hasPin, setRealPin, hasBiometric, biometricSupported, enableBiometric, disableBiometric } = usePinLock();
   const [newPin, setNewPin] = useState("");
   const [audit, setAudit] = useState<AuditRow[]>([]);
   const exportFn = useServerFn(generateExportZip);
@@ -163,6 +163,16 @@ function SettingsPage() {
     await setRealPin(newPin);
     setNewPin("");
     toast("New PIN saved.");
+  };
+
+  const toggleBiometric = async () => {
+    if (hasBiometric) {
+      disableBiometric();
+      toast("Face ID / fingerprint unlock turned off.");
+      return;
+    }
+    const r = await enableBiometric();
+    toast(r.ok ? "Device unlock is on." : r.reason);
   };
 
   return (
@@ -248,6 +258,30 @@ function SettingsPage() {
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>4-digit PIN. Required every time the app wakes.</p>
           <input className="input-pp mt-3" inputMode="numeric" maxLength={4} value={newPin} onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" />
           <button onClick={savePin} className="btn-primary mt-3">Save PIN</button>
+
+          <div className="mt-5 border-t pt-4" style={{ borderColor: "var(--border)" }}>
+            <div className="font-serif text-[15px]">Use Face ID / Fingerprint / Device passcode</div>
+            <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              Uses your device's built-in screen lock instead of a PIN.
+            </p>
+            <p className="mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              {biometricSupported
+                ? hasBiometric
+                  ? "Enrolled on this device."
+                  : "Not enrolled on this device."
+                : "This device doesn't offer built-in unlock for the app."}
+            </p>
+            {biometricSupported ? (
+              <button onClick={toggleBiometric} className={hasBiometric ? "btn-ghost mt-3" : "btn-primary mt-3"}>
+                {hasBiometric ? "Turn off device unlock" : "Turn on device unlock"}
+              </button>
+            ) : null}
+          </div>
+
+          <p className="mt-4 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+            This screen lock helps deter casual access to your account. It is not a guarantee against
+            someone with deeper technical access to this device.
+          </p>
         </div>
       </div>
 
