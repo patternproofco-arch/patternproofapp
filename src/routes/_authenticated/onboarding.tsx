@@ -80,6 +80,22 @@ function Onboarding() {
           </p>
         </StepCard>
 
+        <StepCard icon={<Smartphone size={20} />} title="If you add this to your home screen">
+          <p>
+            The icon shows up as a plain <strong>&ldquo;Notes&rdquo;</strong> app with a simple gray
+            notepad picture — nothing about it says what this really is.
+          </p>
+          <p>
+            You can also give it your own name, and that's often the better choice. On an iPhone,
+            the name box on the <em>Add to Home Screen</em> screen can be typed over before you tap
+            Add. On Android, press and hold the icon after you've added it and choose rename.
+          </p>
+          <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            Pick something you'll remember without thinking. This is optional — skip it if it's not
+            useful to you.
+          </p>
+        </StepCard>
+
         <StepCard icon={<AlertTriangle size={20} />} title="If you are in danger right now">
           <div className="rounded-[2px] p-4" style={{ background: "var(--tint-purple)", border: "1px solid var(--border)" }}>
             <div className="mb-2 inline-flex items-center gap-2 text-[14px]" style={{ color: "var(--foreground)" }}>
