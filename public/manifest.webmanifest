@@ -1,7 +1,7 @@
 {
-  "name": "PatternProof",
-  "short_name": "PatternProof",
-  "description": "Evidence documentation",
+  "name": "Notes",
+  "short_name": "Notes",
+  "description": "Personal notes.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
@@ -9,7 +9,7 @@
   "theme_color": "#7A1F3D",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "/icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
@@ -29,9 +29,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Record",
-      "short_name": "Record",
-      "description": "Start a new recording immediately",
+      "name": "New note",
+      "short_name": "New note",
+      "description": "Start a new note right away",
       "url": "/live-recording?auto=1",
       "icons": [
         {
