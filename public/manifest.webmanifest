@@ -35,7 +35,7 @@
       "url": "/live-recording?auto=1",
       "icons": [
         {
-          "src": "/icons/mic.svg",
+          "src": "/icons/note.svg",
           "sizes": "any",
           "type": "image/svg+xml"
         }
