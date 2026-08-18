@@ -1,5 +1,6 @@
 @import "tailwindcss" source(none);
 @import "tw-animate-css";
+@import "./styles/shared-portal.css";
 @source "../src";
 
 /* ============================================================
