@@ -41,6 +41,7 @@ import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as AdvocateRouteImport } from './routes/_advocate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoIndexRouteImport } from './routes/demo.index'
+import { Route as TeamInviteTokenRouteImport } from './routes/team-invite.$token'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DemoVoiceNotesRouteImport } from './routes/demo.voice-notes'
@@ -110,6 +111,7 @@ import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integr
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
+import { Route as AdvocateOrgTeamRouteImport } from './routes/_advocate/org.team'
 import { Route as AdvocateOrgSettingsRouteImport } from './routes/_advocate/org.settings'
 import { Route as AdvocateOrgResourcesRouteImport } from './routes/_advocate/org.resources'
 import { Route as AdvocateOrgReportsRouteImport } from './routes/_advocate/org.reports'
@@ -283,6 +285,11 @@ const DemoIndexRoute = DemoIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DemoRoute,
+} as any)
+const TeamInviteTokenRoute = TeamInviteTokenRouteImport.update({
+  id: '/team-invite/$token',
+  path: '/team-invite/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SurvivorInviteTokenRoute = SurvivorInviteTokenRouteImport.update({
   id: '/survivor-invite/$token',
@@ -652,6 +659,11 @@ const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
   path: '/$clientId',
   getParentRoute: () => AttorneyClientsRoute,
 } as any)
+const AdvocateOrgTeamRoute = AdvocateOrgTeamRouteImport.update({
+  id: '/org/team',
+  path: '/org/team',
+  getParentRoute: () => AdvocateRoute,
+} as any)
 const AdvocateOrgSettingsRoute = AdvocateOrgSettingsRouteImport.update({
   id: '/org/settings',
   path: '/org/settings',
@@ -830,6 +842,7 @@ export interface FileRoutesByFullPath {
   '/demo/voice-notes': typeof DemoVoiceNotesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/team-invite/$token': typeof TeamInviteTokenRoute
   '/demo/': typeof DemoIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -841,6 +854,7 @@ export interface FileRoutesByFullPath {
   '/org/reports': typeof AdvocateOrgReportsRoute
   '/org/resources': typeof AdvocateOrgResourcesRoute
   '/org/settings': typeof AdvocateOrgSettingsRoute
+  '/org/team': typeof AdvocateOrgTeamRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -943,6 +957,7 @@ export interface FileRoutesByTo {
   '/demo/voice-notes': typeof DemoVoiceNotesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/team-invite/$token': typeof TeamInviteTokenRoute
   '/demo': typeof DemoIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -954,6 +969,7 @@ export interface FileRoutesByTo {
   '/org/reports': typeof AdvocateOrgReportsRoute
   '/org/resources': typeof AdvocateOrgResourcesRoute
   '/org/settings': typeof AdvocateOrgSettingsRoute
+  '/org/team': typeof AdvocateOrgTeamRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -1063,6 +1079,7 @@ export interface FileRoutesById {
   '/demo/voice-notes': typeof DemoVoiceNotesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/team-invite/$token': typeof TeamInviteTokenRoute
   '/demo/': typeof DemoIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -1074,6 +1091,7 @@ export interface FileRoutesById {
   '/_advocate/org/reports': typeof AdvocateOrgReportsRoute
   '/_advocate/org/resources': typeof AdvocateOrgResourcesRoute
   '/_advocate/org/settings': typeof AdvocateOrgSettingsRoute
+  '/_advocate/org/team': typeof AdvocateOrgTeamRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -1181,6 +1199,7 @@ export interface FileRouteTypes {
     | '/demo/voice-notes'
     | '/email/unsubscribe'
     | '/survivor-invite/$token'
+    | '/team-invite/$token'
     | '/demo/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1192,6 +1211,7 @@ export interface FileRouteTypes {
     | '/org/reports'
     | '/org/resources'
     | '/org/settings'
+    | '/org/team'
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1294,6 +1314,7 @@ export interface FileRouteTypes {
     | '/demo/voice-notes'
     | '/email/unsubscribe'
     | '/survivor-invite/$token'
+    | '/team-invite/$token'
     | '/demo'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1305,6 +1326,7 @@ export interface FileRouteTypes {
     | '/org/reports'
     | '/org/resources'
     | '/org/settings'
+    | '/org/team'
     | '/clients/$clientId'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1413,6 +1435,7 @@ export interface FileRouteTypes {
     | '/demo/voice-notes'
     | '/email/unsubscribe'
     | '/survivor-invite/$token'
+    | '/team-invite/$token'
     | '/demo/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1424,6 +1447,7 @@ export interface FileRouteTypes {
     | '/_advocate/org/reports'
     | '/_advocate/org/resources'
     | '/_advocate/org/settings'
+    | '/_advocate/org/team'
     | '/_attorney/clients/$clientId'
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1482,6 +1506,7 @@ export interface RootRouteChildren {
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
+  TeamInviteTokenRoute: typeof TeamInviteTokenRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   IntegrationsClioCallbackRoute: typeof IntegrationsClioCallbackRoute
@@ -1720,6 +1745,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/demo/'
       preLoaderRoute: typeof DemoIndexRouteImport
       parentRoute: typeof DemoRoute
+    }
+    '/team-invite/$token': {
+      id: '/team-invite/$token'
+      path: '/team-invite/$token'
+      fullPath: '/team-invite/$token'
+      preLoaderRoute: typeof TeamInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/survivor-invite/$token': {
       id: '/survivor-invite/$token'
@@ -2204,6 +2236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyClientsClientIdRouteImport
       parentRoute: typeof AttorneyClientsRoute
     }
+    '/_advocate/org/team': {
+      id: '/_advocate/org/team'
+      path: '/org/team'
+      fullPath: '/org/team'
+      preLoaderRoute: typeof AdvocateOrgTeamRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
     '/_advocate/org/settings': {
       id: '/_advocate/org/settings'
       path: '/org/settings'
@@ -2329,6 +2368,7 @@ interface AdvocateRouteChildren {
   AdvocateOrgReportsRoute: typeof AdvocateOrgReportsRoute
   AdvocateOrgResourcesRoute: typeof AdvocateOrgResourcesRoute
   AdvocateOrgSettingsRoute: typeof AdvocateOrgSettingsRoute
+  AdvocateOrgTeamRoute: typeof AdvocateOrgTeamRoute
   AdvocateAdvocateCasesIndexRoute: typeof AdvocateAdvocateCasesIndexRoute
 }
 
@@ -2342,6 +2382,7 @@ const AdvocateRouteChildren: AdvocateRouteChildren = {
   AdvocateOrgReportsRoute: AdvocateOrgReportsRoute,
   AdvocateOrgResourcesRoute: AdvocateOrgResourcesRoute,
   AdvocateOrgSettingsRoute: AdvocateOrgSettingsRoute,
+  AdvocateOrgTeamRoute: AdvocateOrgTeamRoute,
   AdvocateAdvocateCasesIndexRoute: AdvocateAdvocateCasesIndexRoute,
 }
 
@@ -2549,6 +2590,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
+  TeamInviteTokenRoute: TeamInviteTokenRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   IntegrationsClioCallbackRoute: IntegrationsClioCallbackRoute,
