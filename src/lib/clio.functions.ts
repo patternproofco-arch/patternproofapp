@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
 
 /** Public availability probe — safe for unauthenticated UI gating. */
 export const getClioAvailability = createServerFn({ method: "GET" }).handler(async () => {
@@ -103,4 +104,21 @@ export const listMyClioMatters = createServerFn({ method: "POST" })
     const { listClioMatters } = await import("@/lib/clio-matters.server");
     const matters = await listClioMatters(context.userId, { query: data.query });
     return { matters };
+  });
+
+/**
+ * Send the professional-review packet the attorney already generated for a
+ * client into the Clio matter that case is linked to. Consent and matter link
+ * are both re-checked server-side.
+ */
+export const pushPacketToClio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ attorney_client_link_id: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { assertClioAvailable } = await import("@/lib/clio.server");
+    assertClioAvailable();
+    const { pushLatestPacketToClio } = await import("@/lib/clio-documents.server");
+    return pushLatestPacketToClio(context.userId, data.attorney_client_link_id);
   });

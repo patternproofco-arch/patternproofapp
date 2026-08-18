@@ -145,6 +145,7 @@ export type Database = {
           email: string
           full_name: string
           onboarded: boolean
+          org_id: string | null
           org_name: string | null
           updated_at: string
           user_id: string
@@ -154,6 +155,7 @@ export type Database = {
           email: string
           full_name: string
           onboarded?: boolean
+          org_id?: string | null
           org_name?: string | null
           updated_at?: string
           user_id: string
@@ -163,11 +165,20 @@ export type Database = {
           email?: string
           full_name?: string
           onboarded?: boolean
+          org_id?: string | null
           org_name?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "advocate_profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agent_messages: {
         Row: {
@@ -224,6 +235,60 @@ export type Database = {
           id?: string
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_usage_log: {
+        Row: {
+          completion_tokens: number | null
+          created_at: string
+          duration_ms: number | null
+          evidence_id: string | null
+          feature: string
+          file_type: string | null
+          http_status: number | null
+          id: string
+          meta: Json
+          model: string | null
+          prompt_tokens: number | null
+          status: string
+          thread_id: string | null
+          total_tokens: number | null
+          user_id: string
+        }
+        Insert: {
+          completion_tokens?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          evidence_id?: string | null
+          feature: string
+          file_type?: string | null
+          http_status?: number | null
+          id?: string
+          meta?: Json
+          model?: string | null
+          prompt_tokens?: number | null
+          status?: string
+          thread_id?: string | null
+          total_tokens?: number | null
+          user_id: string
+        }
+        Update: {
+          completion_tokens?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          evidence_id?: string | null
+          feature?: string
+          file_type?: string | null
+          http_status?: number | null
+          id?: string
+          meta?: Json
+          model?: string | null
+          prompt_tokens?: number | null
+          status?: string
+          thread_id?: string | null
+          total_tokens?: number | null
           user_id?: string
         }
         Relationships: []
@@ -1021,12 +1086,16 @@ export type Database = {
       clio_connections: {
         Row: {
           access_token: string
+          clio_region: string
           clio_user_email: string | null
           clio_user_id: string | null
+          clio_user_name: string | null
           created_at: string
           expires_at: string
           firm_name: string | null
           id: string
+          last_refresh_at: string | null
+          last_verified_at: string | null
           refresh_token: string
           revoked_at: string | null
           updated_at: string
@@ -1034,12 +1103,16 @@ export type Database = {
         }
         Insert: {
           access_token: string
+          clio_region?: string
           clio_user_email?: string | null
           clio_user_id?: string | null
+          clio_user_name?: string | null
           created_at?: string
           expires_at: string
           firm_name?: string | null
           id?: string
+          last_refresh_at?: string | null
+          last_verified_at?: string | null
           refresh_token: string
           revoked_at?: string | null
           updated_at?: string
@@ -1047,18 +1120,72 @@ export type Database = {
         }
         Update: {
           access_token?: string
+          clio_region?: string
           clio_user_email?: string | null
           clio_user_id?: string | null
+          clio_user_name?: string | null
           created_at?: string
           expires_at?: string
           firm_name?: string | null
           id?: string
+          last_refresh_at?: string | null
+          last_verified_at?: string | null
           refresh_token?: string
           revoked_at?: string | null
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      clio_document_exports: {
+        Row: {
+          attorney_client_link_id: string | null
+          attorney_user_id: string
+          byte_size: number | null
+          clio_document_id: string | null
+          clio_matter_id: string
+          confirmed_at: string | null
+          created_at: string
+          document_name: string
+          error_code: string | null
+          id: string
+          status: string
+        }
+        Insert: {
+          attorney_client_link_id?: string | null
+          attorney_user_id: string
+          byte_size?: number | null
+          clio_document_id?: string | null
+          clio_matter_id: string
+          confirmed_at?: string | null
+          created_at?: string
+          document_name: string
+          error_code?: string | null
+          id?: string
+          status?: string
+        }
+        Update: {
+          attorney_client_link_id?: string | null
+          attorney_user_id?: string
+          byte_size?: number | null
+          clio_document_id?: string | null
+          clio_matter_id?: string
+          confirmed_at?: string | null
+          created_at?: string
+          document_name?: string
+          error_code?: string | null
+          id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clio_document_exports_attorney_client_link_id_fkey"
+            columns: ["attorney_client_link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clio_matter_links: {
         Row: {
@@ -1176,6 +1303,68 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_grants: {
+        Row: {
+          created_at: string
+          download_allowed: boolean
+          effective_at: string
+          expires_at: string | null
+          id: string
+          org_name: string | null
+          receipt: Json
+          recipient_user_id: string
+          request_id: string | null
+          revocation_reason: string | null
+          revoked_at: string | null
+          scope: Json
+          status: string
+          survivor_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          download_allowed?: boolean
+          effective_at?: string
+          expires_at?: string | null
+          id?: string
+          org_name?: string | null
+          receipt?: Json
+          recipient_user_id: string
+          request_id?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          scope?: Json
+          status?: string
+          survivor_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          download_allowed?: boolean
+          effective_at?: string
+          expires_at?: string | null
+          id?: string
+          org_name?: string | null
+          receipt?: Json
+          recipient_user_id?: string
+          request_id?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          scope?: Json
+          status?: string
+          survivor_user_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_grants_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "record_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       court_dates: {
         Row: {
           court_name: string
@@ -1209,6 +1398,30 @@ export type Database = {
           notes?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      dv_organizations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1402,8 +1615,10 @@ export type Database = {
       }
       evidence: {
         Row: {
+          ai_permission: string
           anchor_label: string | null
           bytes: number | null
+          conversation_context: string
           created_at: string
           date: string | null
           date_precision: string
@@ -1426,6 +1641,7 @@ export type Database = {
           in_image_timestamp_text: string | null
           ingested_at: string | null
           integrity_verified_at: string | null
+          is_sealed: boolean
           linked_incident_id: string | null
           linked_recording_id: string | null
           match_reason: string | null
@@ -1439,6 +1655,7 @@ export type Database = {
           preserved_at: string | null
           raw_metadata: Json | null
           review_status: string
+          sealed_at: string | null
           sha256: string | null
           suggested_incident_id: string | null
           title: string
@@ -1452,8 +1669,10 @@ export type Database = {
           voice_caption_audio_url: string | null
         }
         Insert: {
+          ai_permission?: string
           anchor_label?: string | null
           bytes?: number | null
+          conversation_context?: string
           created_at?: string
           date?: string | null
           date_precision?: string
@@ -1476,6 +1695,7 @@ export type Database = {
           in_image_timestamp_text?: string | null
           ingested_at?: string | null
           integrity_verified_at?: string | null
+          is_sealed?: boolean
           linked_incident_id?: string | null
           linked_recording_id?: string | null
           match_reason?: string | null
@@ -1489,6 +1709,7 @@ export type Database = {
           preserved_at?: string | null
           raw_metadata?: Json | null
           review_status?: string
+          sealed_at?: string | null
           sha256?: string | null
           suggested_incident_id?: string | null
           title: string
@@ -1502,8 +1723,10 @@ export type Database = {
           voice_caption_audio_url?: string | null
         }
         Update: {
+          ai_permission?: string
           anchor_label?: string | null
           bytes?: number | null
+          conversation_context?: string
           created_at?: string
           date?: string | null
           date_precision?: string
@@ -1526,6 +1749,7 @@ export type Database = {
           in_image_timestamp_text?: string | null
           ingested_at?: string | null
           integrity_verified_at?: string | null
+          is_sealed?: boolean
           linked_incident_id?: string | null
           linked_recording_id?: string | null
           match_reason?: string | null
@@ -1539,6 +1763,7 @@ export type Database = {
           preserved_at?: string | null
           raw_metadata?: Json | null
           review_status?: string
+          sealed_at?: string | null
           sha256?: string | null
           suggested_incident_id?: string | null
           title?: string
@@ -1663,6 +1888,66 @@ export type Database = {
         }
         Relationships: []
       }
+      evidence_incident_drafts: {
+        Row: {
+          created_at: string
+          created_incident_id: string | null
+          draft: Json
+          evidence_id: string
+          frame_count: number
+          id: string
+          model: string | null
+          source: string
+          status: string
+          transcript_excerpt: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_incident_id?: string | null
+          draft?: Json
+          evidence_id: string
+          frame_count?: number
+          id?: string
+          model?: string | null
+          source: string
+          status?: string
+          transcript_excerpt?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_incident_id?: string | null
+          draft?: Json
+          evidence_id?: string
+          frame_count?: number
+          id?: string
+          model?: string | null
+          source?: string
+          status?: string
+          transcript_excerpt?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_incident_drafts_created_incident_id_fkey"
+            columns: ["created_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_incident_drafts_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: true
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback_submissions: {
         Row: {
           audience: string
@@ -1690,12 +1975,96 @@ export type Database = {
         }
         Relationships: []
       }
+      firm_member_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          firm_id: string
+          id: string
+          invite_token: string
+          invited_by: string
+          role: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          firm_id: string
+          id?: string
+          invite_token: string
+          invited_by: string
+          role?: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          firm_id?: string
+          id?: string
+          invite_token?: string
+          invited_by?: string
+          role?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "firm_member_invitations_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "firms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      firm_members: {
+        Row: {
+          firm_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          firm_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          firm_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "firm_members_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "firms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       firms: {
         Row: {
           created_at: string
           created_by: string
           id: string
           name: string
+          seats_included: number
+          seats_purchased: number
           updated_at: string
         }
         Insert: {
@@ -1703,6 +2072,8 @@ export type Database = {
           created_by: string
           id?: string
           name: string
+          seats_included?: number
+          seats_purchased?: number
           updated_at?: string
         }
         Update: {
@@ -1710,6 +2081,8 @@ export type Database = {
           created_by?: string
           id?: string
           name?: string
+          seats_included?: number
+          seats_purchased?: number
           updated_at?: string
         }
         Relationships: []
@@ -1750,6 +2123,9 @@ export type Database = {
       incidents: {
         Row: {
           abuse_types: string[]
+          actual_outcome: string | null
+          actual_outcome_date: string | null
+          ai_permission: string
           anchor_incident_id: string | null
           anchor_label: string | null
           confidence: number | null
@@ -1762,18 +2138,33 @@ export type Database = {
           deleted_at: string | null
           description: string
           emotional_impact: string | null
+          expectation_status: string
+          expected_due_date: string | null
+          expected_due_range_end: string | null
+          expected_due_range_start: string | null
+          expected_item: string | null
           has_escalation_flag: boolean
           id: string
+          is_draft: boolean
+          is_sealed: boolean
           location: string | null
+          practical_consequence: string | null
+          record_kind: string
+          sealed_at: string | null
           severity_level: number | null
           source: string
           source_evidence_id: string | null
+          source_type: string | null
+          template_key: string | null
           time: string | null
           user_id: string
           witnesses: string | null
         }
         Insert: {
           abuse_types?: string[]
+          actual_outcome?: string | null
+          actual_outcome_date?: string | null
+          ai_permission?: string
           anchor_incident_id?: string | null
           anchor_label?: string | null
           confidence?: number | null
@@ -1786,18 +2177,33 @@ export type Database = {
           deleted_at?: string | null
           description: string
           emotional_impact?: string | null
+          expectation_status?: string
+          expected_due_date?: string | null
+          expected_due_range_end?: string | null
+          expected_due_range_start?: string | null
+          expected_item?: string | null
           has_escalation_flag?: boolean
           id?: string
+          is_draft?: boolean
+          is_sealed?: boolean
           location?: string | null
+          practical_consequence?: string | null
+          record_kind?: string
+          sealed_at?: string | null
           severity_level?: number | null
           source?: string
           source_evidence_id?: string | null
+          source_type?: string | null
+          template_key?: string | null
           time?: string | null
           user_id: string
           witnesses?: string | null
         }
         Update: {
           abuse_types?: string[]
+          actual_outcome?: string | null
+          actual_outcome_date?: string | null
+          ai_permission?: string
           anchor_incident_id?: string | null
           anchor_label?: string | null
           confidence?: number | null
@@ -1810,12 +2216,24 @@ export type Database = {
           deleted_at?: string | null
           description?: string
           emotional_impact?: string | null
+          expectation_status?: string
+          expected_due_date?: string | null
+          expected_due_range_end?: string | null
+          expected_due_range_start?: string | null
+          expected_item?: string | null
           has_escalation_flag?: boolean
           id?: string
+          is_draft?: boolean
+          is_sealed?: boolean
           location?: string | null
+          practical_consequence?: string | null
+          record_kind?: string
+          sealed_at?: string | null
           severity_level?: number | null
           source?: string
           source_evidence_id?: string | null
+          source_type?: string | null
+          template_key?: string | null
           time?: string | null
           user_id?: string
           witnesses?: string | null
@@ -2146,6 +2564,144 @@ export type Database = {
         }
         Relationships: []
       }
+      org_follow_ups: {
+        Row: {
+          created_at: string
+          created_by: string
+          due_at: string | null
+          grant_id: string | null
+          id: string
+          note: string | null
+          org_user_id: string
+          reference_label: string | null
+          resource_reference: string | null
+          status: string
+          survivor_user_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          due_at?: string | null
+          grant_id?: string | null
+          id?: string
+          note?: string | null
+          org_user_id: string
+          reference_label?: string | null
+          resource_reference?: string | null
+          status?: string
+          survivor_user_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          due_at?: string | null
+          grant_id?: string | null
+          id?: string
+          note?: string | null
+          org_user_id?: string
+          reference_label?: string | null
+          resource_reference?: string | null
+          status?: string
+          survivor_user_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_follow_ups_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_member_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invite_token: string
+          invited_by: string
+          org_id: string
+          role: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invite_token: string
+          invited_by: string
+          org_id: string
+          role?: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          invited_by?: string
+          org_id?: string
+          role?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_member_invitations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_members: {
+        Row: {
+          id: string
+          joined_at: string
+          org_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          org_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          org_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_members_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pattern_analyses: {
         Row: {
           analysis: Json
@@ -2173,6 +2729,78 @@ export type Database = {
           model_used?: string | null
           reviewed_status?: Json
           user_id?: string
+        }
+        Relationships: []
+      }
+      record_requests: {
+        Row: {
+          created_at: string
+          date_end: string | null
+          date_start: string | null
+          download_allowed: boolean
+          evidence_ids: string[] | null
+          expires_at: string | null
+          id: string
+          incident_ids: string[] | null
+          include_evidence: boolean
+          include_incidents: boolean
+          org_name: string | null
+          purpose: string
+          requester_user_id: string
+          responded_at: string | null
+          scope_summary: string | null
+          source_types: string[]
+          status: string
+          survivor_note: string | null
+          survivor_user_id: string
+          topics: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_end?: string | null
+          date_start?: string | null
+          download_allowed?: boolean
+          evidence_ids?: string[] | null
+          expires_at?: string | null
+          id?: string
+          incident_ids?: string[] | null
+          include_evidence?: boolean
+          include_incidents?: boolean
+          org_name?: string | null
+          purpose: string
+          requester_user_id: string
+          responded_at?: string | null
+          scope_summary?: string | null
+          source_types?: string[]
+          status?: string
+          survivor_note?: string | null
+          survivor_user_id: string
+          topics?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_end?: string | null
+          date_start?: string | null
+          download_allowed?: boolean
+          evidence_ids?: string[] | null
+          expires_at?: string | null
+          id?: string
+          incident_ids?: string[] | null
+          include_evidence?: boolean
+          include_incidents?: boolean
+          org_name?: string | null
+          purpose?: string
+          requester_user_id?: string
+          responded_at?: string | null
+          scope_summary?: string | null
+          source_types?: string[]
+          status?: string
+          survivor_note?: string | null
+          survivor_user_id?: string
+          topics?: string[]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2228,6 +2856,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_engagements: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          org_user_id: string
+          referral_code: string | null
+          status: string
+          survivor_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          org_user_id: string
+          referral_code?: string | null
+          status?: string
+          survivor_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          org_user_id?: string
+          referral_code?: string | null
+          status?: string
+          survivor_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       referral_links: {
         Row: {
@@ -2779,6 +3440,9 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      firm_peer_user_ids: { Args: never; Returns: string[] }
+      is_firm_owner: { Args: { _firm_id: string }; Returns: boolean }
+      is_org_owner: { Args: { _org_id: string }; Returns: boolean }
       list_my_oauth_consents: {
         Args: never
         Returns: {
@@ -2799,6 +3463,9 @@ export type Database = {
         }
         Returns: number
       }
+      my_firm_id: { Args: never; Returns: string }
+      my_org_id: { Args: never; Returns: string }
+      org_peer_user_ids: { Args: never; Returns: string[] }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {

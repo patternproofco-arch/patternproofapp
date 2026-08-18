@@ -3,8 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { Check, ExternalLink, Lock, Star, Plug, Clock } from "lucide-react";
 import { createPortalSession } from "@/lib/payments.functions";
-import { getClioAvailability, getClioStatus, startClioConnect, disconnectClio, listMyClioMatters } from "@/lib/clio.functions";
-import { listClioConsentedClients, linkClioMatter } from "@/lib/clio-matter-links.functions";
+import { getClioAvailability, getClioStatus, startClioConnect, disconnectClio, listMyClioMatters, pushPacketToClio } from "@/lib/clio.functions";
+import { listClioConsentedClients, linkClioMatter, listClioMatterLinks } from "@/lib/clio-matter-links.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 
@@ -305,6 +305,8 @@ function ClioMattersBrowser() {
   const listFn = useServerFn(listMyClioMatters);
   const consentedFn = useServerFn(listClioConsentedClients);
   const linkFn = useServerFn(linkClioMatter);
+  const matterLinksFn = useServerFn(listClioMatterLinks);
+  const pushFn = useServerFn(pushPacketToClio);
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<ClioMatterRow[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -312,6 +314,10 @@ function ClioMattersBrowser() {
   const [consented, setConsented] = useState<Array<{ link_id: string; client_label: string; case_label: string }>>([]);
   const [picker, setPicker] = useState<ClioMatterRow | null>(null);
   const [linking, setLinking] = useState(false);
+  const [matterLinks, setMatterLinks] = useState<
+    Array<{ attorney_client_link_id: string; clio_matter_id: string; clio_matter_display_number: string | null }>
+  >([]);
+  const [pushing, setPushing] = useState<string | null>(null);
 
   const loadConsented = useCallback(async () => {
     try {
@@ -320,9 +326,34 @@ function ClioMattersBrowser() {
     } catch {
       setConsented([]);
     }
-  }, [consentedFn]);
+    try {
+      const l = await matterLinksFn();
+      setMatterLinks(
+        (l.links ?? []).map((x) => ({
+          attorney_client_link_id: x.attorney_client_link_id,
+          clio_matter_id: x.clio_matter_id,
+          clio_matter_display_number: x.clio_matter_display_number ?? null,
+        })),
+      );
+    } catch {
+      setMatterLinks([]);
+    }
+  }, [consentedFn, matterLinksFn]);
 
   useEffect(() => { void loadConsented(); }, [loadConsented]);
+
+  const doPush = async (linkId: string) => {
+    setPushing(linkId);
+    try {
+      const r = await pushFn({ data: { attorney_client_link_id: linkId } });
+      if (r.ok) toast("Packet sent to Clio. It's on the matter now.");
+      else toast(r.reason);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "We couldn't send that packet to Clio just now.");
+    } finally {
+      setPushing(null);
+    }
+  };
 
   const doLink = async (linkId: string) => {
     if (!picker) return;
@@ -445,6 +476,40 @@ function ClioMattersBrowser() {
           </div>
           <div style={{ marginTop: 10 }}>
             <button className="att-btn-secondary" onClick={() => setPicker(null)} disabled={linking}>Cancel</button>
+          </div>
+        </div>
+      ) : null}
+
+      {matterLinks.length > 0 ? (
+        <div style={{ marginTop: 18, borderTop: "1px solid var(--att-border)", paddingTop: 16 }}>
+          <div className="att-eyebrow">Send a packet to Clio</div>
+          <div style={{ fontSize: 12, color: "var(--att-text-2)", margin: "4px 0 10px" }}>
+            Sends the most recent professional-review packet you generated for that client into the linked matter. Nothing is generated or sent automatically.
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            {matterLinks.map((ml) => {
+              const c = consented.find((x) => x.link_id === ml.attorney_client_link_id);
+              return (
+                <div
+                  key={ml.attorney_client_link_id}
+                  style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}
+                >
+                  <div style={{ fontSize: 12 }}>
+                    {c ? `${c.client_label} · ${c.case_label}` : "Linked case"}
+                    <span style={{ color: "var(--att-text-2)" }}>
+                      {" "}→ {ml.clio_matter_display_number ?? ml.clio_matter_id}
+                    </span>
+                  </div>
+                  <button
+                    className="att-btn-secondary"
+                    disabled={pushing === ml.attorney_client_link_id}
+                    onClick={() => void doPush(ml.attorney_client_link_id)}
+                  >
+                    {pushing === ml.attorney_client_link_id ? "Sending…" : "Send latest packet"}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : null}
