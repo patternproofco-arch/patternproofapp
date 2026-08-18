@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 import { ensureSurvivorRole } from "@/lib/roles.functions";
@@ -8,6 +8,8 @@ import { SettingsProvider, useSettings } from "@/lib/settings-context";
 import { PinLockProvider, usePinLock } from "@/lib/pin-lock";
 import { useIdleLock } from "@/hooks/use-idle-lock";
 import { PinScreen } from "@/components/PinScreen";
+import { LockRecoveryScreen } from "@/components/LockRecoveryScreen";
+import { getAppLockState } from "@/lib/app-lock.functions";
 import { RecordingProvider } from "@/lib/recording-context";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -34,6 +36,25 @@ function Gate() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const ensureRole = useServerFn(ensureSurvivorRole);
   const roleChecked = useRef(false);
+  const readAppLock = useServerFn(getAppLockState);
+  const [serverLockOn, setServerLockOn] = useState<boolean | null>(null);
+
+  // The server remembers whether a lock is turned on, so clearing site data
+  // can't quietly remove it.
+  useEffect(() => {
+    if (loading || !user) return;
+    let cancelled = false;
+    readAppLock()
+      .then((r) => {
+        if (!cancelled) setServerLockOn(!!r.app_lock_enabled);
+      })
+      .catch(() => {
+        if (!cancelled) setServerLockOn(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, user, readAppLock]);
 
   // Auto-lock after inactivity — only meaningful once she's set up a PIN or
   // biometric unlock, otherwise there's nothing to unlock with.
@@ -95,7 +116,15 @@ function Gate() {
   }
 
   // Lock screen only shows when the user has opted in (PIN or biometric).
-  if ((hasPin || (typeof window !== "undefined" && localStorage.getItem("pp_biometric_cred_v1"))) && isLocked && pathname !== "/onboarding") {
+  const localBiometric = typeof window !== "undefined" && !!localStorage.getItem("pp_biometric_cred_v1");
+
+  // Server says a lock is on, but nothing on this device can open it — ask her
+  // to sign back in rather than defaulting to unlocked.
+  if (serverLockOn === true && !hasPin && !hasBiometric && !localBiometric && pathname !== "/onboarding") {
+    return <LockRecoveryScreen />;
+  }
+
+  if ((hasPin || localBiometric) && isLocked && pathname !== "/onboarding") {
     return <PinScreen />;
   }
 
