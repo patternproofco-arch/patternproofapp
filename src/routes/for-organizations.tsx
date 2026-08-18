@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 /**
  * DV organization landing — redaction/exhibit vernacular, sage accent only.
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/for-organizations")({
 function ForOrganizations() {
   return (
     <div data-persona="org" style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+      <PublicQuickExit />
       <TopBar />
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(56px,9vw,104px) 24px 40px" }}>

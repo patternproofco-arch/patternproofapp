@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { useEffect } from "react";
 import type { ComponentType } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -68,6 +69,7 @@ function Index() {
       className="min-h-screen"
       style={{ background: "#FAF8F4", color: "#1A1224" }}
     >
+      <PublicQuickExit />
       <section
         style={{
           maxWidth: 1040,

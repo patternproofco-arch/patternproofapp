@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 const INK = "#1A1224";
 const PAPER = "#FAF8F4";
@@ -46,6 +47,7 @@ function RoleLink({ to, search, color, label }: { to: string; search?: Record<st
 function ChooseRole() {
   return (
     <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+      <PublicQuickExit />
       <header style={{ borderBottom: `1px solid ${RULE}` }}>
         <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 24px" }}>
           <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em", color: INK, textDecoration: "none", textTransform: "uppercase" }}>

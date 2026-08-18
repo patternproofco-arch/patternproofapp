@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { useState } from "react";
 
 // Reuses the redaction/exhibit vernacular already established on
@@ -44,6 +45,7 @@ function HowItWorks() {
 
   return (
     <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+      <PublicQuickExit />
       <TopBar />
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(56px,9vw,96px) 24px 24px" }}>

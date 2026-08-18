@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export function TrustPage({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export function TrustPage({ title, subtitle, children }: { title: string; subtit
         padding: "32px 20px 80px",
       }}
     >
+      <PublicQuickExit />
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
         <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#6B5FA4", textDecoration: "none", fontWeight: 500, marginBottom: 20 }}>
           <ArrowLeft size={14} /> Back to home

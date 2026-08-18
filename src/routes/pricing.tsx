@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { Check, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
@@ -75,6 +76,7 @@ function PricingPage() {
   const tiers = buildTiers(remaining);
   return (
     <div style={{ minHeight: "100vh", background: "var(--background)" }}>
+      <PublicQuickExit />
       <header
         style={{
           padding: "20px 24px",
