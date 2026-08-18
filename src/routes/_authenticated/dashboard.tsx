@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Plus, Mic, Paperclip, BookOpen, Waves, CalendarClock, ShieldCheck, FileText, Image } from "lucide-react";
+import { Plus, Mic, Paperclip, BookOpen, Waves, CalendarClock, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard.functions";
