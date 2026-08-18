@@ -16,6 +16,8 @@ export interface PortalTheme {
   gradientTo: string;
   label: string;
   mark: ComponentType<{ size?: number; className?: string }> | null;
+  /** Display face used for the wordmark, greetings and hero numerals. */
+  displayFont: string;
 }
 
 /**
@@ -35,6 +37,7 @@ export const PORTAL_THEME: Record<PortalVariant, PortalTheme> = {
     gradientTo: "#EDE7F6",
     label: "SURVIVOR PORTAL",
     mark: PpCubeMark,
+    displayFont: "'Fraunces', Georgia, serif",
   },
   advocate: {
     accent: "#4C7359",
@@ -47,6 +50,7 @@ export const PORTAL_THEME: Record<PortalVariant, PortalTheme> = {
     gradientTo: "#E6F0E8",
     label: "DV ORGANIZATION PORTAL",
     mark: OrgCubeMark as ComponentType<{ size?: number; className?: string }>,
+    displayFont: "'Fraunces', Georgia, serif",
   },
   attorney: {
     accent: "#2A2C95",
@@ -59,5 +63,6 @@ export const PORTAL_THEME: Record<PortalVariant, PortalTheme> = {
     gradientTo: "#E6E7F7",
     label: "LAWYER PORTAL",
     mark: null,
+    displayFont: "'Instrument Serif', 'Fraunces', Georgia, serif",
   },
 };

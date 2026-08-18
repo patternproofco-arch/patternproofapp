@@ -49,7 +49,7 @@ export function PortalHeader({
             <span
               className="block truncate"
               style={{
-                fontFamily: "'Fraunces', Georgia, serif",
+                fontFamily: t.displayFont,
                 fontSize: 17,
                 fontWeight: 600,
                 letterSpacing: "0.04em",
@@ -81,7 +81,9 @@ export function PortalHeader({
       </div>
 
       <div className="mt-5">
-        <h1 style={{ margin: 0, fontSize: 26, lineHeight: 1.15, color: t.ink }}>{greeting}</h1>
+        <h1 style={{ margin: 0, fontSize: 26, lineHeight: 1.15, color: t.ink, fontFamily: t.displayFont }}>
+          {greeting}
+        </h1>
         {subline && (
           <p className="mt-2 max-w-xl text-[14px]" style={{ color: t.muted }}>
             {subline}
