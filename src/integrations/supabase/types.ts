@@ -3354,6 +3354,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_security_settings: {
+        Row: {
+          app_lock_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_lock_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_lock_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_notes: {
         Row: {
           audio_url: string
