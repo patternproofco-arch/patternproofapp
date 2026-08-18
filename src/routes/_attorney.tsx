@@ -177,6 +177,7 @@ const NAV_ITEMS = [
   { to: "/caseload", label: "Dashboard", icon: LayoutGrid },
   { to: "/clients", label: "Matters", icon: Users },
   { to: "/conflict-check", label: "Conflict check", icon: ScanSearch },
+  { to: "/team", label: "Team", icon: Users },
   { to: "/billing", label: "Billing", icon: CreditCard },
   { to: "/trust", label: "Settings", icon: ShieldCheck },
   { to: "/attorney-feedback", label: "Feedback", icon: MessageSquare },

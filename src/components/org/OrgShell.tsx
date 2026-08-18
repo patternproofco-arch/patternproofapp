@@ -8,7 +8,7 @@ import { quickExit } from "@/lib/quick-exit";
 
 export type OrgNavKey =
   | "home" | "shared" | "referrals" | "requests" | "consent"
-  | "follow-up" | "resources" | "reports" | "settings"
+  | "follow-up" | "resources" | "reports" | "team" | "settings"
   /** legacy alias kept so existing callers keep compiling */
   | "organization";
 
