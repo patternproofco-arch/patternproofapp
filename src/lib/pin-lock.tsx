@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { setAppLockEnabled } from "@/lib/app-lock.functions";
 
 const PIN_KEY = "pp_pin_hash_v1";
 const FAILS_KEY = "pp_pin_fails_v1";
@@ -6,7 +8,15 @@ const LOCK_UNTIL_KEY = "pp_pin_lock_until_v1";
 const SESSION_UNLOCKED_KEY = "pp_session_unlocked_v1";
 const BIO_CRED_KEY = "pp_biometric_cred_v1";
 
-async function hash(pin: string): Promise<string> {
+/** Per-account salt: the same PIN on two accounts no longer shares a hash. */
+async function hash(pin: string, userId: string | null): Promise<string> {
+  const enc = new TextEncoder().encode(`pp::${userId ?? "anon"}::${pin}`);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** Pre-salt format, kept only so an existing PIN still opens once and is then re-saved. */
+async function legacyHash(pin: string): Promise<string> {
   const enc = new TextEncoder().encode("pp::" + pin);
   const buf = await crypto.subtle.digest("SHA-256", enc);
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -29,6 +39,8 @@ interface Ctx {
 const PinCtx = createContext<Ctx | null>(null);
 
 export function PinLockProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [hasPin, setHasPin] = useState(false);
   const [hasBiometric, setHasBiometric] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);
@@ -50,11 +62,16 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const syncServerLock = (enabled: boolean) => {
+    void setAppLockEnabled({ data: { enabled } }).catch(() => undefined);
+  };
+
   const setRealPin = async (pin: string) => {
-    localStorage.setItem(PIN_KEY, await hash(pin));
+    localStorage.setItem(PIN_KEY, await hash(pin, userId));
     setHasPin(true);
     setIsLocked(false);
     sessionStorage.setItem(SESSION_UNLOCKED_KEY, "1");
+    syncServerLock(true);
   };
 
   const clearPin = () => {
@@ -62,6 +79,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(FAILS_KEY);
     localStorage.removeItem(LOCK_UNTIL_KEY);
     setHasPin(false);
+    if (!hasBiometric) syncServerLock(false);
   };
 
   const unlock = async (pin: string): Promise<"real" | "wrong" | "locked-out"> => {
@@ -69,8 +87,11 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     if (lockUntil > Date.now()) return "locked-out";
 
     const real = localStorage.getItem(PIN_KEY);
-    const h = await hash(pin);
-    if (real && h === real) {
+    const h = await hash(pin, userId);
+    const matches = !!real && (h === real || (await legacyHash(pin)) === real);
+    if (matches) {
+      // Quietly upgrade a pre-salt hash to the per-account one.
+      if (real !== h) localStorage.setItem(PIN_KEY, h);
       localStorage.setItem(FAILS_KEY, "0");
       sessionStorage.setItem(SESSION_UNLOCKED_KEY, "1");
       setIsLocked(false);
@@ -125,6 +146,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
       setHasBiometric(true);
       sessionStorage.setItem(SESSION_UNLOCKED_KEY, "1");
       setIsLocked(false);
+      syncServerLock(true);
       return { ok: true };
     } catch (e) {
       return { ok: false, reason: e instanceof Error ? e.message : "Enrollment failed." };
@@ -157,6 +179,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
   const disableBiometric = () => {
     localStorage.removeItem(BIO_CRED_KEY);
     setHasBiometric(false);
+    if (!hasPin) syncServerLock(false);
   };
 
   return (
