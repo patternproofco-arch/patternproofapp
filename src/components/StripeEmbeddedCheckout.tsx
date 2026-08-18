@@ -1,18 +1,24 @@
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
-import { createCheckoutSession, createPayWhatYouCanCheckout } from "@/lib/payments.functions";
+import { createCheckoutSession, createPayWhatYouCanCheckout, createSeatCheckout } from "@/lib/payments.functions";
 
 interface Props {
   priceId?: string;
   customAmountCents?: number;
+  /** Number of additional firm seats to buy ($99/mo each). */
+  seatQuantity?: number;
   returnUrl?: string;
 }
 
-export function StripeEmbeddedCheckout({ priceId, customAmountCents, returnUrl }: Props) {
+export function StripeEmbeddedCheckout({ priceId, customAmountCents, seatQuantity, returnUrl }: Props) {
   const fetchClientSecret = async (): Promise<string> => {
     const url = returnUrl || `${window.location.origin}/billing-return?session_id={CHECKOUT_SESSION_ID}`;
     const env = getStripeEnvironment();
-    const result = customAmountCents
+    const result = seatQuantity
+      ? await createSeatCheckout({
+          data: { extraSeats: seatQuantity, returnUrl: url, environment: env },
+        })
+      : customAmountCents
       ? await createPayWhatYouCanCheckout({
           data: { amountInCents: customAmountCents, returnUrl: url, environment: env },
         })
@@ -24,7 +30,7 @@ export function StripeEmbeddedCheckout({ priceId, customAmountCents, returnUrl }
     return result.clientSecret;
   };
   return (
-    <div id="checkout" key={customAmountCents ? `pwyc-${customAmountCents}` : `price-${priceId}`}>
+    <div id="checkout" key={seatQuantity ? `seats-${seatQuantity}` : customAmountCents ? `pwyc-${customAmountCents}` : `price-${priceId}`}>
       <EmbeddedCheckoutProvider stripe={getStripe()} options={{ fetchClientSecret }}>
         <EmbeddedCheckout />
       </EmbeddedCheckoutProvider>

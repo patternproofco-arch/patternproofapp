@@ -308,10 +308,14 @@ export const listAdvocateClients = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Organization workspace: colleagues in the same DV organization share a caseload.
+    const { orgPeerIds } = await import("@/lib/workspace.server");
+    const peers = await orgPeerIds(context.userId);
+    const advocateIds = peers.length ? Array.from(new Set([context.userId, ...peers])) : [context.userId];
     const { data: links } = await supabaseAdmin
       .from("advocate_client_links")
       .select("id,client_user_id,created_at,status,revoked_at,case_id")
-      .eq("advocate_user_id", context.userId)
+      .in("advocate_user_id", advocateIds)
       .order("created_at", { ascending: false });
     const clientIds = (links ?? []).map((l) => l.client_user_id);
     const { data: cases } = clientIds.length
@@ -334,11 +338,15 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { orgPeerIds } = await import("@/lib/workspace.server");
+    const peers = await orgPeerIds(context.userId);
+    const advocateIds = peers.length ? Array.from(new Set([context.userId, ...peers])) : [context.userId];
     const { data: link } = await supabaseAdmin
       .from("advocate_client_links")
       .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,created_at,invitation_id")
-      .eq("advocate_user_id", context.userId)
+      .in("advocate_user_id", advocateIds)
       .eq("client_user_id", data.clientId)
+      .eq("status", "active")
       .maybeSingle();
     if (!link || link.status !== "active") throw new Error("No active access");
 

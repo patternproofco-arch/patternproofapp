@@ -4,6 +4,7 @@ import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib
 import JSZip from "jszip";
 import { createHash } from "crypto";
 import { z } from "zod";
+import { FIRM_INCLUDED_SEATS, FIRM_MAX_SEATS, SEAT_PRICE_LOOKUP_KEY } from "@/lib/workspace-seats";
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 type PortalResult = { url: string } | { error: string };
@@ -147,6 +148,60 @@ export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
         customer: customerId,
         payment_intent_data: { description: "PatternProof Professional Review — Pay What You Can" },
         metadata: { userId, tier: "court_ready_pwyc" },
+      } as Parameters<typeof stripe.checkout.sessions.create>[0]);
+      return { clientSecret: session.client_secret ?? "" };
+    } catch (error) {
+      return { error: getStripeErrorMessage(error) };
+    }
+  });
+
+/**
+ * Additional firm seats ($99/mo each, quantity-based). The Firm plan includes
+ * FIRM_INCLUDED_SEATS; anything beyond that is bought here, hard-capped at
+ * FIRM_MAX_SEATS people per firm workspace. This cap is unrelated to the
+ * Charter cohort cap in getCharterAvailability().
+ */
+export const createSeatCheckout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      extraSeats: z.number().int().min(1).max(FIRM_MAX_SEATS - FIRM_INCLUDED_SEATS),
+      returnUrl: z.string().url(),
+      environment: z.enum(["sandbox", "live"]),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }): Promise<CheckoutResult> => {
+    try {
+      const { userId, supabase } = context;
+      const { getFirmMembership } = await import("@/lib/workspace.server");
+      const membership = await getFirmMembership(userId);
+      if (!membership || membership.role !== "owner") {
+        return { error: "Only a firm workspace owner can buy seats." };
+      }
+      if (FIRM_INCLUDED_SEATS + data.extraSeats > FIRM_MAX_SEATS) {
+        return { error: `A firm workspace tops out at ${FIRM_MAX_SEATS} seats.` };
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      const email = user?.email ?? undefined;
+      const stripe = createStripeClient(data.environment as StripeEnv);
+      const prices = await stripe.prices.list({ lookup_keys: [SEAT_PRICE_LOOKUP_KEY] });
+      if (!prices.data.length) {
+        return {
+          error: `Seat billing isn't configured yet (missing Stripe price "${SEAT_PRICE_LOOKUP_KEY}"). No charge was made.`,
+        };
+      }
+      const customerId = await resolveOrCreateCustomer(stripe, { email, userId });
+      const session = await stripe.checkout.sessions.create({
+        line_items: [{ price: prices.data[0].id, quantity: data.extraSeats }],
+        mode: "subscription",
+        ui_mode: "embedded_page",
+        return_url: data.returnUrl,
+        customer: customerId,
+        metadata: { userId, firm_id: membership.firm_id, seat_addon: "true" },
+        subscription_data: {
+          metadata: { userId, firm_id: membership.firm_id, seat_addon: "true" },
+        },
       } as Parameters<typeof stripe.checkout.sessions.create>[0]);
       return { clientSecret: session.client_secret ?? "" };
     } catch (error) {

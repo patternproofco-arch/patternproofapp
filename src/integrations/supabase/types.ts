@@ -145,6 +145,7 @@ export type Database = {
           email: string
           full_name: string
           onboarded: boolean
+          org_id: string | null
           org_name: string | null
           updated_at: string
           user_id: string
@@ -154,6 +155,7 @@ export type Database = {
           email: string
           full_name: string
           onboarded?: boolean
+          org_id?: string | null
           org_name?: string | null
           updated_at?: string
           user_id: string
@@ -163,11 +165,20 @@ export type Database = {
           email?: string
           full_name?: string
           onboarded?: boolean
+          org_id?: string | null
           org_name?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "advocate_profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agent_messages: {
         Row: {
@@ -1336,6 +1347,30 @@ export type Database = {
         }
         Relationships: []
       }
+      dv_organizations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_relay_attempts: {
         Row: {
           created_at: string
@@ -1826,12 +1861,96 @@ export type Database = {
         }
         Relationships: []
       }
+      firm_member_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          firm_id: string
+          id: string
+          invite_token: string
+          invited_by: string
+          role: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          firm_id: string
+          id?: string
+          invite_token: string
+          invited_by: string
+          role?: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          firm_id?: string
+          id?: string
+          invite_token?: string
+          invited_by?: string
+          role?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "firm_member_invitations_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "firms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      firm_members: {
+        Row: {
+          firm_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          firm_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          firm_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "firm_members_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "firms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       firms: {
         Row: {
           created_at: string
           created_by: string
           id: string
           name: string
+          seats_included: number
+          seats_purchased: number
           updated_at: string
         }
         Insert: {
@@ -1839,6 +1958,8 @@ export type Database = {
           created_by: string
           id?: string
           name: string
+          seats_included?: number
+          seats_purchased?: number
           updated_at?: string
         }
         Update: {
@@ -1846,6 +1967,8 @@ export type Database = {
           created_by?: string
           id?: string
           name?: string
+          seats_included?: number
+          seats_purchased?: number
           updated_at?: string
         }
         Relationships: []
@@ -2379,6 +2502,88 @@ export type Database = {
             columns: ["grant_id"]
             isOneToOne: false
             referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_member_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invite_token: string
+          invited_by: string
+          org_id: string
+          role: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invite_token: string
+          invited_by: string
+          org_id: string
+          role?: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          invited_by?: string
+          org_id?: string
+          role?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_member_invitations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_members: {
+        Row: {
+          id: string
+          joined_at: string
+          org_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          org_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          org_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_members_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -3121,6 +3326,9 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      firm_peer_user_ids: { Args: never; Returns: string[] }
+      is_firm_owner: { Args: { _firm_id: string }; Returns: boolean }
+      is_org_owner: { Args: { _org_id: string }; Returns: boolean }
       list_my_oauth_consents: {
         Args: never
         Returns: {
@@ -3141,6 +3349,9 @@ export type Database = {
         }
         Returns: number
       }
+      my_firm_id: { Args: never; Returns: string }
+      my_org_id: { Args: never; Returns: string }
+      org_peer_user_ids: { Args: never; Returns: string[] }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {

@@ -1,6 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
+import { FIRM_INCLUDED_SEATS, FIRM_MAX_SEATS, SEAT_PRICE_LOOKUP_KEY } from "@/lib/workspace-seats";
+
+/**
+ * Seat add-on subscriptions adjust the firm workspace's purchased seat count.
+ * Total seats = seats included with the Firm plan + purchased add-on seats,
+ * never above FIRM_MAX_SEATS.
+ */
+async function syncFirmSeats(subscription: any, canceled = false) {
+  const firmId = subscription.metadata?.firm_id;
+  if (!firmId) return;
+  const item = subscription.items?.data?.[0];
+  const priceId = item?.price?.lookup_key
+    || item?.price?.metadata?.lovable_external_id
+    || item?.price?.id;
+  if (priceId !== SEAT_PRICE_LOOKUP_KEY && subscription.metadata?.seat_addon !== "true") return;
+  const active = !canceled && ["active", "trialing", "past_due"].includes(subscription.status);
+  const extra = active ? Number(item?.quantity ?? 0) : 0;
+  const seats = Math.max(
+    FIRM_INCLUDED_SEATS,
+    Math.min(FIRM_MAX_SEATS, FIRM_INCLUDED_SEATS + (Number.isFinite(extra) ? extra : 0)),
+  );
+  await getSupabase().from("firms").update({ seats_purchased: seats }).eq("id", firmId);
+}
 
 let _supabase: SupabaseClient | null = null;
 function getSupabase(): SupabaseClient {
@@ -62,6 +85,7 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
     },
     { onConflict: "stripe_subscription_id" },
   );
+  await syncFirmSeats(subscription);
 }
 
 async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
@@ -93,6 +117,7 @@ async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
     .update(update)
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+  await syncFirmSeats(subscription);
   if (["canceled", "unpaid", "incomplete_expired"].includes(subscription.status)) {
     await pauseAttorneyAccessIfApplicable(subscription);
   }
@@ -104,6 +129,7 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
     .update({ status: "canceled", updated_at: new Date().toISOString() })
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+  await syncFirmSeats(subscription, true);
   await pauseAttorneyAccessIfApplicable(subscription);
 }
 

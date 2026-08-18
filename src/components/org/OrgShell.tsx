@@ -8,7 +8,7 @@ import { quickExit } from "@/lib/quick-exit";
 
 export type OrgNavKey =
   | "home" | "shared" | "referrals" | "requests" | "consent"
-  | "follow-up" | "resources" | "reports" | "settings"
+  | "follow-up" | "resources" | "reports" | "team" | "settings"
   /** legacy alias kept so existing callers keep compiling */
   | "organization";
 
@@ -33,6 +33,7 @@ const NAV = [
   { key: "follow-up", label: "Follow-ups", to: "/org/follow-ups", icon: Clock },
   { key: "resources", label: "Resources", to: "/org/resources", icon: BookOpen },
   { key: "reports", label: "Reports", to: "/org/reports", icon: BarChart3 },
+  { key: "team", label: "Team", to: "/org/team", icon: Users },
   { key: "settings", label: "Organization", to: "/org/settings", icon: Settings },
 ] as const;
 
