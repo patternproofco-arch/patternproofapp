@@ -90,6 +90,7 @@ import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authe
 import { Route as AuthenticatedAttorneyBillingRouteImport } from './routes/_authenticated/attorney-billing'
 import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AttorneyTrustRouteImport } from './routes/_attorney/trust'
+import { Route as AttorneyTeamRouteImport } from './routes/_attorney/team'
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
 import { Route as AttorneySetupRouteImport } from './routes/_attorney/setup'
 import { Route as AttorneyConflictCheckRouteImport } from './routes/_attorney/conflict-check'
@@ -544,6 +545,11 @@ const AttorneyTrustRoute = AttorneyTrustRouteImport.update({
   path: '/trust',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AttorneyTeamRoute = AttorneyTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AttorneySubscribeRoute = AttorneySubscribeRouteImport.update({
   id: '/subscribe',
   path: '/subscribe',
@@ -774,6 +780,7 @@ export interface FileRoutesByFullPath {
   '/conflict-check': typeof AttorneyConflictCheckRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
+  '/team': typeof AttorneyTeamRoute
   '/trust': typeof AttorneyTrustRoute
   '/agent': typeof AuthenticatedAgentRouteWithChildren
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
@@ -887,6 +894,7 @@ export interface FileRoutesByTo {
   '/conflict-check': typeof AttorneyConflictCheckRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
+  '/team': typeof AttorneyTeamRoute
   '/trust': typeof AttorneyTrustRoute
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
   '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
@@ -1005,6 +1013,7 @@ export interface FileRoutesById {
   '/_attorney/conflict-check': typeof AttorneyConflictCheckRoute
   '/_attorney/setup': typeof AttorneySetupRoute
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
+  '/_attorney/team': typeof AttorneyTeamRoute
   '/_attorney/trust': typeof AttorneyTrustRoute
   '/_authenticated/agent': typeof AuthenticatedAgentRouteWithChildren
   '/_authenticated/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
@@ -1122,6 +1131,7 @@ export interface FileRouteTypes {
     | '/conflict-check'
     | '/setup'
     | '/subscribe'
+    | '/team'
     | '/trust'
     | '/agent'
     | '/attorney-billing'
@@ -1235,6 +1245,7 @@ export interface FileRouteTypes {
     | '/conflict-check'
     | '/setup'
     | '/subscribe'
+    | '/team'
     | '/trust'
     | '/attorney-billing'
     | '/attorney-portal'
@@ -1352,6 +1363,7 @@ export interface FileRouteTypes {
     | '/_attorney/conflict-check'
     | '/_attorney/setup'
     | '/_attorney/subscribe'
+    | '/_attorney/team'
     | '/_attorney/trust'
     | '/_authenticated/agent'
     | '/_authenticated/attorney-billing'
@@ -2052,6 +2064,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyTrustRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_attorney/team': {
+      id: '/_attorney/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AttorneyTeamRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/_attorney/subscribe': {
       id: '/_attorney/subscribe'
       path: '/subscribe'
@@ -2353,6 +2372,7 @@ interface AttorneyRouteChildren {
   AttorneyConflictCheckRoute: typeof AttorneyConflictCheckRoute
   AttorneySetupRoute: typeof AttorneySetupRoute
   AttorneySubscribeRoute: typeof AttorneySubscribeRoute
+  AttorneyTeamRoute: typeof AttorneyTeamRoute
   AttorneyTrustRoute: typeof AttorneyTrustRoute
 }
 
@@ -2365,6 +2385,7 @@ const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneyConflictCheckRoute: AttorneyConflictCheckRoute,
   AttorneySetupRoute: AttorneySetupRoute,
   AttorneySubscribeRoute: AttorneySubscribeRoute,
+  AttorneyTeamRoute: AttorneyTeamRoute,
   AttorneyTrustRoute: AttorneyTrustRoute,
 }
 
