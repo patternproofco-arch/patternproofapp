@@ -1,0 +1,12 @@
+/* Shared cross-portal component chrome (Phase 1 unified component system).
+   Only affects elements that opt in via these class names. */
+.pp-tile:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -20px rgba(20, 10, 40, 0.5); }
+.pp-tile:active { transform: translateY(0); }
+.pp-tile:focus-visible,
+.pp-shared-focus:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.pp-shared-tabbar { display: flex; }
+@media (min-width: 768px) { .pp-shared-tabbar { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .pp-tile { transition: none; }
+  .pp-tile:hover { transform: none; }
+}
