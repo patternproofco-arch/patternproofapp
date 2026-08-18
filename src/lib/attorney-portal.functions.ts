@@ -143,7 +143,26 @@ async function assertCaseAccess(userId: string, clientId: string): Promise<{
     ...(collabRows ?? []).map((r) => r.link_id),
     ...(grantRows ?? []).map((r) => r.client_link_id),
   ];
-  if (!candidateLinkIds.length) throw new Error("No active access");
+
+  // Firm workspace fallback: a colleague in the same firm can open the file.
+  if (!candidateLinkIds.length) {
+    const { firmPeerIds } = await import("@/lib/workspace.server");
+    const peers = (await firmPeerIds(userId)).filter((id) => id !== userId);
+    if (peers.length) {
+      const { data: firmLink } = await supabaseAdmin
+        .from("attorney_client_links")
+        .select("id,attorney_user_id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id")
+        .in("attorney_user_id", peers)
+        .eq("client_user_id", clientId)
+        .eq("status", "active")
+        .maybeSingle();
+      if (firmLink) {
+        await applyCaseScope(firmLink, clientId);
+        return { link: firmLink, role: "collaborator" };
+      }
+    }
+    throw new Error("No active access");
+  }
 
   const { data: link } = await supabaseAdmin
     .from("attorney_client_links")
@@ -341,7 +360,19 @@ export const listMyClients = createServerFn({ method: "GET" })
       .eq("attorney_user_id", context.userId)
       .is("revoked_at", null);
 
-    const [{ data: ownerLinks }, { data: collabRows }, { data: grantRows }] = await Promise.all([ownerQ, collabQ, grantQ]);
+    // Firm workspace: every colleague in the same firm sees the firm's clients.
+    const { firmPeerIds } = await import("@/lib/workspace.server");
+    const peers = (await firmPeerIds(context.userId)).filter((id) => id !== context.userId);
+    const firmQ = peers.length
+      ? supabaseAdmin
+          .from("attorney_client_links")
+          .select("id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id")
+          .in("attorney_user_id", peers)
+          .eq("status", "active")
+      : Promise.resolve({ data: [] as NonNullable<Awaited<typeof ownerQ>["data"]> });
+
+    const [{ data: ownerLinks }, { data: collabRows }, { data: grantRows }, { data: firmLinks }] =
+      await Promise.all([ownerQ, collabQ, grantQ, firmQ]);
     const sharedLinkIds = Array.from(new Set([
       ...(collabRows ?? []).map((r) => r.link_id),
       ...(grantRows ?? []).map((r) => r.client_link_id),
@@ -357,7 +388,7 @@ export const listMyClients = createServerFn({ method: "GET" })
       collabLinks = data ?? [];
     }
     const linksMap = new Map<string, NonNullable<typeof ownerLinks>[number]>();
-    for (const l of (ownerLinks ?? []).concat(collabLinks ?? [])) linksMap.set(l.id, l);
+    for (const l of (ownerLinks ?? []).concat(collabLinks ?? [], (firmLinks ?? []) as typeof collabLinks)) linksMap.set(l.id, l);
     const ownerSet = new Set((ownerLinks ?? []).map((l) => l.id));
     const links = Array.from(linksMap.values()).sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
