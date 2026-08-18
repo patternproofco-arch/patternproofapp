@@ -23,7 +23,6 @@ import { Route as RequestOrgAccessRouteImport } from './routes/request-org-acces
 import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as OrgPortalRouteImport } from './routes/org-portal'
 import { Route as OrgFeedbackRouteImport } from './routes/org-feedback'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
@@ -99,6 +98,7 @@ import { Route as AttorneyCaseloadRouteImport } from './routes/_attorney/caseloa
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
 import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
 import { Route as AttorneyAttorneyFeedbackRouteImport } from './routes/_attorney/attorney-feedback'
+import { Route as AdvocateOrgPortalRouteImport } from './routes/_advocate/org-portal'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
@@ -194,11 +194,6 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrgPortalRoute = OrgPortalRouteImport.update({
-  id: '/org-portal',
-  path: '/org-portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrgFeedbackRoute = OrgFeedbackRouteImport.update({
@@ -590,6 +585,11 @@ const AttorneyAttorneyFeedbackRoute =
     path: '/attorney-feedback',
     getParentRoute: () => AttorneyRoute,
   } as any)
+const AdvocateOrgPortalRoute = AdvocateOrgPortalRouteImport.update({
+  id: '/org-portal',
+  path: '/org-portal',
+  getParentRoute: () => AdvocateRoute,
+} as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
   Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
     id: '/.well-known/oauth-protected-resource',
@@ -749,7 +749,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
   '/org-feedback': typeof OrgFeedbackRoute
-  '/org-portal': typeof OrgPortalRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
@@ -766,6 +765,7 @@ export interface FileRoutesByFullPath {
   '/waitlist': typeof WaitlistRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/org-portal': typeof AdvocateOrgPortalRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
@@ -863,7 +863,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
   '/org-feedback': typeof OrgFeedbackRoute
-  '/org-portal': typeof OrgPortalRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
@@ -880,6 +879,7 @@ export interface FileRoutesByTo {
   '/waitlist': typeof WaitlistRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/org-portal': typeof AdvocateOrgPortalRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
@@ -980,7 +980,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
   '/org-feedback': typeof OrgFeedbackRoute
-  '/org-portal': typeof OrgPortalRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
@@ -997,6 +996,7 @@ export interface FileRoutesById {
   '/waitlist': typeof WaitlistRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/_advocate/org-portal': typeof AdvocateOrgPortalRoute
   '/_attorney/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/_attorney/billing': typeof AttorneyBillingRoute
   '/_attorney/billing-return': typeof AttorneyBillingReturnRoute
@@ -1097,7 +1097,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/mcp'
     | '/org-feedback'
-    | '/org-portal'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
@@ -1114,6 +1113,7 @@ export interface FileRouteTypes {
     | '/waitlist'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/org-portal'
     | '/attorney-feedback'
     | '/billing'
     | '/billing-return'
@@ -1211,7 +1211,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/mcp'
     | '/org-feedback'
-    | '/org-portal'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
@@ -1228,6 +1227,7 @@ export interface FileRouteTypes {
     | '/waitlist'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/org-portal'
     | '/attorney-feedback'
     | '/billing'
     | '/billing-return'
@@ -1327,7 +1327,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/mcp'
     | '/org-feedback'
-    | '/org-portal'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
@@ -1344,6 +1343,7 @@ export interface FileRouteTypes {
     | '/waitlist'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/_advocate/org-portal'
     | '/_attorney/attorney-feedback'
     | '/_attorney/billing'
     | '/_attorney/billing-return'
@@ -1446,7 +1446,6 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
   OrgFeedbackRoute: typeof OrgFeedbackRoute
-  OrgPortalRoute: typeof OrgPortalRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
@@ -1582,13 +1581,6 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/org-portal': {
-      id: '/org-portal'
-      path: '/org-portal'
-      fullPath: '/org-portal'
-      preLoaderRoute: typeof OrgPortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/org-feedback': {
@@ -2116,6 +2108,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyAttorneyFeedbackRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_advocate/org-portal': {
+      id: '/_advocate/org-portal'
+      path: '/org-portal'
+      fullPath: '/org-portal'
+      preLoaderRoute: typeof AdvocateOrgPortalRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -2302,6 +2301,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdvocateRouteChildren {
+  AdvocateOrgPortalRoute: typeof AdvocateOrgPortalRoute
   AdvocateAdvocateCasesClientIdRoute: typeof AdvocateAdvocateCasesClientIdRoute
   AdvocateOrgConsentRoute: typeof AdvocateOrgConsentRoute
   AdvocateOrgFollowUpsRoute: typeof AdvocateOrgFollowUpsRoute
@@ -2314,6 +2314,7 @@ interface AdvocateRouteChildren {
 }
 
 const AdvocateRouteChildren: AdvocateRouteChildren = {
+  AdvocateOrgPortalRoute: AdvocateOrgPortalRoute,
   AdvocateAdvocateCasesClientIdRoute: AdvocateAdvocateCasesClientIdRoute,
   AdvocateOrgConsentRoute: AdvocateOrgConsentRoute,
   AdvocateOrgFollowUpsRoute: AdvocateOrgFollowUpsRoute,
@@ -2502,7 +2503,6 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
   OrgFeedbackRoute: OrgFeedbackRoute,
-  OrgPortalRoute: OrgPortalRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProfessionalAccessRoute: ProfessionalAccessRoute,

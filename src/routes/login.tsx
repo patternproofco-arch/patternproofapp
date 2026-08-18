@@ -37,7 +37,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const homeForRole = (r: { role: string; is_org_partner?: boolean }) => {
     if (r.role === "attorney") return "/clients";
-    if (r.role === "advocate") return r.is_org_partner ? "/org-portal" : "/advocate-cases";
+    if (r.role === "advocate") return "/org-portal";
     return "/dashboard";
   };
   const { user, loading } = useAuth();
