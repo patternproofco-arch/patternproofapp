@@ -14,12 +14,14 @@ export function useFocusMode() {
 }
 
 /**
- * Softly dims everything except the region she's working in.
+ * Softly dims everything except the region being worked in.
+ * Survivor portal: a calm mode. Attorney/advocate portals: a document-review /
+ * triage concentration mode — same component, same behavior, portal accent.
  * Mounted at the shell level around page content only — Quick Exit, the
  * bottom tab bar and any other persistent safety chrome live outside this
  * provider and are never dimmed, blurred or covered.
  */
-export function FocusModeProvider({ children }: { children: ReactNode }) {
+export function FocusModeProvider({ children, accentColor = "#1A1224" }: { children: ReactNode; accentColor?: string }) {
   const [focusId, setFocusId] = useState<string | null>(null);
 
   const focus = useCallback((id: string) => setFocusId(id), []);
@@ -54,7 +56,7 @@ export function FocusModeProvider({ children }: { children: ReactNode }) {
               borderRadius: 999,
               padding: "6px 14px",
               fontSize: 12.5,
-              color: "#1A1224",
+              color: accentColor,
             }}
           >
             Show everything

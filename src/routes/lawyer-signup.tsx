@@ -86,7 +86,7 @@ function LawyerSignup() {
     <div className="flex min-h-screen items-center justify-center px-5 py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <BrandMark size={72} />
+          <BrandMark size={72} variant="attorney" />
           <div className="font-serif text-[28px] font-bold mt-3">Attorney portal</div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             A source-linked chronology instead of a folder of screenshots.

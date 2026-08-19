@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyAdvocateRole } from "@/lib/advocate.functions";
 import { AccessDisclaimerBar } from "@/components/AccessDisclaimer";
 import { BrandMark } from "@/components/BrandMark";
+import { FocusModeProvider } from "@/components/survivor/focus-mode";
 
 export const Route = createFileRoute("/_advocate")({
   head: () => ({
@@ -54,7 +55,7 @@ function AdvocateLayout() {
         }}
       >
         <Link to="/advocate-cases" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "inherit" }}>
-          <BrandMark size={22} />
+          <BrandMark size={22} variant="advocate" />
           <span style={{ fontWeight: 700, fontSize: 14 }}>PatternProof</span>
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Advocate access</span>
         </Link>
@@ -72,7 +73,9 @@ function AdvocateLayout() {
       </header>
       <AccessDisclaimerBar persona="org" />
       <main style={{ maxWidth: 1000, margin: "0 auto", padding: "28px 20px 64px" }}>
-        <Outlet />
+        <FocusModeProvider accentColor="#244C37">
+          <Outlet />
+        </FocusModeProvider>
       </main>
     </div>
   );

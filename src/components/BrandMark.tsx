@@ -1,3 +1,6 @@
+import { portalTheme } from "@/components/shared/portal-theme";
+import type { PortalVariant } from "@/components/shared/portal-theme";
+
 export const OXBLOOD = "#4132B4";
 export const OXBLOOD_DEEP = "#33268C";
 export const PURPLE = "#196CD4";
@@ -9,28 +12,57 @@ export const PAPER = "#FAF8F4";
 export const DISPLAY = "'Fraunces', Georgia, serif";
 export const UI = "'Space Grotesk', system-ui, sans-serif";
 
-const RADII = [14, 27, 40, 53, 66, 79, 92];
+export type MarkVariant = PortalVariant | "neutral";
+
+/**
+ * ONE canonical cube geometry, defined once and shared by every variant and
+ * every call site. Never duplicate or re-derive these points per variant —
+ * that is how per-audience icon sets drift out of alignment.
+ */
+export const CUBE_VIEWBOX = "0 0 200 200";
+const T = "100,28";
+const L = "38,64";
+const R = "162,64";
+const C = "100,100";
+const BL = "38,136";
+const BR = "162,136";
+const B = "100,172";
+export const CUBE_FACETS = {
+  top: `${T} ${R} ${C} ${L}`,
+  right: `${C} ${R} ${BR} ${B}`,
+  left: `${L} ${C} ${B} ${BL}`,
+} as const;
+
+/**
+ * Facet colors are derived from the single source of portal color
+ * (`portalTheme`) — the mark cannot drift out of sync with the UI.
+ * top = gradientFrom, right = gradientTo, left/shadow = the theme's deep accent.
+ */
+export function cubeFacets(variant: MarkVariant = "neutral") {
+  const theme = portalTheme(variant === "neutral" ? "survivor" : variant);
+  return { top: theme.gradientFrom, right: theme.gradientTo, left: theme.accent };
+}
 
 interface BrandMarkProps {
   /** Rendered height in px. */
   size?: number;
-  /** Dark surface — rings switch to bright red / lavender and screen blending. */
+  /** Portal audience. "neutral" (default) renders the survivor cube. */
+  variant?: MarkVariant;
+  /** Dark surface — seams switch to the page ink instead of paper. */
   onDark?: boolean;
   className?: string;
 }
 
 /**
- * The PatternProof mark: two offset concentric-ring systems whose overlap
- * produces a moiré interference pattern — the pattern only appears when the
- * two records are laid over each other.
+ * The PatternProof mark: an isometric cube — the same record seen from three
+ * faces at once. One geometry, three portal colorways.
  */
-export function BrandMark({ size = 40, onDark = false, className }: BrandMarkProps) {
-  const left = onDark ? RED_BRIGHT : OXBLOOD;
-  const right = onDark ? LAV : PURPLE;
-  const blend = onDark ? "screen" : "multiply";
+export function BrandMark({ size = 40, variant = "neutral", onDark = false, className }: BrandMarkProps) {
+  const f = cubeFacets(variant);
+  const seam = onDark ? INK : PAPER;
   return (
     <svg
-      viewBox="0 0 200 200"
+      viewBox={CUBE_VIEWBOX}
       width={size}
       height={size}
       role="img"
@@ -38,17 +70,10 @@ export function BrandMark({ size = 40, onDark = false, className }: BrandMarkPro
       className={className}
       style={{ display: "block", overflow: "hidden" }}
     >
-      <g style={{ mixBlendMode: blend as React.CSSProperties["mixBlendMode"] }}>
-        <g stroke={left} strokeWidth={2} fill="none">
-          {RADII.map((r) => (
-            <circle key={`l${r}`} cx={88} cy={100} r={r} />
-          ))}
-        </g>
-        <g stroke={right} strokeWidth={2} fill="none">
-          {RADII.map((r) => (
-            <circle key={`r${r}`} cx={112} cy={100} r={r} />
-          ))}
-        </g>
+      <g stroke={seam} strokeWidth={3} strokeLinejoin="round">
+        <polygon points={CUBE_FACETS.left} fill={f.left} />
+        <polygon points={CUBE_FACETS.right} fill={f.right} />
+        <polygon points={CUBE_FACETS.top} fill={f.top} />
       </g>
     </svg>
   );

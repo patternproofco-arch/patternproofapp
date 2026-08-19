@@ -184,7 +184,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
     <div data-persona="org" style={{ minHeight: "100vh", background: "#FAF8F4", color: "var(--foreground)" }}>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px", borderBottom: "1px solid var(--border)", background: "#FFFFFF" }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <BrandMark size={22} />
+          <BrandMark size={22} variant="advocate" />
           <span style={{ fontWeight: 700, fontSize: 14 }}>PatternProof</span>
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Partner</span>
         </span>

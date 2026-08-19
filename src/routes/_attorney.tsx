@@ -6,9 +6,11 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, getAttorneyProfile } from "@/lib/attorney-portal.functions";
+import { getClioAvailability, getClioStatus } from "@/lib/clio.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
 import { BrandMark } from "@/components/BrandMark";
+import { FocusModeProvider } from "@/components/survivor/focus-mode";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -141,7 +143,9 @@ function AttorneyLayout() {
         <LegalDisclaimerBar />
         <AttorneyBreadcrumb />
         <main className="att-content">
-          <Outlet />
+          <FocusModeProvider accentColor="#022063">
+            <Outlet />
+          </FocusModeProvider>
         </main>
         <footer className="att-footer">
         <span>PatternProof</span>
@@ -152,7 +156,7 @@ function AttorneyLayout() {
         <span>·</span>
         <span>Session logged · {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
         <span>·</span>
-        <span>Case opens, downloads & exports recorded</span>
+        <span>Matter opens, downloads & exports recorded</span>
         <span>·</span>
         <span>
           PatternProof organises the client&apos;s own records. It does not draw legal conclusions
@@ -191,7 +195,7 @@ function AttorneySidebar() {
   return (
     <aside className="att-sidebar">
       <Link to="/clients" className="att-sidebar-brand">
-        <BrandMark size={26} />
+        <BrandMark size={26} variant="attorney" />
         <span>PatternProof</span>
       </Link>
       <div className="att-sidebar-section">Practice</div>
@@ -205,9 +209,57 @@ function AttorneySidebar() {
         </Link>
       ))}
       <div className="att-sidebar-foot">
+        <ClioStatusChip />
         <span className="att-eyebrow">Attorney portal</span>
       </div>
     </aside>
+  );
+}
+
+/**
+ * Explicit, honest integration status. Clio is unverified beta and may be
+ * unavailable — say so plainly rather than showing a silently dead control.
+ */
+function ClioStatusChip() {
+  const statusFn = useServerFn(getClioStatus);
+  const availabilityFn = useServerFn(getClioAvailability);
+  const [label, setLabel] = useState("Clio · checking…");
+  const [tone, setTone] = useState<"on" | "off">("off");
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([availabilityFn({}), statusFn({})])
+      .then(([avail, status]) => {
+        if (cancelled) return;
+        const connected = Boolean((status as { connected?: boolean } | null)?.connected);
+        const available = Boolean((avail as { available?: boolean } | null)?.available);
+        setTone(connected ? "on" : "off");
+        setLabel(connected ? "Clio · connected (beta)" : available ? "Clio · not connected (beta)" : "Clio · unavailable (beta)");
+      })
+      .catch(() => { if (!cancelled) setLabel("Clio · not connected (beta)"); });
+    return () => { cancelled = true; };
+  }, [statusFn, availabilityFn]);
+
+  return (
+    <Link
+      to="/billing"
+      hash="clio"
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10,
+        fontSize: 11, letterSpacing: "0.02em", color: "inherit", textDecoration: "none",
+      }}
+      title="Clio Manage integration is an unverified beta"
+    >
+      <span
+        aria-hidden
+        style={{
+          width: 7, height: 7, borderRadius: 999,
+          background: tone === "on" ? "#5F8B67" : "rgba(255,255,255,0.45)",
+          outline: tone === "on" ? "none" : "1px solid rgba(255,255,255,0.45)",
+        }}
+      />
+      {label}
+    </Link>
   );
 }
 
@@ -220,7 +272,7 @@ function AttorneyTopBar({ firmName }: { firmName: string | null }) {
     <div className="att-topbar">
       <div className="att-topbar-firm">
         <span>{firmName ?? "Your firm"}</span>
-        {caseId && <span className="att-mono">Case {caseId}</span>}
+        {caseId && <span className="att-mono">Matter {caseId}</span>}
       </div>
       <button
         onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/lawyer-signup" }); }}
@@ -282,8 +334,8 @@ function SecurityBannerInner() {
     <div className="att-security-banner">
       <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
         <Lock size={12} />
-        This session is encrypted in transit. Case ID: <span className="att-mono">{caseId}</span>.
-        Case opens, evidence downloads, and packet exports are recorded.
+        This session is encrypted in transit. Matter ID: <span className="att-mono">{caseId}</span>.
+        Matter opens, evidence downloads, and packet exports are recorded.
       </span>
       <button
         onClick={() => { sessionStorage.setItem("att-security-dismissed", "1"); setDismissed(true); }}
