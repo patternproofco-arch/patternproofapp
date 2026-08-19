@@ -38,7 +38,32 @@ export function FocusModeProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({ focusId, focus, clear }), [focusId, focus, clear]);
 
-  return <FocusModeContext.Provider value={value}>{children}</FocusModeContext.Provider>;
+  return (
+    <FocusModeContext.Provider value={value}>
+      {focusId ? (
+        <div
+          className="no-print"
+          style={{ position: "sticky", top: 8, zIndex: 5, display: "flex", justifyContent: "flex-end", padding: "0 20px" }}
+        >
+          <button
+            type="button"
+            onClick={clear}
+            style={{
+              border: "1px solid rgba(26,18,36,0.16)",
+              background: "rgba(255,255,255,0.92)",
+              borderRadius: 999,
+              padding: "6px 14px",
+              fontSize: 12.5,
+              color: "#1A1224",
+            }}
+          >
+            Show everything
+          </button>
+        </div>
+      ) : null}
+      {children}
+    </FocusModeContext.Provider>
+  );
 }
 
 interface FocusRegionProps {
