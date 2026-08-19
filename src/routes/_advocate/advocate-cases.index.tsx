@@ -6,6 +6,7 @@ import { listAdvocateClients } from "@/lib/advocate.functions";
 import { PortalStatHero } from "@/components/shared/PortalStatHero";
 import { RecentActivityList, type ActivityRow } from "@/components/shared/RecentActivityList";
 import { portalTheme } from "@/components/shared/portal-theme";
+import { FocusRegion } from "@/components/survivor/focus-mode";
 
 export const Route = createFileRoute("/_advocate/advocate-cases/")({
   component: AdvocateCases,
@@ -57,19 +58,22 @@ function AdvocateCases() {
         message="Read-only. Access is given by the survivor and can be withdrawn by her at any time."
       />
 
-      <RecentActivityList
-        variant="advocate"
-        title="Needs follow-up"
-        rows={followUp}
-        emptyMessage="Nothing here yet — a case will appear once someone shares one with you."
-      />
+      <FocusRegion id="advocate-followup">
+        <RecentActivityList
+          variant="advocate"
+          title="Needs follow-up"
+          rows={followUp}
+          emptyMessage="Nothing here yet — a case will appear once someone shares one with you."
+        />
+      </FocusRegion>
 
       {closed.length > 0 ? (
-        <RecentActivityList variant="advocate" title="No longer shared" rows={closed} />
+        <FocusRegion id="advocate-closed">
+          <RecentActivityList variant="advocate" title="No longer shared" rows={closed} />
+        </FocusRegion>
       ) : null}
 
       <p style={{ margin: 0, fontSize: 12, color: t.muted }}>
-        Opening a case shows only what the survivor chose to share.{" "}
         <Link to="/advocate-cases" style={{ color: t.accent }}>
           Refresh your list
         </Link>{" "}

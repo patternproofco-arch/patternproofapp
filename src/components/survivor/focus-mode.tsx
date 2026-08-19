@@ -14,7 +14,9 @@ export function useFocusMode() {
 }
 
 /**
- * Softly dims everything except the region she's working in.
+ * Softly dims everything except the region being worked in.
+ * Survivor portal: a calm mode. Attorney/advocate portals: a document-review /
+ * triage concentration mode — same component, same behavior, portal accent.
  * Mounted at the shell level around page content only — Quick Exit, the
  * bottom tab bar and any other persistent safety chrome live outside this
  * provider and are never dimmed, blurred or covered.
