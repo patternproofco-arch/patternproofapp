@@ -98,7 +98,7 @@ function ClientCaseView() {
       </div>
     );
   }
-  if (!data) return <div className="att-card">Loading case file…</div>;
+  if (!data) return <div className="att-card">Loading matter file…</div>;
 
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
   const densityColor: Record<string, string> = {
@@ -112,7 +112,7 @@ function ClientCaseView() {
       </Link>
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginTop: 12 }}>
         <div>
-          <div className="att-eyebrow">Case File</div>
+          <div className="att-eyebrow">Matter File</div>
           <h1 className="att-page-title">Client {clientId.slice(0, 8)}</h1>
           <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
             <span className="att-mono">{caseId}</span>
@@ -133,13 +133,13 @@ function ClientCaseView() {
         {data.documentation_density_note}
       </p>
 
-      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", marginTop: 18 }}>
+      <FocusRegion id="matter-summary" style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", marginTop: 18 }}>
         <Metric label="Incidents" v={data.incidents.length} />
         <Metric label="Evidence" v={data.evidence.length} />
         <Metric label="Last 30 days" v={data.last_30_days} />
         <Metric label="Avg severity" v={data.avg_severity.toFixed(1)} />
         <Metric label="Active flags" v={data.flags.filter((f) => !f.dismissed_at).length} />
-      </div>
+      </FocusRegion>
 
       <nav style={{ display: "flex", flexWrap: "wrap", gap: 2, borderBottom: "1px solid var(--att-border)", marginTop: 28 }}>
         {TABS.map((t) => (
@@ -158,7 +158,7 @@ function ClientCaseView() {
         ))}
       </nav>
 
-      <div style={{ marginTop: 20 }}>
+      <FocusRegion id="matter-panel" style={{ marginTop: 20 }}>
         {tab === "Dashboard" && <Dashboard data={data} clientId={clientId} />}
         {tab === "Intake" && <IntakeTab data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
@@ -172,7 +172,7 @@ function ClientCaseView() {
         {tab === "Time" && <TimeTab clientId={clientId} />}
         {tab === "Deposition" && <DepoTab depo={depo} loading={depoLoading} onRun={runDepo} />}
         {tab === "Export" && <ExportTab data={data} caseId={caseId} />}
-      </div>
+      </FocusRegion>
     </div>
   );
 }
