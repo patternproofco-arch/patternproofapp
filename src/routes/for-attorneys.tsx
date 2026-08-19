@@ -152,46 +152,30 @@ function ForAttorneys() {
           </p>
         </div>
 
-        <div style={{ marginTop: 32, display: "flex", gap: 14, flexWrap: "wrap" }}>
-          <Link
-            to="/sample-case"
-            style={{
-              display: "inline-block", background: NAVY, color: "#F4F6FB",
-              padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
-              textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
-            }}
-          >
-            See a sample case →
-          </Link>
-          <Link
-            to="/subscribe"
-            style={{
-              display: "inline-block", background: "transparent", color: INK,
-              padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
-              textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
-              border: `1px solid ${INK}`,
-            }}
-          >
-            Create your attorney account →
-          </Link>
-        </div>
       </section>
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
         <SectionRule label="Pricing" />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
+        <div style={{ display: "grid", gap: 12, maxWidth: 720 }}>
           {attorneyTiers.map((t) => (
-            <PriceCard
+            <div
               key={t.key}
-              name={t.name}
-              price={t.price}
-              strike={t.priceStrike}
-              per={t.sub}
-              note={t.eyebrowNote}
-              highlight={t.featured}
-              bullets={t.features}
-            />
+              style={{
+                display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
+                borderTop: `1px solid ${RULE}`, paddingTop: 12,
+              }}
+            >
+              <span style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 20, color: INK }}>{t.name}</span>
+              <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: MUTED, textTransform: "uppercase" }}>
+                {t.price} {t.sub}
+              </span>
+            </div>
           ))}
+        </div>
+        <div style={{ marginTop: 18 }}>
+          <Link to="/pricing" style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
+            Full pricing details →
+          </Link>
         </div>
         <div style={{ marginTop: 32 }}>
           <Link to="/subscribe"
@@ -280,39 +264,6 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
           <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: INK }}>{after}</div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function PriceCard({ name, price, strike, per, bullets, note, highlight }: { name: string; price: string; strike?: string; per: string; bullets: string[]; note?: string; highlight?: boolean }) {
-  return (
-    <div
-      style={{
-        background: PAPER,
-        border: `1px solid ${highlight ? NAVY : "rgba(26,18,36,0.18)"}`,
-        borderLeft: `3px solid ${highlight ? NAVY : "rgba(26,18,36,0.35)"}`,
-        padding: "24px",
-        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
-      }}
-    >
-      <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.16em", color: highlight ? NAVY : MUTED, textTransform: "uppercase" }}>{name}</div>
-      <div style={{ fontFamily: SERIF, fontSize: 40, marginTop: 6, color: INK }}>
-        {strike ? (
-          <span style={{ fontFamily: MONO, fontSize: 16, color: MUTED, marginRight: 8, textDecoration: "line-through" }}>{strike}</span>
-        ) : null}
-        {price}<span style={{ fontFamily: MONO, fontSize: 12, color: MUTED, marginLeft: 6, letterSpacing: "0.06em" }}>{per}</span>
-      </div>
-      {note ? (
-        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", color: NAVY, marginTop: 4 }}>{note}</div>
-      ) : null}
-      <ul style={{ listStyle: "none", padding: 0, marginTop: 14, display: "grid", gap: 8 }}>
-        {bullets.map((b) => (
-          <li key={b} style={{ display: "grid", gridTemplateColumns: "16px 1fr", gap: 8, fontSize: 13, lineHeight: 1.5, color: INK }}>
-            <span style={{ fontFamily: MONO, color: MUTED }}>·</span>
-            <span>{b}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
