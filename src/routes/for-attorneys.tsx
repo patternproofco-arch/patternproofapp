@@ -267,36 +267,3 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
     </div>
   );
 }
-
-function PriceCard({ name, price, strike, per, bullets, note, highlight }: { name: string; price: string; strike?: string; per: string; bullets: string[]; note?: string; highlight?: boolean }) {
-  return (
-    <div
-      style={{
-        background: PAPER,
-        border: `1px solid ${highlight ? NAVY : "rgba(26,18,36,0.18)"}`,
-        borderLeft: `3px solid ${highlight ? NAVY : "rgba(26,18,36,0.35)"}`,
-        padding: "24px",
-        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
-      }}
-    >
-      <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.16em", color: highlight ? NAVY : MUTED, textTransform: "uppercase" }}>{name}</div>
-      <div style={{ fontFamily: SERIF, fontSize: 40, marginTop: 6, color: INK }}>
-        {strike ? (
-          <span style={{ fontFamily: MONO, fontSize: 16, color: MUTED, marginRight: 8, textDecoration: "line-through" }}>{strike}</span>
-        ) : null}
-        {price}<span style={{ fontFamily: MONO, fontSize: 12, color: MUTED, marginLeft: 6, letterSpacing: "0.06em" }}>{per}</span>
-      </div>
-      {note ? (
-        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", color: NAVY, marginTop: 4 }}>{note}</div>
-      ) : null}
-      <ul style={{ listStyle: "none", padding: 0, marginTop: 14, display: "grid", gap: 8 }}>
-        {bullets.map((b) => (
-          <li key={b} style={{ display: "grid", gridTemplateColumns: "16px 1fr", gap: 8, fontSize: 13, lineHeight: 1.5, color: INK }}>
-            <span style={{ fontFamily: MONO, color: MUTED }}>·</span>
-            <span>{b}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
