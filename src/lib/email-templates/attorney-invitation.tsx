@@ -96,13 +96,13 @@ export const template = {
 
 const main = { backgroundColor: '#ffffff', fontFamily: '"Space Grotesk", Helvetica, Arial, sans-serif' }
 const container = { padding: '28px 26px', maxWidth: '560px' }
-const eyebrow = { fontFamily: '"Space Grotesk", monospace', fontSize: '11px', letterSpacing: '0.08em', color: '#7A1F3D', margin: '0 0 10px' }
+const eyebrow = { fontFamily: '"Space Grotesk", monospace', fontSize: '11px', letterSpacing: '0.08em', color: '#4132B4', margin: '0 0 10px' }
 const h1 = { fontSize: '22px', lineHeight: '1.3', color: '#1A1224', margin: '0 0 14px' }
 const p = { fontSize: '15px', lineHeight: '1.6', color: '#2A2735', margin: '0 0 12px' }
-const note = { background: '#FAF8F4', borderLeft: '3px solid #7A1F3D', borderRadius: '4px', padding: '14px 16px', margin: '18px 0' }
+const note = { background: '#FAF8F4', borderLeft: '3px solid #4132B4', borderRadius: '4px', padding: '14px 16px', margin: '18px 0' }
 const noteLabel = { fontFamily: '"Space Grotesk", monospace', fontSize: '11px', color: '#6B6779', margin: '0 0 6px', letterSpacing: '0.06em' }
 const noteBody = { fontSize: '14px', lineHeight: '1.6', color: '#2A2735', margin: 0 }
-const button = { background: '#4A2A6B', color: '#ffffff', padding: '12px 20px', borderRadius: '6px', fontSize: '15px', textDecoration: 'none', display: 'inline-block' }
+const button = { background: '#022063', color: '#ffffff', padding: '12px 20px', borderRadius: '6px', fontSize: '15px', textDecoration: 'none', display: 'inline-block' }
 const small = { fontSize: '12px', lineHeight: '1.6', color: '#6B6779', margin: '0 0 8px' }
-const mono = { fontFamily: '"Space Grotesk", monospace', wordBreak: 'break-all' as const, color: '#4A2A6B' }
+const mono = { fontFamily: '"Space Grotesk", monospace', wordBreak: 'break-all' as const, color: '#022063' }
 const hr = { borderColor: '#E4E0D8', margin: '20px 0' }

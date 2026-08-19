@@ -49,7 +49,7 @@ export const template = {
 
 const main = { backgroundColor: '#ffffff', fontFamily: "'Space Grotesk', Arial, sans-serif" }
 const container = { padding: '24px 28px', maxWidth: '560px' }
-const eyebrow = { fontSize: '11px', letterSpacing: '0.18em', color: '#7A1F3D', fontWeight: 700 as const, margin: '0 0 8px' }
+const eyebrow = { fontSize: '11px', letterSpacing: '0.18em', color: '#4132B4', fontWeight: 700 as const, margin: '0 0 8px' }
 const h1 = { fontSize: '22px', color: '#1A1224', margin: '0 0 16px' }
 const meta = { background: '#FAF8F4', borderRadius: '10px', padding: '12px 14px', margin: '0 0 16px' }
 const row = { fontSize: '13px', color: '#1A1224', margin: '2px 0' }

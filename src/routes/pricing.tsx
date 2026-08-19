@@ -131,7 +131,7 @@ function PricingPage() {
                 width: 6,
                 height: 6,
                 borderRadius: 2,
-                background: "#5E1730",
+                background: "#33268C",
               }}
             />
             Simple, transparent pricing
@@ -149,7 +149,7 @@ function PricingPage() {
             <br />
             <span
               style={{
-                background: "#7A1F3D",
+                background: "#4132B4",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -254,7 +254,7 @@ function TierCard({ tier }: { tier: Tier }) {
   const isOrg = tier.key === "organization";
 
   const cardBg = isAttorney
-    ? "#4A2A6B"
+    ? "#022063"
     : isOrg
       ? "#FFFFFF"
       : "#FFFFFF";
@@ -273,14 +273,14 @@ function TierCard({ tier }: { tier: Tier }) {
 
   const textColor = isAttorney ? "#FFFFFF" : isOrg ? "#1F2D1A" : "#1A1224";
   const mutedColor = isAttorney ? "rgba(226,232,240,0.78)" : isOrg ? "#36422F" : "#6E6579";
-  const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#7A1F3D";
-  const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#7A1F3D";
+  const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#4132B4";
+  const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#4132B4";
 
   const ctaBg = isAttorney
     ? "#FFFFFF"
     : isOrg
-      ? "#5E3785"
-      : "#7A1F3D";
+      ? "#1552A3"
+      : "#4132B4";
   const ctaColor = isAttorney ? "#0F1B3D" : "#FFFFFF";
 
   return (
@@ -303,7 +303,7 @@ function TierCard({ tier }: { tier: Tier }) {
             top: -12,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "#4A2A6B",
+            background: "#022063",
             color: "#FAF8F4",
             padding: "6px 16px",
             borderRadius: 2,

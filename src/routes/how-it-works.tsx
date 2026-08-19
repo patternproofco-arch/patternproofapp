@@ -12,7 +12,7 @@ const PAPER = "#FAF8F4";
 const MUTED = "#6B6A78";
 const SUBTEXT = "#3A3849";
 const RULE = "rgba(26,18,36,0.14)";
-const NAVY = "#4A2A6B";
+const NAVY = "#022063";
 const SAGE = "#3F5A48";
 
 const SERIF = "'Fraunces', Georgia, serif";

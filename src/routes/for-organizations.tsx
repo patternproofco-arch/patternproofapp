@@ -9,8 +9,8 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 const INK = "#1A1224";
 const PAPER = "#FAF8F4";
-const SAGE = "#5E3785";
-const SAGE_DEEP = "#2E4A38";
+const SAGE = "#2F4E34";
+const SAGE_DEEP = "#2F4E34";
 const MUTED = "#6B6A78";
 const RULE = "rgba(26,18,36,0.14)";
 

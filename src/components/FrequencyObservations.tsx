@@ -98,8 +98,8 @@ const AI_SURFACE = {
 function ObsHeader() {
   return (
     <div className="flex items-center gap-2">
-      <BarChart3 size={15} style={{ color: "#7A1F3D" }} />
-      <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#7A1F3D" }}>
+      <BarChart3 size={15} style={{ color: "#4132B4" }} />
+      <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#4132B4" }}>
         Observation — counts only
       </span>
     </div>

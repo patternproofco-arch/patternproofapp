@@ -78,7 +78,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
     <div style={{ borderRadius: 0, padding: 22, background: "#FAF8F4", border: "1px solid rgba(122,31,61,0.2)" }}>
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="label-eyebrow" style={{ color: "#7A1F3D" }}>Tier 1 · Fastest</div>
+          <div className="label-eyebrow" style={{ color: "#4132B4" }}>Tier 1 · Fastest</div>
           <h3 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#1A1224", marginTop: 4 }}>Add screenshots of the thread</h3>
         </div>
         <button type="button" onClick={onCancel} className="text-sm underline" style={{ color: "rgba(26,18,36,0.55)" }}>Cancel</button>
@@ -101,7 +101,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
       <input ref={inp} type="file" accept="image/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
       <button type="button" onClick={() => inp.current?.click()}
         style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 0,
-          background: "#7A1F3D", color: "#FAF8F4", fontWeight: 700, fontSize: 13 }}>
+          background: "#4132B4", color: "#FAF8F4", fontWeight: 700, fontSize: 13 }}>
         <Camera size={14} /> Add screenshots
       </button>
 
@@ -124,7 +124,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
       <div className="mt-5 flex items-center justify-end gap-2">
         <button type="button" onClick={save} disabled={busy || shots.length === 0}
           style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 0,
-            background: shots.length === 0 ? "rgba(26,18,36,0.22)" : "#7A1F3D",
+            background: shots.length === 0 ? "rgba(26,18,36,0.22)" : "#4132B4",
             color: "#FAF8F4", fontWeight: 700, fontSize: 13,
             opacity: busy ? 0.7 : 1, cursor: busy ? "wait" : "pointer" }}>
           {busy ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}

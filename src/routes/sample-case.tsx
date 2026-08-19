@@ -7,7 +7,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 const INK = "#1A1224";
 const PAPER = "#FAF8F4";
-const NAVY = "#4A2A6B";
+const NAVY = "#022063";
 const MUTED = "#6B6A78";
 const RULE = "rgba(26,18,36,0.14)";
 

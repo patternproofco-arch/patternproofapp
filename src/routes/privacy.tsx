@@ -55,7 +55,7 @@ function PrivacyPage() {
         </div>
 
         <header style={{ marginBottom: 36 }}>
-          <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#7A1F3D", fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#4132B4", fontWeight: 700, marginBottom: 12 }}>
             PatternProof
           </div>
           <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.02em", margin: 0, color: "#1F1A2E" }}>
@@ -320,7 +320,7 @@ function PrivacyPage() {
             Philadelphia, PA, United States
           </p>
 
-          <p style={{ marginTop: 32, fontStyle: "italic", color: "#7A1F3D", textAlign: "center" }}>
+          <p style={{ marginTop: 32, fontStyle: "italic", color: "#4132B4", textAlign: "center" }}>
             The truth is in the pattern.
           </p>
         </Prose>
@@ -366,7 +366,7 @@ function H3({ children }: { children: React.ReactNode }) {
   return (
     <h3 style={{
       fontSize: 15, fontWeight: 600, marginTop: 20, marginBottom: 8,
-      color: "#5E1730",
+      color: "#33268C",
     }}>
       {children}
     </h3>

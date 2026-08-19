@@ -304,7 +304,7 @@ function VerificationLine({ dateLastChecked }: { dateLastChecked: string | null 
     );
   }
   return (
-    <div style={{ marginTop: 10, fontFamily: MONO, fontSize: 11, letterSpacing: "0.04em", color: "#7A1F3D" }}>
+    <div style={{ marginTop: 10, fontFamily: MONO, fontSize: 11, letterSpacing: "0.04em", color: "#4132B4" }}>
       Not yet independently re-verified — confirm before relying on this number
     </div>
   );
