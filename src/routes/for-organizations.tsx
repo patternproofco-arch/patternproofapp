@@ -115,20 +115,7 @@ function ForOrganizations() {
           Every record stays under the survivor's control. This doesn't replace your judgment, your relationship with her, or your team's expertise — it gives you more of your day back to use it.
         </p>
 
-        <div style={{ marginTop: 32 }}>
-          <Link
-            to="/request-org-access"
-            style={{
-              display: "inline-block", background: SAGE, color: "#1A1224",
-              padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
-              textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
-            }}
-          >
-            See how it fits your program →
-          </Link>
-        </div>
-
-        <div style={{ marginTop: 22, display: "grid", gap: 10 }}>
+        <div style={{ marginTop: 32, display: "grid", gap: 10 }}>
           <Link
             to="/request-org-access"
             style={{
