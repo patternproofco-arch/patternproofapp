@@ -10,6 +10,7 @@ import { RecentActivityFeed, type ActivityItem } from "@/components/RecentActivi
 import { PortalStatHero } from "@/components/shared/PortalStatHero";
 import { QuickActionGrid, type QuickAction } from "@/components/shared/QuickActionGrid";
 import { portalTheme } from "@/components/shared/portal-theme";
+import { FocusRegion } from "@/components/survivor/focus-mode";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -78,6 +79,7 @@ function Dashboard() {
 
   return (
     <div style={{ display: "grid", gap: 24 }}>
+      <FocusRegion id="hero">
       <PortalStatHero
         variant="survivor"
         eyebrow="Home"
@@ -99,9 +101,14 @@ function Dashboard() {
           <Mic size={15} /> Say it out loud
         </Link>
       </PortalStatHero>
+      </FocusRegion>
 
-      <QuickActionGrid variant="survivor" actions={QUICK_ACTIONS} />
+      {/* Holds the Safety link — never dimmed. */}
+      <FocusRegion id="quick-actions" neverDim>
+        <QuickActionGrid variant="survivor" actions={QUICK_ACTIONS} />
+      </FocusRegion>
 
+      <FocusRegion id="main">
       {isFirstTime ? (
         <OnboardingChecklist
           counts={{
@@ -124,6 +131,7 @@ function Dashboard() {
           <RecentActivityFeed items={activity} />
         </section>
       )}
+      </FocusRegion>
 
       <div style={{ fontSize: 12, color: t.muted }}>
         <Link to="/feedback" style={{ color: "inherit", textDecoration: "underline" }}>

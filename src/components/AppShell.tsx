@@ -10,6 +10,7 @@ import { UtilityBar } from "@/components/UtilityBar";
 import { BrandMark } from "@/components/BrandMark";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { quickExit } from "@/lib/quick-exit";
+import { FocusModeProvider } from "@/components/survivor/focus-mode";
 
 /**
  * AppShell — quiet canvas.
@@ -50,16 +51,21 @@ export function AppShell() {
 
       <NotificationBanner />
 
-      <main
-        className="app-surface print-page mx-auto w-full max-w-6xl px-5 md:px-10"
-        style={{
-          paddingTop: 24,
-          // bottom padding: tab bar height + safety
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 108px)",
-        }}
-      >
-        <Outlet />
-      </main>
+      {/* Focus mode dims page content only. Quick Exit, the tab bar and the
+          record button are mounted outside this provider, so they can never be
+          blurred, dimmed or covered by it. */}
+      <FocusModeProvider>
+        <main
+          className="app-surface print-page mx-auto w-full max-w-6xl px-5 md:px-10"
+          style={{
+            paddingTop: 24,
+            // bottom padding: tab bar height + safety
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 108px)",
+          }}
+        >
+          <Outlet />
+        </main>
+      </FocusModeProvider>
 
       {/* Persistent chrome */}
       <BottomTabBar />

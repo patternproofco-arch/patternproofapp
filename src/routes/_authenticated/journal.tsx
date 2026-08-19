@@ -15,6 +15,7 @@ import { BulkPastIncidentsModal } from "@/components/BulkPastIncidentsModal";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { checkUploadSize } from "@/lib/upload-limits";
+import { FocusRegion } from "@/components/survivor/focus-mode";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 
 interface FullIncident extends IncidentLite {
@@ -449,6 +450,7 @@ function JournalPage() {
         </button>
       </div>
 
+      <FocusRegion id="journal-log">
       <div className="collapse-shell mt-6" data-open={logOpen} inert={!logOpen}>
         <div className="collapse-inner">
         <section
@@ -657,7 +659,9 @@ function JournalPage() {
         </section>
         </div>
       </div>
+      </FocusRegion>
 
+      <FocusRegion id="journal-list">
       <div className="collapse-shell mt-6" data-open={listOpen} inert={!listOpen}>
         <div className="collapse-inner">
         <section
@@ -690,6 +694,7 @@ function JournalPage() {
         </section>
         </div>
       </div>
+      </FocusRegion>
       <div className="hidden">{typeLabel("other")}{typeColor("other")}</div>
       <AddFromJournalModal open={journalOpen} onClose={() => setJournalOpen(false)} onSaved={load} />
       <BulkPastIncidentsModal open={bulkOpen} onClose={() => setBulkOpen(false)} onSaved={load} />

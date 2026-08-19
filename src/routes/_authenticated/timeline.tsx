@@ -8,6 +8,7 @@ import { FileText } from "lucide-react";
 import { MessageSquare } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { CognitiveClose } from "@/components/CognitiveClose";
+import { FocusRegion } from "@/components/survivor/focus-mode";
 import { useServerFn } from "@tanstack/react-start";
 import { findCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
@@ -243,7 +244,7 @@ function TimelinePage() {
 
       {xrefs.length > 0 && <CorroborationSection clusters={xrefs} />}
 
-      <div className="card-pp mt-6">
+      <FocusRegion id="timeline-filters" className="card-pp mt-6">
         <div className="flex flex-wrap items-end gap-4">
           <div className="flex-1 min-w-[200px]">
             <div className="label-eyebrow mb-2">Filter by type</div>
@@ -277,9 +278,9 @@ function TimelinePage() {
             Include imported messages
           </label>
         </div>
-      </div>
+      </FocusRegion>
 
-      <div className="relative mt-8 pl-8">
+      <FocusRegion id="timeline-entries" className="relative mt-8 pl-8">
         <div className="absolute left-2 top-0 bottom-0" style={{ width: 2, background: "var(--accent)" }} />
         {filtered.length === 0 ? (
           <div className="card-pp">
@@ -394,7 +395,7 @@ function TimelinePage() {
             })}
           </div>
         )}
-      </div>
+      </FocusRegion>
       <CognitiveClose
         title="See what your Recurline is telling you"
         body="Once your timeline has a few Marks, Recurline surfaces recurring tactics and frequency."
