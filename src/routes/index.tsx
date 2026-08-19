@@ -175,7 +175,6 @@ function Index() {
             gradient="linear-gradient(135deg, #4132B4, #A38BEB)"
             icon={FileText}
             label="Survivor"
-            eyebrow="Survivor"
             body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
             to="/login"
             cta="Start documenting →"
@@ -185,7 +184,6 @@ function Index() {
             gradient="linear-gradient(135deg, #015FFD, #014ED1)"
             icon={Briefcase}
             label="Attorney"
-            eyebrow="Attorney"
             body="A source-linked chronology on day one — prep starts with strategy, not sorting."
             to="/sample-case"
             cta="See a sample case →"
@@ -195,7 +193,6 @@ function Index() {
             gradient="linear-gradient(135deg, #95AD85, #5F8B67)"
             icon={Users}
             label="DV Organization"
-            eyebrow="DV organization"
             body="A free intake tool for your advocates — she documents once, referrals arrive clean."
             to="/for-organizations"
             cta="See how it fits your program →"
@@ -218,7 +215,8 @@ function Index() {
         <div style={{ marginBottom: 20 }}>
           <BrandMark size={26} />
         </div>
-        Every entry keeps its source. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share, and you can export your records at any time.
+        Every entry keeps its source, and you control what you share.{" "}
+        <Link to="/privacy" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>Learn more</Link>
         <div style={{ marginTop: 18 }}>
           <Link to="/privacy" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>
           <Link to="/safety" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Safety</Link>
@@ -243,7 +241,6 @@ function PathCard({
   gradient,
   icon: Icon,
   label,
-  eyebrow,
   body,
   to,
   cta,
@@ -252,7 +249,6 @@ function PathCard({
   gradient: string;
   icon: ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
-  eyebrow: string;
   body: string;
   to: string;
   cta: string;
@@ -283,24 +279,6 @@ function PathCard({
           background: gradient,
         }}
       >
-        <span
-          style={{
-            position: "absolute",
-            top: 12,
-            left: 12,
-            padding: "4px 10px",
-            borderRadius: 9999,
-            background: "rgba(250,248,244,0.86)",
-            fontFamily: "'Space Grotesk', ui-monospace, monospace",
-            fontSize: 10,
-            fontWeight: 500,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "#1A1224",
-          }}
-        >
-          {label}
-        </span>
         <span aria-hidden="true">
           <Icon color="#FAF8F4" size={32} strokeWidth={1.5} />
         </span>
@@ -325,7 +303,7 @@ function PathCard({
               color: accent,
             }}
           >
-            {eyebrow}
+            {label}
           </div>
           <p
             style={{
