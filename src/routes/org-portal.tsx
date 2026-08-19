@@ -71,7 +71,7 @@ function OrgPortal() {
     return (
       <Shell>
         <p style={{ fontSize: 14 }}>{error}</p>
-        <Link to="/" style={{ fontSize: 13, color: "#5E1730", fontWeight: 600 }}>Back to PatternProof</Link>
+        <Link to="/" style={{ fontSize: 13, color: "#33268C", fontWeight: 600 }}>Back to PatternProof</Link>
       </Shell>
     );
   }

@@ -203,12 +203,12 @@ const page = {
 
 const backLink = {
   display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13,
-  color: "#7A1F3D", textDecoration: "none", fontWeight: 500,
+  color: "#4132B4", textDecoration: "none", fontWeight: 500,
 } as const;
 
 const eyebrow = {
   fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase",
-  color: "#7A1F3D", fontWeight: 700, marginBottom: 10,
+  color: "#4132B4", fontWeight: 700, marginBottom: 10,
   fontFamily: "'Space Grotesk', monospace",
 } as const;
 
@@ -243,7 +243,7 @@ const input = {
   border: "1px solid rgba(26,18,36,0.16)", borderRadius: 2,
 } as const;
 
-const errorText = { fontSize: 13.5, color: "#7A1F3D", margin: "0 0 12px", lineHeight: 1.55 } as const;
+const errorText = { fontSize: 13.5, color: "#4132B4", margin: "0 0 12px", lineHeight: 1.55 } as const;
 
 const submitBtn = {
   background: "#1A1224", color: "#FAF8F4", border: "none",
@@ -266,4 +266,4 @@ const copyBtn = {
   color: "#1A1224", cursor: "pointer",
 } as const;
 
-const inlineLink = { color: "#7A1F3D", textDecoration: "underline", textUnderlineOffset: 3 } as const;
+const inlineLink = { color: "#4132B4", textDecoration: "underline", textUnderlineOffset: 3 } as const;

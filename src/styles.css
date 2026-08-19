@@ -34,8 +34,8 @@
   --color-type-physical: #8A5A2E;
   --color-type-emotional: #3A4FA8;
   --color-type-financial: #0F6E56;
-  --color-type-coercive: #5E1730;
-  --color-type-custody: #7A1F3D;
+  --color-type-coercive: #33268C;
+  --color-type-custody: #4132B4;
   --color-type-other: #6E6579;
 
   --font-serif: "Fraunces", Georgia, serif;
@@ -58,12 +58,12 @@
 
 :root {
   /* ---- Brand system: oxblood & deep purple moiré ---- */
-  --oxblood:      #7A1F3D;
-  --oxblood-deep: #5E1730;
-  --purple:       #4A2A6B;
-  --purple-mid:   #5E3785;
-  --red-bright:   #C7405F;
-  --lav:          #8A6BC7;
+  --oxblood:      #4132B4;
+  --oxblood-deep: #33268C;
+  --purple:       #196CD4;
+  --purple-mid:   #1552A3;
+  --red-bright:   #A38BEB;
+  --lav:          #7EB6FF;
   --ink:          #1A1224;
   --paper:        #FAF8F4;
   --paper-2:      #F1ECE4;

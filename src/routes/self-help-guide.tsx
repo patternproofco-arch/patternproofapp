@@ -5,7 +5,7 @@ const INK = "#1A1224";
 const PAPER = "#FAF8F4";
 const MUTED = "#6B6A78";
 const RULE = "rgba(26,18,36,0.14)";
-const VIOLET = "#7A1F3D";
+const VIOLET = "#4132B4";
 const CAUTION = "#8A5A2E";
 
 const SERIF = "'Fraunces', Georgia, serif";

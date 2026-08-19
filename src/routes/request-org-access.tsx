@@ -108,7 +108,7 @@ function RequestOrgAccess() {
               <button
                 type="submit"
                 disabled={sending}
-                style={{ marginTop: 8, padding: "14px 24px", borderRadius: 2, background: "#5E3785", color: "#1A1224", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
+                style={{ marginTop: 8, padding: "14px 24px", borderRadius: 2, background: "#2F4E34", color: "#1A1224", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
               >
                 {sending ? "Sending…" : "Request org access"}
               </button>
@@ -117,11 +117,11 @@ function RequestOrgAccess() {
         </div>
         <div style={{ marginTop: 20, textAlign: "center", fontSize: 13, color: "var(--muted-foreground)" }}>
           Already partnering with us?{" "}
-          <Link to="/org-feedback" style={{ color: "#5E1730", fontWeight: 600, textDecoration: "underline" }}>
+          <Link to="/org-feedback" style={{ color: "#33268C", fontWeight: 600, textDecoration: "underline" }}>
             Share feedback about PatternProof
           </Link>{" "}
           ·{" "}
-          <Link to="/org-portal" style={{ color: "#5E1730", fontWeight: 600, textDecoration: "underline" }}>
+          <Link to="/org-portal" style={{ color: "#33268C", fontWeight: 600, textDecoration: "underline" }}>
             Go to your partner dashboard
           </Link>
         </div>

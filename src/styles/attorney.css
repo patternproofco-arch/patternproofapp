@@ -14,7 +14,7 @@
   --att-surface-2: #FAFAF8;
   --att-border: rgba(26,18,36,0.14);
   --att-border-strong: rgba(26,18,36,0.22);
-  --att-navy: #4A2A6B;
+  --att-navy: #022063;
   --att-navy-mid: #22314F;
   --att-navy-deep: #0E1729;
   --att-slate: #63708A;
@@ -23,21 +23,21 @@
   --att-muted: #6E6579;
 
   /* single accent — navy. No other accent colour on attorney screens. */
-  --att-accent: #4A2A6B;
+  --att-accent: #022063;
   --att-accent-hover: #22314F;
   --att-accent-soft: rgba(21,32,56,0.06);
   --att-accent-border: rgba(21,32,56,0.24);
 
   /* status aliases — all resolve to navy/ink so nothing competes with the accent */
-  --att-green: #4A2A6B;
+  --att-green: #022063;
   --att-amber: #4C596F;
   --att-red: #1A1224;
-  --att-blue: #4A2A6B;
-  --att-pp-pink: #4A2A6B;
+  --att-blue: #022063;
+  --att-pp-pink: #022063;
 
   background: var(--att-bg);
   color: var(--att-text);
-  --pp-accent: #4A2A6B;
+  --pp-accent: #022063;
   --pp-accent-fg: #FFFFFF;
   font-family: "Space Grotesk", system-ui, sans-serif;
   font-size: 13px;
@@ -256,9 +256,9 @@
 }
 .att-tag-physical   { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #8A5A2E; }
 .att-tag-verbal,
-.att-tag-emotional  { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #4A2A6B; }
-.att-tag-financial  { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #4A2A6B; }
-.att-tag-digital    { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #4A2A6B; }
+.att-tag-emotional  { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #022063; }
+.att-tag-financial  { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #022063; }
+.att-tag-digital    { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #022063; }
 .att-tag-coercive   { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #A8792F; }
 .att-tag-custody    { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #0F6E56; }
 .att-tag-other      { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #6E6579; }
@@ -295,7 +295,7 @@
 .att-nav-brand {
   display: inline-flex; align-items: center; gap: 8px;
   color: #fff;
-  --pp-accent: #4A2A6B;
+  --pp-accent: #022063;
   --pp-accent-fg: #FFFFFF;
   font-family: "Space Grotesk", system-ui, sans-serif;
   font-size: 13px; font-weight: 600; letter-spacing: 0.01em;

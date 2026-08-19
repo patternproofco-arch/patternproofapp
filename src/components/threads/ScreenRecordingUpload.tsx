@@ -116,7 +116,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
       <div className="mt-5 flex items-center justify-end">
         <button type="button" onClick={save} disabled={busy || !file || !acknowledged}
           style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 0,
-            background: (!file || !acknowledged) ? "rgba(26,18,36,0.22)" : "#7A1F3D",
+            background: (!file || !acknowledged) ? "rgba(26,18,36,0.22)" : "#4132B4",
             color: "#FAF8F4", fontWeight: 700, fontSize: 13,
             opacity: busy ? 0.7 : 1, cursor: busy ? "wait" : "pointer" }}>
           {busy ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}

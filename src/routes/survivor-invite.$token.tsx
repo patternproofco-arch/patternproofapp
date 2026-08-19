@@ -169,7 +169,7 @@ function SurvivorInvitePage() {
       </p>
 
       {inv.personal_note && (
-        <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderLeft: "3px solid #7A1F3D", borderRadius: 2, padding: 14, marginBottom: 18, fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+        <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderLeft: "3px solid #4132B4", borderRadius: 2, padding: 14, marginBottom: 18, fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
           {inv.personal_note}
         </div>
       )}
@@ -183,8 +183,8 @@ function SurvivorInvitePage() {
         <form onSubmit={submitAuth} style={{ display: "grid", gap: 12 }}>
           {!user && (
             <div style={{ display: "flex", gap: 4, fontSize: 12 }}>
-              <button type="button" onClick={() => setMode("signup")} style={{ padding: "6px 12px", borderRadius: 2, border: mode === "signup" ? "1px solid #7A1F3D" : "1px solid #E2E8F0", background: mode === "signup" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>Create account</button>
-              <button type="button" onClick={() => setMode("login")} style={{ padding: "6px 12px", borderRadius: 2, border: mode === "login" ? "1px solid #7A1F3D" : "1px solid #E2E8F0", background: mode === "login" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>I already have an account</button>
+              <button type="button" onClick={() => setMode("signup")} style={{ padding: "6px 12px", borderRadius: 2, border: mode === "signup" ? "1px solid #4132B4" : "1px solid #E2E8F0", background: mode === "signup" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>Create account</button>
+              <button type="button" onClick={() => setMode("login")} style={{ padding: "6px 12px", borderRadius: 2, border: mode === "login" ? "1px solid #4132B4" : "1px solid #E2E8F0", background: mode === "login" ? "#EAF7EF" : "#fff", cursor: "pointer" }}>I already have an account</button>
             </div>
           )}
           {!user && (
@@ -217,7 +217,7 @@ function SurvivorInvitePage() {
             disabled={busy}
             style={{
               padding: "12px 18px",
-              background: "#7A1F3D",
+              background: "#4132B4",
               color: "#FAF8F4",
               border: 0,
               borderRadius: 2,
@@ -313,7 +313,7 @@ function SurvivorInvitePage() {
             onClick={confirmScope}
             disabled={busy}
             style={{
-              padding: "12px 18px", background: "#7A1F3D", color: "#FAF8F4", border: 0, borderRadius: 2,
+              padding: "12px 18px", background: "#4132B4", color: "#FAF8F4", border: 0, borderRadius: 2,
               fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? 0.6 : 1,
               display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
             }}
@@ -352,7 +352,7 @@ function ScopeBox({ icon, title, description, children }: { icon: React.ReactNod
 
 function ScopeModeCard({ name, checked, onChange, title, helper }: { name: string; checked: boolean; onChange: () => void; title: string; helper: string }) {
   return (
-    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, padding: 10, borderRadius: 2, cursor: "pointer", border: checked ? "1px solid #7A1F3D" : "1px solid #E2E8F0", background: checked ? "#EAF7EF" : "#FBFEFC" }}>
+    <label style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 8, padding: 10, borderRadius: 2, cursor: "pointer", border: checked ? "1px solid #4132B4" : "1px solid #E2E8F0", background: checked ? "#EAF7EF" : "#FBFEFC" }}>
       <input type="radio" name={name} checked={checked} onChange={onChange} style={{ marginTop: 2 }} />
       <span>
         <strong style={{ display: "block", fontSize: 13 }}>{title}</strong>

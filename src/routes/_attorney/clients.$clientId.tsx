@@ -836,7 +836,7 @@ function FirmShareCard({ clientId }: { clientId: string }) {
       {!firmSet ? (
         <div className="att-card" style={{ background: "#FFFFFF", borderColor: "var(--att-border-strong)" }}>
           <div style={{ fontSize: 13 }}>
-            Set your firm in <Link to="/settings" style={{ color: "#4A2A6B", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
+            Set your firm in <Link to="/settings" style={{ color: "#022063", textDecoration: "underline" }}>Settings</Link> to enable colleague sharing.
           </div>
         </div>
       ) : (
@@ -1522,7 +1522,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
     { value: "needs_context", label: "Needs context", color: "#6E6579" },
     { value: "duplicate", label: "Duplicate", color: "#6E6579" },
     { value: "exclude", label: "Exclude", color: "var(--att-navy)" },
-    { value: "privileged", label: "Privileged", color: "#4A2A6B" },
+    { value: "privileged", label: "Privileged", color: "#022063" },
     { value: "exhibit_candidate", label: "Exhibit candidate", color: "var(--att-navy)" },
   ];
   const statusMeta = (v: string) => STATUS_OPTIONS.find((s) => s.value === v) ?? STATUS_OPTIONS[0];
@@ -2182,7 +2182,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <div className="att-card" style={{ background: "#4A2A6B", color: "#fff", borderColor: "transparent" }}>
+      <div className="att-card" style={{ background: "#022063", color: "#fff", borderColor: "transparent" }}>
         <div style={{ fontSize: 10, letterSpacing: 1.4, opacity: 0.75 }}>ATTORNEY INTAKE SUMMARY</div>
         <h2 style={{ fontSize: 28, fontFamily: "\"Space Grotesk\", system-ui, sans-serif", marginTop: 4, color: "#fff" }}>Case {caseId}</h2>
         <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>

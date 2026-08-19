@@ -80,7 +80,7 @@ function DemoHeader() {
       </Link>
       <div style={{ marginTop: 18, display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#7A1F3D", fontWeight: 700, marginBottom: 8 }}>Interactive demo</div>
+          <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#4132B4", fontWeight: 700, marginBottom: 8 }}>Interactive demo</div>
           <h1 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.4rem)", fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>A sample case, end-to-end</h1>
           <p style={{ marginTop: 8, fontSize: 14, color: "#6B6478", maxWidth: 620 }}>This is fictional composite data based on common patterns in coercive-control cases. Click around — nothing here is saved.</p>
         </div>
@@ -146,7 +146,7 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
             const I = s.icon;
             return (
               <div key={s.label} style={{ background: "rgba(91,75,164,0.05)", borderRadius: 2, padding: 14 }}>
-                <I size={16} style={{ color: "#7A1F3D" }} />
+                <I size={16} style={{ color: "#4132B4" }} />
                 <div style={{ fontSize: 22, fontWeight: 700, marginTop: 6 }}>{s.value}</div>
                 <div style={{ fontSize: 12, color: "#6B6478" }}>{s.label}</div>
               </div>
@@ -172,7 +172,7 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  "Physical": "#C2553B", "Emotional": "#7A1F3D", "Coercive control": "#5B4BA4",
+  "Physical": "#C2553B", "Emotional": "#4132B4", "Coercive control": "#5B4BA4",
   "Financial": "#3F8A6E", "Custody interference": "#B5732A",
 };
 
@@ -321,7 +321,7 @@ function CourtPacket() {
       </div>
       <Card>
         <div style={{ borderBottom: "1px solid rgba(91,75,164,0.12)", paddingBottom: 14, marginBottom: 14 }}>
-          <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#7A1F3D", fontWeight: 700 }}>Case Summary</div>
+          <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#4132B4", fontWeight: 700 }}>Case Summary</div>
           <h3 style={{ margin: "6px 0 0", fontSize: 18, fontWeight: 700 }}>M.R. v. T.R. — Custody &amp; Coercive Control</h3>
           <div style={{ fontSize: 12, color: "#6B6478", marginTop: 4 }}>Reporting period: Sept 14, 2025 – Dec 8, 2025 · {INCIDENTS.length} incidents · {EVIDENCE.length} evidence items</div>
         </div>

@@ -95,7 +95,7 @@ function AdminOrgRequests() {
               </div>
               {r.status === "pending" && (
                 <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                  <button disabled={busy === r.id} onClick={() => approve(r.id)} style={{ padding: "8px 12px", borderRadius: 2, border: "none", background: "#5E3785", color: "#1A1224", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                  <button disabled={busy === r.id} onClick={() => approve(r.id)} style={{ padding: "8px 12px", borderRadius: 2, border: "none", background: "#2F4E34", color: "#1A1224", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
                     Approve + create partner login
                   </button>
                   <button disabled={busy === r.id} onClick={() => deny(r.id)} style={{ padding: "8px 12px", borderRadius: 2, border: "1px solid var(--border)", background: "#FFFFFF", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>

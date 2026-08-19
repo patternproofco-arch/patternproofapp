@@ -5,9 +5,9 @@ const INK = "#1A1224";
 const PAPER = "#FAF8F4";
 const MUTED = "#6B6A78";
 const RULE = "rgba(26,18,36,0.14)";
-const VIOLET = "#7A1F3D";
-const NAVY = "#4A2A6B";
-const SAGE = "#2E4A38";
+const VIOLET = "#4132B4";
+const NAVY = "#022063";
+const SAGE = "#2F4E34";
 
 const SERIF = "'Fraunces', Georgia, serif";
 const SANS = "'Space Grotesk', system-ui, sans-serif";

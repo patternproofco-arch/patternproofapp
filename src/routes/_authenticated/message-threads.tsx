@@ -213,7 +213,7 @@ function MessageThreadsPage() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        <div className="label-eyebrow" style={{ color: "#7A1F3D" }}>Evidence Portal · Conversations</div>
+        <div className="label-eyebrow" style={{ color: "#4132B4" }}>Evidence Portal · Conversations</div>
         <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 40, lineHeight: 1.05, color: "#1A1224" }}>
           Upload a Message Thread
         </h1>
@@ -232,7 +232,7 @@ function MessageThreadsPage() {
           color: "#1A1224",
         }}
       >
-        <Shield size={22} color="#7A1F3D" style={{ flexShrink: 0, marginTop: 2 }} />
+        <Shield size={22} color="#4132B4" style={{ flexShrink: 0, marginTop: 2 }} />
         <div>
           <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 14, letterSpacing: "0.02em" }}>
             A note about lawful use
@@ -252,7 +252,7 @@ function MessageThreadsPage() {
             title="Take screenshots"
             body="On your own, need this fast. You screenshot the thread as you scroll; we stitch them together and pull out searchable text. Your screenshots stay the primary evidence."
             hint="Best when you're alone and time matters — least re-exposure."
-            accent="#7A1F3D"
+            accent="#4132B4"
             Icon={Camera}
             cta="Start with screenshots"
             onClick={() => setTier("tier1")}
@@ -262,7 +262,7 @@ function MessageThreadsPage() {
             title="Backup with a computer"
             body="You (or an advocate/attorney) sit down with a computer and do a real phone backup, then upload the export. Most court-defensible option — but never required."
             hint="Recommended when you have help or a laptop available."
-            accent="#7A1F3D"
+            accent="#4132B4"
             Icon={Laptop}
             cta="Show me how"
             onClick={() => setTier("tier2")}
@@ -283,7 +283,7 @@ function MessageThreadsPage() {
             title="Import your call history"
             body="Screenshots of your Recents / Calls screen. Same photo-based path on iPhone and Android — no special permissions, no computer needed. We read each call row from the images."
             hint="Best for showing frequency, missed calls, and late-night patterns."
-            accent="#7A1F3D"
+            accent="#4132B4"
             Icon={Phone}
             cta="Import call log photos"
             onClick={() => setTier("call_log")}
@@ -299,7 +299,7 @@ function MessageThreadsPage() {
         <section style={{ borderRadius: 0, padding: 22, background: "#FAF8F4", border: "1px solid rgba(122,31,61,0.25)" }} className="flex flex-col gap-4">
           <div className="flex items-start justify-between">
             <div>
-              <div className="label-eyebrow" style={{ color: "#7A1F3D" }}>Tier 2 · Strongest</div>
+              <div className="label-eyebrow" style={{ color: "#4132B4" }}>Tier 2 · Strongest</div>
               <h3 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, fontSize: 24, color: "#1A1224", marginTop: 4 }}>Backup export walkthrough</h3>
             </div>
             <button type="button" onClick={() => setTier("picker")} className="text-sm underline" style={{ color: "rgba(26,18,36,0.55)" }}>Back</button>
@@ -358,7 +358,7 @@ function MessageThreadsPage() {
                 style={{
                   display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                   padding: "10px 14px", borderRadius: 0,
-                  background: "#7A1F3D",
+                  background: "#4132B4",
                   color: "#FAF8F4", fontWeight: 700, fontSize: 13,
                   opacity: busy ? 0.7 : 1, cursor: busy ? "wait" : "pointer",
                 }}
@@ -414,11 +414,11 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
         ? "💻 Backup export"
         : null;
   const statusColor =
-    t.parse_status === "parsed" ? "#7A1F3D"
-    : t.parse_status === "queued" ? "#7A1F3D"
+    t.parse_status === "parsed" ? "#4132B4"
+    : t.parse_status === "queued" ? "#4132B4"
     : t.parse_status === "partial" ? "#B88B2A"
     : t.parse_status === "failed" ? "#8A5A2E"
-    : "#7A1F3D";
+    : "#4132B4";
   return (
     <article
       style={{
@@ -486,14 +486,14 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
 
       {t.summary && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#7A1F3D", marginBottom: 6 }}>Summary</div>
+          <div className="label-eyebrow" style={{ color: "#4132B4", marginBottom: 6 }}>Summary</div>
           <p style={{ fontSize: 14, lineHeight: 1.6, color: "#1A1224" }}>{t.summary}</p>
         </div>
       )}
 
       {t.attorney_summary && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#7A1F3D", marginBottom: 6 }}>Summary for professional review</div>
+          <div className="label-eyebrow" style={{ color: "#4132B4", marginBottom: 6 }}>Summary for professional review</div>
           <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "#3A3849" }}>{t.attorney_summary}</p>
         </div>
       )}
@@ -571,7 +571,7 @@ function TierCard({ eyebrow, title, body, hint, accent, Icon, cta, onClick, reco
 function StepCard({ n, title, body }: { n: string; title: string; body: string }) {
   return (
     <div style={{ borderRadius: 0, padding: 14, background: "rgba(255,255,255,0.6)", border: "1px solid rgba(122,31,61,0.2)" }}>
-      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", color: "#7A1F3D", marginBottom: 6 }}>STEP {n}</div>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", color: "#4132B4", marginBottom: 6 }}>STEP {n}</div>
       <div style={{ fontWeight: 700, color: "#1A1224", fontSize: 14, marginBottom: 4 }}>{title}</div>
       <p style={{ fontSize: 13, lineHeight: 1.5, color: "#3A3849" }}>{body}</p>
     </div>

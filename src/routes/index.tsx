@@ -131,7 +131,7 @@ function Index() {
               to="/sample-case"
               style={{
                 display: "inline-block",
-                background: "#4A2A6B",
+                background: "#022063",
                 color: "#F4F6FB",
                 padding: "14px 26px",
                 fontFamily: "'Space Grotesk', ui-monospace, monospace",
@@ -171,8 +171,8 @@ function Index() {
           }}
         >
           <PathCard
-            accent="#7A1F3D"
-            gradient="linear-gradient(135deg, #7A1F3D, #7C6DE0)"
+            accent="#4132B4"
+            gradient="linear-gradient(135deg, #4132B4, #A38BEB)"
             icon={FileText}
             label="Survivor"
             eyebrow="Survivor"
@@ -181,8 +181,8 @@ function Index() {
             cta="Start documenting →"
           />
           <PathCard
-            accent="#4A2A6B"
-            gradient="linear-gradient(135deg, #4A2A6B, #253652)"
+            accent="#022063"
+            gradient="linear-gradient(135deg, #015FFD, #014ED1)"
             icon={Briefcase}
             label="Attorney"
             eyebrow="Attorney"
@@ -191,8 +191,8 @@ function Index() {
             cta="See a sample case →"
           />
           <PathCard
-            accent="#2E4A38"
-            gradient="linear-gradient(135deg, #2E4A38, #43684B)"
+            accent="#2F4E34"
+            gradient="linear-gradient(135deg, #95AD85, #5F8B67)"
             icon={Users}
             label="DV Organization"
             eyebrow="DV organization"
