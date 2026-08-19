@@ -6,7 +6,9 @@ import { useAuth } from "@/lib/auth-context";
 import {
   approveOrgAccessRequest,
   denyOrgAccessRequest,
+  getReferralConsentGaps,
   listOrgAccessRequests,
+  type ReferralConsentGap,
 } from "@/lib/org-portal.functions";
 
 export const Route = createFileRoute("/admin/org-requests")({
@@ -35,8 +37,10 @@ function AdminOrgRequests() {
   const listFn = useServerFn(listOrgAccessRequests);
   const approveFn = useServerFn(approveOrgAccessRequest);
   const denyFn = useServerFn(denyOrgAccessRequest);
+  const consentGapsFn = useServerFn(getReferralConsentGaps);
   const [rows, setRows] = useState<Req[] | null>(null);
   const [links, setLinks] = useState<Array<{ code: string; request_id: string | null; is_active: boolean }>>([]);
+  const [consentGaps, setConsentGaps] = useState<ReferralConsentGap[] | null>(null);
   const [denied, setDenied] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -44,7 +48,10 @@ function AdminOrgRequests() {
     listFn()
       .then((r) => { setRows(r.requests as Req[]); setLinks(r.links); })
       .catch(() => setDenied(true));
-  }, [listFn]);
+    consentGapsFn()
+      .then((r) => setConsentGaps(r.gaps))
+      .catch(() => setConsentGaps([]));
+  }, [listFn, consentGapsFn]);
 
   useEffect(() => { if (!loading && user) load(); }, [loading, user, load]);
 
@@ -77,6 +84,22 @@ function AdminOrgRequests() {
 
   return (
     <Wrap>
+      {consentGaps && consentGaps.length > 0 && (
+        <div style={{ border: "1px solid #C9A15A", borderRadius: 2, padding: 16, background: "#FFF8E8", marginBottom: 24 }}>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>Referral signups missing terms acceptance (48h+)</div>
+          <div style={{ fontSize: 13, color: "var(--muted-foreground)", marginBottom: 10 }}>
+            Aggregate counts only — no client identities. Use this to decide whether to follow up with a referral partner.
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            {consentGaps.map((g) => (
+              <div key={g.code} style={{ fontSize: 13, display: "flex", justifyContent: "space-between" }}>
+                <span>{g.org_name} <span style={{ color: "var(--muted-foreground)" }}>({g.code})</span></span>
+                <strong>{g.pending_count} pending</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 16 }}>Org access requests</h1>
       {rows.length === 0 && <p style={{ fontSize: 14, color: "var(--muted-foreground)" }}>Nothing waiting right now.</p>}
       <div style={{ display: "grid", gap: 12 }}>
