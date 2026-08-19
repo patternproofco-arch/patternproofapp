@@ -13,6 +13,8 @@ export interface PpSettings {
   quickRecordFrozen: boolean;
   /** Neutral frequency observations. Off unless she turns it on. */
   frequencyObservationsEnabled: boolean;
+  /** Optional in-app guide. Off unless she turns it on. */
+  guideEnabled: boolean;
 }
 
 const DEFAULTS: PpSettings = {
@@ -27,6 +29,7 @@ const DEFAULTS: PpSettings = {
   quickRecordVisible: true,
   quickRecordFrozen: false,
   frequencyObservationsEnabled: false,
+  guideEnabled: false,
 };
 
 const KEY = "pp_settings_v1";
