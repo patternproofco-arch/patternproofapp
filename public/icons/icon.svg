@@ -1,10 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <rect width="200" height="200" fill="#EFEFEE"/>
-  <g fill="none" stroke="#8A8A86" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="52" y="38" width="100" height="124" rx="10"/>
-    <line x1="76" y1="38" x2="76" y2="162"/>
-    <line x1="94" y1="74" x2="132" y2="74"/>
-    <line x1="94" y1="100" x2="132" y2="100"/>
-    <line x1="94" y1="126" x2="118" y2="126"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" fill="#EFEFEE"/><g stroke="#EFEFEE" stroke-width="3" stroke-linejoin="round"><polygon points="38,64 100,100 100,172 38,136" fill="#4132B4"/><polygon points="100,100 162,64 162,136 100,172" fill="#196CD4"/><polygon points="100,28 162,64 100,100 38,64" fill="#A38BEB"/></g></svg>
