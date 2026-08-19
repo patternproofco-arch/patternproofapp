@@ -221,6 +221,23 @@ function SettingsPage() {
           </label>
         </div>
 
+        <div className="card-pp md:col-span-2">
+          <h2 className="font-serif text-[19px]">Guide</h2>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            Off by default. When on, a small question-mark button sits in the corner. It answers only when you tap it — it never
+            speaks first and never comments on what you're doing. It can help you find your way around the app; it can't give legal
+            or medical advice. Nothing you type to it is saved anywhere, and you can turn it off from inside it at any time.
+          </p>
+          <label className="mt-4 flex items-center justify-between rounded-[2px] px-3 py-2.5" style={{ background: "var(--input)" }}>
+            <span className="text-[14px]">Show the guide</span>
+            <input
+              type="checkbox"
+              checked={settings.guideEnabled}
+              onChange={(e) => update({ guideEnabled: e.target.checked })}
+            />
+          </label>
+        </div>
+
         <div className="card-pp">
           <div className="flex items-center gap-2"><ShieldCheck size={18} style={{ color: "var(--safe)" }} /><h2 className="font-serif text-[19px]">Disguise this app</h2></div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>The browser tab and sidebar will use this name. Pick something that fits your day.</p>
