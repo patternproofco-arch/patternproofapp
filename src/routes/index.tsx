@@ -170,43 +170,13 @@ function Index() {
             alignItems: "stretch",
           }}
         >
-          <svg
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              pointerEvents: "none",
-              zIndex: 0,
-            }}
-            preserveAspectRatio="none"
-            viewBox="0 0 1000 120"
-          >
-            {/* faint ripple rings where the thread passes behind each card */}
-            {[250, 500, 750].map((cx) => (
-              <g key={cx} fill="none" stroke="#1A1224" pointerEvents="none">
-                <circle cx={cx} cy={60} r={16} strokeOpacity={0.16} strokeWidth={1.4} />
-                <circle cx={cx} cy={60} r={26} strokeOpacity={0.10} strokeWidth={1.4} />
-                <circle cx={cx} cy={60} r={36} strokeOpacity={0.05} strokeWidth={1.4} />
-              </g>
-            ))}
-            <path
-              d="M0,60 Q62.5,53 125,60 T250,60 T375,60 T500,60 T625,60 T750,60 T875,60 T1000,60"
-              fill="none"
-              stroke="#1A1224"
-              strokeWidth={1.5}
-              strokeOpacity={0.18}
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
           <PathCard
             accent="#7A1F3D"
             gradient="linear-gradient(135deg, #7A1F3D, #7C6DE0)"
             icon={FileText}
             label="Survivor"
             eyebrow="Survivor"
-            body="Write down what happened, at your own pace. Photos, messages, and dates stay together — private to your account, protected with per-user access controls and encrypted in transit, shared only when you choose."
+            body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
             to="/login"
             cta="Start documenting →"
           />
@@ -216,7 +186,7 @@ function Index() {
             icon={Briefcase}
             label="Attorney"
             eyebrow="Attorney"
-            body="Get a source-linked chronology on day one instead of a shoebox of screenshots. Hearing prep starts with strategy, not sorting."
+            body="A source-linked chronology on day one — prep starts with strategy, not sorting."
             to="/sample-case"
             cta="See a sample case →"
           />
@@ -226,7 +196,7 @@ function Index() {
             icon={Users}
             label="DV Organization"
             eyebrow="DV organization"
-            body="A free tool your advocates can hand a survivor at intake. She documents once; your referral to counsel arrives clean."
+            body="A free intake tool for your advocates — she documents once, referrals arrive clean."
             to="/for-organizations"
             cta="See how it fits your program →"
           />
@@ -250,13 +220,18 @@ function Index() {
         </div>
         Every entry keeps its source. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share, and you can export your records at any time.
         <div style={{ marginTop: 18 }}>
-          <Link to="/how-it-works" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>How it works</Link>
           <Link to="/privacy" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>
-          <Link to="/resources" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Resources</Link>
           <Link to="/safety" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Safety</Link>
-          <Link to="/terms" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Terms</Link>
-          <Link to="/support" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>Support</Link>
-          <Link to="/waitlist" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginLeft: 16 }}>Get updates</Link>
+          <Link to="/support" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Support</Link>
+          <details style={{ display: "inline-block" }}>
+            <summary style={{ display: "inline", cursor: "pointer", color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>More</summary>
+            <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
+              <Link to="/how-it-works" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>How it works</Link>
+              <Link to="/resources" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>Resources</Link>
+              <Link to="/terms" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>Terms</Link>
+              <Link to="/waitlist" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>Get updates</Link>
+            </div>
+          </details>
         </div>
       </footer>
     </div>
