@@ -8,6 +8,7 @@ import { QuickExitButton } from "@/components/QuickExitButton";
 import { BrandMark } from "@/components/BrandMark";
 import { toast } from "sonner";
 import { US_STATES } from "@/lib/state-resources";
+import { TERMS_VERSION } from "@/routes/terms";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
@@ -36,16 +37,30 @@ function Onboarding() {
     try {
       if (pin.length === 4) await setRealPin(pin);
       update({ state, city: city.trim(), onboarded: true });
-      await supabase.auth.updateUser({
-        data: {
-          onboarding_complete: true,
-          state,
-          city: city.trim(),
-          agreed_privacy_at: new Date().toISOString(),
-          agreed_terms_at: new Date().toISOString(),
-          acknowledged_legal_use_at: new Date().toISOString(),
-        },
-      });
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      await Promise.all([
+        supabase.auth.updateUser({
+          data: {
+            onboarding_complete: true,
+            state,
+            city: city.trim(),
+            agreed_privacy_at: new Date().toISOString(),
+            agreed_terms_at: new Date().toISOString(),
+            acknowledged_legal_use_at: new Date().toISOString(),
+          },
+        }),
+        // Queryable record of consent, separate from the auth metadata above —
+        // this is what lets a weekly report check whether a given signup ever
+        // accepted terms, which user_metadata can't be joined against.
+        user
+          ? supabase.from("user_terms_acceptance").insert({
+              user_id: user.id,
+              terms_version: TERMS_VERSION,
+            })
+          : Promise.resolve(),
+      ]);
       navigate({ to: "/dashboard", replace: true });
     } finally {
       setBusy(false);

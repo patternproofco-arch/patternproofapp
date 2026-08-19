@@ -2,6 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 
+/** Recorded alongside every terms acceptance so we know which text a user agreed to. */
+export const TERMS_VERSION = "2026-08";
+
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
@@ -22,7 +25,7 @@ function H2({ children }: { children: React.ReactNode }) {
 }
 
 function Terms() {
-  const updated = "August 2026";
+  const updated = "August 2026"; // keep in sync with TERMS_VERSION above
   return (
     <div style={{ background: "var(--background)", minHeight: "100vh" }}>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", maxWidth: 1100, margin: "0 auto" }}>
