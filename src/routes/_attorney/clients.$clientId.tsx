@@ -1,3 +1,4 @@
+import { FocusRegion } from "@/components/survivor/focus-mode";
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { formatEvidenceDate } from "@/lib/dates";
