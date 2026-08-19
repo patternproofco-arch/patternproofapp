@@ -54,7 +54,7 @@ function AdvocateLayout() {
         }}
       >
         <Link to="/advocate-cases" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "inherit" }}>
-          <BrandMark size={22} />
+          <BrandMark size={22} variant="advocate" />
           <span style={{ fontWeight: 700, fontSize: 14 }}>PatternProof</span>
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Advocate access</span>
         </Link>

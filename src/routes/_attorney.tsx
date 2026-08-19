@@ -191,7 +191,7 @@ function AttorneySidebar() {
   return (
     <aside className="att-sidebar">
       <Link to="/clients" className="att-sidebar-brand">
-        <BrandMark size={26} />
+        <BrandMark size={26} variant="attorney" />
         <span>PatternProof</span>
       </Link>
       <div className="att-sidebar-section">Practice</div>

@@ -319,7 +319,7 @@ function TierCard({ tier }: { tier: Tier }) {
       )}
 
       <div style={{ marginBottom: 20 }}>
-        <BrandMark size={44} onDark={isAttorney} />
+        <BrandMark size={44} onDark={isAttorney} variant={isAttorney ? "attorney" : "survivor"} />
       </div>
 
       <div
