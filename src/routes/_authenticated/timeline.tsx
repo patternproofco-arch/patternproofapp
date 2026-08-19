@@ -8,6 +8,7 @@ import { FileText } from "lucide-react";
 import { MessageSquare } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { CognitiveClose } from "@/components/CognitiveClose";
+import { FocusRegion } from "@/components/survivor/focus-mode";
 import { useServerFn } from "@tanstack/react-start";
 import { findCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
