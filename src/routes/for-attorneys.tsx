@@ -152,46 +152,30 @@ function ForAttorneys() {
           </p>
         </div>
 
-        <div style={{ marginTop: 32, display: "flex", gap: 14, flexWrap: "wrap" }}>
-          <Link
-            to="/sample-case"
-            style={{
-              display: "inline-block", background: NAVY, color: "#F4F6FB",
-              padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
-              textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
-            }}
-          >
-            See a sample case →
-          </Link>
-          <Link
-            to="/subscribe"
-            style={{
-              display: "inline-block", background: "transparent", color: INK,
-              padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
-              textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
-              border: `1px solid ${INK}`,
-            }}
-          >
-            Create your attorney account →
-          </Link>
-        </div>
       </section>
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
         <SectionRule label="Pricing" />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
+        <div style={{ display: "grid", gap: 12, maxWidth: 720 }}>
           {attorneyTiers.map((t) => (
-            <PriceCard
+            <div
               key={t.key}
-              name={t.name}
-              price={t.price}
-              strike={t.priceStrike}
-              per={t.sub}
-              note={t.eyebrowNote}
-              highlight={t.featured}
-              bullets={t.features}
-            />
+              style={{
+                display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
+                borderTop: `1px solid ${RULE}`, paddingTop: 12,
+              }}
+            >
+              <span style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 20, color: INK }}>{t.name}</span>
+              <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: MUTED, textTransform: "uppercase" }}>
+                {t.price} {t.sub}
+              </span>
+            </div>
           ))}
+        </div>
+        <div style={{ marginTop: 18 }}>
+          <Link to="/pricing" style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
+            Full pricing details →
+          </Link>
         </div>
         <div style={{ marginTop: 32 }}>
           <Link to="/subscribe"
