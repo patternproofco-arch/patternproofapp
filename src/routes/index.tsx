@@ -171,8 +171,8 @@ function Index() {
           }}
         >
           <PathCard
-            accent="#4132B4"
-            gradient="linear-gradient(135deg, #4132B4, #A38BEB)"
+            accent="#8C1FFC"
+            gradient="linear-gradient(135deg, #D46FFD, #3E19F8)"
             icon={FileText}
             label="Survivor"
             body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."

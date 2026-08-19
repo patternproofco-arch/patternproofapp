@@ -1,12 +1,12 @@
 import { portalTheme } from "@/components/shared/portal-theme";
 import type { PortalVariant } from "@/components/shared/portal-theme";
 
-export const OXBLOOD = "#4132B4";
-export const OXBLOOD_DEEP = "#33268C";
-export const PURPLE = "#196CD4";
-export const PURPLE_MID = "#1552A3";
-export const RED_BRIGHT = "#A38BEB";
-export const LAV = "#7EB6FF";
+export const OXBLOOD = "#8C1FFC";
+export const OXBLOOD_DEEP = "#6A16C2";
+export const PURPLE = "#3E19F8";
+export const PURPLE_MID = "#3113C0";
+export const RED_BRIGHT = "#D46FFD";
+export const LAV = "#B98BFF";
 export const INK = "#1A1224";
 export const PAPER = "#FAF8F4";
 export const DISPLAY = "'Fraunces', Georgia, serif";
