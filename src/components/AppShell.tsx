@@ -1,7 +1,7 @@
 import { Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useSettings } from "@/lib/settings-context";
-import { AiSidekick } from "@/components/AiSidekick";
+import { GuideHelper } from "@/components/survivor/GuideHelper";
 import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { AmbientBackground } from "@/components/AmbientBackground";
@@ -69,7 +69,7 @@ export function AppShell() {
 
       {/* Persistent chrome */}
       <BottomTabBar />
-      <AiSidekick />
+      <GuideHelper />
       <FloatingRecordButton />
       <QuickExitButton />
     </div>
