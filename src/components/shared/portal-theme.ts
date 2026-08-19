@@ -18,14 +18,14 @@ const DISPLAY = "'Fraunces', Georgia, serif";
 
 export const PORTAL_THEME: Record<PortalVariant, PortalTheme> = {
   survivor: {
-    accent: "#4132B4",
+    accent: "#8C1FFC",
     ink: "#1A1224",
     muted: "#6B6A78",
     card: "#FFFFFF",
     line: "rgba(26,18,36,0.12)",
-    gradientFrom: "#A38BEB",
-    gradientTo: "#196CD4",
-    mark: "#F1ECFC",
+    gradientFrom: "#D46FFD",
+    gradientTo: "#3E19F8",
+    mark: "#F7ECFE",
     displayFont: DISPLAY,
   },
   advocate: {
