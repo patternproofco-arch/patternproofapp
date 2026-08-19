@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { portalTheme, type PortalVariant } from "./portal-theme";
+import { portalTheme, neuShadow, type PortalVariant } from "./portal-theme";
 
 interface Props {
   variant: PortalVariant;
@@ -18,22 +18,39 @@ interface Props {
 }
 
 /** Gradient stat card shared by all three portal dashboards. */
-export function PortalStatHero({ variant, eyebrow, heading, value, label, message, children }: Props) {
+export function PortalStatHero({
+  variant,
+  eyebrow,
+  heading,
+  value,
+  label,
+  message,
+  children,
+}: Props) {
   const t = portalTheme(variant);
+  const shadow = neuShadow(t.ground);
   return (
     <section
       style={{
-        borderRadius: 18,
+        borderRadius: 24,
         padding: "clamp(20px,3vw,30px)",
         color: "#FFFFFF",
         background: `linear-gradient(135deg, ${t.gradientFrom} 0%, ${t.gradientTo} 100%)`,
+        boxShadow: shadow.upLg,
         display: "grid",
         gap: 18,
       }}
     >
       <div>
         {eyebrow ? (
-          <div style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", opacity: 0.75 }}>
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              opacity: 0.75,
+            }}
+          >
             {eyebrow}
           </div>
         ) : null}
@@ -53,23 +70,37 @@ export function PortalStatHero({ variant, eyebrow, heading, value, label, messag
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", gap: 20 }}>
         <div
           style={{
-            borderRadius: 14,
+            borderRadius: 16,
             padding: "14px 20px",
             background: "rgba(255,255,255,0.14)",
             minWidth: 132,
           }}
         >
-          <div style={{ fontFamily: t.displayFont, fontSize: 40, lineHeight: 1, fontWeight: 500 }}>{value}</div>
-          <div style={{ fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", marginTop: 8, opacity: 0.85 }}>
+          <div style={{ fontFamily: t.displayFont, fontSize: 40, lineHeight: 1, fontWeight: 500 }}>
+            {value}
+          </div>
+          <div
+            style={{
+              fontSize: 12,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              marginTop: 8,
+              opacity: 0.85,
+            }}
+          >
             {label}
           </div>
         </div>
         {message ? (
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, maxWidth: 420, opacity: 0.92 }}>{message}</p>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, maxWidth: 420, opacity: 0.92 }}>
+            {message}
+          </p>
         ) : null}
       </div>
 
-      {children ? <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>{children}</div> : null}
+      {children ? (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>{children}</div>
+      ) : null}
     </section>
   );
 }
