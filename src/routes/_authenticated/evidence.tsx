@@ -9,6 +9,7 @@ import { CognitiveClose } from "@/components/CognitiveClose";
 import { useServerFn } from "@tanstack/react-start";
 import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
+import { FocusRegion } from "@/components/survivor/focus-mode";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { BatchDropzone } from "@/components/evidence/BatchDropzone";
 import { ContentTypeSuggestions } from "@/components/evidence/ContentTypeSuggestions";
@@ -363,6 +364,7 @@ function EvidencePage() {
       <BatchDropzone onDone={load} />
       <ContentTypeSuggestions />
 
+      <FocusRegion id="evidence-add">
       <form onSubmit={submit} className="card-pp mt-6 space-y-4">
         <label className="block cursor-pointer rounded-[2px] border-2 border-dashed p-8 text-center"
           style={{ borderColor: "var(--border)" }}>
@@ -420,7 +422,9 @@ function EvidencePage() {
           </div>
         )}
       </form>
+      </FocusRegion>
 
+      <FocusRegion id="evidence-library">
       <div className="mt-8">
         {(() => {
           const docItems = items.filter((r) => classifyEvidence(r) === "documentation");
@@ -505,6 +509,7 @@ function EvidencePage() {
           );
         })()}
       </div>
+      </FocusRegion>
 
       {/* AI Review Modal */}
       {reviewFor && (
