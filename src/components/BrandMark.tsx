@@ -1,9 +1,9 @@
-export const OXBLOOD = "#7A1F3D";
-export const OXBLOOD_DEEP = "#5E1730";
-export const PURPLE = "#4A2A6B";
-export const PURPLE_MID = "#5E3785";
-export const RED_BRIGHT = "#C7405F";
-export const LAV = "#8A6BC7";
+export const OXBLOOD = "#4132B4";
+export const OXBLOOD_DEEP = "#33268C";
+export const PURPLE = "#196CD4";
+export const PURPLE_MID = "#1552A3";
+export const RED_BRIGHT = "#A38BEB";
+export const LAV = "#7EB6FF";
 export const INK = "#1A1224";
 export const PAPER = "#FAF8F4";
 export const DISPLAY = "'Fraunces', Georgia, serif";
