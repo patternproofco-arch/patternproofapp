@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: "Log an Incident", icon: Plus, to: "/journal" },
+  { label: "Log a Mark", icon: Plus, to: "/journal" },
   { label: "Evidence", icon: Paperclip, to: "/evidence" },
   { label: "Archive", icon: BookOpen, to: "/journal" },
   { label: "Recurline", icon: Waves, to: "/patterns" },

@@ -35,7 +35,9 @@ export function PortalStatHero({
         borderRadius: 24,
         padding: "clamp(20px,3vw,30px)",
         color: "#FFFFFF",
-        background: `linear-gradient(135deg, ${t.gradientFrom} 0%, ${t.gradientTo} 100%)`,
+        background: t.gradientMid
+          ? `linear-gradient(135deg, ${t.gradientFrom} 0%, ${t.gradientMid} 50%, ${t.gradientTo} 100%)`
+          : `linear-gradient(135deg, ${t.gradientFrom} 0%, ${t.gradientTo} 100%)`,
         boxShadow: shadow.upLg,
         display: "grid",
         gap: 18,

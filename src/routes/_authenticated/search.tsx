@@ -20,7 +20,7 @@ const KIND_META: Record<
   SearchHit["kind"],
   { label: string; Icon: typeof NotebookPen; accent: string }
 > = {
-  incident: { label: "Incident", Icon: NotebookPen, accent: "#E8A0B4" },
+  incident: { label: "Mark", Icon: NotebookPen, accent: "#E8A0B4" },
   evidence: { label: "Evidence", Icon: Files, accent: "#A8CCE0" },
   voice_note: { label: "Voice note", Icon: Mic, accent: "#F0DFA0" },
   court_date: { label: "Court date", Icon: CalendarDays, accent: "#C4B0D8" },

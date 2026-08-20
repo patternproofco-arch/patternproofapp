@@ -19,6 +19,7 @@ export interface PortalTheme {
   groundHi: string;
   groundLo: string;
   gradientFrom: string;
+  gradientMid?: string;
   gradientTo: string;
   mark: string;
   displayFont: string;
@@ -39,8 +40,9 @@ export const PORTAL_THEME: Record<PortalVariant, PortalTheme> = {
     ground: "#F0EBF4",
     groundHi: "#F5F1F8",
     groundLo: "#E9E3EF",
-    gradientFrom: "#F2A6F7",
-    gradientTo: "#5FE0F7",
+    gradientFrom: "#E879F9",
+    gradientMid: "#8B5CF6",
+    gradientTo: "#38D9F0",
     mark: "#F5F1F8",
     displayFont: "'Source Serif 4', Georgia, serif",
     bodyFont: "'Figtree', system-ui, sans-serif",

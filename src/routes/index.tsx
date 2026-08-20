@@ -14,9 +14,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "PatternProof — Turn scattered evidence into structured patterns" },
-      { name: "description", content: "Turn scattered incidents, evidence, and timelines into organized patterns survivors can document, attorneys can review, and advocates understand faster." },
+      {
+        name: "description",
+        content:
+          "Turn scattered incidents, evidence, and timelines into organized patterns survivors can document, attorneys can review, and advocates understand faster.",
+      },
       { property: "og:title", content: "PatternProof — The truth is in the pattern." },
-      { property: "og:description", content: "Pattern infrastructure for DV, custody, and coercive control documentation." },
+      {
+        property: "og:description",
+        content: "Pattern infrastructure for DV, custody, and coercive control documentation.",
+      },
       { property: "og:url", content: "https://pattern-proof.tech/" },
       { property: "og:type", content: "website" },
       { name: "twitter:title", content: "PatternProof — The truth is in the pattern." },
@@ -35,9 +42,30 @@ export const Route = createFileRoute("/")({
           brand: { "@type": "Brand", name: "PatternProof" },
           url: "https://pattern-proof.tech/",
           offers: [
-            { "@type": "Offer", name: "Survivor — Free", price: "0", priceCurrency: "USD", url: "https://pattern-proof.tech/login", availability: "https://schema.org/InStock" },
-            { "@type": "Offer", name: "Attorney Solo", price: "297", priceCurrency: "USD", url: "https://pattern-proof.tech/for-attorneys", availability: "https://schema.org/InStock" },
-            { "@type": "Offer", name: "DV Organization — Invite", price: "0", priceCurrency: "USD", url: "https://pattern-proof.tech/for-organizations", availability: "https://schema.org/LimitedAvailability" },
+            {
+              "@type": "Offer",
+              name: "Survivor — Free",
+              price: "0",
+              priceCurrency: "USD",
+              url: "https://pattern-proof.tech/login",
+              availability: "https://schema.org/InStock",
+            },
+            {
+              "@type": "Offer",
+              name: "Attorney Solo",
+              price: "297",
+              priceCurrency: "USD",
+              url: "https://pattern-proof.tech/for-attorneys",
+              availability: "https://schema.org/InStock",
+            },
+            {
+              "@type": "Offer",
+              name: "DV Organization — Invite",
+              price: "0",
+              priceCurrency: "USD",
+              url: "https://pattern-proof.tech/for-organizations",
+              availability: "https://schema.org/LimitedAvailability",
+            },
           ],
         }),
       },
@@ -65,10 +93,7 @@ function Index() {
   }
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: "#FAF8F4", color: "#1A1224" }}
-    >
+    <div className="min-h-screen" style={{ background: "#FAF8F4", color: "#1A1224" }}>
       <PublicQuickExit />
       <section
         style={{
@@ -93,11 +118,11 @@ function Index() {
         >
           {attorneyMode ? (
             <>
-            A shoebox of screenshots isn't a chronology.
-            <br />
-            <em>
-              <span className="highlight-thread">A source-linked timeline is.</span>
-            </em>
+              A shoebox of screenshots isn't a chronology.
+              <br />
+              <em>
+                <span className="highlight-thread">A source-linked timeline is.</span>
+              </em>
             </>
           ) : (
             <>
@@ -160,44 +185,44 @@ function Index() {
             </div>
           </div>
         ) : (
-        <div
-          style={{
-            position: "relative",
-            marginTop: 40,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 16,
-            alignItems: "stretch",
-          }}
-        >
-          <PathCard
-            accent="#8C1FFC"
-            gradient="linear-gradient(135deg, #D46FFD, #3E19F8)"
-            icon={FileText}
-            label="Survivor"
-            body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
-            to="/login"
-            cta="Start documenting →"
-          />
-          <PathCard
-            accent="#022063"
-            gradient="linear-gradient(135deg, #015FFD, #014ED1)"
-            icon={Briefcase}
-            label="Attorney"
-            body="A source-linked chronology on day one — prep starts with strategy, not sorting."
-            to="/sample-case"
-            cta="See a sample case →"
-          />
-          <PathCard
-            accent="#2F4E34"
-            gradient="linear-gradient(135deg, #95AD85, #5F8B67)"
-            icon={Users}
-            label="DV Organization"
-            body="A free intake tool for your advocates — she documents once, referrals arrive clean."
-            to="/for-organizations"
-            cta="See how it fits your program →"
-          />
-        </div>
+          <div
+            style={{
+              position: "relative",
+              marginTop: 40,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 16,
+              alignItems: "stretch",
+            }}
+          >
+            <PathCard
+              accent="#8B5CF6"
+              gradient="linear-gradient(135deg, #E879F9, #8B5CF6 50%, #38D9F0)"
+              icon={FileText}
+              label="Survivor"
+              body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
+              to="/login"
+              cta="Start documenting →"
+            />
+            <PathCard
+              accent="#022063"
+              gradient="linear-gradient(135deg, #015FFD, #014ED1)"
+              icon={Briefcase}
+              label="Attorney"
+              body="A source-linked chronology on day one — prep starts with strategy, not sorting."
+              to="/sample-case"
+              cta="See a sample case →"
+            />
+            <PathCard
+              accent="#2F4E34"
+              gradient="linear-gradient(135deg, #95AD85, #5F8B67)"
+              icon={Users}
+              label="DV Organization"
+              body="A free intake tool for your advocates — she documents once, referrals arrive clean."
+              to="/for-organizations"
+              cta="See how it fits your program →"
+            />
+          </div>
         )}
       </section>
 
@@ -216,18 +241,83 @@ function Index() {
           <BrandMark size={26} />
         </div>
         Every entry keeps its source, and you control what you share.{" "}
-        <Link to="/privacy" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>Learn more</Link>
+        <Link
+          to="/privacy"
+          style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}
+        >
+          Learn more
+        </Link>
         <div style={{ marginTop: 18 }}>
-          <Link to="/privacy" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Privacy</Link>
-          <Link to="/safety" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Safety</Link>
-          <Link to="/support" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3, marginRight: 16 }}>Support</Link>
+          <Link
+            to="/privacy"
+            style={{
+              color: "#1A1224",
+              textDecoration: "underline",
+              textUnderlineOffset: 3,
+              marginRight: 16,
+            }}
+          >
+            Privacy
+          </Link>
+          <Link
+            to="/safety"
+            style={{
+              color: "#1A1224",
+              textDecoration: "underline",
+              textUnderlineOffset: 3,
+              marginRight: 16,
+            }}
+          >
+            Safety
+          </Link>
+          <Link
+            to="/support"
+            style={{
+              color: "#1A1224",
+              textDecoration: "underline",
+              textUnderlineOffset: 3,
+              marginRight: 16,
+            }}
+          >
+            Support
+          </Link>
           <details style={{ display: "inline-block" }}>
-            <summary style={{ display: "inline", cursor: "pointer", color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>More</summary>
+            <summary
+              style={{
+                display: "inline",
+                cursor: "pointer",
+                color: "#1A1224",
+                textDecoration: "underline",
+                textUnderlineOffset: 3,
+              }}
+            >
+              More
+            </summary>
             <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
-              <Link to="/how-it-works" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>How it works</Link>
-              <Link to="/resources" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>Resources</Link>
-              <Link to="/terms" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>Terms</Link>
-              <Link to="/waitlist" style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}>Get updates</Link>
+              <Link
+                to="/how-it-works"
+                style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}
+              >
+                How it works
+              </Link>
+              <Link
+                to="/resources"
+                style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}
+              >
+                Resources
+              </Link>
+              <Link
+                to="/terms"
+                style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}
+              >
+                Terms
+              </Link>
+              <Link
+                to="/waitlist"
+                style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}
+              >
+                Get updates
+              </Link>
             </div>
           </details>
         </div>

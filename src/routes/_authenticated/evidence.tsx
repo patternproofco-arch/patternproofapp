@@ -353,7 +353,7 @@ function EvidencePage() {
       .eq("id", reviewFor.id)
       .eq("user_id", user.id);
     setSavingIncident(false);
-    toast("Incident saved and linked to this evidence.");
+    toast("Mark saved and linked to this evidence.");
     closeReview();
     load();
   };

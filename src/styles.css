@@ -336,7 +336,7 @@ em, .font-serif em, h1 em, h2 em, h3 em { font-style: italic; color: var(--pp-in
   text-shadow: 0 1px 1px rgba(0,0,0,0.18);
 }
 [data-persona="survivor"] .btn-primary,
-[data-persona="survivor"] .pp-btn-primary { background: linear-gradient(135deg, #F2A6F7, #A78BFA 46%, #5FE0F7); }
+[data-persona="survivor"] .btn-primary, [data-persona="survivor"] .pp-btn-primary { background: linear-gradient(135deg, #E879F9, #8B5CF6 50%, #38D9F0); }
 .btn-primary:hover, .pp-btn-primary:hover:not(:disabled) { box-shadow: var(--pp-shadow-up); transform: none; }
 .btn-primary:disabled, .pp-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
@@ -635,10 +635,7 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
 
 /* The ONLY decorative gradient in the product: survivor-applied highlight */
 .highlight-thread {
-  background-image: linear-gradient(90deg,
-    rgba(230,139,214,0.55) 0%,
-    rgba(122,31,61,0.55) 50%,
-    rgba(78,140,138,0.55) 100%);
+  background-image: linear-gradient(90deg, #E879F9 0%, #8B5CF6 50%, #38D9F0 100%);
   background-repeat: no-repeat;
   background-size: 100% 6px;
   background-position: 0 92%;

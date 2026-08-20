@@ -756,7 +756,7 @@ function JournalPage() {
                         onChange={(e) => setForm({ ...form, anchor_incident_id: e.target.value })}
                         className="input-pp mt-1"
                       >
-                        <option value="">— pick one of your logged incidents —</option>
+                        <option value="">— pick one of your Marks —</option>
                         {list
                           .filter((i) => i.id !== editingId && i.date)
                           .map((i) => (
@@ -779,7 +779,7 @@ function JournalPage() {
                         placeholder={`e.g. "before my son's second birthday" or "after the move"`}
                       />
                       <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                        Use either a logged incident above, this description, or both.
+                        Use either a Mark above, this description, or both.
                       </p>
                     </div>
                     <div
