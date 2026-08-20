@@ -164,7 +164,7 @@ function EvidenceReviewPage() {
                       {it.in_image_timestamp_text && (
                         <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
                           Timestamp printed in image:{" "}
-                          <span style={{ fontFamily: "'Space Grotesk', monospace" }}>
+                          <span style={{ fontFamily: "var(--font-mono)" }}>
                             {it.in_image_timestamp_text}
                           </span>
                         </div>

@@ -393,7 +393,7 @@ function DiagnosisCard({ clientCount, tier }: { clientCount: number | null; tier
             style={{
               fontSize: 22,
               margin: "4px 0 6px",
-              fontFamily: '"Space Grotesk", system-ui, sans-serif',
+              fontFamily: "var(--font-sans)",
             }}
           >
             {status === "loading" && "Opening your portal…"}
@@ -458,11 +458,7 @@ function Stat({ icon, label, v }: { icon: React.ReactNode; label: string; v: num
         {icon}
         {label}
       </div>
-      <div
-        style={{ fontSize: 24, fontFamily: '"Space Grotesk", system-ui, sans-serif', marginTop: 2 }}
-      >
-        {v}
-      </div>
+      <div style={{ fontSize: 24, fontFamily: "var(--font-sans)", marginTop: 2 }}>{v}</div>
     </div>
   );
 }
@@ -813,7 +809,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
               style={{
                 fontSize: 22,
                 marginTop: 4,
-                fontFamily: '"Space Grotesk", system-ui, sans-serif',
+                fontFamily: "var(--font-sans)",
               }}
             >
               Invite a survivor to share their case

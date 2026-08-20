@@ -95,6 +95,7 @@ function JournalPage() {
   const extractIncident = useServerFn(extractIncidentFromImage);
   const findContradictions = useServerFn(findPossibleContradictions);
   const [list, setList] = useState<FullIncident[]>([]);
+  const [evidenceCounts, setEvidenceCounts] = useState<Record<string, number>>({});
   const [contradictions, setContradictions] = useState<ContradictionPair[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
@@ -131,10 +132,30 @@ function JournalPage() {
       .eq("user_id", user.id)
       .is("deleted_at", null)
       .order("date", { ascending: false, nullsFirst: false });
-    setList((data as FullIncident[] | null) ?? []);
+    const rows = (data as FullIncident[] | null) ?? [];
+    setList(rows);
     findContradictions()
       .then((r) => setContradictions(r.contradictions ?? []))
       .catch(() => setContradictions([]));
+    if (rows.length) {
+      const { data: ev } = await supabase
+        .from("evidence")
+        .select("linked_incident_id")
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .in(
+          "linked_incident_id",
+          rows.map((r) => r.id),
+        );
+      const counts: Record<string, number> = {};
+      for (const row of ev ?? []) {
+        const id = row.linked_incident_id as string | null;
+        if (id) counts[id] = (counts[id] ?? 0) + 1;
+      }
+      setEvidenceCounts(counts);
+    } else {
+      setEvidenceCounts({});
+    }
   }, [user, findContradictions]);
 
   useEffect(() => {
@@ -944,6 +965,7 @@ function JournalPage() {
                     <IncidentCard
                       key={i.id}
                       incident={i}
+                      evidenceCount={evidenceCounts[i.id] ?? 0}
                       onConfirm={confirmRecord}
                       actions={
                         <>

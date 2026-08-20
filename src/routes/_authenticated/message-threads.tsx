@@ -253,7 +253,7 @@ function MessageThreadsPage() {
         </div>
         <h1
           style={{
-            fontFamily: "'Fraunces', Georgia, serif",
+            fontFamily: "var(--font-serif)",
             fontWeight: 300,
             fontSize: 40,
             lineHeight: 1.05,
@@ -389,7 +389,7 @@ function MessageThreadsPage() {
               </div>
               <h3
                 style={{
-                  fontFamily: "'Fraunces', Georgia, serif",
+                  fontFamily: "var(--font-serif)",
                   fontWeight: 300,
                   fontSize: 24,
                   color: "#1A1224",
@@ -533,7 +533,7 @@ function MessageThreadsPage() {
       <section className="flex flex-col gap-4">
         <h2
           style={{
-            fontFamily: "'Fraunces', Georgia, serif",
+            fontFamily: "var(--font-serif)",
             fontWeight: 300,
             fontSize: 28,
             color: "#1A1224",

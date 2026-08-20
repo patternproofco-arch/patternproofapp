@@ -210,7 +210,7 @@ function SurvivorInvitePage() {
       </div>
       <h1
         style={{
-          fontFamily: "'Fraunces', Georgia, serif",
+          fontFamily: "var(--font-serif)",
           fontWeight: 300,
           fontSize: 32,
           marginBottom: 8,
@@ -369,7 +369,7 @@ function SurvivorInvitePage() {
           <div>
             <h2
               style={{
-                fontFamily: "'Fraunces', Georgia, serif",
+                fontFamily: "var(--font-serif)",
                 fontWeight: 300,
                 fontSize: 22,
                 margin: 0,

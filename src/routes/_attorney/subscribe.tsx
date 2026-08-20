@@ -219,7 +219,7 @@ function SubscribePage() {
               <div
                 style={{
                   fontSize: 36,
-                  fontFamily: '"Space Grotesk", system-ui, sans-serif',
+                  fontFamily: "var(--font-sans)",
                   marginTop: 4,
                 }}
               >
@@ -293,7 +293,7 @@ function SubscribePage() {
               fontSize: 26,
               marginTop: 4,
               marginBottom: 8,
-              fontFamily: '"Space Grotesk", system-ui, sans-serif',
+              fontFamily: "var(--font-sans)",
             }}
           >
             {t.close}

@@ -14,21 +14,32 @@ const SAGE_DEEP = "#2F4E34";
 const MUTED = "#6B6A78";
 const RULE = "rgba(26,18,36,0.14)";
 
-const SERIF = "'Fraunces', Georgia, serif";
-const SANS = "'Space Grotesk', system-ui, sans-serif";
-const MONO = "'Space Grotesk', ui-monospace, monospace";
+const SERIF = "var(--font-serif)";
+const SANS = "var(--font-sans)";
+const MONO = "var(--font-mono)";
 
 export const Route = createFileRoute("/for-organizations")({
   head: () => ({
     meta: [
       { title: "PatternProof — For DV organizations" },
-      { name: "description", content: "A free, private documentation tool you can hand every survivor at intake. No cost to your org, no data-sharing with PatternProof — just a cleaner referral to counsel." },
+      {
+        name: "description",
+        content:
+          "A free, private documentation tool you can hand every survivor at intake. No cost to your org, no data-sharing with PatternProof — just a cleaner referral to counsel.",
+      },
       { property: "og:title", content: "PatternProof — Partner referrals for DV organizations" },
-      { property: "og:description", content: "Free survivor tool your advocates can hand out at intake. Cleaner referrals, no cost, no data-sharing." },
+      {
+        property: "og:description",
+        content:
+          "Free survivor tool your advocates can hand out at intake. Cleaner referrals, no cost, no data-sharing.",
+      },
       { property: "og:url", content: "https://pattern-proof.tech/for-organizations" },
       { property: "og:type", content: "website" },
       { name: "twitter:title", content: "PatternProof for DV organizations" },
-      { name: "twitter:description", content: "Free survivor tool your advocates can hand out at intake." },
+      {
+        name: "twitter:description",
+        content: "Free survivor tool your advocates can hand out at intake.",
+      },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/for-organizations" }],
   }),
@@ -37,28 +48,62 @@ export const Route = createFileRoute("/for-organizations")({
 
 function ForOrganizations() {
   return (
-    <div data-persona="org" style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+    <div
+      data-persona="org"
+      style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}
+    >
       <PublicQuickExit />
       <TopBar />
 
-      <section style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(56px,9vw,104px) 24px 40px" }}>
-        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, marginBottom: 24 }}>
+      <section
+        style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(56px,9vw,104px) 24px 40px" }}
+      >
+        <div
+          style={{
+            fontFamily: MONO,
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: MUTED,
+            marginBottom: 24,
+          }}
+        >
           For DV organizations
         </div>
-        <h1 style={{ fontFamily: SERIF, fontWeight: 300, fontSize: "clamp(2.2rem,5.2vw,3.8rem)", lineHeight: 1.05, letterSpacing: "-0.02em", margin: 0 }}>
+        <h1
+          style={{
+            fontFamily: SERIF,
+            fontWeight: 300,
+            fontSize: "clamp(2.2rem,5.2vw,3.8rem)",
+            lineHeight: 1.05,
+            letterSpacing: "-0.02em",
+            margin: 0,
+          }}
+        >
           Smoother days.
           <br />
           <em>More people served.</em>
         </h1>
-        <p style={{ marginTop: 24, fontSize: 18, lineHeight: 1.6, color: "#3A3849", maxWidth: 640 }}>
-          Less time on paperwork no one but your funder sees. More time with the person in front of you.
+        <p
+          style={{ marginTop: 24, fontSize: 18, lineHeight: 1.6, color: "#3A3849", maxWidth: 640 }}
+        >
+          Less time on paperwork no one but your funder sees. More time with the person in front of
+          you.
         </p>
         <Link
           to="/request-org-access"
           style={{
-            display: "inline-block", marginTop: 34, background: SAGE, color: "#1A1224",
-            padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
-            textTransform: "uppercase", textDecoration: "none", borderRadius: 0,
+            display: "inline-block",
+            marginTop: 34,
+            background: SAGE,
+            color: "#1A1224",
+            padding: "14px 26px",
+            fontFamily: MONO,
+            fontSize: 13,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            textDecoration: "none",
+            borderRadius: 0,
           }}
         >
           See how it fits your program →
@@ -96,11 +141,32 @@ function ForOrganizations() {
             clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
           }}
         >
-          <div style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 22, lineHeight: 1.5, color: INK }}>
+          <div
+            style={{
+              fontFamily: SERIF,
+              fontWeight: 300,
+              fontSize: 22,
+              lineHeight: 1.5,
+              color: INK,
+            }}
+          >
             Nationally, domestic violence programs turned away over{" "}
-            <strong style={{ fontWeight: 500 }}>13,000 requests for help in a single day in 2025</strong> — not for lack of need, but for lack of staff time and resources. Time reclaimed from paperwork isn't spare time. It already has somewhere to go.
+            <strong style={{ fontWeight: 500 }}>
+              13,000 requests for help in a single day in 2025
+            </strong>{" "}
+            — not for lack of need, but for lack of staff time and resources. Time reclaimed from
+            paperwork isn't spare time. It already has somewhere to go.
           </div>
-          <div style={{ marginTop: 14, fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          <div
+            style={{
+              marginTop: 14,
+              fontFamily: MONO,
+              fontSize: 11,
+              color: MUTED,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
             Source: NNEDV, 20th Annual Domestic Violence Counts Report, 2025
           </div>
         </div>
@@ -108,19 +174,46 @@ function ForOrganizations() {
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 96px" }}>
         <SectionRule label="What this doesn't do" />
-        <p style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 20, lineHeight: 1.55, color: INK, margin: 0 }}>
-          Documentation takes up a large share of an advocate's day. We haven't measured how much time PatternProof saves your team, and we won't quote a number we can't stand behind — any gain depends on your intake process.
+        <p
+          style={{
+            fontFamily: SERIF,
+            fontWeight: 300,
+            fontSize: 20,
+            lineHeight: 1.55,
+            color: INK,
+            margin: 0,
+          }}
+        >
+          Documentation takes up a large share of an advocate's day. We haven't measured how much
+          time PatternProof saves your team, and we won't quote a number we can't stand behind — any
+          gain depends on your intake process.
         </p>
-        <p style={{ marginTop: 18, fontFamily: SERIF, fontWeight: 300, fontSize: 20, lineHeight: 1.55, color: INK }}>
-          Every record stays under the survivor's control. This doesn't replace your judgment, your relationship with her, or your team's expertise — it gives you more of your day back to use it.
+        <p
+          style={{
+            marginTop: 18,
+            fontFamily: SERIF,
+            fontWeight: 300,
+            fontSize: 20,
+            lineHeight: 1.55,
+            color: INK,
+          }}
+        >
+          Every record stays under the survivor's control. This doesn't replace your judgment, your
+          relationship with her, or your team's expertise — it gives you more of your day back to
+          use it.
         </p>
 
         <div style={{ marginTop: 32, display: "grid", gap: 10 }}>
           <Link
             to="/request-org-access"
             style={{
-              fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase",
-              color: INK, textDecoration: "underline", textUnderlineOffset: 4,
+              fontFamily: MONO,
+              fontSize: 12,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: INK,
+              textDecoration: "underline",
+              textUnderlineOffset: 4,
             }}
           >
             Wondering if this fits your existing VOCA/FVPSA funding? →
@@ -128,8 +221,13 @@ function ForOrganizations() {
           <Link
             to="/privacy"
             style={{
-              fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase",
-              color: INK, textDecoration: "underline", textUnderlineOffset: 4,
+              fontFamily: MONO,
+              fontSize: 12,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: INK,
+              textDecoration: "underline",
+              textUnderlineOffset: 4,
             }}
           >
             How this handles VAWA confidentiality requirements →
@@ -138,8 +236,13 @@ function ForOrganizations() {
             to="/waitlist"
             search={{ as: "organization" as const }}
             style={{
-              fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase",
-              color: INK, textDecoration: "underline", textUnderlineOffset: 4,
+              fontFamily: MONO,
+              fontSize: 12,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: INK,
+              textDecoration: "underline",
+              textUnderlineOffset: 4,
             }}
           >
             Not ready to sign up your organization yet? Leave your email →
@@ -155,18 +258,70 @@ function ForOrganizations() {
 function TopBar() {
   return (
     <header style={{ borderBottom: `1px solid ${RULE}` }}>
-      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em", color: INK, textDecoration: "none", textTransform: "uppercase" }}>
+      <div
+        style={{
+          maxWidth: 1040,
+          margin: "0 auto",
+          padding: "18px 24px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Link
+          to="/"
+          style={{
+            fontFamily: MONO,
+            fontSize: 12,
+            letterSpacing: "0.14em",
+            color: INK,
+            textDecoration: "none",
+            textTransform: "uppercase",
+          }}
+        >
           ← PatternProof
         </Link>
         <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-          <Link to="/how-it-works" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
+          <Link
+            to="/how-it-works"
+            style={{
+              fontFamily: MONO,
+              fontSize: 11,
+              letterSpacing: "0.14em",
+              color: INK,
+              textDecoration: "underline",
+              textUnderlineOffset: 4,
+              textTransform: "uppercase",
+            }}
+          >
             How it works
           </Link>
-          <Link to="/waitlist" search={{ as: "organization" as const }} style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textUnderlineOffset: 4, textTransform: "uppercase" }}>
+          <Link
+            to="/waitlist"
+            search={{ as: "organization" as const }}
+            style={{
+              fontFamily: MONO,
+              fontSize: 11,
+              letterSpacing: "0.14em",
+              color: INK,
+              textDecoration: "underline",
+              textUnderlineOffset: 4,
+              textTransform: "uppercase",
+            }}
+          >
             Get updates
           </Link>
-          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: MUTED, textTransform: "uppercase" }}>DV organizations</div>
+          <div
+            style={{
+              fontFamily: MONO,
+              fontSize: 11,
+              letterSpacing: "0.14em",
+              color: MUTED,
+              textTransform: "uppercase",
+            }}
+          >
+            DV organizations
+          </div>
         </div>
       </div>
     </header>
@@ -175,8 +330,29 @@ function TopBar() {
 
 function Foot() {
   return (
-    <footer style={{ borderTop: `1px solid ${RULE}`, padding: "24px", fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.06em", textAlign: "center" }}>
-      PATTERNPROOF · <Link to="/privacy" style={{ color: INK }}>PRIVACY</Link> · <Link to="/safety" style={{ color: INK }}>SAFETY</Link> · <Link to="/terms" style={{ color: INK }}>TERMS</Link>
+    <footer
+      style={{
+        borderTop: `1px solid ${RULE}`,
+        padding: "24px",
+        fontFamily: MONO,
+        fontSize: 11,
+        color: MUTED,
+        letterSpacing: "0.06em",
+        textAlign: "center",
+      }}
+    >
+      PATTERNPROOF ·{" "}
+      <Link to="/privacy" style={{ color: INK }}>
+        PRIVACY
+      </Link>{" "}
+      ·{" "}
+      <Link to="/safety" style={{ color: INK }}>
+        SAFETY
+      </Link>{" "}
+      ·{" "}
+      <Link to="/terms" style={{ color: INK }}>
+        TERMS
+      </Link>
     </footer>
   );
 }
@@ -184,7 +360,17 @@ function Foot() {
 function SectionRule({ label }: { label: string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "32px 0 24px" }}>
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", color: MUTED, textTransform: "uppercase" }}>{label}</div>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          color: MUTED,
+          textTransform: "uppercase",
+        }}
+      >
+        {label}
+      </div>
       <div style={{ flex: 1, height: 1, background: RULE }} />
     </div>
   );
@@ -200,21 +386,52 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
         clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
       }}
     >
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: INK, marginBottom: 14 }}>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: 11,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+          color: INK,
+          marginBottom: 14,
+        }}
+      >
         {label}
       </div>
       <div style={{ display: "grid", gap: 12 }}>
         <div style={{ borderLeft: `3px solid rgba(26,18,36,0.25)`, paddingLeft: 14 }}>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: MUTED, textTransform: "uppercase", marginBottom: 4 }}>
+          <div
+            style={{
+              fontFamily: MONO,
+              fontSize: 10.5,
+              letterSpacing: "0.14em",
+              color: MUTED,
+              textTransform: "uppercase",
+              marginBottom: 4,
+            }}
+          >
             Before
           </div>
-          <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: MUTED }}>{before}</div>
+          <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: MUTED }}>
+            {before}
+          </div>
         </div>
         <div style={{ borderLeft: `3px solid ${SAGE}`, paddingLeft: 14 }}>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", color: SAGE_DEEP, textTransform: "uppercase", marginBottom: 4 }}>
+          <div
+            style={{
+              fontFamily: MONO,
+              fontSize: 10.5,
+              letterSpacing: "0.14em",
+              color: SAGE_DEEP,
+              textTransform: "uppercase",
+              marginBottom: 4,
+            }}
+          >
             After
           </div>
-          <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: INK }}>{after}</div>
+          <div style={{ fontFamily: SERIF, fontSize: 15.5, lineHeight: 1.55, color: INK }}>
+            {after}
+          </div>
         </div>
       </div>
     </div>

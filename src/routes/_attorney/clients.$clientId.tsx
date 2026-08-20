@@ -1009,11 +1009,7 @@ function Metric({ label, v, help }: { label: string; v: number | string; help?: 
         {label}
         {help && <HelpCircle size={10} style={{ opacity: 0.6 }} />}
       </div>
-      <div
-        style={{ fontSize: 26, fontFamily: '"Space Grotesk", system-ui, sans-serif', marginTop: 4 }}
-      >
-        {v}
-      </div>
+      <div style={{ fontSize: 26, fontFamily: "var(--font-sans)", marginTop: 4 }}>{v}</div>
     </div>
   );
 }
@@ -1521,7 +1517,7 @@ function IntegrityStat({
       <div
         style={{
           fontSize: 20,
-          fontFamily: '"Space Grotesk", system-ui, sans-serif',
+          fontFamily: "var(--font-sans)",
           marginTop: 2,
           color,
         }}
@@ -3376,7 +3372,7 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
         <div
           style={{
             fontSize: 28,
-            fontFamily: '"Space Grotesk", system-ui, sans-serif',
+            fontFamily: "var(--font-sans)",
             color: strengthColor,
           }}
         >
@@ -3399,7 +3395,7 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
 
       <div className="att-card">
         <SectionTitle icon={<ListChecks size={14} />}>Review status</SectionTitle>
-        <div style={{ fontSize: 28, fontFamily: '"Space Grotesk", system-ui, sans-serif' }}>
+        <div style={{ fontSize: 28, fontFamily: "var(--font-sans)" }}>
           {reviewed}
           <span style={{ fontSize: 14, color: "var(--att-text-2)" }}> / {totalEv}</span>
         </div>
@@ -3424,7 +3420,7 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
         <div
           style={{
             fontSize: 28,
-            fontFamily: '"Space Grotesk", system-ui, sans-serif',
+            fontFamily: "var(--font-sans)",
             color: highRisk > 0 ? "var(--att-navy)" : "var(--att-text)",
           }}
         >
@@ -3693,7 +3689,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
         <h2
           style={{
             fontSize: 28,
-            fontFamily: '"Space Grotesk", system-ui, sans-serif',
+            fontFamily: "var(--font-sans)",
             marginTop: 4,
             color: "#fff",
           }}
@@ -3926,7 +3922,7 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
           style={{
             fontSize: 18,
             marginTop: 4,
-            fontFamily: '"Space Grotesk", system-ui, sans-serif',
+            fontFamily: "var(--font-sans)",
           }}
         >
           {t.exhibit_label || t.conversation_participant || t.source_filename}
@@ -4130,7 +4126,7 @@ function MessagesTab({ linkId }: { linkId: string }) {
         <div className="att-eyebrow">Messages</div>
         <h3
           style={{
-            fontFamily: '"Space Grotesk", system-ui, sans-serif',
+            fontFamily: "var(--font-sans)",
             fontSize: 22,
             marginTop: 4,
           }}
@@ -4352,7 +4348,7 @@ function TimeTab({ clientId }: { clientId: string }) {
           <div
             style={{
               fontSize: 26,
-              fontFamily: '"Space Grotesk", system-ui, sans-serif',
+              fontFamily: "var(--font-sans)",
               marginTop: 4,
             }}
           >
@@ -4364,7 +4360,7 @@ function TimeTab({ clientId }: { clientId: string }) {
           <div
             style={{
               fontSize: 26,
-              fontFamily: '"Space Grotesk", system-ui, sans-serif',
+              fontFamily: "var(--font-sans)",
               marginTop: 4,
               color: "var(--att-navy)",
             }}
@@ -4377,7 +4373,7 @@ function TimeTab({ clientId }: { clientId: string }) {
           <div
             style={{
               fontSize: 26,
-              fontFamily: '"Space Grotesk", system-ui, sans-serif',
+              fontFamily: "var(--font-sans)",
               marginTop: 4,
               color: "var(--att-text-2)",
             }}
@@ -4810,7 +4806,7 @@ function CrossReferenceSection({ clientId }: { clientId: string }) {
             >
               <div
                 style={{
-                  fontFamily: "'Space Grotesk', ui-monospace, monospace",
+                  fontFamily: "var(--font-mono)",
                   fontSize: 10.5,
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
@@ -4833,7 +4829,7 @@ function CrossReferenceSection({ clientId }: { clientId: string }) {
                   <li
                     key={`${e.kind}-${e.id}`}
                     style={{
-                      fontFamily: "'Space Grotesk', ui-monospace, monospace",
+                      fontFamily: "var(--font-mono)",
                       fontSize: 11,
                       color: "#1A1224",
                     }}
@@ -4843,7 +4839,7 @@ function CrossReferenceSection({ clientId }: { clientId: string }) {
                     {" · "}
                     <span
                       style={{
-                        fontFamily: "'Space Grotesk', system-ui, sans-serif",
+                        fontFamily: "var(--font-sans)",
                         color: "#1A1224",
                       }}
                     >

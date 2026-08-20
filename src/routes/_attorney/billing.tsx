@@ -3,8 +3,19 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { Check, ExternalLink, Lock, Star, Plug, Clock } from "lucide-react";
 import { createPortalSession } from "@/lib/payments.functions";
-import { getClioAvailability, getClioStatus, startClioConnect, disconnectClio, listMyClioMatters, pushPacketToClio } from "@/lib/clio.functions";
-import { listClioConsentedClients, linkClioMatter, listClioMatterLinks } from "@/lib/clio-matter-links.functions";
+import {
+  getClioAvailability,
+  getClioStatus,
+  startClioConnect,
+  disconnectClio,
+  listMyClioMatters,
+  pushPacketToClio,
+} from "@/lib/clio.functions";
+import {
+  listClioConsentedClients,
+  linkClioMatter,
+  listClioMatterLinks,
+} from "@/lib/clio-matter-links.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 
@@ -13,14 +24,28 @@ export const Route = createFileRoute("/_attorney/billing")({
 });
 
 type TierKey = "solo" | "firm_charter" | "firm";
-const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: string; per: string; priceId: string; bullets: string[]; recommended?: boolean }> = [
+const TIERS: Array<{
+  key: TierKey;
+  name: string;
+  price: string;
+  priceStrike?: string;
+  per: string;
+  priceId: string;
+  bullets: string[];
+  recommended?: boolean;
+}> = [
   {
     key: "solo",
     name: "Solo",
     price: "$297",
     per: "/mo",
     priceId: "attorney_solo_monthly",
-    bullets: ["Single attorney account (seats and matter counts are not metered today)", "Professional-review ZIP exports", "Pattern + deposition prep", "Private attorney notes"],
+    bullets: [
+      "Single attorney account (seats and matter counts are not metered today)",
+      "Professional-review ZIP exports",
+      "Pattern + deposition prep",
+      "Private attorney notes",
+    ],
   },
   {
     key: "firm_charter",
@@ -30,7 +55,13 @@ const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: st
     per: "/mo · locked 12 months",
     priceId: "attorney_firm_charter_monthly",
     recommended: true,
-    bullets: ["Shared firm workspace — invite colleagues to a case (seats not metered today)", "No matter limit enforced today", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Charter rate locked 12 months, then $897/mo"],
+    bullets: [
+      "Shared firm workspace — invite colleagues to a case (seats not metered today)",
+      "No matter limit enforced today",
+      "Multi-attorney collaboration and shared case notes",
+      "Conflict-of-interest check across your own PatternProof caseload",
+      "Charter rate locked 12 months, then $897/mo",
+    ],
   },
   {
     key: "firm",
@@ -38,7 +69,13 @@ const TIERS: Array<{ key: TierKey; name: string; price: string; priceStrike?: st
     price: "$897",
     per: "/mo",
     priceId: "attorney_firm_monthly",
-    bullets: ["Shared firm workspace — invite colleagues to a case (seats not metered today)", "No matter limit enforced today", "Multi-attorney collaboration and shared case notes", "Conflict-of-interest check across your own PatternProof caseload", "Priority client onboarding support"],
+    bullets: [
+      "Shared firm workspace — invite colleagues to a case (seats not metered today)",
+      "No matter limit enforced today",
+      "Multi-attorney collaboration and shared case notes",
+      "Conflict-of-interest check across your own PatternProof caseload",
+      "Priority client onboarding support",
+    ],
   },
 ];
 
@@ -54,13 +91,15 @@ function BillingPage() {
       const r = await portalFn({ data: { environment: env, returnUrl: window.location.href } });
       if ("url" in r) window.location.href = r.url;
       else toast("Couldn't open billing portal: " + r.error);
-    } catch { toast("Couldn't open billing portal."); }
-    finally { setOpening(false); }
+    } catch {
+      toast("Couldn't open billing portal.");
+    } finally {
+      setOpening(false);
+    }
   };
 
   if (sub.loading) return <div className="att-card">Loading billing…</div>;
 
-  
   const renews = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null;
 
   return (
@@ -70,8 +109,19 @@ function BillingPage() {
         <h1 className="att-page-title">Plan &amp; payment</h1>
       </div>
 
-      <div className="att-card" style={{ background: "var(--att-surface)", borderLeft: "2px solid var(--att-navy)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+      <div
+        className="att-card"
+        style={{ background: "var(--att-surface)", borderLeft: "2px solid var(--att-navy)" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 16,
+            flexWrap: "wrap",
+          }}
+        >
           <div>
             <div className="att-eyebrow" style={{ color: "var(--att-slate)" }}>
               {sub.isActive ? "Active subscription" : "No active subscription"}
@@ -79,34 +129,52 @@ function BillingPage() {
             <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4 }}>
               {sub.isActive
                 ? `PatternProof ${
-                    sub.priceId === "attorney_firm_charter_monthly" ? "Firm Charter"
-                    : sub.priceId === "attorney_firm_monthly" ? "Firm"
-                    : sub.priceId === "attorney_solo_monthly" || sub.priceId === "attorney_portal_monthly_297" ? "Solo"
-                    : "Plan"
+                    sub.priceId === "attorney_firm_charter_monthly"
+                      ? "Firm Charter"
+                      : sub.priceId === "attorney_firm_monthly"
+                        ? "Firm"
+                        : sub.priceId === "attorney_solo_monthly" ||
+                            sub.priceId === "attorney_portal_monthly_297"
+                          ? "Solo"
+                          : "Plan"
                   }`
                 : "Pick a plan to unlock case files"}
             </div>
             {sub.isActive && (
               <div style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 4 }}>
                 Status: {sub.status}
-                {renews && <> · {sub.cancelAtPeriodEnd ? "ends" : "renews"} {renews.toLocaleDateString()}</>}
+                {renews && (
+                  <>
+                    {" "}
+                    · {sub.cancelAtPeriodEnd ? "ends" : "renews"} {renews.toLocaleDateString()}
+                  </>
+                )}
               </div>
             )}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             {sub.isActive ? (
-              <button className="att-btn-primary" onClick={openPortal} disabled={opening} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <button
+                className="att-btn-primary"
+                onClick={openPortal}
+                disabled={opening}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
                 <ExternalLink size={13} /> {opening ? "Opening…" : "Manage in Stripe"}
               </button>
             ) : (
-              <Link to="/subscribe" className="att-btn-primary">Choose a plan</Link>
+              <Link to="/subscribe" className="att-btn-primary">
+                Choose a plan
+              </Link>
             )}
           </div>
         </div>
       </div>
 
       <div>
-        <div className="att-eyebrow" style={{ marginBottom: 10 }}>Compare plans</div>
+        <div className="att-eyebrow" style={{ marginBottom: 10 }}>
+          Compare plans
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 14 }}>
           {TIERS.map((t) => {
             const isCurrent = sub.isActive && sub.priceId === t.priceId;
@@ -117,43 +185,101 @@ function BillingPage() {
                 style={{
                   position: "relative",
                   border: "1px solid var(--att-border)",
-                  borderLeft: isCurrent || t.recommended ? "2px solid var(--att-navy)" : "1px solid var(--att-border)",
+                  borderLeft:
+                    isCurrent || t.recommended
+                      ? "2px solid var(--att-navy)"
+                      : "1px solid var(--att-border)",
                   background: "var(--att-surface)",
                 }}
               >
                 {t.recommended && !isCurrent && (
-                  <span className="att-tag" style={{ position: "absolute", top: 12, right: 12, border: "1px solid var(--att-accent-border)", color: "var(--att-navy)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <span
+                    className="att-tag"
+                    style={{
+                      position: "absolute",
+                      top: 12,
+                      right: 12,
+                      border: "1px solid var(--att-accent-border)",
+                      color: "var(--att-navy)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
                     <Star size={10} /> Recommended
                   </span>
                 )}
                 {isCurrent && (
-                  <span className="att-tag" style={{ position: "absolute", top: 12, right: 12, background: "var(--att-navy)", color: "#fff" }}>Current</span>
+                  <span
+                    className="att-tag"
+                    style={{
+                      position: "absolute",
+                      top: 12,
+                      right: 12,
+                      background: "var(--att-navy)",
+                      color: "#fff",
+                    }}
+                  >
+                    Current
+                  </span>
                 )}
                 <div className="att-eyebrow">{t.name}</div>
                 <div className="att-mono" style={{ fontSize: 26, marginTop: 4 }}>
                   {t.priceStrike && (
-                    <span style={{ fontSize: 16, color: "var(--att-text-2)", textDecoration: "line-through", marginRight: 6 }}>
+                    <span
+                      style={{
+                        fontSize: 16,
+                        color: "var(--att-text-2)",
+                        textDecoration: "line-through",
+                        marginRight: 6,
+                      }}
+                    >
                       {t.priceStrike}
                     </span>
                   )}
-                  {t.price}<span style={{ fontSize: 13, color: "var(--att-text-2)" }}>{t.per}</span>
+                  {t.price}
+                  <span style={{ fontSize: 13, color: "var(--att-text-2)" }}>{t.per}</span>
                 </div>
-                <ul style={{ listStyle: "none", padding: 0, marginTop: 14, display: "grid", gap: 8, fontSize: 13 }}>
+                <ul
+                  style={{
+                    listStyle: "none",
+                    padding: 0,
+                    marginTop: 14,
+                    display: "grid",
+                    gap: 8,
+                    fontSize: 13,
+                  }}
+                >
                   {t.bullets.map((b) => (
                     <li key={b} style={{ display: "flex", gap: 8 }}>
-                      <Check size={14} style={{ color: "var(--att-navy)", marginTop: 2, flexShrink: 0 }} /> <span>{b}</span>
+                      <Check
+                        size={14}
+                        style={{ color: "var(--att-navy)", marginTop: 2, flexShrink: 0 }}
+                      />{" "}
+                      <span>{b}</span>
                     </li>
                   ))}
                 </ul>
                 <div style={{ marginTop: 14 }}>
                   {isCurrent ? (
-                    <button className="att-btn-secondary" disabled style={{ width: "100%" }}>On this plan</button>
+                    <button className="att-btn-secondary" disabled style={{ width: "100%" }}>
+                      On this plan
+                    </button>
                   ) : sub.isActive ? (
-                    <button className="att-btn-secondary" onClick={openPortal} disabled={opening} style={{ width: "100%" }}>
+                    <button
+                      className="att-btn-secondary"
+                      onClick={openPortal}
+                      disabled={opening}
+                      style={{ width: "100%" }}
+                    >
                       Switch in Stripe
                     </button>
                   ) : (
-                    <Link to="/subscribe" className="att-btn-primary" style={{ display: "block", textAlign: "center" }}>
+                    <Link
+                      to="/subscribe"
+                      className="att-btn-primary"
+                      style={{ display: "block", textAlign: "center" }}
+                    >
                       Start {t.name}
                     </Link>
                   )}
@@ -164,18 +290,49 @@ function BillingPage() {
         </div>
       </div>
 
-      <div className="att-card" style={{ background: "var(--att-surface-2)", display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--att-text-2)" }}>
+      <div
+        className="att-card"
+        style={{
+          background: "var(--att-surface-2)",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          fontSize: 13,
+          color: "var(--att-text-2)",
+        }}
+      >
         <Lock size={14} /> Cards never touch our servers. Billing handled end-to-end by Stripe.
       </div>
 
       <div className="att-card" style={{ marginTop: 16 }}>
         <div className="att-eyebrow">Exports</div>
-        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 14, alignItems: "center", marginTop: 10 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 2, background: "var(--att-surface-2)", border: "1px solid var(--att-border)", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "auto 1fr",
+            gap: 14,
+            alignItems: "center",
+            marginTop: 10,
+          }}
+        >
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 2,
+              background: "var(--att-surface-2)",
+              border: "1px solid var(--att-border)",
+              display: "grid",
+              placeItems: "center",
+              color: "var(--att-navy)",
+            }}
+          >
             <Plug size={20} />
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--att-text)" }}>Case management import package</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--att-text)" }}>
+              Case management import package
+            </div>
             <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
               Each client case file exports a ZIP of CSVs plus every evidence file, ready to import
               into your practice management system.
@@ -217,7 +374,8 @@ function ClioPanel() {
       .catch(() => setAvailable(false));
     const params = new URLSearchParams(window.location.search);
     if (params.get("clio") === "connected") toast("Connected to Clio.");
-    if (params.get("clio") === "error") toast(params.get("reason") || "We couldn't finish connecting Clio.");
+    if (params.get("clio") === "error")
+      toast(params.get("reason") || "We couldn't finish connecting Clio.");
   }, [load, availabilityFn]);
 
   const connect = async () => {
@@ -247,19 +405,49 @@ function ClioPanel() {
   return (
     <div className="att-card" id="clio">
       <div className="att-eyebrow">Clio connection · {available ? "beta" : "unavailable"}</div>
-      <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 6, borderLeft: "2px solid var(--att-border)", paddingLeft: 10 }}>
+      <div
+        style={{
+          fontSize: 12,
+          color: "var(--att-text-2)",
+          marginTop: 6,
+          borderLeft: "2px solid var(--att-border)",
+          paddingLeft: 10,
+        }}
+      >
         {available
           ? "Connecting links your own Clio Manage account so you can browse your matters here. We have not been through Clio's App Directory review, and nothing is shared with Clio unless a client has approved it."
           : "Clio connection is not available yet. Nothing here is required — the case-management import package below works on its own."}
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
+          alignItems: "center",
+          marginTop: 10,
+        }}
+      >
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-          <div style={{ width: 44, height: 44, borderRadius: 2, background: "var(--att-surface-2)", border: "1px solid var(--att-border)", display: "grid", placeItems: "center", color: "var(--att-navy)" }}>
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 2,
+              background: "var(--att-surface-2)",
+              border: "1px solid var(--att-border)",
+              display: "grid",
+              placeItems: "center",
+              color: "var(--att-navy)",
+            }}
+          >
             <Plug size={20} />
           </div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 600, color: "var(--att-text)" }}>
-              {state?.connected ? `Connected to Clio${state.firmName ? ` as ${state.firmName}` : ""}` : "Clio"}
+              {state?.connected
+                ? `Connected to Clio${state.firmName ? ` as ${state.firmName}` : ""}`
+                : "Clio"}
             </div>
             <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
               {state === null
@@ -282,7 +470,11 @@ function ClioPanel() {
               {busy ? "Opening Clio…" : "Connect Clio"}
             </button>
           ) : (
-            <button className="att-btn-secondary" disabled title="Clio connection is not available yet.">
+            <button
+              className="att-btn-secondary"
+              disabled
+              title="Clio connection is not available yet."
+            >
               Unavailable
             </button>
           )}
@@ -311,11 +503,17 @@ function ClioMattersBrowser() {
   const [rows, setRows] = useState<ClioMatterRow[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const [consented, setConsented] = useState<Array<{ link_id: string; client_label: string; case_label: string }>>([]);
+  const [consented, setConsented] = useState<
+    Array<{ link_id: string; client_label: string; case_label: string }>
+  >([]);
   const [picker, setPicker] = useState<ClioMatterRow | null>(null);
   const [linking, setLinking] = useState(false);
   const [matterLinks, setMatterLinks] = useState<
-    Array<{ attorney_client_link_id: string; clio_matter_id: string; clio_matter_display_number: string | null }>
+    Array<{
+      attorney_client_link_id: string;
+      clio_matter_id: string;
+      clio_matter_display_number: string | null;
+    }>
   >([]);
   const [pushing, setPushing] = useState<string | null>(null);
 
@@ -340,7 +538,9 @@ function ClioMattersBrowser() {
     }
   }, [consentedFn, matterLinksFn]);
 
-  useEffect(() => { void loadConsented(); }, [loadConsented]);
+  useEffect(() => {
+    void loadConsented();
+  }, [loadConsented]);
 
   const doPush = async (linkId: string) => {
     setPushing(linkId);
@@ -359,12 +559,14 @@ function ClioMattersBrowser() {
     if (!picker) return;
     setLinking(true);
     try {
-      await linkFn({ data: {
-        attorney_client_link_id: linkId,
-        clio_matter_id: picker.id,
-        clio_matter_display_number: picker.display_number,
-        clio_matter_description: picker.description,
-      } });
+      await linkFn({
+        data: {
+          attorney_client_link_id: linkId,
+          clio_matter_id: picker.id,
+          clio_matter_display_number: picker.display_number,
+          clio_matter_description: picker.description,
+        },
+      });
       toast("Matter linked to that case file.");
       setPicker(null);
       void loadConsented();
@@ -379,7 +581,9 @@ function ClioMattersBrowser() {
     setLoading(true);
     setNote(null);
     try {
-      const r = (await listFn({ data: { query: query.trim() || undefined } })) as { matters: ClioMatterRow[] };
+      const r = (await listFn({ data: { query: query.trim() || undefined } })) as {
+        matters: ClioMatterRow[];
+      };
       setRows(r.matters);
       if (!r.matters.length) setNote("No matters came back from Clio for that search.");
     } catch (e) {
@@ -394,7 +598,8 @@ function ClioMattersBrowser() {
     <div style={{ marginTop: 18, borderTop: "1px solid var(--att-border)", paddingTop: 16 }}>
       <div className="att-eyebrow">Browse Clio matters</div>
       <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 4 }}>
-        Read-only view of your own Clio matters, if the connection works. This path has not been verified against a live Clio account. Nothing is linked to a PatternProof case here.
+        Read-only view of your own Clio matters, if the connection works. This path has not been
+        verified against a live Clio account. Nothing is linked to a PatternProof case here.
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
         <input
@@ -412,24 +617,26 @@ function ClioMattersBrowser() {
         </button>
       </div>
 
-      {note ? <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 10 }}>{note}</div> : null}
+      {note ? (
+        <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 10 }}>{note}</div>
+      ) : null}
 
       {rows && rows.length > 0 ? (
         <div style={{ marginTop: 12, overflowX: "auto" }}>
           <table className="att-table">
             <thead>
               <tr>
-                <th style={{ fontFamily: "'Space Grotesk', monospace" }}>MATTER</th>
-                <th style={{ fontFamily: "'Space Grotesk', monospace" }}>DESCRIPTION</th>
-                <th style={{ fontFamily: "'Space Grotesk', monospace" }}>CLIENT</th>
-                <th style={{ fontFamily: "'Space Grotesk', monospace" }}>STATUS</th>
+                <th style={{ fontFamily: "var(--font-mono)" }}>MATTER</th>
+                <th style={{ fontFamily: "var(--font-mono)" }}>DESCRIPTION</th>
+                <th style={{ fontFamily: "var(--font-mono)" }}>CLIENT</th>
+                <th style={{ fontFamily: "var(--font-mono)" }}>STATUS</th>
                 <th />
               </tr>
             </thead>
             <tbody>
               {rows.map((m) => (
                 <tr key={m.id}>
-                  <td style={{ fontFamily: "'Space Grotesk', monospace", whiteSpace: "nowrap" }}>
+                  <td style={{ fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
                     {m.display_number ?? m.id}
                   </td>
                   <td>{m.description ?? "—"}</td>
@@ -439,7 +646,11 @@ function ClioMattersBrowser() {
                     <button
                       className="att-btn-secondary"
                       disabled={consented.length === 0}
-                      title={consented.length === 0 ? "No clients have approved Clio sharing yet." : "Link this matter to a case file"}
+                      title={
+                        consented.length === 0
+                          ? "No clients have approved Clio sharing yet."
+                          : "Link this matter to a case file"
+                      }
                       onClick={() => setPicker(m)}
                     >
                       Link to case
@@ -456,7 +667,14 @@ function ClioMattersBrowser() {
       ) : null}
 
       {picker ? (
-        <div style={{ marginTop: 14, border: "1px solid var(--att-border)", background: "var(--att-surface-2)", padding: 14 }}>
+        <div
+          style={{
+            marginTop: 14,
+            border: "1px solid var(--att-border)",
+            background: "var(--att-surface-2)",
+            padding: 14,
+          }}
+        >
           <div className="att-eyebrow">Link {picker.display_number ?? picker.id}</div>
           <div style={{ fontSize: 12, color: "var(--att-text-2)", margin: "4px 0 10px" }}>
             Only clients who have approved Clio sharing appear here.
@@ -475,7 +693,13 @@ function ClioMattersBrowser() {
             ))}
           </div>
           <div style={{ marginTop: 10 }}>
-            <button className="att-btn-secondary" onClick={() => setPicker(null)} disabled={linking}>Cancel</button>
+            <button
+              className="att-btn-secondary"
+              onClick={() => setPicker(null)}
+              disabled={linking}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       ) : null}
@@ -484,7 +708,8 @@ function ClioMattersBrowser() {
         <div style={{ marginTop: 18, borderTop: "1px solid var(--att-border)", paddingTop: 16 }}>
           <div className="att-eyebrow">Send a packet to Clio</div>
           <div style={{ fontSize: 12, color: "var(--att-text-2)", margin: "4px 0 10px" }}>
-            Sends the most recent professional-review packet you generated for that client into the linked matter. Nothing is generated or sent automatically.
+            Sends the most recent professional-review packet you generated for that client into the
+            linked matter. Nothing is generated or sent automatically.
           </div>
           <div style={{ display: "grid", gap: 6 }}>
             {matterLinks.map((ml) => {
@@ -492,12 +717,19 @@ function ClioMattersBrowser() {
               return (
                 <div
                   key={ml.attorney_client_link_id}
-                  style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                  }}
                 >
                   <div style={{ fontSize: 12 }}>
                     {c ? `${c.client_label} · ${c.case_label}` : "Linked case"}
                     <span style={{ color: "var(--att-text-2)" }}>
-                      {" "}→ {ml.clio_matter_display_number ?? ml.clio_matter_id}
+                      {" "}
+                      → {ml.clio_matter_display_number ?? ml.clio_matter_id}
                     </span>
                   </div>
                   <button

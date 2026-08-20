@@ -96,7 +96,7 @@ export function FrequencyObservations({ compact = false }: { compact?: boolean }
             {open === o.id && (
               <ul
                 className="mt-2 space-y-1 text-[12px]"
-                style={{ color: "#3A3849", fontFamily: "'Space Grotesk', monospace" }}
+                style={{ color: "#3A3849", fontFamily: "var(--font-mono)" }}
               >
                 {o.rows.map((r) => (
                   <li key={r.id}>

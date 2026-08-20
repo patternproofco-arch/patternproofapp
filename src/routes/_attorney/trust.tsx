@@ -202,11 +202,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
       <div className="att-eyebrow" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
         {icon} {label}
       </div>
-      <div
-        style={{ fontSize: 28, fontFamily: '"Space Grotesk", system-ui, sans-serif', marginTop: 4 }}
-      >
-        {value}
-      </div>
+      <div style={{ fontSize: 28, fontFamily: "var(--font-sans)", marginTop: 4 }}>{value}</div>
     </div>
   );
 }

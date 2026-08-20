@@ -13,9 +13,9 @@ const INK = "#1A1224";
 const PAPER = "#FAF8F4";
 const RULE = "rgba(26,18,36,0.14)";
 const MUTED = "#6E6579";
-const SERIF = "'Fraunces', Georgia, serif";
-const SANS = "'Space Grotesk', system-ui, sans-serif";
-const MONO = "'Space Grotesk', ui-monospace, monospace";
+const SERIF = "var(--font-serif)";
+const SANS = "var(--font-sans)";
+const MONO = "var(--font-mono)";
 
 export const Route = createFileRoute("/resources")({
   head: () => ({

@@ -217,7 +217,7 @@ const page = {
   minHeight: "100vh",
   background: "#FAF8F4",
   color: "#1A1224",
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
+  fontFamily: "var(--font-sans)",
   padding: "32px 20px 96px",
 } as const;
 
@@ -238,18 +238,18 @@ const eyebrow = {
   color: "#4132B4",
   fontWeight: 700,
   marginBottom: 10,
-  fontFamily: "'Space Grotesk', monospace",
+  fontFamily: "var(--font-mono)",
 } as const;
 
 const h1 = {
-  fontFamily: "'Fraunces', Georgia, serif",
+  fontFamily: "var(--font-serif)",
   fontSize: 38,
   lineHeight: 1.15,
   fontWeight: 500,
   margin: 0,
 } as const;
 const h2 = {
-  fontFamily: "'Fraunces', Georgia, serif",
+  fontFamily: "var(--font-serif)",
   fontSize: 21,
   fontWeight: 500,
   margin: "0 0 8px",
@@ -281,7 +281,7 @@ const labelText = {
   fontSize: 11,
   letterSpacing: "0.12em",
   textTransform: "uppercase",
-  fontFamily: "'Space Grotesk', monospace",
+  fontFamily: "var(--font-mono)",
   color: "#3A3849",
   fontWeight: 600,
   marginBottom: 6,
@@ -291,7 +291,7 @@ const input = {
   width: "100%",
   padding: "10px 12px",
   fontSize: 15,
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
+  fontFamily: "var(--font-sans)",
   color: "#1A1224",
   background: "#FAF8F4",
   border: "1px solid rgba(26,18,36,0.16)",
@@ -314,7 +314,7 @@ const submitBtn = {
   fontSize: 14,
   fontWeight: 600,
   cursor: "pointer",
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
+  fontFamily: "var(--font-sans)",
 } as const;
 
 const emailRow = {
@@ -328,7 +328,7 @@ const emailRow = {
 } as const;
 
 const emailText = {
-  fontFamily: "'Space Grotesk', monospace",
+  fontFamily: "var(--font-mono)",
   fontSize: 14,
   color: "#1A1224",
 } as const;

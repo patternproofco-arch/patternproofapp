@@ -633,13 +633,13 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
 
 .redaction-confirmed { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; color: var(--pp-confirmed); }
 
-/* The ONLY decorative gradient in the product: survivor-applied highlight */
+/* The gradient underline: one thesis phrase per page, never two. */
 .highlight-thread {
-  background-image: linear-gradient(90deg, #E879F9 0%, #8B5CF6 50%, #38D9F0 100%);
+  background-image: linear-gradient(90deg, #E9A6C4 0%, #9E8CA8 50%, #8FBDB6 100%);
   background-repeat: no-repeat;
-  background-size: 100% 6px;
-  background-position: 0 92%;
-  padding-bottom: 2px;
+  background-size: 100% 5px;
+  background-position: 0 100%;
+  padding-bottom: 5px;
 }
 
 .xref-connector { border-left: 2px solid var(--pp-ink); margin-left: 10px; padding: 6px 0 6px 14px; position: relative; }
