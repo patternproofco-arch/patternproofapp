@@ -212,7 +212,7 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
                   color: "#FAF8F4",
                   fontSize: 11,
                   padding: "2px 6px",
-                  borderRadius: 2,
+                  borderRadius: 18,
                 }}
               >
                 #{idx + 1}
@@ -226,7 +226,7 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
                   top: 4,
                   right: 4,
                   background: "rgba(255,255,255,0.9)",
-                  borderRadius: 2,
+                  borderRadius: 18,
                   padding: 4,
                 }}
               >

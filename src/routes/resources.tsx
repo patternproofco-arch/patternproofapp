@@ -271,7 +271,7 @@ function ResourcesPage() {
                   maxWidth: 320,
                   padding: "10px 12px",
                   border: `1px solid ${RULE}`,
-                  borderRadius: 2,
+                  borderRadius: 18,
                   background: "var(--pp-card)",
                   color: INK,
                   fontFamily: SANS,
@@ -327,7 +327,7 @@ function ResourcesPage() {
 const cardStyle: React.CSSProperties = {
   background: "var(--pp-card)",
   border: `1px solid ${RULE}`,
-  borderRadius: 2,
+  borderRadius: 18,
   padding: 20,
 };
 
@@ -343,7 +343,7 @@ const linkStyle: React.CSSProperties = {
   alignItems: "center",
   gap: 6,
   border: `1px solid ${RULE}`,
-  borderRadius: 2,
+  borderRadius: 18,
   padding: "6px 10px",
   fontFamily: MONO,
   fontSize: 12,

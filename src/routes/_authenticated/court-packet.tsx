@@ -189,8 +189,8 @@ function CourtPacket() {
           background: "#fff",
           color: "#1A1224",
           padding: "32px 36px",
-          border: "1px solid rgba(26,18,36,0.14)",
-          borderRadius: 2,
+          boxShadow: "var(--pp-shadow-sm)",
+          borderRadius: 18,
           fontFamily: "var(--font-sans)",
           fontSize: 14,
           lineHeight: 1.55,
@@ -286,12 +286,12 @@ function CourtPacket() {
                 .map((e) => (
                   <figure
                     key={e.id}
-                    style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 2 }}
+                    style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 18 }}
                   >
                     <img
                       src={evUrls[e.id]}
                       alt={e.title}
-                      style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 2 }}
+                      style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 18 }}
                     />
                     <figcaption style={{ marginTop: 4, fontSize: 11 }}>
                       {e.title} · {new Date(e.date).toLocaleDateString()}
@@ -350,12 +350,12 @@ function CourtPacket() {
                 .map((d) => (
                   <figure
                     key={d.id}
-                    style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 2 }}
+                    style={{ margin: 0, border: "1px solid #ccc", padding: 6, borderRadius: 18 }}
                   >
                     <img
                       src={legalUrls[d.id]}
                       alt={d.title}
-                      style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 2 }}
+                      style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 18 }}
                     />
                     <figcaption style={{ marginTop: 4, fontSize: 11 }}>{d.title}</figcaption>
                   </figure>

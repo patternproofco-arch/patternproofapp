@@ -153,7 +153,7 @@ function OrgPortal() {
                   key={c.code}
                   style={{
                     boxShadow: "var(--pp-shadow-sm)",
-                    borderRadius: 2,
+                    borderRadius: 18,
                     padding: 16,
                     background: "var(--pp-card)",
                     display: "grid",
@@ -166,7 +166,7 @@ function OrgPortal() {
                         fontSize: 13,
                         background: "#F5F5F0",
                         padding: "6px 10px",
-                        borderRadius: 2,
+                        borderRadius: 18,
                         overflowWrap: "anywhere",
                       }}
                     >
@@ -263,7 +263,7 @@ const btnStyle: React.CSSProperties = {
   alignItems: "center",
   gap: 6,
   padding: "8px 12px",
-  borderRadius: 2,
+  borderRadius: 18,
   boxShadow: "var(--pp-shadow-sm)",
   background: "var(--pp-card)",
   cursor: "pointer",
@@ -319,7 +319,7 @@ function Stat({ label, value }: { label: string; value: number }) {
     <div
       style={{
         boxShadow: "var(--pp-shadow-sm)",
-        borderRadius: 2,
+        borderRadius: 18,
         padding: 16,
         background: "var(--pp-card)",
       }}

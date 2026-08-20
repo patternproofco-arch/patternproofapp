@@ -208,7 +208,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
                   color: "#FAF8F4",
                   fontSize: 11,
                   padding: "2px 6px",
-                  borderRadius: 2,
+                  borderRadius: 18,
                 }}
               >
                 #{idx + 1}
@@ -220,7 +220,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
                   aria-label="Move up"
                   style={{
                     background: "rgba(255,255,255,0.9)",
-                    borderRadius: 2,
+                    borderRadius: 18,
                     padding: "1px 6px",
                     fontSize: 12,
                   }}
@@ -233,7 +233,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
                   aria-label="Move down"
                   style={{
                     background: "rgba(255,255,255,0.9)",
-                    borderRadius: 2,
+                    borderRadius: 18,
                     padding: "1px 6px",
                     fontSize: 12,
                   }}
@@ -244,7 +244,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
                   type="button"
                   onClick={() => remove(idx)}
                   aria-label="Remove"
-                  style={{ background: "rgba(255,255,255,0.9)", borderRadius: 2, padding: 4 }}
+                  style={{ background: "rgba(255,255,255,0.9)", borderRadius: 18, padding: 4 }}
                 >
                   <X size={12} />
                 </button>

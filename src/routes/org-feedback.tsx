@@ -94,7 +94,7 @@ function OrgFeedbackPage() {
                   alignItems: "center",
                   gap: 8,
                   padding: "8px 14px",
-                  borderRadius: 2,
+                  borderRadius: 18,
                   background: "rgba(127,161,137,0.20)",
                   color: "#3E5A33",
                   fontWeight: 700,
@@ -270,7 +270,7 @@ const pageWrap: React.CSSProperties = {
 };
 const cardStyle: React.CSSProperties = {
   background: "var(--pp-card)",
-  borderRadius: 2,
+  borderRadius: 18,
   padding: "36px 32px",
   borderLeft: "4px solid #7A9B6E",
   boxShadow: "var(--pp-shadow-sm)",
@@ -295,7 +295,7 @@ const eyebrow: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
-  borderRadius: 2,
+  borderRadius: 18,
   border: "1px solid rgba(62,90,51,0.20)",
   background: "#F6F8F1",
   color: "#1F2D1A",
@@ -304,7 +304,7 @@ const inputStyle: React.CSSProperties = {
 };
 const ctaBtn: React.CSSProperties = {
   padding: "14px 26px",
-  borderRadius: 2,
+  borderRadius: 18,
   background: "#2F4E34",
   color: "#1A1224",
   fontWeight: 700,
@@ -316,7 +316,7 @@ const ctaBtn: React.CSSProperties = {
 function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
-    borderRadius: 2,
+    borderRadius: 18,
     border: active ? "1px solid #2F4E34" : "1px solid rgba(62,90,51,0.25)",
     background: active ? "#2F4E34" : "#FFFFFF",
     color: active ? "#1A1224" : "#1F2D1A",

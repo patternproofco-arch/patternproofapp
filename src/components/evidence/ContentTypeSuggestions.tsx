@@ -137,14 +137,14 @@ export function ContentTypeSuggestions() {
               <img
                 src={thumbs[s.evidence_id]}
                 alt=""
-                style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 2 }}
+                style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 18 }}
               />
             ) : (
               <div
                 style={{
                   width: 48,
                   height: 48,
-                  borderRadius: 2,
+                  borderRadius: 18,
                   background: "rgba(26,18,36,0.08)",
                 }}
               />

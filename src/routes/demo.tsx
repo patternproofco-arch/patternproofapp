@@ -280,7 +280,7 @@ function DemoHeader() {
             background: "#5B4BA4",
             color: "white",
             padding: "10px 18px",
-            borderRadius: 2,
+            borderRadius: 18,
             fontSize: 13,
             fontWeight: 600,
             textDecoration: "none",
@@ -303,7 +303,7 @@ function DemoBanner() {
           gap: 10,
           background: "rgba(255, 235, 180, 0.45)",
           border: "1px solid rgba(180, 140, 60, 0.25)",
-          borderRadius: 2,
+          borderRadius: 18,
           padding: "10px 14px",
           fontSize: 13,
           color: "#5C4520",
@@ -341,7 +341,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         overflowX: "auto",
         background: "white",
         padding: 6,
-        borderRadius: 2,
+        borderRadius: 18,
         border: "1px solid rgba(91,75,164,0.12)",
         boxShadow: "var(--pp-shadow-sm)",
       }}
@@ -358,7 +358,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
               alignItems: "center",
               gap: 6,
               padding: "9px 14px",
-              borderRadius: 2,
+              borderRadius: 18,
               fontSize: 13,
               fontWeight: 600,
               border: "none",
@@ -381,7 +381,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
     <div
       style={{
         background: "white",
-        borderRadius: 2,
+        borderRadius: 18,
         padding: 20,
         border: "1px solid rgba(91,75,164,0.10)",
         boxShadow: "var(--pp-shadow-sm)",
@@ -422,7 +422,7 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
             return (
               <div
                 key={s.label}
-                style={{ background: "rgba(91,75,164,0.05)", borderRadius: 2, padding: 14 }}
+                style={{ background: "rgba(91,75,164,0.05)", borderRadius: 18, padding: 14 }}
               >
                 <I size={16} style={{ color: "#4132B4" }} />
                 <div style={{ fontSize: 22, fontWeight: 700, marginTop: 6 }}>{s.value}</div>
@@ -451,7 +451,7 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
                 background: "transparent",
                 border: "1px solid rgba(91,75,164,0.15)",
                 padding: "10px 14px",
-                borderRadius: 2,
+                borderRadius: 18,
                 fontSize: 13,
                 color: "#1F1A2E",
                 cursor: "pointer",
@@ -482,7 +482,7 @@ function TypeBadge({ t }: { t: string }) {
         fontSize: 11,
         fontWeight: 600,
         padding: "3px 9px",
-        borderRadius: 2,
+        borderRadius: 18,
         background: color + "18",
         color,
         border: "1px solid " + color + "30",
@@ -558,7 +558,7 @@ function IncidentRow({ inc }: { inc: Incident }) {
                 color: "#5A5469",
                 background: "rgba(91,75,164,0.06)",
                 padding: "3px 8px",
-                borderRadius: 2,
+                borderRadius: 18,
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
@@ -733,7 +733,7 @@ function EvidenceLibrary() {
                   style={{
                     width: 32,
                     height: 32,
-                    borderRadius: 2,
+                    borderRadius: 18,
                     background: "rgba(91,75,164,0.08)",
                     display: "flex",
                     alignItems: "center",
@@ -898,7 +898,7 @@ const demoButton: React.CSSProperties = {
   background: "white",
   color: "#5B4BA4",
   padding: "8px 14px",
-  borderRadius: 2,
+  borderRadius: 18,
   border: "1px solid rgba(91,75,164,0.25)",
   fontSize: 13,
   fontWeight: 600,

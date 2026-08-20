@@ -83,7 +83,7 @@ function RequestOrgAccess() {
         <div
           style={{
             background: "var(--pp-card)",
-            borderRadius: 2,
+            borderRadius: 18,
             padding: 36,
             boxShadow: "var(--pp-shadow-sm)",
           }}
@@ -125,7 +125,7 @@ function RequestOrgAccess() {
                   alignItems: "flex-start",
                   padding: 20,
                   background: "rgba(127,161,137,0.20)",
-                  borderRadius: 2,
+                  borderRadius: 18,
                 }}
               >
                 <Check size={20} style={{ color: "var(--teal-dark)", marginTop: 2 }} />
@@ -187,7 +187,7 @@ function RequestOrgAccess() {
                   style={{
                     width: "100%",
                     padding: 12,
-                    borderRadius: 2,
+                    borderRadius: 18,
                     boxShadow: "var(--pp-shadow-sm)",
                     fontSize: 14,
                     fontFamily: "inherit",
@@ -201,7 +201,7 @@ function RequestOrgAccess() {
                     color: "var(--foreground)",
                     background: "rgba(231,123,86,0.16)",
                     padding: "10px 12px",
-                    borderRadius: 2,
+                    borderRadius: 18,
                   }}
                 >
                   {error}
@@ -213,7 +213,7 @@ function RequestOrgAccess() {
                 style={{
                   marginTop: 8,
                   padding: "14px 24px",
-                  borderRadius: 2,
+                  borderRadius: 18,
                   background: "#2F4E34",
                   color: "#1A1224",
                   fontWeight: 700,
@@ -284,7 +284,7 @@ function Input({
         style={{
           width: "100%",
           padding: 12,
-          borderRadius: 2,
+          borderRadius: 18,
           boxShadow: "var(--pp-shadow-sm)",
           fontSize: 14,
           fontFamily: "inherit",

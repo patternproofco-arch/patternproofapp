@@ -339,8 +339,8 @@ function ImportMessagesPage() {
                   className="flex items-center justify-between gap-3"
                   style={{
                     background: "var(--pp-card)",
-                    border: "1px solid rgba(26,18,36,0.14)",
-                    borderRadius: 2,
+                    boxShadow: "var(--pp-shadow-sm)",
+                    borderRadius: 18,
                     padding: "10px 12px",
                   }}
                 >
@@ -376,8 +376,8 @@ function ImportMessagesPage() {
         <section
           style={{
             background: "#FAF8F4",
-            border: "1px solid rgba(26,18,36,0.14)",
-            borderRadius: 2,
+            boxShadow: "var(--pp-shadow-sm)",
+            borderRadius: 18,
             padding: 16,
           }}
         >

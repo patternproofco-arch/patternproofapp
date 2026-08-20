@@ -286,7 +286,7 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "11px 12px",
   border: `1px solid ${RULE}`,
-  borderRadius: 2,
+  borderRadius: 18,
   background: "var(--pp-card)",
   fontSize: 15,
   color: INK,
