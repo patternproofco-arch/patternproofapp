@@ -1,6 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Upload, FileText, Trash2, Download, Pencil, ChevronDown, ChevronRight, Link as LinkIcon, X, Search } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  Trash2,
+  Download,
+  Pencil,
+  ChevronDown,
+  ChevronRight,
+  Link as LinkIcon,
+  X,
+  Search,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -15,9 +26,15 @@ export const Route = createFileRoute("/_authenticated/legal-documents")({
 });
 
 type DocType =
-  | "tro" | "fro" | "police_report" | "911_log"
-  | "cps_report" | "custody_order" | "court_order"
-  | "hearing_transcript" | "other";
+  | "tro"
+  | "fro"
+  | "police_report"
+  | "911_log"
+  | "cps_report"
+  | "custody_order"
+  | "court_order"
+  | "hearing_transcript"
+  | "other";
 
 interface LegalDoc {
   id: string;
@@ -41,7 +58,11 @@ interface LegalDoc {
   created_at: string;
 }
 
-interface Incident { id: string; date: string; description: string }
+interface Incident {
+  id: string;
+  date: string;
+  description: string;
+}
 
 const DOC_TYPES: { value: DocType; label: string }[] = [
   { value: "tro", label: "Temporary Restraining Order (TRO)" },
@@ -56,23 +77,23 @@ const DOC_TYPES: { value: DocType; label: string }[] = [
 ];
 
 const BADGE: Record<DocType, { label: string; bg: string; fg: string }> = {
-  tro:                { label: "TRO",            bg: "#8A5A2E", fg: "#1A1224" },
-  fro:                { label: "FRO",            bg: "#8A5A2E", fg: "#1A1224" },
-  police_report:      { label: "Police Report",  bg: "#4132B4", fg: "#1A1224" },
-  "911_log":          { label: "911 Log",        bg: "#4132B4", fg: "#1A1224" },
-  custody_order:      { label: "Custody Order",  bg: "#A8D8B9", fg: "#1A1224" },
-  court_order:        { label: "Court Order",    bg: "#A8D8B9", fg: "#1A1224" },
-  cps_report:         { label: "CPS",            bg: "#D2B48C", fg: "#1A1224" },
-  hearing_transcript: { label: "Transcript",     bg: "#1A1224", fg: "#FAF8F4" },
-  other:              { label: "Other",          bg: "#1A1224", fg: "#FAF8F4" },
+  tro: { label: "TRO", bg: "#8A5A2E", fg: "#1A1224" },
+  fro: { label: "FRO", bg: "#8A5A2E", fg: "#1A1224" },
+  police_report: { label: "Police Report", bg: "#4132B4", fg: "#1A1224" },
+  "911_log": { label: "911 Log", bg: "#4132B4", fg: "#1A1224" },
+  custody_order: { label: "Custody Order", bg: "#A8D8B9", fg: "#1A1224" },
+  court_order: { label: "Court Order", bg: "#A8D8B9", fg: "#1A1224" },
+  cps_report: { label: "CPS", bg: "#D2B48C", fg: "#1A1224" },
+  hearing_transcript: { label: "Transcript", bg: "#1A1224", fg: "#FAF8F4" },
+  other: { label: "Other", bg: "#1A1224", fg: "#FAF8F4" },
 };
 
 const GROUPS: { label: string; types: DocType[] }[] = [
   { label: "Restraining Orders", types: ["tro", "fro"] },
-  { label: "Police Reports",     types: ["police_report", "911_log"] },
-  { label: "Court Orders",       types: ["custody_order", "court_order", "hearing_transcript"] },
-  { label: "CPS Records",        types: ["cps_report"] },
-  { label: "Other Documents",    types: ["other"] },
+  { label: "Police Reports", types: ["police_report", "911_log"] },
+  { label: "Court Orders", types: ["custody_order", "court_order", "hearing_transcript"] },
+  { label: "CPS Records", types: ["cps_report"] },
+  { label: "Other Documents", types: ["other"] },
 ];
 
 type Extracted = {
@@ -93,10 +114,18 @@ type Extracted = {
 
 function emptyExtracted(): Extracted {
   return {
-    document_type_confirmed: null, case_number: null, court_name: null,
-    judge_name: null, effective_date: null, expiration_date: null,
-    protected_party: null, restrained_party: null, issuing_officer: null,
-    incident_date: null, key_terms: null, suggested_title: null,
+    document_type_confirmed: null,
+    case_number: null,
+    court_name: null,
+    judge_name: null,
+    effective_date: null,
+    expiration_date: null,
+    protected_party: null,
+    restrained_party: null,
+    issuing_officer: null,
+    incident_date: null,
+    key_terms: null,
+    suggested_title: null,
     cross_reference_note: null,
   };
 }
@@ -121,24 +150,40 @@ function LegalDocumentsPage() {
   const [driveOpen, setDriveOpen] = useState(false);
   const [driveBusy, setDriveBusy] = useState(false);
   const [driveQuery, setDriveQuery] = useState("");
-  const [driveFiles, setDriveFiles] = useState<Array<{ id: string; name: string; mimeType: string; modifiedTime?: string }>>([]);
+  const [driveFiles, setDriveFiles] = useState<
+    Array<{ id: string; name: string; mimeType: string; modifiedTime?: string }>
+  >([]);
   const [driveError, setDriveError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
     const [d, i] = await Promise.all([
-      supabase.from("legal_documents").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("incidents").select("id,date,description").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false }),
+      supabase
+        .from("legal_documents")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("incidents")
+        .select("id,date,description")
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .order("date", { ascending: false }),
     ]);
     setDocs((d.data as LegalDoc[] | null) ?? []);
     setIncidents((i.data as Incident[] | null) ?? []);
   }, [user]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const reset = () => {
-    setPending(null); setDocType(""); setPhase("idle");
-    setPendingKey(""); setExtracted(emptyExtracted());
+    setPending(null);
+    setDocType("");
+    setPhase("idle");
+    setPendingKey("");
+    setExtracted(emptyExtracted());
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -149,9 +194,12 @@ function LegalDocumentsPage() {
     const r = await driveList({ data: { query: driveQuery || undefined } });
     setDriveBusy(false);
     if (r.ok) setDriveFiles(r.files);
-    else setDriveError(r.reason === "missing-drive-connection"
-      ? "Google Drive isn't connected yet. Reach out to your project owner to enable it."
-      : "We couldn't reach Google Drive. Try again in a moment.");
+    else
+      setDriveError(
+        r.reason === "missing-drive-connection"
+          ? "Google Drive isn't connected yet. Reach out to your project owner to enable it."
+          : "We couldn't reach Google Drive. Try again in a moment.",
+      );
   };
 
   const searchDrive = async () => {
@@ -168,7 +216,11 @@ function LegalDocumentsPage() {
     setPhase("extracting");
     const dl = await driveDownload({ data: { fileId: f.id } });
     if (!dl.ok) {
-      toast(dl.reason === "too-large" ? "That file is too large to import." : "We couldn't import that file.");
+      toast(
+        dl.reason === "too-large"
+          ? "That file is too large to import."
+          : "We couldn't import that file.",
+      );
       setPhase("idle");
       return;
     }
@@ -185,11 +237,12 @@ function LegalDocumentsPage() {
 
     // Upload first
     const ext = pending.name.split(".").pop() ?? "bin";
-    const key = `${user.id}/legal/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const key = `${user.id}/legal/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const up = await supabase.storage.from("evidence-files").upload(key, pending);
     if (up.error) {
       toast("We couldn't upload that. Try again in a moment.");
-      setPhase("idle"); return;
+      setPhase("idle");
+      return;
     }
     setPendingKey(key);
     await log({ data: { action_type: "legal_document_uploaded", record_reference: key } });
@@ -198,7 +251,8 @@ function LegalDocumentsPage() {
     const signed = await supabase.storage.from("evidence-files").createSignedUrl(key, 600);
     if (!signed.data?.signedUrl) {
       setExtracted({ ...emptyExtracted(), suggested_title: pending.name.replace(/\.[^.]+$/, "") });
-      setPhase("manual"); return;
+      setPhase("manual");
+      return;
     }
 
     const result = await extract({
@@ -251,7 +305,10 @@ function LegalDocumentsPage() {
     await supabase.from("evidence").insert({
       user_id: user.id,
       title: `[Legal] ${title}`,
-      date: extracted.incident_date || extracted.effective_date || new Date().toISOString().slice(0, 10),
+      date:
+        extracted.incident_date ||
+        extracted.effective_date ||
+        new Date().toISOString().slice(0, 10),
       description: extracted.key_terms || null,
       file_url: pendingKey,
       file_type: "document",
@@ -264,7 +321,12 @@ function LegalDocumentsPage() {
 
   const remove = async (d: LegalDoc) => {
     if (!user) return;
-    const ok = await confirm({ title: "Remove this legal document?", body: "The document file will be removed from your record room.", confirmLabel: "Remove", cancelLabel: "Keep" });
+    const ok = await confirm({
+      title: "Remove this legal document?",
+      body: "The document file will be removed from your record room.",
+      confirmLabel: "Remove",
+      cancelLabel: "Keep",
+    });
     if (!ok) return;
     await supabase.storage.from("evidence-files").remove([d.file_url]);
     await supabase.from("legal_documents").delete().eq("id", d.id).eq("user_id", user.id);
@@ -274,7 +336,9 @@ function LegalDocumentsPage() {
   };
 
   const openFile = async (d: LegalDoc) => {
-    const { data } = await supabase.storage.from("evidence-files").createSignedUrl(d.file_url, 3600);
+    const { data } = await supabase.storage
+      .from("evidence-files")
+      .createSignedUrl(d.file_url, 3600);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
   };
 
@@ -283,8 +347,14 @@ function LegalDocumentsPage() {
     const existing = d.linked_incident_ids ?? [];
     if (existing.includes(incidentId)) return;
     const next = [...existing, incidentId];
-    await supabase.from("legal_documents").update({ linked_incident_ids: next }).eq("id", d.id).eq("user_id", user.id);
-    await log({ data: { action_type: "legal_document_linked_to_incident", record_reference: d.id } });
+    await supabase
+      .from("legal_documents")
+      .update({ linked_incident_ids: next })
+      .eq("id", d.id)
+      .eq("user_id", user.id);
+    await log({
+      data: { action_type: "legal_document_linked_to_incident", record_reference: d.id },
+    });
     load();
   };
 
@@ -302,13 +372,14 @@ function LegalDocumentsPage() {
         Your official <em>record room.</em>
       </h1>
       <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-        TROs, police reports, court orders, and custody agreements — everything the legal system has already produced about your case.
+        TROs, police reports, court orders, and custody agreements — everything the legal system has
+        already produced about your case.
       </p>
 
       {/* Upload card */}
       <div className="card-pp mt-6 space-y-4">
         <label
-          className={`block cursor-pointer rounded-[2px] border-2 border-dashed p-8 text-center transition ${phase === "extracting" ? "animate-pulse" : ""}`}
+          className={`block cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition ${phase === "extracting" ? "animate-pulse" : ""}`}
           style={{ borderColor: "var(--border)" }}
         >
           <Upload size={26} className="mx-auto mb-2" style={{ color: "var(--muted-foreground)" }} />
@@ -318,9 +389,16 @@ function LegalDocumentsPage() {
           <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
             PDF, JPG, PNG, HEIC, WEBP, DOCX
           </div>
-          <input ref={inputRef} type="file" className="hidden"
+          <input
+            ref={inputRef}
+            type="file"
+            className="hidden"
             accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            onChange={(e) => { setPending(e.target.files?.[0] ?? null); setPhase("idle"); }} />
+            onChange={(e) => {
+              setPending(e.target.files?.[0] ?? null);
+              setPhase("idle");
+            }}
+          />
         </label>
 
         <div className="flex flex-col gap-2">
@@ -340,9 +418,17 @@ function LegalDocumentsPage() {
           <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
             <div>
               <label className="label-eyebrow">Document type</label>
-              <select className="input-pp mt-1" value={docType} onChange={(e) => setDocType(e.target.value as DocType)}>
+              <select
+                className="input-pp mt-1"
+                value={docType}
+                onChange={(e) => setDocType(e.target.value as DocType)}
+              >
                 <option value="">— Choose —</option>
-                {DOC_TYPES.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                {DOC_TYPES.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -389,7 +475,8 @@ function LegalDocumentsPage() {
         {docs.length === 0 ? (
           <div className="card-pp">
             <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-              Upload a TRO, police report, or court order and we'll read it for you — pulling out the key details so you don't have to.
+              Upload a TRO, police report, or court order and we'll read it for you — pulling out
+              the key details so you don't have to.
             </p>
           </div>
         ) : (
@@ -415,50 +502,107 @@ function LegalDocumentsPage() {
                       const keyDate = d.effective_date || d.incident_date;
                       const firstSentence = (d.key_terms ?? "").split(/(?<=[.!?])\s/)[0] ?? "";
                       return (
-                        <div key={d.id} className="card-pp" style={{ borderLeft: `3px solid ${b.bg}` }}>
+                        <div
+                          key={d.id}
+                          className="card-pp"
+                          style={{ borderLeft: `3px solid ${b.bg}` }}
+                        >
                           <div className="flex items-start justify-between gap-2">
-                            <span className="inline-block rounded-[2px] px-2.5 py-0.5 text-[11px] font-semibold" style={{ background: b.bg, color: b.fg }}>
+                            <span
+                              className="inline-block rounded-2xl px-2.5 py-0.5 text-[11px] font-semibold"
+                              style={{ background: b.bg, color: b.fg }}
+                            >
                               {b.label}
                             </span>
                             {d.expiration_date && (
-                              <span className="text-[11px]" style={{ color: expired ? "var(--muted-foreground)" : soon ? "#8B6F4E" : "var(--muted-foreground)", textDecoration: expired ? "line-through" : "none" }}>
-                                {expired ? `Expired ${d.expiration_date}` : soon ? `Expires soon · ${d.expiration_date}` : `Expires ${d.expiration_date}`}
+                              <span
+                                className="text-[11px]"
+                                style={{
+                                  color: expired
+                                    ? "var(--muted-foreground)"
+                                    : soon
+                                      ? "#8B6F4E"
+                                      : "var(--muted-foreground)",
+                                  textDecoration: expired ? "line-through" : "none",
+                                }}
+                              >
+                                {expired
+                                  ? `Expired ${d.expiration_date}`
+                                  : soon
+                                    ? `Expires soon · ${d.expiration_date}`
+                                    : `Expires ${d.expiration_date}`}
                               </span>
                             )}
                           </div>
                           <div className="mt-2 font-serif text-[17px] leading-tight">{d.title}</div>
-                          {keyDate && <div className="label-eyebrow mt-1">{new Date(keyDate).toLocaleDateString()}</div>}
-                          {d.case_number && <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>Case #{d.case_number}</div>}
-                          {firstSentence && <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>{firstSentence}</p>}
+                          {keyDate && (
+                            <div className="label-eyebrow mt-1">
+                              {new Date(keyDate).toLocaleDateString()}
+                            </div>
+                          )}
+                          {d.case_number && (
+                            <div
+                              className="mt-1 text-[12px]"
+                              style={{ color: "var(--muted-foreground)" }}
+                            >
+                              Case #{d.case_number}
+                            </div>
+                          )}
+                          {firstSentence && (
+                            <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>
+                              {firstSentence}
+                            </p>
+                          )}
                           <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <button onClick={() => openFile(d)} className="btn-ghost inline-flex items-center gap-1 text-[12px]">
+                            <button
+                              onClick={() => openFile(d)}
+                              className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                            >
                               <Download size={13} /> View original
                             </button>
                             <details className="text-[12px]">
-                              <summary className="btn-ghost inline-flex cursor-pointer items-center gap-1"><LinkIcon size={13} /> Link to incident</summary>
-                              <div className="mt-2 max-h-40 overflow-auto rounded-[2px] bg-[rgba(0,0,0,0.05)] p-2">
-                                {incidents.length === 0 && <div style={{ color: "var(--muted-foreground)" }}>No incidents yet.</div>}
+                              <summary className="btn-ghost inline-flex cursor-pointer items-center gap-1">
+                                <LinkIcon size={13} /> Link to incident
+                              </summary>
+                              <div className="mt-2 max-h-40 overflow-auto rounded-2xl bg-[rgba(0,0,0,0.05)] p-2">
+                                {incidents.length === 0 && (
+                                  <div style={{ color: "var(--muted-foreground)" }}>
+                                    No incidents yet.
+                                  </div>
+                                )}
                                 {incidents.map((i) => (
-                                  <button key={i.id} onClick={() => linkIncident(d, i.id)} className="block w-full text-left text-[12px] hover:underline">
+                                  <button
+                                    key={i.id}
+                                    onClick={() => linkIncident(d, i.id)}
+                                    className="block w-full text-left text-[12px] hover:underline"
+                                  >
                                     {i.date} · {i.description.slice(0, 50)}
                                   </button>
                                 ))}
                               </div>
                             </details>
                             <button
-                              onClick={() => toast("Editing legal documents is coming soon. For now, delete and re-add if you need changes.")}
+                              onClick={() =>
+                                toast(
+                                  "Editing legal documents is coming soon. For now, delete and re-add if you need changes.",
+                                )
+                              }
                               className="btn-ghost inline-flex items-center gap-1 text-[12px]"
                               title="Coming soon"
                             >
                               <Pencil size={13} /> Edit
                             </button>
-                            <button onClick={() => remove(d)} className="btn-ghost inline-flex items-center gap-1 text-[12px]">
+                            <button
+                              onClick={() => remove(d)}
+                              className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                            >
                               <Trash2 size={13} /> Delete
                             </button>
                           </div>
                           {d.linked_incident_ids && d.linked_incident_ids.length > 0 && (
                             <div className="mt-2 text-[11px]" style={{ color: "var(--accent)" }}>
-                              Linked to {d.linked_incident_ids.length} incident{d.linked_incident_ids.length === 1 ? "" : "s"}
+                              Linked to {d.linked_incident_ids.length} incident
+                              {d.linked_incident_ids.length === 1 ? "" : "s"}
                             </div>
                           )}
                         </div>
@@ -476,7 +620,17 @@ function LegalDocumentsPage() {
   );
 }
 
-function Field({ label, value, onChange, type = "text" }: { label: string; value: string | null | undefined; onChange: (v: string) => void; type?: string }) {
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string | null | undefined;
+  onChange: (v: string) => void;
+  type?: string;
+}) {
   return (
     <div className="grid grid-cols-1 gap-1 md:grid-cols-[180px_1fr] md:items-center md:gap-3">
       <div className="label-eyebrow">{label}</div>
@@ -492,7 +646,11 @@ function Field({ label, value, onChange, type = "text" }: { label: string; value
 }
 
 function ConfirmationCard({
-  phase, extracted, update, onSave, onCancel,
+  phase,
+  extracted,
+  update,
+  onSave,
+  onCancel,
 }: {
   phase: "confirm" | "manual";
   extracted: Extracted;
@@ -502,9 +660,11 @@ function ConfirmationCard({
   onCancel: () => void;
 }) {
   return (
-    <div className="rounded-[2px] p-4" style={{ background: "rgba(0,0,0,0.05)" }}>
+    <div className="rounded-2xl p-4" style={{ background: "rgba(0,0,0,0.05)" }}>
       <h3 className="font-serif text-[18px]">
-        {phase === "confirm" ? "Here's what I found. Does this look right?" : "Fill in what you know — it's okay to leave fields blank."}
+        {phase === "confirm"
+          ? "Here's what I found. Does this look right?"
+          : "Fill in what you know — it's okay to leave fields blank."}
       </h3>
       {phase === "manual" && (
         <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
@@ -512,16 +672,59 @@ function ConfirmationCard({
         </p>
       )}
       <div className="mt-4 space-y-3">
-        <Field label="Title" value={extracted.suggested_title} onChange={(v) => update("suggested_title", v)} />
-        <Field label="Case number" value={extracted.case_number} onChange={(v) => update("case_number", v)} />
-        <Field label="Court name" value={extracted.court_name} onChange={(v) => update("court_name", v)} />
-        <Field label="Judge name" value={extracted.judge_name} onChange={(v) => update("judge_name", v)} />
-        <Field label="Effective date" value={extracted.effective_date} onChange={(v) => update("effective_date", v)} type="date" />
-        <Field label="Expiration date" value={extracted.expiration_date} onChange={(v) => update("expiration_date", v)} type="date" />
-        <Field label="Protected party" value={extracted.protected_party} onChange={(v) => update("protected_party", v)} />
-        <Field label="Restrained party" value={extracted.restrained_party} onChange={(v) => update("restrained_party", v)} />
-        <Field label="Issuing officer" value={extracted.issuing_officer} onChange={(v) => update("issuing_officer", v)} />
-        <Field label="Incident date" value={extracted.incident_date} onChange={(v) => update("incident_date", v)} type="date" />
+        <Field
+          label="Title"
+          value={extracted.suggested_title}
+          onChange={(v) => update("suggested_title", v)}
+        />
+        <Field
+          label="Case number"
+          value={extracted.case_number}
+          onChange={(v) => update("case_number", v)}
+        />
+        <Field
+          label="Court name"
+          value={extracted.court_name}
+          onChange={(v) => update("court_name", v)}
+        />
+        <Field
+          label="Judge name"
+          value={extracted.judge_name}
+          onChange={(v) => update("judge_name", v)}
+        />
+        <Field
+          label="Effective date"
+          value={extracted.effective_date}
+          onChange={(v) => update("effective_date", v)}
+          type="date"
+        />
+        <Field
+          label="Expiration date"
+          value={extracted.expiration_date}
+          onChange={(v) => update("expiration_date", v)}
+          type="date"
+        />
+        <Field
+          label="Protected party"
+          value={extracted.protected_party}
+          onChange={(v) => update("protected_party", v)}
+        />
+        <Field
+          label="Restrained party"
+          value={extracted.restrained_party}
+          onChange={(v) => update("restrained_party", v)}
+        />
+        <Field
+          label="Issuing officer"
+          value={extracted.issuing_officer}
+          onChange={(v) => update("issuing_officer", v)}
+        />
+        <Field
+          label="Incident date"
+          value={extracted.incident_date}
+          onChange={(v) => update("incident_date", v)}
+          type="date"
+        />
         <div className="grid grid-cols-1 gap-1 md:grid-cols-[180px_1fr] md:items-start md:gap-3">
           <div className="label-eyebrow pt-2">Key terms</div>
           <textarea
@@ -533,21 +736,38 @@ function ConfirmationCard({
         </div>
       </div>
       {extracted.cross_reference_note && (
-        <div className="mt-4 rounded-[2px] p-3" style={{ background: "rgba(106,146,214,0.15)", border: "1px solid rgba(106,146,214,0.3)" }}>
+        <div
+          className="mt-4 rounded-2xl p-3"
+          style={{
+            background: "rgba(106,146,214,0.15)",
+            border: "1px solid rgba(106,146,214,0.3)",
+          }}
+        >
           <span className="text-[12px] font-semibold">AI notice: </span>
           <span className="text-[12px]">{extracted.cross_reference_note}</span>
         </div>
       )}
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <button onClick={onSave} className="btn-primary">Save This Document</button>
-        <button onClick={onCancel} className="btn-ghost">Cancel</button>
+        <button onClick={onSave} className="btn-primary">
+          Save This Document
+        </button>
+        <button onClick={onCancel} className="btn-ghost">
+          Cancel
+        </button>
       </div>
     </div>
   );
 }
 
 function DrivePickerModal({
-  query, setQuery, onSearch, files, busy, error, onPick, onClose,
+  query,
+  setQuery,
+  onSearch,
+  files,
+  busy,
+  error,
+  onPick,
+  onClose,
 }: {
   query: string;
   setQuery: (v: string) => void;
@@ -559,14 +779,24 @@ function DrivePickerModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.45)" }} onClick={onClose}>
-      <div className="card-pp w-full max-w-xl" onClick={(e) => e.stopPropagation()} style={{ maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.45)" }}
+      onClick={onClose}
+    >
+      <div
+        className="card-pp w-full max-w-xl"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxHeight: "80vh", display: "flex", flexDirection: "column" }}
+      >
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="label-eyebrow">Google Drive</div>
             <h3 className="mt-1 font-serif text-[20px]">Choose a document to import</h3>
           </div>
-          <button onClick={onClose} className="rounded-[2px] p-2 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+          <button onClick={onClose} className="rounded-2xl p-2 hover:bg-black/5" aria-label="Close">
+            <X size={16} />
+          </button>
         </div>
         <div className="mt-3 flex gap-2">
           <input
@@ -574,14 +804,32 @@ function DrivePickerModal({
             placeholder="Search by name…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onSearch(); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onSearch();
+              }
+            }}
           />
-          <button onClick={onSearch} className="btn-ghost inline-flex items-center gap-1 text-[13px]"><Search size={14} /> Search</button>
+          <button
+            onClick={onSearch}
+            className="btn-ghost inline-flex items-center gap-1 text-[13px]"
+          >
+            <Search size={14} /> Search
+          </button>
         </div>
 
         <div className="mt-4 overflow-auto" style={{ flex: 1 }}>
-          {busy && <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>Looking through your Drive…</p>}
-          {!busy && error && <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>{error}</p>}
+          {busy && (
+            <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              Looking through your Drive…
+            </p>
+          )}
+          {!busy && error && (
+            <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              {error}
+            </p>
+          )}
           {!busy && !error && files.length === 0 && (
             <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
               No PDFs or images found. Try a different search term.
@@ -593,14 +841,16 @@ function DrivePickerModal({
                 <li key={f.id}>
                   <button
                     onClick={() => onPick(f)}
-                    className="flex w-full items-center gap-3 rounded-[2px] p-2.5 text-left hover:bg-black/5"
+                    className="flex w-full items-center gap-3 rounded-2xl p-2.5 text-left hover:bg-black/5"
                   >
                     <FileText size={16} style={{ color: "var(--muted-foreground)" }} />
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-serif text-[14px]">{f.name}</div>
                       <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
                         {f.mimeType.replace("application/", "").replace("image/", "")}
-                        {f.modifiedTime ? ` · ${new Date(f.modifiedTime).toLocaleDateString()}` : ""}
+                        {f.modifiedTime
+                          ? ` · ${new Date(f.modifiedTime).toLocaleDateString()}`
+                          : ""}
                       </div>
                     </div>
                   </button>

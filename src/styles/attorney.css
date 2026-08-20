@@ -2,19 +2,19 @@
    PatternProof — Attorney Portal Design System (v2)
    Dense navy practice-management UI. Deliberately NOT the
    survivor register: no serif, no warm paper, no wide spacing.
-   Typography: Space Grotesk (UI) + Space Grotesk (all data).
+   Typography: Public Sans (UI) + Public Sans (all data).
    Accent: muted gold — actions/status only.
    Loaded only by routes under /_attorney/* and /accept-invite.
    Everything is scoped under .att-root.
    ============================================================ */
 
 .att-root {
-  --att-bg: #FAF8F4;
-  --att-surface: #FFFFFF;
-  --att-surface-2: #FAFAF8;
-  --att-border: rgba(26,18,36,0.14);
-  --att-border-strong: rgba(26,18,36,0.22);
-  --att-navy: #022063;
+  --att-bg: var(--pp-ground, #E8EBF4);
+  --att-surface: var(--pp-ground, #E8EBF4);
+  --att-surface-2: var(--pp-ground-hi, #EEF1F8);
+  --att-border: transparent;
+  --att-border-strong: transparent;
+  --att-navy: #1B2A6B;
   --att-navy-mid: #22314F;
   --att-navy-deep: #0E1729;
   --att-slate: #63708A;
@@ -23,23 +23,23 @@
   --att-muted: #6E6579;
 
   /* single accent — navy. No other accent colour on attorney screens. */
-  --att-accent: #022063;
+  --att-accent: #1B2A6B;
   --att-accent-hover: #22314F;
   --att-accent-soft: rgba(21,32,56,0.06);
   --att-accent-border: rgba(21,32,56,0.24);
 
   /* status aliases — all resolve to navy/ink so nothing competes with the accent */
-  --att-green: #022063;
+  --att-green: #1B2A6B;
   --att-amber: #4C596F;
   --att-red: #1A1224;
-  --att-blue: #022063;
-  --att-pp-pink: #022063;
+  --att-blue: #1B2A6B;
+  --att-pp-pink: #1B2A6B;
 
   background: var(--att-bg);
   color: var(--att-text);
-  --pp-accent: #022063;
+  --pp-accent: #1B2A6B;
   --pp-accent-fg: #FFFFFF;
-  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-family: "Public Sans", system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.45;
   min-height: 100vh;
@@ -50,7 +50,7 @@
 
 /* No serif anywhere in the attorney portal. */
 .att-root h1, .att-root h2, .att-root h3, .att-root h4, .att-root .att-serif {
-  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-family: "Public Sans", system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.012em;
   color: var(--att-text);
@@ -59,9 +59,9 @@
 }
 .att-root h1 { font-size: 21px; }
 
-/* Fraunces is reserved for page titles only. */
+/* Newsreader is reserved for page titles only. */
 .att-root .att-page-title {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Newsreader", Georgia, serif;
   font-weight: 400;
   font-size: 26px;
   letter-spacing: -0.01em;
@@ -73,13 +73,13 @@
 
 .att-root .att-mono,
 .att-root .att-num {
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
 
 .att-root .att-eyebrow {
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -90,40 +90,42 @@
 /* ---------- card (chrome: square, tight) ---------- */
 .att-card {
   background: var(--att-surface);
-  border: 1px solid var(--att-border);
-  border-radius: 2px;
-  box-shadow: none;
+  border: none;
+  border-radius: 16px;
+  box-shadow: var(--pp-shadow-sm);
   padding: 14px 16px;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  transition: box-shadow 0.12s ease, transform 0.12s ease;
 }
 .att-card.att-hover:hover {
-  box-shadow: none;
-  border-color: var(--att-border-strong);
+  box-shadow: var(--pp-shadow-up);
+  transform: translateY(-1px);
 }
 .att-panel {
   background: var(--att-surface);
-  border: 1px solid var(--att-border);
-  border-radius: 2px;
+  border: none;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: var(--pp-shadow-sm);
 }
 .att-panel-head {
   display: flex; align-items: center; justify-content: space-between;
   gap: 10px; padding: 9px 12px;
   background: var(--att-surface-2);
-  border-bottom: 1px solid var(--att-border);
+  box-shadow: inset 0 -1px 0 rgba(27,42,107,0.08);
 }
 
 /* ---------- exhibit card: clipped corner, product-wide identity ---------- */
 .att-exhibit {
   background: var(--att-surface);
-  border: 1px solid var(--att-border);
+  border: none;
+  box-shadow: var(--pp-shadow-xs);
   padding: 14px 16px;
   clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
   position: relative;
 }
 .att-exhibit--accent { border-left: 2px solid var(--att-accent); }
 .att-exhibit-label {
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--att-slate);
 }
@@ -131,7 +133,7 @@
 /* ---------- buttons ---------- */
 .att-btn-primary, .att-btn-secondary, .att-btn-export, .att-btn-ghost, .att-btn-accent {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 7px 13px; border-radius: 2px;
+  padding: 7px 13px; border-radius: 16px;
   font-weight: 600; font-size: 12.5px;
   cursor: pointer; transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
   border: 1px solid transparent;
@@ -154,9 +156,9 @@
 
 .att-btn-secondary {
   background: var(--att-surface); color: var(--att-navy);
-  border-color: var(--att-border-strong);
+  border: none; box-shadow: var(--pp-shadow-in-sm);
 }
-.att-btn-secondary:hover { background: var(--att-surface-2); }
+.att-btn-secondary:hover { box-shadow: var(--pp-shadow-in); }
 
 .att-btn-ghost {
   background: transparent; color: var(--att-text-2);
@@ -164,32 +166,32 @@
 }
 .att-btn-ghost:hover { background: #E9EDF4; color: var(--att-text); }
 
-.att-btn-xs { padding: 4px 8px; font-size: 11.5px; border-radius: 2px; }
+.att-btn-xs { padding: 4px 8px; font-size: 11.5px; border-radius: 16px; }
 
 /* ---------- inputs ---------- */
 .att-input, .att-select, .att-textarea {
   width: 100%;
   background: var(--att-surface);
-  border: 1px solid var(--att-border-strong);
-  border-radius: 2px;
+  border: none;
+  box-shadow: var(--pp-shadow-in-sm);
+  border-radius: 16px;
   padding: 7px 10px;
   font-size: 12.5px;
   font-family: inherit;
   color: var(--att-text);
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  transition: box-shadow 0.12s ease;
 }
 .att-input:focus, .att-select:focus, .att-textarea:focus {
-  outline: none;
-  border-color: var(--att-navy);
-  box-shadow: 0 0 0 2px rgba(21,32,56,0.12);
+  outline: 2px solid var(--att-navy);
+  outline-offset: 1px;
 }
 .att-textarea { min-height: 76px; resize: vertical; }
 .att-search-wrap { position: relative; display: inline-flex; align-items: center; }
 .att-search-wrap .att-input { padding-left: 28px; padding-right: 30px; }
 .att-kbd {
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 10px; color: var(--att-slate);
-  border: 1px solid var(--att-border-strong); border-radius: 2px;
+  border: none; box-shadow: var(--pp-shadow-xs); border-radius: 16px;
   padding: 1px 4px; background: var(--att-surface-2);
 }
 
@@ -198,27 +200,28 @@
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   padding: 9px 10px;
   background: var(--att-surface);
-  border: 1px solid var(--att-border);
-  border-radius: 2px;
+  border: none;
+  box-shadow: var(--pp-shadow-sm);
+  border-radius: 16px;
 }
-.att-seg { display: inline-flex; border: 1px solid var(--att-border-strong); border-radius: 2px; overflow: hidden; }
+.att-seg { display: inline-flex; box-shadow: var(--pp-shadow-in-sm); border-radius: 16px; overflow: hidden; }
 .att-seg button {
   padding: 5px 10px; font-size: 11.5px; font-weight: 600; font-family: inherit;
-  background: var(--att-surface); color: var(--att-text-2);
-  border: none; border-right: 1px solid var(--att-border); cursor: pointer;
+  background: transparent; color: var(--att-text-2);
+  border: none; box-shadow: inset 1px 0 0 rgba(27,42,107,0.08); cursor: pointer;
 }
-.att-seg button:last-child { border-right: none; }
-.att-seg button[aria-pressed="true"] { background: var(--att-navy); color: #fff; }
+.att-seg button:first-child { box-shadow: none; }
+.att-seg button[aria-pressed="true"] { background: var(--att-navy); color: #fff; box-shadow: none; }
 
 /* ---------- dense data table ---------- */
 .att-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
 .att-table thead th {
   position: sticky; top: 0; z-index: 2;
   background: var(--att-surface-2);
-  border-bottom: 1px solid var(--att-border);
+  box-shadow: inset 0 -1px 0 rgba(27,42,107,0.08);
   text-align: left;
   padding: 7px 10px;
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--att-slate);
   white-space: nowrap;
@@ -229,18 +232,18 @@
 .att-table thead th.sorted { color: var(--att-navy); }
 .att-table tbody td {
   padding: 8px 10px;
-  border-bottom: 1px solid #EDF0F5;
+  box-shadow: inset 0 -1px 0 rgba(27,42,107,0.06);
   vertical-align: middle;
 }
 .att-table tbody tr { background: var(--att-surface); }
-.att-table tbody tr:hover { background: #EEF2F8; }
+.att-table tbody tr:hover { background: var(--pp-ground-hi, #EEF1F8); }
 .att-table tbody tr.att-row:focus-visible,
 .att-table tbody tr.att-row.is-cursor {
   outline: none;
-  background: #E7EDF7;
-  box-shadow: inset 2px 0 0 var(--att-navy);
+  background: var(--pp-ground-hi, #EEF1F8);
+  box-shadow: inset 2px 0 0 var(--att-navy), inset 0 -1px 0 rgba(27,42,107,0.06);
 }
-.att-table td.num { text-align: right; font-family: "Space Grotesk", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.att-table td.num { text-align: right; font-family: "Public Sans", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 .att-table a { color: var(--att-navy); text-decoration: none; font-weight: 600; }
 .att-table a:hover { text-decoration: underline; }
 .att-table-scroll { max-height: none; overflow-x: auto; }
@@ -248,23 +251,23 @@
 /* ---------- tags / badges ---------- */
 .att-tag {
   display: inline-flex; align-items: center;
-  padding: 2px 7px; border-radius: 2px;
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  padding: 2px 7px; border-radius: 16px;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 10px; font-weight: 500;
   letter-spacing: 0.06em; text-transform: uppercase;
   white-space: nowrap;
 }
-.att-tag-physical   { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #8A5A2E; }
+.att-tag-physical   { background: var(--att-surface); box-shadow: var(--pp-shadow-in-sm); color: #8A5A2E; }
 .att-tag-verbal,
-.att-tag-emotional  { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #022063; }
-.att-tag-financial  { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #022063; }
-.att-tag-digital    { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #022063; }
-.att-tag-coercive   { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #A8792F; }
-.att-tag-custody    { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #0F6E56; }
-.att-tag-other      { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #6E6579; }
-.att-tag-pattern    { background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #0F6E56; }
+.att-tag-emotional  { background: var(--att-surface); box-shadow: var(--pp-shadow-in-sm); color: #1B2A6B; }
+.att-tag-financial  { background: var(--att-surface); box-shadow: var(--pp-shadow-in-sm); color: #1B2A6B; }
+.att-tag-digital    { background: var(--att-surface); box-shadow: var(--pp-shadow-in-sm); color: #1B2A6B; }
+.att-tag-coercive   { background: var(--att-surface); box-shadow: var(--pp-shadow-in-sm); color: #A8792F; }
+.att-tag-custody    { background: var(--att-surface); box-shadow: var(--pp-shadow-in-sm); color: #0F6E56; }
+.att-tag-other      { background: var(--att-surface); box-shadow: var(--pp-shadow-in-sm); color: #6E6579; }
+.att-tag-pattern    { background: var(--att-surface); box-shadow: var(--pp-shadow-in-sm); color: #0F6E56; }
 .att-tag-auth {
-  background: transparent; border: 1px solid rgba(26,18,36,0.20); color: #0F6E56;
+  background: var(--att-surface); box-shadow: var(--pp-shadow-in-sm); color: #0F6E56;
   font-size: 10px; font-weight: 600; padding: 2px 6px;
 }
 
@@ -272,15 +275,16 @@
 .att-badge {
   display: inline-flex; align-items: center; gap: 4px;
   min-width: 22px; justify-content: center;
-  padding: 1px 6px; border-radius: 2px;
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  padding: 1px 6px; border-radius: 16px;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 11px; font-weight: 500;
-  border: 1px solid var(--att-border-strong);
-  background: var(--att-surface-2); color: var(--att-text-2);
+  border: none;
+  box-shadow: var(--pp-shadow-in-sm);
+  background: var(--att-surface); color: var(--att-text-2);
 }
-.att-badge--zero { color: var(--att-muted); border-color: var(--att-border); }
-.att-badge--flag { background: var(--att-accent-soft); border-color: var(--att-accent-border); color: #7C5A1E; }
-.att-badge--navy { background: transparent; border-color: rgba(21,32,56,0.3); color: var(--att-navy); }
+.att-badge--zero { color: var(--att-muted); }
+.att-badge--flag { background: var(--att-accent-soft); color: #7C5A1E; }
+.att-badge--navy { color: var(--att-navy); }
 
 /* ---------- top nav ---------- */
 .att-nav {
@@ -290,14 +294,14 @@
   padding: 0 18px;
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
   position: sticky; top: 0; z-index: 100;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.07);
 }
 .att-nav-brand {
   display: inline-flex; align-items: center; gap: 8px;
   color: #fff;
-  --pp-accent: #022063;
+  --pp-accent: #1B2A6B;
   --pp-accent-fg: #FFFFFF;
-  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-family: "Public Sans", system-ui, sans-serif;
   font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
   text-decoration: none;
 }
@@ -305,7 +309,7 @@
 .att-nav-tab {
   color: rgba(255,255,255,0.66);
   font-size: 12.5px; font-weight: 500;
-  padding: 5px 10px; border-radius: 2px;
+  padding: 5px 10px; border-radius: 16px;
   transition: background 0.12s ease, color 0.12s ease;
   text-decoration: none;
   background: transparent; border: none; cursor: pointer; font-family: inherit;
@@ -325,9 +329,9 @@
 /* ---------- security strip ---------- */
 .att-security-banner {
   background: var(--att-surface-2);
-  border-bottom: 1px solid var(--att-border);
+  box-shadow: inset 0 -1px 0 rgba(27,42,107,0.08);
   padding: 5px 20px;
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 10.5px;
   letter-spacing: 0.04em;
   color: var(--att-slate);
@@ -339,7 +343,7 @@
 /* ---------- breadcrumb ---------- */
 .att-breadcrumb {
   padding: 12px 20px 0;
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 10.5px; letter-spacing: 0.05em;
   color: var(--att-slate);
 }
@@ -349,17 +353,17 @@
 
 /* ---------- footer ---------- */
 .att-footer {
-  border-top: 1px solid var(--att-border);
+  box-shadow: inset 0 1px 0 rgba(27,42,107,0.08);
   padding: 12px 20px;
   margin-top: 36px;
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 10.5px;
   color: var(--att-slate);
   display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
 }
 
 /* ---------- severity bar ---------- */
-.att-severity-bar { display: flex; height: 5px; border-radius: 2px; overflow: hidden; background: var(--att-border); }
+.att-severity-bar { display: flex; height: 5px; border-radius: 16px; overflow: hidden; background: rgba(27,42,107,0.10); }
 .att-severity-bar > span { display: block; height: 100%; }
 .att-sev-low      { background: #0F6E56; }
 .att-sev-moderate { background: #3A4FA8; }
@@ -367,10 +371,11 @@
 .att-sev-critical { background: #8A5A2E; }
 
 /* ---------- utility ---------- */
-.att-divider { height: 1px; background: var(--att-border); margin: 10px 0; }
-.att-kpi-strip { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 1px; background: var(--att-border); border: 1px solid var(--att-border); border-radius: 2px; overflow: hidden; }
-.att-kpi { background: var(--att-surface); padding: 10px 12px; }
-.att-kpi-value { font-family: "Space Grotesk", ui-monospace, monospace; font-size: 20px; font-weight: 500; color: var(--att-text); font-variant-numeric: tabular-nums; }
+.att-divider { height: 1px; background: rgba(27,42,107,0.08); margin: 10px 0; }
+.att-kpi-strip { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 1px; background: transparent; border-radius: 16px; overflow: hidden; box-shadow: var(--pp-shadow-sm); }
+.att-kpi { background: var(--att-surface); padding: 10px 12px; box-shadow: inset 1px 0 0 rgba(27,42,107,0.06); }
+.att-kpi:first-child { box-shadow: none; }
+.att-kpi-value { font-family: "Public Sans", ui-monospace, monospace; font-size: 20px; font-weight: 500; color: var(--att-text); font-variant-numeric: tabular-nums; }
 
 @media (max-width: 768px) {
   .att-nav { padding: 0 12px; height: auto; flex-wrap: wrap; gap: 6px; padding-top: 8px; padding-bottom: 8px; }
@@ -402,7 +407,7 @@
   gap: 2px;
   padding: 14px 10px;
   background: var(--att-surface);
-  border-right: 1px solid var(--att-border);
+  box-shadow: inset -1px 0 0 rgba(27,42,107,0.08);
 }
 .att-sidebar-brand {
   display: flex; align-items: center; gap: 8px;
@@ -411,19 +416,19 @@
   text-decoration: none;
 }
 .att-sidebar-brand span {
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--att-slate);
 }
 .att-sidebar-section {
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--att-muted);
   padding: 14px 8px 6px;
 }
 .att-side-link {
   display: flex; align-items: center; gap: 9px;
-  padding: 6px 8px; border-radius: 2px;
+  padding: 6px 8px; border-radius: 16px;
   font-size: 12.5px; font-weight: 500;
   color: var(--att-text-2); text-decoration: none;
   border: 1px solid transparent;
@@ -437,7 +442,7 @@
 .att-sidebar-foot {
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid var(--att-border);
+  box-shadow: inset 0 1px 0 rgba(27,42,107,0.08);
   display: grid; gap: 6px;
 }
 
@@ -447,7 +452,7 @@
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 0 20px;
   background: var(--att-surface);
-  border-bottom: 1px solid var(--att-border);
+  box-shadow: inset 0 -1px 0 rgba(27,42,107,0.08);
 }
 .att-topbar-firm {
   display: flex; align-items: baseline; gap: 8px;
@@ -459,20 +464,21 @@
 /* ---------- table toolbar ---------- */
 .att-table-wrap {
   background: var(--att-surface);
-  border: 1px solid var(--att-border);
-  border-radius: 2px;
+  border: none;
+  box-shadow: var(--pp-shadow-sm);
+  border-radius: 16px;
   overflow: hidden;
 }
 .att-table-toolbar {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   padding: 8px 10px;
-  border-bottom: 1px solid var(--att-border);
+  box-shadow: inset 0 -1px 0 rgba(27,42,107,0.08);
   background: var(--att-surface);
 }
 .att-table-toolbar .att-input { width: 240px; }
 .att-table-count {
   margin-left: auto;
-  font-family: "Space Grotesk", ui-monospace, monospace;
+  font-family: "Public Sans", ui-monospace, monospace;
   font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--att-slate);
 }
@@ -482,7 +488,7 @@
 /* ---------- skeleton rows ---------- */
 @keyframes att-shimmer { 0% { opacity: 0.45; } 50% { opacity: 0.85; } 100% { opacity: 0.45; } }
 .att-skel {
-  display: block; height: 10px; border-radius: 2px;
+  display: block; height: 10px; border-radius: 16px;
   background: rgba(26,18,36,0.09);
   animation: att-shimmer 1.1s ease-in-out infinite;
 }
@@ -491,7 +497,7 @@
   .att-shell { grid-template-columns: 1fr; }
   .att-sidebar {
     position: static; height: auto; flex-direction: row; flex-wrap: wrap;
-    align-items: center; border-right: none; border-bottom: 1px solid var(--att-border);
+    align-items: center; box-shadow: inset 0 -1px 0 rgba(27,42,107,0.08);
   }
   .att-sidebar-brand { padding: 0 8px 0 0; }
   .att-sidebar-section { display: none; }

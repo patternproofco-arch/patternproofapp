@@ -63,14 +63,30 @@ function AttorneyFeedbackPage() {
     return (
       <div style={{ display: "grid", gap: 20 }}>
         <div className="att-card" style={{ padding: 32, textAlign: "left" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 2, background: "rgba(16,185,129,0.10)", color: "var(--att-green)", fontWeight: 700, fontSize: 12, marginBottom: 16 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 12px",
+              borderRadius: 16,
+              background: "rgba(16,185,129,0.10)",
+              color: "var(--att-green)",
+              fontWeight: 700,
+              fontSize: 12,
+              marginBottom: 16,
+            }}
+          >
             <Check size={14} /> Received
           </div>
           <h1 className="att-page-title">Thank you.</h1>
           <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 20 }}>
-            Product feedback goes directly to the team building PatternProof. If you flagged something urgent, we'll follow up.
+            Product feedback goes directly to the team building PatternProof. If you flagged
+            something urgent, we'll follow up.
           </p>
-          <button onClick={() => navigate({ to: "/clients" })} className="att-btn-primary">Back to caseload</button>
+          <button onClick={() => navigate({ to: "/clients" })} className="att-btn-primary">
+            Back to caseload
+          </button>
         </div>
       </div>
     );
@@ -80,19 +96,30 @@ function AttorneyFeedbackPage() {
     <div style={{ display: "grid", gap: 20, maxWidth: 720 }}>
       <div>
         <div className="att-eyebrow">Product feedback</div>
-        <h1 className="att-page-title">
-          Attorney feedback
-        </h1>
+        <h1 className="att-page-title">Attorney feedback</h1>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 6, maxWidth: 620 }}>
           Six short questions. Answers are stored privately and reviewed by the product team.
         </p>
       </div>
 
-      <form onSubmit={submit} className="att-card" style={{ padding: 28, display: "grid", gap: 22 }}>
+      <form
+        onSubmit={submit}
+        className="att-card"
+        style={{ padding: 28, display: "grid", gap: 22 }}
+      >
         <AField label="Roughly how much time do you estimate PatternProof saved you on this case, compared to organizing evidence manually?">
-          <select value={timeSaved} onChange={(e) => setTimeSaved(e.target.value)} style={selectStyle} required>
+          <select
+            value={timeSaved}
+            onChange={(e) => setTimeSaved(e.target.value)}
+            style={selectStyle}
+            required
+          >
             <option value="">Select…</option>
-            {TIME_SAVED.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            {TIME_SAVED.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
           </select>
         </AField>
 
@@ -114,7 +141,7 @@ function AttorneyFeedbackPage() {
                 style={{
                   minWidth: 40,
                   padding: "8px 10px",
-                  borderRadius: 2,
+                  borderRadius: 16,
                   border: nps === n ? "1px solid var(--att-navy)" : "1px solid var(--att-border)",
                   background: nps === n ? "var(--att-navy)" : "#FFFFFF",
                   color: nps === n ? "#FFFFFF" : "var(--att-text)",
@@ -128,7 +155,15 @@ function AttorneyFeedbackPage() {
               </button>
             ))}
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--att-text-2)", marginTop: 6 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 11,
+              color: "var(--att-text-2)",
+              marginTop: 6,
+            }}
+          >
             <span>0 · Not at all likely</span>
             <span>10 · Extremely likely</span>
           </div>
@@ -155,13 +190,32 @@ function AttorneyFeedbackPage() {
 function AField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "var(--att-text)", marginBottom: 8, lineHeight: 1.45 }}>{label}</label>
+      <label
+        style={{
+          display: "block",
+          fontSize: 13,
+          fontWeight: 700,
+          color: "var(--att-text)",
+          marginBottom: 8,
+          lineHeight: 1.45,
+        }}
+      >
+        {label}
+      </label>
       {children}
     </div>
   );
 }
 
-function ATextArea({ value, onChange, rows }: { value: string; onChange: (v: string) => void; rows: number }) {
+function ATextArea({
+  value,
+  onChange,
+  rows,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  rows: number;
+}) {
   return (
     <textarea
       value={value}
@@ -171,9 +225,9 @@ function ATextArea({ value, onChange, rows }: { value: string; onChange: (v: str
       style={{
         width: "100%",
         padding: "10px 12px",
-        borderRadius: 2,
-        border: "1px solid var(--att-border)",
-        background: "#FFFFFF",
+        borderRadius: 16,
+        boxShadow: "var(--pp-shadow-sm)",
+        background: "var(--pp-card)",
         color: "var(--att-text)",
         fontSize: 13,
         fontFamily: "inherit",
@@ -187,11 +241,11 @@ function ATextArea({ value, onChange, rows }: { value: string; onChange: (v: str
 const selectStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
-  borderRadius: 2,
-  border: "1px solid var(--att-border)",
-  background: "#FFFFFF",
+  borderRadius: 16,
+  boxShadow: "var(--pp-shadow-sm)",
+  background: "var(--pp-card)",
   color: "var(--att-text)",
   fontSize: 13,
   fontFamily: "inherit",
   outline: "none",
-};// touch
+}; // touch

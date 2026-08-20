@@ -12,9 +12,17 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "PatternProof — Pricing" },
-      { name: "description", content: "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms." },
+      {
+        name: "description",
+        content:
+          "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms.",
+      },
       { property: "og:title", content: "Pricing — PatternProof" },
-      { property: "og:description", content: "Free for survivors. Firm pricing for family-law practices. DV organizations partner with us at no cost." },
+      {
+        property: "og:description",
+        content:
+          "Free for survivors. Firm pricing for family-law practices. DV organizations partner with us at no cost.",
+      },
       { property: "og:url", content: "https://pattern-proof.tech/pricing" },
       { property: "og:type", content: "website" },
     ],
@@ -40,7 +48,7 @@ export const Route = createFileRoute("/pricing")({
 const FAQS = [
   {
     q: "Is it really free for survivors?",
-    a: "Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the court packet export and sharing your case with an attorney. Professional Review (the \"Court Ready\" tier above) is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.",
+    a: 'Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the court packet export and sharing your case with an attorney. Professional Review (the "Court Ready" tier above) is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.',
   },
   {
     q: "What's the Charter Firm program?",
@@ -68,7 +76,11 @@ function PricingPage() {
   const [remaining, setRemaining] = useState<number | null>(null);
   useEffect(() => {
     let env: ReturnType<typeof getStripeEnvironment>;
-    try { env = getStripeEnvironment(); } catch { return; }
+    try {
+      env = getStripeEnvironment();
+    } catch {
+      return;
+    }
     getCharterAvailability({ data: { environment: env } })
       .then((r) => setRemaining(r.remaining))
       .catch(() => setRemaining(null));
@@ -104,7 +116,10 @@ function PricingPage() {
         <BrandLogo size={36} showTagline={false} />
       </header>
 
-      <main className="app-surface" style={{ maxWidth: 1180, margin: "0 auto", padding: "40px 24px 120px" }}>
+      <main
+        className="app-surface"
+        style={{ maxWidth: 1180, margin: "0 auto", padding: "40px 24px 120px" }}
+      >
         {/* Trust line */}
         <div style={{ textAlign: "center", marginBottom: 56 }}>
           <div
@@ -167,7 +182,8 @@ function PricingPage() {
               fontWeight: 500,
             }}
           >
-            Choose the plan that fits your role. Every tier is built with the same privacy-first architecture.
+            Choose the plan that fits your role. Every tier is built with the same privacy-first
+            architecture.
           </p>
         </div>
 
@@ -253,11 +269,7 @@ function TierCard({ tier }: { tier: Tier }) {
   const isAttorney = tier.key === "attorney_solo" || tier.key === "attorney_firm";
   const isOrg = tier.key === "organization";
 
-  const cardBg = isAttorney
-    ? "#022063"
-    : isOrg
-      ? "#FFFFFF"
-      : "#FFFFFF";
+  const cardBg = isAttorney ? "#022063" : isOrg ? "#FFFFFF" : "#FFFFFF";
 
   const border = isAttorney
     ? "1px solid rgba(181,199,240,0.18)"
@@ -276,11 +288,7 @@ function TierCard({ tier }: { tier: Tier }) {
   const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#4132B4";
   const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#4132B4";
 
-  const ctaBg = isAttorney
-    ? "#FFFFFF"
-    : isOrg
-      ? "#1552A3"
-      : "#4132B4";
+  const ctaBg = isAttorney ? "#FFFFFF" : isOrg ? "#1552A3" : "#4132B4";
   const ctaColor = isAttorney ? "#0F1B3D" : "#FFFFFF";
 
   return (
@@ -290,7 +298,7 @@ function TierCard({ tier }: { tier: Tier }) {
         border,
         borderRadius: 2,
         padding: 36,
-        boxShadow: "none",
+        boxShadow: "var(--pp-shadow-sm)",
         display: "flex",
         flexDirection: "column",
         position: "relative",
@@ -421,10 +429,7 @@ function TierCard({ tier }: { tier: Tier }) {
               lineHeight: 1.5,
             }}
           >
-            <Check
-              size={16}
-              style={{ color: checkColor, flexShrink: 0, marginTop: 2 }}
-            />
+            <Check size={16} style={{ color: checkColor, flexShrink: 0, marginTop: 2 }} />
             {f}
           </li>
         ))}
@@ -491,9 +496,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         <HelpCircle size={16} style={{ color: "var(--primary)", flexShrink: 0 }} />
         {q}
       </h4>
-      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6E6579", margin: 0 }}>
-        {a}
-      </p>
+      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6E6579", margin: 0 }}>{a}</p>
     </div>
   );
 }

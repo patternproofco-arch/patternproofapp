@@ -22,7 +22,7 @@ export function UtilityBar() {
           to={to}
           aria-label={label}
           title={label}
-          className="grid h-9 w-9 place-items-center rounded-[2px]"
+          className="grid h-9 w-9 place-items-center rounded-2xl"
           style={{ color: "var(--muted-foreground)" }}
         >
           <Icon size={17} strokeWidth={1.75} />
@@ -30,10 +30,12 @@ export function UtilityBar() {
       ))}
       <button
         type="button"
-        onClick={() => { void supabase.auth.signOut(); }}
+        onClick={() => {
+          void supabase.auth.signOut();
+        }}
         aria-label="Sign out"
         title="Sign out"
-        className="grid h-9 w-9 place-items-center rounded-[2px]"
+        className="grid h-9 w-9 place-items-center rounded-2xl"
         style={{ color: "var(--muted-foreground)" }}
       >
         <LogOut size={17} strokeWidth={1.75} />

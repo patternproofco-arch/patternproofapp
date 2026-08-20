@@ -1,57 +1,109 @@
 /** Shared visual language for the three portal dashboards.
- *  One shell, three themes. Colors live here and nowhere else. */
+ *  One shell, three themes. Colors live here and nowhere else.
+ *
+ *  Neumorphic system: every surface starts from the same tinted "ground"
+ *  colour and is carved or extruded with paired light/dark shadows —
+ *  never a border. `line` here is the shadow's dark half, not a border
+ *  colour; `ground`/`groundHi`/`groundLo` are the three ground tints a
+ *  raised, resting, and carved (inset) surface each read against. */
 export type PortalVariant = "survivor" | "advocate" | "attorney";
 
 export interface PortalTheme {
   accent: string;
+  link: string;
   ink: string;
   muted: string;
   card: string;
   line: string;
+  ground: string;
+  groundHi: string;
+  groundLo: string;
   gradientFrom: string;
+  gradientMid?: string;
   gradientTo: string;
   mark: string;
   displayFont: string;
+  bodyFont: string;
 }
 
-const DISPLAY = "'Fraunces', Georgia, serif";
+const INK = "#232A38";
+const MUTED = "#626C80";
 
 export const PORTAL_THEME: Record<PortalVariant, PortalTheme> = {
   survivor: {
-    accent: "#8C1FFC",
-    ink: "#1A1224",
-    muted: "#6B6A78",
+    accent: "#7B5CE0",
+    link: "#2BA8C6",
+    ink: INK,
+    muted: MUTED,
     card: "#FFFFFF",
-    line: "rgba(26,18,36,0.12)",
-    gradientFrom: "#D46FFD",
-    gradientTo: "#3E19F8",
-    mark: "#F7ECFE",
-    displayFont: DISPLAY,
+    line: "#CCC4D6",
+    ground: "#F0EBF4",
+    groundHi: "#F5F1F8",
+    groundLo: "#E9E3EF",
+    gradientFrom: "#E879F9",
+    gradientMid: "#8B5CF6",
+    gradientTo: "#38D9F0",
+    mark: "#F5F1F8",
+    displayFont: "'Source Serif 4', Georgia, serif",
+    bodyFont: "'Figtree', system-ui, sans-serif",
   },
   advocate: {
-    accent: "#2F4E34",
-    ink: "#17251C",
-    muted: "#5D6C62",
+    accent: "#4A5C43",
+    link: "#5D7A52",
+    ink: INK,
+    muted: MUTED,
     card: "#FFFFFF",
-    line: "rgba(23,37,28,0.12)",
-    gradientFrom: "#95AD85",
-    gradientTo: "#5F8B67",
-    mark: "#EDF2EC",
-    displayFont: DISPLAY,
+    line: "#C6CEC1",
+    ground: "#ECEFE9",
+    groundHi: "#F1F4EE",
+    groundLo: "#E5E9E2",
+    gradientFrom: "#8FA383",
+    gradientTo: "#4A5C43",
+    mark: "#F1F4EE",
+    displayFont: "'Newsreader', Georgia, serif",
+    bodyFont: "'Public Sans', system-ui, sans-serif",
   },
   attorney: {
-    accent: "#022063",
-    ink: "#0E1729",
-    muted: "#4C596F",
+    accent: "#1B2A6B",
+    link: "#3F6DF0",
+    ink: INK,
+    muted: MUTED,
     card: "#FFFFFF",
-    line: "rgba(14,23,41,0.14)",
-    gradientFrom: "#015FFD",
-    gradientTo: "#014ED1",
-    mark: "#E8EEF9",
-    displayFont: DISPLAY,
+    line: "#C0C8DD",
+    ground: "#E8EBF4",
+    groundHi: "#EEF1F8",
+    groundLo: "#E0E4F0",
+    gradientFrom: "#3F6DF0",
+    gradientTo: "#1B2A6B",
+    mark: "#EEF1F8",
+    displayFont: "'Newsreader', Georgia, serif",
+    bodyFont: "'Public Sans', system-ui, sans-serif",
   },
 };
 
 export function portalTheme(variant: PortalVariant): PortalTheme {
   return PORTAL_THEME[variant];
+}
+
+/** Paired-shadow elevation, computed against a given ground colour.
+ *  `up*` = raised/extruded, `in*` = carved/inset. */
+export function neuShadow(ground: string) {
+  const dark = shadowDarkFor(ground);
+  return {
+    up: `-6px -6px 13px #ffffff, 6px 6px 13px ${dark}`,
+    upSm: `-3px -3px 7px #ffffff, 3px 3px 7px ${dark}`,
+    upXs: `-2px -2px 4px #ffffff, 2px 2px 4px ${dark}`,
+    upLg: `-9px -9px 20px #ffffff, 9px 9px 20px ${dark}`,
+    in: `inset -4px -4px 8px #ffffff, inset 4px 4px 8px ${dark}`,
+    inSm: `inset -2px -2px 4px #ffffff, inset 2px 2px 5px ${dark}`,
+  };
+}
+
+function shadowDarkFor(ground: string): string {
+  const known: Record<string, string> = {
+    "#F0EBF4": "#CCC4D6",
+    "#ECEFE9": "#C6CEC1",
+    "#E8EBF4": "#C0C8DD",
+  };
+  return known[ground.toUpperCase()] ?? "#C3CAD8";
 }

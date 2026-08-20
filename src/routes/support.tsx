@@ -12,9 +12,17 @@ export const Route = createFileRoute("/support")({
   head: () => ({
     meta: [
       { title: "Technical Support — PatternProof" },
-      { name: "description", content: "Get help with login, billing, evidence uploads, or court packet exports. Send a support request without using your own email client." },
+      {
+        name: "description",
+        content:
+          "Get help with login, billing, evidence uploads, or court packet exports. Send a support request without using your own email client.",
+      },
       { property: "og:title", content: "Technical Support — PatternProof" },
-      { property: "og:description", content: "Send a support request privately — no email client needed. Help with access, billing, uploads, and exports." },
+      {
+        property: "og:description",
+        content:
+          "Send a support request privately — no email client needed. Help with access, billing, uploads, and exports.",
+      },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -53,7 +61,9 @@ function SupportPage() {
     e.preventDefault();
     setError(null);
     if (!email.trim()) {
-      setError("We need an address to reply to. Use one the other person can't see if that's safer.");
+      setError(
+        "We need an address to reply to. Use one the other person can't see if that's safer.",
+      );
       return;
     }
     if (message.trim().length < 10) {
@@ -103,7 +113,10 @@ function SupportPage() {
           <strong style={{ fontWeight: 600 }}>A note on safety.</strong> Use an address the other
           person can't open. Quick Exit is on this page too — press it, or tap Esc twice, and you'll
           be signed out and taken somewhere ordinary. It doesn't clear browser history. More in{" "}
-          <Link to="/safety" style={inlineLink}>Survivor Safety</Link>.
+          <Link to="/safety" style={inlineLink}>
+            Survivor Safety
+          </Link>
+          .
         </div>
 
         {status === "sent" ? (
@@ -141,7 +154,9 @@ function SupportPage() {
             <Field label="What's this about?">
               <select value={category} onChange={(e) => setCategory(e.target.value)} style={input}>
                 {SUPPORT_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
               </select>
             </Field>
@@ -173,7 +188,12 @@ function SupportPage() {
           </p>
           <div style={emailRow}>
             <span style={emailText}>{SUPPORT_EMAIL}</span>
-            <button type="button" onClick={copyEmail} style={copyBtn} aria-label="Copy support email address">
+            <button
+              type="button"
+              onClick={copyEmail}
+              style={copyBtn}
+              aria-label="Copy support email address"
+            >
               {copied ? <Check size={14} /> : <Copy size={14} />}
               {copied ? "Copied" : "Copy"}
             </button>
@@ -197,73 +217,138 @@ const page = {
   minHeight: "100vh",
   background: "#FAF8F4",
   color: "#1A1224",
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
+  fontFamily: "var(--font-sans)",
   padding: "32px 20px 96px",
 } as const;
 
 const backLink = {
-  display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13,
-  color: "#4132B4", textDecoration: "none", fontWeight: 500,
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  fontSize: 13,
+  color: "#4132B4",
+  textDecoration: "none",
+  fontWeight: 500,
 } as const;
 
 const eyebrow = {
-  fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase",
-  color: "#4132B4", fontWeight: 700, marginBottom: 10,
-  fontFamily: "'Space Grotesk', monospace",
+  fontSize: 11,
+  letterSpacing: "0.22em",
+  textTransform: "uppercase",
+  color: "#4132B4",
+  fontWeight: 700,
+  marginBottom: 10,
+  fontFamily: "var(--font-mono)",
 } as const;
 
-const h1 = { fontFamily: "'Fraunces', Georgia, serif", fontSize: 38, lineHeight: 1.15, fontWeight: 500, margin: 0 } as const;
-const h2 = { fontFamily: "'Fraunces', Georgia, serif", fontSize: 21, fontWeight: 500, margin: "0 0 8px" } as const;
+const h1 = {
+  fontFamily: "var(--font-serif)",
+  fontSize: 38,
+  lineHeight: 1.15,
+  fontWeight: 500,
+  margin: 0,
+} as const;
+const h2 = {
+  fontFamily: "var(--font-serif)",
+  fontSize: 21,
+  fontWeight: 500,
+  margin: "0 0 8px",
+} as const;
 const sub = { fontSize: 16, lineHeight: 1.6, color: "#3A3849", margin: "12px 0 0" } as const;
 const bodyText = { fontSize: 14, lineHeight: 1.65, color: "#3A3849", margin: "0 0 12px" } as const;
 
 const safetyNote = {
   background: "rgba(122,31,61,0.07)",
   border: "1px solid rgba(122,31,61,0.22)",
-  borderRadius: 2, padding: "12px 14px", fontSize: 13.5,
-  lineHeight: 1.6, color: "#1A1224", marginBottom: 24,
+  borderRadius: 2,
+  padding: "12px 14px",
+  fontSize: 13.5,
+  lineHeight: 1.6,
+  color: "#1A1224",
+  marginBottom: 24,
 } as const;
 
 const card = {
-  background: "#FFFFFF",
+  background: "var(--pp-card)",
   border: "1px solid rgba(26,18,36,0.10)",
-  borderRadius: 2, padding: 20,
+  borderRadius: 2,
+  padding: 20,
   clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)",
 } as const;
 
 const labelText = {
-  display: "block", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase",
-  fontFamily: "'Space Grotesk', monospace", color: "#3A3849", fontWeight: 600, marginBottom: 6,
+  display: "block",
+  fontSize: 11,
+  letterSpacing: "0.12em",
+  textTransform: "uppercase",
+  fontFamily: "var(--font-mono)",
+  color: "#3A3849",
+  fontWeight: 600,
+  marginBottom: 6,
 } as const;
 
 const input = {
-  width: "100%", padding: "10px 12px", fontSize: 15,
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
-  color: "#1A1224", background: "#FAF8F4",
-  border: "1px solid rgba(26,18,36,0.16)", borderRadius: 2,
+  width: "100%",
+  padding: "10px 12px",
+  fontSize: 15,
+  fontFamily: "var(--font-sans)",
+  color: "#1A1224",
+  background: "#FAF8F4",
+  border: "1px solid rgba(26,18,36,0.16)",
+  borderRadius: 2,
 } as const;
 
-const errorText = { fontSize: 13.5, color: "#4132B4", margin: "0 0 12px", lineHeight: 1.55 } as const;
+const errorText = {
+  fontSize: 13.5,
+  color: "#4132B4",
+  margin: "0 0 12px",
+  lineHeight: 1.55,
+} as const;
 
 const submitBtn = {
-  background: "#1A1224", color: "#FAF8F4", border: "none",
-  borderRadius: 2, padding: "11px 22px", fontSize: 14, fontWeight: 600,
-  cursor: "pointer", fontFamily: "'Space Grotesk', system-ui, sans-serif",
+  background: "#1A1224",
+  color: "#FAF8F4",
+  border: "none",
+  borderRadius: 2,
+  padding: "11px 22px",
+  fontSize: 14,
+  fontWeight: 600,
+  cursor: "pointer",
+  fontFamily: "var(--font-sans)",
 } as const;
 
 const emailRow = {
-  display: "inline-flex", alignItems: "center", gap: 12,
-  background: "#FFFFFF", border: "1px solid rgba(26,18,36,0.10)",
-  borderRadius: 2, padding: "10px 12px",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 12,
+  background: "var(--pp-card)",
+  border: "1px solid rgba(26,18,36,0.10)",
+  borderRadius: 2,
+  padding: "10px 12px",
 } as const;
 
-const emailText = { fontFamily: "'Space Grotesk', monospace", fontSize: 14, color: "#1A1224" } as const;
+const emailText = {
+  fontFamily: "var(--font-mono)",
+  fontSize: 14,
+  color: "#1A1224",
+} as const;
 
 const copyBtn = {
-  display: "inline-flex", alignItems: "center", gap: 6,
-  background: "#FAF8F4", border: "1px solid rgba(26,18,36,0.16)",
-  borderRadius: 2, padding: "6px 12px", fontSize: 12.5, fontWeight: 600,
-  color: "#1A1224", cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  background: "#FAF8F4",
+  border: "1px solid rgba(26,18,36,0.16)",
+  borderRadius: 2,
+  padding: "6px 12px",
+  fontSize: 12.5,
+  fontWeight: 600,
+  color: "#1A1224",
+  cursor: "pointer",
 } as const;
 
-const inlineLink = { color: "#4132B4", textDecoration: "underline", textUnderlineOffset: 3 } as const;
+const inlineLink = {
+  color: "#4132B4",
+  textDecoration: "underline",
+  textUnderlineOffset: 3,
+} as const;

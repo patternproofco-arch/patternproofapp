@@ -15,14 +15,20 @@ function CourtReadyPage() {
 
   if (sub.tier === "court_ready") {
     return (
-      <div className="card-pp space-y-3" style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}>
+      <div
+        className="card-pp space-y-3"
+        style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}
+      >
         <Check size={32} style={{ color: "var(--accent)", margin: "0 auto" }} />
         <h1 className="font-serif text-[28px]">Thank you for contributing.</h1>
         <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
           Your contribution is recorded. It doesn't change your account — every survivor feature,
-          including your court packet, exports, and attorney sharing, was already free and stays free.
+          including your court packet, exports, and attorney sharing, was already free and stays
+          free.
         </p>
-        <Link to="/court-packet" className="btn-primary inline-block">Open court packet</Link>
+        <Link to="/court-packet" className="btn-primary inline-block">
+          Open court packet
+        </Link>
       </div>
     );
   }
@@ -44,16 +50,25 @@ function CourtReadyPage() {
 
       <div className="card-pp">
         <ul className="space-y-2 text-[14px] mb-4">
-          <li className="flex gap-2"><Heart size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> A one-time contribution — no subscription, no renewal</li>
-          <li className="flex gap-2"><Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Nothing in the app is locked, before or after</li>
+          <li className="flex gap-2">
+            <Heart size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> A one-time
+            contribution — no subscription, no renewal
+          </li>
+          <li className="flex gap-2">
+            <Check size={16} style={{ color: "var(--accent)", marginTop: 2 }} /> Nothing in the app
+            is locked, before or after
+          </li>
         </ul>
 
         <p className="text-[13px] mb-4" style={{ color: "var(--muted-foreground)" }}>
           Your court packet and attorney sharing stay free whether or not you do this.{" "}
-          <Link to="/court-packet" style={{ textDecoration: "underline" }}>Open your packet</Link>.
+          <Link to="/court-packet" style={{ textDecoration: "underline" }}>
+            Open your packet
+          </Link>
+          .
         </p>
 
-        {(
+        {
           <div className="mb-4">
             <label className="label-eyebrow">One-time amount (USD)</label>
             <div className="mt-2 flex items-center gap-3">
@@ -77,12 +92,13 @@ function CourtReadyPage() {
               />
             </div>
             <p className="text-[12px] mt-2" style={{ color: "var(--muted-foreground)" }}>
-              A one-time payment. It unlocks nothing — whatever you can give helps keep the app free for everyone.
+              A one-time payment. It unlocks nothing — whatever you can give helps keep the app free
+              for everyone.
             </p>
           </div>
-        )}
+        }
 
-        <div style={{ border: "1px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
+        <div style={{ boxShadow: "var(--pp-shadow-sm)", borderRadius: 2, overflow: "hidden" }}>
           <StripeEmbeddedCheckout
             customAmountCents={amount * 100}
             returnUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/court-ready-thanks?session_id={CHECKOUT_SESSION_ID}`}

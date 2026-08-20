@@ -34,7 +34,9 @@ export function ContentTypeSuggestions() {
     }
   }, [list]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   useEffect(() => {
     if (!user || items.length === 0) return;
@@ -44,16 +46,25 @@ export function ContentTypeSuggestions() {
         .from("evidence")
         .select("id, file_url, mime")
         .eq("user_id", user.id)
-        .in("id", items.map((i) => i.evidence_id));
+        .in(
+          "id",
+          items.map((i) => i.evidence_id),
+        );
       const urls: Record<string, string> = {};
-      await Promise.all((data ?? []).map(async (row) => {
-        if (!(row.mime ?? "").startsWith("image/")) return;
-        const signed = await supabase.storage.from("evidence-files").createSignedUrl(row.file_url, 1800);
-        if (signed.data?.signedUrl) urls[row.id] = signed.data.signedUrl;
-      }));
+      await Promise.all(
+        (data ?? []).map(async (row) => {
+          if (!(row.mime ?? "").startsWith("image/")) return;
+          const signed = await supabase.storage
+            .from("evidence-files")
+            .createSignedUrl(row.file_url, 1800);
+          if (signed.data?.signedUrl) urls[row.id] = signed.data.signedUrl;
+        }),
+      );
       if (!cancelled) setThumbs((p) => ({ ...p, ...urls }));
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [items, user]);
 
   const act = async (id: string, accept: boolean) => {
@@ -87,13 +98,16 @@ export function ContentTypeSuggestions() {
 
   return (
     <div
-      className="mt-6 rounded-[2px] p-5"
+      className="mt-6 rounded-2xl p-5"
       style={{ background: "rgba(122,31,61,0.07)", border: "1px dashed rgba(122,31,61,0.35)" }}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Sparkles size={15} style={{ color: "#4132B4" }} />
-          <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#4132B4" }}>
+          <span
+            className="text-[11px] font-bold uppercase tracking-[0.15em]"
+            style={{ color: "#4132B4" }}
+          >
             AI suggestion — content type only
           </span>
         </div>
@@ -103,27 +117,42 @@ export function ContentTypeSuggestions() {
           disabled={acceptingAll}
           onClick={acceptAll}
         >
-          {acceptingAll ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Accept all
+          {acceptingAll ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}{" "}
+          Accept all
         </button>
       </div>
       <p className="mt-2 text-[13px]" style={{ color: "#3A3849" }}>
-        These describe what a file looks like — nothing more. Nothing is saved to a file until you say so.
+        These describe what a file looks like — nothing more. Nothing is saved to a file until you
+        say so.
       </p>
 
       <ul className="mt-4 space-y-2">
         {items.map((s) => (
           <li
             key={s.id}
-            className="flex flex-wrap items-center gap-3 rounded-[2px] p-3"
+            className="flex flex-wrap items-center gap-3 rounded-2xl p-3"
             style={{ background: "rgba(255,255,255,0.6)" }}
           >
             {thumbs[s.evidence_id] ? (
-              <img src={thumbs[s.evidence_id]} alt="" style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 2 }} />
+              <img
+                src={thumbs[s.evidence_id]}
+                alt=""
+                style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 2 }}
+              />
             ) : (
-              <div style={{ width: 48, height: 48, borderRadius: 2, background: "rgba(26,18,36,0.08)" }} />
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 2,
+                  background: "rgba(26,18,36,0.08)",
+                }}
+              />
             )}
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[14px]" style={{ color: "#1A1224" }}>{s.title ?? "Untitled file"}</div>
+              <div className="truncate text-[14px]" style={{ color: "#1A1224" }}>
+                {s.title ?? "Untitled file"}
+              </div>
               <div className="text-[12px]" style={{ color: "#3A3849" }}>
                 {KIND_LABELS[s.suggested_kind as SuggestedKind] ?? s.suggested_kind}
                 {s.rationale ? ` · ${s.rationale}` : ""}

@@ -6,7 +6,8 @@ import { useSettings } from "@/lib/settings-context";
 import { toast } from "sonner";
 import { useDraggable } from "@/hooks/use-draggable";
 
-const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+const fmt = (s: number) =>
+  `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
 export function FloatingRecordButton() {
   const navigate = useNavigate();
@@ -16,23 +17,32 @@ export function FloatingRecordButton() {
   const [menuOpen, setMenuOpen] = useState(false);
   const longPress = useRef<number | undefined>(undefined);
   const fired = useRef(false);
-  const { ref, style: dragStyle, dragHandlers, wasDragged } = useDraggable(
-    "pp.mic.pos",
-    { right: 24, bottom: 24 }
-  );
+  const {
+    ref,
+    style: dragStyle,
+    dragHandlers,
+    wasDragged,
+  } = useDraggable("pp.mic.pos", { right: 24, bottom: 24 });
 
   // Hide on routes where button shouldn't render
-  const hideOnRoutes = pathname === "/onboarding" || pathname.startsWith("/login") || pathname.startsWith("/attorney/");
+  const hideOnRoutes =
+    pathname === "/onboarding" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/attorney/");
 
   useEffect(() => {
     if (!menuOpen) return;
     const close = (e: MouseEvent | TouchEvent) => {
       const t = e.target as HTMLElement;
-      if (!t.closest?.("[data-record-menu]") && !t.closest?.("[data-record-btn]")) setMenuOpen(false);
+      if (!t.closest?.("[data-record-menu]") && !t.closest?.("[data-record-btn]"))
+        setMenuOpen(false);
     };
     window.addEventListener("mousedown", close);
     window.addEventListener("touchstart", close);
-    return () => { window.removeEventListener("mousedown", close); window.removeEventListener("touchstart", close); };
+    return () => {
+      window.removeEventListener("mousedown", close);
+      window.removeEventListener("touchstart", close);
+    };
   }, [menuOpen]);
 
   if (hideOnRoutes || !settings.quickRecordVisible) return null;
@@ -46,13 +56,19 @@ export function FloatingRecordButton() {
     }, 1000);
   };
   const onPointerUp = () => {
-    if (longPress.current) { clearTimeout(longPress.current); longPress.current = undefined; }
+    if (longPress.current) {
+      clearTimeout(longPress.current);
+      longPress.current = undefined;
+    }
   };
   const onPointerLeave = onPointerUp;
 
   const handleClick = async () => {
     if (wasDragged()) return;
-    if (fired.current) { fired.current = false; return; }
+    if (fired.current) {
+      fired.current = false;
+      return;
+    }
     if (settings.quickRecordFrozen) return;
     if (isRecording) {
       await stop();
@@ -61,7 +77,10 @@ export function FloatingRecordButton() {
       return;
     }
     const ok = await start();
-    if (!ok) { toast("We couldn't access the microphone."); return; }
+    if (!ok) {
+      toast("We couldn't access the microphone.");
+      return;
+    }
     if (!pathname.startsWith("/live-recording")) navigate({ to: "/live-recording" });
   };
 
@@ -93,21 +112,27 @@ export function FloatingRecordButton() {
           className="no-print fixed z-[96] w-[180px] rounded-2xl p-2"
           style={{
             background: "var(--linen)",
-            border: "1px solid var(--border)",
-            boxShadow: "none",
+            boxShadow: "var(--pp-shadow-sm)",
             right: "24px",
             bottom: "96px",
           }}
         >
           <button
-            onClick={() => { update({ quickRecordFrozen: !frozen }); setMenuOpen(false); }}
+            onClick={() => {
+              update({ quickRecordFrozen: !frozen });
+              setMenuOpen(false);
+            }}
             className="block w-full rounded-lg px-3 py-2 text-left text-[13px]"
             style={{ color: "var(--foreground)" }}
           >
             {frozen ? "Unfreeze" : "Freeze"}
           </button>
           <button
-            onClick={() => { update({ quickRecordVisible: false }); setMenuOpen(false); toast("Quick record button hidden. Turn it back on in Settings."); }}
+            onClick={() => {
+              update({ quickRecordVisible: false });
+              setMenuOpen(false);
+              toast("Quick record button hidden. Turn it back on in Settings.");
+            }}
             className="block w-full rounded-lg px-3 py-2 text-left text-[13px]"
             style={{ color: "var(--foreground)" }}
           >
@@ -128,10 +153,16 @@ export function FloatingRecordButton() {
         ref={ref as React.RefObject<HTMLButtonElement>}
         data-record-btn
         aria-label={isRecording ? "Stop recording" : "Start recording"}
-        onMouseDown={(e) => { dragHandlers.onMouseDown(e); onPointerDown(); }}
+        onMouseDown={(e) => {
+          dragHandlers.onMouseDown(e);
+          onPointerDown();
+        }}
         onMouseUp={onPointerUp}
         onMouseLeave={onPointerLeave}
-        onTouchStart={(e) => { dragHandlers.onTouchStart(e); onPointerDown(); }}
+        onTouchStart={(e) => {
+          dragHandlers.onTouchStart(e);
+          onPointerDown();
+        }}
         onTouchEnd={onPointerUp}
         onClick={handleClick}
         className={`no-print fixed z-[94] flex h-14 w-14 items-center justify-center rounded-full ${isRecording ? "pulse-rec" : frozen ? "" : "breathe"}`}
@@ -139,7 +170,7 @@ export function FloatingRecordButton() {
           background: bg,
           color: "#F7F3EC",
           ...dragStyle,
-          boxShadow: "none",
+          boxShadow: "var(--pp-shadow-sm)",
           touchAction: "none",
           cursor: "grab",
         }}
@@ -152,7 +183,7 @@ export function FloatingRecordButton() {
             height: 14,
             borderRadius: 999,
             background: isRecording ? "#FFFFFF" : "#E25C5C",
-            boxShadow: "none",
+            boxShadow: "var(--pp-shadow-sm)",
             display: "inline-block",
           }}
         />

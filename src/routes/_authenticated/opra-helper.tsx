@@ -50,15 +50,23 @@ function OpraHelper() {
     })();
   }, [user]);
 
-  const toggle = (t: string) => setTypes((p) => (p.includes(t) ? p.filter((x) => x !== t) : [...p, t]));
+  const toggle = (t: string) =>
+    setTypes((p) => (p.includes(t) ? p.filter((x) => x !== t) : [...p, t]));
 
   const letter = useMemo(() => {
-    const today = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
-    const range = start && end
-      ? `from ${new Date(start).toLocaleDateString()} through ${new Date(end).toLocaleDateString()}`
-      : start ? `on or after ${new Date(start).toLocaleDateString()}`
-      : end ? `on or before ${new Date(end).toLocaleDateString()}`
-      : "covering all dates on which responsive records exist";
+    const today = new Date().toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const range =
+      start && end
+        ? `from ${new Date(start).toLocaleDateString()} through ${new Date(end).toLocaleDateString()}`
+        : start
+          ? `on or after ${new Date(start).toLocaleDateString()}`
+          : end
+            ? `on or before ${new Date(end).toLocaleDateString()}`
+            : "covering all dates on which responsive records exist";
     return `${today}
 
 ${custodian}
@@ -104,9 +112,16 @@ Respectfully,
       generated_letter: letter,
       status: "draft",
     });
-    if (error) { toast("We couldn't save that. Try again in a moment."); return; }
+    if (error) {
+      toast("We couldn't save that. Try again in a moment.");
+      return;
+    }
     toast("Saved as draft.");
-    const { data } = await supabase.from("opra_requests").select("id,agency_name,status,created_at").eq("user_id", user.id).order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("opra_requests")
+      .select("id,agency_name,status,created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
     setPast((data as OpraRow[] | null) ?? []);
   };
 
@@ -118,22 +133,36 @@ Respectfully,
         Request your <em>public records.</em>
       </h1>
       <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-        Police reports, 911 audio, body-cam footage. NJ agencies must respond within seven business days.
+        Police reports, 911 audio, body-cam footage. NJ agencies must respond within seven business
+        days.
       </p>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <div className="card-pp space-y-4">
           <div>
             <label className="label-eyebrow">Agency</label>
-            <input className="input-pp mt-1" value={agency} onChange={(e) => setAgency(e.target.value)} placeholder="e.g. Newark Police Department" />
+            <input
+              className="input-pp mt-1"
+              value={agency}
+              onChange={(e) => setAgency(e.target.value)}
+              placeholder="e.g. Newark Police Department"
+            />
           </div>
           <div>
             <label className="label-eyebrow">Agency address</label>
-            <textarea className="input-pp mt-1" value={address} onChange={(e) => setAddress(e.target.value)} />
+            <textarea
+              className="input-pp mt-1"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
           </div>
           <div>
             <label className="label-eyebrow">Custodian title</label>
-            <input className="input-pp mt-1" value={custodian} onChange={(e) => setCustodian(e.target.value)} />
+            <input
+              className="input-pp mt-1"
+              value={custodian}
+              onChange={(e) => setCustodian(e.target.value)}
+            />
           </div>
           <div>
             <div className="label-eyebrow mb-2">Records requested</div>
@@ -141,9 +170,17 @@ Respectfully,
               {RECORD_TYPES.map((t) => {
                 const on = types.includes(t);
                 return (
-                  <button key={t} type="button" onClick={() => toggle(t)}
-                    className="rounded-[2px] px-3 py-1 text-[12px] font-semibold"
-                    style={{ background: on ? "var(--accent)" : "transparent", color: on ? "#fff" : "var(--foreground)", border: "1.5px solid var(--accent)" }}>
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => toggle(t)}
+                    className="rounded-2xl px-3 py-1 text-[12px] font-semibold"
+                    style={{
+                      background: on ? "var(--accent)" : "transparent",
+                      color: on ? "#fff" : "var(--foreground)",
+                      border: "1.5px solid var(--accent)",
+                    }}
+                  >
                     {t}
                   </button>
                 );
@@ -153,26 +190,52 @@ Respectfully,
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label-eyebrow">From</label>
-              <input type="date" className="input-pp mt-1" value={start} onChange={(e) => setStart(e.target.value)} />
+              <input
+                type="date"
+                className="input-pp mt-1"
+                value={start}
+                onChange={(e) => setStart(e.target.value)}
+              />
             </div>
             <div>
               <label className="label-eyebrow">To</label>
-              <input type="date" className="input-pp mt-1" value={end} onChange={(e) => setEnd(e.target.value)} />
+              <input
+                type="date"
+                className="input-pp mt-1"
+                value={end}
+                onChange={(e) => setEnd(e.target.value)}
+              />
             </div>
           </div>
           <div>
             <label className="label-eyebrow">Anything else they should know? (optional)</label>
-            <textarea className="input-pp mt-1" value={details} onChange={(e) => setDetails(e.target.value)} />
+            <textarea
+              className="input-pp mt-1"
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+            />
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={copy} className="btn-primary inline-flex items-center gap-2"><Copy size={15} /> Copy letter</button>
-            <button onClick={save} className="btn-ghost inline-flex items-center gap-2"><Save size={15} /> Save as draft</button>
+            <button onClick={copy} className="btn-primary inline-flex items-center gap-2">
+              <Copy size={15} /> Copy letter
+            </button>
+            <button onClick={save} className="btn-ghost inline-flex items-center gap-2">
+              <Save size={15} /> Save as draft
+            </button>
           </div>
         </div>
 
         <div className="card-pp" style={{ borderLeft: "3px solid var(--accent)" }}>
-          <div className="flex items-center gap-2"><FileSearch size={16} /><div className="label-eyebrow">Preview</div></div>
-          <pre className="mt-3 whitespace-pre-wrap font-serif text-[13.5px] leading-relaxed" style={{ color: "var(--foreground)" }}>{letter}</pre>
+          <div className="flex items-center gap-2">
+            <FileSearch size={16} />
+            <div className="label-eyebrow">Preview</div>
+          </div>
+          <pre
+            className="mt-3 whitespace-pre-wrap font-serif text-[13.5px] leading-relaxed"
+            style={{ color: "var(--foreground)" }}
+          >
+            {letter}
+          </pre>
         </div>
       </div>
 
@@ -184,9 +247,16 @@ Respectfully,
               <div key={r.id} className="card-pp flex items-center justify-between">
                 <div>
                   <div className="font-serif text-[15px]">{r.agency_name ?? "(no agency)"}</div>
-                  <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>{new Date(r.created_at).toLocaleDateString()}</div>
+                  <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </div>
                 </div>
-                <span className="rounded-[2px] px-3 py-1 text-[11px] font-semibold" style={{ background: "var(--input)", color: "var(--foreground)" }}>{r.status}</span>
+                <span
+                  className="rounded-2xl px-3 py-1 text-[11px] font-semibold"
+                  style={{ background: "var(--input)", color: "var(--foreground)" }}
+                >
+                  {r.status}
+                </span>
               </div>
             ))}
           </div>

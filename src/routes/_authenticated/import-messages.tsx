@@ -10,9 +10,18 @@ import { ImportIntro } from "@/components/messages/ImportIntro";
 import { OcrProgress } from "@/components/messages/OcrProgress";
 import { ReviewThread, type ImportThread } from "@/components/messages/ReviewThread";
 import {
-  addSourceDocument, deleteMessageImport, saveExtractedMessages, startMessageImport,
+  addSourceDocument,
+  deleteMessageImport,
+  saveExtractedMessages,
+  startMessageImport,
 } from "@/lib/message-import.functions";
-import { groupLinesIntoMessages, mergeDuplicates, orderMessages, extractContactHeader, type DraftMessage } from "@/lib/ocr/parse";
+import {
+  groupLinesIntoMessages,
+  mergeDuplicates,
+  orderMessages,
+  extractContactHeader,
+  type DraftMessage,
+} from "@/lib/ocr/parse";
 import { checkUploadSize } from "@/lib/upload-limits";
 
 /** One thing to read: either a screenshot she picked, or a frame we pulled from her recording. */
@@ -23,9 +32,17 @@ export const Route = createFileRoute("/_authenticated/import-messages")({
   head: () => ({
     meta: [
       { title: "Import Messages — PatternProof" },
-      { name: "description", content: "Turn screenshots of text conversations into a searchable, chronological record you control." },
+      {
+        name: "description",
+        content:
+          "Turn screenshots of text conversations into a searchable, chronological record you control.",
+      },
       { property: "og:title", content: "Import Messages — PatternProof" },
-      { property: "og:description", content: "Turn screenshots of text conversations into a searchable, chronological record you control." },
+      {
+        property: "og:description",
+        content:
+          "Turn screenshots of text conversations into a searchable, chronological record you control.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -63,7 +80,9 @@ function ImportMessagesPage() {
     setThreads((data as ImportThread[] | null) ?? []);
   }, [user]);
 
-  useEffect(() => { loadThreads(); }, [loadThreads]);
+  useEffect(() => {
+    loadThreads();
+  }, [loadThreads]);
 
   const handleFiles = async (files: FileList | null) => {
     if (!user || !files || files.length === 0) return;
@@ -74,7 +93,9 @@ function ImportMessagesPage() {
     const images = usable.filter((f) => f.type.startsWith("image/"));
     const video = usable.find((f) => f.type.startsWith("video/"));
     if (images.length === 0 && !video) {
-      toast("Those files weren't images or recordings we can read. Screenshots saved as photos work best.");
+      toast(
+        "Those files weren't images or recordings we can read. Screenshots saved as photos work best.",
+      );
       return;
     }
 
@@ -102,7 +123,8 @@ function ImportMessagesPage() {
         const vext = (video.name.match(/\.[^.]+$/)?.[0] ?? ".mp4").toLowerCase();
         const vpath = `${user.id}/message-imports/recordings/${Date.now()}${vext}`;
         const vup = await supabase.storage.from("evidence-files").upload(vpath, video, {
-          contentType: video.type || undefined, upsert: false,
+          contentType: video.type || undefined,
+          upsert: false,
         });
         if (!vup.error) videoPath = vpath;
         const el = document.createElement("video");
@@ -114,27 +136,39 @@ function ImportMessagesPage() {
         });
         pages = [
           ...pages,
-          ...frames.map((fr) => ({ file: fr.file, kind: "video_frame" as const, frameTimeSec: fr.timeSec })),
+          ...frames.map((fr) => ({
+            file: fr.file,
+            kind: "video_frame" as const,
+            frameTimeSec: fr.timeSec,
+          })),
         ];
       } catch {
-        toast("We couldn't read that recording here in the browser. Screenshots are the surest route.");
+        toast(
+          "We couldn't read that recording here in the browser. Screenshots are the surest route.",
+        );
       }
     }
 
-    if (pages.length === 0) { setPhase("intro"); setStage(null); return; }
+    if (pages.length === 0) {
+      setPhase("intro");
+      setStage(null);
+      return;
+    }
     setTotal(pages.length);
     setStage(null);
 
     let threadId: string;
     try {
-      const res = await start({ data: {
-        participant: participant || undefined,
-        notes: notes || undefined,
-        captureMethod: video ? "screen_recording" : "multi_screenshot",
-        videoPath,
-        videoDurationSec: videoDuration,
-        frameIntervalSec: video ? 1.5 : undefined,
-      } });
+      const res = await start({
+        data: {
+          participant: participant || undefined,
+          notes: notes || undefined,
+          captureMethod: video ? "screen_recording" : "multi_screenshot",
+          videoPath,
+          videoDurationSec: videoDuration,
+          frameIntervalSec: video ? 1.5 : undefined,
+        },
+      });
       threadId = res.threadId;
     } catch {
       toast("We couldn't start that import. Try again in a moment.");
@@ -157,14 +191,22 @@ function ImportMessagesPage() {
       const path = `${user.id}/message-imports/${threadId}/${prefix}-${String(i + 1).padStart(3, "0")}${ext}`;
       try {
         const up = await supabase.storage.from("evidence-files").upload(path, file, {
-          contentType: file.type || undefined, upsert: true,
+          contentType: file.type || undefined,
+          upsert: true,
         });
         if (up.error) throw up.error;
-        const { sourceDocumentId } = await addDoc({ data: {
-          threadId, storagePath: path, originalFilename: file.name,
-          uploadIndex: i, bytes: file.size, mime: file.type || undefined,
-          kind: page.kind, frameTimeSec: page.frameTimeSec,
-        } });
+        const { sourceDocumentId } = await addDoc({
+          data: {
+            threadId,
+            storagePath: path,
+            originalFilename: file.name,
+            uploadIndex: i,
+            bytes: file.size,
+            mime: file.type || undefined,
+            kind: page.kind,
+            frameTimeSec: page.frameTimeSec,
+          },
+        });
         docIds.push(sourceDocumentId);
 
         const read = await recognizeImage(file);
@@ -181,27 +223,35 @@ function ImportMessagesPage() {
       const mergedSoFar = orderMessages(mergeDuplicates(perImage));
       setFound(mergedSoFar.length);
       try {
-        await saveMsgs({ data: {
-          threadId,
-          processedCount: i + 1,
-          complete: i === pages.length - 1,
-          participant: participant || headerName || null,
-          messages: mergedSoFar
-            .filter((m) => m.source_indices.some((idx) => docIds[idx]))
-            .map((m) => ({
-              body: m.body.slice(0, 8000),
-              sender_side: m.sender_side,
-              sent_on: m.sent_on,
-              sent_at_time: m.sent_at_time,
-              date_confidence: m.date_confidence,
-              has_attachment_marker: m.has_attachment_marker,
-              attachment_marker_text: m.attachment_marker_text,
-              ocr_confidence: Math.round(m.ocr_confidence * 100) / 100,
-              source_document_ids: Array.from(new Set(m.source_indices.map((idx) => docIds[idx]).filter((v): v is string => !!v))),
-            })),
-        } });
+        await saveMsgs({
+          data: {
+            threadId,
+            processedCount: i + 1,
+            complete: i === pages.length - 1,
+            participant: participant || headerName || null,
+            messages: mergedSoFar
+              .filter((m) => m.source_indices.some((idx) => docIds[idx]))
+              .map((m) => ({
+                body: m.body.slice(0, 8000),
+                sender_side: m.sender_side,
+                sent_on: m.sent_on,
+                sent_at_time: m.sent_at_time,
+                date_confidence: m.date_confidence,
+                has_attachment_marker: m.has_attachment_marker,
+                attachment_marker_text: m.attachment_marker_text,
+                ocr_confidence: Math.round(m.ocr_confidence * 100) / 100,
+                source_document_ids: Array.from(
+                  new Set(
+                    m.source_indices.map((idx) => docIds[idx]).filter((v): v is string => !!v),
+                  ),
+                ),
+              })),
+          },
+        });
       } catch {
-        toast("We couldn't save that step. Your screenshots are stored — we'll try again on the next one.");
+        toast(
+          "We couldn't save that step. Your screenshots are stored — we'll try again on the next one.",
+        );
       }
       setDone(i + 1);
     }
@@ -252,14 +302,19 @@ function ImportMessagesPage() {
         accept="image/*,video/*"
         multiple
         hidden
-        onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }}
+        onChange={(e) => {
+          handleFiles(e.target.files);
+          e.target.value = "";
+        }}
       />
 
       <div className="mt-8 space-y-6">
         {phase === "working" ? (
           <>
             {stage && (
-              <p className="text-[13.5px]" style={{ color: "rgba(26,18,36,0.62)" }}>{stage}</p>
+              <p className="text-[13.5px]" style={{ color: "rgba(26,18,36,0.62)" }}>
+                {stage}
+              </p>
             )}
             <OcrProgress done={done} total={total} currentName={currentName} found={found} />
           </>
@@ -282,7 +337,12 @@ function ImportMessagesPage() {
                 <div
                   key={t.id}
                   className="flex items-center justify-between gap-3"
-                  style={{ background: "#FFFFFF", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2, padding: "10px 12px" }}
+                  style={{
+                    background: "var(--pp-card)",
+                    border: "1px solid rgba(26,18,36,0.14)",
+                    borderRadius: 2,
+                    padding: "10px 12px",
+                  }}
                 >
                   <span style={{ fontSize: 14 }}>
                     {t.conversation_participant || "Untitled conversation"}
@@ -314,12 +374,18 @@ function ImportMessagesPage() {
         </section>
 
         <section
-          style={{ background: "#FAF8F4", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2, padding: 16 }}
+          style={{
+            background: "#FAF8F4",
+            border: "1px solid rgba(26,18,36,0.14)",
+            borderRadius: 2,
+            padding: 16,
+          }}
         >
           <span className="exhibit-tag">COMING LATER</span>
           <p className="mt-2 text-[13.5px]" style={{ color: "rgba(26,18,36,0.65)" }}>
-            Later we&apos;ll add importing exported chat files and pasted text. Screenshots and screen
-            recordings are read entirely on your device — nothing on this page is sent to an AI.
+            Later we&apos;ll add importing exported chat files and pasted text. Screenshots and
+            screen recordings are read entirely on your device — nothing on this page is sent to an
+            AI.
           </p>
         </section>
       </div>

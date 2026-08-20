@@ -31,9 +31,26 @@ interface IncRow {
   anchor_incident_id?: string | null;
   anchor_label?: string | null;
 }
-interface EvRow { id: string; title: string; date: string; file_type: string }
-interface LegalRow { id: string; document_type: string; title: string; effective_date: string | null; case_number: string | null }
-interface ThreadRow { id: string; conversation_participant: string | null; source_filename: string; message_count: number; created_at: string }
+interface EvRow {
+  id: string;
+  title: string;
+  date: string;
+  file_type: string;
+}
+interface LegalRow {
+  id: string;
+  document_type: string;
+  title: string;
+  effective_date: string | null;
+  case_number: string | null;
+}
+interface ThreadRow {
+  id: string;
+  conversation_participant: string | null;
+  source_filename: string;
+  message_count: number;
+  created_at: string;
+}
 interface CaseRow {
   id: string;
   case_name: string | null;
@@ -50,7 +67,7 @@ interface CaseRow {
 }
 
 function caseLabel(c: Pick<CaseRow, "case_name" | "other_party">, fallback = "Untitled case") {
-  return (c.case_name?.trim() || c.other_party?.trim() || fallback);
+  return c.case_name?.trim() || c.other_party?.trim() || fallback;
 }
 
 function CaseBuilder() {
@@ -85,15 +102,17 @@ function CaseBuilder() {
     setSavedCaseName(row.case_name ?? "");
     setOther(row.other_party ?? "");
     setSavedOther(row.other_party ?? "");
-    setHasExistingCase(Boolean(
-      (row.other_party && row.other_party.trim()) ||
-      (row.case_name && row.case_name.trim()) ||
-      (row.relationship_type && row.relationship_type.trim()) ||
-      (row.case_types && row.case_types.length > 0) ||
-      (row.pattern_summary && row.pattern_summary.trim()) ||
-      (row.highlighted_incident_ids && row.highlighted_incident_ids.length > 0) ||
-      (row.attached_evidence_ids && row.attached_evidence_ids.length > 0),
-    ));
+    setHasExistingCase(
+      Boolean(
+        (row.other_party && row.other_party.trim()) ||
+        (row.case_name && row.case_name.trim()) ||
+        (row.relationship_type && row.relationship_type.trim()) ||
+        (row.case_types && row.case_types.length > 0) ||
+        (row.pattern_summary && row.pattern_summary.trim()) ||
+        (row.highlighted_incident_ids && row.highlighted_incident_ids.length > 0) ||
+        (row.attached_evidence_ids && row.attached_evidence_ids.length > 0),
+      ),
+    );
     setRel(row.relationship_type ?? "");
     setTypes(row.case_types ?? []);
     setJurisdiction(row.jurisdiction ?? "");
@@ -125,11 +144,35 @@ function CaseBuilder() {
   const loadCase = useCallback(async () => {
     if (!user) return;
     const [c, inc, ev, ld, th] = await Promise.all([
-      supabase.from("cases").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
-      supabase.from("incidents").select("id,date,description,abuse_types,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label").eq("user_id", user.id).is("deleted_at", null).order("date", { ascending: false, nullsFirst: false }),
-      supabase.from("evidence").select("id,title,date,file_type").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }),
-      supabase.from("legal_documents").select("id,document_type,title,effective_date,case_number").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("message_threads").select("id,conversation_participant,source_filename,message_count,created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase
+        .from("cases")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false }),
+      supabase
+        .from("incidents")
+        .select(
+          "id,date,description,abuse_types,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label",
+        )
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .order("date", { ascending: false, nullsFirst: false }),
+      supabase
+        .from("evidence")
+        .select("id,title,date,file_type")
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("legal_documents")
+        .select("id,document_type,title,effective_date,case_number")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("message_threads")
+        .select("id,conversation_participant,source_filename,message_count,created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
     ]);
     setIncidents((inc.data as IncRow[] | null) ?? []);
     setEvidence((ev.data as EvRow[] | null) ?? []);
@@ -142,7 +185,9 @@ function CaseBuilder() {
     if (current) hydrateFromRow(current);
   }, [user, caseId, hydrateFromRow]);
 
-  useEffect(() => { loadCase(); }, [loadCase]);
+  useEffect(() => {
+    loadCase();
+  }, [loadCase]);
 
   const switchCase = (id: string) => {
     const row = cases.find((c) => c.id === id);
@@ -175,8 +220,8 @@ function CaseBuilder() {
     ) {
       const ok = window.confirm(
         `This case already has incidents and evidence attached under "${savedOther}". ` +
-        `Change the other party to "${other}"? If this is actually a different situation, ` +
-        `cancel and click "Start a new case" instead.`,
+          `Change the other party to "${other}"? If this is actually a different situation, ` +
+          `cancel and click "Start a new case" instead.`,
       );
       if (!ok) {
         setOther(savedOther);
@@ -209,14 +254,36 @@ function CaseBuilder() {
         setHasExistingCase(Boolean(other || caseName || rel || types.length || summary));
       }
     }
-  }, [user, caseId, hasExistingCase, savedOther, other, caseName, rel, types, jurisdiction, summary, highlighted, attached, legalAttached, threadAttached]);
+  }, [
+    user,
+    caseId,
+    hasExistingCase,
+    savedOther,
+    other,
+    caseName,
+    rel,
+    types,
+    jurisdiction,
+    summary,
+    highlighted,
+    attached,
+    legalAttached,
+    threadAttached,
+  ]);
 
   // auto-save when step changes
-  useEffect(() => { const t = setTimeout(persist, 500); return () => clearTimeout(t); }, [persist, step]);
+  useEffect(() => {
+    const t = setTimeout(persist, 500);
+    return () => clearTimeout(t);
+  }, [persist, step]);
 
   const typeCounts = useMemo(() => {
     const m: Record<string, number> = {};
-    incidents.forEach((i) => i.abuse_types.forEach((t) => { m[t] = (m[t] ?? 0) + 1; }));
+    incidents.forEach((i) =>
+      i.abuse_types.forEach((t) => {
+        m[t] = (m[t] ?? 0) + 1;
+      }),
+    );
     return m;
   }, [incidents]);
 
@@ -228,7 +295,10 @@ function CaseBuilder() {
 
   const downloadCourtPacket = async () => {
     await persist();
-    if (!caseId) { toast("Save the case first — try Next."); return; }
+    if (!caseId) {
+      toast("Save the case first — try Next.");
+      return;
+    }
     setPdfBusy(true);
     try {
       const { base64, filename } = await genPdf({ data: { case_id: caseId } });
@@ -237,7 +307,9 @@ function CaseBuilder() {
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
       const a = document.createElement("a");
-      a.href = url; a.download = filename; a.click();
+      a.href = url;
+      a.download = filename;
+      a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
@@ -254,11 +326,13 @@ function CaseBuilder() {
     <div>
       <HubTabs tabs={CASE_TABS} />
       <div className="label-eyebrow">Case builder</div>
-      <h1 className="mt-2 font-serif text-[34px] leading-tight">Shape your case, <em>step by step.</em></h1>
+      <h1 className="mt-2 font-serif text-[34px] leading-tight">
+        Shape your case, <em>step by step.</em>
+      </h1>
 
       {/* Case switcher */}
       <div
-        className="mt-4 flex flex-wrap items-center gap-2 rounded-[2px] p-3 text-[13px]"
+        className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl p-3 text-[13px]"
         style={{ background: "var(--input)", borderLeft: "3px solid var(--accent)" }}
       >
         <span className="label-eyebrow">Working on</span>
@@ -273,11 +347,15 @@ function CaseBuilder() {
           >
             {!caseId && <option value="">— New (unsaved) case —</option>}
             {cases.map((c) => (
-              <option key={c.id} value={c.id}>{caseLabel(c)}</option>
+              <option key={c.id} value={c.id}>
+                {caseLabel(c)}
+              </option>
             ))}
           </select>
         ) : (
-          <span style={{ color: "var(--muted-foreground)" }}>No cases yet — you're starting your first one.</span>
+          <span style={{ color: "var(--muted-foreground)" }}>
+            No cases yet — you're starting your first one.
+          </span>
         )}
         <button type="button" onClick={startNewCase} className="btn-ghost">
           + Start a new case
@@ -288,9 +366,21 @@ function CaseBuilder() {
       <div className="mt-6 flex items-center gap-2">
         {[1, 2, 3, 4].map((n) => (
           <div key={n} className="flex flex-1 items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold"
-              style={{ background: step >= n ? "var(--primary)" : "var(--input)", color: step >= n ? "var(--primary-foreground)" : "var(--foreground)" }}>{n}</div>
-            {n < 4 && <div className="h-[2px] flex-1" style={{ background: step > n ? "var(--primary)" : "var(--border)" }} />}
+            <div
+              className="flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold"
+              style={{
+                background: step >= n ? "var(--primary)" : "var(--input)",
+                color: step >= n ? "var(--primary-foreground)" : "var(--foreground)",
+              }}
+            >
+              {n}
+            </div>
+            {n < 4 && (
+              <div
+                className="h-[2px] flex-1"
+                style={{ background: step > n ? "var(--primary)" : "var(--border)" }}
+              />
+            )}
           </div>
         ))}
       </div>
@@ -301,18 +391,40 @@ function CaseBuilder() {
             <h2 className="font-serif text-[20px]">Case overview</h2>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="md:col-span-2">
-                <label className="label-eyebrow">Case name <span style={{ color: "var(--muted-foreground)" }}>(for you, so you can tell your cases apart)</span></label>
-                <input className="input-pp mt-1" value={caseName} onChange={(e) => setCaseName(e.target.value)} placeholder="e.g. Custody – 2024, Divorce case, Protective order" />
+                <label className="label-eyebrow">
+                  Case name{" "}
+                  <span style={{ color: "var(--muted-foreground)" }}>
+                    (for you, so you can tell your cases apart)
+                  </span>
+                </label>
+                <input
+                  className="input-pp mt-1"
+                  value={caseName}
+                  onChange={(e) => setCaseName(e.target.value)}
+                  placeholder="e.g. Custody – 2024, Divorce case, Protective order"
+                />
               </div>
               <div>
                 <label className="label-eyebrow">Other party (name or initials)</label>
-                <input className="input-pp mt-1" value={other} onChange={(e) => setOther(e.target.value)} />
+                <input
+                  className="input-pp mt-1"
+                  value={other}
+                  onChange={(e) => setOther(e.target.value)}
+                />
               </div>
               <div>
                 <label className="label-eyebrow">Your relationship</label>
-                <select className="input-pp mt-1" value={rel} onChange={(e) => setRel(e.target.value)}>
+                <select
+                  className="input-pp mt-1"
+                  value={rel}
+                  onChange={(e) => setRel(e.target.value)}
+                >
                   <option value="">— Select —</option>
-                  {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
+                  {RELATIONSHIPS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="md:col-span-2">
@@ -321,9 +433,17 @@ function CaseBuilder() {
                   {CASE_TYPES.map((t) => {
                     const on = types.includes(t);
                     return (
-                      <button key={t} type="button" onClick={() => toggle(types, t, setTypes)}
-                        className="rounded-[2px] px-3 py-1.5 text-[12px] font-semibold"
-                        style={{ background: on ? "var(--accent)" : "transparent", color: on ? "#fff" : "var(--foreground)", border: "1.5px solid var(--accent)" }}>
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => toggle(types, t, setTypes)}
+                        className="rounded-2xl px-3 py-1.5 text-[12px] font-semibold"
+                        style={{
+                          background: on ? "var(--accent)" : "transparent",
+                          color: on ? "#fff" : "var(--foreground)",
+                          border: "1.5px solid var(--accent)",
+                        }}
+                      >
                         {t}
                       </button>
                     );
@@ -332,7 +452,12 @@ function CaseBuilder() {
               </div>
               <div className="md:col-span-2">
                 <label className="label-eyebrow">State / jurisdiction</label>
-                <input className="input-pp mt-1" value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)} placeholder="e.g. California, USA" />
+                <input
+                  className="input-pp mt-1"
+                  value={jurisdiction}
+                  onChange={(e) => setJurisdiction(e.target.value)}
+                  placeholder="e.g. California, USA"
+                />
               </div>
             </div>
           </>
@@ -341,21 +466,27 @@ function CaseBuilder() {
         {step === 2 && (
           <>
             <h2 className="font-serif text-[20px]">Pattern summary</h2>
-            <div className="rounded-[2px] p-4" style={{ background: "var(--input)" }}>
+            <div className="rounded-2xl p-4" style={{ background: "var(--input)" }}>
               <div className="label-eyebrow">By type</div>
               <div className="mt-2 flex flex-wrap gap-3">
                 {ABUSE_TYPES.map((t) => (
                   <div key={t.value} className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ background: t.color }} />
-                    <span className="text-[13px]">{t.label}: <strong>{typeCounts[t.value] ?? 0}</strong></span>
+                    <span className="text-[13px]">
+                      {t.label}: <strong>{typeCounts[t.value] ?? 0}</strong>
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
             <div>
               <label className="label-eyebrow">Pattern</label>
-              <textarea className="input-pp mt-1 min-h-[180px]" value={summary} onChange={(e) => setSummary(e.target.value)}
-                placeholder="In your own words, describe the pattern you've experienced. What keeps happening? What has changed over time?" />
+              <textarea
+                className="input-pp mt-1 min-h-[180px]"
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                placeholder="In your own words, describe the pattern you've experienced. What keeps happening? What has changed over time?"
+              />
             </div>
           </>
         )}
@@ -364,7 +495,8 @@ function CaseBuilder() {
           <>
             <h2 className="font-serif text-[20px]">Key incidents</h2>
             <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Choose the incidents that best show the pattern or that had the most significant impact. (Up to 10)
+              Choose the incidents that best show the pattern or that had the most significant
+              impact. (Up to 10)
             </p>
             <div className="space-y-2">
               {incidents.length === 0 && <p className="text-[13px]">No incidents logged yet.</p>}
@@ -372,12 +504,25 @@ function CaseBuilder() {
                 const on = highlighted.includes(i.id);
                 const disabled = !on && highlighted.length >= 10;
                 return (
-                  <label key={i.id} className="flex cursor-pointer items-start gap-3 rounded-[2px] p-3"
-                    style={{ background: on ? "var(--input)" : "transparent", borderLeft: `3px solid ${typeColor(i.abuse_types[0] ?? "other")}` }}>
-                    <input type="checkbox" checked={on} disabled={disabled}
-                      onChange={() => toggle(highlighted, i.id, setHighlighted)} className="mt-1" />
+                  <label
+                    key={i.id}
+                    className="flex cursor-pointer items-start gap-3 rounded-2xl p-3"
+                    style={{
+                      background: on ? "var(--input)" : "transparent",
+                      borderLeft: `3px solid ${typeColor(i.abuse_types[0] ?? "other")}`,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      disabled={disabled}
+                      onChange={() => toggle(highlighted, i.id, setHighlighted)}
+                      className="mt-1"
+                    />
                     <div className="min-w-0 flex-1">
-                      <div className="label-eyebrow">{formatIncidentDate(i)} · {i.abuse_types.map(typeLabel).join(", ")}</div>
+                      <div className="label-eyebrow">
+                        {formatIncidentDate(i)} · {i.abuse_types.map(typeLabel).join(", ")}
+                      </div>
                       <div className="mt-1 line-clamp-2 text-[13px]">{i.description}</div>
                     </div>
                   </label>
@@ -395,12 +540,22 @@ function CaseBuilder() {
               {evidence.map((e) => {
                 const on = attached.includes(e.id);
                 return (
-                  <label key={e.id} className="flex cursor-pointer items-start gap-3 rounded-[2px] p-3"
-                    style={{ background: on ? "var(--input)" : "transparent" }}>
-                    <input type="checkbox" checked={on} onChange={() => toggle(attached, e.id, setAttached)} className="mt-1" />
+                  <label
+                    key={e.id}
+                    className="flex cursor-pointer items-start gap-3 rounded-2xl p-3"
+                    style={{ background: on ? "var(--input)" : "transparent" }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      onChange={() => toggle(attached, e.id, setAttached)}
+                      className="mt-1"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="font-serif text-[15px]">{e.title}</div>
-                      <div className="label-eyebrow mt-1">{e.date} · {e.file_type}</div>
+                      <div className="label-eyebrow mt-1">
+                        {e.date} · {e.file_type}
+                      </div>
                     </div>
                   </label>
                 );
@@ -409,18 +564,31 @@ function CaseBuilder() {
 
             <h2 className="mt-6 font-serif text-[20px]">Imported message conversations</h2>
             <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Conversations you brought in from screenshots. Attaching one includes its messages and the original screenshots in your packet.
+              Conversations you brought in from screenshots. Attaching one includes its messages and
+              the original screenshots in your packet.
             </p>
             <div className="space-y-2">
-              {threads.length === 0 && <p className="text-[13px]">No conversations imported yet.</p>}
+              {threads.length === 0 && (
+                <p className="text-[13px]">No conversations imported yet.</p>
+              )}
               {threads.map((t) => {
                 const on = threadAttached.includes(t.id);
                 return (
-                  <label key={t.id} className="flex cursor-pointer items-start gap-3 rounded-[2px] p-3"
-                    style={{ background: on ? "var(--input)" : "transparent" }}>
-                    <input type="checkbox" checked={on} onChange={() => toggle(threadAttached, t.id, setThreadAttached)} className="mt-1" />
+                  <label
+                    key={t.id}
+                    className="flex cursor-pointer items-start gap-3 rounded-2xl p-3"
+                    style={{ background: on ? "var(--input)" : "transparent" }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      onChange={() => toggle(threadAttached, t.id, setThreadAttached)}
+                      className="mt-1"
+                    />
                     <div className="min-w-0 flex-1">
-                      <div className="font-serif text-[15px]">{t.conversation_participant || t.source_filename}</div>
+                      <div className="font-serif text-[15px]">
+                        {t.conversation_participant || t.source_filename}
+                      </div>
                       <div className="label-eyebrow mt-1">{t.message_count} messages</div>
                     </div>
                   </label>
@@ -433,13 +601,23 @@ function CaseBuilder() {
               Attach any TROs, police reports, or court orders that belong with this case.
             </p>
             <div className="space-y-2">
-              {legalDocs.length === 0 && <p className="text-[13px]">No legal documents saved yet.</p>}
+              {legalDocs.length === 0 && (
+                <p className="text-[13px]">No legal documents saved yet.</p>
+              )}
               {legalDocs.map((l) => {
                 const on = legalAttached.includes(l.id);
                 return (
-                  <label key={l.id} className="flex cursor-pointer items-start gap-3 rounded-[2px] p-3"
-                    style={{ background: on ? "var(--input)" : "transparent" }}>
-                    <input type="checkbox" checked={on} onChange={() => toggle(legalAttached, l.id, setLegalAttached)} className="mt-1" />
+                  <label
+                    key={l.id}
+                    className="flex cursor-pointer items-start gap-3 rounded-2xl p-3"
+                    style={{ background: on ? "var(--input)" : "transparent" }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      onChange={() => toggle(legalAttached, l.id, setLegalAttached)}
+                      className="mt-1"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="font-serif text-[15px]">{l.title}</div>
                       <div className="label-eyebrow mt-1">
@@ -457,15 +635,25 @@ function CaseBuilder() {
       </div>
 
       <div className="mt-6 flex items-center justify-between">
-        <button disabled={step === 1} onClick={() => setStep((s) => Math.max(1, s - 1))} className="btn-ghost">Back</button>
+        <button
+          disabled={step === 1}
+          onClick={() => setStep((s) => Math.max(1, s - 1))}
+          className="btn-ghost"
+        >
+          Back
+        </button>
         {step < 4 ? (
-          <button onClick={() => setStep((s) => Math.min(4, s + 1))} className="btn-primary">Next</button>
+          <button onClick={() => setStep((s) => Math.min(4, s + 1))} className="btn-primary">
+            Next
+          </button>
         ) : (
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={downloadCourtPacket} disabled={pdfBusy} className="btn-ghost">
               {pdfBusy ? "Generating…" : "Generate court packet (PDF)"}
             </button>
-            <button onClick={finish} className="btn-primary">Build Professional-Review Packet</button>
+            <button onClick={finish} className="btn-primary">
+              Build Professional-Review Packet
+            </button>
           </div>
         )}
       </div>

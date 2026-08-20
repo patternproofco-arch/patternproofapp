@@ -16,7 +16,15 @@ function useMcpUrl() {
 function CopyField({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div style={{ display: "flex", gap: 8, alignItems: "stretch", margin: "10px 0 4px", flexWrap: "wrap" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: 8,
+        alignItems: "stretch",
+        margin: "10px 0 4px",
+        flexWrap: "wrap",
+      }}
+    >
       <code
         aria-label={label}
         style={{
@@ -27,7 +35,7 @@ function CopyField({ value, label }: { value: string; label: string }) {
           padding: "10px 12px",
           fontSize: 13,
           wordBreak: "break-all",
-          fontFamily: "'Space Grotesk', ui-monospace, monospace",
+          fontFamily: "var(--font-mono)",
         }}
       >
         {value || "…"}
@@ -60,7 +68,15 @@ function CopyField({ value, label }: { value: string; label: string }) {
 
 function Steps({ items }: { items: React.ReactNode[] }) {
   return (
-    <ol style={{ margin: "8px 0 0", paddingLeft: 20, display: "flex", flexDirection: "column", gap: 6 }}>
+    <ol
+      style={{
+        margin: "8px 0 0",
+        paddingLeft: 20,
+        display: "flex",
+        flexDirection: "column",
+        gap: 6,
+      }}
+    >
       {items.map((it, i) => (
         <li key={i}>{it}</li>
       ))}
@@ -86,18 +102,48 @@ function ConnectPage() {
         <p>Copy this address — every assistant below asks for it.</p>
         <CopyField value={mcpUrl} label="PatternProof connection address" />
         <Callout>
-          The assistant signs in as you and can only reach your own private records. You approve the connection on a
-          consent screen before anything is shared, and you can remove it from the assistant at any time.
+          The assistant signs in as you and can only reach your own private records. You approve the
+          connection on a consent screen before anything is shared, and you can remove it from the
+          assistant at any time.
         </Callout>
       </Section>
 
       <Section title="ChatGPT">
         <Steps
           items={[
-            <>Open <a href="https://chatgpt.com/#settings/Connectors/Advanced" target="_blank" rel="noreferrer" style={linkS}>ChatGPT settings → Apps</a> and turn on Developer mode (read the risk notice shown there). If it isn't available, ask a ChatGPT admin to enable it.</>,
-            <>Open the <a href="https://chatgpt.com/plugins#settings/Connectors?create-connector=true&redirectAfter=%2Fplugins" target="_blank" rel="noreferrer" style={linkS}>New plugin dialog</a>.</>,
-            <>Enter the name <strong>{APP_NAME}</strong> and paste the address above into the URL field.</>,
-            <>Review the details, tick “I understand and want to continue” (ChatGPT shows this for every custom connection), then click <strong>Create</strong>.</>,
+            <>
+              Open{" "}
+              <a
+                href="https://chatgpt.com/#settings/Connectors/Advanced"
+                target="_blank"
+                rel="noreferrer"
+                style={linkS}
+              >
+                ChatGPT settings → Apps
+              </a>{" "}
+              and turn on Developer mode (read the risk notice shown there). If it isn't available,
+              ask a ChatGPT admin to enable it.
+            </>,
+            <>
+              Open the{" "}
+              <a
+                href="https://chatgpt.com/plugins#settings/Connectors?create-connector=true&redirectAfter=%2Fplugins"
+                target="_blank"
+                rel="noreferrer"
+                style={linkS}
+              >
+                New plugin dialog
+              </a>
+              .
+            </>,
+            <>
+              Enter the name <strong>{APP_NAME}</strong> and paste the address above into the URL
+              field.
+            </>,
+            <>
+              Review the details, tick “I understand and want to continue” (ChatGPT shows this for
+              every custom connection), then click <strong>Create</strong>.
+            </>,
             <>Turn {APP_NAME} on from the chat composer, then ask ChatGPT to use it.</>,
           ]}
         />
@@ -106,24 +152,33 @@ function ConnectPage() {
       <Section title="Claude">
         <Steps
           items={[
-            <><a href={claudeLink} target="_blank" rel="noreferrer" style={linkS}>Open Claude's custom connector dialog</a> — the name and address are filled in for you.</>,
-            <>Review the details and click <strong>Add</strong>.</>,
-            <>If the form doesn't open pre-filled, go to Claude's Connectors page, choose “Add custom connector”, name it {APP_NAME}, and paste the address above.</>,
+            <>
+              <a href={claudeLink} target="_blank" rel="noreferrer" style={linkS}>
+                Open Claude's custom connector dialog
+              </a>{" "}
+              — the name and address are filled in for you.
+            </>,
+            <>
+              Review the details and click <strong>Add</strong>.
+            </>,
+            <>
+              If the form doesn't open pre-filled, go to Claude's Connectors page, choose “Add
+              custom connector”, name it {APP_NAME}, and paste the address above.
+            </>,
             <>Turn the connector on from the chat composer, then ask Claude to use it.</>,
           ]}
         />
       </Section>
 
       <Section title="Claude Code">
-        <Steps
-          items={[
-            <>Run this in a terminal:</>,
-          ]}
-        />
+        <Steps items={[<>Run this in a terminal:</>]} />
         <CopyField value={claudeCodeCmd} label="Claude Code install command" />
         <Steps
           items={[
-            <>Start Claude Code and run <code>/mcp</code> to confirm {APP_NAME} is connected and to sign in.</>,
+            <>
+              Start Claude Code and run <code>/mcp</code> to confirm {APP_NAME} is connected and to
+              sign in.
+            </>,
             <>Ask Claude Code to use {APP_NAME}.</>,
           ]}
         />
@@ -143,15 +198,20 @@ function ConnectPage() {
 
       <Section title="Refreshing after PatternProof changes">
         <p style={{ marginBottom: 8 }}>
-          A connected assistant remembers what {APP_NAME} could do when you added it. After we ship an update, refresh
-          the connection so it picks up the latest.
+          A connected assistant remembers what {APP_NAME} could do when you added it. After we ship
+          an update, refresh the connection so it picks up the latest.
         </p>
         <p style={{ margin: "12px 0 0", fontWeight: 600 }}>ChatGPT</p>
         <Steps
           items={[
             <>Open the Plugins page and select {APP_NAME}.</>,
-            <>Scroll to “Information” and click <strong>Refresh</strong>.</>,
-            <>ChatGPT can't change an existing app's address — if it changed, delete the app and add it again with the address above.</>,
+            <>
+              Scroll to “Information” and click <strong>Refresh</strong>.
+            </>,
+            <>
+              ChatGPT can't change an existing app's address — if it changed, delete the app and add
+              it again with the address above.
+            </>,
             <>Start a new chat and ask ChatGPT to use {APP_NAME}.</>,
           ]}
         />
@@ -160,7 +220,10 @@ function ConnectPage() {
           items={[
             <>Open the Connectors page and select {APP_NAME}.</>,
             <>Refresh or update the connector.</>,
-            <>Claude can't change an existing connector's address — if it changed, remove the connector and add it again.</>,
+            <>
+              Claude can't change an existing connector's address — if it changed, remove the
+              connector and add it again.
+            </>,
             <>Ask Claude to use {APP_NAME}.</>,
           ]}
         />
@@ -168,7 +231,10 @@ function ConnectPage() {
         <Steps
           items={[
             <>Start a new Claude Code session — it picks up the latest automatically.</>,
-            <>If the address changed, run <code>claude mcp remove {SLUG}</code> and run the install command again.</>,
+            <>
+              If the address changed, run <code>claude mcp remove {SLUG}</code> and run the install
+              command again.
+            </>,
             <>Ask Claude Code to use {APP_NAME}.</>,
           ]}
         />
@@ -190,9 +256,17 @@ export const Route = createFileRoute("/connect")({
   head: () => ({
     meta: [
       { title: "Connect an AI Assistant — PatternProof" },
-      { name: "description", content: "Step-by-step instructions for connecting ChatGPT, Claude, or Claude Code to your PatternProof account so an assistant can help with your own records." },
+      {
+        name: "description",
+        content:
+          "Step-by-step instructions for connecting ChatGPT, Claude, or Claude Code to your PatternProof account so an assistant can help with your own records.",
+      },
       { property: "og:title", content: "Connect an AI Assistant — PatternProof" },
-      { property: "og:description", content: "Link ChatGPT, Claude, or another assistant to PatternProof. Copy your connection address and follow the click-by-click steps." },
+      {
+        property: "og:description",
+        content:
+          "Link ChatGPT, Claude, or another assistant to PatternProof. Copy your connection address and follow the click-by-click steps.",
+      },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
