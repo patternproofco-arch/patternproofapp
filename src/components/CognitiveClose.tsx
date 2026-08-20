@@ -35,12 +35,17 @@ export function CognitiveClose({ eyebrow = "Your next step", title, body, cta, t
       style={{
         background: "var(--linen, #F2E8D8)",
         border: "1px solid rgba(42,37,32,0.06)",
-        boxShadow: "none",
+        boxShadow: "var(--pp-shadow-sm)",
       }}
     >
-      <span className="label-eyebrow" style={{ color: "var(--primary)" }}>{eyebrow}</span>
+      <span className="label-eyebrow" style={{ color: "var(--primary)" }}>
+        {eyebrow}
+      </span>
       <h3 className="mt-3 font-serif text-[20px] leading-tight">{title}</h3>
-      <p className="mt-2 text-[14px] leading-relaxed" style={{ color: "var(--foreground)", opacity: 0.78 }}>
+      <p
+        className="mt-2 text-[14px] leading-relaxed"
+        style={{ color: "var(--foreground)", opacity: 0.78 }}
+      >
         {body}
       </p>
       <span className="btn-primary mt-5 inline-flex items-center gap-2 text-[13px]">

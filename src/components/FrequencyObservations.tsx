@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { BarChart3, ChevronDown } from "lucide-react";
-import { getFrequencyObservations, type FrequencyObservation } from "@/lib/frequency-observations.functions";
+import {
+  getFrequencyObservations,
+  type FrequencyObservation,
+} from "@/lib/frequency-observations.functions";
 import { useSettings } from "@/lib/settings-context";
 
 /**
@@ -26,7 +29,9 @@ export function FrequencyObservations({ compact = false }: { compact?: boolean }
         if (!cancelled) setItems([]);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [load, settings.frequencyObservationsEnabled]);
 
   if (!settings.frequencyObservationsEnabled) {
@@ -35,8 +40,13 @@ export function FrequencyObservations({ compact = false }: { compact?: boolean }
       <div className="card-pp mt-8">
         <div className="label-eyebrow">Frequency observations</div>
         <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          Off. If you'd like, PatternProof can show plain counts of things you've already logged — like "4 files added this month" — with a link to the exact entries. Counts and dates only. You can turn this on in{" "}
-          <Link to="/settings" style={{ textDecoration: "underline" }}>Settings</Link>.
+          Off. If you'd like, PatternProof can show plain counts of things you've already logged —
+          like "4 files added this month" — with a link to the exact entries. Counts and dates only.
+          You can turn this on in{" "}
+          <Link to="/settings" style={{ textDecoration: "underline" }}>
+            Settings
+          </Link>
+          .
         </p>
       </div>
     );
@@ -45,23 +55,31 @@ export function FrequencyObservations({ compact = false }: { compact?: boolean }
   if (!items || items.length === 0) {
     if (compact) return null;
     return (
-      <div className="mt-8 rounded-[2px] p-5" style={AI_SURFACE}>
+      <div className="mt-8 rounded-2xl p-5" style={AI_SURFACE}>
         <ObsHeader />
         <p className="mt-2 text-[13px]" style={{ color: "#3A3849" }}>
-          {items ? "Nothing to count yet — when there's enough logged, counts will appear here." : "Counting…"}
+          {items
+            ? "Nothing to count yet — when there's enough logged, counts will appear here."
+            : "Counting…"}
         </p>
       </div>
     );
   }
 
   return (
-    <div className={compact ? "rounded-[2px] p-5" : "mt-8 rounded-[2px] p-5"} style={AI_SURFACE}>
+    <div className={compact ? "rounded-2xl p-5" : "mt-8 rounded-2xl p-5"} style={AI_SURFACE}>
       <ObsHeader />
       <ul className="mt-3 space-y-2">
         {items.map((o) => (
-          <li key={o.id} className="rounded-[2px] p-3" style={{ background: "rgba(255,255,255,0.6)" }}>
+          <li
+            key={o.id}
+            className="rounded-2xl p-3"
+            style={{ background: "rgba(255,255,255,0.6)" }}
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-[14px]" style={{ color: "#1A1224" }}>{o.text}</span>
+              <span className="text-[14px]" style={{ color: "#1A1224" }}>
+                {o.text}
+              </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -70,13 +88,20 @@ export function FrequencyObservations({ compact = false }: { compact?: boolean }
                 >
                   <ChevronDown size={12} /> {open === o.id ? "Hide entries" : "Show the entries"}
                 </button>
-                <Link to={o.href} className="btn-ghost text-[12px]">Open</Link>
+                <Link to={o.href} className="btn-ghost text-[12px]">
+                  Open
+                </Link>
               </div>
             </div>
             {open === o.id && (
-              <ul className="mt-2 space-y-1 text-[12px]" style={{ color: "#3A3849", fontFamily: "'Space Grotesk', monospace" }}>
+              <ul
+                className="mt-2 space-y-1 text-[12px]"
+                style={{ color: "#3A3849", fontFamily: "'Space Grotesk', monospace" }}
+              >
                 {o.rows.map((r) => (
-                  <li key={r.id}>· {r.label} <span style={{ opacity: 0.55 }}>#{r.id.slice(0, 8)}</span></li>
+                  <li key={r.id}>
+                    · {r.label} <span style={{ opacity: 0.55 }}>#{r.id.slice(0, 8)}</span>
+                  </li>
                 ))}
               </ul>
             )}
@@ -99,7 +124,10 @@ function ObsHeader() {
   return (
     <div className="flex items-center gap-2">
       <BarChart3 size={15} style={{ color: "#4132B4" }} />
-      <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "#4132B4" }}>
+      <span
+        className="text-[11px] font-bold uppercase tracking-[0.15em]"
+        style={{ color: "#4132B4" }}
+      >
         Observation — counts only
       </span>
     </div>

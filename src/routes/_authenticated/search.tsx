@@ -1,19 +1,30 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search as SearchIcon, ArrowLeft, NotebookPen, Files, Mic, CalendarDays, X } from "lucide-react";
+import {
+  Search as SearchIcon,
+  ArrowLeft,
+  NotebookPen,
+  Files,
+  Mic,
+  CalendarDays,
+  X,
+} from "lucide-react";
 import { globalSearch, type SearchHit } from "@/lib/search.functions";
 
 export const Route = createFileRoute("/_authenticated/search")({
   component: SearchPage,
 });
 
-const KIND_META: Record<SearchHit["kind"], { label: string; Icon: typeof NotebookPen; accent: string }> = {
-  incident:      { label: "Incident",     Icon: NotebookPen,  accent: "#E8A0B4" },
-  evidence:      { label: "Evidence",     Icon: Files,        accent: "#A8CCE0" },
-  voice_note:    { label: "Voice note",   Icon: Mic,          accent: "#F0DFA0" },
-  court_date:    { label: "Court date",   Icon: CalendarDays, accent: "#C4B0D8" },
-  communication: { label: "Message",      Icon: NotebookPen,  accent: "#A8D8B9" },
+const KIND_META: Record<
+  SearchHit["kind"],
+  { label: string; Icon: typeof NotebookPen; accent: string }
+> = {
+  incident: { label: "Incident", Icon: NotebookPen, accent: "#E8A0B4" },
+  evidence: { label: "Evidence", Icon: Files, accent: "#A8CCE0" },
+  voice_note: { label: "Voice note", Icon: Mic, accent: "#F0DFA0" },
+  court_date: { label: "Court date", Icon: CalendarDays, accent: "#C4B0D8" },
+  communication: { label: "Message", Icon: NotebookPen, accent: "#A8D8B9" },
 };
 
 function SearchPage() {
@@ -24,11 +35,17 @@ function SearchPage() {
   const [touched, setTouched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     const term = q.trim();
-    if (!term) { setHits([]); setTouched(false); return; }
+    if (!term) {
+      setHits([]);
+      setTouched(false);
+      return;
+    }
     setTouched(true);
     setBusy(true);
     const t = setTimeout(() => {
@@ -42,7 +59,11 @@ function SearchPage() {
 
   const grouped = useMemo(() => {
     const g: Record<SearchHit["kind"], SearchHit[]> = {
-      incident: [], evidence: [], voice_note: [], court_date: [], communication: [],
+      incident: [],
+      evidence: [],
+      voice_note: [],
+      court_date: [],
+      communication: [],
     };
     for (const h of hits) g[h.kind].push(h);
     return g;
@@ -56,7 +77,11 @@ function SearchPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-10">
-      <Link to="/dashboard" className="mb-4 inline-flex items-center gap-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+      <Link
+        to="/dashboard"
+        className="mb-4 inline-flex items-center gap-1 text-[13px]"
+        style={{ color: "var(--muted-foreground)" }}
+      >
         <ArrowLeft size={14} /> Back to dashboard
       </Link>
       <div className="label-eyebrow">Search</div>
@@ -76,13 +101,20 @@ function SearchPage() {
           aria-label="Search"
         />
         {q && (
-          <button onClick={() => setQ("")} aria-label="Clear" className="btn-ghost" style={{ padding: 6 }}>
+          <button
+            onClick={() => setQ("")}
+            aria-label="Clear"
+            className="btn-ghost"
+            style={{ padding: 6 }}
+          >
             <X size={14} />
           </button>
         )}
       </div>
 
-      <p className="mt-3 text-[12px]" style={{ color: "var(--muted-foreground)" }}>{totalLabel}</p>
+      <p className="mt-3 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+        {totalLabel}
+      </p>
 
       <div className="mt-5 space-y-6">
         {(Object.keys(grouped) as SearchHit["kind"][]).map((kind) => {
@@ -92,8 +124,14 @@ function SearchPage() {
           const Icon = meta.Icon;
           return (
             <section key={kind}>
-              <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>
-                <span className="grid h-6 w-6 place-items-center rounded-[2px]" style={{ background: meta.accent, color: "#1A1714" }}>
+              <div
+                className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]"
+                style={{ color: "var(--muted-foreground)" }}
+              >
+                <span
+                  className="grid h-6 w-6 place-items-center rounded-2xl"
+                  style={{ background: meta.accent, color: "#1A1714" }}
+                >
                   <Icon size={12} />
                 </span>
                 {meta.label} <span style={{ opacity: 0.7 }}>· {list.length}</span>
@@ -101,8 +139,11 @@ function SearchPage() {
               <ul className="space-y-2">
                 {list.map((h) => (
                   <li key={`${h.kind}-${h.id}`}>
-                    <Link to={h.to} className="card-pp block transition-transform hover:-translate-y-0.5"
-                      style={{ borderLeft: `3px solid ${meta.accent}`, padding: 14 }}>
+                    <Link
+                      to={h.to}
+                      className="card-pp block transition-transform hover:-translate-y-0.5"
+                      style={{ borderLeft: `3px solid ${meta.accent}`, padding: 14 }}
+                    >
                       <div className="flex items-baseline justify-between gap-3">
                         <div className="font-serif text-[15px] leading-tight">{h.title}</div>
                         {h.date && (
@@ -112,7 +153,9 @@ function SearchPage() {
                         )}
                       </div>
                       {h.snippet && (
-                        <p className="mt-1 line-clamp-2 text-[13px]" style={{ color: "#2A1A10" }}>{h.snippet}</p>
+                        <p className="mt-1 line-clamp-2 text-[13px]" style={{ color: "#2A1A10" }}>
+                          {h.snippet}
+                        </p>
                       )}
                     </Link>
                   </li>

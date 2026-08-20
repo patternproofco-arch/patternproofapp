@@ -154,7 +154,7 @@ function Dashboard() {
               gap: 8,
               padding: "10px 16px",
               borderRadius: 999,
-              background: "#FFFFFF",
+              background: "var(--pp-card)",
               color: t.accent,
               fontSize: 13.5,
               fontWeight: 600,

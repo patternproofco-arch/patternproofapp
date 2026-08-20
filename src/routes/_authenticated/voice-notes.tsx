@@ -15,7 +15,15 @@ export const Route = createFileRoute("/_authenticated/voice-notes")({
   component: VoiceNotesPage,
 });
 
-interface Note { id: string; title: string; date: string; audio_url: string; duration_seconds: number | null; transcript: string | null; transcription_status: string }
+interface Note {
+  id: string;
+  title: string;
+  date: string;
+  audio_url: string;
+  duration_seconds: number | null;
+  transcript: string | null;
+  transcription_status: string;
+}
 const today = () => new Date().toISOString().slice(0, 10);
 
 function VoiceNotesPage() {
@@ -40,18 +48,28 @@ function VoiceNotesPage() {
 
   const load = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase.from("voice_notes").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("voice_notes")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
     const rows = (data as Note[] | null) ?? [];
     setNotes(rows);
     const urls: Record<string, string> = {};
-    await Promise.all(rows.map(async (r) => {
-      const { data: s } = await supabase.storage.from("voice-notes").createSignedUrl(r.audio_url, 3600);
-      if (s?.signedUrl) urls[r.id] = s.signedUrl;
-    }));
+    await Promise.all(
+      rows.map(async (r) => {
+        const { data: s } = await supabase.storage
+          .from("voice-notes")
+          .createSignedUrl(r.audio_url, 3600);
+        if (s?.signedUrl) urls[r.id] = s.signedUrl;
+      }),
+    );
     setAudioUrls(urls);
   }, [user]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const startRec = async () => {
     try {
@@ -78,25 +96,52 @@ function VoiceNotesPage() {
 
   const stopRec = () => {
     recRef.current?.stop();
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     setRecording(false);
   };
 
   const save = async () => {
     if (!user || !pendingBlob) return;
-    const problem = checkUploadSize({ name: "Voice note", size: pendingBlob.size, type: "audio/webm" });
-    if (problem) { toast(problem); return; }
+    const problem = checkUploadSize({
+      name: "Voice note",
+      size: pendingBlob.size,
+      type: "audio/webm",
+    });
+    if (problem) {
+      toast(problem);
+      return;
+    }
     setBusy(true);
     const key = `${user.id}/${Date.now()}.webm`;
-    const up = await supabase.storage.from("voice-notes").upload(key, pendingBlob, { contentType: "audio/webm" });
-    if (up.error) { setBusy(false); toast("We couldn't save that recording. Try again in a moment."); return; }
+    const up = await supabase.storage
+      .from("voice-notes")
+      .upload(key, pendingBlob, { contentType: "audio/webm" });
+    if (up.error) {
+      setBusy(false);
+      toast("We couldn't save that recording. Try again in a moment.");
+      return;
+    }
     const { error } = await supabase.from("voice_notes").insert({
-      user_id: user.id, title: title.trim() || "Voice note", date, audio_url: key, duration_seconds: pendingDuration,
+      user_id: user.id,
+      title: title.trim() || "Voice note",
+      date,
+      audio_url: key,
+      duration_seconds: pendingDuration,
     });
     setBusy(false);
-    if (error) { toast("Couldn't record the details."); return; }
+    if (error) {
+      toast("Couldn't record the details.");
+      return;
+    }
     toast("Saved. Your record is safe.");
-    setPendingBlob(null); setPendingUrl(null); setPendingDuration(0); setTitle(""); setDate(today());
+    setPendingBlob(null);
+    setPendingUrl(null);
+    setPendingDuration(0);
+    setTitle("");
+    setDate(today());
     load();
   };
 
@@ -115,14 +160,16 @@ function VoiceNotesPage() {
     load();
   };
 
-  const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  const mmss = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const transcribe = async (n: Note) => {
     setTranscribingId(n.id);
     try {
       const r = await transcribeFn({ data: { voiceNoteId: n.id } });
       if (r.ok) toast("Transcript ready.");
-      else if (r.reason === "too-long" || r.reason === "too-large") toast("This recording is too long to transcribe automatically.");
+      else if (r.reason === "too-long" || r.reason === "too-large")
+        toast("This recording is too long to transcribe automatically.");
       else if (r.reason === "credits") toast("AI credits exhausted.");
       else if (r.reason === "rate-limit") toast("Rate-limited. Try again shortly.");
       else toast("Couldn't transcribe. Try again in a moment.");
@@ -134,14 +181,18 @@ function VoiceNotesPage() {
 
   const q = search.trim().toLowerCase();
   const filtered = q
-    ? notes.filter((n) => n.title.toLowerCase().includes(q) || (n.transcript ?? "").toLowerCase().includes(q))
+    ? notes.filter(
+        (n) => n.title.toLowerCase().includes(q) || (n.transcript ?? "").toLowerCase().includes(q),
+      )
     : notes;
 
   return (
     <div>
       <HubTabs tabs={ARCHIVE_TABS} />
       <div className="label-eyebrow">Voice notes</div>
-      <h1 className="mt-2 font-serif text-[34px] leading-tight">Speak it. <em>It still counts.</em></h1>
+      <h1 className="mt-2 font-serif text-[34px] leading-tight">
+        Speak it. <em>It still counts.</em>
+      </h1>
 
       <div className="card-pp mt-6 flex flex-col items-center gap-4 py-10">
         <button
@@ -154,7 +205,11 @@ function VoiceNotesPage() {
         </button>
         <div className="font-serif text-[22px]">{mmss(elapsed)}</div>
         <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          {recording ? "Recording… press the circle again to stop." : pendingBlob ? "Recorded. Save it below." : "Press to start. Speak in your own voice."}
+          {recording
+            ? "Recording… press the circle again to stop."
+            : pendingBlob
+              ? "Recorded. Save it below."
+              : "Press to start. Speak in your own voice."}
         </div>
       </div>
 
@@ -164,16 +219,36 @@ function VoiceNotesPage() {
           <div className="grid gap-3 md:grid-cols-2">
             <div>
               <label className="label-eyebrow">Title</label>
-              <input className="input-pp mt-1" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="A short label for this recording" />
+              <input
+                className="input-pp mt-1"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="A short label for this recording"
+              />
             </div>
             <div>
               <label className="label-eyebrow">Date</label>
-              <input type="date" className="input-pp mt-1" value={date} onChange={(e) => setDate(e.target.value)} />
+              <input
+                type="date"
+                className="input-pp mt-1"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </div>
           </div>
           <div className="flex gap-2">
-            <button disabled={busy} onClick={save} className="btn-primary">{busy ? "Saving…" : "Save Voice Note"}</button>
-            <button onClick={() => { setPendingBlob(null); setPendingUrl(null); }} className="btn-ghost">Discard</button>
+            <button disabled={busy} onClick={save} className="btn-primary">
+              {busy ? "Saving…" : "Save Voice Note"}
+            </button>
+            <button
+              onClick={() => {
+                setPendingBlob(null);
+                setPendingUrl(null);
+              }}
+              className="btn-ghost"
+            >
+              Discard
+            </button>
           </div>
         </div>
       )}
@@ -201,10 +276,18 @@ function VoiceNotesPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="font-serif text-[16px]">{n.title}</div>
-                  <div className="label-eyebrow mt-1">{new Date(n.date).toLocaleDateString()} {n.duration_seconds != null && `· ${mmss(n.duration_seconds)}`}</div>
-                  {audioUrls[n.id] && <audio controls src={audioUrls[n.id]} className="mt-3 w-full" />}
+                  <div className="label-eyebrow mt-1">
+                    {new Date(n.date).toLocaleDateString()}{" "}
+                    {n.duration_seconds != null && `· ${mmss(n.duration_seconds)}`}
+                  </div>
+                  {audioUrls[n.id] && (
+                    <audio controls src={audioUrls[n.id]} className="mt-3 w-full" />
+                  )}
                   {n.transcript ? (
-                    <div className="mt-3 rounded-[2px] p-3 text-[13px] leading-relaxed" style={{ background: "var(--input)" }}>
+                    <div
+                      className="mt-3 rounded-2xl p-3 text-[13px] leading-relaxed"
+                      style={{ background: "var(--input)" }}
+                    >
                       <div className="label-eyebrow mb-1">Transcript</div>
                       {n.transcript}
                     </div>
@@ -214,11 +297,21 @@ function VoiceNotesPage() {
                       disabled={transcribingId === n.id}
                       className="btn-ghost mt-3 text-[12px]"
                     >
-                      {transcribingId === n.id ? "Transcribing…" : n.transcription_status === "failed" ? "Retry transcription" : "Transcribe"}
+                      {transcribingId === n.id
+                        ? "Transcribing…"
+                        : n.transcription_status === "failed"
+                          ? "Retry transcription"
+                          : "Transcribe"}
                     </button>
                   )}
                 </div>
-                <button onClick={() => remove(n)} aria-label="Remove" className="rounded-[2px] p-2 hover:bg-black/5"><Trash2 size={15} /></button>
+                <button
+                  onClick={() => remove(n)}
+                  aria-label="Remove"
+                  className="rounded-2xl p-2 hover:bg-black/5"
+                >
+                  <Trash2 size={15} />
+                </button>
               </div>
             </div>
           ))

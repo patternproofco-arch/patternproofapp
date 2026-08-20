@@ -7,10 +7,12 @@ import { quickExit } from "@/lib/quick-exit";
 export function QuickExitButton() {
   const { settings } = useSettings();
   const lastEsc = useRef(0);
-  const { ref, style: dragStyle, dragHandlers, wasDragged } = useDraggable(
-    "pp.exit.pos",
-    { right: 16, top: 70 }
-  );
+  const {
+    ref,
+    style: dragStyle,
+    dragHandlers,
+    wasDragged,
+  } = useDraggable("pp.exit.pos", { right: 16, top: 70 });
 
   // Signs the user out for real, then redirects. See src/lib/quick-exit.ts.
   const exit = () => quickExit(settings.exitUrl);
@@ -33,14 +35,16 @@ export function QuickExitButton() {
       ref={ref as React.RefObject<HTMLButtonElement>}
       onMouseDown={dragHandlers.onMouseDown}
       onTouchStart={dragHandlers.onTouchStart}
-      onClick={() => { if (!wasDragged()) exit(); }}
+      onClick={() => {
+        if (!wasDragged()) exit();
+      }}
       aria-label="Quick exit"
       title="Quick exit — signs you out and leaves. Drag to move, double-press Esc to exit"
       className="no-print fixed z-[9999] inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold"
       style={{
-        background: "#B7D8B0", /* pastel green */
+        background: "#B7D8B0" /* pastel green */,
         color: "#1F3A1B",
-        boxShadow: "none",
+        boxShadow: "var(--pp-shadow-sm)",
         letterSpacing: "0.04em",
         touchAction: "none",
         cursor: "grab",

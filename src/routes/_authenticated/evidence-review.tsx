@@ -34,7 +34,9 @@ function EvidenceReviewPage() {
   const confirm = useServerFn(confirmSuggestion);
   const skip = useServerFn(skipSuggestion);
   const [items, setItems] = useState<SuggestedItem[]>([]);
-  const [incidents, setIncidents] = useState<Record<string, { id: string; date: string; description: string | null }>>({});
+  const [incidents, setIncidents] = useState<
+    Record<string, { id: string; date: string; description: string | null }>
+  >({});
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -52,23 +54,34 @@ function EvidenceReviewPage() {
     }
   }, [load]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
-  const paged = useMemo(() => items.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE), [items, page]);
+  const paged = useMemo(
+    () => items.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE),
+    [items, page],
+  );
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       const urls: Record<string, string> = {};
-      await Promise.all(paged.map(async (it) => {
-        if ((it.mime ?? "").startsWith("image/")) {
-          const { data } = await supabase.storage.from("evidence-files").createSignedUrl(it.file_url, 1800);
-          if (data?.signedUrl) urls[it.id] = data.signedUrl;
-        }
-      }));
+      await Promise.all(
+        paged.map(async (it) => {
+          if ((it.mime ?? "").startsWith("image/")) {
+            const { data } = await supabase.storage
+              .from("evidence-files")
+              .createSignedUrl(it.file_url, 1800);
+            if (data?.signedUrl) urls[it.id] = data.signedUrl;
+          }
+        }),
+      );
       if (!cancelled) setPreviews((p) => ({ ...p, ...urls }));
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [paged]);
 
   const attach = async (item: SuggestedItem, incidentId: string | null) => {
@@ -97,18 +110,24 @@ function EvidenceReviewPage() {
         Review before it goes on the record.
       </h1>
       <p className="mt-3 max-w-2xl text-[15px]" style={{ color: "var(--muted-foreground)" }}>
-        These files look like they might belong to incidents you've already written down — based on the date the file was captured. Nothing is attached to your timeline until you confirm.
+        These files look like they might belong to incidents you've already written down — based on
+        the date the file was captured. Nothing is attached to your timeline until you confirm.
       </p>
 
       {loading ? (
-        <div className="card-pp mt-6 text-[14px]" style={{ color: "var(--muted-foreground)" }}>Loading suggestions…</div>
+        <div className="card-pp mt-6 text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+          Loading suggestions…
+        </div>
       ) : items.length === 0 ? (
         <div className="card-pp mt-6">
           <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            Nothing waiting for review. New uploads will show up here when a possible match is found.
+            Nothing waiting for review. New uploads will show up here when a possible match is
+            found.
           </p>
           <div className="mt-3">
-            <Link to="/evidence" className="btn-ghost text-[12px]">Back to evidence</Link>
+            <Link to="/evidence" className="btn-ghost text-[12px]">
+              Back to evidence
+            </Link>
           </div>
         </div>
       ) : (
@@ -123,49 +142,80 @@ function EvidenceReviewPage() {
                       <img
                         src={previews[it.id]}
                         alt=""
-                        style={{ maxWidth: 180, maxHeight: 180, borderRadius: 2, objectFit: "cover" }}
+                        style={{
+                          maxWidth: 180,
+                          maxHeight: 180,
+                          borderRadius: 2,
+                          objectFit: "cover",
+                        }}
                       />
                     )}
                     <div className="min-w-0 flex-1 space-y-2">
                       <div className="font-serif text-[16px]">{it.title ?? "Untitled file"}</div>
                       <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
                         {it.exif_captured_at ? (
-                          <>Captured (from file): {new Date(it.exif_captured_at).toLocaleString()}</>
+                          <>
+                            Captured (from file): {new Date(it.exif_captured_at).toLocaleString()}
+                          </>
                         ) : (
                           <>No capture date in the file.</>
                         )}
                       </div>
                       {it.in_image_timestamp_text && (
                         <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                          Timestamp printed in image: <span style={{ fontFamily: "'Space Grotesk', monospace" }}>{it.in_image_timestamp_text}</span>
+                          Timestamp printed in image:{" "}
+                          <span style={{ fontFamily: "'Space Grotesk', monospace" }}>
+                            {it.in_image_timestamp_text}
+                          </span>
                         </div>
                       )}
                       <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
                         Uploaded: {new Date(it.ingested_at ?? it.created_at).toLocaleString()}
                       </div>
                       {it.match_reason && (
-                        <div className="rounded-[2px] p-2 text-[12px]" style={{ background: "rgba(106,146,214,0.14)", color: "#1f3a68" }}>
+                        <div
+                          className="rounded-2xl p-2 text-[12px]"
+                          style={{ background: "rgba(106,146,214,0.14)", color: "#1f3a68" }}
+                        >
                           Why it matched: {it.match_reason}
                         </div>
                       )}
                       {inc && (
-                        <div className="rounded-[2px] p-2 text-[13px]" style={{ background: "var(--input)" }}>
+                        <div
+                          className="rounded-2xl p-2 text-[13px]"
+                          style={{ background: "var(--input)" }}
+                        >
                           <div style={{ fontWeight: 600 }}>Suggested incident · {inc.date}</div>
-                          <div className="mt-1 line-clamp-3" style={{ color: "var(--muted-foreground)" }}>
+                          <div
+                            className="mt-1 line-clamp-3"
+                            style={{ color: "var(--muted-foreground)" }}
+                          >
                             {inc.description ?? "(no description)"}
                           </div>
                         </div>
                       )}
                       <div className="flex flex-wrap gap-2 pt-1">
                         {inc && (
-                          <button type="button" className="btn-primary text-[13px]" onClick={() => attach(it, inc.id)}>
+                          <button
+                            type="button"
+                            className="btn-primary text-[13px]"
+                            onClick={() => attach(it, inc.id)}
+                          >
                             Attach to this incident
                           </button>
                         )}
-                        <button type="button" className="btn-ghost text-[13px]" onClick={() => attach(it, null)}>
+                        <button
+                          type="button"
+                          className="btn-ghost text-[13px]"
+                          onClick={() => attach(it, null)}
+                        >
                           Keep, but don't attach
                         </button>
-                        <button type="button" className="btn-ghost text-[13px]" onClick={() => dismiss(it)}>
+                        <button
+                          type="button"
+                          className="btn-ghost text-[13px]"
+                          onClick={() => dismiss(it)}
+                        >
                           Skip for now
                         </button>
                       </div>
@@ -177,12 +227,21 @@ function EvidenceReviewPage() {
           </div>
 
           {items.length > PAGE_SIZE && (
-            <div className="mt-6 flex items-center justify-between text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            <div
+              className="mt-6 flex items-center justify-between text-[13px]"
+              style={{ color: "var(--muted-foreground)" }}
+            >
               <div>
-                {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, items.length)} of {items.length}
+                {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, items.length)} of{" "}
+                {items.length}
               </div>
               <div className="flex gap-2">
-                <button type="button" className="btn-ghost" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  disabled={page === 0}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                >
                   Previous
                 </button>
                 <button

@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Upload, Check, AlertTriangle, Clock, ShieldCheck, Eye, Camera, WifiOff } from "lucide-react";
+import {
+  Upload,
+  Check,
+  AlertTriangle,
+  Clock,
+  ShieldCheck,
+  Eye,
+  Camera,
+  WifiOff,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,7 +33,11 @@ import {
   type DateCertaintyValue,
 } from "@/components/pp/DateCertaintyField";
 import {
-  enqueueFiles, listQueue, removeQueued, onBackOnline, isQueueSupported,
+  enqueueFiles,
+  listQueue,
+  removeQueued,
+  onBackOnline,
+  isQueueSupported,
 } from "@/lib/intake-queue";
 import { openIntakeBatch, updateIntakeBatch } from "@/lib/intake-batches.functions";
 
@@ -53,12 +66,42 @@ function humanBytes(n: number | null | undefined): string {
 
 function StatusChip({ item }: { item: PreservationReceiptItem }) {
   const map: Record<string, { label: string; bg: string; fg: string; Icon: typeof Check }> = {
-    preserved: { label: "Preserved", bg: "rgba(168,216,185,0.35)", fg: "#1f4d33", Icon: ShieldCheck },
-    extraction_pending: { label: "Preserved · extraction pending", bg: "rgba(231,208,163,0.5)", fg: "#5a3a12", Icon: Clock },
-    unsupported_but_preserved: { label: "Preserved · not previewable", bg: "rgba(231,208,163,0.5)", fg: "#5a3a12", Icon: ShieldCheck },
-    needs_attention: { label: "Needs attention", bg: "rgba(231,123,86,0.35)", fg: "#5a1e0c", Icon: AlertTriangle },
-    failed: { label: "Not preserved", bg: "rgba(231,123,86,0.35)", fg: "#5a1e0c", Icon: AlertTriangle },
-    upload_incomplete: { label: "Upload incomplete", bg: "rgba(231,123,86,0.35)", fg: "#5a1e0c", Icon: AlertTriangle },
+    preserved: {
+      label: "Preserved",
+      bg: "rgba(168,216,185,0.35)",
+      fg: "#1f4d33",
+      Icon: ShieldCheck,
+    },
+    extraction_pending: {
+      label: "Preserved · extraction pending",
+      bg: "rgba(231,208,163,0.5)",
+      fg: "#5a3a12",
+      Icon: Clock,
+    },
+    unsupported_but_preserved: {
+      label: "Preserved · not previewable",
+      bg: "rgba(231,208,163,0.5)",
+      fg: "#5a3a12",
+      Icon: ShieldCheck,
+    },
+    needs_attention: {
+      label: "Needs attention",
+      bg: "rgba(231,123,86,0.35)",
+      fg: "#5a1e0c",
+      Icon: AlertTriangle,
+    },
+    failed: {
+      label: "Not preserved",
+      bg: "rgba(231,123,86,0.35)",
+      fg: "#5a1e0c",
+      Icon: AlertTriangle,
+    },
+    upload_incomplete: {
+      label: "Upload incomplete",
+      bg: "rgba(231,123,86,0.35)",
+      fg: "#5a1e0c",
+      Icon: AlertTriangle,
+    },
   };
   const base = map[item.status] ?? map.preserved;
   const isDup = !!item.duplicate_of;
@@ -71,16 +114,16 @@ function StatusChip({ item }: { item: PreservationReceiptItem }) {
           : "Preserved · exact duplicate of an existing file",
       }
     : isNear
-    ? {
-        ...base,
-        bg: "rgba(231,208,163,0.5)",
-        fg: "#5a3a12",
-        Icon: Eye,
-        label: item.near_duplicate_of_title
-          ? `Preserved · looks similar to "${item.near_duplicate_of_title}" — review when you have a moment`
-          : "Preserved · looks similar to an existing file — review when you have a moment",
-      }
-    : base;
+      ? {
+          ...base,
+          bg: "rgba(231,208,163,0.5)",
+          fg: "#5a3a12",
+          Icon: Eye,
+          label: item.near_duplicate_of_title
+            ? `Preserved · looks similar to "${item.near_duplicate_of_title}" — review when you have a moment`
+            : "Preserved · looks similar to an existing file — review when you have a moment",
+        }
+      : base;
   const Icon = m.Icon;
   return (
     <span
@@ -130,17 +173,27 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
     try {
       const rows = await listQueue(user.id);
       setResumable(rows.length);
-    } catch { /* the queue is a convenience, never a blocker */ }
+    } catch {
+      /* the queue is a convenience, never a blocker */
+    }
   }, [user]);
 
-  useEffect(() => { loadResumable(); }, [loadResumable]);
+  useEffect(() => {
+    loadResumable();
+  }, [loadResumable]);
 
   useEffect(() => {
     const sync = () => setOffline(typeof navigator !== "undefined" && !navigator.onLine);
     sync();
     window.addEventListener("offline", sync);
-    const off = onBackOnline(() => { sync(); loadResumable(); });
-    return () => { window.removeEventListener("offline", sync); off(); };
+    const off = onBackOnline(() => {
+      sync();
+      loadResumable();
+    });
+    return () => {
+      window.removeEventListener("offline", sync);
+      off();
+    };
   }, [loadResumable]);
 
   const resumeQueued = async () => {
@@ -156,7 +209,9 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       }));
       setFiles((prev) => [...prev, ...restored]);
       setResumable(0);
-      toast(`Picked up where you left off — ${restored.length} file${restored.length === 1 ? "" : "s"} waiting.`);
+      toast(
+        `Picked up where you left off — ${restored.length} file${restored.length === 1 ? "" : "s"} waiting.`,
+      );
     } catch {
       toast("We couldn't reopen those files. They're still on this device.");
     }
@@ -185,7 +240,10 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
     const oversized: string[] = [];
     const incoming = all.filter((f) => {
       const problem = checkUploadSize(f);
-      if (problem) { oversized.push(problem); return false; }
+      if (problem) {
+        oversized.push(problem);
+        return false;
+      }
       return true;
     });
     setSizeErrors(oversized);
@@ -218,7 +276,11 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   }, []);
 
   const removeFile = (id: string) => setFiles((f) => f.filter((x) => x.id !== id));
-  const clearAll = () => { setFiles([]); setReceipt(null); setSizeErrors([]); };
+  const clearAll = () => {
+    setFiles([]);
+    setReceipt(null);
+    setSizeErrors([]);
+  };
 
   const preserveAll = async () => {
     if (!user || files.length === 0 || busy) return;
@@ -229,15 +291,19 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         await enqueueFiles(
           `local-${Date.now()}`,
           user.id,
-          files.filter((f) => f.phase === "queued").map((f) => ({
-            file: f.file,
-            dating,
-            exifChoice: f.exifChoice ?? "none",
-          })),
+          files
+            .filter((f) => f.phase === "queued")
+            .map((f) => ({
+              file: f.file,
+              dating,
+              exifChoice: f.exifChoice ?? "none",
+            })),
         );
         setFiles([]);
         await loadResumable();
-        toast("You're offline right now. These are saved on this device and will finish when you're back on.");
+        toast(
+          "You're offline right now. These are saved on this device and will finish when you're back on.",
+        );
       } catch {
         toast("We couldn't hold these on your device. Try again once you have a connection.");
       }
@@ -249,15 +315,22 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
 
     const dateFields = toEvidenceDateFields(dating);
     const toIngest: Array<
-      { storage_key: string; original_filename: string; mime: string; bytes: number; exif_choice: ExifChoice } &
-      ReturnType<typeof toEvidenceDateFields>
+      {
+        storage_key: string;
+        original_filename: string;
+        mime: string;
+        bytes: number;
+        exif_choice: ExifChoice;
+      } & ReturnType<typeof toEvidenceDateFields>
     > = [];
     const updates: FileState[] = [...files];
 
     let intakeBatchId: string | null = null;
     try {
       intakeBatchId = (await openBatch({ data: {} })).batchId;
-    } catch { /* resume tracking is a convenience, not a gate */ }
+    } catch {
+      /* resume tracking is a convenience, not a gate */
+    }
 
     for (let i = 0; i < updates.length; i++) {
       const item = updates[i];
@@ -301,23 +374,29 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
     try {
       const result = await ingest({ data: { files: toIngest, intake_batch_id: intakeBatchId } });
       if (intakeBatchId) {
-        await updateBatch({ data: { batchId: intakeBatchId, status: "complete" } }).catch(() => undefined);
+        await updateBatch({ data: { batchId: intakeBatchId, status: "complete" } }).catch(
+          () => undefined,
+        );
       }
       setReceipt(result);
       // Mark each file as done/error using receipt items.
       const byKey = new Map(result.items.map((it) => [it.storage_key, it]));
-      setFiles((prev) => prev.map((f) => {
-        if (!f.storageKey) return f;
-        const r = byKey.get(f.storageKey);
-        if (!r) return f;
-        return {
-          ...f,
-          phase: r.status === "failed" ? "error" : "done",
-          message: r.message,
-        };
-      }));
+      setFiles((prev) =>
+        prev.map((f) => {
+          if (!f.storageKey) return f;
+          const r = byKey.get(f.storageKey);
+          if (!r) return f;
+          return {
+            ...f,
+            phase: r.status === "failed" ? "error" : "done",
+            message: r.message,
+          };
+        }),
+      );
       const ok = result.items.filter((i) => i.status !== "failed").length;
-      toast(`Preserved ${ok} of ${result.items.length} file${result.items.length === 1 ? "" : "s"}.`);
+      toast(
+        `Preserved ${ok} of ${result.items.length} file${result.items.length === 1 ? "" : "s"}.`,
+      );
       onDone?.();
 
       // Background: extract EXIF/GPS (quarantined), propose incident matches,
@@ -348,7 +427,11 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       setSuggestionCount(suggested);
     } catch (err) {
       toast(err instanceof Error ? err.message : "We couldn't finish preserving these files.");
-      setFiles((prev) => prev.map((f) => (f.phase === "preserving" ? { ...f, phase: "error", message: "Preservation failed." } : f)));
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.phase === "preserving" ? { ...f, phase: "error", message: "Preservation failed." } : f,
+        ),
+      );
     } finally {
       setBusy(false);
     }
@@ -362,31 +445,47 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           Drop everything in. It doesn't need to be organized.
         </h2>
         <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          Each file is preserved with a SHA-256 fingerprint so you can prove later that the copy we hold matches what you first added. You can add titles, dates, and details afterward.
+          Each file is preserved with a SHA-256 fingerprint so you can prove later that the copy we
+          hold matches what you first added. You can add titles, dates, and details afterward.
         </p>
       </div>
 
       {offline && (
-        <div className="flex gap-2 rounded-xl p-3 text-[13px]" style={{ background: "var(--input)", border: "1px solid var(--border)", lineHeight: 1.5 }}>
+        <div
+          className="flex gap-2 rounded-xl p-3 text-[13px]"
+          style={{ background: "var(--input)", boxShadow: "var(--pp-shadow-sm)", lineHeight: 1.5 }}
+        >
           <WifiOff size={16} style={{ marginTop: 2, flexShrink: 0 }} />
           <div>
-            You&apos;re offline right now. You can still add files — they&apos;ll be kept on this device and
-            finish uploading the moment you&apos;re back on.
+            You&apos;re offline right now. You can still add files — they&apos;ll be kept on this
+            device and finish uploading the moment you&apos;re back on.
           </div>
         </div>
       )}
 
       {resumable > 0 && (
-        <div className="flex flex-wrap items-center gap-3 rounded-xl p-3 text-[13px]" style={{ background: "rgba(168,216,185,0.18)", border: "1px solid rgba(168,216,185,0.6)" }}>
+        <div
+          className="flex flex-wrap items-center gap-3 rounded-xl p-3 text-[13px]"
+          style={{
+            background: "rgba(168,216,185,0.18)",
+            border: "1px solid rgba(168,216,185,0.6)",
+          }}
+        >
           <span>
-            {resumable} file{resumable === 1 ? "" : "s"} you added earlier are still waiting on this device.
+            {resumable} file{resumable === 1 ? "" : "s"} you added earlier are still waiting on this
+            device.
           </span>
-          <button type="button" onClick={resumeQueued} className="btn-ghost text-[12px]">Pick up where I left off</button>
+          <button type="button" onClick={resumeQueued} className="btn-ghost text-[12px]">
+            Pick up where I left off
+          </button>
         </div>
       )}
 
       <label
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => {
           e.preventDefault();
@@ -401,7 +500,9 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       >
         <Upload size={26} className="mx-auto mb-2" style={{ color: "var(--muted-foreground)" }} />
         <div className="font-serif text-[16px]">
-          {files.length > 0 ? `${files.length} file${files.length === 1 ? "" : "s"} queued` : "Drop files here, or tap to choose"}
+          {files.length > 0
+            ? `${files.length} file${files.length === 1 ? "" : "s"} queued`
+            : "Drop files here, or tap to choose"}
         </div>
         <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
           Images, PDFs, audio, video, documents — mix them freely. Up to {MAX_FILES} at once,{" "}
@@ -423,20 +524,23 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         accept="image/*"
         capture="environment"
         className="hidden"
-        onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}
+        onChange={(e) => {
+          if (e.target.files) addFiles(e.target.files);
+          e.target.value = "";
+        }}
       />
-      <button type="button" onClick={() => cameraRef.current?.click()} className="btn-ghost inline-flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => cameraRef.current?.click()}
+        className="btn-ghost inline-flex items-center gap-2"
+      >
         <Camera size={14} /> Take a photo of a paper document
       </button>
 
-      <DateCertaintyField
-        value={dating}
-        onChange={setDating}
-        label="When is this from?"
-      />
+      <DateCertaintyField value={dating} onChange={setDating} label="When is this from?" />
       <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-        This applies to everything in this batch, and you can change it on any file afterward. If you
-        don&apos;t know, leave it — &ldquo;I&apos;m not sure&rdquo; is a real answer here.
+        This applies to everything in this batch, and you can change it on any file afterward. If
+        you don&apos;t know, leave it — &ldquo;I&apos;m not sure&rdquo; is a real answer here.
       </p>
 
       {sizeErrors.length > 0 && (
@@ -444,13 +548,15 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           className="mt-3 space-y-1.5 rounded-xl p-3 text-[13px]"
           style={{
             background: "var(--input)",
-            border: "1px solid var(--border)",
+            boxShadow: "var(--pp-shadow-sm)",
             color: "var(--foreground)",
             lineHeight: 1.5,
           }}
         >
           <div style={{ fontWeight: 600 }}>
-            {sizeErrors.length === 1 ? "One file was too large to add" : `${sizeErrors.length} files were too large to add`}
+            {sizeErrors.length === 1
+              ? "One file was too large to add"
+              : `${sizeErrors.length} files were too large to add`}
           </div>
           {sizeErrors.map((m) => (
             <div key={m}>{m}</div>
@@ -476,70 +582,123 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
                 sizeLabel={humanBytes(f.file.size)}
                 typeLabel={f.file.type}
                 statusLabel={
-                  f.phase === "uploading" ? " · uploading…"
-                    : f.phase === "preserving" ? " · hashing…"
-                      : f.phase === "done" ? " · preserved"
-                        : f.phase === "error" ? ` · ${f.message ?? "failed"}`
+                  f.phase === "uploading"
+                    ? " · uploading…"
+                    : f.phase === "preserving"
+                      ? " · hashing…"
+                      : f.phase === "done"
+                        ? " · preserved"
+                        : f.phase === "error"
+                          ? ` · ${f.message ?? "failed"}`
                           : ""
                 }
                 exif={f.exif ?? null}
                 choice={f.exifChoice ?? null}
-                onChoice={(c) => setFiles((prev) => prev.map((row) => (row.id === f.id ? { ...row, exifChoice: c } : row)))}
+                onChoice={(c) =>
+                  setFiles((prev) =>
+                    prev.map((row) => (row.id === f.id ? { ...row, exifChoice: c } : row)),
+                  )
+                }
                 onRemove={f.phase === "queued" ? () => removeFile(f.id) : undefined}
               />
             ))}
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={preserveAll} disabled={busy || !files.some((f) => f.phase === "queued")} className="btn-primary">
-              {busy ? "Preserving…" : `Preserve ${files.filter((f) => f.phase === "queued").length || files.length} file${files.length === 1 ? "" : "s"}`}
+            <button
+              type="button"
+              onClick={preserveAll}
+              disabled={busy || !files.some((f) => f.phase === "queued")}
+              className="btn-primary"
+            >
+              {busy
+                ? "Preserving…"
+                : `Preserve ${files.filter((f) => f.phase === "queued").length || files.length} file${files.length === 1 ? "" : "s"}`}
             </button>
             <button type="button" onClick={() => inputRef.current?.click()} className="btn-ghost">
               Add more
             </button>
             {!busy && (
-              <button type="button" onClick={clearAll} className="btn-ghost">Clear</button>
+              <button type="button" onClick={clearAll} className="btn-ghost">
+                Clear
+              </button>
             )}
           </div>
         </>
       )}
 
       {receipt && (
-        <div className="rounded-2xl p-4" style={{ background: "rgba(168,216,185,0.18)", border: "1px solid rgba(168,216,185,0.6)" }}>
+        <div
+          className="rounded-2xl p-4"
+          style={{
+            background: "rgba(168,216,185,0.18)",
+            border: "1px solid rgba(168,216,185,0.6)",
+          }}
+        >
           <div className="flex items-center gap-2">
             <ShieldCheck size={16} style={{ color: "#1f4d33" }} />
-            <div className="font-serif text-[16px]" style={{ color: "#1f4d33" }}>Preservation receipt</div>
+            <div className="font-serif text-[16px]" style={{ color: "#1f4d33" }}>
+              Preservation receipt
+            </div>
           </div>
           <p className="mt-1 text-[12px]" style={{ color: "#2a3d31" }}>
             {new Date(receipt.preserved_at).toLocaleString()} · batch {receipt.batch_id.slice(0, 8)}
           </p>
           <div className="mt-3 space-y-2">
             {receipt.items.map((it) => (
-              <div key={it.storage_key} className="rounded-lg p-2" style={{ background: "var(--panel)" }}>
+              <div
+                key={it.storage_key}
+                className="rounded-lg p-2"
+                style={{ background: "var(--panel)" }}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13px]" style={{ fontWeight: 600 }}>{it.original_filename}</div>
-                    <div className="mt-0.5 truncate text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                      {it.sha256 ? `sha256 ${it.sha256.slice(0, 16)}… · ${humanBytes(it.bytes)}` : it.message ?? "No fingerprint recorded."}
+                    <div className="truncate text-[13px]" style={{ fontWeight: 600 }}>
+                      {it.original_filename}
+                    </div>
+                    <div
+                      className="mt-0.5 truncate text-[11px]"
+                      style={{ color: "var(--muted-foreground)" }}
+                    >
+                      {it.sha256
+                        ? `sha256 ${it.sha256.slice(0, 16)}… · ${humanBytes(it.bytes)}`
+                        : (it.message ?? "No fingerprint recorded.")}
                     </div>
                   </div>
                   <StatusChip item={it} />
                 </div>
                 {it.near_duplicate_of && !it.duplicate_of && it.evidence_id && (
-                  <div className="mt-2 flex flex-wrap items-center gap-2 rounded-md p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.35)", color: "#5a3a12" }}>
+                  <div
+                    className="mt-2 flex flex-wrap items-center gap-2 rounded-md p-2 text-[12px]"
+                    style={{ background: "rgba(231,208,163,0.35)", color: "#5a3a12" }}
+                  >
                     {nearResolved[it.evidence_id] === "confirmed" ? (
-                      <span>Linked with the similar file — will be grouped together in exports.</span>
+                      <span>
+                        Linked with the similar file — will be grouped together in exports.
+                      </span>
                     ) : nearResolved[it.evidence_id] === "rejected" ? (
                       <span>Kept as a separate file.</span>
                     ) : (
                       <>
                         <span className="flex-1">
-                          Is this the same as {it.near_duplicate_of_title ? `"${it.near_duplicate_of_title}"` : "the existing file"}?
+                          Is this the same as{" "}
+                          {it.near_duplicate_of_title
+                            ? `"${it.near_duplicate_of_title}"`
+                            : "the existing file"}
+                          ?
                         </span>
-                        <button type="button" className="btn-ghost text-[12px]" onClick={() => resolveNear(it.evidence_id!, "confirm")}>
+                        <button
+                          type="button"
+                          className="btn-ghost text-[12px]"
+                          onClick={() => resolveNear(it.evidence_id!, "confirm")}
+                        >
                           Yes, same
                         </button>
-                        <button type="button" className="btn-ghost text-[12px]" onClick={() => resolveNear(it.evidence_id!, "reject")}>
+                        <button
+                          type="button"
+                          className="btn-ghost text-[12px]"
+                          onClick={() => resolveNear(it.evidence_id!, "reject")}
+                        >
                           No, different
                         </button>
                       </>
@@ -549,17 +708,34 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
               </div>
             ))}
           </div>
-          <p className="mt-3 rounded-lg p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.35)", color: "#5a3a12" }}>
-            <AlertTriangle size={12} style={{ display: "inline", marginRight: 4, verticalAlign: "-2px" }} />
-            Do not delete your original source (phone photo, screenshot, email) based only on this import. Keep your originals until you are sure the import is complete.
+          <p
+            className="mt-3 rounded-lg p-2 text-[12px]"
+            style={{ background: "rgba(231,208,163,0.35)", color: "#5a3a12" }}
+          >
+            <AlertTriangle
+              size={12}
+              style={{ display: "inline", marginRight: 4, verticalAlign: "-2px" }}
+            />
+            Do not delete your original source (phone photo, screenshot, email) based only on this
+            import. Keep your originals until you are sure the import is complete.
           </p>
           {suggestionCount !== null && suggestionCount > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg p-3 text-[13px]" style={{ background: "rgba(106,146,214,0.14)", color: "#1f3a68", border: "1px solid rgba(106,146,214,0.35)" }}>
+            <div
+              className="mt-3 flex flex-wrap items-center gap-3 rounded-lg p-3 text-[13px]"
+              style={{
+                background: "rgba(106,146,214,0.14)",
+                color: "#1f3a68",
+                border: "1px solid rgba(106,146,214,0.35)",
+              }}
+            >
               <div className="flex-1">
                 {suggestionCount === 1
                   ? "1 file looks like it might belong to an incident you've already written down."
-                  : `${suggestionCount} files look like they might belong to incidents you've already written down.`}
-                {" "}Until you review {suggestionCount === 1 ? "it" : "them"}, {suggestionCount === 1 ? "that file stays" : "those files stay"} out of your court packet exports and out of anything an attorney can see. Everything is still safely preserved.
+                  : `${suggestionCount} files look like they might belong to incidents you've already written down.`}{" "}
+                Until you review {suggestionCount === 1 ? "it" : "them"},{" "}
+                {suggestionCount === 1 ? "that file stays" : "those files stay"} out of your court
+                packet exports and out of anything an attorney can see. Everything is still safely
+                preserved.
               </div>
               <Link to="/evidence-review" className="btn-ghost text-[12px]">
                 Review suggestions

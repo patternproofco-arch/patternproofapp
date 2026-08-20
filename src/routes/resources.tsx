@@ -21,9 +21,16 @@ export const Route = createFileRoute("/resources")({
   head: () => ({
     meta: [
       { title: "Resources — hotlines, state coalitions, court guidance | PatternProof" },
-      { name: "description", content: "National hotlines, state domestic violence coalitions, and plain-language court guidance. Free, always available, nothing stored." },
+      {
+        name: "description",
+        content:
+          "National hotlines, state domestic violence coalitions, and plain-language court guidance. Free, always available, nothing stored.",
+      },
       { property: "og:title", content: "Resources — PatternProof" },
-      { property: "og:description", content: "National hotlines, state DV coalitions, and plain-language court guidance." },
+      {
+        property: "og:description",
+        content: "National hotlines, state DV coalitions, and plain-language court guidance.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -139,7 +146,7 @@ function ResourcesPage() {
   useEffect(() => setReady(true), []);
 
   const activeState = settings.state || picked;
-  const stateList = activeState ? STATE_RESOURCES[activeState] ?? [] : [];
+  const stateList = activeState ? (STATE_RESOURCES[activeState] ?? []) : [];
 
   return (
     <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
@@ -148,18 +155,49 @@ function ResourcesPage() {
 
       <div style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(40px,8vw,88px) 24px 140px" }}>
         {user ? <HubTabs tabs={RESOURCE_TABS} /> : null}
-        <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: INK, textDecoration: "none" }}>
+        <Link
+          to="/"
+          style={{
+            fontFamily: MONO,
+            fontSize: 12,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: INK,
+            textDecoration: "none",
+          }}
+        >
           ← PatternProof
         </Link>
 
-        <div className="mono-meta mono-meta--muted" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, marginTop: 32 }}>
+        <div
+          className="mono-meta mono-meta--muted"
+          style={{
+            fontFamily: MONO,
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: MUTED,
+            marginTop: 32,
+          }}
+        >
           Resources
         </div>
 
-        <h1 style={{ fontFamily: SERIF, fontWeight: 300, fontSize: "clamp(2rem,5vw,3.2rem)", lineHeight: 1.12, letterSpacing: "-0.02em", margin: "12px 0 0" }}>
+        <h1
+          style={{
+            fontFamily: SERIF,
+            fontWeight: 300,
+            fontSize: "clamp(2rem,5vw,3.2rem)",
+            lineHeight: 1.12,
+            letterSpacing: "-0.02em",
+            margin: "12px 0 0",
+          }}
+        >
           Real people, on the other end of a phone.
         </h1>
-        <p style={{ marginTop: 16, fontSize: 16, lineHeight: 1.6, color: "#3A3849", maxWidth: 580 }}>
+        <p
+          style={{ marginTop: 16, fontSize: 16, lineHeight: 1.6, color: "#3A3849", maxWidth: 580 }}
+        >
           Free and confidential. Call from a device the other person can't check when you can.
         </p>
 
@@ -167,8 +205,9 @@ function ResourcesPage() {
           <div style={cardStyle}>
             <div style={{ fontFamily: SERIF, fontSize: 19 }}>Call 911</div>
             <p style={bodyStyle}>
-              If someone is hurting you or you're afraid they're about to, call 911. If speaking isn't safe,
-              many areas accept a text to 911 — and staying on an open line still sends help.
+              If someone is hurting you or you're afraid they're about to, call 911. If speaking
+              isn't safe, many areas accept a text to 911 — and staying on an open line still sends
+              help.
             </p>
           </div>
         </Section>
@@ -176,31 +215,52 @@ function ResourcesPage() {
         <Section title="National">
           <div style={{ display: "grid", gap: 12 }}>
             <div style={cardStyle}>
-              <div style={{ fontFamily: SERIF, fontSize: 19 }}>National Domestic Violence Hotline</div>
-              <p style={bodyStyle}>24/7 confidential support, safety planning, and local referrals.</p>
+              <div style={{ fontFamily: SERIF, fontSize: 19 }}>
+                National Domestic Violence Hotline
+              </div>
+              <p style={bodyStyle}>
+                24/7 confidential support, safety planning, and local referrals.
+              </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 12 }}>
-                <a href="tel:18007997233" style={linkStyle}><Phone size={13} /> 1-800-799-7233</a>
-                <span style={{ ...linkStyle, borderColor: "transparent", color: MUTED }}><MessageSquare size={13} /> Text START to 88788</span>
-                <a href="https://www.thehotline.org" target="_blank" rel="noreferrer" style={linkStyle}><Globe size={13} /> thehotline.org</a>
+                <a href="tel:18007997233" style={linkStyle}>
+                  <Phone size={13} /> 1-800-799-7233
+                </a>
+                <span style={{ ...linkStyle, borderColor: "transparent", color: MUTED }}>
+                  <MessageSquare size={13} /> Text START to 88788
+                </span>
+                <a
+                  href="https://www.thehotline.org"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={linkStyle}
+                >
+                  <Globe size={13} /> thehotline.org
+                </a>
               </div>
               <VerificationLine dateLastChecked={NATIONAL[0].dateLastChecked} />
             </div>
-            {NATIONAL.slice(1).map((r) => <ResourceCard key={r.name} r={r} />)}
+            {NATIONAL.slice(1).map((r) => (
+              <ResourceCard key={r.name} r={r} />
+            ))}
           </div>
         </Section>
 
         <Section title="In your state">
           {ready && stateList.length > 0 ? (
             <div style={{ display: "grid", gap: 12 }}>
-              {stateList.map((r) => <ResourceCard key={r.name} r={r} />)}
+              {stateList.map((r) => (
+                <ResourceCard key={r.name} r={r} />
+              ))}
               <p style={{ ...bodyStyle, color: MUTED }}>
-                State coalitions keep the directory of local shelters, advocates, and court-help programs.
+                State coalitions keep the directory of local shelters, advocates, and court-help
+                programs.
               </p>
             </div>
           ) : (
             <div style={cardStyle}>
               <p style={{ ...bodyStyle, marginTop: 0 }}>
-                Pick a state to see its coalition. Nothing is saved unless you set it in your own settings.
+                Pick a state to see its coalition. Nothing is saved unless you set it in your own
+                settings.
               </p>
               <select
                 value={picked}
@@ -212,14 +272,18 @@ function ResourcesPage() {
                   padding: "10px 12px",
                   border: `1px solid ${RULE}`,
                   borderRadius: 2,
-                  background: "#FFFFFF",
+                  background: "var(--pp-card)",
                   color: INK,
                   fontFamily: SANS,
                   fontSize: 15,
                 }}
               >
                 <option value="">Choose a state</option>
-                {US_STATES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
+                {US_STATES.map((s) => (
+                  <option key={s.code} value={s.code}>
+                    {s.name}
+                  </option>
+                ))}
               </select>
             </div>
           )}
@@ -232,14 +296,24 @@ function ResourcesPage() {
                 <div style={{ fontFamily: SERIF, fontSize: 19 }}>{g.title}</div>
                 <p style={bodyStyle}>{g.body}</p>
                 {g.to ? (
-                  <Link to={g.to} style={{ ...linkStyle, marginTop: 12, display: "inline-flex" }}>{g.label} →</Link>
+                  <Link to={g.to} style={{ ...linkStyle, marginTop: 12, display: "inline-flex" }}>
+                    {g.label} →
+                  </Link>
                 ) : null}
               </div>
             ))}
           </div>
         </Section>
 
-        <div style={{ marginTop: 56, paddingTop: 20, borderTop: `1px solid ${RULE}`, color: MUTED, fontSize: 13 }}>
+        <div
+          style={{
+            marginTop: 56,
+            paddingTop: 20,
+            borderTop: `1px solid ${RULE}`,
+            color: MUTED,
+            fontSize: 13,
+          }}
+        >
           <BrandMark size={22} />
           <div style={{ marginTop: 10 }}>
             PatternProof is not a crisis service and not a law firm.
@@ -251,7 +325,7 @@ function ResourcesPage() {
 }
 
 const cardStyle: React.CSSProperties = {
-  background: "#FFFFFF",
+  background: "var(--pp-card)",
   border: `1px solid ${RULE}`,
   borderRadius: 2,
   padding: 20,
@@ -284,7 +358,9 @@ function ResourceCard({ r }: { r: StateResource }) {
       <div style={{ fontFamily: SERIF, fontSize: 19 }}>{r.name}</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 12 }}>
         {r.phone ? (
-          <a href={`tel:${r.phone.replace(/\D/g, "")}`} style={linkStyle}><Phone size={13} /> {r.phone}</a>
+          <a href={`tel:${r.phone.replace(/\D/g, "")}`} style={linkStyle}>
+            <Phone size={13} /> {r.phone}
+          </a>
         ) : null}
         <a href={r.url} target="_blank" rel="noreferrer" style={linkStyle}>
           <Globe size={13} /> {r.url.replace(/^https?:\/\//, "")}
@@ -298,13 +374,29 @@ function ResourceCard({ r }: { r: StateResource }) {
 function VerificationLine({ dateLastChecked }: { dateLastChecked: string | null }) {
   if (dateLastChecked) {
     return (
-      <div style={{ marginTop: 10, fontFamily: MONO, fontSize: 11, letterSpacing: "0.04em", color: MUTED }}>
+      <div
+        style={{
+          marginTop: 10,
+          fontFamily: MONO,
+          fontSize: 11,
+          letterSpacing: "0.04em",
+          color: MUTED,
+        }}
+      >
         Verified {dateLastChecked}
       </div>
     );
   }
   return (
-    <div style={{ marginTop: 10, fontFamily: MONO, fontSize: 11, letterSpacing: "0.04em", color: "#4132B4" }}>
+    <div
+      style={{
+        marginTop: 10,
+        fontFamily: MONO,
+        fontSize: 11,
+        letterSpacing: "0.04em",
+        color: "#4132B4",
+      }}
+    >
       Not yet independently re-verified — confirm before relying on this number
     </div>
   );
@@ -313,7 +405,18 @@ function VerificationLine({ dateLastChecked }: { dateLastChecked: string | null 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section style={{ marginTop: 48 }}>
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, paddingBottom: 10, borderBottom: `1px solid ${RULE}`, marginBottom: 16 }}>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: MUTED,
+          paddingBottom: 10,
+          borderBottom: `1px solid ${RULE}`,
+          marginBottom: 16,
+        }}
+      >
         {title}
       </div>
       {children}

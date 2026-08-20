@@ -782,11 +782,14 @@ function JournalPage() {
                         Use either a logged incident above, this description, or both.
                       </p>
                     </div>
-                    <div className="pp-note" style={{ boxShadow: "none", padding: 0 }}>
+                    <div
+                      className="pp-note"
+                      style={{ boxShadow: "var(--pp-shadow-sm)", padding: 0 }}
+                    >
                       <span
                         className="pp-note-icon"
                         style={{
-                          boxShadow: "none",
+                          boxShadow: "var(--pp-shadow-sm)",
                           background: "transparent",
                           padding: 0,
                           width: "auto",

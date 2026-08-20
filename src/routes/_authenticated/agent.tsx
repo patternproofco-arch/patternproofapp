@@ -215,7 +215,7 @@ function AgentLayout() {
           >
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute top-2 right-2 z-10 rounded-[2px] p-1.5"
+              className="absolute top-2 right-2 z-10 rounded-2xl p-1.5"
               style={{ color: "var(--pp-ink)" }}
               aria-label="Close menu"
             >

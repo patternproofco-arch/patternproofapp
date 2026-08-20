@@ -27,14 +27,25 @@ export const Route = createFileRoute("/waitlist")({
   head: () => ({
     meta: [
       { title: "Get updates from PatternProof" },
-      { name: "description", content: "Leave your email and we'll follow up when there's something worth telling you — attorney access, organization partnerships, or new documentation tools." },
+      {
+        name: "description",
+        content:
+          "Leave your email and we'll follow up when there's something worth telling you — attorney access, organization partnerships, or new documentation tools.",
+      },
       { property: "og:title", content: "Get updates from PatternProof" },
-      { property: "og:description", content: "A short list for attorneys, DV organizations, and anyone who wants to hear when things ship." },
+      {
+        property: "og:description",
+        content:
+          "A short list for attorneys, DV organizations, and anyone who wants to hear when things ship.",
+      },
       { property: "og:url", content: "https://pattern-proof.tech/waitlist" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Get updates from PatternProof" },
-      { name: "twitter:description", content: "Leave your email — we'll follow up when there's something worth telling you." },
+      {
+        name: "twitter:description",
+        content: "Leave your email — we'll follow up when there's something worth telling you.",
+      },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/waitlist" }],
   }),
@@ -63,7 +74,8 @@ function Waitlist() {
           name,
           interest,
           note,
-          sourcePath: typeof window !== "undefined" ? window.location.pathname + window.location.search : "",
+          sourcePath:
+            typeof window !== "undefined" ? window.location.pathname + window.location.search : "",
         },
       });
       setState("done");
@@ -77,21 +89,52 @@ function Waitlist() {
     <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
       <header style={{ borderBottom: `1px solid ${RULE}` }}>
         <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 24px" }}>
-          <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em", color: INK, textDecoration: "none", textTransform: "uppercase" }}>
+          <Link
+            to="/"
+            style={{
+              fontFamily: MONO,
+              fontSize: 12,
+              letterSpacing: "0.14em",
+              color: INK,
+              textDecoration: "none",
+              textTransform: "uppercase",
+            }}
+          >
             ← PatternProof
           </Link>
         </div>
       </header>
 
-      <section style={{ maxWidth: 620, margin: "0 auto", padding: "clamp(56px,9vw,104px) 24px 80px" }}>
-        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, marginBottom: 22 }}>
+      <section
+        style={{ maxWidth: 620, margin: "0 auto", padding: "clamp(56px,9vw,104px) 24px 80px" }}
+      >
+        <div
+          style={{
+            fontFamily: MONO,
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: MUTED,
+            marginBottom: 22,
+          }}
+        >
           Get updates
         </div>
-        <h1 style={{ fontFamily: SERIF, fontWeight: 300, fontSize: "clamp(2rem,4.8vw,3.2rem)", lineHeight: 1.1, letterSpacing: "-0.02em", margin: 0 }}>
+        <h1
+          style={{
+            fontFamily: SERIF,
+            fontWeight: 300,
+            fontSize: "clamp(2rem,4.8vw,3.2rem)",
+            lineHeight: 1.1,
+            letterSpacing: "-0.02em",
+            margin: 0,
+          }}
+        >
           Leave an email. <em>We'll follow up.</em>
         </h1>
         <p style={{ marginTop: 22, fontSize: 17, lineHeight: 1.6, color: "#3A3849" }}>
-          No account, no commitment. We'll write when there's something worth telling you — nothing else.
+          No account, no commitment. We'll write when there's something worth telling you — nothing
+          else.
         </p>
 
         <div style={{ marginTop: 26, display: "grid", gap: 12 }}>
@@ -117,13 +160,34 @@ function Waitlist() {
         </div>
 
         {state === "done" ? (
-          <div style={{ marginTop: 34, border: `1px solid ${RULE}`, padding: "24px 22px", background: "#FFFFFF" }}>
-            <div style={{ fontFamily: SERIF, fontSize: 22, marginBottom: 8 }}>Thank you — you're on the list.</div>
+          <div
+            style={{
+              marginTop: 34,
+              border: `1px solid ${RULE}`,
+              padding: "24px 22px",
+              background: "var(--pp-card)",
+            }}
+          >
+            <div style={{ fontFamily: SERIF, fontSize: 22, marginBottom: 8 }}>
+              Thank you — you're on the list.
+            </div>
             <p style={{ fontSize: 15, lineHeight: 1.6, color: "#3A3849", margin: 0 }}>
-              Nothing else is needed from you. We'll be in touch when there's news, and you can write back any time to be removed.
+              Nothing else is needed from you. We'll be in touch when there's news, and you can
+              write back any time to be removed.
             </p>
             <div style={{ marginTop: 18 }}>
-              <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: INK, textDecoration: "underline", textUnderlineOffset: 4 }}>
+              <Link
+                to="/"
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 12,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: INK,
+                  textDecoration: "underline",
+                  textUnderlineOffset: 4,
+                }}
+              >
                 Back to PatternProof →
               </Link>
             </div>
@@ -141,38 +205,75 @@ function Waitlist() {
               />
             </Field>
             <Field label="Name (optional)">
-              <input type="text" maxLength={120} value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
+              <input
+                type="text"
+                maxLength={120}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={inputStyle}
+              />
             </Field>
             <Field label="I'm interested as a">
-              <select value={interest} onChange={(e) => setInterest(e.target.value as Interest)} style={inputStyle}>
+              <select
+                value={interest}
+                onChange={(e) => setInterest(e.target.value as Interest)}
+                style={inputStyle}
+              >
                 {INTERESTS.map((i) => (
-                  <option key={i.value} value={i.value}>{i.label}</option>
+                  <option key={i.value} value={i.value}>
+                    {i.label}
+                  </option>
                 ))}
               </select>
             </Field>
             <Field label="Anything you'd like us to know (optional)">
-              <textarea rows={3} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} style={{ ...inputStyle, fontFamily: "inherit", resize: "vertical" }} />
+              <textarea
+                rows={3}
+                maxLength={1000}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                style={{ ...inputStyle, fontFamily: "inherit", resize: "vertical" }}
+              />
             </Field>
 
             {problem && (
-              <div style={{ fontSize: 14, color: "#3A3849", borderLeft: `3px solid ${INK}`, paddingLeft: 12 }}>{problem}</div>
+              <div
+                style={{
+                  fontSize: 14,
+                  color: "#3A3849",
+                  borderLeft: `3px solid ${INK}`,
+                  paddingLeft: 12,
+                }}
+              >
+                {problem}
+              </div>
             )}
 
             <button
               type="submit"
               disabled={state === "saving"}
               style={{
-                justifySelf: "start", marginTop: 6, background: INK, color: PAPER,
-                padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em",
-                textTransform: "uppercase", border: "none", borderRadius: 0,
-                cursor: state === "saving" ? "default" : "pointer", opacity: state === "saving" ? 0.6 : 1,
+                justifySelf: "start",
+                marginTop: 6,
+                background: INK,
+                color: PAPER,
+                padding: "14px 26px",
+                fontFamily: MONO,
+                fontSize: 13,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                border: "none",
+                borderRadius: 0,
+                cursor: state === "saving" ? "default" : "pointer",
+                opacity: state === "saving" ? 0.6 : 1,
               }}
             >
               {state === "saving" ? "Saving…" : "Send it →"}
             </button>
 
             <p style={{ fontSize: 13, lineHeight: 1.6, color: MUTED, margin: 0 }}>
-              We store your email so we can write to you, and nothing more. It isn't shared, and it isn't connected to any survivor records.
+              We store your email so we can write to you, and nothing more. It isn't shared, and it
+              isn't connected to any survivor records.
             </p>
           </form>
         )}
@@ -186,7 +287,7 @@ const inputStyle: React.CSSProperties = {
   padding: "11px 12px",
   border: `1px solid ${RULE}`,
   borderRadius: 2,
-  background: "#FFFFFF",
+  background: "var(--pp-card)",
   fontSize: 15,
   color: INK,
 };
@@ -194,7 +295,16 @@ const inputStyle: React.CSSProperties = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label style={{ display: "block" }}>
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: MUTED, marginBottom: 6 }}>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: 11,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: MUTED,
+          marginBottom: 6,
+        }}
+      >
         {label}
       </div>
       {children}
@@ -205,7 +315,18 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function Aside({ label, body }: { label: string; body: React.ReactNode }) {
   return (
     <div style={{ borderLeft: `3px solid ${RULE}`, paddingLeft: 14 }}>
-      <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", color: MUTED, marginBottom: 4 }}>{label}</div>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: 10.5,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: MUTED,
+          marginBottom: 4,
+        }}
+      >
+        {label}
+      </div>
       <div style={{ fontSize: 15, lineHeight: 1.55, color: "#3A3849" }}>{body}</div>
     </div>
   );

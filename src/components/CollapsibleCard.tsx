@@ -27,7 +27,7 @@ export function CollapsibleCard({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <section
-      className={`rounded-[2px] border ${className}`}
+      className={`rounded-2xl border ${className}`}
       style={{
         background: "var(--card)",
         borderColor: "var(--border)",
@@ -50,7 +50,10 @@ export function CollapsibleCard({
               {eyebrow}
             </div>
           )}
-          <h2 className="text-[19px] font-extrabold leading-snug md:text-[22px]" style={{ color: "var(--foreground)" }}>
+          <h2
+            className="text-[19px] font-extrabold leading-snug md:text-[22px]"
+            style={{ color: "var(--foreground)" }}
+          >
             {title}
           </h2>
         </div>
