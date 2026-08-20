@@ -1,6 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2, Sparkles, BookOpen, Clock, ChevronDown, PenLine, List, Mic } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Sparkles,
+  BookOpen,
+  Clock,
+  ChevronDown,
+  PenLine,
+  List,
+  Mic,
+  ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -32,7 +43,13 @@ export const Route = createFileRoute("/_authenticated/journal")({
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-type Precision = "exact" | "approximate_month" | "range" | "before_anchor" | "after_anchor" | "unknown";
+type Precision =
+  | "exact"
+  | "approximate_month"
+  | "range"
+  | "before_anchor"
+  | "after_anchor"
+  | "unknown";
 
 const PRECISION_OPTIONS: { value: Precision; label: string }[] = [
   { value: "exact", label: "Exact date" },
@@ -43,10 +60,28 @@ const PRECISION_OPTIONS: { value: Precision; label: string }[] = [
   { value: "unknown", label: "Not sure — skip for now" },
 ];
 
+const PRECISION_HELP: Record<Precision, string> = {
+  exact: "Recorded as Confirmed. The thread runs taut.",
+  approximate_month: "Tie it to the month you're sure of. Recorded as Approximate.",
+  range: "Give an earliest and latest possible date. Recorded as Approximate.",
+  before_anchor: "Tied to something else you remember. Recorded as Approximate.",
+  after_anchor: "Tied to something else you remember. Recorded as Approximate.",
+  unknown: "Log it undated. Recorded as Unknown — you can add a date later.",
+};
+
 // Best-effort sortable date derived from a non-exact entry, so timeline
 // ordering still works. Never displayed as a bare date — UI always uses the
 // precision-aware label.
-function deriveSortDate(p: Precision, form: { date: string; date_range_start: string; date_range_end: string; approx_month: string; anchor_date: string }): string | null {
+function deriveSortDate(
+  p: Precision,
+  form: {
+    date: string;
+    date_range_start: string;
+    date_range_end: string;
+    approx_month: string;
+    anchor_date: string;
+  },
+): string | null {
   if (p === "exact") return form.date || null;
   if (p === "approximate_month") return form.approx_month ? `${form.approx_month}-15` : null;
   if (p === "range") return form.date_range_start || form.date_range_end || null;
@@ -90,7 +125,9 @@ function JournalPage() {
     if (!user) return;
     const { data } = await supabase
       .from("incidents")
-      .select("id,date,time,location,description,abuse_types,witnesses,emotional_impact,source,confirmed_at,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label")
+      .select(
+        "id,date,time,location,description,abuse_types,witnesses,emotional_impact,source,confirmed_at,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label",
+      )
       .eq("user_id", user.id)
       .is("deleted_at", null)
       .order("date", { ascending: false, nullsFirst: false });
@@ -100,7 +137,9 @@ function JournalPage() {
       .catch(() => setContradictions([]));
   }, [user, findContradictions]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   // Files the survivor attaches while writing an entry. They're uploaded and
   // linked to the incident only once the entry itself saves successfully.
@@ -112,7 +151,10 @@ function JournalPage() {
     const next: File[] = [];
     for (const f of Array.from(files)) {
       const problem = checkUploadSize(f);
-      if (problem) { setAttachError(problem); continue; }
+      if (problem) {
+        setAttachError(problem);
+        continue;
+      }
       next.push(f);
     }
     if (next.length) setAttachError(null);
@@ -148,9 +190,19 @@ function JournalPage() {
 
   const reset = () => {
     setForm({
-      date: today(), time: "", location: "", description: "", abuse_types: [], witnesses: "", emotional_impact: "",
-      date_precision: "exact", approx_month: "", date_range_start: "", date_range_end: "",
-      anchor_incident_id: "", anchor_label: "",
+      date: today(),
+      time: "",
+      location: "",
+      description: "",
+      abuse_types: [],
+      witnesses: "",
+      emotional_impact: "",
+      date_precision: "exact",
+      approx_month: "",
+      date_range_start: "",
+      date_range_end: "",
+      anchor_incident_id: "",
+      anchor_label: "",
     });
     setEditingId(null);
     setAiFilled(false);
@@ -159,7 +211,12 @@ function JournalPage() {
   };
 
   const toggleType = (t: string) => {
-    setForm((f) => ({ ...f, abuse_types: f.abuse_types.includes(t) ? f.abuse_types.filter((x) => x !== t) : [...f.abuse_types, t] }));
+    setForm((f) => ({
+      ...f,
+      abuse_types: f.abuse_types.includes(t)
+        ? f.abuse_types.filter((x) => x !== t)
+        : [...f.abuse_types, t],
+    }));
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -172,7 +229,9 @@ function JournalPage() {
     setBusy(true);
     // Anchor incident lookup: if the user picked an existing incident, capture
     // its date so we can order this record chronologically near the anchor.
-    const anchor = form.anchor_incident_id ? list.find((i) => i.id === form.anchor_incident_id) : null;
+    const anchor = form.anchor_incident_id
+      ? list.find((i) => i.id === form.anchor_incident_id)
+      : null;
     const anchorDate = anchor?.date ?? "";
     const sortDate = deriveSortDate(form.date_precision, {
       date: form.date,
@@ -191,10 +250,16 @@ function JournalPage() {
       witnesses: sanitizeLine(form.witnesses) || null,
       emotional_impact: form.emotional_impact || null,
       date_precision: form.date_precision,
-      date_range_start: form.date_precision === "range" ? (form.date_range_start || null) : null,
-      date_range_end: form.date_precision === "range" ? (form.date_range_end || null) : null,
-      anchor_incident_id: (form.date_precision === "before_anchor" || form.date_precision === "after_anchor") ? (form.anchor_incident_id || null) : null,
-      anchor_label: (form.date_precision === "before_anchor" || form.date_precision === "after_anchor") ? (sanitizeLine(form.anchor_label) || null) : null,
+      date_range_start: form.date_precision === "range" ? form.date_range_start || null : null,
+      date_range_end: form.date_precision === "range" ? form.date_range_end || null : null,
+      anchor_incident_id:
+        form.date_precision === "before_anchor" || form.date_precision === "after_anchor"
+          ? form.anchor_incident_id || null
+          : null,
+      anchor_label:
+        form.date_precision === "before_anchor" || form.date_precision === "after_anchor"
+          ? sanitizeLine(form.anchor_label) || null
+          : null,
     };
     const insertPayload = {
       ...payload,
@@ -214,13 +279,21 @@ function JournalPage() {
       if (current && !current.confirmed_at) {
         updatePayload.confirmed_at = new Date().toISOString();
       }
-      ({ error } = await supabase.from("incidents").update(updatePayload).eq("id", editingId).eq("user_id", user.id));
+      ({ error } = await supabase
+        .from("incidents")
+        .update(updatePayload)
+        .eq("id", editingId)
+        .eq("user_id", user.id));
     } else {
       const res = await supabase.from("incidents").insert(insertPayload).select("id").single();
       error = res.error;
       savedId = res.data?.id ?? null;
     }
-    if (error) { setBusy(false); toast("We couldn't save that. Try again in a moment."); return; }
+    if (error) {
+      setBusy(false);
+      toast("We couldn't save that. Try again in a moment.");
+      return;
+    }
     const attachMsg = savedId && attachments.length ? await uploadAttachments(savedId) : null;
     setBusy(false);
     toast(attachMsg ?? "Saved. Your record is safe.");
@@ -263,14 +336,21 @@ function JournalPage() {
       .update({ deleted_at: new Date().toISOString() })
       .eq("id", id)
       .eq("user_id", user.id);
-    if (error) { toast("We couldn't remove that. Try again in a moment."); return; }
+    if (error) {
+      toast("We couldn't remove that. Try again in a moment.");
+      return;
+    }
     // Optimistically hide
     setList((prev) => prev.filter((i) => i.id !== id));
     toast("Removed.", {
       action: {
         label: "Undo",
         onClick: async () => {
-          await supabase.from("incidents").update({ deleted_at: null }).eq("id", id).eq("user_id", user.id);
+          await supabase
+            .from("incidents")
+            .update({ deleted_at: null })
+            .eq("id", id)
+            .eq("user_id", user.id);
           load();
         },
       },
@@ -286,7 +366,10 @@ function JournalPage() {
       .update({ confirmed_at: new Date().toISOString() })
       .eq("id", id)
       .eq("user_id", user.id);
-    if (error) { toast("We couldn't confirm that. Try again in a moment."); return; }
+    if (error) {
+      toast("We couldn't confirm that. Try again in a moment.");
+      return;
+    }
     toast("Confirmed.");
     load();
   };
@@ -295,14 +378,27 @@ function JournalPage() {
     if (!user || !f) return;
     setAiBusy(true);
     const ext = f.name.split(".").pop() ?? "bin";
-    const key = `${user.id}/journal-ai/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const key = `${user.id}/journal-ai/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const up = await supabase.storage.from("evidence-files").upload(key, f);
-    if (up.error) { setAiBusy(false); toast("We couldn't read that image. Try another."); return; }
+    if (up.error) {
+      setAiBusy(false);
+      toast("We couldn't read that image. Try another.");
+      return;
+    }
     const signed = await supabase.storage.from("evidence-files").createSignedUrl(key, 600);
-    if (!signed.data?.signedUrl) { setAiBusy(false); toast("We couldn't read that image."); return; }
-    const r = await extractIncident({ data: { signedUrl: signed.data.signedUrl, mimeType: f.type || "image/png" } });
+    if (!signed.data?.signedUrl) {
+      setAiBusy(false);
+      toast("We couldn't read that image.");
+      return;
+    }
+    const r = await extractIncident({
+      data: { signedUrl: signed.data.signedUrl, mimeType: f.type || "image/png" },
+    });
     setAiBusy(false);
-    if (!r.ok) { toast("We couldn't pull details from that image. You can still type it out."); return; }
+    if (!r.ok) {
+      toast("We couldn't pull details from that image. You can still type it out.");
+      return;
+    }
     const e = r.extracted as Partial<typeof form> & { abuse_types?: string[] };
     setForm((prev) => ({
       ...prev,
@@ -310,7 +406,8 @@ function JournalPage() {
       time: e.time || prev.time,
       location: e.location || prev.location,
       description: e.description || prev.description,
-      abuse_types: Array.isArray(e.abuse_types) && e.abuse_types.length ? e.abuse_types : prev.abuse_types,
+      abuse_types:
+        Array.isArray(e.abuse_types) && e.abuse_types.length ? e.abuse_types : prev.abuse_types,
       witnesses: e.witnesses || prev.witnesses,
       emotional_impact: e.emotional_impact || prev.emotional_impact,
     }));
@@ -332,8 +429,7 @@ function JournalPage() {
         <div className="flex flex-wrap gap-2">
           <Link
             to="/voice-notes"
-            className="inline-flex items-center gap-2 rounded-[2px] px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
-            style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
+            className="pp-chip inline-flex items-center gap-2 px-3.5 py-2.5 text-[13px] font-semibold"
           >
             <Mic size={15} />
             Add a spoken Mark
@@ -341,8 +437,7 @@ function JournalPage() {
           <button
             type="button"
             onClick={() => setJournalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-[2px] px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
-            style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
+            className="pp-chip inline-flex items-center gap-2 px-3.5 py-2.5 text-[13px] font-semibold"
           >
             <BookOpen size={15} />
             Add from a written page
@@ -350,8 +445,7 @@ function JournalPage() {
           <button
             type="button"
             onClick={() => setBulkOpen(true)}
-            className="inline-flex items-center gap-2 rounded-[2px] px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:brightness-95"
-            style={{ background: "#ECE6DB", color: "#3D3832", border: "1px solid rgba(42,37,32,0.08)" }}
+            className="pp-chip inline-flex items-center gap-2 px-3.5 py-2.5 text-[13px] font-semibold"
           >
             <Clock size={15} />
             Add Multiple Past Marks
@@ -372,7 +466,8 @@ function JournalPage() {
             A few Marks on the same day have different details — worth a look
           </h2>
           <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-            Nothing has been changed. Review each one and edit whichever feels right — or leave them as they are.
+            Nothing has been changed. Review each one and edit whichever feels right — or leave them
+            as they are.
           </p>
           <ul className="mt-3 space-y-2">
             {contradictions.map((c, idx) => {
@@ -382,30 +477,49 @@ function JournalPage() {
               return (
                 <li
                   key={`${c.incident_a_id}-${c.incident_b_id}-${c.conflict_type}-${idx}`}
-                  className="rounded-[2px] p-3"
-                  style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(42,37,32,0.08)" }}
+                  className="rounded-2xl p-3"
+                  style={{
+                    background: "rgba(255,255,255,0.6)",
+                    border: "1px solid rgba(42,37,32,0.08)",
+                  }}
                 >
-                  <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "#6A7FA8" }}>
-                    {c.date} · {c.conflict_type === "time" ? "Different times" : "Different locations"}
+                  <div
+                    className="text-[11px] font-semibold uppercase tracking-wide"
+                    style={{ color: "#6A7FA8" }}
+                  >
+                    {c.date} ·{" "}
+                    {c.conflict_type === "time" ? "Different times" : "Different locations"}
                   </div>
-                  <div className="mt-1 text-[13px]" style={{ color: "var(--foreground)" }}>{c.detail}</div>
+                  <div className="mt-1 text-[13px]" style={{ color: "var(--foreground)" }}>
+                    {c.detail}
+                  </div>
                   <div className="mt-2 grid gap-2 md:grid-cols-2">
                     <button
                       type="button"
                       onClick={() => edit(a)}
-                      className="rounded-[2px] p-2 text-left text-[12px] hover:bg-black/5"
+                      className="rounded-2xl p-2 text-left text-[12px] hover:bg-black/5"
                       style={{ border: "1px solid rgba(42,37,32,0.10)" }}
                     >
-                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review Mark A</div>
+                      <div
+                        className="text-[10px] font-semibold uppercase tracking-wide"
+                        style={{ color: "var(--muted-foreground)" }}
+                      >
+                        Review Mark A
+                      </div>
                       <div className="mt-0.5 line-clamp-2">{a.description}</div>
                     </button>
                     <button
                       type="button"
                       onClick={() => edit(b)}
-                      className="rounded-[2px] p-2 text-left text-[12px] hover:bg-black/5"
+                      className="rounded-2xl p-2 text-left text-[12px] hover:bg-black/5"
                       style={{ border: "1px solid rgba(42,37,32,0.10)" }}
                     >
-                      <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Review Mark B</div>
+                      <div
+                        className="text-[10px] font-semibold uppercase tracking-wide"
+                        style={{ color: "var(--muted-foreground)" }}
+                      >
+                        Review Mark B
+                      </div>
                       <div className="mt-0.5 line-clamp-2">{b.description}</div>
                     </button>
                   </div>
@@ -420,283 +534,449 @@ function JournalPage() {
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <button
           type="button"
-          onClick={() => { setLogOpen((v) => !v); if (!logOpen) setTimeout(() => window.scrollTo({ top: window.scrollY + 80, behavior: "smooth" }), 50); }}
-          aria-expanded={logOpen}
-          className="inline-flex items-center gap-2 rounded-[2px] px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
-          style={{
-            background: "var(--primary)",
-            color: "#FFFFFF",
-            boxShadow: "none",
+          onClick={() => {
+            setLogOpen((v) => !v);
+            if (!logOpen)
+              setTimeout(
+                () => window.scrollTo({ top: window.scrollY + 80, behavior: "smooth" }),
+                50,
+              );
           }}
+          aria-expanded={logOpen}
+          className="btn-primary inline-flex items-center gap-2 px-6 py-3.5 text-[15px]"
         >
           <PenLine size={17} />
           {editingId ? "Edit Mark" : "Add a Mark"}
-          <ChevronDown size={16} style={{ transition: "transform 200ms", transform: logOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+          <ChevronDown
+            size={16}
+            style={{
+              transition: "transform 200ms",
+              transform: logOpen ? "rotate(180deg)" : "rotate(0deg)",
+            }}
+          />
         </button>
         <button
           type="button"
           onClick={() => setListOpen((v) => !v)}
           aria-expanded={listOpen}
-          className="inline-flex items-center gap-2 rounded-[2px] px-6 py-3.5 text-[15px] font-semibold transition-all hover:brightness-95"
-          style={{
-            background: "#E5E2DA",
-            color: "#2A2520",
-            border: "1px solid rgba(42,37,32,0.10)",
-          }}
+          className="btn-ghost inline-flex items-center gap-2 px-6 py-3.5 text-[15px]"
         >
           <List size={17} />
           All Marks {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
-          <ChevronDown size={16} style={{ transition: "transform 200ms", transform: listOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+          <ChevronDown
+            size={16}
+            style={{
+              transition: "transform 200ms",
+              transform: listOpen ? "rotate(180deg)" : "rotate(0deg)",
+            }}
+          />
         </button>
       </div>
 
       <FocusRegion id="journal-log">
-      <div className="collapse-shell mt-6" data-open={logOpen} inert={!logOpen}>
-        <div className="collapse-inner">
-        <section
-          className="card-pp"
-          style={{ background: "var(--linen)", borderLeft: "4px solid var(--primary)" }}
-        >
-          <form onSubmit={submit} className="space-y-3">
-          <label className="flex cursor-pointer items-center gap-2 rounded-[2px] border border-dashed p-3 text-[12px]" style={{ borderColor: "var(--border)" }}>
-            <Sparkles size={14} style={{ color: "var(--accent)" }} />
-            <span className="flex-1">
-              {aiBusy ? "Reading your image…" : "Upload a screenshot (text, email, photo) and I'll draft the fields for you to review."}
-            </span>
-            <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,application/pdf" className="hidden"
-              disabled={aiBusy}
-              onChange={(e) => { const f = e.target.files?.[0] ?? null; e.currentTarget.value = ""; autofillFromImage(f); }} />
-          </label>
-          {aiFilled && (
-            <div className="rounded-[2px] p-2 text-[11px]" style={{ background: "rgba(106,146,214,0.15)", color: "var(--foreground)" }}>
-              AI-drafted — please edit anything that isn't quite right.
-            </div>
-          )}
-
-          <div>
-            <label className="label-eyebrow">Attach photos, audio or files</label>
-            <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>
-              Anything you attach here is saved with this Mark. You can add more later.
-            </p>
-            <input
-              type="file"
-              multiple
-              accept="image/*,audio/*,video/*,application/pdf"
-              className="input-pp mt-2 text-[12px]"
-              onChange={(e) => { addAttachments(e.target.files); e.currentTarget.value = ""; }}
-            />
-            {attachError && (
-              <p className="text-[11.5px] mt-1" style={{ color: "var(--accent)" }}>{attachError}</p>
-            )}
-            {attachments.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {attachments.map((f, idx) => (
-                  <li key={`${f.name}-${idx}`} className="flex items-center justify-between text-[12px]">
-                    <span className="truncate">{f.name}</span>
-                    <button
-                      type="button"
-                      className="text-[11px] underline"
-                      onClick={() => setAttachments((p) => p.filter((_, i) => i !== idx))}
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <div>
-            <label className="label-eyebrow">Date precision</label>
-            <select
-              value={form.date_precision}
-              onChange={(e) => setForm({ ...form, date_precision: e.target.value as Precision })}
-              className="input-pp mt-1"
+        <div className="collapse-shell mt-6" data-open={logOpen} inert={!logOpen}>
+          <div className="collapse-inner">
+            <section
+              className="card-pp"
+              style={{ background: "var(--linen)", borderLeft: "4px solid var(--primary)" }}
             >
-              {PRECISION_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-            <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-              Pick what you actually remember. It's fine not to be certain.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {form.date_precision === "exact" && (
-              <div>
-                <label className="label-eyebrow">Date</label>
-                <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="input-pp mt-1" />
-              </div>
-            )}
-            {form.date_precision === "approximate_month" && (
-              <div>
-                <label className="label-eyebrow">Month</label>
-                <input type="month" value={form.approx_month} onChange={(e) => setForm({ ...form, approx_month: e.target.value })} className="input-pp mt-1" />
-              </div>
-            )}
-            {form.date_precision === "range" && (
-              <>
-                <div>
-                  <label className="label-eyebrow">From</label>
-                  <input type="date" value={form.date_range_start} onChange={(e) => setForm({ ...form, date_range_start: e.target.value })} className="input-pp mt-1" />
-                </div>
-                <div>
-                  <label className="label-eyebrow">To</label>
-                  <input type="date" value={form.date_range_end} onChange={(e) => setForm({ ...form, date_range_end: e.target.value })} className="input-pp mt-1" />
-                </div>
-              </>
-            )}
-            <div>
-              <label className="label-eyebrow">Time</label>
-              <input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className="input-pp mt-1" />
-            </div>
-          </div>
-
-          {(form.date_precision === "before_anchor" || form.date_precision === "after_anchor") && (
-            <div className="space-y-2 rounded-[2px] p-3" style={{ background: "rgba(168,216,185,0.15)", border: "1px solid rgba(78,59,49,0.08)" }}>
-              <div>
-                <label className="label-eyebrow">
-                  {form.date_precision === "before_anchor" ? "Before which event?" : "After which event?"}
-                </label>
-                <select
-                  value={form.anchor_incident_id}
-                  onChange={(e) => setForm({ ...form, anchor_incident_id: e.target.value })}
-                  className="input-pp mt-1"
+              <form onSubmit={submit} className="space-y-3">
+                <label
+                  className="flex cursor-pointer items-center gap-2 rounded-2xl border border-dashed p-3 text-[12px]"
+                  style={{ borderColor: "var(--border)" }}
                 >
-                  <option value="">— pick one of your logged incidents —</option>
-                  {list
-                    .filter((i) => i.id !== editingId && i.date)
-                    .map((i) => (
-                      <option key={i.id} value={i.id}>
-                        {i.date} — {i.description.slice(0, 60)}{i.description.length > 60 ? "…" : ""}
-                      </option>
+                  <Sparkles size={14} style={{ color: "var(--accent)" }} />
+                  <span className="flex-1">
+                    {aiBusy
+                      ? "Reading your image…"
+                      : "Upload a screenshot (text, email, photo) and I'll draft the fields for you to review."}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                    className="hidden"
+                    disabled={aiBusy}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      e.currentTarget.value = "";
+                      autofillFromImage(f);
+                    }}
+                  />
+                </label>
+                {aiFilled && (
+                  <div
+                    className="rounded-2xl p-2 text-[11px]"
+                    style={{ background: "rgba(106,146,214,0.15)", color: "var(--foreground)" }}
+                  >
+                    AI-drafted — please edit anything that isn't quite right.
+                  </div>
+                )}
+
+                <div>
+                  <label className="label-eyebrow">Attach photos, audio or files</label>
+                  <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>
+                    Anything you attach here is saved with this Mark. You can add more later.
+                  </p>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,audio/*,video/*,application/pdf"
+                    className="input-pp mt-2 text-[12px]"
+                    onChange={(e) => {
+                      addAttachments(e.target.files);
+                      e.currentTarget.value = "";
+                    }}
+                  />
+                  {attachError && (
+                    <p className="text-[11.5px] mt-1" style={{ color: "var(--accent)" }}>
+                      {attachError}
+                    </p>
+                  )}
+                  {attachments.length > 0 && (
+                    <ul className="mt-2 space-y-1">
+                      {attachments.map((f, idx) => (
+                        <li
+                          key={`${f.name}-${idx}`}
+                          className="flex items-center justify-between text-[12px]"
+                        >
+                          <span className="truncate">{f.name}</span>
+                          <button
+                            type="button"
+                            className="text-[11px] underline"
+                            onClick={() => setAttachments((p) => p.filter((_, i) => i !== idx))}
+                          >
+                            Remove
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div>
+                  <label className="label-eyebrow">When did this happen?</label>
+                  <p className="mt-1 mb-2 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                    Pick the honest answer. The confidence level travels with the record — and
+                    shapes how the thread is drawn.
+                  </p>
+                  <div>
+                    {PRECISION_OPTIONS.map((o) => (
+                      <button
+                        key={o.value}
+                        type="button"
+                        className="pp-option"
+                        aria-pressed={form.date_precision === o.value}
+                        onClick={() => setForm({ ...form, date_precision: o.value })}
+                      >
+                        <span className="pp-option-radio" />
+                        <span>
+                          <span className="pp-option-title">{o.label}</span>
+                          <span className="pp-option-desc">{PRECISION_HELP[o.value]}</span>
+                        </span>
+                      </button>
                     ))}
-                </select>
-              </div>
-              <div>
-                <label className="label-eyebrow">Or describe the anchor in your own words</label>
-                <input
-                  type="text"
-                  value={form.anchor_label}
-                  onChange={(e) => setForm({ ...form, anchor_label: e.target.value })}
-                  className="input-pp mt-1"
-                  placeholder={`e.g. "before my son's second birthday" or "after the move"`}
-                />
-                <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                  Use either a logged incident above, this description, or both.
-                </p>
-              </div>
-            </div>
-          )}
+                  </div>
+                </div>
 
-          {form.date_precision === "unknown" && (
-            <p className="rounded-[2px] p-3 text-[12px]" style={{ background: "rgba(106,146,214,0.10)", color: "var(--foreground)" }}>
-              That's okay. Save it now — you can come back and add a date if it comes to you later.
-            </p>
-          )}
+                <div className="grid grid-cols-2 gap-3">
+                  {form.date_precision === "exact" && (
+                    <div>
+                      <label className="label-eyebrow">Date</label>
+                      <input
+                        type="date"
+                        value={form.date}
+                        onChange={(e) => setForm({ ...form, date: e.target.value })}
+                        className="input-pp mt-1"
+                      />
+                    </div>
+                  )}
+                  {form.date_precision === "approximate_month" && (
+                    <div>
+                      <label className="label-eyebrow">Month</label>
+                      <input
+                        type="month"
+                        value={form.approx_month}
+                        onChange={(e) => setForm({ ...form, approx_month: e.target.value })}
+                        className="input-pp mt-1"
+                      />
+                    </div>
+                  )}
+                  {form.date_precision === "range" && (
+                    <>
+                      <div>
+                        <label className="label-eyebrow">From</label>
+                        <input
+                          type="date"
+                          value={form.date_range_start}
+                          onChange={(e) => setForm({ ...form, date_range_start: e.target.value })}
+                          className="input-pp mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="label-eyebrow">To</label>
+                        <input
+                          type="date"
+                          value={form.date_range_end}
+                          onChange={(e) => setForm({ ...form, date_range_end: e.target.value })}
+                          className="input-pp mt-1"
+                        />
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <label className="label-eyebrow">Time</label>
+                    <input
+                      type="time"
+                      value={form.time}
+                      onChange={(e) => setForm({ ...form, time: e.target.value })}
+                      className="input-pp mt-1"
+                    />
+                  </div>
+                </div>
 
-          <div>
-            <label className="label-eyebrow">Location</label>
-            <input type="text" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="input-pp mt-1" placeholder="Where it happened" />
-          </div>
-
-          <div>
-            <label className="label-eyebrow">What happened</label>
-            <textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input-pp mt-1" placeholder="Describe what happened in your own words. There is no wrong way to write this." />
-          </div>
-
-          <div>
-            <label className="label-eyebrow">Type</label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {ABUSE_TYPES.map((t) => {
-                const on = form.abuse_types.includes(t.value);
-                return (
-                  <button
-                    type="button"
-                    key={t.value}
-                    onClick={() => toggleType(t.value)}
-                    className="rounded-[2px] px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                {(form.date_precision === "before_anchor" ||
+                  form.date_precision === "after_anchor") && (
+                  <div
+                    className="space-y-3"
                     style={{
-                      background: on ? t.color : "transparent",
-                      color: on ? "#fff" : "var(--foreground)",
-                      border: `1.5px solid ${t.color}`,
+                      background: "var(--pp-card)",
+                      borderRadius: 18,
+                      boxShadow: "var(--pp-shadow-in-sm)",
+                      padding: 16,
                     }}
                   >
-                    {t.label}
+                    <div>
+                      <label className="label-eyebrow">
+                        {form.date_precision === "before_anchor"
+                          ? "Before which event?"
+                          : "After which event?"}
+                      </label>
+                      <select
+                        value={form.anchor_incident_id}
+                        onChange={(e) => setForm({ ...form, anchor_incident_id: e.target.value })}
+                        className="input-pp mt-1"
+                      >
+                        <option value="">— pick one of your logged incidents —</option>
+                        {list
+                          .filter((i) => i.id !== editingId && i.date)
+                          .map((i) => (
+                            <option key={i.id} value={i.id}>
+                              {i.date} — {i.description.slice(0, 60)}
+                              {i.description.length > 60 ? "…" : ""}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label-eyebrow">
+                        Or describe the anchor in your own words
+                      </label>
+                      <input
+                        type="text"
+                        value={form.anchor_label}
+                        onChange={(e) => setForm({ ...form, anchor_label: e.target.value })}
+                        className="input-pp mt-1"
+                        placeholder={`e.g. "before my son's second birthday" or "after the move"`}
+                      />
+                      <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                        Use either a logged incident above, this description, or both.
+                      </p>
+                    </div>
+                    <div className="pp-note" style={{ boxShadow: "none", padding: 0 }}>
+                      <span
+                        className="pp-note-icon"
+                        style={{
+                          boxShadow: "none",
+                          background: "transparent",
+                          padding: 0,
+                          width: "auto",
+                          height: "auto",
+                        }}
+                      >
+                        <ShieldCheck size={18} />
+                      </span>
+                      <span>
+                        <span className="pp-note-title">This will be labelled Approximate</span>
+                        <span className="pp-note-desc">
+                          Your attorney sees the anchor and the reasoning, never a date the app
+                          invented for you.
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {form.date_precision === "unknown" && (
+                  <div className="pp-note">
+                    <span className="pp-note-icon">
+                      <Clock size={16} />
+                    </span>
+                    <span>
+                      <span className="pp-note-title">That's okay</span>
+                      <span className="pp-note-desc">
+                        Save it now — you can come back and add a date if it comes to you later.
+                      </span>
+                    </span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="label-eyebrow">Location</label>
+                  <input
+                    type="text"
+                    value={form.location}
+                    onChange={(e) => setForm({ ...form, location: e.target.value })}
+                    className="input-pp mt-1"
+                    placeholder="Where it happened"
+                  />
+                </div>
+
+                <div>
+                  <label className="label-eyebrow">What happened</label>
+                  <textarea
+                    required
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    className="input-pp mt-1"
+                    placeholder="Describe what happened in your own words. There is no wrong way to write this."
+                  />
+                </div>
+
+                <div>
+                  <label className="label-eyebrow">Type</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {ABUSE_TYPES.map((t) => {
+                      const on = form.abuse_types.includes(t.value);
+                      return (
+                        <button
+                          type="button"
+                          key={t.value}
+                          onClick={() => toggleType(t.value)}
+                          className="rounded-2xl px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                          style={{
+                            background: on ? t.color : "transparent",
+                            color: on ? "#fff" : "var(--foreground)",
+                            border: `1.5px solid ${t.color}`,
+                          }}
+                        >
+                          {t.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {form.abuse_types.length > 0 && (
+                    <ul className="mt-2 space-y-1">
+                      {ABUSE_TYPES.filter((t) => form.abuse_types.includes(t.value)).map((t) => (
+                        <li
+                          key={t.value}
+                          className="text-[11px] leading-snug"
+                          style={{ color: "var(--muted-foreground)" }}
+                        >
+                          <span className="font-semibold" style={{ color: t.color }}>
+                            {t.label}:
+                          </span>{" "}
+                          {t.helper}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div>
+                  <label className="label-eyebrow">Witnesses</label>
+                  <input
+                    type="text"
+                    value={form.witnesses}
+                    onChange={(e) => setForm({ ...form, witnesses: e.target.value })}
+                    className="input-pp mt-1"
+                    placeholder="Names of anyone who was present or nearby"
+                  />
+                </div>
+
+                <div>
+                  <label className="label-eyebrow">How did this affect you</label>
+                  <textarea
+                    value={form.emotional_impact}
+                    onChange={(e) => setForm({ ...form, emotional_impact: e.target.value })}
+                    className="input-pp mt-1"
+                    placeholder="Optional — your emotional state, physical impact, or anything else that felt important"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <button type="submit" disabled={busy} className="btn-primary">
+                    {busy ? "Saving…" : editingId ? "Save changes" : "Save This Record"}
                   </button>
-                );
-              })}
-            </div>
-            {form.abuse_types.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {ABUSE_TYPES.filter((t) => form.abuse_types.includes(t.value)).map((t) => (
-                  <li key={t.value} className="text-[11px] leading-snug" style={{ color: "var(--muted-foreground)" }}>
-                    <span className="font-semibold" style={{ color: t.color }}>{t.label}:</span> {t.helper}
-                  </li>
-                ))}
-              </ul>
-            )}
+                  {editingId && (
+                    <button type="button" onClick={reset} className="btn-ghost">
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
+            </section>
           </div>
-
-          <div>
-            <label className="label-eyebrow">Witnesses</label>
-            <input type="text" value={form.witnesses} onChange={(e) => setForm({ ...form, witnesses: e.target.value })} className="input-pp mt-1" placeholder="Names of anyone who was present or nearby" />
-          </div>
-
-          <div>
-            <label className="label-eyebrow">How did this affect you</label>
-            <textarea value={form.emotional_impact} onChange={(e) => setForm({ ...form, emotional_impact: e.target.value })} className="input-pp mt-1" placeholder="Optional — your emotional state, physical impact, or anything else that felt important" />
-          </div>
-
-          <div className="flex items-center gap-2 pt-2">
-            <button type="submit" disabled={busy} className="btn-primary">
-              {busy ? "Saving…" : editingId ? "Save changes" : "Save This Record"}
-            </button>
-            {editingId && <button type="button" onClick={reset} className="btn-ghost">Cancel</button>}
-          </div>
-        </form>
-        </section>
         </div>
-      </div>
       </FocusRegion>
 
       <FocusRegion id="journal-list">
-      <div className="collapse-shell mt-6" data-open={listOpen} inert={!listOpen}>
-        <div className="collapse-inner">
-        <section
-          className="card-pp"
-          style={{ background: "var(--accent-powder)", borderLeft: "4px solid var(--accent-powder-ink)" }}
-        >
-          {list.length === 0 ? (
-            <div className="card-pp">
-              <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-                Nothing here yet — when you're ready, this is a safe place to start.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {list.map((i) => (
-                <IncidentCard
-                  key={i.id}
-                  incident={i}
-                   onConfirm={confirmRecord}
-                  actions={
-                    <>
-                      <button onClick={() => edit(i)} aria-label="Edit" className="rounded-[2px] p-2 hover:bg-black/5"><Pencil size={15} /></button>
-                      <button onClick={() => remove(i.id)} aria-label="Remove" className="rounded-[2px] p-2 hover:bg-black/5"><Trash2 size={15} /></button>
-                    </>
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </section>
+        <div className="collapse-shell mt-6" data-open={listOpen} inert={!listOpen}>
+          <div className="collapse-inner">
+            <section
+              className="card-pp"
+              style={{
+                background: "var(--accent-powder)",
+                borderLeft: "4px solid var(--accent-powder-ink)",
+              }}
+            >
+              {list.length === 0 ? (
+                <div className="card-pp">
+                  <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+                    Nothing here yet — when you're ready, this is a safe place to start.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {list.map((i) => (
+                    <IncidentCard
+                      key={i.id}
+                      incident={i}
+                      onConfirm={confirmRecord}
+                      actions={
+                        <>
+                          <button
+                            onClick={() => edit(i)}
+                            aria-label="Edit"
+                            className="rounded-2xl p-2 hover:bg-black/5"
+                          >
+                            <Pencil size={15} />
+                          </button>
+                          <button
+                            onClick={() => remove(i.id)}
+                            aria-label="Remove"
+                            className="rounded-2xl p-2 hover:bg-black/5"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </>
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
         </div>
-      </div>
       </FocusRegion>
-      <div className="hidden">{typeLabel("other")}{typeColor("other")}</div>
-      <AddFromJournalModal open={journalOpen} onClose={() => setJournalOpen(false)} onSaved={load} />
+      <div className="hidden">
+        {typeLabel("other")}
+        {typeColor("other")}
+      </div>
+      <AddFromJournalModal
+        open={journalOpen}
+        onClose={() => setJournalOpen(false)}
+        onSaved={load}
+      />
       <BulkPastIncidentsModal open={bulkOpen} onClose={() => setBulkOpen(false)} onSaved={load} />
       <ConfirmDialog
         open={!!confirmDelete}

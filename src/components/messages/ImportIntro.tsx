@@ -18,10 +18,10 @@ export function ImportIntro({ participant, notes, onParticipant, onNotes, onPick
       </h2>
 
       <p className="mt-3" style={{ fontSize: 14.5, lineHeight: 1.6, color: "rgba(26,18,36,0.72)" }}>
-        To be straightforward with you: PatternProof cannot open your phone&apos;s Messages app.
-        No app can — iPhone and Android both keep that history closed to other apps. This works
-        only from screenshots you choose to add here. Because of that, it works the same whether
-        the conversation happened on an iPhone or an Android.
+        To be straightforward with you: PatternProof cannot open your phone&apos;s Messages app. No
+        app can — iPhone and Android both keep that history closed to other apps. This works only
+        from screenshots you choose to add here. Because of that, it works the same whether the
+        conversation happened on an iPhone or an Android.
       </p>
 
       <p className="mt-2" style={{ fontSize: 14.5, lineHeight: 1.6, color: "rgba(26,18,36,0.72)" }}>
@@ -42,7 +42,9 @@ export function ImportIntro({ participant, notes, onParticipant, onNotes, onPick
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="label-eyebrow" htmlFor="mi-participant">Who is this conversation with?</label>
+          <label className="label-eyebrow" htmlFor="mi-participant">
+            Who is this conversation with?
+          </label>
           <input
             id="mi-participant"
             className="input-pp mt-1"
@@ -52,7 +54,9 @@ export function ImportIntro({ participant, notes, onParticipant, onNotes, onPick
           />
         </div>
         <div>
-          <label className="label-eyebrow" htmlFor="mi-notes">Anything you want to remember?</label>
+          <label className="label-eyebrow" htmlFor="mi-notes">
+            Anything you want to remember?
+          </label>
           <input
             id="mi-notes"
             className="input-pp mt-1"
@@ -67,12 +71,8 @@ export function ImportIntro({ participant, notes, onParticipant, onNotes, onPick
         type="button"
         onClick={onPick}
         disabled={busy}
-        className="mt-5 inline-flex w-full items-center justify-center gap-2 sm:w-auto"
-        style={{
-          background: "#1A1224", color: "#FAF8F4", borderRadius: 2,
-          padding: "16px 24px", fontWeight: 700, fontSize: 15,
-          minHeight: 52, opacity: busy ? 0.6 : 1,
-        }}
+        className="btn-primary mt-5 inline-flex w-full items-center justify-center gap-2 sm:w-auto"
+        style={{ padding: "16px 24px", fontSize: 15, minHeight: 52, opacity: busy ? 0.6 : 1 }}
       >
         <Camera size={18} /> Add screenshots or a recording
       </button>

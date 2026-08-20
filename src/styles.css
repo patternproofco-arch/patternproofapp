@@ -450,6 +450,49 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
 /* Dividers — carved rule */
 .pp-divider-iridescent, .att-iridescent-divider { height: 3px; border: 0; border-radius: 2px; background: var(--pp-card, #FFFFFF); box-shadow: var(--pp-shadow-in-sm); margin: 24px 0; }
 
+/* ---- Option cards: raised radio row, carved when selected ---- */
+.pp-option {
+  display: flex; gap: 14px; align-items: flex-start; width: 100%; text-align: left;
+  background: var(--pp-card, #FFFFFF); padding: 16px 17px; border-radius: var(--pp-r-lg);
+  box-shadow: var(--pp-shadow-sm); border: none; cursor: pointer;
+  transition: box-shadow 0.17s ease;
+}
+.pp-option + .pp-option { margin-top: 10px; }
+.pp-option:hover { box-shadow: var(--pp-shadow-up); }
+.pp-option[aria-pressed="true"] { box-shadow: var(--pp-shadow-in-sm); }
+.pp-option-radio {
+  width: 20px; height: 20px; border-radius: 50%; flex: none; margin-top: 1px;
+  background: var(--pp-card, #FFFFFF); box-shadow: var(--pp-shadow-in-sm);
+  display: grid; place-items: center;
+}
+.pp-option[aria-pressed="true"] .pp-option-radio::after {
+  content: ""; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--pp-accent); box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+.pp-option-title { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; display: block; color: var(--pp-ink); }
+.pp-option[aria-pressed="true"] .pp-option-title { color: var(--pp-accent); }
+.pp-option-desc { font-size: 12.5px; color: var(--pp-muted); line-height: 1.5; display: block; }
+
+/* ---- Chips: rounded, raised, pressed state carved ---- */
+.pp-chip {
+  padding: 8px 14px; font-size: 12.5px; line-height: 1.3; text-align: left; color: var(--pp-ink);
+  background: var(--pp-card, #FFFFFF); border-radius: var(--pp-r-pill); box-shadow: var(--pp-shadow-xs);
+  border: none; cursor: pointer; transition: box-shadow 0.17s ease;
+}
+.pp-chip:hover { box-shadow: var(--pp-shadow-sm); }
+
+/* ---- Note row: icon + title + description, carved icon well ---- */
+.pp-note {
+  background: var(--pp-card, #FFFFFF); padding: 15px 16px; display: flex; gap: 12px; align-items: flex-start;
+  border-radius: var(--pp-r-lg); box-shadow: var(--pp-shadow-sm);
+}
+.pp-note-icon {
+  width: 32px; height: 32px; padding: 7px; flex: none; border-radius: var(--pp-r-sm);
+  background: var(--pp-card, #FFFFFF); box-shadow: var(--pp-shadow-in-sm); color: var(--pp-accent);
+}
+.pp-note-title { font-size: 12.5px; font-weight: 700; margin-bottom: 4px; display: block; color: var(--pp-ink); }
+.pp-note-desc { font-size: 12px; color: var(--pp-muted); line-height: 1.5; display: block; }
+
 /* Attorney cockpit — flat navy, no glow */
 .att-root.att-cockpit { background: var(--pp-accent-attorney); color: #F4F6FB; }
 .att-root.att-cockpit .att-nav { background: var(--pp-accent-attorney); backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom: 1px solid rgba(255,255,255,0.12); }
