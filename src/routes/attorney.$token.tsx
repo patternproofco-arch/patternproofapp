@@ -74,7 +74,7 @@ function AttorneyView() {
       )}
 
       {bundle.escalation_flags && bundle.escalation_flags.length > 0 && (
-        <section className="card-pp mt-6" style={{ borderLeft: "3px solid var(--primary)" }}>
+        <section className="card-pp mt-6">
           <div className="flex items-center gap-2"><AlertTriangle size={18} style={{ color: "var(--primary)" }} /><h2 className="font-serif text-[20px]">Active concerns</h2></div>
           <ul className="mt-3 space-y-2">
             {bundle.escalation_flags.map((f) => (
@@ -91,7 +91,7 @@ function AttorneyView() {
             {bundle.incidents.map((i) => {
               const linkedEv = bundle.evidence?.filter((e) => e.linked_incident_id === i.id) ?? [];
               return (
-                <article key={i.id} className="card-pp" style={{ borderLeft: "3px solid var(--accent)" }}>
+                <article key={i.id} className="card-pp">
                   <div className="font-serif italic text-[16px]">
                     {new Date(i.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
                     {i.time ? ` · ${i.time.slice(0, 5)}` : ""}
@@ -99,7 +99,7 @@ function AttorneyView() {
                   </div>
                   <div className="mt-1 flex flex-wrap gap-1.5">
                     {i.abuse_types.map((t) => (
-                      <span key={t} className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: "var(--input)", color: "var(--foreground)" }}>{typeLabel(t)}</span>
+                      <span key={t} className="pp-badge">{typeLabel(t)}</span>
                     ))}
                   </div>
                   <p className="mt-2 whitespace-pre-wrap text-[14px] leading-relaxed">{i.description}</p>
@@ -127,7 +127,7 @@ function AttorneyView() {
         </section>
       )}
 
-      <footer className="mt-10 flex items-center gap-2 border-t pt-4 text-[11px]" style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}>
+      <footer className="pp-card mt-10 flex items-center gap-2 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
         <Lock size={12} /> This page contains private records. Access is logged.
       </footer>
     </Frame>
@@ -136,7 +136,7 @@ function AttorneyView() {
 
 function Frame({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
+    <div data-persona="attorney" className="min-h-screen" style={{ background: "var(--background)" }}>
       <div className="mx-auto max-w-4xl px-5 py-10 md:px-8">{children}</div>
     </div>
   );

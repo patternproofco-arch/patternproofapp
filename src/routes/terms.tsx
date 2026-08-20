@@ -16,29 +16,26 @@ export const Route = createFileRoute("/terms")({
 });
 
 function H2({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="font-serif mt-8 mb-3" style={{ fontSize: 22 }}>{children}</h2>
-  );
+  return <h2>{children}</h2>;
 }
 
 function Terms() {
   const updated = "August 2026";
   return (
-    <div style={{ background: "var(--background)", minHeight: "100vh" }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", maxWidth: 1100, margin: "0 auto" }}>
-        <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--muted-foreground)", textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
-          <ArrowLeft size={16} /> Home
-        </Link>
-        <BrandLogo size={34} showTagline={false} />
-      </header>
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "24px 24px 96px" }}>
-        <div style={{ fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700 }}>
-          Terms of Service
-        </div>
-        <h1 className="font-serif mt-2" style={{ fontSize: 40, lineHeight: 1.1 }}>The rules of using PatternProof.</h1>
-        <p className="mt-3 text-[14px]" style={{ color: "var(--muted-foreground)" }}>Last updated: {updated}</p>
+    <div data-persona="survivor" className="pp-legal-shell">
+      <div className="pp-legal-sheet">
+        <header className="pp-legal-nav justify-between">
+          <Link to="/" className="pp-legal-link">
+            <ArrowLeft size={16} /> Home
+          </Link>
+          <BrandLogo size={34} showTagline={false} />
+        </header>
+        <main>
+          <p className="pp-legal-kicker">Terms of Service</p>
+          <h1 className="pp-legal-title">The rules of using PatternProof.</h1>
+          <p className="pp-legal-meta">Last updated: {updated}</p>
 
-        <section style={{ fontSize: 15, lineHeight: 1.7, color: "var(--foreground)" }}>
+          <section className="pp-legal-prose">
           <H2>1. Who we are</H2>
           <p>PatternProof is a sole proprietorship operated by Grace Burns, doing business as PatternProof ("PatternProof," "we," "us"). PatternProof is not a separate legal entity from Grace Burns individually. By creating an account or using the Service, you agree to these Terms, including the limitation of liability and indemnification provisions below.</p>
 
@@ -81,9 +78,10 @@ function Terms() {
           <p>These Terms are governed by the laws of the State of New Jersey, without regard to conflict-of-law rules.</p>
 
           <H2>13. Contact</H2>
-          <p>Questions about these Terms? Email <a href="mailto:gracieburns200@gmail.com" style={{ color: "var(--accent)" }}>gracieburns200@gmail.com</a>.</p>
-        </section>
-      </main>
+          <p>Questions about these Terms? Email <a href="mailto:gracieburns200@gmail.com" className="pp-legal-link">gracieburns200@gmail.com</a>.</p>
+          </section>
+        </main>
+      </div>
     </div>
   );
 }

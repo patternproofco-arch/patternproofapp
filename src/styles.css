@@ -657,3 +657,76 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; }
 }
+
+/* ---- Legal documents: readable on a calm survivor ground ---- */
+.pp-legal-shell {
+  min-height: 100vh;
+  background: var(--pp-ground);
+  color: var(--pp-ink);
+  padding: 32px 20px 80px;
+}
+.pp-legal-sheet {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 44px);
+  border-radius: var(--pp-r-lg);
+  background: var(--pp-card);
+  box-shadow: var(--pp-shadow-sm);
+}
+.pp-legal-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.pp-legal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--pp-link, var(--pp-accent));
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.pp-legal-link:hover,
+.pp-legal-link:focus-visible { text-decoration: underline; }
+.pp-legal-kicker {
+  margin: 0 0 12px;
+  color: var(--pp-accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.pp-legal-title {
+  margin: 0;
+  color: var(--pp-ink);
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 2.7rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.pp-legal-meta { margin: 12px 0 0; color: var(--pp-muted); font-size: 13px; }
+.pp-legal-prose { max-width: 65ch; color: var(--pp-ink); font-size: 15px; line-height: 1.72; }
+.pp-legal-prose p { margin: 0 0 16px; }
+.pp-legal-prose ul { margin: 0 0 20px; padding-left: 22px; }
+.pp-legal-prose li { margin-bottom: 6px; }
+.pp-legal-prose strong { color: var(--pp-ink); font-weight: 700; }
+.pp-legal-prose h2 {
+  margin: 38px 0 14px;
+  color: var(--pp-ink);
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.pp-legal-prose h3 { margin: 22px 0 8px; color: var(--pp-accent); font-size: 15px; font-weight: 700; }
+.pp-legal-signoff { margin-top: 36px; color: var(--pp-accent); font-family: var(--font-serif); font-style: italic; text-align: center; }
+
+@media (max-width: 640px) {
+  .pp-legal-shell { padding: 18px 14px 52px; }
+  .pp-legal-sheet { padding: 24px 20px; }
+}
