@@ -4,10 +4,7 @@ import { useEffect, useState } from "react";
 import { Lock, ShieldCheck, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
-import {
-  completeAttorneyOnboarding,
-  getAttorneyProfile,
-} from "@/lib/attorney-portal.functions";
+import { completeAttorneyOnboarding, getAttorneyProfile } from "@/lib/attorney-portal.functions";
 
 export const Route = createFileRoute("/_attorney/setup")({
   component: OnboardingPage,
@@ -99,9 +96,9 @@ function OnboardingPage() {
         Set up your attorney profile.
       </h1>
       <p style={{ color: "var(--att-text-2)", fontSize: 15, marginBottom: 24 }}>
-        We've carried over what you already entered — confirm your role and the
-        confidentiality acknowledgement to open your client case files. Everything here stays
-        on your attorney profile; survivors only see your name and firm.
+        We've carried over what you already entered — confirm your role and the confidentiality
+        acknowledgement to open your client case files. Everything here stays on your attorney
+        profile; survivors only see your name and firm.
       </p>
 
       <form onSubmit={onSubmit} className="att-card" style={{ display: "grid", gap: 18 }}>
@@ -177,9 +174,7 @@ function OnboardingPage() {
                     padding: 14,
                     cursor: "pointer",
                     textAlign: "left",
-                    border: active
-                      ? "2px solid var(--att-navy)"
-                      : "1px solid var(--att-border)",
+                    border: active ? "2px solid var(--att-navy)" : "1px solid var(--att-border)",
                     background: active ? "var(--att-surface-2)" : "var(--att-surface)",
                   }}
                 >
@@ -200,8 +195,8 @@ function OnboardingPage() {
             alignItems: "flex-start",
             padding: 14,
             background: "var(--att-surface-2)",
-            borderRadius: 2,
-            border: "1px solid var(--att-border)",
+            borderRadius: 16,
+            boxShadow: "var(--pp-shadow-sm)",
             cursor: "pointer",
             fontSize: 13,
             lineHeight: 1.55,
@@ -222,9 +217,9 @@ function OnboardingPage() {
                 marginRight: 4,
               }}
             />
-            I acknowledge that survivor case files are confidential and protected. I will
-            access only the case files I am authorized to view, treat all materials as
-            privileged, and follow my jurisdiction's professional-responsibility rules.
+            I acknowledge that survivor case files are confidential and protected. I will access
+            only the case files I am authorized to view, treat all materials as privileged, and
+            follow my jurisdiction's professional-responsibility rules.
           </span>
         </label>
 
@@ -249,7 +244,9 @@ function OnboardingPage() {
             <Lock size={12} /> Encrypted in transit · provenance & integrity logged
           </div>
           <button type="submit" disabled={saving} className="att-btn-primary">
-            {saving ? "Saving…" : (
+            {saving ? (
+              "Saving…"
+            ) : (
               <>
                 Continue to pricing <ArrowRight size={14} />
               </>

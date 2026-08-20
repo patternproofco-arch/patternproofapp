@@ -153,7 +153,7 @@ function CaseloadPage() {
         All clients
       </div>
 
-      <div style={{ border: "1px solid var(--att-border)", borderRadius: 2, overflow: "hidden" }}>
+      <div style={{ boxShadow: "var(--pp-shadow-sm)", borderRadius: 16, overflow: "hidden" }}>
         <div
           style={{
             display: "grid",
@@ -242,8 +242,8 @@ function Kpi({
   return (
     <div
       style={{
-        border: "1px solid var(--att-border)",
-        borderRadius: 2,
+        boxShadow: "var(--pp-shadow-sm)",
+        borderRadius: 16,
         padding: 14,
         background: tone === "warn" ? "rgba(231, 123, 86, 0.06)" : "transparent",
       }}
@@ -276,7 +276,7 @@ function Chip({ value, warn }: { value: number | string; warn?: boolean }) {
         justifyContent: "center",
         minWidth: 32,
         padding: "2px 8px",
-        borderRadius: 2,
+        borderRadius: 16,
         fontSize: 12,
         fontWeight: 600,
         background: warn ? "rgba(231, 123, 86, 0.15)" : "transparent",

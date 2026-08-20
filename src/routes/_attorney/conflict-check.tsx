@@ -39,12 +39,15 @@ function ConflictCheckPage() {
         <div className="att-eyebrow">Practice · Screening</div>
         <h1 className="att-page-title">Conflict check</h1>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 6, lineHeight: 1.6 }}>
-          Compare a proposed opposing party against the opposing parties recorded in your own current caseload.
+          Compare a proposed opposing party against the opposing parties recorded in your own
+          current caseload.
         </p>
       </div>
 
       <form onSubmit={onSubmit} className="att-card" style={{ display: "grid", gap: 10 }}>
-        <label className="att-eyebrow" htmlFor="opposing-party">Proposed opposing party name</label>
+        <label className="att-eyebrow" htmlFor="opposing-party">
+          Proposed opposing party name
+        </label>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <input
             id="opposing-party"
@@ -54,7 +57,11 @@ function ConflictCheckPage() {
             className="att-input"
             style={{ flex: "1 1 320px", minWidth: 220 }}
           />
-          <button type="submit" className="att-btn-primary" disabled={busy || name.trim().length < 2}>
+          <button
+            type="submit"
+            className="att-btn-primary"
+            disabled={busy || name.trim().length < 2}
+          >
             <Search size={13} style={{ marginRight: 6 }} />
             {busy ? "Checking…" : "Check my caseload"}
           </button>
@@ -71,15 +78,20 @@ function ConflictCheckPage() {
           alignItems: "flex-start",
         }}
       >
-        <AlertTriangle size={18} style={{ color: "var(--att-navy)", marginTop: 2, flexShrink: 0 }} />
+        <AlertTriangle
+          size={18}
+          style={{ color: "var(--att-navy)", marginTop: 2, flexShrink: 0 }}
+        />
         <p style={{ fontSize: 13, color: "var(--att-text-2)", lineHeight: 1.6, margin: 0 }}>
-          This is a screening aid based on name similarity across your own current clients. It is not a legal
-          conflicts-of-interest determination — confirm independently before proceeding.
+          This is a screening aid based on name similarity across your own current clients. It is
+          not a legal conflicts-of-interest determination — confirm independently before proceeding.
         </p>
       </div>
 
       {error && (
-        <div className="att-card" style={{ fontSize: 13, color: "var(--att-text-2)" }}>{error}</div>
+        <div className="att-card" style={{ fontSize: 13, color: "var(--att-text-2)" }}>
+          {error}
+        </div>
       )}
 
       {result && (
@@ -107,7 +119,9 @@ function ConflictCheckPage() {
                     <td className="att-mono">{m.case_ref}</td>
                     <td>{m.other_party ?? "—"}</td>
                     <td style={{ color: "var(--att-text-2)", fontSize: 12 }}>
-                      {m.matched_on === "other_party" ? "Opposing party" : `Case name${m.case_name ? ` · ${m.case_name}` : ""}`}
+                      {m.matched_on === "other_party"
+                        ? "Opposing party"
+                        : `Case name${m.case_name ? ` · ${m.case_name}` : ""}`}
                     </td>
                     <td>
                       <span
@@ -115,7 +129,7 @@ function ConflictCheckPage() {
                         style={{
                           fontSize: 11,
                           padding: "2px 8px",
-                          border: "1px solid var(--att-border-strong)",
+                          boxShadow: "var(--pp-shadow-sm)",
                           color: "var(--att-navy)",
                         }}
                       >

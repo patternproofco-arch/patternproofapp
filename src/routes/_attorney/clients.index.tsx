@@ -646,7 +646,7 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
             background: "var(--pp-card)",
             color: "var(--att-text-2)",
             padding: 8,
-            borderRadius: 2,
+            borderRadius: 16,
             fontSize: 12,
           }}
         >
@@ -657,7 +657,7 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
       )}
 
       {previewRows.length > 0 && (
-        <div style={{ overflowX: "auto", border: "1px solid var(--att-border)", borderRadius: 2 }}>
+        <div style={{ overflowX: "auto", boxShadow: "var(--pp-shadow-sm)", borderRadius: 16 }}>
           <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
             <thead style={{ background: "var(--att-surface-2)" }}>
               <tr>

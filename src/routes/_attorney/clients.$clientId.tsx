@@ -895,7 +895,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
                   padding: "8px 10px",
                   background: "var(--pp-card)",
                   borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "var(--att-navy)" : "#6E6579"}`,
-                  borderRadius: 2,
+                  borderRadius: 16,
                 }}
               >
                 <span>{f.details ?? f.flag_type ?? "Escalation flagged"}</span>
@@ -991,8 +991,8 @@ function CaseNotesCard({ clientId }: { clientId: string }) {
           padding: 12,
           fontSize: 13,
           lineHeight: 1.6,
-          border: "1px solid var(--att-border-strong)",
-          borderRadius: 2,
+          boxShadow: "var(--pp-shadow-sm)",
+          borderRadius: 16,
           background: "var(--pp-card)",
           fontFamily: "inherit",
           resize: "vertical",
@@ -1116,8 +1116,8 @@ function TeamCard({ clientId }: { clientId: string }) {
             gap: 10,
             padding: 12,
             background: "var(--att-surface-2)",
-            border: "1px solid var(--att-border)",
-            borderRadius: 2,
+            boxShadow: "var(--pp-shadow-sm)",
+            borderRadius: 16,
             marginBottom: 12,
           }}
         >
@@ -1185,8 +1185,8 @@ function TeamCard({ clientId }: { clientId: string }) {
                   gap: 12,
                   alignItems: "center",
                   padding: 10,
-                  border: "1px solid var(--att-border)",
-                  borderRadius: 2,
+                  boxShadow: "var(--pp-shadow-sm)",
+                  borderRadius: 16,
                 }}
               >
                 <div style={{ minWidth: 0 }}>
@@ -1431,8 +1431,8 @@ function FirmShareCard({ clientId }: { clientId: string }) {
                 gap: 12,
                 alignItems: "center",
                 padding: 10,
-                border: "1px solid var(--att-border)",
-                borderRadius: 2,
+                boxShadow: "var(--pp-shadow-sm)",
+                borderRadius: 16,
               }}
             >
               <div style={{ minWidth: 0 }}>
@@ -1509,8 +1509,8 @@ function IntegrityStat({
       style={{
         padding: 10,
         background: "#fff",
-        border: "1px solid var(--att-border)",
-        borderRadius: 2,
+        boxShadow: "var(--pp-shadow-sm)",
+        borderRadius: 16,
       }}
     >
       <div className="att-eyebrow">{label}</div>
@@ -1675,7 +1675,7 @@ function TimelineTab({
                       borderLeft: "3px solid var(--att-navy)",
                       padding: "10px 14px",
                       background: "var(--att-surface-2)",
-                      borderRadius: 2,
+                      borderRadius: 16,
                     }}
                   >
                     <div
@@ -1924,7 +1924,7 @@ function ReviewStatusBadge({ status }: { status: string }) {
       style={{
         fontSize: 10,
         padding: "2px 7px",
-        borderRadius: 2,
+        borderRadius: 16,
         background: m.bg,
         color: m.fg,
         fontWeight: 600,
@@ -2198,7 +2198,7 @@ function GapsTab({ data }: { data: CaseData }) {
                         style={{
                           padding: "12px 14px",
                           background: "var(--att-surface-2)",
-                          borderRadius: 2,
+                          borderRadius: 16,
                           borderLeft: `3px solid ${sevColor[sev]}`,
                         }}
                       >
@@ -2348,7 +2348,7 @@ function UnlinkedIncidentsSection({ data, clientId }: { data: CaseData; clientId
                 style={{
                   padding: "10px 12px",
                   background: "var(--att-surface-2)",
-                  borderRadius: 2,
+                  borderRadius: 16,
                   borderLeft: "3px solid #6E6579",
                 }}
               >
@@ -2613,8 +2613,8 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
             gap: 8,
             padding: "10px 12px",
             background: "var(--att-surface-2)",
-            border: "1px solid var(--att-border)",
-            borderRadius: 2,
+            boxShadow: "var(--pp-shadow-sm)",
+            borderRadius: 16,
             marginBottom: 14,
             flexWrap: "wrap",
           }}
@@ -2727,7 +2727,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
                       padding: 8,
                       background: "var(--att-surface-2)",
                       borderLeft: "2px solid var(--att-navy)",
-                      borderRadius: 2,
+                      borderRadius: 16,
                     }}
                   >
                     <span className="att-eyebrow" style={{ display: "block", marginBottom: 2 }}>
@@ -2884,7 +2884,7 @@ function DepoTab({
                 style={{
                   background: "var(--pp-card)",
                   border: "1px solid #6E6579",
-                  borderRadius: 2,
+                  borderRadius: 16,
                   padding: "8px 12px",
                   marginBottom: 10,
                   fontSize: 12,
@@ -2909,7 +2909,7 @@ function DepoTab({
               style={{
                 background: "var(--att-surface-2)",
                 border: "1px dashed var(--att-border)",
-                borderRadius: 2,
+                borderRadius: 16,
                 padding: 12,
                 fontSize: 12,
                 color: "var(--att-text-2)",
@@ -3056,9 +3056,9 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
         gap: 10,
         alignItems: "flex-start",
         padding: 10,
-        borderRadius: 2,
+        borderRadius: 16,
         background: include[k] ? "var(--att-surface-2)" : "transparent",
-        border: "1px solid var(--att-border)",
+        boxShadow: "var(--pp-shadow-sm)",
       }}
     >
       <input
@@ -3938,7 +3938,7 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
             padding: 14,
             background: "var(--att-surface-2)",
             borderLeft: "3px solid var(--att-navy)",
-            borderRadius: 2,
+            borderRadius: 16,
           }}
         >
           <div className="att-eyebrow" style={{ marginBottom: 6 }}>
@@ -3963,7 +3963,7 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
                   padding: 10,
                   borderLeft: `3px solid ${sevColor(f.severity)}`,
                   background: "var(--att-surface-2)",
-                  borderRadius: 2,
+                  borderRadius: 16,
                 }}
               >
                 <div
@@ -4023,8 +4023,8 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
                 style={{
                   padding: "8px 10px",
                   background: "#fff",
-                  border: "1px solid var(--att-border)",
-                  borderRadius: 2,
+                  boxShadow: "var(--pp-shadow-sm)",
+                  borderRadius: 16,
                 }}
               >
                 <div
@@ -4159,7 +4159,7 @@ function MessagesTab({ linkId }: { linkId: string }) {
                 style={{
                   maxWidth: "78%",
                   padding: "9px 12px",
-                  borderRadius: 2,
+                  borderRadius: 16,
                   background: mine ? "var(--att-navy)" : "var(--att-surface-2)",
                   color: mine ? "#fff" : "var(--att-text)",
                   border: mine ? "none" : "1px solid var(--att-border)",
@@ -4464,8 +4464,8 @@ function TimeTab({ clientId }: { clientId: string }) {
                 gridTemplateColumns: "110px 90px 90px 1fr auto",
                 gap: 8,
                 padding: "8px 10px",
-                border: "1px solid var(--att-border)",
-                borderRadius: 2,
+                boxShadow: "var(--pp-shadow-sm)",
+                borderRadius: 16,
                 alignItems: "center",
                 background: "#fff",
               }}
@@ -4721,8 +4721,8 @@ function MissingEvidenceChecklistSection({ clientId }: { clientId: string }) {
           style={{
             flex: 1,
             padding: "6px 10px",
-            border: "1px solid var(--att-border)",
-            borderRadius: 2,
+            boxShadow: "var(--pp-shadow-sm)",
+            borderRadius: 16,
             fontSize: 13,
           }}
         />

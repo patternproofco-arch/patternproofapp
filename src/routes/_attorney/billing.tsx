@@ -184,7 +184,7 @@ function BillingPage() {
                 className="att-card"
                 style={{
                   position: "relative",
-                  border: "1px solid var(--att-border)",
+                  boxShadow: "var(--pp-shadow-sm)",
                   borderLeft:
                     isCurrent || t.recommended
                       ? "2px solid var(--att-navy)"
@@ -319,9 +319,9 @@ function BillingPage() {
             style={{
               width: 44,
               height: 44,
-              borderRadius: 2,
+              borderRadius: 16,
               background: "var(--att-surface-2)",
-              border: "1px solid var(--att-border)",
+              boxShadow: "var(--pp-shadow-sm)",
               display: "grid",
               placeItems: "center",
               color: "var(--att-navy)",
@@ -433,9 +433,9 @@ function ClioPanel() {
             style={{
               width: 44,
               height: 44,
-              borderRadius: 2,
+              borderRadius: 16,
               background: "var(--att-surface-2)",
-              border: "1px solid var(--att-border)",
+              boxShadow: "var(--pp-shadow-sm)",
               display: "grid",
               placeItems: "center",
               color: "var(--att-navy)",
@@ -670,7 +670,7 @@ function ClioMattersBrowser() {
         <div
           style={{
             marginTop: 14,
-            border: "1px solid var(--att-border)",
+            boxShadow: "var(--pp-shadow-sm)",
             background: "var(--att-surface-2)",
             padding: 14,
           }}
