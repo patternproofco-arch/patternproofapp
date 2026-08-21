@@ -3372,6 +3372,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_terms_acceptance: {
+        Row: {
+          created_at: string
+          terms_accepted_at: string
+          terms_version: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          terms_accepted_at?: string
+          terms_version: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          terms_accepted_at?: string
+          terms_version?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_notes: {
         Row: {
           audio_url: string
