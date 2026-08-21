@@ -59,7 +59,7 @@ function OrgPortal() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      navigate({ to: "/login", search: { redirect: "/org-portal" }, replace: true });
+      navigate({ to: "/signin", search: { redirect: "/org-portal" }, replace: true });
       return;
     }
     load();
@@ -147,13 +147,13 @@ function OrgPortal() {
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
             {stats.codes.map((c) => {
-              const url = `https://pattern-proof.tech/login?ref=${c.code}`;
+              const url = `https://pattern-proof.tech/signin?ref=${c.code}`;
               return (
                 <div
                   key={c.code}
                   style={{
                     boxShadow: "var(--pp-shadow-sm)",
-                    borderRadius: 2,
+                    borderRadius: 18,
                     padding: 16,
                     background: "var(--pp-card)",
                     display: "grid",
@@ -166,7 +166,7 @@ function OrgPortal() {
                         fontSize: 13,
                         background: "#F5F5F0",
                         padding: "6px 10px",
-                        borderRadius: 2,
+                        borderRadius: 18,
                         overflowWrap: "anywhere",
                       }}
                     >
@@ -263,7 +263,7 @@ const btnStyle: React.CSSProperties = {
   alignItems: "center",
   gap: 6,
   padding: "8px 12px",
-  borderRadius: 2,
+  borderRadius: 18,
   boxShadow: "var(--pp-shadow-sm)",
   background: "var(--pp-card)",
   cursor: "pointer",
@@ -301,7 +301,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
           <button
             onClick={async () => {
               await supabase.auth.signOut();
-              navigate({ to: "/login" });
+              navigate({ to: "/signin" });
             }}
             style={{ ...btnStyle, fontSize: 12 }}
           >
@@ -319,7 +319,7 @@ function Stat({ label, value }: { label: string; value: number }) {
     <div
       style={{
         boxShadow: "var(--pp-shadow-sm)",
-        borderRadius: 2,
+        borderRadius: 18,
         padding: 16,
         background: "var(--pp-card)",
       }}

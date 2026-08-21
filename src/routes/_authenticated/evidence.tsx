@@ -406,7 +406,7 @@ function EvidencePage() {
         className="mt-5 flex items-start gap-3 rounded-2xl p-4"
         style={{
           background: "var(--pp-card)",
-          border: "1px solid rgba(26,18,36,0.14)",
+          boxShadow: "var(--pp-shadow-sm)",
           color: "var(--foreground)",
           textDecoration: "none",
         }}
@@ -415,7 +415,7 @@ function EvidencePage() {
           style={{
             width: 38,
             height: 38,
-            borderRadius: 2,
+            borderRadius: 18,
             display: "grid",
             placeItems: "center",
             flexShrink: 0,
@@ -450,7 +450,7 @@ function EvidencePage() {
           style={{
             width: 38,
             height: 38,
-            borderRadius: 2,
+            borderRadius: 18,
             background: "transparent",
             display: "grid",
             placeItems: "center",

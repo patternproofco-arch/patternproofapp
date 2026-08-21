@@ -47,7 +47,7 @@ export const Route = createFileRoute("/")({
               name: "Survivor — Free",
               price: "0",
               priceCurrency: "USD",
-              url: "https://pattern-proof.tech/login",
+              url: "https://pattern-proof.tech/signin",
               availability: "https://schema.org/InStock",
             },
             {
@@ -201,7 +201,7 @@ function Index() {
               icon={FileText}
               label="Survivor"
               body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
-              to="/login"
+              to="/signin"
               cta="Start documenting →"
             />
             <PathCard

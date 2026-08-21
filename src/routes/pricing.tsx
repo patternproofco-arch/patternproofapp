@@ -128,7 +128,7 @@ function PricingPage() {
               alignItems: "center",
               gap: 8,
               padding: "6px 14px",
-              borderRadius: 2,
+              borderRadius: 18,
               background: "rgba(255,255,255,0.6)",
               border: "1px solid rgba(20,23,31,0.08)",
               backdropFilter: "none",
@@ -145,7 +145,7 @@ function PricingPage() {
               style={{
                 width: 6,
                 height: 6,
-                borderRadius: 2,
+                borderRadius: 18,
                 background: "#33268C",
               }}
             />
@@ -296,7 +296,7 @@ function TierCard({ tier }: { tier: Tier }) {
       style={{
         background: cardBg,
         border,
-        borderRadius: 2,
+        borderRadius: 18,
         padding: 36,
         boxShadow: "var(--pp-shadow-sm)",
         display: "flex",
@@ -314,7 +314,7 @@ function TierCard({ tier }: { tier: Tier }) {
             background: "#022063",
             color: "#FAF8F4",
             padding: "6px 16px",
-            borderRadius: 2,
+            borderRadius: 18,
             fontSize: 11,
             fontWeight: 700,
             letterSpacing: "0.12em",

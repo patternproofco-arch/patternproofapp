@@ -12,9 +12,15 @@ type OAuthDetails = {
   redirect_to?: string | null;
 };
 type OAuthApi = {
-  getAuthorizationDetails: (id: string) => Promise<{ data: OAuthDetails | null; error: { message: string } | null }>;
-  approveAuthorization: (id: string) => Promise<{ data: OAuthDetails | null; error: { message: string } | null }>;
-  denyAuthorization: (id: string) => Promise<{ data: OAuthDetails | null; error: { message: string } | null }>;
+  getAuthorizationDetails: (
+    id: string,
+  ) => Promise<{ data: OAuthDetails | null; error: { message: string } | null }>;
+  approveAuthorization: (
+    id: string,
+  ) => Promise<{ data: OAuthDetails | null; error: { message: string } | null }>;
+  denyAuthorization: (
+    id: string,
+  ) => Promise<{ data: OAuthDetails | null; error: { message: string } | null }>;
 };
 const oauth = (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
 
@@ -28,7 +34,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
     const { data } = await supabase.auth.getSession();
     const next = location.pathname + location.searchStr;
     if (!data.session) {
-      throw redirect({ to: "/login", search: { redirect: next } as never });
+      throw redirect({ to: "/signin", search: { redirect: next } as never });
     }
   },
   loader: async ({ location }) => {
@@ -68,9 +74,17 @@ function ConsentPage() {
     const { data, error } = approve
       ? await oauth.approveAuthorization(authorization_id)
       : await oauth.denyAuthorization(authorization_id);
-    if (error) { setBusy(false); setErrorMsg(error.message); return; }
+    if (error) {
+      setBusy(false);
+      setErrorMsg(error.message);
+      return;
+    }
     const target = data?.redirect_url ?? data?.redirect_to;
-    if (!target) { setBusy(false); setErrorMsg("No redirect returned by the authorization server."); return; }
+    if (!target) {
+      setBusy(false);
+      setErrorMsg("No redirect returned by the authorization server.");
+      return;
+    }
     window.location.href = target;
   }
 
@@ -83,14 +97,18 @@ function ConsentPage() {
             Connect <span className="italic">{clientName}</span> to PatternProof
           </h1>
           <p className="text-sm mt-2" style={{ color: "var(--muted-foreground)" }}>
-            This lets {clientName} act as you in PatternProof — reading and writing only your
-            own private case data.
+            This lets {clientName} act as you in PatternProof — reading and writing only your own
+            private case data.
           </p>
         </div>
 
-        <div className="rounded-xl p-4 mb-4 text-sm space-y-2"
-             style={{ background: "var(--muted, #DEB896)", color: "#2A1A10" }}>
-          <div><strong>What this app will be able to do:</strong></div>
+        <div
+          className="rounded-xl p-4 mb-4 text-sm space-y-2"
+          style={{ background: "var(--muted, #DEB896)", color: "#2A1A10" }}
+        >
+          <div>
+            <strong>What this app will be able to do:</strong>
+          </div>
           <ul className="list-disc pl-5 space-y-1">
             <li>See your documented incidents</li>
             <li>See your evidence items</li>
@@ -115,15 +133,13 @@ function ConsentPage() {
         </p>
 
         {errorMsg && (
-          <p role="alert" className="text-sm mb-3" style={{ color: "#9B2C3E" }}>{errorMsg}</p>
+          <p role="alert" className="text-sm mb-3" style={{ color: "#9B2C3E" }}>
+            {errorMsg}
+          </p>
         )}
 
         <div className="flex gap-2">
-          <button
-            className="btn-primary flex-1"
-            disabled={busy}
-            onClick={() => decide(true)}
-          >
+          <button className="btn-primary flex-1" disabled={busy} onClick={() => decide(true)}>
             {busy ? "One moment…" : "Approve"}
           </button>
           <button

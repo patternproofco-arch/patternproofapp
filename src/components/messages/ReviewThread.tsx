@@ -34,12 +34,18 @@ export function ReviewThread({ userId, threads, initialThreadId }: Props) {
   const threadIds = useMemo(() => threads.map((t) => t.id), [threads]);
 
   const load = useCallback(async () => {
-    if (threadIds.length === 0) { setRows([]); setLoading(false); return; }
+    if (threadIds.length === 0) {
+      setRows([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const [msgRes, docRes] = await Promise.all([
       supabase
         .from("thread_messages")
-        .select("id,thread_id,body,sender_side,sent_on,sent_at_time,date_confidence,has_attachment_marker,attachment_marker_text,field_provenance,source_document_ids,source_document_id,ocr_confidence,position")
+        .select(
+          "id,thread_id,body,sender_side,sent_on,sent_at_time,date_confidence,has_attachment_marker,attachment_marker_text,field_provenance,source_document_ids,source_document_id,ocr_confidence,position",
+        )
         .eq("user_id", userId)
         .in("thread_id", threadIds)
         .order("sent_on", { ascending: true, nullsFirst: false })
@@ -67,20 +73,38 @@ export function ReviewThread({ userId, threads, initialThreadId }: Props) {
     }
 
     const map: Record<string, string> = {};
-    await Promise.all(((docRes.data as Array<{ id: string; storage_path: string }> | null) ?? []).map(async (d) => {
-      const { data: signed } = await supabase.storage.from("evidence-files").createSignedUrl(d.storage_path, 3600);
-      if (signed?.signedUrl) map[d.id] = signed.signedUrl;
-    }));
+    await Promise.all(
+      ((docRes.data as Array<{ id: string; storage_path: string }> | null) ?? []).map(async (d) => {
+        const { data: signed } = await supabase.storage
+          .from("evidence-files")
+          .createSignedUrl(d.storage_path, 3600);
+        if (signed?.signedUrl) map[d.id] = signed.signedUrl;
+      }),
+    );
     setThumbs(map);
     setLoading(false);
   }, [threadIds, userId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const onCorrect = async (id: string, field: "body" | "sender_side" | "sent_on" | "sent_at_time", value: string | null) => {
-    setRows((prev) => prev.map((r) => (r.id === id
-      ? { ...r, [field]: value, field_provenance: { ...(r.field_provenance ?? {}), [field]: "corrected" } }
-      : r)));
+  const onCorrect = async (
+    id: string,
+    field: "body" | "sender_side" | "sent_on" | "sent_at_time",
+    value: string | null,
+  ) => {
+    setRows((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? {
+              ...r,
+              [field]: value,
+              field_provenance: { ...(r.field_provenance ?? {}), [field]: "corrected" },
+            }
+          : r,
+      ),
+    );
     try {
       await correct({ data: { messageId: id, field, value } });
       const { data: corr } = await supabase
@@ -89,7 +113,10 @@ export function ReviewThread({ userId, threads, initialThreadId }: Props) {
         .eq("user_id", userId)
         .eq("message_id", id)
         .order("created_at", { ascending: true });
-      setCorrections((prev) => [...prev.filter((c) => c.message_id !== id), ...((corr as Correction[] | null) ?? [])]);
+      setCorrections((prev) => [
+        ...prev.filter((c) => c.message_id !== id),
+        ...((corr as Correction[] | null) ?? []),
+      ]);
     } catch {
       toast("We couldn't save that change. Try again in a moment.");
       load();
@@ -109,22 +136,32 @@ export function ReviewThread({ userId, threads, initialThreadId }: Props) {
 
   const contacts = threads.map((t) => ({
     id: t.id,
-    label: t.conversation_participant || `Import from ${new Date(t.created_at).toLocaleDateString()}`,
+    label:
+      t.conversation_participant || `Import from ${new Date(t.created_at).toLocaleDateString()}`,
   }));
 
   return (
     <div className="space-y-3">
       <ThreadFilters
-        search={search} onSearch={setSearch}
-        from={from} to={to} onFrom={setFrom} onTo={setTo}
-        contacts={contacts} contactId={contactId} onContact={setContactId}
+        search={search}
+        onSearch={setSearch}
+        from={from}
+        to={to}
+        onFrom={setFrom}
+        onTo={setTo}
+        contacts={contacts}
+        contactId={contactId}
+        onContact={setContactId}
         count={filtered.length}
       />
 
       {loading ? (
         <div className="space-y-2">
           {[0, 1, 2].map((i) => (
-            <div key={i} style={{ height: 96, background: "rgba(26,18,36,0.05)", borderRadius: 2 }} />
+            <div
+              key={i}
+              style={{ height: 96, background: "rgba(26,18,36,0.05)", borderRadius: 18 }}
+            />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -141,7 +178,10 @@ export function ReviewThread({ userId, threads, initialThreadId }: Props) {
             <MessageRow
               key={m.id}
               message={m}
-              thumbUrls={(m.source_document_ids?.length ? m.source_document_ids : [m.source_document_id])
+              thumbUrls={(m.source_document_ids?.length
+                ? m.source_document_ids
+                : [m.source_document_id]
+              )
                 .filter((v): v is string => !!v)
                 .map((id) => thumbs[id])
                 .filter((v): v is string => !!v)}

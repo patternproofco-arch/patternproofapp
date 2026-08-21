@@ -115,7 +115,7 @@ export function Callout({ children }: { children: ReactNode }) {
       style={{
         background: "rgba(158,216,208,0.18)",
         border: "1px solid rgba(158,216,208,0.55)",
-        borderRadius: 2,
+        borderRadius: 18,
         padding: "12px 14px",
         fontSize: 14,
         color: "#2A2540",

@@ -81,7 +81,7 @@ function SurvivorFeedbackPage() {
               alignItems: "center",
               gap: 10,
               padding: "8px 14px",
-              borderRadius: 2,
+              borderRadius: 18,
               background: "rgba(127,161,137,0.20)",
               color: "#0F6E56",
               fontWeight: 700,
@@ -274,7 +274,7 @@ const cardStyle: React.CSSProperties = {
   maxWidth: 640,
   margin: "0 auto",
   background: "#FAF8F4",
-  borderRadius: 2,
+  borderRadius: 18,
   padding: "36px 32px",
   boxShadow: "var(--pp-shadow-sm)",
   border: "1px solid rgba(255,255,255,0.4)",
@@ -306,7 +306,7 @@ const eyebrow: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "12px 14px",
-  borderRadius: 2,
+  borderRadius: 18,
   border: "1px solid rgba(26,18,36,0.25)",
   background: "#FAF8F4",
   color: "#1A1224",
@@ -316,7 +316,7 @@ const inputStyle: React.CSSProperties = {
 
 const ctaBtn: React.CSSProperties = {
   padding: "14px 28px",
-  borderRadius: 2,
+  borderRadius: 18,
   background: "#4132B4",
   color: "#FFFFFF",
   fontWeight: 700,
@@ -329,7 +329,7 @@ const ctaBtn: React.CSSProperties = {
 function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
-    borderRadius: 2,
+    borderRadius: 18,
     border: active ? "1px solid #4132B4" : "1px solid rgba(26,18,36,0.25)",
     background: active ? "#4132B4" : "#FAF8F4",
     color: active ? "#FFFFFF" : "#1A1224",

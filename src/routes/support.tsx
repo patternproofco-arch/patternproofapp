@@ -260,7 +260,7 @@ const bodyText = { fontSize: 14, lineHeight: 1.65, color: "#3A3849", margin: "0 
 const safetyNote = {
   background: "rgba(122,31,61,0.07)",
   border: "1px solid rgba(122,31,61,0.22)",
-  borderRadius: 2,
+  borderRadius: 18,
   padding: "12px 14px",
   fontSize: 13.5,
   lineHeight: 1.6,
@@ -271,7 +271,7 @@ const safetyNote = {
 const card = {
   background: "var(--pp-card)",
   border: "1px solid rgba(26,18,36,0.10)",
-  borderRadius: 2,
+  borderRadius: 18,
   padding: 20,
   clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)",
 } as const;
@@ -295,7 +295,7 @@ const input = {
   color: "#1A1224",
   background: "#FAF8F4",
   border: "1px solid rgba(26,18,36,0.16)",
-  borderRadius: 2,
+  borderRadius: 18,
 } as const;
 
 const errorText = {
@@ -309,7 +309,7 @@ const submitBtn = {
   background: "#1A1224",
   color: "#FAF8F4",
   border: "none",
-  borderRadius: 2,
+  borderRadius: 18,
   padding: "11px 22px",
   fontSize: 14,
   fontWeight: 600,
@@ -323,7 +323,7 @@ const emailRow = {
   gap: 12,
   background: "var(--pp-card)",
   border: "1px solid rgba(26,18,36,0.10)",
-  borderRadius: 2,
+  borderRadius: 18,
   padding: "10px 12px",
 } as const;
 
@@ -339,7 +339,7 @@ const copyBtn = {
   gap: 6,
   background: "#FAF8F4",
   border: "1px solid rgba(26,18,36,0.16)",
-  borderRadius: 2,
+  borderRadius: 18,
   padding: "6px 12px",
   fontSize: 12.5,
   fontWeight: 600,

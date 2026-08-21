@@ -145,7 +145,7 @@ function EvidenceReviewPage() {
                         style={{
                           maxWidth: 180,
                           maxHeight: 180,
-                          borderRadius: 2,
+                          borderRadius: 18,
                           objectFit: "cover",
                         }}
                       />

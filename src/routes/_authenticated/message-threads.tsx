@@ -686,7 +686,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
             aria-label="Delete"
             style={{
               padding: 6,
-              borderRadius: 2,
+              borderRadius: 18,
               color: "rgba(26,18,36,0.55)",
               background: "transparent",
             }}

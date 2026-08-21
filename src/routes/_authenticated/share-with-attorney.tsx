@@ -539,7 +539,7 @@ function ShareWithAttorney() {
                           marginLeft: 4,
                           background: "var(--primary)",
                           color: "#fff",
-                          borderRadius: 2,
+                          borderRadius: 18,
                           fontSize: 10,
                           padding: "1px 6px",
                           fontWeight: 600,
@@ -745,7 +745,7 @@ function MessagePanel({ linkId, onClose }: { linkId: string; onClose: () => void
                   style={{
                     maxWidth: "80%",
                     padding: "8px 12px",
-                    borderRadius: 2,
+                    borderRadius: 18,
                     background: mine ? "#A8CCE0" : "var(--input)",
                     color: "#1A1714",
                   }}

@@ -84,7 +84,7 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
   return (
     <section
       className="mt-6"
-      style={{ background: "#FAF8F4", padding: 20, border: "1px solid rgba(26,18,36,0.14)" }}
+      style={{ background: "#FAF8F4", padding: 20, boxShadow: "var(--pp-shadow-sm)" }}
     >
       <div className="flex items-baseline gap-3">
         <span className="exhibit-tag">CORROBORATION</span>

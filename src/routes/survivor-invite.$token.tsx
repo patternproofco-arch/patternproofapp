@@ -229,7 +229,7 @@ function SurvivorInvitePage() {
             background: "#F8FAFC",
             border: "1px solid #E2E8F0",
             borderLeft: "3px solid #4132B4",
-            borderRadius: 2,
+            borderRadius: 18,
             padding: 14,
             marginBottom: 18,
             fontSize: 14,
@@ -246,7 +246,7 @@ function SurvivorInvitePage() {
           style={{
             padding: 16,
             background: "#D1FAE5",
-            borderRadius: 2,
+            borderRadius: 18,
             color: "#065F46",
             fontSize: 14,
           }}
@@ -263,7 +263,7 @@ function SurvivorInvitePage() {
                 onClick={() => setMode("signup")}
                 style={{
                   padding: "6px 12px",
-                  borderRadius: 2,
+                  borderRadius: 18,
                   border: mode === "signup" ? "1px solid #4132B4" : "1px solid #E2E8F0",
                   background: mode === "signup" ? "#EAF7EF" : "#fff",
                   cursor: "pointer",
@@ -276,7 +276,7 @@ function SurvivorInvitePage() {
                 onClick={() => setMode("login")}
                 style={{
                   padding: "6px 12px",
-                  borderRadius: 2,
+                  borderRadius: 18,
                   border: mode === "login" ? "1px solid #4132B4" : "1px solid #E2E8F0",
                   background: mode === "login" ? "#EAF7EF" : "#fff",
                   cursor: "pointer",
@@ -339,7 +339,7 @@ function SurvivorInvitePage() {
               background: "#4132B4",
               color: "#FAF8F4",
               border: 0,
-              borderRadius: 2,
+              borderRadius: 18,
               fontWeight: 600,
               cursor: busy ? "not-allowed" : "pointer",
               opacity: busy ? 0.6 : 1,
@@ -497,7 +497,7 @@ function SurvivorInvitePage() {
               background: "#4132B4",
               color: "#FAF8F4",
               border: 0,
-              borderRadius: 2,
+              borderRadius: 18,
               fontWeight: 600,
               cursor: busy ? "not-allowed" : "pointer",
               opacity: busy ? 0.6 : 1,
@@ -601,7 +601,7 @@ function ScopeModeCard({
         gridTemplateColumns: "auto 1fr",
         gap: 8,
         padding: 10,
-        borderRadius: 2,
+        borderRadius: 18,
         cursor: "pointer",
         border: checked ? "1px solid #4132B4" : "1px solid #E2E8F0",
         background: checked ? "#EAF7EF" : "#FBFEFC",
@@ -634,7 +634,7 @@ function SelectionList({ children, empty }: { children: React.ReactNode; empty: 
         maxHeight: 190,
         overflowY: "auto",
         padding: 8,
-        borderRadius: 2,
+        borderRadius: 18,
         border: "1px solid #E2E8F0",
         background: "#F8FAFC",
       }}
@@ -667,7 +667,7 @@ function SelectableItem({
         gap: 8,
         alignItems: "start",
         padding: 8,
-        borderRadius: 2,
+        borderRadius: 18,
         background: "#FAF8F4",
         border: "1px solid #E2E8F0",
         cursor: "pointer",
@@ -700,7 +700,7 @@ function SelectableItem({
 
 const inputStyle: React.CSSProperties = {
   padding: "10px 12px",
-  borderRadius: 2,
+  borderRadius: 18,
   border: "1px solid #E2E8F0",
   background: "#FAF8F4",
   fontSize: 14,

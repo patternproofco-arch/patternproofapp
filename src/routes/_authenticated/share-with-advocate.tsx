@@ -143,7 +143,7 @@ function ShareWithAdvocate() {
                 wordBreak: "break-all",
                 background: "var(--input)",
                 padding: "6px 8px",
-                borderRadius: 2,
+                borderRadius: 18,
               }}
             >
               {justCreated.url}

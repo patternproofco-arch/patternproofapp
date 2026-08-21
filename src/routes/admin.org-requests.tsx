@@ -139,7 +139,7 @@ function AdminOrgRequests() {
               key={r.id}
               style={{
                 boxShadow: "var(--pp-shadow-sm)",
-                borderRadius: 2,
+                borderRadius: 18,
                 padding: 16,
                 background: "var(--pp-card)",
               }}
@@ -162,7 +162,7 @@ function AdminOrgRequests() {
                     onClick={() => approve(r.id)}
                     style={{
                       padding: "8px 12px",
-                      borderRadius: 2,
+                      borderRadius: 18,
                       border: "none",
                       background: "#2F4E34",
                       color: "#1A1224",
@@ -178,7 +178,7 @@ function AdminOrgRequests() {
                     onClick={() => deny(r.id)}
                     style={{
                       padding: "8px 12px",
-                      borderRadius: 2,
+                      borderRadius: 18,
                       boxShadow: "var(--pp-shadow-sm)",
                       background: "var(--pp-card)",
                       fontWeight: 700,

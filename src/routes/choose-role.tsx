@@ -111,7 +111,7 @@ function ChooseRole() {
             color: INK,
           }}
         >
-          I'm a <RoleLink to="/login" search={{}} color={VIOLET} label="survivor" />, an{" "}
+          I'm a <RoleLink to="/signin" search={{}} color={VIOLET} label="survivor" />, an{" "}
           <RoleLink to="/for-attorneys" color={NAVY} label="attorney" />, or with a{" "}
           <RoleLink to="/for-organizations" color={SAGE} label="DV organization" />.
         </h1>

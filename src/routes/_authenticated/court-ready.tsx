@@ -98,7 +98,7 @@ function CourtReadyPage() {
           </div>
         }
 
-        <div style={{ boxShadow: "var(--pp-shadow-sm)", borderRadius: 2, overflow: "hidden" }}>
+        <div style={{ boxShadow: "var(--pp-shadow-sm)", borderRadius: 18, overflow: "hidden" }}>
           <StripeEmbeddedCheckout
             customAmountCents={amount * 100}
             returnUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/court-ready-thanks?session_id={CHECKOUT_SESSION_ID}`}

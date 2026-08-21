@@ -30,8 +30,8 @@ export function ThreadFilters({
       className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4"
       style={{
         background: "var(--pp-card)",
-        border: "1px solid rgba(26,18,36,0.14)",
-        borderRadius: 2,
+        boxShadow: "var(--pp-shadow-sm)",
+        borderRadius: 18,
         padding: 12,
       }}
     >
