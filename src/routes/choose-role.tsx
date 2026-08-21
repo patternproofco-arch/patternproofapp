@@ -9,24 +9,41 @@ const VIOLET = "#4132B4";
 const NAVY = "#022063";
 const SAGE = "#2F4E34";
 
-const SERIF = "'Fraunces', Georgia, serif";
-const SANS = "'Space Grotesk', system-ui, sans-serif";
-const MONO = "'Space Grotesk', ui-monospace, monospace";
+const SERIF = "var(--font-serif)";
+const SANS = "var(--font-sans)";
+const MONO = "var(--font-mono)";
 
 export const Route = createFileRoute("/choose-role")({
   head: () => ({
     meta: [
       { title: "Choose your role — PatternProof" },
-      { name: "description", content: "Are you a survivor, an attorney, or with a DV organization? Choose how you'd like to use PatternProof." },
+      {
+        name: "description",
+        content:
+          "Are you a survivor, an attorney, or with a DV organization? Choose how you'd like to use PatternProof.",
+      },
       { property: "og:title", content: "Choose your role — PatternProof" },
-      { property: "og:description", content: "Survivor, attorney, or DV organization — pick where to start." },
+      {
+        property: "og:description",
+        content: "Survivor, attorney, or DV organization — pick where to start.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: ChooseRole,
 });
 
-function RoleLink({ to, search, color, label }: { to: string; search?: Record<string, unknown>; color: string; label: string }) {
+function RoleLink({
+  to,
+  search,
+  color,
+  label,
+}: {
+  to: string;
+  search?: Record<string, unknown>;
+  color: string;
+  label: string;
+}) {
   return (
     <Link
       to={to}
@@ -50,16 +67,35 @@ function ChooseRole() {
       <PublicQuickExit />
       <header style={{ borderBottom: `1px solid ${RULE}` }}>
         <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 24px" }}>
-          <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em", color: INK, textDecoration: "none", textTransform: "uppercase" }}>
+          <Link
+            to="/"
+            style={{
+              fontFamily: MONO,
+              fontSize: 12,
+              letterSpacing: "0.14em",
+              color: INK,
+              textDecoration: "none",
+              textTransform: "uppercase",
+            }}
+          >
             ← PatternProof
           </Link>
         </div>
       </header>
 
-      <section style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(72px,12vw,140px) 24px 60px" }}>
+      <section
+        style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(72px,12vw,140px) 24px 60px" }}
+      >
         <div
           className="mono-meta mono-meta--muted"
-          style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, marginBottom: 28 }}
+          style={{
+            fontFamily: MONO,
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: MUTED,
+            marginBottom: 28,
+          }}
         >
           Before we begin
         </div>
@@ -75,13 +111,9 @@ function ChooseRole() {
             color: INK,
           }}
         >
-          I'm a{" "}
-          <RoleLink to="/login" search={{}} color={VIOLET} label="survivor" />
-          , an{" "}
-          <RoleLink to="/for-attorneys" color={NAVY} label="attorney" />
-          , or with a{" "}
-          <RoleLink to="/for-organizations" color={SAGE} label="DV organization" />
-          .
+          I'm a <RoleLink to="/login" search={{}} color={VIOLET} label="survivor" />, an{" "}
+          <RoleLink to="/for-attorneys" color={NAVY} label="attorney" />, or with a{" "}
+          <RoleLink to="/for-organizations" color={SAGE} label="DV organization" />.
         </h1>
 
         <p

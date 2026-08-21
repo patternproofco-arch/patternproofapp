@@ -24,7 +24,13 @@ interface Item {
   anchor_incident_id?: string | null;
   anchor_label?: string | null;
 }
-interface EvItem { id: string; title: string; file_type: string; file_url: string; linked_incident_id: string | null }
+interface EvItem {
+  id: string;
+  title: string;
+  file_type: string;
+  file_url: string;
+  linked_incident_id: string | null;
+}
 interface LegalItem {
   id: string;
   document_type: string;
@@ -37,15 +43,26 @@ interface LegalItem {
 }
 
 const LEGAL_COLOR: Record<string, string> = {
-  tro: "#8A5A2E", fro: "#8A5A2E",
-  police_report: "#4132B4", "911_log": "#4132B4",
-  custody_order: "#A8D8B9", court_order: "#A8D8B9",
-  cps_report: "#D2B48C", hearing_transcript: "#B57E60", other: "#B57E60",
+  tro: "#8A5A2E",
+  fro: "#8A5A2E",
+  police_report: "#4132B4",
+  "911_log": "#4132B4",
+  custody_order: "#A8D8B9",
+  court_order: "#A8D8B9",
+  cps_report: "#D2B48C",
+  hearing_transcript: "#B57E60",
+  other: "#B57E60",
 };
 const LEGAL_LABEL: Record<string, string> = {
-  tro: "TRO", fro: "FRO", police_report: "Police Report", "911_log": "911 Log",
-  custody_order: "Custody Order", court_order: "Court Order",
-  cps_report: "CPS Report", hearing_transcript: "Hearing Transcript", other: "Document",
+  tro: "TRO",
+  fro: "FRO",
+  police_report: "Police Report",
+  "911_log": "911 Log",
+  custody_order: "Custody Order",
+  court_order: "Court Order",
+  cps_report: "CPS Report",
+  hearing_transcript: "Hearing Transcript",
+  other: "Document",
 };
 
 // One imported-conversation day, built from screenshot message imports.
@@ -65,14 +82,17 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
   const label = (t: XrefCluster["anchor_type"]) =>
     t === "date" ? "SHARED DATE" : t === "location" ? "SHARED PLACE" : "REPEATED PATTERN";
   return (
-    <section className="mt-6" style={{ background: "#FAF8F4", padding: 20, border: "1px solid rgba(26,18,36,0.14)" }}>
+    <section
+      className="mt-6"
+      style={{ background: "#FAF8F4", padding: 20, border: "1px solid rgba(26,18,36,0.14)" }}
+    >
       <div className="flex items-baseline gap-3">
         <span className="exhibit-tag">CORROBORATION</span>
         <span className="mono-meta mono-meta--muted">Records that reinforce each other</span>
       </div>
       <p style={{ marginTop: 8, fontSize: 13, color: "rgba(26,18,36,0.65)" }}>
-        These Marks share a date, place, or repeated pattern. Nothing is flagged as wrong — this
-        is where your own records line up.
+        These Marks share a date, place, or repeated pattern. Nothing is flagged as wrong — this is
+        where your own records line up.
       </p>
       <div className="mt-4 space-y-3">
         {clusters.slice(0, 12).map((c, i) => (
@@ -101,7 +121,9 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
 function TimelinePage() {
   const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
-  const [evByIncident, setEvByIncident] = useState<Record<string, Array<EvItem & { url?: string }>>>({});
+  const [evByIncident, setEvByIncident] = useState<
+    Record<string, Array<EvItem & { url?: string }>>
+  >({});
   const [legal, setLegal] = useState<LegalItem[]>([]);
   const [showLegal, setShowLegal] = useState(true);
   const [msgDays, setMsgDays] = useState<MsgDay[]>([]);
@@ -119,7 +141,9 @@ function TimelinePage() {
       try {
         const { clusters } = await fetchXrefs();
         setXrefs(clusters);
-      } catch { /* silent — corroboration is additive */ }
+      } catch {
+        /* silent — corroboration is additive */
+      }
     })();
   }, [user, fetchXrefs]);
 
@@ -128,7 +152,9 @@ function TimelinePage() {
     (async () => {
       const { data } = await supabase
         .from("incidents")
-        .select("id,date,description,abuse_types,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label")
+        .select(
+          "id,date,description,abuse_types,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label",
+        )
         .eq("user_id", user.id)
         .is("deleted_at", null)
         .order("date", { ascending: false, nullsFirst: false });
@@ -140,10 +166,14 @@ function TimelinePage() {
         .is("deleted_at", null)
         .not("linked_incident_id", "is", null);
       const rows = (ev as EvItem[] | null) ?? [];
-      const withUrls = await Promise.all(rows.map(async (r) => {
-        const { data: signed } = await supabase.storage.from("evidence-files").createSignedUrl(r.file_url, 3600);
-        return { ...r, url: signed?.signedUrl };
-      }));
+      const withUrls = await Promise.all(
+        rows.map(async (r) => {
+          const { data: signed } = await supabase.storage
+            .from("evidence-files")
+            .createSignedUrl(r.file_url, 3600);
+          return { ...r, url: signed?.signedUrl };
+        }),
+      );
       const grouped: Record<string, Array<EvItem & { url?: string }>> = {};
       withUrls.forEach((r) => {
         const k = r.linked_incident_id!;
@@ -152,7 +182,9 @@ function TimelinePage() {
       setEvByIncident(grouped);
       const { data: ld } = await supabase
         .from("legal_documents")
-        .select("id,document_type,title,effective_date,incident_date,expiration_date,key_terms,case_number")
+        .select(
+          "id,document_type,title,effective_date,incident_date,expiration_date,key_terms,case_number",
+        )
         .eq("user_id", user.id);
       setLegal((ld as LegalItem[] | null) ?? []);
 
@@ -162,16 +194,26 @@ function TimelinePage() {
         .select("id,conversation_participant")
         .eq("user_id", user.id)
         .eq("capture_method", "multi_screenshot");
-      const threadRows = (threads as Array<{ id: string; conversation_participant: string | null }> | null) ?? [];
+      const threadRows =
+        (threads as Array<{ id: string; conversation_participant: string | null }> | null) ?? [];
       if (threadRows.length) {
         const { data: msgs } = await supabase
           .from("thread_messages")
           .select("thread_id,sent_on,body")
           .eq("user_id", user.id)
-          .in("thread_id", threadRows.map((t) => t.id))
+          .in(
+            "thread_id",
+            threadRows.map((t) => t.id),
+          )
           .not("sent_on", "is", null);
         const byDay = new Map<string, MsgDay>();
-        ((msgs as Array<{ thread_id: string; sent_on: string | null; body: string | null }> | null) ?? []).forEach((m) => {
+        (
+          (msgs as Array<{
+            thread_id: string;
+            sent_on: string | null;
+            body: string | null;
+          }> | null) ?? []
+        ).forEach((m) => {
           if (!m.sent_on) return;
           const t = threadRows.find((x) => x.id === m.thread_id);
           const participant = t?.conversation_participant || "Imported conversation";
@@ -181,7 +223,10 @@ function TimelinePage() {
             existing.count += 1;
           } else {
             byDay.set(key, {
-              key, date: m.sent_on, participant, count: 1,
+              key,
+              date: m.sent_on,
+              participant,
+              count: 1,
               preview: (m.body ?? "").slice(0, 120),
             });
           }
@@ -199,22 +244,24 @@ function TimelinePage() {
     | { kind: "messages"; date: string; item: MsgDay };
 
   const filtered = useMemo<Row[]>(() => {
-    const inc: Row[] = items.filter((i) => {
-      if (types.length && !i.abuse_types.some((t) => types.includes(t))) return false;
-      if (from && (i.date ?? "") < from) return false;
-      if (to && (i.date ?? "9999") > to) return false;
-      return true;
-    }).map((i) => ({ kind: "incident", date: i.date ?? "", item: i } as Row));
+    const inc: Row[] = items
+      .filter((i) => {
+        if (types.length && !i.abuse_types.some((t) => types.includes(t))) return false;
+        if (from && (i.date ?? "") < from) return false;
+        if (to && (i.date ?? "9999") > to) return false;
+        return true;
+      })
+      .map((i) => ({ kind: "incident", date: i.date ?? "", item: i }) as Row);
     const leg: Row[] = showLegal
       ? legal
           .map((l) => ({ ...l, _date: l.effective_date || l.incident_date || "" }))
           .filter((l) => l._date && (!from || l._date >= from) && (!to || l._date <= to))
-          .map((l) => ({ kind: "legal", date: l._date, item: l } as Row))
+          .map((l) => ({ kind: "legal", date: l._date, item: l }) as Row)
       : [];
     const msg: Row[] = showMessages
       ? msgDays
           .filter((d) => (!from || d.date >= from) && (!to || d.date <= to))
-          .map((d) => ({ kind: "messages", date: d.date, item: d } as Row))
+          .map((d) => ({ kind: "messages", date: d.date, item: d }) as Row)
       : [];
     // Chronological first (newest at top). Where two entries share a date, the
     // more certain one reads first — an exact date is a firmer anchor than an
@@ -232,7 +279,8 @@ function TimelinePage() {
     });
   }, [items, legal, showLegal, msgDays, showMessages, types, from, to]);
 
-  const toggleType = (v: string) => setTypes((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]));
+  const toggleType = (v: string) =>
+    setTypes((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]));
 
   return (
     <div>
@@ -252,9 +300,16 @@ function TimelinePage() {
               {ABUSE_TYPES.map((t) => {
                 const on = types.includes(t.value);
                 return (
-                  <button key={t.value} onClick={() => toggleType(t.value)}
-                    className="rounded-[2px] px-3 py-1 text-[11px] font-semibold"
-                    style={{ background: on ? t.color : "transparent", color: on ? "#fff" : "var(--foreground)", border: `1.5px solid ${t.color}` }}>
+                  <button
+                    key={t.value}
+                    onClick={() => toggleType(t.value)}
+                    className="rounded-2xl px-3 py-1 text-[11px] font-semibold"
+                    style={{
+                      background: on ? t.color : "transparent",
+                      color: on ? "#fff" : "var(--foreground)",
+                      border: `1.5px solid ${t.color}`,
+                    }}
+                  >
                     {t.label}
                   </button>
                 );
@@ -263,25 +318,46 @@ function TimelinePage() {
           </div>
           <div>
             <div className="label-eyebrow mb-1">From</div>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="input-pp" />
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="input-pp"
+            />
           </div>
           <div>
             <div className="label-eyebrow mb-1">To</div>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="input-pp" />
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="input-pp"
+            />
           </div>
           <label className="flex items-center gap-2 self-center text-[12px]">
-            <input type="checkbox" checked={showLegal} onChange={(e) => setShowLegal(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={showLegal}
+              onChange={(e) => setShowLegal(e.target.checked)}
+            />
             Include legal documents
           </label>
           <label className="flex items-center gap-2 self-center text-[12px]">
-            <input type="checkbox" checked={showMessages} onChange={(e) => setShowMessages(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={showMessages}
+              onChange={(e) => setShowMessages(e.target.checked)}
+            />
             Include imported messages
           </label>
         </div>
       </FocusRegion>
 
       <FocusRegion id="timeline-entries" className="relative mt-8 pl-8">
-        <div className="absolute left-2 top-0 bottom-0" style={{ width: 2, background: "var(--accent)" }} />
+        <div
+          className="absolute left-2 top-0 bottom-0"
+          style={{ width: 2, background: "var(--accent)" }}
+        />
         {filtered.length === 0 ? (
           <div className="card-pp">
             <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
@@ -296,24 +372,44 @@ function TimelinePage() {
                 const color = LEGAL_COLOR[l.document_type] ?? "#B57E60";
                 return (
                   <div key={`l-${l.id}`} className="relative">
-                    <span className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4" style={{ background: color, boxShadow: "none" }}>
+                    <span
+                      className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4"
+                      style={{ background: color, boxShadow: "var(--pp-shadow-sm)" }}
+                    >
                       <FileText size={10} color="#1A1224" />
                     </span>
                     <div className="card-pp" style={{ borderLeft: `3px solid ${color}` }}>
                       <div className="font-serif italic text-[16px]">
-                        {new Date(row.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
+                        {new Date(row.date).toLocaleDateString(undefined, {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
                       </div>
                       <div className="mt-1">
-                        <span className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold" style={{ background: color, color: "#1A1224" }}>
+                        <span
+                          className="rounded-2xl px-2 py-0.5 text-[10px] font-semibold"
+                          style={{ background: color, color: "#1A1224" }}
+                        >
                           {LEGAL_LABEL[l.document_type] ?? "Document"}
                         </span>
                       </div>
                       <p className="mt-2 font-serif text-[15px]">{l.title}</p>
                       {l.case_number && (
-                        <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>Case #{l.case_number}</div>
+                        <div
+                          className="mt-1 text-[12px]"
+                          style={{ color: "var(--muted-foreground)" }}
+                        >
+                          Case #{l.case_number}
+                        </div>
                       )}
                       {l.key_terms && (
-                        <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--foreground)" }}>{l.key_terms}</p>
+                        <p
+                          className="mt-2 text-[13px] leading-relaxed"
+                          style={{ color: "var(--foreground)" }}
+                        >
+                          {l.key_terms}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -323,15 +419,25 @@ function TimelinePage() {
                 const d = row.item;
                 return (
                   <div key={`m-${d.key}`} className="relative">
-                    <span className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4" style={{ background: "#C7E9E3", boxShadow: "none" }}>
+                    <span
+                      className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4"
+                      style={{ background: "#C7E9E3", boxShadow: "var(--pp-shadow-sm)" }}
+                    >
                       <MessageSquare size={10} color="#1A1224" />
                     </span>
                     <div className="card-pp" style={{ borderLeft: "3px solid #C7E9E3" }}>
                       <div className="font-serif italic text-[16px]">
-                        {new Date(row.date + "T00:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
+                        {new Date(row.date + "T00:00:00").toLocaleDateString(undefined, {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
                       </div>
                       <div className="mt-1">
-                        <span className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold" style={{ background: "#C7E9E3", color: "#1A1224" }}>
+                        <span
+                          className="rounded-2xl px-2 py-0.5 text-[10px] font-semibold"
+                          style={{ background: "#C7E9E3", color: "#1A1224" }}
+                        >
                           IMPORTED MESSAGES
                         </span>
                       </div>
@@ -339,9 +445,18 @@ function TimelinePage() {
                         {d.count} message{d.count === 1 ? "" : "s"} with {d.participant}
                       </p>
                       {d.preview && (
-                        <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--foreground)" }}>“{d.preview}”</p>
+                        <p
+                          className="mt-2 text-[13px] leading-relaxed"
+                          style={{ color: "var(--foreground)" }}
+                        >
+                          “{d.preview}”
+                        </p>
                       )}
-                      <Link to="/import-messages" className="mt-2 inline-block text-[12px] font-semibold" style={{ color: "var(--accent)" }}>
+                      <Link
+                        to="/import-messages"
+                        className="mt-2 inline-block text-[12px] font-semibold"
+                        style={{ color: "var(--accent)" }}
+                      >
                         Open the conversation →
                       </Link>
                     </div>
@@ -350,41 +465,87 @@ function TimelinePage() {
               }
               const i = row.item;
               // Build anchor lookup so "Before/After [linked incident]" can render.
-              const anchor = i.anchor_incident_id ? items.find((x) => x.id === i.anchor_incident_id) : null;
+              const anchor = i.anchor_incident_id
+                ? items.find((x) => x.id === i.anchor_incident_id)
+                : null;
               const open = expanded[i.id];
               const primary = i.abuse_types[0] ?? "other";
               const long = i.description.length > 160;
               return (
                 <div key={`i-${i.id}`} className="relative">
-                  <span className="absolute -left-[26px] top-3 h-3.5 w-3.5 rounded-full ring-4" style={{ background: typeColor(primary), boxShadow: "none" }} />
-                  <div className="card-pp" style={{ borderLeft: `3px solid ${typeColor(primary)}` }}>
+                  <span
+                    className="absolute -left-[26px] top-3 h-3.5 w-3.5 rounded-full ring-4"
+                    style={{ background: typeColor(primary), boxShadow: "var(--pp-shadow-sm)" }}
+                  />
+                  <div
+                    className="card-pp"
+                    style={{ borderLeft: `3px solid ${typeColor(primary)}` }}
+                  >
                     <div className="font-serif italic text-[16px]">
-                      {formatIncidentDate({ ...i, anchor_incident: anchor ? { date: anchor.date, description: anchor.description } : null })}
+                      {formatIncidentDate({
+                        ...i,
+                        anchor_incident: anchor
+                          ? { date: anchor.date, description: anchor.description }
+                          : null,
+                      })}
                     </div>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {i.abuse_types.map((t) => (
-                        <span key={t} className="rounded-[2px] px-2 py-0.5 text-[10px] font-semibold" style={{ background: typeColor(t), color: "#1A1714" }}>{typeLabel(t)}</span>
+                        <span
+                          key={t}
+                          className="rounded-2xl px-2 py-0.5 text-[10px] font-semibold"
+                          style={{ background: typeColor(t), color: "#1A1714" }}
+                        >
+                          {typeLabel(t)}
+                        </span>
                       ))}
                     </div>
-                    <p className="mt-2 text-[14px] leading-relaxed" style={{ color: "var(--foreground)" }}>
+                    <p
+                      className="mt-2 text-[14px] leading-relaxed"
+                      style={{ color: "var(--foreground)" }}
+                    >
                       {open || !long ? i.description : i.description.slice(0, 160) + "…"}
                     </p>
                     {long && (
-                      <button className="mt-1 text-[12px] font-semibold" style={{ color: "var(--accent)" }} onClick={() => setExpanded((p) => ({ ...p, [i.id]: !open }))}>
+                      <button
+                        className="mt-1 text-[12px] font-semibold"
+                        style={{ color: "var(--accent)" }}
+                        onClick={() => setExpanded((p) => ({ ...p, [i.id]: !open }))}
+                      >
                         {open ? "Show less" : "Read more"}
                       </button>
                     )}
                     {evByIncident[i.id]?.length ? (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {evByIncident[i.id].map((e) => (
-                          <a key={e.id} href={e.url} target="_blank" rel="noreferrer"
-                            className="block overflow-hidden rounded-[2px]" style={{ width: 88, background: "var(--input)", border: "1px solid var(--border)" }}>
+                          <a
+                            key={e.id}
+                            href={e.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block overflow-hidden rounded-2xl"
+                            style={{
+                              width: 88,
+                              background: "var(--input)",
+                              boxShadow: "var(--pp-shadow-sm)",
+                            }}
+                          >
                             {e.file_type === "image" && e.url ? (
                               <img src={e.url} alt={e.title} className="h-16 w-full object-cover" />
                             ) : (
-                              <div className="flex h-16 items-center justify-center text-[10px]" style={{ color: "var(--muted-foreground)" }}>{e.file_type}</div>
+                              <div
+                                className="flex h-16 items-center justify-center text-[10px]"
+                                style={{ color: "var(--muted-foreground)" }}
+                              >
+                                {e.file_type}
+                              </div>
                             )}
-                            <div className="px-1.5 py-1 text-[10px] leading-tight" style={{ color: "var(--foreground)" }}>{e.title.slice(0, 22)}</div>
+                            <div
+                              className="px-1.5 py-1 text-[10px] leading-tight"
+                              style={{ color: "var(--foreground)" }}
+                            >
+                              {e.title.slice(0, 22)}
+                            </div>
                           </a>
                         ))}
                       </div>

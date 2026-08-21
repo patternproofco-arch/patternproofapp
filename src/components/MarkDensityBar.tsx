@@ -36,7 +36,10 @@ export function MarkDensityBar({ marks, weeks = 24 }: Props) {
 
   return (
     <div>
-      <div className="flex h-10 w-full overflow-hidden rounded-[2px]" style={{ border: "1px solid var(--border)" }}>
+      <div
+        className="flex h-10 w-full overflow-hidden rounded-2xl"
+        style={{ boxShadow: "var(--pp-shadow-sm)" }}
+      >
         {buckets.map((b, i) => (
           <div
             key={i}
@@ -48,7 +51,10 @@ export function MarkDensityBar({ marks, weeks = 24 }: Props) {
           />
         ))}
       </div>
-      <div className="mt-2 flex items-center justify-between text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+      <div
+        className="mt-2 flex items-center justify-between text-[11px]"
+        style={{ color: "var(--muted-foreground)" }}
+      >
         <span>Fewer / older Marks</span>
         <span>More frequent / more recent Marks</span>
       </div>

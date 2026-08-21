@@ -90,3 +90,17 @@ export function formatIncidentDate(i: IncidentDateFields): string {
 export function formatEvidenceDate(e: IncidentDateFields): string {
   return formatIncidentDate(e);
 }
+
+/**
+ * Three-level confidence bucket driving the "thread" visual: taut/solid for
+ * a confirmed date, slack/dashed for an anchored approximation, absent for
+ * no date at all. Mirrors `formatIncidentDate`'s precision handling.
+ */
+export type DateConfidence = "confirmed" | "approximate" | "unknown";
+
+export function dateConfidence(precision?: string | null): DateConfidence {
+  const p = precision ?? "exact";
+  if (p === "unknown") return "unknown";
+  if (p === "exact") return "confirmed";
+  return "approximate";
+}

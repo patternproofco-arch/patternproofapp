@@ -19,7 +19,16 @@ const TABS: Tab[] = [
   {
     to: "/journal",
     label: "Archive",
-    match: ["/journal", "/voice-notes", "/evidence", "/message-threads", "/timeline", "/import-messages", "/evidence-review", "/live-recording"],
+    match: [
+      "/journal",
+      "/voice-notes",
+      "/evidence",
+      "/message-threads",
+      "/timeline",
+      "/import-messages",
+      "/evidence-review",
+      "/live-recording",
+    ],
     render: (c) => <NotebookPen size={20} strokeWidth={1.75} color={c} />,
   },
   {
@@ -31,7 +40,16 @@ const TABS: Tab[] = [
   {
     to: "/case",
     label: "Case",
-    match: ["/case", "/case-builder", "/court-packet", "/communications", "/court-dates", "/share-with-attorney", "/attorney-portal", "/legal-documents"],
+    match: [
+      "/case",
+      "/case-builder",
+      "/court-packet",
+      "/communications",
+      "/court-dates",
+      "/share-with-attorney",
+      "/attorney-portal",
+      "/legal-documents",
+    ],
     render: (c) => <Scale size={20} strokeWidth={1.75} color={c} />,
   },
   {
@@ -60,7 +78,7 @@ export function BottomTabBar() {
         zIndex: 90,
         background: "var(--background)",
         borderTop: "1px solid var(--border)",
-        boxShadow: "none",
+        boxShadow: "var(--pp-shadow-sm)",
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
     >
@@ -78,7 +96,9 @@ export function BottomTabBar() {
               style={{ padding: "10px 4px 12px", color }}
             >
               {t.render(color)}
-              <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, letterSpacing: "0.01em" }}>
+              <span
+                style={{ fontSize: 11, fontWeight: active ? 700 : 500, letterSpacing: "0.01em" }}
+              >
                 {t.label}
               </span>
             </Link>

@@ -45,10 +45,12 @@ function AgentThreadPage() {
   if (initialMessages === null || token === null) {
     return (
       <div
-        className="h-[calc(100vh-2rem)] rounded-[2px] flex items-center justify-center"
-        style={{ background: "#FFFFFF", border: "1px solid #EAF7EF" }}
+        className="h-[calc(100vh-2rem)] flex items-center justify-center"
+        style={{ background: "var(--pp-card)", borderRadius: 24, boxShadow: "var(--pp-shadow-sm)" }}
       >
-        <div className="text-sm" style={{ color: "#667085" }}>Opening conversation…</div>
+        <div className="text-sm" style={{ color: "var(--pp-muted)" }}>
+          Opening conversation…
+        </div>
       </div>
     );
   }
@@ -61,7 +63,11 @@ function AgentThreadPage() {
       initialMessages={initialMessages}
       onFirstUserMessage={async (text) => {
         const title = text.slice(0, 60).trim() || "New conversation";
-        try { await renameFn({ data: { id: threadId, title } }); } catch { /* ignore */ }
+        try {
+          await renameFn({ data: { id: threadId, title } });
+        } catch {
+          /* ignore */
+        }
       }}
     />
   );
@@ -118,21 +124,23 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
 
   return (
     <div
-      className="h-[calc(100vh-2rem)] rounded-[2px] flex flex-col overflow-hidden"
-      style={{
-        background: "#FFFFFF",
-        border: "1px solid #EAF7EF",
-        boxShadow: "none",
-      }}
+      className="h-[calc(100vh-2rem)] flex flex-col overflow-hidden"
+      style={{ background: "var(--pp-card)", borderRadius: 24, boxShadow: "var(--pp-shadow-sm)" }}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 sm:px-7 py-4" style={{ borderBottom: "1px solid #EAF7EF" }}>
+      <div
+        className="flex items-center gap-3 px-5 sm:px-7 py-4"
+        style={{ boxShadow: "inset 0 -2px 3px -2px var(--pp-shadow-dark)" }}
+      >
         <BrandMark size={30} />
         <div className="min-w-0">
-          <h1 className="text-[17px] font-semibold leading-tight" style={{ color: "#1F2933" }}>
+          <h1
+            className="text-[17px] font-semibold leading-tight"
+            style={{ color: "var(--pp-ink)" }}
+          >
             PatternProof Evidence Assistant
           </h1>
-          <div className="text-[12px]" style={{ color: "#667085" }}>
+          <div className="text-[12px]" style={{ color: "var(--pp-muted)" }}>
             Calm, trauma-informed support. Information only — not legal advice.
           </div>
         </div>
@@ -144,33 +152,42 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
           {showGreeting && (
             <div className="space-y-5">
               <div
-                className="rounded-[2px] p-5 sm:p-6 space-y-3"
+                className="p-5 sm:p-6 space-y-3"
                 style={{
-                  background: "#FFFFFF",
-                  border: "1px solid #D8F0E0",
+                  background: "var(--pp-card)",
+                  borderRadius: 24,
+                  boxShadow: "var(--pp-shadow-sm)",
                 }}
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className="rounded-[2px] p-1.5"
-                    style={{ background: "#FFFFFF", color: "#33268C", border: "1px solid #D8F0E0" }}
+                    className="p-1.5"
+                    style={{
+                      background: "var(--pp-card)",
+                      color: "var(--pp-accent)",
+                      borderRadius: 10,
+                      boxShadow: "var(--pp-shadow-in-sm)",
+                    }}
                   >
                     <Sparkles size={14} />
                   </div>
-                  <div className="text-[12px] font-semibold tracking-wide" style={{ color: "#33268C" }}>
+                  <div
+                    className="text-[12px] font-semibold tracking-wide"
+                    style={{ color: "var(--pp-accent)" }}
+                  >
                     WELCOME
                   </div>
                 </div>
-                <p style={{ color: "#1F2933" }} className="text-[16px] leading-relaxed">
+                <p style={{ color: "var(--pp-ink)" }} className="text-[16px] leading-relaxed">
                   Hi. I can help you document what happened, organize evidence, find patterns, or
                   prepare for court.
                 </p>
-                <p style={{ color: "#3a4654" }} className="text-[15px] leading-relaxed">
-                  You can start with one incident, one screenshot, one memory, or one question.
-                  It's okay if you only remember part of it.
+                <p style={{ color: "var(--pp-muted)" }} className="text-[15px] leading-relaxed">
+                  You can start with one incident, one screenshot, one memory, or one question. It's
+                  okay if you only remember part of it.
                 </p>
               </div>
-              <p className="text-sm font-medium" style={{ color: "#1F2933" }}>
+              <p className="text-sm font-medium" style={{ color: "var(--pp-ink)" }}>
                 What would you like help with right now?
               </p>
             </div>
@@ -182,11 +199,12 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               return (
                 <div key={m.id} className="flex justify-end">
                   <div
-                    className="max-w-[82%] rounded-[2px] px-4 py-2.5 text-[15px] whitespace-pre-wrap"
+                    className="max-w-[82%] px-4 py-2.5 text-[15px] whitespace-pre-wrap"
                     style={{
-                      background: "transparent",
-                      color: "#1F2933",
-                      border: "1px solid #D8F0E0",
+                      background: "var(--pp-card)",
+                      color: "var(--pp-ink)",
+                      borderRadius: 18,
+                      boxShadow: "var(--pp-shadow-in-sm)",
                     }}
                   >
                     {text}
@@ -197,10 +215,15 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
             return (
               <div key={m.id} className="flex">
                 <div
-                  className="max-w-[90%] rounded-[2px] px-5 py-3.5"
-                  style={{ background: "#FFFFFF", border: "1px solid #EAF7EF", color: "#1F2933" }}
+                  className="max-w-[90%] px-5 py-3.5"
+                  style={{
+                    background: "var(--pp-card)",
+                    color: "var(--pp-ink)",
+                    borderRadius: 18,
+                    boxShadow: "var(--pp-shadow-sm)",
+                  }}
                 >
-                  <div className="prose prose-sm max-w-none prose-strong:text-[#1F2933] prose-p:my-2 prose-ul:my-2 prose-li:my-0.5">
+                  <div className="prose prose-sm max-w-none prose-strong:text-inherit prose-p:my-2 prose-ul:my-2 prose-li:my-0.5">
                     <ReactMarkdown>{text || " "}</ReactMarkdown>
                   </div>
                 </div>
@@ -209,15 +232,26 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
           })}
 
           {status === "submitted" && (
-            <div className="text-sm italic flex items-center gap-2" style={{ color: "#667085" }}>
-              <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#33268C" }} />
+            <div
+              className="text-sm italic flex items-center gap-2"
+              style={{ color: "var(--pp-muted)" }}
+            >
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{ background: "var(--pp-accent)" }}
+              />
               Thinking…
             </div>
           )}
           {error && (
             <div
-              className="flex items-start gap-2 text-sm rounded-[2px] px-3 py-2"
-              style={{ background: "#FDECEF", color: "#9B2C3E", border: "1px solid #F5C2CB" }}
+              className="flex items-start gap-2 text-sm px-3 py-2"
+              style={{
+                background: "var(--pp-card)",
+                color: "var(--pp-urgent)",
+                borderRadius: 14,
+                boxShadow: "var(--pp-shadow-in-sm)",
+              }}
             >
               <ShieldAlert size={16} className="mt-0.5 shrink-0" />
               <span>We couldn't reach the assistant. Try again in a moment.</span>
@@ -227,21 +261,29 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
       </div>
 
       {/* Composer */}
-      <div className="px-4 sm:px-7 pt-3 pb-4" style={{ borderTop: "1px solid #EAF7EF", background: "#FBFEFC" }}>
+      <div
+        className="px-4 sm:px-7 pt-3 pb-4"
+        style={{ boxShadow: "inset 0 2px 3px -2px var(--pp-shadow-dark)" }}
+      >
         <div className="max-w-3xl mx-auto">
-          <form onSubmit={(e) => { e.preventDefault(); void handleSend(); }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleSend();
+            }}
+          >
             <div
-              className="flex items-end gap-2 rounded-[2px] px-2.5 py-2"
+              className="flex items-end gap-2 px-2.5 py-2"
               style={{
-                background: "#FFFFFF",
-                border: "1px solid #D8F0E0",
-                boxShadow: "none",
+                background: "var(--pp-card)",
+                borderRadius: 999,
+                boxShadow: "var(--pp-shadow-in-sm)",
               }}
             >
               <button
                 type="button"
-                className="rounded-[2px] p-2 transition-colors hover:bg-[#EAF7EF]"
-                style={{ color: "#667085" }}
+                className="rounded-full p-2 transition-colors"
+                style={{ color: "var(--pp-muted)" }}
                 aria-label="Attach evidence"
                 title="Attach evidence (upload from Evidence Vault)"
               >
@@ -260,13 +302,13 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                 rows={1}
                 placeholder="Start with what you remember, or ask me a question."
                 className="flex-1 resize-none bg-transparent outline-none text-[15px] px-1 py-2 max-h-40"
-                style={{ color: "#1F2933" }}
+                style={{ color: "var(--pp-ink)" }}
                 disabled={busy}
               />
               <button
                 type="button"
-                className="rounded-[2px] p-2 transition-colors hover:bg-[#EAF7EF]"
-                style={{ color: "#667085" }}
+                className="rounded-full p-2 transition-colors"
+                style={{ color: "var(--pp-muted)" }}
                 aria-label="Voice note"
                 title="Record a voice note"
               >
@@ -275,11 +317,11 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               <button
                 type="submit"
                 disabled={busy || !input.trim()}
-                className="rounded-[2px] p-2.5 transition-all disabled:opacity-40"
+                className="rounded-full p-2.5 transition-all disabled:opacity-40"
                 style={{
-                  background: "#4132B4",
-                  color: "#FFFFFF",
-                  boxShadow: "none",
+                  background: "var(--pp-accent)",
+                  color: "var(--pp-accent-fg)",
+                  boxShadow: "var(--pp-shadow-xs)",
                 }}
                 aria-label="Send"
               >
@@ -287,7 +329,7 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               </button>
             </div>
 
-            <p className="text-[11px] mt-2 px-1" style={{ color: "#667085" }}>
+            <p className="text-[11px] mt-2 px-1" style={{ color: "var(--pp-muted)" }}>
               You can type, upload evidence, or choose a guided option below.
             </p>
 
@@ -300,11 +342,12 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
                     type="button"
                     onClick={() => handleSend(s)}
                     disabled={busy}
-                    className="text-[13px] rounded-[2px] px-3.5 py-1.5 transition-all hover:bg-[#D8F0E0] disabled:opacity-50"
+                    className="text-[13px] px-3.5 py-1.5 transition-all disabled:opacity-50"
                     style={{
-                      background: "#EAF7EF",
-                      color: "#1F2933",
-                      border: "1px solid #D8F0E0",
+                      background: "var(--pp-card)",
+                      color: "var(--pp-ink)",
+                      borderRadius: 999,
+                      boxShadow: "var(--pp-shadow-xs)",
                     }}
                   >
                     {s}
@@ -313,9 +356,9 @@ function ChatWindow({ threadId, token, initialMessages, onFirstUserMessage }: Ch
               </div>
             </div>
 
-            <p className="text-[11px] mt-3 px-1 text-center" style={{ color: "#667085" }}>
-              Information only. PatternProof does not provide legal advice.
-              If you are in immediate danger, call emergency services.
+            <p className="text-[11px] mt-3 px-1 text-center" style={{ color: "var(--pp-muted)" }}>
+              Information only. PatternProof does not provide legal advice. If you are in immediate
+              danger, call emergency services.
             </p>
           </form>
         </div>

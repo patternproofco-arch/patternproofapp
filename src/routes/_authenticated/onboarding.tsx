@@ -1,6 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { AlertTriangle, BellOff, DoorOpen, FileCheck, Phone, Scale, ShieldCheck, Smartphone } from "lucide-react";
+import {
+  AlertTriangle,
+  BellOff,
+  DoorOpen,
+  FileCheck,
+  Phone,
+  Scale,
+  ShieldCheck,
+  Smartphone,
+} from "lucide-react";
 import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,7 +84,10 @@ function Onboarding() {
       </div>
 
       <div className="mb-6 text-center">
-        <h1 className="font-serif text-[28px] leading-tight md:text-[34px]" style={{ color: "var(--foreground)" }}>
+        <h1
+          className="font-serif text-[28px] leading-tight md:text-[34px]"
+          style={{ color: "var(--foreground)" }}
+        >
           Welcome — a few things first
         </h1>
         <p className="mt-2 text-[14px]" style={{ color: "var(--muted-foreground)" }}>
@@ -112,11 +124,19 @@ function Onboarding() {
         </StepCard>
 
         <StepCard icon={<AlertTriangle size={20} />} title="If you are in danger right now">
-          <div className="rounded-[2px] p-4" style={{ background: "var(--tint-purple)", border: "1px solid var(--border)" }}>
-            <div className="mb-2 inline-flex items-center gap-2 text-[14px]" style={{ color: "var(--foreground)" }}>
+          <div
+            className="rounded-2xl p-4"
+            style={{ background: "var(--tint-purple)", boxShadow: "var(--pp-shadow-sm)" }}
+          >
+            <div
+              className="mb-2 inline-flex items-center gap-2 text-[14px]"
+              style={{ color: "var(--foreground)" }}
+            >
               <Phone size={14} /> <strong>Call 911</strong> (US emergency)
             </div>
-            <div className="text-[14px]"><strong>National DV Hotline:</strong> 1-800-799-7233 · text START to 88788</div>
+            <div className="text-[14px]">
+              <strong>National DV Hotline:</strong> 1-800-799-7233 · text START to 88788
+            </div>
           </div>
           <p>
             PatternProof is <strong>not a crisis service</strong> and not a law firm. We help you
@@ -143,8 +163,8 @@ function Onboarding() {
 
         <StepCard icon={<ShieldCheck size={20} />} title="Set a 4-digit code (optional)">
           <p>
-            This locks the app the moment you close it. Pick four digits no one would guess —
-            not your birthday, not your kids' birthdays. Leave blank to skip.
+            This locks the app the moment you close it. Pick four digits no one would guess — not
+            your birthday, not your kids' birthdays. Leave blank to skip.
           </p>
           <PinField value={pin} onChange={setPin} />
         </StepCard>
@@ -161,9 +181,7 @@ function Onboarding() {
         </StepCard>
 
         <StepCard icon={<Scale size={20} />} title="This record can end up in a courtroom">
-          <p>
-            This is the most important thing on this page, so please read it slowly.
-          </p>
+          <p>This is the most important thing on this page, so please read it slowly.</p>
           <p>
             What you write here is <strong>a record</strong>. If you share it with an attorney, file
             it with a court, or it becomes part of a legal case, it can be{" "}
@@ -197,9 +215,17 @@ function Onboarding() {
             Only used to filter the resources list. You never have to answer this.
           </p>
           <label className="label-eyebrow">State</label>
-          <select value={state} onChange={(e) => setState(e.target.value)} className="input-pp w-full">
+          <select
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            className="input-pp w-full"
+          >
             <option value="">Prefer not to say</option>
-            {US_STATES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
+            {US_STATES.map((s) => (
+              <option key={s.code} value={s.code}>
+                {s.name}
+              </option>
+            ))}
           </select>
           <label className="label-eyebrow">City — optional</label>
           <input
@@ -211,9 +237,7 @@ function Onboarding() {
         </StepCard>
 
         <StepCard icon={<FileCheck size={20} />} title="Agree to continue">
-          <p className="text-[14px]">
-            Three boxes to check before we open your space.
-          </p>
+          <p className="text-[14px]">Three boxes to check before we open your space.</p>
           <label className="flex items-start gap-2 text-[14px] cursor-pointer">
             <input
               type="checkbox"
@@ -235,9 +259,15 @@ function Onboarding() {
             />
             <span>
               I have read and agree to the{" "}
-              <a href="/privacy" target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: "var(--accent)" }}
+              >
                 Privacy Policy
-              </a>.
+              </a>
+              .
             </span>
           </label>
           <label className="flex items-start gap-2 text-[14px] cursor-pointer">
@@ -251,7 +281,8 @@ function Onboarding() {
               I agree to the{" "}
               <a href="/terms" target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
                 Terms of Service
-              </a>.
+              </a>
+              .
             </span>
           </label>
         </StepCard>
@@ -264,21 +295,38 @@ function Onboarding() {
           className="btn-primary w-full"
           style={{ opacity: busy || !ready ? 0.6 : 1 }}
         >
-          {busy ? "One moment…" : ready ? "Open my space" : "Check the three items above to continue"}
+          {busy
+            ? "One moment…"
+            : ready
+              ? "Open my space"
+              : "Check the three items above to continue"}
         </button>
       </div>
     </div>
   );
 }
 
-function StepCard({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function StepCard({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="card-pp space-y-4">
       <div className="flex items-center gap-2" style={{ color: "var(--primary)" }}>
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full" style={{ background: "var(--tint-teal)" }}>
+        <span
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full"
+          style={{ background: "var(--tint-teal)" }}
+        >
           {icon}
         </span>
-        <h1 className="font-serif text-[24px] leading-tight" style={{ margin: 0 }}>{title}</h1>
+        <h1 className="font-serif text-[24px] leading-tight" style={{ margin: 0 }}>
+          {title}
+        </h1>
       </div>
       <div className="space-y-3 text-[15px] leading-relaxed">{children}</div>
     </div>

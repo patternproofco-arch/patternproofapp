@@ -2,15 +2,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft, MapPin, Plus, Trash2,
-  ChevronLeft, ChevronRight, ExternalLink,
+  ArrowLeft,
+  MapPin,
+  Plus,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  listCourtDates,
-  upsertCourtDate,
-  deleteCourtDate,
-} from "@/lib/court-dates.functions";
+import { listCourtDates, upsertCourtDate, deleteCourtDate } from "@/lib/court-dates.functions";
 import { syncCourtDateToGoogle } from "@/lib/google-calendar.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
@@ -29,8 +30,14 @@ type Row = {
 };
 
 const HEARING_TYPES = [
-  "Hearing", "Status conference", "Custody hearing", "TRO hearing",
-  "Final restraining order", "Mediation", "Trial", "Other",
+  "Hearing",
+  "Status conference",
+  "Custody hearing",
+  "TRO hearing",
+  "Final restraining order",
+  "Mediation",
+  "Trial",
+  "Other",
 ];
 
 const ymd = (d: Date) =>
@@ -79,9 +86,13 @@ function CourtDatesPage() {
   const [syncing, setSyncing] = useState<string | null>(null);
 
   const refresh = () =>
-    listFn().then((r) => setRows((r.dates ?? []) as Row[])).catch(() => {});
+    listFn()
+      .then((r) => setRows((r.dates ?? []) as Row[]))
+      .catch(() => {});
 
-  useEffect(() => { void refresh(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => {
+    void refresh(); /* eslint-disable-next-line */
+  }, []);
 
   const datesByDay = useMemo(() => {
     const m = new Map<string, Row[]>();
@@ -100,9 +111,11 @@ function CourtDatesPage() {
   const selectedDayRows = datesByDay.get(selectedKey) ?? [];
 
   const upcoming = useMemo(
-    () => rows.filter((r) => new Date(r.hearing_at).getTime() >= Date.now())
-              .sort((a, b) => +new Date(a.hearing_at) - +new Date(b.hearing_at))
-              .slice(0, 6),
+    () =>
+      rows
+        .filter((r) => new Date(r.hearing_at).getTime() >= Date.now())
+        .sort((a, b) => +new Date(a.hearing_at) - +new Date(b.hearing_at))
+        .slice(0, 6),
     [rows],
   );
 
@@ -154,7 +167,12 @@ function CourtDatesPage() {
   };
 
   const remove = async (id: string) => {
-    const ok = await confirm({ title: "Remove this court date?", body: "This hearing will be removed from your calendar.", confirmLabel: "Remove", cancelLabel: "Keep" });
+    const ok = await confirm({
+      title: "Remove this court date?",
+      body: "This hearing will be removed from your calendar.",
+      confirmLabel: "Remove",
+      cancelLabel: "Keep",
+    });
     if (!ok) return;
     try {
       await deleteFn({ data: { id } });
@@ -192,7 +210,11 @@ function CourtDatesPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
-      <Link to="/dashboard" className="mb-4 inline-flex items-center gap-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+      <Link
+        to="/dashboard"
+        className="mb-4 inline-flex items-center gap-1 text-[13px]"
+        style={{ color: "var(--muted-foreground)" }}
+      >
         <ArrowLeft size={14} /> Back to dashboard
       </Link>
 
@@ -202,11 +224,15 @@ function CourtDatesPage() {
           <span className="label-eyebrow">Court calendar</span>
           <h1 className="font-serif text-[32px]">Court dates &amp; deadlines</h1>
           <p className="mt-1 max-w-xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            Tap a day to add a hearing. Sync any date to your Google Calendar so reminders show up alongside the rest of your week.
+            Tap a day to add a hearing. Sync any date to your Google Calendar so reminders show up
+            alongside the rest of your week.
           </p>
         </div>
         <button
-          onClick={() => { setForm(emptyForm); setEditing(true); }}
+          onClick={() => {
+            setForm(emptyForm);
+            setEditing(true);
+          }}
           className="btn-primary inline-flex items-center gap-2"
         >
           <Plus size={14} /> Add a date
@@ -219,20 +245,31 @@ function CourtDatesPage() {
           <div className="mb-3 flex items-center justify-between">
             <button
               onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
-              className="btn-ghost" style={{ padding: 6 }} aria-label="Previous month"
+              className="btn-ghost"
+              style={{ padding: 6 }}
+              aria-label="Previous month"
             >
               <ChevronLeft size={16} />
             </button>
             <div className="font-serif text-[18px]">{monthLabel}</div>
             <button
               onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
-              className="btn-ghost" style={{ padding: 6 }} aria-label="Next month"
+              className="btn-ghost"
+              style={{ padding: 6 }}
+              aria-label="Next month"
             >
               <ChevronRight size={16} />
             </button>
           </div>
-          <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-            {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => <div key={d} className="py-1">{d}</div>)}
+          <div
+            className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+              <div key={d} className="py-1">
+                {d}
+              </div>
+            ))}
           </div>
           <div className="grid grid-cols-7 gap-1">
             {grid.map((d, i) => {
@@ -247,26 +284,37 @@ function CourtDatesPage() {
                   type="button"
                   onClick={() => setSelectedKey(key)}
                   onDoubleClick={() => openNewForDay(key)}
-                  className="relative flex h-16 flex-col items-start justify-start rounded-[2px] px-2 py-1.5 text-left transition-colors"
+                  className="relative flex h-16 flex-col items-start justify-start rounded-2xl px-2 py-1.5 text-left transition-colors"
                   style={{
                     background: isSelected
                       ? "rgba(91,124,196,0.20)"
-                      : has ? "rgba(91,124,196,0.10)"
-                      : isToday ? "rgba(47,141,133,0.10)"
-                      : "rgba(255,255,255,0.35)",
+                      : has
+                        ? "rgba(91,124,196,0.10)"
+                        : isToday
+                          ? "rgba(47,141,133,0.10)"
+                          : "rgba(255,255,255,0.35)",
                     color: inMonth ? "var(--foreground)" : "rgba(0,0,0,0.30)",
                     border: isSelected
                       ? "1px solid rgba(91,124,196,0.55)"
-                      : has ? "1px solid rgba(91,124,196,0.30)"
-                      : "1px solid transparent",
+                      : has
+                        ? "1px solid rgba(91,124,196,0.30)"
+                        : "1px solid transparent",
                     fontWeight: isToday || has ? 700 : 500,
                   }}
-                  aria-label={has ? `${d.toDateString()} — ${has.length} court date${has.length === 1 ? "" : "s"}` : d.toDateString()}
+                  aria-label={
+                    has
+                      ? `${d.toDateString()} — ${has.length} court date${has.length === 1 ? "" : "s"}`
+                      : d.toDateString()
+                  }
                 >
                   <span className="text-[12px]">{d.getDate()}</span>
                   {has && (
-                    <span className="mt-auto truncate text-[10px] font-semibold" style={{ color: "#4132B4" }}>
-                      {has[0].hearing_type}{has.length > 1 ? ` +${has.length - 1}` : ""}
+                    <span
+                      className="mt-auto truncate text-[10px] font-semibold"
+                      style={{ color: "#4132B4" }}
+                    >
+                      {has[0].hearing_type}
+                      {has.length > 1 ? ` +${has.length - 1}` : ""}
                     </span>
                   )}
                 </button>
@@ -280,21 +328,35 @@ function CourtDatesPage() {
           <div className="card-pp" style={{ padding: 18 }}>
             <div className="label-eyebrow">Selected day</div>
             <div className="mt-1 font-serif text-[18px]">
-              {new Date(selectedKey).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+              {new Date(selectedKey).toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
             </div>
             {selectedDayRows.length === 0 ? (
               <div className="mt-3">
                 <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
                   Nothing scheduled on this day.
                 </p>
-                <button onClick={() => openNewForDay(selectedKey)} className="btn-ghost mt-3 inline-flex items-center gap-2">
+                <button
+                  onClick={() => openNewForDay(selectedKey)}
+                  className="btn-ghost mt-3 inline-flex items-center gap-2"
+                >
                   <Plus size={13} /> Add a hearing here
                 </button>
               </div>
             ) : (
               <ul className="mt-3 space-y-3">
                 {selectedDayRows.map((r) => (
-                  <DateRow key={r.id} r={r} onEdit={editRow} onRemove={remove} onSync={syncToGoogle} syncing={syncing === r.id} />
+                  <DateRow
+                    key={r.id}
+                    r={r}
+                    onEdit={editRow}
+                    onRemove={remove}
+                    onSync={syncToGoogle}
+                    syncing={syncing === r.id}
+                  />
                 ))}
               </ul>
             )}
@@ -316,12 +378,20 @@ function CourtDatesPage() {
                         setCursor(new Date(d.getFullYear(), d.getMonth(), 1));
                         setSelectedKey(ymd(d));
                       }}
-                      className="w-full rounded-[2px] px-3 py-2 text-left transition-colors hover:bg-white/50"
+                      className="w-full rounded-2xl px-3 py-2 text-left transition-colors hover:bg-white/50"
                     >
                       <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                        {new Date(r.hearing_at).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                        {new Date(r.hearing_at).toLocaleString(undefined, {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
                       </div>
-                      <div className="font-serif text-[14px] leading-tight">{r.hearing_type} — {r.court_name}</div>
+                      <div className="font-serif text-[14px] leading-tight">
+                        {r.hearing_type} — {r.court_name}
+                      </div>
                     </button>
                   </li>
                 ))}
@@ -344,38 +414,73 @@ function CourtDatesPage() {
             style={{ padding: 22, maxHeight: "85vh", overflowY: "auto" }}
           >
             <div className="mb-3 flex items-center justify-between">
-              <div className="font-serif text-[20px]">{form.id ? "Edit court date" : "Add a court date"}</div>
-              <button onClick={() => setEditing(false)} className="btn-ghost" style={{ padding: 6 }}>✕</button>
+              <div className="font-serif text-[20px]">
+                {form.id ? "Edit court date" : "Add a court date"}
+              </div>
+              <button
+                onClick={() => setEditing(false)}
+                className="btn-ghost"
+                style={{ padding: 6 }}
+              >
+                ✕
+              </button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               <Field label="Court name">
-                <input className="input-pp" placeholder="e.g. Essex County Family Court" value={form.court_name}
-                  onChange={(e) => setForm({ ...form, court_name: e.target.value })} />
+                <input
+                  className="input-pp"
+                  placeholder="e.g. Essex County Family Court"
+                  value={form.court_name}
+                  onChange={(e) => setForm({ ...form, court_name: e.target.value })}
+                />
               </Field>
               <Field label="Hearing type">
-                <select className="input-pp" value={form.hearing_type}
-                  onChange={(e) => setForm({ ...form, hearing_type: e.target.value })}>
-                  {HEARING_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                <select
+                  className="input-pp"
+                  value={form.hearing_type}
+                  onChange={(e) => setForm({ ...form, hearing_type: e.target.value })}
+                >
+                  {HEARING_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
                 </select>
               </Field>
               <Field label="Date & time">
-                <input type="datetime-local" className="input-pp" value={form.hearing_at}
-                  onChange={(e) => setForm({ ...form, hearing_at: e.target.value })} />
+                <input
+                  type="datetime-local"
+                  className="input-pp"
+                  value={form.hearing_at}
+                  onChange={(e) => setForm({ ...form, hearing_at: e.target.value })}
+                />
               </Field>
               <Field label="Location (optional)">
-                <input className="input-pp" placeholder="Room or address" value={form.location}
-                  onChange={(e) => setForm({ ...form, location: e.target.value })} />
+                <input
+                  className="input-pp"
+                  placeholder="Room or address"
+                  value={form.location}
+                  onChange={(e) => setForm({ ...form, location: e.target.value })}
+                />
               </Field>
               <div className="md:col-span-2">
                 <Field label="Notes (optional)">
-                  <textarea className="input-pp" placeholder="Anything to remember for that day."
-                    value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                  <textarea
+                    className="input-pp"
+                    placeholder="Anything to remember for that day."
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  />
                 </Field>
               </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => setEditing(false)} className="btn-ghost">Cancel</button>
-              <button onClick={save} className="btn-primary">Save</button>
+              <button onClick={() => setEditing(false)} className="btn-ghost">
+                Cancel
+              </button>
+              <button onClick={save} className="btn-primary">
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -386,7 +491,11 @@ function CourtDatesPage() {
 }
 
 function DateRow({
-  r, onEdit, onRemove, onSync, syncing,
+  r,
+  onEdit,
+  onRemove,
+  onSync,
+  syncing,
 }: {
   r: Row;
   onEdit: (r: Row) => void;
@@ -395,26 +504,44 @@ function DateRow({
   syncing: boolean;
 }) {
   return (
-    <li className="rounded-[2px] bg-white/40 p-3" style={{ borderLeft: "3px solid #4132B4" }}>
+    <li className="rounded-2xl bg-white/40 p-3" style={{ borderLeft: "3px solid #4132B4" }}>
       <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
         {new Date(r.hearing_at).toLocaleString(undefined, { hour: "numeric", minute: "2-digit" })}
       </div>
-      <div className="mt-0.5 font-serif text-[15px] leading-tight">{r.hearing_type} — {r.court_name}</div>
+      <div className="mt-0.5 font-serif text-[15px] leading-tight">
+        {r.hearing_type} — {r.court_name}
+      </div>
       {r.location && (
-        <div className="mt-1 inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+        <div
+          className="mt-1 inline-flex items-center gap-1 text-[12px]"
+          style={{ color: "var(--muted-foreground)" }}
+        >
           <MapPin size={12} /> {r.location}
         </div>
       )}
       {r.notes && <p className="mt-1 text-[12px] leading-relaxed">{r.notes}</p>}
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <button onClick={() => onEdit(r)} className="btn-ghost text-[12px]" style={{ padding: "4px 10px" }}>
+        <button
+          onClick={() => onEdit(r)}
+          className="btn-ghost text-[12px]"
+          style={{ padding: "4px 10px" }}
+        >
           Edit
         </button>
-        <button onClick={() => onSync(r)} disabled={syncing}
-          className="btn-ghost inline-flex items-center gap-1 text-[12px]" style={{ padding: "4px 10px" }}>
+        <button
+          onClick={() => onSync(r)}
+          disabled={syncing}
+          className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+          style={{ padding: "4px 10px" }}
+        >
           <ExternalLink size={11} /> {syncing ? "Syncing…" : "Sync to Google"}
         </button>
-        <button onClick={() => onRemove(r.id)} aria-label="Remove" className="btn-ghost text-[12px]" style={{ padding: "4px 10px" }}>
+        <button
+          onClick={() => onRemove(r.id)}
+          aria-label="Remove"
+          className="btn-ghost text-[12px]"
+          style={{ padding: "4px 10px" }}
+        >
           <Trash2 size={12} />
         </button>
       </div>

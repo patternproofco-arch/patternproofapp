@@ -40,7 +40,9 @@ function Badge({ state }: { state: string | undefined }) {
     <span
       className="mono-meta"
       style={{
-        fontSize: 10, padding: "1px 5px", borderRadius: 2,
+        fontSize: 10,
+        padding: "1px 5px",
+        borderRadius: 2,
         border: "1px solid rgba(26,18,36,0.14)",
         background: corrected ? "#1A1224" : "transparent",
         color: corrected ? "#FAF8F4" : "rgba(26,18,36,0.55)",
@@ -72,7 +74,9 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
   return (
     <div
       style={{
-        background: "#FFFFFF", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2,
+        background: "var(--pp-card)",
+        border: "1px solid rgba(26,18,36,0.14)",
+        borderRadius: 2,
         borderLeft: `3px solid ${mine ? "#1A1224" : "rgba(26,18,36,0.25)"}`,
         padding: 14,
       }}
@@ -104,11 +108,19 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
           step={60}
           aria-label="Time"
           value={(message.sent_at_time ?? "").slice(0, 5)}
-          onChange={(e) => onCorrect("sent_at_time", e.target.value ? `${e.target.value}:00` : null)}
+          onChange={(e) =>
+            onCorrect("sent_at_time", e.target.value ? `${e.target.value}:00` : null)
+          }
           className="input-pp"
           style={{ width: "auto", minHeight: 40, fontSize: 13, padding: "6px 8px" }}
         />
-        <Badge state={prov.sent_on === "corrected" || prov.sent_at_time === "corrected" ? "corrected" : "extracted"} />
+        <Badge
+          state={
+            prov.sent_on === "corrected" || prov.sent_at_time === "corrected"
+              ? "corrected"
+              : "extracted"
+          }
+        />
         <span className="mono-meta mono-meta--muted" style={{ fontSize: 10.5 }}>
           {DATE_NOTE[message.date_confidence] ?? ""}
         </span>
@@ -118,7 +130,9 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
         aria-label="Message text"
         defaultValue={message.body ?? ""}
         placeholder={hardToRead ? "Type what this message says" : undefined}
-        onBlur={(e) => { if (e.target.value !== (message.body ?? "")) onCorrect("body", e.target.value); }}
+        onBlur={(e) => {
+          if (e.target.value !== (message.body ?? "")) onCorrect("body", e.target.value);
+        }}
         rows={Math.min(6, Math.max(2, Math.ceil((message.body?.length ?? 0) / 70)))}
         className="input-pp mt-2"
         style={{ fontSize: 14.5, lineHeight: 1.5 }}
@@ -134,7 +148,8 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
         {message.has_attachment_marker && (
           <span className="mono-meta mono-meta--muted" style={{ fontSize: 10.5 }}>
             <Paperclip size={11} style={{ display: "inline", marginRight: 3 }} />
-            an attachment was referenced ({message.attachment_marker_text}) — the file itself isn&apos;t recoverable from a screenshot
+            an attachment was referenced ({message.attachment_marker_text}) — the file itself
+            isn&apos;t recoverable from a screenshot
           </span>
         )}
       </div>
@@ -145,7 +160,13 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
             <img
               src={u}
               alt={`Original screenshot ${i + 1} for this message`}
-              style={{ width: 44, height: 44, objectFit: "cover", border: "1px solid rgba(26,18,36,0.14)", borderRadius: 2 }}
+              style={{
+                width: 44,
+                height: 44,
+                objectFit: "cover",
+                border: "1px solid rgba(26,18,36,0.14)",
+                borderRadius: 2,
+              }}
             />
           </a>
         ))}
@@ -166,7 +187,9 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
         <ul className="mt-2 space-y-1" style={{ fontSize: 12, color: "rgba(26,18,36,0.65)" }}>
           {corrections.map((c) => (
             <li key={c.id}>
-              <span className="mono-meta mono-meta--muted">{new Date(c.created_at).toLocaleString()}</span>{" "}
+              <span className="mono-meta mono-meta--muted">
+                {new Date(c.created_at).toLocaleString()}
+              </span>{" "}
               {c.field}: “{c.old_value ?? "—"}” → “{c.new_value ?? "—"}”
             </li>
           ))}

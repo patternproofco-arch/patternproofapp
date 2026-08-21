@@ -9,8 +9,8 @@ export const RED_BRIGHT = "#D46FFD";
 export const LAV = "#B98BFF";
 export const INK = "#1A1224";
 export const PAPER = "#FAF8F4";
-export const DISPLAY = "'Fraunces', Georgia, serif";
-export const UI = "'Space Grotesk', system-ui, sans-serif";
+export const DISPLAY = "var(--font-serif)";
+export const UI = "var(--font-sans)";
 
 export type MarkVariant = PortalVariant | "neutral";
 
@@ -57,7 +57,12 @@ interface BrandMarkProps {
  * The PatternProof mark: an isometric cube — the same record seen from three
  * faces at once. One geometry, three portal colorways.
  */
-export function BrandMark({ size = 40, variant = "neutral", onDark = false, className }: BrandMarkProps) {
+export function BrandMark({
+  size = 40,
+  variant = "neutral",
+  onDark = false,
+  className,
+}: BrandMarkProps) {
   const f = cubeFacets(variant);
   const seam = onDark ? INK : PAPER;
   return (

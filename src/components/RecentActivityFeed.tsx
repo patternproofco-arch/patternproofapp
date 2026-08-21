@@ -25,7 +25,11 @@ function when(iso: string | null) {
 /** Quiet, chronological list of the last things the person saved. */
 export function RecentActivityFeed({ items }: { items: ActivityItem[] | null }) {
   if (items === null) {
-    return <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>Gathering your recent activity…</p>;
+    return (
+      <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+        Gathering your recent activity…
+      </p>
+    );
   }
 
   if (items.length === 0) {
@@ -47,13 +51,24 @@ export function RecentActivityFeed({ items }: { items: ActivityItem[] | null }) 
           <li key={`${it.kind}-${it.id}`}>
             <Link
               to={m.to}
-              className="flex items-start gap-3 rounded-[2px] px-4 py-3"
-              style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+              className="flex items-start gap-3 px-4 py-3 transition-shadow"
+              style={{
+                background: "var(--pp-card)",
+                borderRadius: "var(--pp-r-lg)",
+                boxShadow: "var(--pp-shadow-sm)",
+              }}
             >
-              <Icon size={16} strokeWidth={1.75} style={{ marginTop: 2, color: "var(--muted-foreground)" }} />
+              <Icon
+                size={16}
+                strokeWidth={1.75}
+                style={{ marginTop: 2, color: "var(--muted-foreground)" }}
+              />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[14px]">{it.label}</span>
-                <span className="mt-0.5 block text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                <span
+                  className="mt-0.5 block text-[12px]"
+                  style={{ color: "var(--muted-foreground)" }}
+                >
                   {m.word} · {when(it.date ?? it.at)}
                 </span>
               </span>

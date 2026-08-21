@@ -18,8 +18,15 @@ export function WhyCourtsStruggleModal() {
     let cancelled = false;
     (async () => {
       const [incRes, patRes] = await Promise.all([
-        supabase.from("incidents").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null),
-        supabase.from("pattern_analyses").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase
+          .from("incidents")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .is("deleted_at", null),
+        supabase
+          .from("pattern_analyses")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
       ]);
       if (cancelled) return;
       const incidents = incRes.count ?? 0;
@@ -48,7 +55,7 @@ export function WhyCourtsStruggleModal() {
     >
       <div
         className="relative my-4 w-full max-w-3xl rounded-2xl p-6 md:p-10"
-        style={{ background: "var(--background)", boxShadow: "none" }}
+        style={{ background: "var(--background)", boxShadow: "var(--pp-shadow-sm)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <button

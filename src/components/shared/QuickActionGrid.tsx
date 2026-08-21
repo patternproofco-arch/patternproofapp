@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
-import { portalTheme, type PortalVariant } from "./portal-theme";
+import { portalTheme, neuShadow, type PortalVariant } from "./portal-theme";
 
 export interface QuickAction {
   label: string;
@@ -9,9 +9,17 @@ export interface QuickAction {
   params?: Record<string, string>;
 }
 
-/** Icon tiles laid out in a 2-row grid, themed per portal. */
-export function QuickActionGrid({ variant, actions }: { variant: PortalVariant; actions: QuickAction[] }) {
+/** Icon tiles laid out in a 2-row grid, themed per portal.
+ *  Neumorphic: raised tiles on the portal ground, carved icon well. */
+export function QuickActionGrid({
+  variant,
+  actions,
+}: {
+  variant: PortalVariant;
+  actions: QuickAction[];
+}) {
   const t = portalTheme(variant);
+  const shadow = neuShadow(t.ground);
   const cols = Math.max(2, Math.ceil(actions.length / 2));
   return (
     <div
@@ -33,11 +41,12 @@ export function QuickActionGrid({ variant, actions }: { variant: PortalVariant; 
               display: "grid",
               gap: 10,
               padding: "16px 14px",
-              borderRadius: 14,
-              border: `1px solid ${t.line}`,
-              background: t.card,
+              borderRadius: 18,
+              background: t.ground,
+              boxShadow: shadow.upSm,
               color: t.ink,
               textDecoration: "none",
+              transition: "box-shadow 170ms cubic-bezier(.2,0,.2,1)",
             }}
           >
             <span
@@ -47,8 +56,9 @@ export function QuickActionGrid({ variant, actions }: { variant: PortalVariant; 
                 justifyContent: "center",
                 width: 34,
                 height: 34,
-                borderRadius: 10,
-                background: t.mark,
+                borderRadius: 12,
+                background: t.ground,
+                boxShadow: shadow.inSm,
                 color: t.accent,
               }}
             >

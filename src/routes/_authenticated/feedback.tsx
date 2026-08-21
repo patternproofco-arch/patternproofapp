@@ -75,16 +75,32 @@ function SurvivorFeedbackPage() {
     return (
       <div style={pageWrap}>
         <div style={cardStyle}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 2, background: "rgba(127,161,137,0.20)", color: "#0F6E56", fontWeight: 700, fontSize: 13, marginBottom: 18 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "8px 14px",
+              borderRadius: 2,
+              background: "rgba(127,161,137,0.20)",
+              color: "#0F6E56",
+              fontWeight: 700,
+              fontSize: 13,
+              marginBottom: 18,
+            }}
+          >
             <Check size={16} /> Thank you
           </div>
           <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px", color: "#1A1224" }}>
             Received. Every word you shared helps.
           </h1>
           <p style={{ color: "#4E3B31", lineHeight: 1.6, marginBottom: 24 }}>
-            Your response is stored privately. We only see the words you chose to share here — not anything from your Archive or evidence.
+            Your response is stored privately. We only see the words you chose to share here — not
+            anything from your Archive or evidence.
           </p>
-          <button onClick={() => navigate({ to: "/dashboard" })} style={ctaBtn}>Back to dashboard</button>
+          <button onClick={() => navigate({ to: "/dashboard" })} style={ctaBtn}>
+            Back to dashboard
+          </button>
         </div>
       </div>
     );
@@ -92,14 +108,26 @@ function SurvivorFeedbackPage() {
 
   return (
     <div style={pageWrap}>
-      <Link to="/dashboard" style={backLink}><ArrowLeft size={14} /> Back to dashboard</Link>
+      <Link to="/dashboard" style={backLink}>
+        <ArrowLeft size={14} /> Back to dashboard
+      </Link>
       <div style={cardStyle}>
         <div style={eyebrow}>Your voice · shared privately</div>
-        <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", margin: "10px 0 12px", color: "#1A1224", fontFamily: "Georgia, 'Palatino Linotype', serif" }}>
+        <h1
+          style={{
+            fontSize: 32,
+            fontWeight: 800,
+            letterSpacing: "-0.02em",
+            margin: "10px 0 12px",
+            color: "#1A1224",
+            fontFamily: "Georgia, 'Palatino Linotype', serif",
+          }}
+        >
           How is PatternProof feeling for you?
         </h1>
         <p style={{ color: "#4E3B31", lineHeight: 1.65, marginBottom: 24 }}>
-          Honest answers help us make this safer and easier for the people who come next. Nothing here is required — share what you want, skip what you don't.
+          Honest answers help us make this safer and easier for the people who come next. Nothing
+          here is required — share what you want, skip what you don't.
         </p>
 
         <form onSubmit={submit} style={{ display: "grid", gap: 22 }}>
@@ -129,13 +157,23 @@ function SurvivorFeedbackPage() {
           <Field label="Did you ever feel unsure whether your information was safe?">
             <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
               {(["yes", "no"] as const).map((v) => (
-                <button key={v} type="button" onClick={() => setSafetyConcern(v)} style={pillBtn(safetyConcern === v)}>
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setSafetyConcern(v)}
+                  style={pillBtn(safetyConcern === v)}
+                >
                   {v === "yes" ? "Yes" : "No"}
                 </button>
               ))}
             </div>
             {safetyConcern === "yes" && (
-              <TextArea value={safetyDetail} onChange={setSafetyDetail} rows={2} placeholder="If you're comfortable, what made you unsure?" />
+              <TextArea
+                value={safetyDetail}
+                onChange={setSafetyDetail}
+                rows={2}
+                placeholder="If you're comfortable, what made you unsure?"
+              />
             )}
           </Field>
 
@@ -146,7 +184,12 @@ function SurvivorFeedbackPage() {
           <Field label="Would you be willing to be contacted for a short follow-up conversation? (optional)">
             <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
               {(["yes", "no"] as const).map((v) => (
-                <button key={v} type="button" onClick={() => setFollowUp(v)} style={pillBtn(followUp === v)}>
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setFollowUp(v)}
+                  style={pillBtn(followUp === v)}
+                >
                   {v === "yes" ? "Yes, that's okay" : "No thanks"}
                 </button>
               ))}
@@ -163,7 +206,11 @@ function SurvivorFeedbackPage() {
           </Field>
 
           <div>
-            <button type="submit" disabled={saving} style={{ ...ctaBtn, opacity: saving ? 0.7 : 1 }}>
+            <button
+              type="submit"
+              disabled={saving}
+              style={{ ...ctaBtn, opacity: saving ? 0.7 : 1 }}
+            >
               {saving ? "Sending…" : "Share with the team"}
             </button>
           </div>
@@ -176,13 +223,34 @@ function SurvivorFeedbackPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#1A1224", marginBottom: 10, lineHeight: 1.4 }}>{label}</label>
+      <label
+        style={{
+          display: "block",
+          fontSize: 14,
+          fontWeight: 700,
+          color: "#1A1224",
+          marginBottom: 10,
+          lineHeight: 1.4,
+        }}
+      >
+        {label}
+      </label>
       {children}
     </div>
   );
 }
 
-function TextArea({ value, onChange, rows, placeholder }: { value: string; onChange: (v: string) => void; rows: number; placeholder?: string }) {
+function TextArea({
+  value,
+  onChange,
+  rows,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  rows: number;
+  placeholder?: string;
+}) {
   return (
     <textarea
       value={value}
@@ -199,8 +267,7 @@ function TextArea({ value, onChange, rows, placeholder }: { value: string; onCha
 const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "40px 20px 80px",
-  background:
-    "#FAF8F4",
+  background: "#FAF8F4",
 };
 
 const cardStyle: React.CSSProperties = {
@@ -209,7 +276,7 @@ const cardStyle: React.CSSProperties = {
   background: "#FAF8F4",
   borderRadius: 2,
   padding: "36px 32px",
-  boxShadow: "none",
+  boxShadow: "var(--pp-shadow-sm)",
   border: "1px solid rgba(255,255,255,0.4)",
 };
 
@@ -256,7 +323,7 @@ const ctaBtn: React.CSSProperties = {
   fontSize: 15,
   border: "none",
   cursor: "pointer",
-  boxShadow: "none",
+  boxShadow: "var(--pp-shadow-sm)",
 };
 
 function pillBtn(active: boolean): React.CSSProperties {
