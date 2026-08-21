@@ -59,7 +59,7 @@ function OrgPortal() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      navigate({ to: "/login", search: { redirect: "/org-portal" }, replace: true });
+      navigate({ to: "/signin", search: { redirect: "/org-portal" }, replace: true });
       return;
     }
     load();
@@ -147,7 +147,7 @@ function OrgPortal() {
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
             {stats.codes.map((c) => {
-              const url = `https://pattern-proof.tech/login?ref=${c.code}`;
+              const url = `https://pattern-proof.tech/signin?ref=${c.code}`;
               return (
                 <div
                   key={c.code}
@@ -301,7 +301,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
           <button
             onClick={async () => {
               await supabase.auth.signOut();
-              navigate({ to: "/login" });
+              navigate({ to: "/signin" });
             }}
             style={{ ...btnStyle, fontSize: 12 }}
           >

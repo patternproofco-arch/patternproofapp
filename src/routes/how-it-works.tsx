@@ -163,7 +163,7 @@ function HowItWorks() {
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             {aud === "survivor" && (
-              <PrimaryLink to="/login" accent={INK} label="Start documenting →" />
+              <PrimaryLink to="/signin" accent={INK} label="Start documenting →" />
             )}
             {aud === "attorney" && (
               <>
@@ -370,7 +370,7 @@ function PrimaryLink({ to, accent, label }: { to: string; accent: string; label:
   return (
     <Link
       to={to}
-      search={to === "/login" ? {} : undefined}
+      search={to === "/signin" ? {} : undefined}
       style={{
         display: "inline-block",
         background: accent,

@@ -61,11 +61,11 @@ function Gate() {
   useIdleLock(
     !loading && !!user && (hasPin || hasBiometric) && !isLocked,
     settings.sessionTimeoutSec,
-    lock
+    lock,
   );
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login", replace: true });
+    if (!loading && !user) navigate({ to: "/signin", replace: true });
   }, [user, loading, navigate]);
 
   // Backfill the survivor role for accounts created before roles were
@@ -116,11 +116,18 @@ function Gate() {
   }
 
   // Lock screen only shows when the user has opted in (PIN or biometric).
-  const localBiometric = typeof window !== "undefined" && !!localStorage.getItem("pp_biometric_cred_v1");
+  const localBiometric =
+    typeof window !== "undefined" && !!localStorage.getItem("pp_biometric_cred_v1");
 
   // Server says a lock is on, but nothing on this device can open it — ask her
   // to sign back in rather than defaulting to unlocked.
-  if (serverLockOn === true && !hasPin && !hasBiometric && !localBiometric && pathname !== "/onboarding") {
+  if (
+    serverLockOn === true &&
+    !hasPin &&
+    !hasBiometric &&
+    !localBiometric &&
+    pathname !== "/onboarding"
+  ) {
     return <LockRecoveryScreen />;
   }
 

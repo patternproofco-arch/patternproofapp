@@ -275,7 +275,7 @@ function DemoHeader() {
           </p>
         </div>
         <Link
-          to="/login"
+          to="/signup"
           style={{
             background: "#5B4BA4",
             color: "white",
@@ -313,7 +313,7 @@ function DemoBanner() {
         <div>
           <strong>Demo mode.</strong> Buttons like "Save", "Upload", or "Export" won't do anything —
           this case is read-only sample data. To document a real case,{" "}
-          <Link to="/login" style={{ color: "#5B4BA4", fontWeight: 600 }}>
+          <Link to="/signup" style={{ color: "#5B4BA4", fontWeight: 600 }}>
             create an account
           </Link>
           .

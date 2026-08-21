@@ -205,7 +205,7 @@ function AdvocateInvite() {
           </p>
           <button
             onClick={() =>
-              navigate({ to: "/login", search: { redirect: `/advocate-invite/${token}` } })
+              navigate({ to: "/signin", search: { redirect: `/advocate-invite/${token}` } })
             }
             className="btn-pp"
           >
