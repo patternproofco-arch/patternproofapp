@@ -6,11 +6,24 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Link,
   Preview,
   Text,
 } from '@react-email/components'
+
+import {
+  button,
+  container,
+  divider,
+  footer,
+  h1,
+  link,
+  main,
+  text,
+  wordmark,
+} from './brand'
 
 interface EmailChangeEmailProps {
   siteName: string
@@ -32,12 +45,13 @@ export const EmailChangeEmail = ({
 }: EmailChangeEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email change for {siteName}</Preview>
+    <Preview>Confirm your new email address for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Text style={wordmark}>PatternProof</Text>
         <Heading style={h1}>Confirm your email change</Heading>
         <Text style={text}>
-          You requested to change your email address for {siteName} from{' '}
+          You asked to change the email on your {siteName} account from{' '}
           <Link href={`mailto:${oldEmail}`} style={link}>
             {oldEmail}
           </Link>{' '}
@@ -47,15 +61,13 @@ export const EmailChangeEmail = ({
           </Link>
           .
         </Text>
-        <Text style={text}>
-          Click the button below to confirm this change:
-        </Text>
         <Button style={button} href={confirmationUrl}>
-          Confirm Email Change
+          Confirm the change
         </Button>
+        <Hr style={divider} />
         <Text style={footer}>
-          If you didn't request this change, please secure your account
-          immediately.
+          If you didn't request this, don't confirm it — sign in and change your
+          password, and reach out to us if you need help.
         </Text>
       </Container>
     </Body>
@@ -63,28 +75,3 @@ export const EmailChangeEmail = ({
 )
 
 export default EmailChangeEmail
-
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
