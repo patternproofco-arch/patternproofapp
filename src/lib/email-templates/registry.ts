@@ -1,12 +1,12 @@
-import type { ComponentType } from 'react'
+import type { ComponentType } from "react";
 
 export interface TemplateEntry {
-  component: ComponentType<any>
-  subject: string | ((data: Record<string, any>) => string)
-  displayName?: string
-  previewData?: Record<string, any>
+  component: ComponentType<any>;
+  subject: string | ((data: Record<string, any>) => string);
+  displayName?: string;
+  previewData?: Record<string, any>;
   /** Fixed recipient — overrides caller-provided recipientEmail when set. */
-  to?: string
+  to?: string;
 }
 
 /**
@@ -17,10 +17,12 @@ export interface TemplateEntry {
  *   import { template as welcomeTemplate } from './welcome'
  *   // then add to TEMPLATES: 'welcome': welcomeTemplate
  */
-import { template as attorneyInvitationTemplate } from './attorney-invitation'
-import { template as supportRequestTemplate } from './support-request'
+import { template as attorneyInvitationTemplate } from "./attorney-invitation";
+import { template as supportRequestTemplate } from "./support-request";
+import { template as referralSignupNotificationTemplate } from "./referral-signup-notification";
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
-  'attorney-invitation': attorneyInvitationTemplate,
-  'support-request': supportRequestTemplate,
-}
+  "attorney-invitation": attorneyInvitationTemplate,
+  "support-request": supportRequestTemplate,
+  "referral-signup-notification": referralSignupNotificationTemplate,
+};
