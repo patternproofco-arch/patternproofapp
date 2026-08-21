@@ -312,3 +312,54 @@ export const denyOrgAccessRequest = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/**
+ * Referred signups that never recorded Terms of Service acceptance, past a
+ * 48-hour grace period. Aggregate counts per referring org only — same
+ * no-identifiers rule as the org-facing stats above, since this is a signal
+ * for admin to decide whether to follow up with a referral partner, not a
+ * per-client roster.
+ */
+const CONSENT_GRACE_HOURS = 48;
+
+export type ReferralConsentGap = {
+  code: string;
+  org_name: string;
+  pending_count: number;
+};
+
+export const getReferralConsentGaps = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ grace_period_hours: number; gaps: ReferralConsentGap[] }> => {
+    const supabaseAdmin = await requireAdmin(context.userId);
+    const cutoff = new Date(Date.now() - CONSENT_GRACE_HOURS * 3600_000).toISOString();
+
+    const { data: referrals } = await supabaseAdmin
+      .from("user_referrals")
+      .select("user_id,referred_by_code,referred_by_org_name,created_at")
+      .not("referred_by_code", "is", null)
+      .lt("created_at", cutoff);
+    const rows = (referrals ?? []).filter((r) => r.referred_by_code);
+    if (rows.length === 0) return { grace_period_hours: CONSENT_GRACE_HOURS, gaps: [] };
+
+    const { data: accepted } = await supabaseAdmin
+      .from("user_terms_acceptance")
+      .select("user_id")
+      .in("user_id", rows.map((r) => r.user_id));
+    const acceptedSet = new Set((accepted ?? []).map((a) => a.user_id));
+
+    const perCode = new Map<string, { org_name: string; pending_count: number }>();
+    for (const r of rows) {
+      if (acceptedSet.has(r.user_id)) continue;
+      const code = r.referred_by_code!;
+      const entry = perCode.get(code) ?? { org_name: r.referred_by_org_name ?? code, pending_count: 0 };
+      entry.pending_count += 1;
+      perCode.set(code, entry);
+    }
+
+    const gaps = Array.from(perCode.entries())
+      .map(([code, v]) => ({ code, ...v }))
+      .sort((a, b) => b.pending_count - a.pending_count);
+
+    return { grace_period_hours: CONSENT_GRACE_HOURS, gaps };
+  });
