@@ -35,12 +35,12 @@ function PrivacyPage() {
         <header className="mb-9">
           <p className="pp-legal-kicker">PatternProof</p>
           <h1 className="pp-legal-title">Privacy Policy</h1>
-          <p className="pp-legal-meta">Effective Date: June 2026 &nbsp;|&nbsp; Last Updated: August 2026</p>
+          <p className="pp-legal-meta">Last Updated: August 2026</p>
         </header>
 
         <Prose>
           <p>
-            PatternProof, operating as PatternProof ("PatternProof," "we," "us," or "our"),
+            PatternProof, operated by G Burns Company LLC ("PatternProof," "we," "us," or "our"),
             is committed to protecting the privacy and safety of our users. This Privacy Policy
             explains how we collect, use, store, and protect your information when you use our
             platform and associated services (collectively, the "Services").
@@ -289,7 +289,7 @@ function PrivacyPage() {
             Grace Burns, Founder<br />
             PatternProof<br />
             gracieburns200@gmail.com<br />
-            Philadelphia, PA, United States
+            Burlington County, New Jersey, United States
           </p>
 
           <p className="pp-legal-signoff">The truth is in the pattern.</p>
