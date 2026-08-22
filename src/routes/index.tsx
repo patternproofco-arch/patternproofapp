@@ -93,7 +93,7 @@ function Index() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "#FAF8F4", color: "#1A1224" }}>
+    <div className="min-h-screen" style={{ background: "var(--pp-paper)", color: "var(--pp-ink)" }}>
       <PublicQuickExit />
       <section
         style={{
@@ -108,11 +108,11 @@ function Index() {
           style={{
             marginTop: 34,
             fontFamily: "var(--font-serif)",
-            fontWeight: 300,
+            fontWeight: 700,
             fontSize: "clamp(2.2rem, 5.2vw, 3.6rem)",
             lineHeight: 1.08,
             letterSpacing: "-0.02em",
-            color: "#1A1224",
+            color: "var(--pp-ink)",
             marginBottom: 0,
           }}
         >
@@ -156,7 +156,7 @@ function Index() {
               to="/sample-case"
               style={{
                 display: "inline-block",
-                background: "#022063",
+                background: "var(--pp-accent-attorney)",
                 color: "#F4F6FB",
                 padding: "14px 26px",
                 fontFamily: "var(--font-mono)",
@@ -196,8 +196,8 @@ function Index() {
             }}
           >
             <PathCard
-              accent="#7C3AED"
-              gradient="linear-gradient(135deg,#A855F7,#5B21D6)"
+              accent="#7C5CB4"
+              gradient="linear-gradient(135deg,#A78BFA,#8B5CF6)"
               icon={FileText}
               label="Survivor"
               body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
@@ -205,8 +205,8 @@ function Index() {
               cta="Start documenting →"
             />
             <PathCard
-              accent="#0F2BB8"
-              gradient="linear-gradient(135deg,#2563EB,#0F2BB8)"
+              accent="#3B6FBA"
+              gradient="linear-gradient(135deg,#5B8FCC,#3B6FBA)"
               icon={Briefcase}
               label="Attorney"
               body="A source-linked chronology on day one — prep starts with strategy, not sorting."
@@ -214,8 +214,8 @@ function Index() {
               cta="See a sample case →"
             />
             <PathCard
-              accent="#4F6249"
-              gradient="linear-gradient(135deg,#9DB88F,#4F6249)"
+              accent="#5D8A52"
+              gradient="linear-gradient(135deg,#8BB890,#5D8A52)"
               icon={Users}
               label="DV Organization"
               body="A free intake tool for your advocates — she documents once, referrals arrive clean."
@@ -243,7 +243,7 @@ function Index() {
         Every entry keeps its source, and you control what you share.{" "}
         <Link
           to="/privacy"
-          style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}
+          style={{ color: "var(--pp-ink)", textDecoration: "underline", textUnderlineOffset: 3 }}
         >
           Learn more
         </Link>
@@ -251,7 +251,7 @@ function Index() {
           <Link
             to="/privacy"
             style={{
-              color: "#1A1224",
+              color: "var(--pp-ink)",
               textDecoration: "underline",
               textUnderlineOffset: 3,
               marginRight: 16,
@@ -262,7 +262,7 @@ function Index() {
           <Link
             to="/safety"
             style={{
-              color: "#1A1224",
+              color: "var(--pp-ink)",
               textDecoration: "underline",
               textUnderlineOffset: 3,
               marginRight: 16,
@@ -273,7 +273,7 @@ function Index() {
           <Link
             to="/support"
             style={{
-              color: "#1A1224",
+              color: "var(--pp-ink)",
               textDecoration: "underline",
               textUnderlineOffset: 3,
               marginRight: 16,
@@ -286,7 +286,7 @@ function Index() {
               style={{
                 display: "inline",
                 cursor: "pointer",
-                color: "#1A1224",
+                color: "var(--pp-ink)",
                 textDecoration: "underline",
                 textUnderlineOffset: 3,
               }}
@@ -296,25 +296,25 @@ function Index() {
             <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
               <Link
                 to="/how-it-works"
-                style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}
+                style={{ color: "var(--pp-ink)", textDecoration: "underline", textUnderlineOffset: 3 }}
               >
                 How it works
               </Link>
               <Link
                 to="/resources"
-                style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}
+                style={{ color: "var(--pp-ink)", textDecoration: "underline", textUnderlineOffset: 3 }}
               >
                 Resources
               </Link>
               <Link
                 to="/terms"
-                style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}
+                style={{ color: "var(--pp-ink)", textDecoration: "underline", textUnderlineOffset: 3 }}
               >
                 Terms
               </Link>
               <Link
                 to="/waitlist"
-                style={{ color: "#1A1224", textDecoration: "underline", textUnderlineOffset: 3 }}
+                style={{ color: "var(--pp-ink)", textDecoration: "underline", textUnderlineOffset: 3 }}
               >
                 Get updates
               </Link>
@@ -353,7 +353,7 @@ function PathCard({
         flexDirection: "column",
         justifyContent: "flex-start",
         textDecoration: "none",
-        color: "#1A1224",
+        color: "var(--pp-ink)",
         borderRadius: 18,
         overflow: "hidden",
         background: "var(--pp-ground, #F0EBF4)",
@@ -402,10 +402,10 @@ function PathCard({
             style={{
               margin: "7px 0 11px",
               fontFamily: "var(--font-serif)",
-              fontWeight: 400,
+              fontWeight: 600,
               fontSize: 13.5,
               lineHeight: 1.4,
-              color: "#1A1224",
+              color: "var(--pp-ink)",
             }}
           >
             {body}
@@ -429,3 +429,4 @@ function PathCard({
     </Link>
   );
 }
+
