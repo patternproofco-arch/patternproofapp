@@ -111,14 +111,14 @@ const GUIDANCE: { title: string; body: string; to?: string; label?: string }[] =
   {
     title: "Records requests",
     body: "Ask police departments, schools, or agencies for the records they already hold about your situation, with wording that gets a real answer.",
-    to: "/opra-helper",
-    label: "Open the records-request helper",
+    to: "/signin",
+    label: "Sign in required — open the records-request helper",
   },
   {
     title: "How the courts work",
     body: "Which court hears which case, what judges look for, and how a record is usually read.",
-    to: "/court-systems",
-    label: "Open the court systems guide",
+    to: "/signin",
+    label: "Sign in required — open the court systems guide",
   },
   {
     title: "Something not working?",

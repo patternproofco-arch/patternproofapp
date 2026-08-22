@@ -37,7 +37,7 @@ export const BASE_TIERS: Tier[] = [
       "Photo, document & audio evidence upload",
       "Structured chronological timeline",
       "Pattern detection",
-      "Court packet export — printable case summary (HTML/PDF), free",
+      "Professional-review packet export — printable case summary (HTML/PDF), free",
       "Attorney sharing — send a secure link to your attorney, free",
       "Encrypted in transit; per-user access controls",
     ],
@@ -46,7 +46,7 @@ export const BASE_TIERS: Tier[] = [
   },
   {
     key: "court_ready",
-    name: "Court Ready",
+    name: "Professional Review",
     price: "Pay what you can",
     sub: "$1 – $500",
     quote: "An optional, one-time contribution if PatternProof helped you. It does not unlock anything — every survivor feature is already free.",
@@ -124,10 +124,6 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         price: "$597",
         priceStrike: "$897",
         sub: "/month · locked for 12 months",
-        eyebrowNote:
-          remainingCharter === null
-            ? `Charter program — limited to ${CHARTER_COHORT_CAP} firms`
-            : `${remainingCharter} of ${CHARTER_COHORT_CAP} Charter spots remaining`,
         quote: "Built for 3–15 attorney family-law firms.",
         features: [
           "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
@@ -143,6 +139,6 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         ctaTo: "/lawyer-signup",
         featured: true,
       };
-  // Order: Survivor · Court Ready · Solo · Firm (featured, middle) · DV Organization
+  // Order: Survivor · Professional Review · Solo · Firm (featured, middle) · DV Organization
   return [BASE_TIERS[0], BASE_TIERS[1], BASE_TIERS[2], firm, BASE_TIERS[3]];
 }

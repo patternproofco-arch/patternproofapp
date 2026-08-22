@@ -15,7 +15,7 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms.",
+          "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months.",
       },
       { property: "og:title", content: "Pricing — PatternProof" },
       {
@@ -48,11 +48,11 @@ export const Route = createFileRoute("/pricing")({
 const FAQS = [
   {
     q: "Is it really free for survivors?",
-    a: 'Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the court packet export and sharing your case with an attorney. Professional Review (the "Court Ready" tier above) is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.',
+    a: 'Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the professional-review packet export and sharing your case with an attorney. Professional Review is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.',
   },
   {
     q: "What's the Charter Firm program?",
-    a: "We're onboarding the first 10 Charter Firms personally — full setup, case import, and staff training. Every Charter Firm gets the same terms: $597/month, locked for 12 months. After 12 months, the rate moves to the standard Firm price of $897/month and we'll notify you at least 60 days in advance.",
+    a: "We're onboarding Charter Firms personally — full setup, case import, and staff training. Every Charter Firm gets the same terms: $597/month, locked for 12 months. After 12 months, the rate moves to the standard Firm price of $897/month and we'll notify you at least 60 days in advance.",
   },
   {
     q: "How is the Firm tier different from Solo?",
