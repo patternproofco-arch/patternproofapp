@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { upsertAttorneyProfile } from "@/lib/attorney-portal.functions";
 import { toast } from "sonner";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/lawyer-signup")({
   head: () => ({
@@ -84,6 +85,7 @@ function LawyerSignup() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-5 py-10">
+      <PublicQuickExit />
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
           <BrandMark size={72} variant="attorney" />

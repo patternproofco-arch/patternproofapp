@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ShieldCheck, Lock, Printer, AlertTriangle } from "lucide-react";
 import { fetchSharedBundle } from "@/lib/attorney-public.functions";
 import { typeLabel } from "@/lib/abuse-types";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/attorney/$token")({
   head: ({ params }) => ({
@@ -137,6 +138,7 @@ function AttorneyView() {
 function Frame({ children }: { children: React.ReactNode }) {
   return (
     <div data-persona="attorney" className="min-h-screen" style={{ background: "var(--background)" }}>
+      <PublicQuickExit />
       <div className="mx-auto max-w-4xl px-5 py-10 md:px-8">{children}</div>
     </div>
   );

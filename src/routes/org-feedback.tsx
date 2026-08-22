@@ -4,6 +4,7 @@ import { ArrowLeft, Check } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { MARK_COLORWAYS } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/org-feedback")({
   head: () => ({
@@ -79,6 +80,7 @@ function OrgFeedbackPage() {
 
   return (
     <div data-persona="org" style={pageWrap}>
+      <PublicQuickExit />
       <div style={{ maxWidth: 680, margin: "0 auto" }}>
         <Link to="/" style={backLink}>
           <ArrowLeft size={14} /> Back to PatternProof

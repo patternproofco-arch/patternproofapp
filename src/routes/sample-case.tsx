@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MARK_COLORWAYS } from "@/components/BrandMark";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 /**
  * Fictional, read-only sample case shown to prospective attorneys.
@@ -140,6 +141,7 @@ const CLUSTERS: Cluster[] = [
 function SampleCase() {
   return (
     <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+      <PublicQuickExit />
       <TopBar />
 
       <section

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/privacy")({
 function PrivacyPage() {
   return (
     <div data-persona="survivor" className="pp-legal-shell">
+      <PublicQuickExit />
       <div className="pp-legal-sheet">
         <nav className="pp-legal-nav" aria-label="Legal document navigation">
           <Link

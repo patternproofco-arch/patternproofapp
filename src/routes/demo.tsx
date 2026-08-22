@@ -15,6 +15,7 @@ import {
   Info,
 } from "lucide-react";
 import { toast } from "sonner";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/demo")({
   head: () => ({
@@ -202,6 +203,7 @@ function DemoPage() {
         fontFamily: "var(--font-sans)",
       }}
     >
+      <PublicQuickExit />
       <DemoHeader />
       <DemoBanner />
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px 80px" }}>

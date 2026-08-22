@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { peekAdvocateInvitation, acceptAdvocateInvitation } from "@/lib/advocate.functions";
 import { useAuth } from "@/lib/auth-context";
 import { ADVOCATE_DISCLAIMER } from "@/components/AccessDisclaimer";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/advocate-invite/$token")({
   head: () => ({
@@ -90,6 +91,7 @@ function AdvocateInvite() {
 
   const card = (children: React.ReactNode) => (
     <div data-persona="org" style={wrap}>
+      <PublicQuickExit />
       <div className="card-pp" style={{ maxWidth: 620, width: "100%", padding: 28 }}>
         {children}
       </div>

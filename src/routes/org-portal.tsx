@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 import {
   getMyOrgPartnerStats,
   setReferralCodeActive,
@@ -278,6 +279,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
       data-persona="org"
       style={{ minHeight: "100vh", background: "#FAF8F4", color: "var(--foreground)" }}
     >
+      <PublicQuickExit />
       <header
         style={{
           display: "flex",

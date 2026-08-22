@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { BrandMark } from "@/components/BrandMark";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 import {
   peekSurvivorInvite,
   acceptSurvivorInvite,
@@ -729,6 +730,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         padding: 20,
       }}
     >
+      <PublicQuickExit />
       <div
         style={{
           maxWidth: 680,

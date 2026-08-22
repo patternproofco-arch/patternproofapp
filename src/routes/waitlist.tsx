@@ -2,6 +2,7 @@ import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { joinWaitlist } from "@/lib/waitlist.functions";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 const INK = "var(--pp-ink)";
 const PAPER = "var(--pp-paper, #FAF8F4)";
@@ -87,6 +88,7 @@ function Waitlist() {
 
   return (
     <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+      <PublicQuickExit />
       <header style={{ borderBottom: `1px solid ${RULE}` }}>
         <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 24px" }}>
           <Link

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 /** Recorded alongside every terms acceptance so we know which text a user agreed to. */
 export const TERMS_VERSION = "2026-08-rev2";
@@ -26,6 +27,7 @@ function Terms() {
   const updated = "August 2026"; // keep in sync with TERMS_VERSION above
   return (
     <div data-persona="survivor" className="pp-legal-shell">
+      <PublicQuickExit />
       <div className="pp-legal-sheet">
         <header className="pp-legal-nav justify-between">
           <Link to="/" className="pp-legal-link">

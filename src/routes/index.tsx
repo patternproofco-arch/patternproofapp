@@ -99,15 +99,12 @@ function Index() {
     if (!loading && user) navigate({ to: "/dashboard", replace: true });
   }, [user, loading, navigate]);
 
-  if (loading || user) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <BrandMark size={34} />
-        <div className="label-eyebrow">Preparing your space…</div>
-      </div>
-    );
-  }
-
+  // Render the real marketing page unconditionally — it's what every
+  // logged-out visitor, crawler, and first paint should see. An already
+  // signed-in visitor gets redirected to /dashboard by the effect above
+  // once auth resolves client-side; a brief flash of this page for that
+  // one case is a better tradeoff than blocking real content behind a
+  // loading state that's always true during SSR and first paint.
   return (
     <div className="min-h-screen" style={{ background: "var(--pp-ground, #EFEDF0)", color: INK }}>
       <PublicQuickExit />

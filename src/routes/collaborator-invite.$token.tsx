@@ -10,6 +10,7 @@ import {
   acceptCollaboratorInvite,
 } from "@/lib/attorney-collaborators.functions";
 import attorneyCss from "@/styles/attorney.css?url";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/collaborator-invite/$token")({
   head: () => ({
@@ -169,6 +170,7 @@ function CollaboratorInvitePage() {
 function Frame({ children }: { children: React.ReactNode }) {
   return (
     <div className="att-root" style={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+      <PublicQuickExit />
       <div style={{ width: "100%", maxWidth: 440 }}>{children}</div>
     </div>
   );

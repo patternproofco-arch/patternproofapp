@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { peekInvitation, acceptInvitation } from "@/lib/attorney-invitations.functions";
 import { toast } from "sonner";
 import attorneyCss from "@/styles/attorney.css?url";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/accept-invite/$token")({
   head: () => ({
@@ -158,6 +159,7 @@ function AcceptInvite() {
 function Frame({ children }: { children: React.ReactNode }) {
   return (
     <div className="att-root" style={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+      <PublicQuickExit />
       <div style={{ width: "100%", maxWidth: 440 }}>{children}</div>
     </div>
   );

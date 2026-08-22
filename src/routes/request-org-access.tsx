@@ -4,6 +4,7 @@ import { ArrowLeft, Check } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { MARK_COLORWAYS } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
+import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/request-org-access")({
   head: () => ({
@@ -66,6 +67,7 @@ function RequestOrgAccess() {
       data-persona="org"
       style={{ minHeight: "100vh", background: "#FAF8F4", padding: "60px 24px" }}
     >
+      <PublicQuickExit />
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
         <Link
           to="/"
