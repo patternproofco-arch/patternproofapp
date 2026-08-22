@@ -549,3 +549,146 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
 .pp-legal-signoff { margin-top: 36px; color: var(--pp-accent); font-family: var(--font-display); text-align: center; }
 
 @media (max-width: 640px) { .pp-legal-shell { padding: 18px 14px 52px; } .pp-legal-sheet { padding: 24px 20px; } }
+
+
+/* ============================================================
+   Skeleton Loader — Thread Connecting Dots
+   A pulsing dotted line that connects neumorphic card shapes.
+   Thematic to PatternProof: the "thread" that connects evidence.
+   ============================================================ */
+.pp-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 0;
+}
+.pp-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+.pp-skeleton-card {
+  flex: 1;
+  height: 72px;
+  border-radius: var(--pp-r-lg);
+  background: var(--pp-ground);
+  box-shadow: var(--pp-shadow-in-sm);
+  position: relative;
+  overflow: hidden;
+}
+.pp-skeleton-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%);
+  animation: pp-skel-shimmer 2s ease-in-out infinite;
+}
+@keyframes pp-skel-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* The connecting thread — dotted line with pulsing dots */
+.pp-skeleton-thread {
+  width: 2px;
+  flex-shrink: 0;
+  background-image: linear-gradient(180deg,
+    var(--pp-accent) 0%, var(--pp-accent) 50%,
+    transparent 50%, transparent 100%);
+  background-size: 2px 6px;
+  opacity: 0.3;
+  animation: pp-thread-pulse 2s ease-in-out infinite;
+}
+.pp-skeleton-thread-h {
+  height: 2px;
+  flex-shrink: 0;
+  min-width: 20px;
+  background-image: linear-gradient(90deg,
+    var(--pp-accent) 0%, var(--pp-accent) 50%,
+    transparent 50%, transparent 100%);
+  background-size: 6px 2px;
+  opacity: 0.3;
+  animation: pp-thread-pulse 2s ease-in-out infinite;
+}
+.pp-skeleton-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--pp-accent);
+  opacity: 0.4;
+  animation: pp-dot-breathe 1.5s ease-in-out infinite;
+}
+.pp-skeleton-dot:nth-child(odd) { animation-delay: 0.3s; }
+.pp-skeleton-dot:nth-child(even) { animation-delay: 0.6s; }
+
+@keyframes pp-thread-pulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.5; }
+}
+@keyframes pp-dot-breathe {
+  0%, 100% { transform: scale(0.8); opacity: 0.3; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+}
+
+/* Larger skeleton blocks for page-level loading */
+.pp-skeleton-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.pp-skeleton-header {
+  height: 32px;
+  width: 60%;
+  border-radius: var(--pp-r-md);
+  background: var(--pp-ground);
+  box-shadow: var(--pp-shadow-in-sm);
+}
+.pp-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+.pp-skeleton-block {
+  height: 120px;
+  border-radius: var(--pp-r-lg);
+  background: var(--pp-ground);
+  box-shadow: var(--pp-shadow-in-sm);
+  position: relative;
+  overflow: hidden;
+}
+.pp-skeleton-block::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,0.3) 50%,
+    transparent 100%);
+  animation: pp-skel-shimmer 2.5s ease-in-out infinite;
+}
+
+/* Thread connecting skeleton blocks */
+.pp-skeleton-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 0;
+}
+.pp-skeleton-connector .pp-skeleton-dot {
+  width: 4px;
+  height: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-skeleton-card::after,
+  .pp-skeleton-block::after { animation: none !important; }
+  .pp-skeleton-thread,
+  .pp-skeleton-thread-h,
+  .pp-skeleton-dot { animation: none !important; opacity: 0.3; }
+}
