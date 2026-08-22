@@ -47,7 +47,6 @@ const TABS: Tab[] = [
       "/communications",
       "/court-dates",
       "/share-with-attorney",
-      "/attorney-portal",
       "/legal-documents",
     ],
     render: (c) => <Scale size={20} strokeWidth={1.75} color={c} />,
@@ -55,7 +54,7 @@ const TABS: Tab[] = [
   {
     to: "/resources",
     label: "Resources",
-    match: ["/resources", "/opra-helper", "/court-systems", "/why-courts-struggle", "/support"],
+    match: ["/resources", "/opra-helper", "/court-systems", "/support"],
     render: (c) => <BookOpen size={20} strokeWidth={1.75} color={c} />,
   },
 ];

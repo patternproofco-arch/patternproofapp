@@ -181,7 +181,7 @@ function ShareWithAttorney() {
 
       <div className="mt-4">
         <Link
-          to="/attorney-billing"
+          to="/attorney-time-log"
           className="btn-ghost inline-flex items-center gap-2 text-[12px]"
         >
           <Clock size={13} /> View attorney time logged on your case

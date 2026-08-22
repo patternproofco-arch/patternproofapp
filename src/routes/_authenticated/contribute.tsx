@@ -5,11 +5,11 @@ import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { useSubscription } from "@/hooks/useSubscription";
 
-export const Route = createFileRoute("/_authenticated/court-ready")({
-  component: CourtReadyPage,
+export const Route = createFileRoute("/_authenticated/contribute")({
+  component: ContributePage,
 });
 
-function CourtReadyPage() {
+function ContributePage() {
   const sub = useSubscription();
   const [amount, setAmount] = useState(5);
 
@@ -101,7 +101,7 @@ function CourtReadyPage() {
         <div style={{ boxShadow: "var(--pp-shadow-sm)", borderRadius: 18, overflow: "hidden" }}>
           <StripeEmbeddedCheckout
             customAmountCents={amount * 100}
-            returnUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/court-ready-thanks?session_id={CHECKOUT_SESSION_ID}`}
+            returnUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/contribute-thanks?session_id={CHECKOUT_SESSION_ID}`}
           />
         </div>
       </div>

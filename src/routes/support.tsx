@@ -15,7 +15,7 @@ export const Route = createFileRoute("/support")({
       {
         name: "description",
         content:
-          "Get help with login, billing, evidence uploads, or court packet exports. Send a support request without using your own email client.",
+          "Get help with login, billing, evidence uploads, or professional-review packet exports. Send a support request without using your own email client.",
       },
       { property: "og:title", content: "Technical Support — PatternProof" },
       {
