@@ -1,11 +1,20 @@
 /** Shared visual language for the three portal dashboards.
- *  One shell, three themes. Colors live here and nowhere else.
+ *
+ *  Colors, shadows, and fonts here are read live from the CSS custom
+ *  properties each portal's layout route already sets via
+ *  `[data-persona="survivor"|"org"|"attorney"]` (src/styles.css) — that
+ *  file is the single source of truth. This module used to duplicate
+ *  those values as hardcoded hex, which let the two drift apart; now it
+ *  just names the right `var(--pp-*)` for each field, so a color change
+ *  in styles.css can't silently split into two answers again. The one
+ *  thing that isn't part of that token system yet is the per-portal
+ *  gradient used by the dashboard hero card, so that stays defined here.
  *
  *  Neumorphic system: every surface starts from the same tinted "ground"
  *  colour and is carved or extruded with paired light/dark shadows —
- *  never a border. `line` here is the shadow's dark half, not a border
- *  colour; `ground`/`groundHi`/`groundLo` are the three ground tints a
- *  raised, resting, and carved (inset) surface each read against. */
+ *  never a border. `ground`/`groundHi` are the two ground tints a
+ *  resting and raised surface each read against; `line` is a hairline
+ *  rule color, used for borders/dividers, not the shadow itself. */
 export type PortalVariant = "survivor" | "advocate" | "attorney";
 
 export interface PortalTheme {
@@ -17,7 +26,6 @@ export interface PortalTheme {
   line: string;
   ground: string;
   groundHi: string;
-  groundLo: string;
   gradientFrom: string;
   gradientMid?: string;
   gradientTo: string;
@@ -26,58 +34,42 @@ export interface PortalTheme {
   bodyFont: string;
 }
 
-const INK = "#232A38";
-const MUTED = "#626C80";
+const SHARED_TOKENS = {
+  accent: "var(--pp-accent)",
+  link: "var(--pp-link, var(--pp-accent))",
+  ink: "var(--pp-ink)",
+  muted: "var(--pp-muted)",
+  card: "var(--pp-card)",
+  line: "var(--pp-hairline)",
+  ground: "var(--pp-ground)",
+  groundHi: "var(--pp-ground-hi)",
+  mark: "var(--pp-ground-hi)",
+  displayFont: "var(--font-serif)",
+  bodyFont: "var(--font-sans)",
+} as const;
+
+const GRADIENTS: Record<PortalVariant, { from: string; mid?: string; to: string }> = {
+  survivor: { from: "#E879F9", mid: "#8B5CF6", to: "#38D9F0" },
+  advocate: { from: "#8FA383", to: "#4A5C43" },
+  attorney: { from: "#3F6DF0", to: "#1B2A6B" },
+};
 
 export const PORTAL_THEME: Record<PortalVariant, PortalTheme> = {
   survivor: {
-    accent: "#7B5CE0",
-    link: "#2BA8C6",
-    ink: INK,
-    muted: MUTED,
-    card: "#FFFFFF",
-    line: "#CCC4D6",
-    ground: "#F0EBF4",
-    groundHi: "#F5F1F8",
-    groundLo: "#E9E3EF",
-    gradientFrom: "#E879F9",
-    gradientMid: "#8B5CF6",
-    gradientTo: "#38D9F0",
-    mark: "#F5F1F8",
-    displayFont: "'Source Serif 4', Georgia, serif",
-    bodyFont: "'Figtree', system-ui, sans-serif",
+    ...SHARED_TOKENS,
+    gradientFrom: GRADIENTS.survivor.from,
+    gradientMid: GRADIENTS.survivor.mid,
+    gradientTo: GRADIENTS.survivor.to,
   },
   advocate: {
-    accent: "#4A5C43",
-    link: "#5D7A52",
-    ink: INK,
-    muted: MUTED,
-    card: "#FFFFFF",
-    line: "#C6CEC1",
-    ground: "#ECEFE9",
-    groundHi: "#F1F4EE",
-    groundLo: "#E5E9E2",
-    gradientFrom: "#8FA383",
-    gradientTo: "#4A5C43",
-    mark: "#F1F4EE",
-    displayFont: "'Newsreader', Georgia, serif",
-    bodyFont: "'Public Sans', system-ui, sans-serif",
+    ...SHARED_TOKENS,
+    gradientFrom: GRADIENTS.advocate.from,
+    gradientTo: GRADIENTS.advocate.to,
   },
   attorney: {
-    accent: "#1B2A6B",
-    link: "#3F6DF0",
-    ink: INK,
-    muted: MUTED,
-    card: "#FFFFFF",
-    line: "#C0C8DD",
-    ground: "#E8EBF4",
-    groundHi: "#EEF1F8",
-    groundLo: "#E0E4F0",
-    gradientFrom: "#3F6DF0",
-    gradientTo: "#1B2A6B",
-    mark: "#EEF1F8",
-    displayFont: "'Newsreader', Georgia, serif",
-    bodyFont: "'Public Sans', system-ui, sans-serif",
+    ...SHARED_TOKENS,
+    gradientFrom: GRADIENTS.attorney.from,
+    gradientTo: GRADIENTS.attorney.to,
   },
 };
 
@@ -85,25 +77,18 @@ export function portalTheme(variant: PortalVariant): PortalTheme {
   return PORTAL_THEME[variant];
 }
 
-/** Paired-shadow elevation, computed against a given ground colour.
- *  `up*` = raised/extruded, `in*` = carved/inset. */
-export function neuShadow(ground: string) {
-  const dark = shadowDarkFor(ground);
+/** Paired-shadow elevation. Reads the ambient CSS custom properties set by
+ *  the surrounding `[data-persona]` wrapper, so it no longer needs a ground
+ *  argument or a hardcoded ground→shadow lookup table — that table only
+ *  covered three exact hex values and had already drifted from
+ *  src/styles.css. `up*` = raised/extruded, `in*` = carved/inset. */
+export function neuShadow() {
   return {
-    up: `-6px -6px 13px #ffffff, 6px 6px 13px ${dark}`,
-    upSm: `-3px -3px 7px #ffffff, 3px 3px 7px ${dark}`,
-    upXs: `-2px -2px 4px #ffffff, 2px 2px 4px ${dark}`,
-    upLg: `-9px -9px 20px #ffffff, 9px 9px 20px ${dark}`,
-    in: `inset -4px -4px 8px #ffffff, inset 4px 4px 8px ${dark}`,
-    inSm: `inset -2px -2px 4px #ffffff, inset 2px 2px 5px ${dark}`,
+    up: "var(--pp-shadow-up)",
+    upSm: "var(--pp-shadow-sm)",
+    upXs: "var(--pp-shadow-xs)",
+    upLg: "var(--pp-shadow-lg)",
+    in: "var(--pp-shadow-in)",
+    inSm: "var(--pp-shadow-in-sm)",
   };
-}
-
-function shadowDarkFor(ground: string): string {
-  const known: Record<string, string> = {
-    "#F0EBF4": "#CCC4D6",
-    "#ECEFE9": "#C6CEC1",
-    "#E8EBF4": "#C0C8DD",
-  };
-  return known[ground.toUpperCase()] ?? "#C3CAD8";
 }
