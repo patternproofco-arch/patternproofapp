@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 
 /** Recorded alongside every terms acceptance so we know which text a user agreed to. */
-export const TERMS_VERSION = "2026-08";
+export const TERMS_VERSION = "2026-08-rev2";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
@@ -40,7 +40,7 @@ function Terms() {
 
           <section className="pp-legal-prose">
           <H2>1. Who we are</H2>
-          <p>PatternProof is a sole proprietorship operated by Grace Burns, doing business as PatternProof ("PatternProof," "we," "us"). PatternProof is not a separate legal entity from Grace Burns individually. By creating an account or using the Service, you agree to these Terms, including the limitation of liability and indemnification provisions below.</p>
+          <p>PatternProof is operated by G Burns Company LLC, doing business as PatternProof ("PatternProof," "we," "us"). PatternProof is operated through G Burns Company LLC, a New Jersey limited liability company. By creating an account or using the Service, you agree to these Terms, including the limitation of liability and indemnification provisions below.</p>
 
           <H2>2. What PatternProof is — and isn't</H2>
           <p>PatternProof is a documentation and evidence-organization tool. It is <strong>not a law firm</strong>, does not provide legal advice, and does not create an attorney-client relationship. AI outputs (patterns, summaries, drafts) are informational and may contain errors — always verify before relying on them in legal proceedings.</p>
@@ -75,7 +75,7 @@ function Terms() {
 
           <H2>11. Disclaimers, Limitation of Liability &amp; Indemnification</H2>
           <p>The service is provided "as is" without warranties of any kind. To the maximum extent permitted by law, PatternProof's total liability for any claim relating to the service is limited to the amount you paid us in the 12 months before the claim.</p>
-          <p>You agree to indemnify and hold harmless Grace Burns and PatternProof from any claims, damages, losses, or expenses (including reasonable attorney's fees) arising out of: (a) your violation of these Terms; (b) content you upload or submit, including any claim that it was fabricated, obtained illegally, or violates another person's rights; or (c) your violation of any law, including recording-consent laws, in connection with your use of the Service.</p>
+          <p>You agree to indemnify and hold harmless G Burns Company LLC and its members from any claims, damages, losses, or expenses (including reasonable attorney's fees) arising out of: (a) your violation of these Terms; (b) content you upload or submit, including any claim that it was fabricated, obtained illegally, or violates another person's rights; or (c) your violation of any law, including recording-consent laws, in connection with your use of the Service.</p>
 
           <H2>12. Governing law</H2>
           <p>These Terms are governed by the laws of the State of New Jersey, without regard to conflict-of-law rules.</p>
