@@ -65,7 +65,7 @@ function RequestOrgAccess() {
   return (
     <div
       data-persona="org"
-      style={{ minHeight: "100vh", background: "#FAF8F4", padding: "60px 24px" }}
+      style={{ minHeight: "100vh", background: "var(--pp-ground)", padding: "60px 24px" }}
     >
       <PublicQuickExit />
       <div style={{ maxWidth: 640, margin: "0 auto" }}>

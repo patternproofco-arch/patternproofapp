@@ -19,7 +19,7 @@ export function QuickActionGrid({
   actions: QuickAction[];
 }) {
   const t = portalTheme(variant);
-  const shadow = neuShadow(t.ground);
+  const shadow = neuShadow();
   const cols = Math.max(2, Math.ceil(actions.length / 2));
   return (
     <div

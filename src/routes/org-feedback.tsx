@@ -186,7 +186,9 @@ function OrgFeedbackPage() {
                 </OField>
 
                 {error && (
-                  <div style={{ color: "#8B3A3A", fontSize: 13, fontWeight: 600 }}>{error}</div>
+                  <div style={{ color: "var(--pp-urgent)", fontSize: 13, fontWeight: 600 }}>
+                    {error}
+                  </div>
                 )}
 
                 <div>
@@ -269,7 +271,7 @@ function OTextArea({
 const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "60px 24px 100px",
-  background: "var(--pp-paper, #FAF8F4)",
+  background: "var(--pp-ground)",
 };
 const cardStyle: React.CSSProperties = {
   background: "var(--pp-card)",
