@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Private documentation software that turns scattered evidence into court-ready patterns. Free for survivors. Free for DV organizations.",
+          "Private documentation software that turns scattered evidence into organized patterns. Free for survivors. Free for DV organizations.",
       },
       { property: "og:title", content: "PatternProof — The truth is in the pattern." },
       {
@@ -127,8 +127,8 @@ function Index() {
           }}
         >
           {attorneyMode
-            ? "Source-linked · Chain of custody · Court-ready"
-            : "Private · Secure · Court-ready"}
+            ? "Source-linked · Chain of custody · Export-ready"
+            : "Private · Secure · Export-ready"}
         </p>
         {!attorneyMode && (
           <p
@@ -326,7 +326,7 @@ function Index() {
                 accent="#4F6249"
                 icon={Users}
                 label="DV Organization"
-                body="A free intake tool for your advocates — she documents once, referrals arrive clean, at no cost to your program."
+                body="A free intake tool for your advocates — the survivor documents once, referrals arrive clean, at no cost to your program."
                 to="/for-organizations"
                 cta="See how it fits your program →"
               />

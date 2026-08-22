@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Clock, ArrowLeft, Scale } from "lucide-react";
 import { listMyAttorneyBilling } from "@/lib/time-entries.functions";
 
-export const Route = createFileRoute("/_authenticated/attorney-billing")({
+export const Route = createFileRoute("/_authenticated/attorney-time-log")({
   head: () => ({
     meta: [
       { title: "Attorney time — PatternProof" },
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/attorney-billing")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: AttorneyBillingPage,
+  component: AttorneyTimeLogPage,
 });
 
 type Data = Awaited<ReturnType<typeof listMyAttorneyBilling>>;
@@ -26,7 +26,7 @@ function formatHours(min: number): string {
   return `${h}h ${m}m`;
 }
 
-function AttorneyBillingPage() {
+function AttorneyTimeLogPage() {
   const load = useServerFn(listMyAttorneyBilling);
   const [data, setData] = useState<Data | null>(null);
   const [err, setErr] = useState<string | null>(null);

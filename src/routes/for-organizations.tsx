@@ -115,13 +115,13 @@ function ForOrganizations() {
         <div style={{ display: "grid", gap: 16 }}>
           <BeforeAfter
             label="Intake"
-            before="She repeats her story to multiple staff members. Notes end up inconsistent across the team."
-            after="Her history is documented once. Staff can review it without asking her to repeat it."
+            before="The survivor repeats their story to multiple staff members. Notes end up inconsistent across the team."
+            after="Their history is documented once. Staff can review it without asking them to repeat it."
           />
           <BeforeAfter
             label="Case files"
             before="Scattered across paper files, shared drives, and individual caseworkers' notebooks."
-            after="One organized record per survivor, visible to the staff she has approved."
+            after="One organized record per survivor, visible to the staff they have approved."
           />
           <BeforeAfter
             label="Serving more people"
@@ -199,7 +199,7 @@ function ForOrganizations() {
           }}
         >
           Every record stays under the survivor's control. This doesn't replace your judgment, your
-          relationship with her, or your team's expertise — it gives you more of your day back to
+          relationship with them, or your team's expertise — it gives you more of your day back to
           use it.
         </p>
 

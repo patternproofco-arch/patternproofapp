@@ -3,14 +3,14 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 
-export const Route = createFileRoute("/_authenticated/court-ready-thanks")({
+export const Route = createFileRoute("/_authenticated/contribute-thanks")({
   validateSearch: (s: Record<string, unknown>): { session_id?: string } => ({
     session_id: typeof s.session_id === "string" ? s.session_id : undefined,
   }),
-  component: CourtReadyThanks,
+  component: ContributeThanks,
 });
 
-function CourtReadyThanks() {
+function ContributeThanks() {
   const sub = useSubscription();
   const navigate = useNavigate();
   useEffect(() => {

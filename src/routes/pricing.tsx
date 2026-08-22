@@ -48,7 +48,7 @@ export const Route = createFileRoute("/pricing")({
 const FAQS = [
   {
     q: "Is it really free for survivors?",
-    a: 'Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the court packet export and sharing your case with an attorney. Professional Review (the "Court Ready" tier above) is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.',
+    a: "Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the professional-review packet export and sharing your case with an attorney. There's an optional one-time contribution (any amount, $1–$500) if PatternProof helped you — it doesn't unlock anything; every survivor feature is already free.",
   },
   {
     q: "What's the Charter Firm program?",
