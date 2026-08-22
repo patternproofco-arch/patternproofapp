@@ -25,13 +25,13 @@ export const Route = createFileRoute("/for-organizations")({
       {
         name: "description",
         content:
-          "A free, private documentation tool you can hand every survivor at intake. No cost to your org, no data-sharing with PatternProof — just a cleaner referral to counsel.",
+          "A free, private documentation tool you can hand every survivor at intake. No cost to your org, no data integration required from your systems — just a cleaner referral to counsel.",
       },
       { property: "og:title", content: "PatternProof — Partner referrals for DV organizations" },
       {
         property: "og:description",
         content:
-          "Free survivor tool your advocates can hand out at intake. Cleaner referrals, no cost, no data-sharing.",
+          "Free survivor tool your advocates can hand out at intake. Cleaner referrals, no cost, no org data integration required.",
       },
       { property: "og:url", content: "https://pattern-proof.tech/for-organizations" },
       { property: "og:type", content: "website" },
@@ -230,7 +230,7 @@ function ForOrganizations() {
               textUnderlineOffset: 4,
             }}
           >
-            How this handles VAWA confidentiality requirements →
+            How PatternProof handles data privacy →
           </Link>
           <Link
             to="/waitlist"
