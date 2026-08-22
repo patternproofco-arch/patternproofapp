@@ -41,7 +41,6 @@ interface UploadCard {
   blurb: string;
   accept: string;
   icon: React.ComponentType<{ size?: number; color?: string }>;
-  swatch: [string, string];
 }
 
 const CARDS: UploadCard[] = [
@@ -51,7 +50,6 @@ const CARDS: UploadCard[] = [
     blurb: "Save a chat thread as a PDF from your phone or messaging app and upload it here.",
     accept: "application/pdf,.pdf",
     icon: FileText,
-    swatch: ["#E8DEFB", "#C7E9E3"],
   },
   {
     type: "csv",
@@ -60,7 +58,6 @@ const CARDS: UploadCard[] = [
     accept:
       ".csv,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     icon: FileSpreadsheet,
-    swatch: ["#D7F0EA", "#E2DCFA"],
   },
   {
     type: "txt",
@@ -68,7 +65,6 @@ const CARDS: UploadCard[] = [
     blurb: "Plain-text chat transcripts copied or exported from your phone.",
     accept: ".txt,text/plain",
     icon: FileType2,
-    swatch: ["#EFE4FB", "#D3ECEA"],
   },
   {
     type: "rsmf",
@@ -76,7 +72,6 @@ const CARDS: UploadCard[] = [
     blurb: "Relativity Short Message Format files produced by lawful forensic export tools.",
     accept: ".rsmf,.json",
     icon: FileCode2,
-    swatch: ["#DCEEFB", "#E6DCFB"],
   },
   {
     type: "zip",
@@ -84,7 +79,6 @@ const CARDS: UploadCard[] = [
     blurb: "A zipped folder of message exports plus photos, voice memos, or other attachments.",
     accept: ".zip,application/zip,application/x-zip-compressed",
     icon: FileArchive,
-    swatch: ["#D8EAF7", "#EFE4FB"],
   },
 ];
 
@@ -248,7 +242,7 @@ function MessageThreadsPage() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        <div className="label-eyebrow" style={{ color: "#4132B4" }}>
+        <div className="label-eyebrow" style={{ color: "var(--pp-accent)" }}>
           Evidence Portal · Conversations
         </div>
         <h1
@@ -257,12 +251,12 @@ function MessageThreadsPage() {
             fontWeight: 300,
             fontSize: 40,
             lineHeight: 1.05,
-            color: "#1A1224",
+            color: "var(--pp-ink)",
           }}
         >
           Upload a Message Thread
         </h1>
-        <p style={{ fontSize: 16, lineHeight: 1.6, color: "#3A3849", maxWidth: 720 }}>
+        <p style={{ fontSize: 16, lineHeight: 1.6, color: "var(--pp-muted)", maxWidth: 720 }}>
           Three ways to bring a conversation in — pick the one that fits where you are and what you
           have access to right now. There&apos;s no wrong choice. All three land in Documentation
           first and stay private to you.
@@ -275,18 +269,18 @@ function MessageThreadsPage() {
           display: "flex",
           gap: 14,
           padding: 18,
-          borderRadius: 0,
-          background: "rgba(122,31,61,0.10), rgba(164,255,239,0.18))",
-          border: "1px solid rgba(122,31,61,0.25)",
-          color: "#1A1224",
+          borderRadius: "var(--pp-r-lg)",
+          background: "var(--pp-ground)",
+          boxShadow: "var(--pp-shadow-in-sm)",
+          color: "var(--pp-ink)",
         }}
       >
-        <Shield size={22} color="#4132B4" style={{ flexShrink: 0, marginTop: 2 }} />
+        <Shield size={22} color="var(--pp-accent)" style={{ flexShrink: 0, marginTop: 2 }} />
         <div>
           <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 14, letterSpacing: "0.02em" }}>
             A note about lawful use
           </div>
-          <p style={{ fontSize: 14, lineHeight: 1.55, color: "#3A3849" }}>
+          <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--pp-muted)" }}>
             Only upload messages from your own device, account, or records you are legally allowed
             to access. PatternProof does not hack, scrape, bypass Apple security, or access another
             person&apos;s private messages. We help you organize what you already have the right to
@@ -375,16 +369,16 @@ function MessageThreadsPage() {
       {tier === "tier2" && (
         <section
           style={{
-            borderRadius: 0,
+            borderRadius: "var(--pp-r-lg)",
             padding: 22,
-            background: "#FAF8F4",
-            border: "1px solid rgba(122,31,61,0.25)",
+            background: "var(--pp-card)",
+            boxShadow: "var(--pp-shadow-sm)",
           }}
           className="flex flex-col gap-4"
         >
           <div className="flex items-start justify-between">
             <div>
-              <div className="label-eyebrow" style={{ color: "#4132B4" }}>
+              <div className="label-eyebrow" style={{ color: "var(--pp-accent)" }}>
                 Tier 2 · Strongest
               </div>
               <h3
@@ -392,7 +386,7 @@ function MessageThreadsPage() {
                   fontFamily: "var(--font-serif)",
                   fontWeight: 300,
                   fontSize: 24,
-                  color: "#1A1224",
+                  color: "var(--pp-ink)",
                   marginTop: 4,
                 }}
               >
@@ -403,7 +397,7 @@ function MessageThreadsPage() {
               type="button"
               onClick={() => setTier("picker")}
               className="text-sm underline"
-              style={{ color: "rgba(26,18,36,0.55)" }}
+              style={{ color: "var(--pp-muted)" }}
             >
               Back
             </button>
@@ -462,13 +456,10 @@ function MessageThreadsPage() {
                   key={c.type}
                   style={{
                     position: "relative",
-                    borderRadius: 0,
+                    borderRadius: "var(--pp-r-lg)",
                     padding: 20,
-                    background: "rgba(255,255,255,0.7)",
-                    border: "1px solid rgba(122,31,61,0.18)",
+                    background: "var(--pp-card)",
                     boxShadow: "var(--pp-shadow-sm)",
-                    backdropFilter: "none",
-                    WebkitBackdropFilter: "none",
                     display: "flex",
                     flexDirection: "column",
                     gap: 12,
@@ -478,17 +469,18 @@ function MessageThreadsPage() {
                     style={{
                       width: 46,
                       height: 46,
-                      borderRadius: 0,
+                      borderRadius: "var(--pp-r-lg)",
                       display: "grid",
                       placeItems: "center",
-                      background: `rgba(122,31,61,0.10)`,
-                      color: "#3D2C5C",
+                      background: "var(--pp-ground)",
+                      boxShadow: "var(--pp-shadow-in-sm)",
+                      color: "var(--pp-accent)",
                     }}
                   >
-                    <Icon size={22} color="#3D2C5C" />
+                    <Icon size={22} color="var(--pp-accent)" />
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 16, color: "#1A1224" }}>{c.title}</div>
-                  <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#3A3849", flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 16, color: "var(--pp-ink)" }}>{c.title}</div>
+                  <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--pp-muted)", flex: 1 }}>
                     {c.blurb}
                   </p>
                   <button
@@ -501,9 +493,9 @@ function MessageThreadsPage() {
                       justifyContent: "center",
                       gap: 8,
                       padding: "10px 14px",
-                      borderRadius: 0,
-                      background: "#4132B4",
-                      color: "#FAF8F4",
+                      borderRadius: "var(--pp-r-lg)",
+                      background: "var(--pp-accent)",
+                      color: "var(--pp-accent-fg, #fff)",
                       fontWeight: 700,
                       fontSize: 13,
                       opacity: busy ? 0.7 : 1,
@@ -536,7 +528,7 @@ function MessageThreadsPage() {
             fontFamily: "var(--font-serif)",
             fontWeight: 300,
             fontSize: 28,
-            color: "#1A1224",
+            color: "var(--pp-ink)",
           }}
         >
           Your uploaded conversations
@@ -545,11 +537,11 @@ function MessageThreadsPage() {
           <div
             style={{
               padding: 28,
-              borderRadius: 0,
+              borderRadius: "var(--pp-r-lg)",
               textAlign: "center",
-              background: "rgba(255,255,255,0.6)",
-              border: "1px dashed rgba(122,31,61,0.3)",
-              color: "#3A3849",
+              background: "var(--pp-ground)",
+              boxShadow: "var(--pp-shadow-in-sm)",
+              color: "var(--pp-muted)",
               fontSize: 14,
               lineHeight: 1.6,
             }}
@@ -588,13 +580,10 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
   return (
     <article
       style={{
-        borderRadius: 0,
+        borderRadius: "var(--pp-r-lg)",
         padding: 22,
-        background: "rgba(255,255,255,0.75)",
-        border: "1px solid rgba(122,31,61,0.18)",
+        background: "var(--pp-card)",
         boxShadow: "var(--pp-shadow-sm)",
-        backdropFilter: "none",
-        WebkitBackdropFilter: "none",
       }}
     >
       {captureLabel && (
@@ -605,10 +594,10 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
             gap: 6,
             fontSize: 11,
             padding: "4px 10px",
-            borderRadius: 0,
+            borderRadius: "var(--pp-r-lg)",
             marginBottom: 10,
-            background: "rgba(26,23,20,0.06)",
-            color: "#3A3849",
+            background: "var(--pp-ground)",
+            color: "var(--pp-muted)",
             fontWeight: 600,
             letterSpacing: "0.03em",
           }}
@@ -639,22 +628,23 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
             style={{
               width: 38,
               height: 38,
-              borderRadius: 0,
-              background: "rgba(122,31,61,0.10)",
+              borderRadius: "var(--pp-r-lg)",
+              background: "var(--pp-ground)",
+              boxShadow: "var(--pp-shadow-in-sm)",
               display: "grid",
               placeItems: "center",
             }}
           >
-            <MessageSquare size={18} color="#3D2C5C" />
+            <MessageSquare size={18} color="var(--pp-accent)" />
           </div>
           <div>
-            <div style={{ fontWeight: 700, color: "#1A1224", fontSize: 15 }}>
+            <div style={{ fontWeight: 700, color: "var(--pp-ink)", fontSize: 15 }}>
               {t.source_filename}
             </div>
             <div
               style={{
                 fontSize: 12,
-                color: "rgba(26,18,36,0.55)",
+                color: "var(--pp-muted)",
                 letterSpacing: "0.04em",
                 textTransform: "uppercase",
                 marginTop: 2,
@@ -673,7 +663,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               padding: "4px 10px",
-              borderRadius: 0,
+              borderRadius: "var(--pp-r-lg)",
               background: `${statusColor}1A`,
               color: statusColor,
             }}
@@ -687,7 +677,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
             style={{
               padding: 6,
               borderRadius: 18,
-              color: "rgba(26,18,36,0.55)",
+              color: "var(--pp-muted)",
               background: "transparent",
             }}
           >
@@ -698,7 +688,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
 
       {t.parse_error && (
         <p
-          style={{ fontSize: 13, color: "rgba(26,18,36,0.55)", marginBottom: 12, lineHeight: 1.5 }}
+          style={{ fontSize: 13, color: "var(--pp-muted)", marginBottom: 12, lineHeight: 1.5 }}
         >
           <AlertTriangle
             size={12}
@@ -710,19 +700,19 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
 
       {t.summary && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#4132B4", marginBottom: 6 }}>
+          <div className="label-eyebrow" style={{ color: "var(--pp-accent)", marginBottom: 6 }}>
             Summary
           </div>
-          <p style={{ fontSize: 14, lineHeight: 1.6, color: "#1A1224" }}>{t.summary}</p>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--pp-ink)" }}>{t.summary}</p>
         </div>
       )}
 
       {t.attorney_summary && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#4132B4", marginBottom: 6 }}>
+          <div className="label-eyebrow" style={{ color: "var(--pp-accent)", marginBottom: 6 }}>
             Summary for professional review
           </div>
-          <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "#3A3849" }}>{t.attorney_summary}</p>
+          <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "var(--pp-muted)" }}>{t.attorney_summary}</p>
         </div>
       )}
 
@@ -740,7 +730,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
                   fontSize: 12,
                   fontWeight: 600,
                   padding: "5px 10px",
-                  borderRadius: 0,
+                  borderRadius: "var(--pp-r-lg)",
                   background:
                     f.severity === "high"
                       ? "#F7DDE3"
@@ -767,10 +757,11 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
           style={{
             marginTop: 14,
             padding: "10px 14px",
-            borderRadius: 0,
-            background: "rgba(122,31,61,0.08)",
+            borderRadius: "var(--pp-r-lg)",
+            background: "var(--pp-ground)",
+            boxShadow: "var(--pp-shadow-in-sm)",
             fontSize: 12.5,
-            color: "#3D2C5C",
+            color: "var(--pp-accent)",
             fontWeight: 600,
             letterSpacing: "0.02em",
             display: "inline-flex",
@@ -813,10 +804,9 @@ function TierCard({
       style={{
         position: "relative",
         textAlign: "left",
-        borderRadius: 0,
+        borderRadius: "var(--pp-r-lg)",
         padding: 22,
-        background: "#FAF8F4",
-        border: `1px solid ${accent}44`,
+        background: "var(--pp-card)",
         boxShadow: "var(--pp-shadow-sm)",
         display: "flex",
         flexDirection: "column",
@@ -836,7 +826,7 @@ function TierCard({
             color: accent,
             background: `${accent}18`,
             padding: "3px 8px",
-            borderRadius: 0,
+            borderRadius: "var(--pp-r-lg)",
           }}
         >
           Recommended
@@ -846,7 +836,7 @@ function TierCard({
         style={{
           width: 44,
           height: 44,
-          borderRadius: 0,
+          borderRadius: "var(--pp-r-lg)",
           background: `${accent}18`,
           display: "grid",
           placeItems: "center",
@@ -857,13 +847,13 @@ function TierCard({
       <div className="label-eyebrow" style={{ color: accent }}>
         {eyebrow}
       </div>
-      <div style={{ fontWeight: 700, fontSize: 17, color: "#1A1224" }}>{title}</div>
-      <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "#3A3849" }}>{body}</p>
+      <div style={{ fontWeight: 700, fontSize: 17, color: "var(--pp-ink)" }}>{title}</div>
+      <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--pp-muted)" }}>{body}</p>
       <p
         style={{
           fontSize: 12.5,
           lineHeight: 1.5,
-          color: "rgba(26,18,36,0.55)",
+          color: "var(--pp-muted)",
           fontStyle: "italic",
         }}
       >
@@ -878,10 +868,10 @@ function StepCard({ n, title, body }: { n: string; title: string; body: string }
   return (
     <div
       style={{
-        borderRadius: 0,
+        borderRadius: "var(--pp-r-lg)",
         padding: 14,
-        background: "rgba(255,255,255,0.6)",
-        border: "1px solid rgba(122,31,61,0.2)",
+        background: "var(--pp-ground)",
+        boxShadow: "var(--pp-shadow-in-sm)",
       }}
     >
       <div
@@ -889,16 +879,16 @@ function StepCard({ n, title, body }: { n: string; title: string; body: string }
           fontSize: 11,
           fontWeight: 800,
           letterSpacing: "0.15em",
-          color: "#4132B4",
+          color: "var(--pp-accent)",
           marginBottom: 6,
         }}
       >
         STEP {n}
       </div>
-      <div style={{ fontWeight: 700, color: "#1A1224", fontSize: 14, marginBottom: 4 }}>
+      <div style={{ fontWeight: 700, color: "var(--pp-ink)", fontSize: 14, marginBottom: 4 }}>
         {title}
       </div>
-      <p style={{ fontSize: 13, lineHeight: 1.5, color: "#3A3849" }}>{body}</p>
+      <p style={{ fontSize: 13, lineHeight: 1.5, color: "var(--pp-muted)" }}>{body}</p>
     </div>
   );
 }
