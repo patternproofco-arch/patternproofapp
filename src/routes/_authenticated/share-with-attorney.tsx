@@ -237,7 +237,6 @@ function ShareWithAttorney() {
           <button
             onClick={() => setOpen(true)}
             className="btn-primary inline-flex items-center gap-2"
-            style={{ background: "#A8CCE0", color: "#1A1714" }}
           >
             <Plus size={15} /> Invite your attorney
           </button>
@@ -381,7 +380,6 @@ function ShareWithAttorney() {
                 onClick={submit}
                 disabled={busy}
                 className="btn-primary"
-                style={{ background: "#A8CCE0", color: "#1A1714" }}
               >
                 {busy ? "Creating…" : "Generate Secure Access Link"}
               </button>
@@ -746,8 +744,8 @@ function MessagePanel({ linkId, onClose }: { linkId: string; onClose: () => void
                     maxWidth: "80%",
                     padding: "8px 12px",
                     borderRadius: 18,
-                    background: mine ? "#A8CCE0" : "var(--input)",
-                    color: "#1A1714",
+                    background: mine ? "var(--pp-accent)" : "var(--input)",
+                    color: mine ? "var(--pp-accent-fg, #fff)" : "var(--pp-ink)",
                   }}
                 >
                   <div className="text-[13px]" style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
@@ -795,7 +793,6 @@ function MessagePanel({ linkId, onClose }: { linkId: string; onClose: () => void
             </span>
             <button
               className="btn-primary inline-flex items-center gap-1"
-              style={{ background: "#A8CCE0", color: "#1A1714" }}
               onClick={submit}
               disabled={sending || !body.trim()}
             >

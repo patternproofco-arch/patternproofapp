@@ -106,7 +106,7 @@ function CollaboratorInvitePage() {
     <Frame>
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div className="att-eyebrow">PatternProof · Case collaborator</div>
-        <h1 style={{ fontSize: 30, marginTop: 8, marginBottom: 6, fontFamily: '"Instrument Serif", serif' }}>
+        <h1 style={{ fontSize: 30, marginTop: 8, marginBottom: 6, fontFamily: "var(--font-serif)" }}>
           {attorneyDisplay} invited you to collaborate
         </h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 13 }}>

@@ -433,7 +433,7 @@ function EvidencePage() {
             screenshots.
           </div>
         </div>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#4132B4" }}>Open →</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-accent)" }}>Open →</span>
       </Link>
 
       <Link
@@ -468,7 +468,7 @@ function EvidencePage() {
             searchable, flagged timeline.
           </div>
         </div>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#4132B4" }}>Open →</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-accent)" }}>Open →</span>
       </Link>
 
       <BatchDropzone onDone={load} />

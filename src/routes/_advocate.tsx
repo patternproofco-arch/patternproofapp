@@ -104,7 +104,7 @@ function AdvocateLayout() {
       </header>
       <AccessDisclaimerBar persona="org" />
       <main style={{ maxWidth: 1000, margin: "0 auto", padding: "28px 20px 64px" }}>
-        <FocusModeProvider accentColor="#244C37">
+        <FocusModeProvider accentColor="var(--pp-accent-org)">
           <Outlet />
         </FocusModeProvider>
       </main>

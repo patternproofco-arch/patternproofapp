@@ -27,10 +27,10 @@ export const Route = createFileRoute("/_authenticated/court-systems")({
 });
 
 // Brand tokens — match the rest of the app
-const BROWN = "#1A140E"; // var(--sidebar) / deep brown
-const BROWN_SOFT = "#2B2017"; // var(--panel)
-const CREAM = "#F5EAD0"; // var(--background)
-const ROSE = "#E59AAB"; // var(--primary)
+const BROWN = "var(--pp-ink)";
+const BROWN_SOFT = "var(--pp-muted)";
+const CREAM = "var(--background)";
+const ROSE = "var(--pp-accent)";
 
 function CourtSystemsPage() {
   return (
@@ -205,7 +205,7 @@ function CourtCard({
     >
       <div
         className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl"
-        style={{ background: `${BROWN}12`, color: BROWN }}
+        style={{ background: "var(--pp-ground)", boxShadow: "var(--pp-shadow-in-sm)", color: BROWN }}
       >
         <Icon size={20} />
       </div>
@@ -214,7 +214,7 @@ function CourtCard({
       </h3>
       <div
         className="mt-1 inline-block rounded-2xl px-2.5 py-1 text-[12px] font-extrabold uppercase tracking-[2px]"
-        style={{ background: ROSE, color: BROWN }}
+        style={{ background: ROSE, color: "var(--pp-accent-fg, #fff)" }}
       >
         {burden}
       </div>

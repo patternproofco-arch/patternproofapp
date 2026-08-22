@@ -89,7 +89,7 @@ function OrgPortal() {
     return (
       <Shell>
         <p style={{ fontSize: 14 }}>{error}</p>
-        <Link to="/" style={{ fontSize: 13, color: "#33268C", fontWeight: 600 }}>
+        <Link to="/" style={{ fontSize: 13, color: "var(--pp-accent-org)", fontWeight: 600 }}>
           Back to PatternProof
         </Link>
       </Shell>

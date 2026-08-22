@@ -189,7 +189,7 @@ function SurvivorInvitePage() {
           gap: 12,
           marginBottom: 16,
           paddingBottom: 14,
-          borderBottom: "1px solid #E2E8F0",
+          borderBottom: "1px solid var(--pp-hairline)",
         }}
       >
         <BrandMark size={32} />
@@ -202,7 +202,7 @@ function SurvivorInvitePage() {
             fontWeight: 600,
             letterSpacing: 0.12,
             textTransform: "uppercase",
-            color: "#475569",
+            color: "var(--pp-muted)",
           }}
         >
           <ShieldCheck size={12} /> Attorney invite
@@ -218,7 +218,7 @@ function SurvivorInvitePage() {
       >
         {attorneyDisplay} invited you to share your case.
       </h1>
-      <p style={{ color: "#475569", fontSize: 14, marginBottom: 18 }}>
+      <p style={{ color: "var(--pp-muted)", fontSize: 14, marginBottom: 18 }}>
         Sign in or create your PatternProof account to connect. You stay in control of what they can
         see.
       </p>
@@ -226,10 +226,10 @@ function SurvivorInvitePage() {
       {inv.personal_note && (
         <div
           style={{
-            background: "#F8FAFC",
-            border: "1px solid #E2E8F0",
-            borderLeft: "3px solid #4132B4",
-            borderRadius: 18,
+            background: "var(--pp-ground)",
+            boxShadow: "var(--pp-shadow-in-sm)",
+            borderLeft: "3px solid var(--pp-accent)",
+            borderRadius: "var(--pp-r-lg)",
             padding: 14,
             marginBottom: 18,
             fontSize: 14,
@@ -245,9 +245,11 @@ function SurvivorInvitePage() {
         <div
           style={{
             padding: 16,
-            background: "#D1FAE5",
-            borderRadius: 18,
-            color: "#065F46",
+            background: "var(--pp-ground)",
+            boxShadow: "var(--pp-shadow-in-sm)",
+            borderRadius: "var(--pp-r-lg)",
+            borderLeft: "3px solid var(--pp-safe, var(--pp-accent))",
+            color: "var(--pp-ink)",
             fontSize: 14,
           }}
         >
@@ -263,9 +265,12 @@ function SurvivorInvitePage() {
                 onClick={() => setMode("signup")}
                 style={{
                   padding: "6px 12px",
-                  borderRadius: 18,
-                  border: mode === "signup" ? "1px solid #4132B4" : "1px solid #E2E8F0",
-                  background: mode === "signup" ? "#EAF7EF" : "#fff",
+                  borderRadius: "var(--pp-r-pill, 18px)",
+                  background: "var(--pp-ground)",
+                  boxShadow: mode === "signup" ? "var(--pp-shadow-in-sm)" : "var(--pp-shadow-sm)",
+                  color: mode === "signup" ? "var(--pp-accent)" : "var(--pp-ink)",
+                  fontWeight: mode === "signup" ? 700 : 400,
+                  border: "none",
                   cursor: "pointer",
                 }}
               >
@@ -276,9 +281,12 @@ function SurvivorInvitePage() {
                 onClick={() => setMode("login")}
                 style={{
                   padding: "6px 12px",
-                  borderRadius: 18,
-                  border: mode === "login" ? "1px solid #4132B4" : "1px solid #E2E8F0",
-                  background: mode === "login" ? "#EAF7EF" : "#fff",
+                  borderRadius: "var(--pp-r-pill, 18px)",
+                  background: "var(--pp-ground)",
+                  boxShadow: mode === "login" ? "var(--pp-shadow-in-sm)" : "var(--pp-shadow-sm)",
+                  color: mode === "login" ? "var(--pp-accent)" : "var(--pp-ink)",
+                  fontWeight: mode === "login" ? 700 : 400,
+                  border: "none",
                   cursor: "pointer",
                 }}
               >
@@ -295,7 +303,7 @@ function SurvivorInvitePage() {
                     fontWeight: 600,
                     letterSpacing: 0.08,
                     textTransform: "uppercase",
-                    color: "#667085",
+                    color: "var(--pp-muted)",
                   }}
                 >
                   Email
@@ -315,7 +323,7 @@ function SurvivorInvitePage() {
                     fontWeight: 600,
                     letterSpacing: 0.08,
                     textTransform: "uppercase",
-                    color: "#667085",
+                    color: "var(--pp-muted)",
                   }}
                 >
                   Password
@@ -336,10 +344,10 @@ function SurvivorInvitePage() {
             disabled={busy}
             style={{
               padding: "12px 18px",
-              background: "#4132B4",
-              color: "#FAF8F4",
+              background: "var(--pp-accent)",
+              color: "var(--pp-accent-fg, #fff)",
               border: 0,
-              borderRadius: 18,
+              borderRadius: "var(--pp-r-pill, 18px)",
               fontWeight: 600,
               cursor: busy ? "not-allowed" : "pointer",
               opacity: busy ? 0.6 : 1,
@@ -354,7 +362,7 @@ function SurvivorInvitePage() {
           <div
             style={{
               fontSize: 11,
-              color: "#667085",
+              color: "var(--pp-muted)",
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
@@ -377,7 +385,7 @@ function SurvivorInvitePage() {
             >
               What would you like to share?
             </h2>
-            <p style={{ fontSize: 13, color: "#475569", marginTop: 6 }}>
+            <p style={{ fontSize: 13, color: "var(--pp-muted)", marginTop: 6 }}>
               Everything is selected by default so you can continue in one click, but you can narrow
               what this attorney sees before accepting.
             </p>
@@ -472,9 +480,9 @@ function SurvivorInvitePage() {
           <div
             style={{
               padding: 14,
-              borderRadius: 0,
-              border: "1px solid #E2E8F0",
-              background: "#FAF8F4",
+              borderRadius: "var(--pp-r-lg)",
+              boxShadow: "var(--pp-shadow-in-sm)",
+              background: "var(--pp-ground)",
             }}
           >
             <Toggle
@@ -482,7 +490,7 @@ function SurvivorInvitePage() {
               onChange={setSharePatterns}
               label="Share pattern analysis"
             />
-            <p style={{ margin: "8px 0 0 24px", fontSize: 12, color: "#475569" }}>
+            <p style={{ margin: "8px 0 0 24px", fontSize: 12, color: "var(--pp-muted)" }}>
               Includes PatternProof analysis, forecasts, attorney summaries, and safety notes when
               available.
             </p>
@@ -494,10 +502,10 @@ function SurvivorInvitePage() {
             disabled={busy}
             style={{
               padding: "12px 18px",
-              background: "#4132B4",
-              color: "#FAF8F4",
+              background: "var(--pp-accent)",
+              color: "var(--pp-accent-fg, #fff)",
               border: 0,
-              borderRadius: 18,
+              borderRadius: "var(--pp-r-pill, 18px)",
               fontWeight: 600,
               cursor: busy ? "not-allowed" : "pointer",
               opacity: busy ? 0.6 : 1,
@@ -512,7 +520,7 @@ function SurvivorInvitePage() {
           <div
             style={{
               fontSize: 11,
-              color: "#667085",
+              color: "var(--pp-muted)",
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
@@ -560,9 +568,9 @@ function ScopeBox({
     <div
       style={{
         padding: 14,
-        borderRadius: 0,
-        border: "1px solid #E2E8F0",
-        background: "#FAF8F4",
+        borderRadius: "var(--pp-r-lg)",
+        boxShadow: "var(--pp-shadow-in-sm)",
+        background: "var(--pp-ground)",
         display: "grid",
         gap: 10,
       }}
@@ -574,7 +582,7 @@ function ScopeBox({
           {icon}
           {title}
         </div>
-        <p style={{ fontSize: 12, color: "#475569", margin: "4px 0 0" }}>{description}</p>
+        <p style={{ fontSize: 12, color: "var(--pp-muted)", margin: "4px 0 0" }}>{description}</p>
       </div>
       {children}
     </div>
@@ -603,8 +611,9 @@ function ScopeModeCard({
         padding: 10,
         borderRadius: 18,
         cursor: "pointer",
-        border: checked ? "1px solid #4132B4" : "1px solid #E2E8F0",
-        background: checked ? "#EAF7EF" : "#FBFEFC",
+        border: "none",
+        boxShadow: checked ? "var(--pp-shadow-in-sm)" : "var(--pp-shadow-sm)",
+        background: "var(--pp-ground)",
       }}
     >
       <input
@@ -616,7 +625,7 @@ function ScopeModeCard({
       />
       <span>
         <strong style={{ display: "block", fontSize: 13 }}>{title}</strong>
-        <span style={{ display: "block", fontSize: 11, color: "#667085", marginTop: 2 }}>
+        <span style={{ display: "block", fontSize: 11, color: "var(--pp-muted)", marginTop: 2 }}>
           {helper}
         </span>
       </span>
@@ -635,14 +644,14 @@ function SelectionList({ children, empty }: { children: React.ReactNode; empty: 
         overflowY: "auto",
         padding: 8,
         borderRadius: 18,
-        border: "1px solid #E2E8F0",
-        background: "#F8FAFC",
+        boxShadow: "var(--pp-shadow-in-sm)",
+        background: "var(--pp-ground)",
       }}
     >
       {hasChildren ? (
         children
       ) : (
-        <p style={{ fontSize: 12, color: "#667085", margin: 0 }}>{empty}</p>
+        <p style={{ fontSize: 12, color: "var(--pp-muted)", margin: 0 }}>{empty}</p>
       )}
     </div>
   );
@@ -668,8 +677,8 @@ function SelectableItem({
         alignItems: "start",
         padding: 8,
         borderRadius: 18,
-        background: "#FAF8F4",
-        border: "1px solid #E2E8F0",
+        background: "var(--pp-card)",
+        boxShadow: "var(--pp-shadow-sm)",
         cursor: "pointer",
       }}
     >
@@ -685,7 +694,7 @@ function SelectableItem({
           style={{
             display: "block",
             fontSize: 11,
-            color: "#667085",
+            color: "var(--pp-muted)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -701,8 +710,9 @@ function SelectableItem({
 const inputStyle: React.CSSProperties = {
   padding: "10px 12px",
   borderRadius: 18,
-  border: "1px solid #E2E8F0",
-  background: "#FAF8F4",
+  border: "none",
+  boxShadow: "var(--pp-shadow-in-sm)",
+  background: "var(--pp-ground)",
   fontSize: 14,
   fontFamily: "inherit",
 };
@@ -712,7 +722,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div
       style={{
         minHeight: "100vh",
-        background: "#FBFEFC",
+        background: "var(--pp-paper, #FAF8F4)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -723,9 +733,8 @@ function Shell({ children }: { children: React.ReactNode }) {
         style={{
           maxWidth: 680,
           width: "100%",
-          background: "#FAF8F4",
-          border: "1px solid #E2E8F0",
-          borderRadius: 0,
+          background: "var(--pp-card)",
+          borderRadius: "var(--pp-r-lg)",
           padding: 28,
           boxShadow: "var(--pp-shadow-sm)",
         }}

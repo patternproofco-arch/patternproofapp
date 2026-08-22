@@ -143,7 +143,7 @@ function AttorneyLayout() {
         <LegalDisclaimerBar />
         <AttorneyBreadcrumb />
         <main className="att-content">
-          <FocusModeProvider accentColor="#022063">
+          <FocusModeProvider accentColor="var(--att-navy)">
             <Outlet />
           </FocusModeProvider>
         </main>
@@ -301,7 +301,7 @@ function LegalDisclaimerBar() {
       style={{
         borderBottom: "1px solid rgba(21,32,56,0.12)",
         background: "rgba(21,32,56,0.04)",
-        color: "#022063",
+        color: "var(--att-navy)",
         fontSize: 11.5,
         lineHeight: 1.5,
         letterSpacing: "0.01em",

@@ -414,21 +414,21 @@ function PatternsPage() {
             <div
               className="lg:col-span-2 rounded-2xl p-6"
               style={{
-                background: "#EEF2F7",
-                border: "1px solid #C8D3E2",
+                background: "var(--pp-ground)",
+                boxShadow: "var(--pp-shadow-sm)",
                 opacity: reviewed["attorney_summary"]?.status === "rejected" ? 0.5 : 1,
               }}
             >
               <div
                 className="text-[11px] font-bold uppercase tracking-[0.15em]"
-                style={{ color: "#3A4A66" }}
+                style={{ color: "var(--pp-muted)" }}
               >
                 For legal review
               </div>
-              <h3 className="mt-1 font-serif text-[20px]" style={{ color: "#1F2A3D" }}>
+              <h3 className="mt-1 font-serif text-[20px]" style={{ color: "var(--pp-ink)" }}>
                 Attorney summary
               </h3>
-              <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "#1F2A3D" }}>
+              <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "var(--pp-ink)" }}>
                 {analysis.attorney_summary}
               </p>
               <ClaimReview
@@ -507,7 +507,7 @@ function ClaimReview({
     }
   };
 
-  const mutedColor = tone === "dark" ? "#3A4A66" : "var(--muted-foreground)";
+  const mutedColor = tone === "dark" ? "var(--pp-muted)" : "var(--muted-foreground)";
 
   return (
     <div className="mt-4 no-print">
@@ -519,7 +519,7 @@ function ClaimReview({
       {editedNote && !editing && (
         <div
           className="mb-2 rounded-2xl px-3 py-2 text-[12px]"
-          style={{ background: tone === "dark" ? "#DCE3EE" : "var(--input)" }}
+          style={{ background: tone === "dark" ? "var(--pp-ground-lo, var(--pp-ground))" : "var(--input)" }}
         >
           <span className="label-eyebrow" style={{ display: "block", marginBottom: 4 }}>
             Your note

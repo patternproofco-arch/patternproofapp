@@ -112,7 +112,16 @@ function AdminOrgRequests() {
   return (
     <Wrap>
       {consentGaps && consentGaps.length > 0 && (
-        <div style={{ border: "1px solid #C9A15A", borderRadius: 2, padding: 16, background: "#FFF8E8", marginBottom: 24 }}>
+        <div
+          style={{
+            boxShadow: "var(--pp-shadow-sm)",
+            borderLeft: "3px solid var(--pp-warning)",
+            borderRadius: 18,
+            padding: 16,
+            background: "var(--pp-card)",
+            marginBottom: 24,
+          }}
+        >
           <div style={{ fontWeight: 700, marginBottom: 4 }}>Referral signups missing terms acceptance (48h+)</div>
           <div style={{ fontSize: 13, color: "var(--muted-foreground)", marginBottom: 10 }}>
             Aggregate counts only — no client identities. Use this to decide whether to follow up with a referral partner.
@@ -164,8 +173,8 @@ function AdminOrgRequests() {
                       padding: "8px 12px",
                       borderRadius: 18,
                       border: "none",
-                      background: "#2F4E34",
-                      color: "#1A1224",
+                      background: "var(--pp-accent-org)",
+                      color: "#fff",
                       fontWeight: 700,
                       fontSize: 13,
                       cursor: "pointer",
@@ -200,7 +209,7 @@ function AdminOrgRequests() {
 
 function Wrap({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ minHeight: "100vh", background: "#FAF8F4", padding: "48px 20px" }}>
+    <div style={{ minHeight: "100vh", background: "var(--pp-paper, #FAF8F4)", padding: "48px 20px" }}>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>{children}</div>
     </div>
   );
