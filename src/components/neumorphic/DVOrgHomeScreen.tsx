@@ -83,7 +83,7 @@ export function DVOrgHomeScreen({ orgName = 'DV Org Portal', onNavigate, activit
             <NeuCard key={activity.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <NeuCircle size={40} style={{ background: activity.color, flexShrink: 0 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
-                  <path d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m6-1.13a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' />
+                  <path d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m6-1.13a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
                 </svg>
               </NeuCircle>
               <div style={{ flex: 1 }}>
