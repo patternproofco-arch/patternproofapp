@@ -14,7 +14,10 @@
   --att-surface-2: var(--pp-ground-hi, #EEF1F8);
   --att-border: transparent;
   --att-border-strong: transparent;
-  --att-navy: #1B2A6B;
+  /* Navy anchor now matches --pp-accent-attorney (the attorney brand mark's
+     exact blue) instead of its own hardcoded value, so this portal can't
+     drift from the central token again. */
+  --att-navy: var(--pp-accent-attorney, #1A43BA);
   --att-navy-mid: #22314F;
   --att-navy-deep: #0E1729;
   --att-slate: #63708A;
@@ -23,21 +26,21 @@
   --att-muted: #6E6579;
 
   /* single accent — navy. No other accent colour on attorney screens. */
-  --att-accent: #1B2A6B;
+  --att-accent: var(--att-navy);
   --att-accent-hover: #22314F;
   --att-accent-soft: rgba(21,32,56,0.06);
   --att-accent-border: rgba(21,32,56,0.24);
 
   /* status aliases — all resolve to navy/ink so nothing competes with the accent */
-  --att-green: #1B2A6B;
+  --att-green: var(--att-navy);
   --att-amber: #4C596F;
   --att-red: #1A1224;
-  --att-blue: #1B2A6B;
-  --att-pp-pink: #1B2A6B;
+  --att-blue: var(--att-navy);
+  --att-pp-pink: var(--att-navy);
 
   background: var(--att-bg);
   color: var(--att-text);
-  --pp-accent: #1B2A6B;
+  --pp-accent: var(--att-navy);
   --pp-accent-fg: #FFFFFF;
   font-family: "Public Sans", system-ui, sans-serif;
   font-size: 13px;
@@ -299,7 +302,7 @@
 .att-nav-brand {
   display: inline-flex; align-items: center; gap: 8px;
   color: #fff;
-  --pp-accent: #1B2A6B;
+  --pp-accent: var(--att-navy);
   --pp-accent-fg: #FFFFFF;
   font-family: "Public Sans", system-ui, sans-serif;
   font-size: 13px; font-weight: 600; letter-spacing: 0.01em;

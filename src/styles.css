@@ -60,10 +60,18 @@
 
 :root {
   /* ---- Brand system: oxblood & deep purple moiré ---- */
-  --oxblood:      #4132B4;
+  /* Survivor is #4132B4->#5C1FAD: a solid, legible anchor mathematically
+     derived from the brand mark's pink->periwinkle gradient (blended hue,
+     darkened for AA contrast) — the mark itself is a gradient, which chrome
+     surfaces (text color, box-shadow, white-on-accent buttons) can't render.
+     Attorney and DV-org are exact hex pulled from their brand marks.
+     --purple-mid keeps its legacy name but now holds the org sage-green,
+     not a purple — renaming it would touch every alias below for no
+     behavioral gain. */
+  --oxblood:      #5C1FAD;
   --oxblood-deep: #33268C;
-  --purple:       #196CD4;
-  --purple-mid:   #1552A3;
+  --purple:       #1A43BA;
+  --purple-mid:   #606F5C;
   --red-bright:   #A38BEB;
   --lav:          #7EB6FF;
   --ink:          #1A1224;
@@ -88,6 +96,11 @@
   --pp-accent-org:      var(--purple-mid);
   --pp-accent-survivor: var(--oxblood);
   --pp-accent-shared:   var(--oxblood-deep);
+
+  /* Survivor's actual brand-mark gradient — decorative surfaces only
+     (icon bars, hero art). Never use for text/border/box-shadow color;
+     use --pp-accent-survivor (solid) there instead. */
+  --pp-accent-survivor-gradient: linear-gradient(135deg, #EBA4E2 0%, #A5BAF2 100%);
 
   /* Default accent for un-scoped surfaces */
   --pp-accent: var(--pp-accent-survivor);
