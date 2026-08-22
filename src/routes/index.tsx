@@ -307,8 +307,8 @@ function Index() {
               }}
             >
               <PathCard
-                accent="#5B4EA6"
-                barBackground="linear-gradient(135deg, #EBA4E2 0%, #A5BAF2 100%)"
+                accent="var(--pp-accent-survivor)"
+                barBackground="var(--pp-accent-survivor-gradient, linear-gradient(135deg, #EBA4E2 0%, #A5BAF2 100%))"
                 iconColor={INK}
                 icon={FileText}
                 label="Survivor"
@@ -317,7 +317,7 @@ function Index() {
                 cta="Start documenting →"
               />
               <PathCard
-                accent="#606F5C"
+                accent="var(--pp-accent-org)"
                 icon={Users}
                 label="DV Organization"
                 body="A free intake tool for your advocates — she documents once, referrals arrive clean, at no cost to your program."
@@ -325,7 +325,7 @@ function Index() {
                 cta="See how it fits your program →"
               />
               <PathCard
-                accent="#1A43BA"
+                accent="var(--pp-accent-attorney)"
                 icon={Briefcase}
                 label="Attorney"
                 body="A source-linked chronology on day one, with chain of custody intact — prep starts with strategy, not sorting."
