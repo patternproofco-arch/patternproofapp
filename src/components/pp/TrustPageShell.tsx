@@ -13,19 +13,12 @@ export function TrustPage({
   children: ReactNode;
 }) {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "var(--pp-paper, #FAF8F4)",
-        color: "var(--pp-ink)",
-        fontFamily: "var(--font-sans)",
-        padding: "32px 20px 80px",
-      }}
-    >
+    <div className="pp-public-shell">
       <PublicQuickExit />
-      <div style={{ maxWidth: 720, margin: "0 auto" }}>
+      <div className="pp-public-rail" style={{ maxWidth: 720 }}>
         <Link
           to="/"
+          className="pp-legal-link"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -51,12 +44,20 @@ export function TrustPage({
           {title}
         </h1>
         {subtitle ? (
-          <p style={{ fontSize: 17, color: "var(--pp-muted)", margin: "0 0 28px", lineHeight: 1.55 }}>
+          <p
+            style={{ fontSize: 17, color: "var(--pp-muted)", margin: "0 0 28px", lineHeight: 1.55 }}
+          >
             {subtitle}
           </p>
         ) : null}
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>{children}</div>
-        <hr style={{ margin: "48px 0 20px", border: 0, borderTop: "1px solid var(--pp-hairline, rgba(0,0,0,0.08))" }} />
+        <hr
+          style={{
+            margin: "48px 0 20px",
+            border: 0,
+            borderTop: "1px solid var(--pp-hairline, rgba(0,0,0,0.08))",
+          }}
+        />
         <p style={{ fontSize: 12, color: "var(--pp-muted)" }}>
           This page describes controls that are implemented in PatternProof today. If a description
           does not match your experience, please tell us. Related:{" "}

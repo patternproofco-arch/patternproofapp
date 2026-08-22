@@ -36,14 +36,17 @@ export function AppShell() {
   }, [settings.exitUrl]);
 
   return (
-    <div className="min-h-screen w-full" data-density="survivor" data-persona="survivor" style={{ background: "var(--background)" }}>
+    <div
+      className="pp-app-shell min-h-screen w-full"
+      data-density="survivor"
+      data-persona="survivor"
+      style={{ background: "var(--pp-ground)" }}
+    >
       {/* Ambient pastel canvas behind everything */}
       <AmbientBackground />
 
       {/* Minimal logo strip (no chrome bar) — sits in normal flow */}
-      <header
-        className="no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 pt-5 md:px-10 md:pt-6"
-      >
+      <header className="pp-shell-header no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 pt-5 md:px-10 md:pt-6">
         <span aria-hidden style={{ width: 1 }} />
         <BrandMark size={42} />
         <UtilityBar />
@@ -56,7 +59,7 @@ export function AppShell() {
           blurred, dimmed or covered by it. */}
       <FocusModeProvider>
         <main
-          className="app-surface print-page mx-auto w-full max-w-6xl px-5 md:px-10"
+          className="pp-app-main app-surface print-page mx-auto w-full max-w-6xl px-5 md:px-10"
           style={{
             paddingTop: 24,
             // bottom padding: tab bar height + safety

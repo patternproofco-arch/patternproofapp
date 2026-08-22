@@ -67,21 +67,8 @@ export function BottomTabBar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <nav
-      className="no-print"
-      aria-label="Main"
-      style={{
-        position: "fixed",
-        insetInline: 0,
-        bottom: 0,
-        zIndex: 90,
-        background: "var(--background)",
-        borderTop: "1px solid var(--border)",
-        boxShadow: "var(--pp-shadow-sm)",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
-      }}
-    >
-      <div className="mx-auto flex w-full max-w-2xl items-stretch">
+    <nav className="pp-bottom-tab-bar no-print" aria-label="Main">
+      <div className="pp-bottom-tab-inner mx-auto flex w-full max-w-2xl items-stretch">
         {TABS.map((t) => {
           const active = t.match.some((m) => pathname === m || pathname.startsWith(m + "/"));
           const color = active ? "var(--foreground)" : "var(--muted-foreground)";
@@ -91,8 +78,9 @@ export function BottomTabBar() {
               to={t.to}
               aria-label={t.label}
               aria-current={active ? "page" : undefined}
-              className="flex flex-1 flex-col items-center justify-center gap-1"
-              style={{ padding: "10px 4px 12px", color }}
+              className="pp-bottom-tab flex flex-1 flex-col items-center justify-center gap-1"
+              data-active={active ? "true" : "false"}
+              style={{ color }}
             >
               {t.render(color)}
               <span
