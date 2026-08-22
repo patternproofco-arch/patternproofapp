@@ -15,6 +15,8 @@ import { Route as TriageRouteImport } from './routes/triage'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
 import { Route as SampleCaseRouteImport } from './routes/sample-case'
 import { Route as SafetyRouteImport } from './routes/safety'
@@ -137,6 +139,16 @@ const SupportRoute = SupportRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SigninRoute = SigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SelfHelpGuideRoute = SelfHelpGuideRouteImport.update({
@@ -654,6 +666,8 @@ export interface FileRoutesByFullPath {
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -752,6 +766,8 @@ export interface FileRoutesByTo {
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -852,6 +868,8 @@ export interface FileRoutesById {
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -952,6 +970,8 @@ export interface FileRouteTypes {
     | '/safety'
     | '/sample-case'
     | '/self-help-guide'
+    | '/signin'
+    | '/signup'
     | '/sitemap.xml'
     | '/support'
     | '/terms'
@@ -1050,6 +1070,8 @@ export interface FileRouteTypes {
     | '/safety'
     | '/sample-case'
     | '/self-help-guide'
+    | '/signin'
+    | '/signup'
     | '/sitemap.xml'
     | '/support'
     | '/terms'
@@ -1149,6 +1171,8 @@ export interface FileRouteTypes {
     | '/safety'
     | '/sample-case'
     | '/self-help-guide'
+    | '/signin'
+    | '/signup'
     | '/sitemap.xml'
     | '/support'
     | '/terms'
@@ -1251,6 +1275,8 @@ export interface RootRouteChildren {
   SafetyRoute: typeof SafetyRoute
   SampleCaseRoute: typeof SampleCaseRoute
   SelfHelpGuideRoute: typeof SelfHelpGuideRoute
+  SigninRoute: typeof SigninRoute
+  SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
@@ -1322,6 +1348,20 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/self-help-guide': {
@@ -2146,6 +2186,8 @@ const rootRouteChildren: RootRouteChildren = {
   SafetyRoute: SafetyRoute,
   SampleCaseRoute: SampleCaseRoute,
   SelfHelpGuideRoute: SelfHelpGuideRoute,
+  SigninRoute: SigninRoute,
+  SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
