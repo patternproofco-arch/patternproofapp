@@ -1863,3 +1863,21 @@ textarea.input-pp,
     padding-inline: 24px;
   }
 }
+
+.pp-portal-shell {
+  background: var(--pp-ground);
+  color: var(--pp-ink);
+}
+.pp-portal-header {
+  position: relative;
+  z-index: 2;
+  background: var(--pp-ground);
+  box-shadow: var(--pp-shadow-sm);
+}
+.pp-portal-main {
+  position: relative;
+  z-index: 1;
+}
+.pp-portal-main > * {
+  min-width: 0;
+}
