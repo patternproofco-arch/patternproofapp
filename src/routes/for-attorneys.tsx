@@ -12,11 +12,11 @@ import { getStripeEnvironment } from "@/lib/stripe";
  * "before" vs. single navy "after" — no more than two colors.
  */
 
-const INK = "#1A1224";
-const PAPER = "#FAF8F4";
-const NAVY = "#022063";
-const MUTED = "#6B6A78";
-const RULE = "rgba(26,18,36,0.14)";
+const INK = "var(--pp-ink)";
+const PAPER = "var(--pp-paper)";
+const NAVY = "var(--pp-accent-attorney)";
+const MUTED = "var(--pp-muted)";
+const RULE = "var(--pp-hairline)";
 
 const SERIF = "var(--font-serif)";
 const SANS = "var(--font-sans)";
@@ -95,7 +95,7 @@ function ForAttorneys() {
         <h1
           style={{
             fontFamily: SERIF,
-            fontWeight: 300,
+            fontWeight: 700,
             fontSize: "clamp(2.2rem,5.2vw,3.8rem)",
             lineHeight: 1.05,
             letterSpacing: "-0.02em",
@@ -237,7 +237,7 @@ function ForAttorneys() {
           <p
             style={{
               fontFamily: SERIF,
-              fontWeight: 300,
+              fontWeight: 700,
               fontSize: 20,
               lineHeight: 1.55,
               color: INK,
@@ -249,7 +249,7 @@ function ForAttorneys() {
           <p
             style={{
               fontFamily: SERIF,
-              fontWeight: 300,
+              fontWeight: 700,
               fontSize: 20,
               lineHeight: 1.55,
               color: INK,
@@ -277,7 +277,7 @@ function ForAttorneys() {
                 paddingTop: 12,
               }}
             >
-              <span style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 20, color: INK }}>
+              <span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 20, color: INK }}>
                 {t.name}
               </span>
               <span
@@ -534,3 +534,4 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
     </div>
   );
 }
+
