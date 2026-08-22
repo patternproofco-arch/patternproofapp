@@ -267,13 +267,13 @@ function TextArea({
 const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "40px 20px 80px",
-  background: "#FAF8F4",
+  background: "var(--pp-ground)",
 };
 
 const cardStyle: React.CSSProperties = {
   maxWidth: 640,
   margin: "0 auto",
-  background: "#FAF8F4",
+  background: "var(--pp-ground)",
   borderRadius: 18,
   padding: "36px 32px",
   boxShadow: "var(--pp-shadow-sm)",
@@ -308,7 +308,7 @@ const inputStyle: React.CSSProperties = {
   padding: "12px 14px",
   borderRadius: 18,
   border: "1px solid rgba(26,18,36,0.25)",
-  background: "#FAF8F4",
+  background: "var(--pp-ground)",
   color: "#1A1224",
   fontSize: 14,
   outline: "none",

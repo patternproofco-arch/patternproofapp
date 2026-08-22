@@ -215,7 +215,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const page = {
   minHeight: "100vh",
-  background: "#FAF8F4",
+  background: "var(--pp-ground)",
   color: "#1A1224",
   fontFamily: "var(--font-sans)",
   padding: "32px 20px 96px",
@@ -293,7 +293,7 @@ const input = {
   fontSize: 15,
   fontFamily: "var(--font-sans)",
   color: "#1A1224",
-  background: "#FAF8F4",
+  background: "var(--pp-ground)",
   border: "1px solid rgba(26,18,36,0.16)",
   borderRadius: 18,
 } as const;
@@ -337,7 +337,7 @@ const copyBtn = {
   display: "inline-flex",
   alignItems: "center",
   gap: 6,
-  background: "#FAF8F4",
+  background: "var(--pp-ground)",
   border: "1px solid rgba(26,18,36,0.16)",
   borderRadius: 18,
   padding: "6px 12px",
