@@ -9,10 +9,10 @@ import { useAuth } from "@/lib/auth-context";
 import { BrandMark } from "@/components/BrandMark";
 import { US_STATES, STATE_RESOURCES, type StateResource } from "@/lib/state-resources";
 
-const INK = "#1A1224";
-const PAPER = "#FAF8F4";
-const RULE = "rgba(26,18,36,0.14)";
-const MUTED = "#6E6579";
+const INK = "var(--pp-ink)";
+const PAPER = "var(--pp-paper, #FAF8F4)";
+const RULE = "var(--pp-hairline, rgba(26,18,36,0.14))";
+const MUTED = "var(--pp-muted)";
 const SERIF = "var(--font-serif)";
 const SANS = "var(--font-sans)";
 const MONO = "var(--font-mono)";
@@ -394,7 +394,7 @@ function VerificationLine({ dateLastChecked }: { dateLastChecked: string | null 
         fontFamily: MONO,
         fontSize: 11,
         letterSpacing: "0.04em",
-        color: "#4132B4",
+        color: "var(--pp-accent)",
       }}
     >
       Not yet independently re-verified — confirm before relying on this number

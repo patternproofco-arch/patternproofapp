@@ -29,8 +29,8 @@ function CopyField({ value, label }: { value: string; label: string }) {
         aria-label={label}
         style={{
           flex: "1 1 320px",
-          background: "#fff",
-          border: "1px solid rgba(0,0,0,0.12)",
+          background: "var(--pp-ground)",
+          boxShadow: "var(--pp-shadow-in-sm)",
           borderRadius: 18,
           padding: "10px 12px",
           fontSize: 13,
@@ -50,8 +50,8 @@ function CopyField({ value, label }: { value: string; label: string }) {
           });
         }}
         style={{
-          background: "#6B5FA4",
-          color: "#fff",
+          background: "var(--pp-accent)",
+          color: "var(--pp-accent-fg, #fff)",
           border: 0,
           borderRadius: 18,
           padding: "10px 16px",
@@ -84,7 +84,7 @@ function Steps({ items }: { items: React.ReactNode[] }) {
   );
 }
 
-const linkS = { color: "#6B5FA4", fontWeight: 500 } as const;
+const linkS = { color: "var(--pp-accent)", fontWeight: 500 } as const;
 
 function ConnectPage() {
   const mcpUrl = useMcpUrl();

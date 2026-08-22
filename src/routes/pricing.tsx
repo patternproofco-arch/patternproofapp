@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { Check, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { BrandMark } from "@/components/BrandMark";
+import { BrandMark, MARK_COLORWAYS } from "@/components/BrandMark";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -146,7 +146,7 @@ function PricingPage() {
                 width: 6,
                 height: 6,
                 borderRadius: 18,
-                background: "#33268C",
+                background: "var(--pp-accent-shared, var(--oxblood-deep))",
               }}
             />
             Simple, transparent pricing
@@ -164,7 +164,7 @@ function PricingPage() {
             <br />
             <span
               style={{
-                background: "#4132B4",
+                background: "var(--pp-accent)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -269,27 +269,19 @@ function TierCard({ tier }: { tier: Tier }) {
   const isAttorney = tier.key === "attorney_solo" || tier.key === "attorney_firm";
   const isOrg = tier.key === "organization";
 
-  const cardBg = isAttorney ? "#022063" : isOrg ? "#FFFFFF" : "#FFFFFF";
+  const attorneyAccent = MARK_COLORWAYS.attorney.solid!;
+  const orgAccent = MARK_COLORWAYS.advocate.solid!;
 
-  const border = isAttorney
-    ? "1px solid rgba(181,199,240,0.18)"
-    : isOrg
-      ? "1px solid rgba(122,155,110,0.30)"
-      : "1px solid rgba(196,176,232,0.45)";
+  const cardBg = isAttorney ? attorneyAccent : "var(--pp-card)";
+  const border = "none";
 
-  const glow = isAttorney
-    ? "0 20px 60px -20px rgba(60,110,230,0.55), 0 0 80px -30px rgba(120,160,255,0.45), 0 0 0 1px rgba(181,199,240,0.18)"
-    : isOrg
-      ? "0 20px 60px -20px rgba(90,122,79,0.35), 0 0 70px -30px rgba(140,180,120,0.45), 0 0 0 1px rgba(122,155,110,0.18)"
-      : "0 20px 60px -20px rgba(124,92,196,0.35), 0 0 0 1px rgba(196,176,232,0.30)";
+  const textColor = isAttorney ? "#FFFFFF" : "var(--pp-ink)";
+  const mutedColor = isAttorney ? "rgba(255,255,255,0.72)" : "var(--pp-muted)";
+  const checkColor = isAttorney ? "#FFFFFF" : isOrg ? orgAccent : "var(--pp-accent)";
+  const eyebrowColor = isAttorney ? "#FFFFFF" : isOrg ? orgAccent : "var(--pp-accent)";
 
-  const textColor = isAttorney ? "#FFFFFF" : isOrg ? "#1F2D1A" : "#1A1224";
-  const mutedColor = isAttorney ? "rgba(226,232,240,0.78)" : isOrg ? "#36422F" : "#6E6579";
-  const checkColor = isAttorney ? "#9CB3E8" : isOrg ? "#5A7A4F" : "#4132B4";
-  const eyebrowColor = isAttorney ? "#9CB3E8" : isOrg ? "#3E5A33" : "#4132B4";
-
-  const ctaBg = isAttorney ? "#FFFFFF" : isOrg ? "#1552A3" : "#4132B4";
-  const ctaColor = isAttorney ? "#0F1B3D" : "#FFFFFF";
+  const ctaBg = isAttorney ? "#FFFFFF" : isOrg ? orgAccent : "var(--pp-accent)";
+  const ctaColor = isAttorney ? attorneyAccent : "#FFFFFF";
 
   return (
     <div
@@ -311,7 +303,7 @@ function TierCard({ tier }: { tier: Tier }) {
             top: -12,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "#022063",
+            background: attorneyAccent,
             color: "#FAF8F4",
             padding: "6px 16px",
             borderRadius: 18,
@@ -327,7 +319,11 @@ function TierCard({ tier }: { tier: Tier }) {
       )}
 
       <div style={{ marginBottom: 20 }}>
-        <BrandMark size={44} onDark={isAttorney} variant={isAttorney ? "attorney" : "survivor"} />
+        <BrandMark
+          size={44}
+          onDark={isAttorney}
+          variant={isAttorney ? "attorney" : isOrg ? "advocate" : "survivor"}
+        />
       </div>
 
       <div

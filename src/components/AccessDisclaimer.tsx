@@ -1,3 +1,5 @@
+import { MARK_COLORWAYS } from "@/components/BrandMark";
+
 /**
  * Single source of truth for the professional-access disclaimer. It is shown,
  * permanently and non-dismissibly, on every screen where someone other than
@@ -9,7 +11,7 @@ export const ACCESS_DISCLAIMER =
 export const ADVOCATE_DISCLAIMER = ACCESS_DISCLAIMER;
 
 export function AccessDisclaimerBar({ persona = "org" }: { persona?: "org" | "attorney" }) {
-  const accent = persona === "attorney" ? "#022063" : "var(--pp-accent-org)";
+  const accent = persona === "attorney" ? MARK_COLORWAYS.attorney.solid! : "var(--pp-accent-org)";
   return (
     <div
       role="note"

@@ -3,10 +3,10 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { joinWaitlist } from "@/lib/waitlist.functions";
 
-const INK = "#1A1224";
-const PAPER = "#FAF8F4";
-const MUTED = "#6B6A78";
-const RULE = "rgba(26,18,36,0.14)";
+const INK = "var(--pp-ink)";
+const PAPER = "var(--pp-paper, #FAF8F4)";
+const MUTED = "var(--pp-muted)";
+const RULE = "var(--pp-hairline, rgba(26,18,36,0.14))";
 const SERIF = "var(--font-serif)";
 const SANS = "var(--font-sans)";
 const MONO = "var(--font-mono)";

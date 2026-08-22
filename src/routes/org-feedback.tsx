@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Check } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { MARK_COLORWAYS } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/org-feedback")({
@@ -96,7 +97,7 @@ function OrgFeedbackPage() {
                   padding: "8px 14px",
                   borderRadius: 18,
                   background: "rgba(127,161,137,0.20)",
-                  color: "#3E5A33",
+                  color: "var(--pp-accent-org)",
                   fontWeight: 700,
                   fontSize: 13,
                   marginTop: 20,
@@ -110,12 +111,12 @@ function OrgFeedbackPage() {
                   fontWeight: 800,
                   letterSpacing: "-0.02em",
                   margin: "16px 0 12px",
-                  color: "#1F2D1A",
+                  color: "var(--pp-ink)",
                 }}
               >
                 Thank you.
               </h1>
-              <p style={{ color: "#2C3826", lineHeight: 1.6 }}>
+              <p style={{ color: "var(--pp-muted)", lineHeight: 1.6 }}>
                 Advocate feedback shapes what we build next. If you left contact info we'll follow
                 up personally.
               </p>
@@ -128,12 +129,12 @@ function OrgFeedbackPage() {
                   fontWeight: 800,
                   letterSpacing: "-0.02em",
                   margin: "14px 0 12px",
-                  color: "#1F2D1A",
+                  color: "var(--pp-ink)",
                 }}
               >
                 How is PatternProof landing with your survivors?
               </h1>
-              <p style={{ color: "#2C3826", lineHeight: 1.65, marginBottom: 24 }}>
+              <p style={{ color: "var(--pp-muted)", lineHeight: 1.65, marginBottom: 24 }}>
                 A few short questions. Skip anything you'd rather not answer. Your organization name
                 and contact info are optional — leave them blank to respond anonymously.
               </p>
@@ -212,7 +213,7 @@ function OField({ label, children }: { label: string; children: React.ReactNode 
           display: "block",
           fontSize: 13,
           fontWeight: 700,
-          color: "#1F2D1A",
+          color: "var(--pp-ink)",
           marginBottom: 8,
           lineHeight: 1.45,
         }}
@@ -266,13 +267,13 @@ function OTextArea({
 const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "60px 24px 100px",
-  background: "#FAF8F4",
+  background: "var(--pp-paper, #FAF8F4)",
 };
 const cardStyle: React.CSSProperties = {
   background: "var(--pp-card)",
   borderRadius: 18,
   padding: "36px 32px",
-  borderLeft: "4px solid #7A9B6E",
+  borderLeft: `4px solid ${MARK_COLORWAYS.advocate.solid}`,
   boxShadow: "var(--pp-shadow-sm)",
 };
 const backLink: React.CSSProperties = {
@@ -280,7 +281,7 @@ const backLink: React.CSSProperties = {
   alignItems: "center",
   gap: 6,
   fontSize: 13,
-  color: "#3E5A33",
+  color: MARK_COLORWAYS.advocate.solid,
   textDecoration: "none",
   marginBottom: 20,
 };
@@ -288,7 +289,7 @@ const eyebrow: React.CSSProperties = {
   fontSize: 11,
   letterSpacing: "0.18em",
   textTransform: "uppercase",
-  color: "#3E5A33",
+  color: MARK_COLORWAYS.advocate.solid,
   fontWeight: 700,
   marginTop: 20,
 };
@@ -296,17 +297,18 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
   borderRadius: 18,
-  border: "1px solid rgba(62,90,51,0.20)",
-  background: "#F6F8F1",
-  color: "#1F2D1A",
+  border: "none",
+  boxShadow: "var(--pp-shadow-in-sm)",
+  background: "var(--pp-ground)",
+  color: "var(--pp-ink)",
   fontSize: 14,
   outline: "none",
 };
 const ctaBtn: React.CSSProperties = {
   padding: "14px 26px",
   borderRadius: 18,
-  background: "#2F4E34",
-  color: "#1A1224",
+  background: MARK_COLORWAYS.advocate.solid,
+  color: "#FFFFFF",
   fontWeight: 700,
   fontSize: 15,
   border: "none",
@@ -317,9 +319,10 @@ function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
     borderRadius: 18,
-    border: active ? "1px solid #2F4E34" : "1px solid rgba(62,90,51,0.25)",
-    background: active ? "#2F4E34" : "#FFFFFF",
-    color: active ? "#1A1224" : "#1F2D1A",
+    border: "none",
+    boxShadow: active ? "var(--pp-shadow-in-sm)" : "var(--pp-shadow-sm)",
+    background: active ? MARK_COLORWAYS.advocate.solid : "var(--pp-card)",
+    color: active ? "#FFFFFF" : "var(--pp-ink)",
     fontWeight: 600,
     fontSize: 13,
     cursor: "pointer",

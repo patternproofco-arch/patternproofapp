@@ -197,9 +197,9 @@ function DemoPage() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#FAF8F4",
-        color: "#1F1A2E",
-        fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+        background: "var(--pp-paper, #FAF8F4)",
+        color: "var(--pp-ink)",
+        fontFamily: "var(--font-sans)",
       }}
     >
       <DemoHeader />
@@ -229,7 +229,7 @@ function DemoHeader() {
           alignItems: "center",
           gap: 6,
           fontSize: 13,
-          color: "#6B5FA4",
+          color: "var(--pp-accent)",
           textDecoration: "none",
           fontWeight: 500,
         }}
@@ -252,7 +252,7 @@ function DemoHeader() {
               fontSize: 11,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "#4132B4",
+              color: "var(--pp-accent)",
               fontWeight: 700,
               marginBottom: 8,
             }}
@@ -269,7 +269,7 @@ function DemoHeader() {
           >
             A sample case, end-to-end
           </h1>
-          <p style={{ marginTop: 8, fontSize: 14, color: "#6B6478", maxWidth: 620 }}>
+          <p style={{ marginTop: 8, fontSize: 14, color: "var(--pp-muted)", maxWidth: 620 }}>
             This is fictional composite data based on common patterns in coercive-control cases.
             Click around — nothing here is saved.
           </p>
@@ -277,7 +277,7 @@ function DemoHeader() {
         <Link
           to="/signup"
           style={{
-            background: "#5B4BA4",
+            background: "var(--pp-accent)",
             color: "white",
             padding: "10px 18px",
             borderRadius: 18,
@@ -301,19 +301,19 @@ function DemoBanner() {
           display: "flex",
           alignItems: "flex-start",
           gap: 10,
-          background: "rgba(255, 235, 180, 0.45)",
-          border: "1px solid rgba(180, 140, 60, 0.25)",
+          background: "var(--pp-ground)",
+          boxShadow: "var(--pp-shadow-in-sm)",
           borderRadius: 18,
           padding: "10px 14px",
           fontSize: 13,
-          color: "#5C4520",
+          color: "var(--pp-warning)",
         }}
       >
         <Info size={16} style={{ flexShrink: 0, marginTop: 1 }} />
         <div>
           <strong>Demo mode.</strong> Buttons like "Save", "Upload", or "Export" won't do anything —
           this case is read-only sample data. To document a real case,{" "}
-          <Link to="/signup" style={{ color: "#5B4BA4", fontWeight: 600 }}>
+          <Link to="/signup" style={{ color: "var(--pp-accent)", fontWeight: 600 }}>
             create an account
           </Link>
           .
@@ -342,7 +342,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         background: "white",
         padding: 6,
         borderRadius: 18,
-        border: "1px solid rgba(91,75,164,0.12)",
+        border: "1px solid rgba(65,50,180,0.12)",
         boxShadow: "var(--pp-shadow-sm)",
       }}
     >
@@ -364,7 +364,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
               border: "none",
               cursor: "pointer",
               whiteSpace: "nowrap",
-              background: active ? "#5B4BA4" : "transparent",
+              background: active ? "var(--pp-accent)" : "transparent",
               color: active ? "white" : "#5A5469",
             }}
           >
@@ -383,7 +383,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
         background: "white",
         borderRadius: 18,
         padding: 20,
-        border: "1px solid rgba(91,75,164,0.10)",
+        border: "1px solid rgba(65,50,180,0.10)",
         boxShadow: "var(--pp-shadow-sm)",
         ...style,
       }}
@@ -422,11 +422,11 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
             return (
               <div
                 key={s.label}
-                style={{ background: "rgba(91,75,164,0.05)", borderRadius: 18, padding: 14 }}
+                style={{ background: "rgba(65,50,180,0.05)", borderRadius: 18, padding: 14 }}
               >
-                <I size={16} style={{ color: "#4132B4" }} />
+                <I size={16} style={{ color: "var(--pp-accent)" }} />
                 <div style={{ fontSize: 22, fontWeight: 700, marginTop: 6 }}>{s.value}</div>
-                <div style={{ fontSize: 12, color: "#6B6478" }}>{s.label}</div>
+                <div style={{ fontSize: 12, color: "var(--pp-muted)" }}>{s.label}</div>
               </div>
             );
           })}
@@ -449,11 +449,11 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
               style={{
                 textAlign: "left",
                 background: "transparent",
-                border: "1px solid rgba(91,75,164,0.15)",
+                border: "1px solid rgba(65,50,180,0.15)",
                 padding: "10px 14px",
                 borderRadius: 18,
                 fontSize: 13,
-                color: "#1F1A2E",
+                color: "var(--pp-ink)",
                 cursor: "pointer",
               }}
             >
@@ -467,11 +467,11 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  Physical: "#C2553B",
-  Emotional: "#4132B4",
-  "Coercive control": "#5B4BA4",
-  Financial: "#3F8A6E",
-  "Custody interference": "#B5732A",
+  Physical: "var(--color-type-physical)",
+  Emotional: "var(--color-type-emotional)",
+  "Coercive control": "var(--color-type-coercive)",
+  Financial: "var(--color-type-financial)",
+  "Custody interference": "var(--color-type-custody)",
 };
 
 function TypeBadge({ t }: { t: string }) {
@@ -504,7 +504,7 @@ function formatDate(iso: string) {
 function IncidentRow({ inc }: { inc: Incident }) {
   const evidence = EVIDENCE.filter((e) => inc.evidence_ids.includes(e.id));
   return (
-    <Card style={{ borderLeft: "3px solid " + (TYPE_COLORS[inc.abuse_types[0]] ?? "#5B4BA4") }}>
+    <Card style={{ borderLeft: "3px solid " + (TYPE_COLORS[inc.abuse_types[0]] ?? "var(--pp-accent)") }}>
       <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         <div style={{ fontSize: 13, fontWeight: 700 }}>
           {formatDate(inc.date)} · {inc.time}
@@ -512,7 +512,7 @@ function IncidentRow({ inc }: { inc: Incident }) {
         <div
           style={{
             fontSize: 12,
-            color: "#6B6478",
+            color: "var(--pp-muted)",
             display: "inline-flex",
             alignItems: "center",
             gap: 4,
@@ -530,12 +530,12 @@ function IncidentRow({ inc }: { inc: Incident }) {
         {inc.description}
       </p>
       {inc.witnesses && (
-        <div style={{ fontSize: 12, color: "#6B6478", marginTop: 6 }}>
+        <div style={{ fontSize: 12, color: "var(--pp-muted)", marginTop: 6 }}>
           <strong style={{ color: "#5A5469" }}>Witnesses:</strong> {inc.witnesses}
         </div>
       )}
       {inc.emotional_impact && (
-        <div style={{ fontSize: 12, color: "#6B6478", marginTop: 4, fontStyle: "italic" }}>
+        <div style={{ fontSize: 12, color: "var(--pp-muted)", marginTop: 4, fontStyle: "italic" }}>
           "{inc.emotional_impact}"
         </div>
       )}
@@ -544,7 +544,7 @@ function IncidentRow({ inc }: { inc: Incident }) {
           style={{
             marginTop: 12,
             paddingTop: 10,
-            borderTop: "1px dashed rgba(91,75,164,0.15)",
+            borderTop: "1px dashed rgba(65,50,180,0.15)",
             display: "flex",
             flexWrap: "wrap",
             gap: 8,
@@ -556,7 +556,7 @@ function IncidentRow({ inc }: { inc: Incident }) {
               style={{
                 fontSize: 11,
                 color: "#5A5469",
-                background: "rgba(91,75,164,0.06)",
+                background: "rgba(65,50,180,0.06)",
                 padding: "3px 8px",
                 borderRadius: 18,
                 display: "inline-flex",
@@ -587,7 +587,7 @@ function Journal() {
       >
         <div>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Journal</h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6478" }}>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--pp-muted)" }}>
             Every incident, captured in the survivor's own words.
           </p>
         </div>
@@ -611,7 +611,7 @@ function Timeline() {
     <div style={{ display: "grid", gap: 14 }}>
       <Card>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Timeline</h2>
-        <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6478" }}>
+        <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--pp-muted)" }}>
           Chronological view — what attorneys read first.
         </p>
       </Card>
@@ -623,7 +623,7 @@ function Timeline() {
             top: 6,
             bottom: 6,
             width: 2,
-            background: "rgba(91,75,164,0.18)",
+            background: "rgba(65,50,180,0.18)",
           }}
         />
         {sorted.map((inc) => (
@@ -636,7 +636,7 @@ function Timeline() {
                 width: 12,
                 height: 12,
                 borderRadius: 999,
-                background: TYPE_COLORS[inc.abuse_types[0]] ?? "#5B4BA4",
+                background: TYPE_COLORS[inc.abuse_types[0]] ?? "var(--pp-accent)",
                 border: "2px solid white",
                 boxShadow: "var(--pp-shadow-sm)",
               }}
@@ -654,12 +654,12 @@ function Patterns() {
     <div style={{ display: "grid", gap: 14 }}>
       <Card>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Pattern analysis</h2>
-        <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6478" }}>
+        <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--pp-muted)" }}>
           What's hard to see one incident at a time — surfaced across the whole record.
         </p>
       </Card>
       {PATTERNS.map((p) => {
-        const sev = "#5B4BA4";
+        const sev = "var(--pp-accent)";
         return (
           <Card key={p.title} style={{ borderLeft: "3px solid " + sev }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -681,7 +681,7 @@ function Patterns() {
             <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: "#2A2440" }}>
               {p.body}
             </p>
-            <div style={{ marginTop: 10, fontSize: 12, color: "#6B6478" }}>
+            <div style={{ marginTop: 10, fontSize: 12, color: "var(--pp-muted)" }}>
               Drawn from {p.incidents.length} incidents:{" "}
               {p.incidents
                 .map((id) => formatDate(INCIDENTS.find((i) => i.id === id)!.date))
@@ -709,7 +709,7 @@ function EvidenceLibrary() {
       >
         <div>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Evidence library</h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6478" }}>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--pp-muted)" }}>
             Every file is linked to the incident it belongs to.
           </p>
         </div>
@@ -734,11 +734,11 @@ function EvidenceLibrary() {
                     width: 32,
                     height: 32,
                     borderRadius: 18,
-                    background: "rgba(91,75,164,0.08)",
+                    background: "rgba(65,50,180,0.08)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#5B4BA4",
+                    color: "var(--pp-accent)",
                     flexShrink: 0,
                   }}
                 >
@@ -746,7 +746,7 @@ function EvidenceLibrary() {
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{e.title}</div>
-                  <div style={{ fontSize: 11, color: "#6B6478", marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: "var(--pp-muted)", marginTop: 2 }}>
                     {formatDate(e.date)} · {e.kind}
                   </div>
                   <div style={{ fontSize: 12, color: "#5A5469", marginTop: 6 }}>{e.note}</div>
@@ -774,7 +774,7 @@ function CourtPacket() {
       >
         <div>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Court packet preview</h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6478" }}>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--pp-muted)" }}>
             A source-linked summary of the case — generated from your records for professional
             review.
           </p>
@@ -791,7 +791,7 @@ function CourtPacket() {
       <Card>
         <div
           style={{
-            borderBottom: "1px solid rgba(91,75,164,0.12)",
+            borderBottom: "1px solid rgba(65,50,180,0.12)",
             paddingBottom: 14,
             marginBottom: 14,
           }}
@@ -801,7 +801,7 @@ function CourtPacket() {
               fontSize: 11,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "#4132B4",
+              color: "var(--pp-accent)",
               fontWeight: 700,
             }}
           >
@@ -810,7 +810,7 @@ function CourtPacket() {
           <h3 style={{ margin: "6px 0 0", fontSize: 18, fontWeight: 700 }}>
             M.R. v. T.R. — Custody &amp; Coercive Control
           </h3>
-          <div style={{ fontSize: 12, color: "#6B6478", marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: "var(--pp-muted)", marginTop: 4 }}>
             Reporting period: Sept 14, 2025 – Dec 8, 2025 · {INCIDENTS.length} incidents ·{" "}
             {EVIDENCE.length} evidence items
           </div>
@@ -856,12 +856,12 @@ function CourtPacket() {
           style={{
             marginTop: 18,
             paddingTop: 14,
-            borderTop: "1px solid rgba(91,75,164,0.12)",
+            borderTop: "1px solid var(--pp-hairline)",
             display: "flex",
             gap: 8,
             alignItems: "center",
             fontSize: 12,
-            color: "#3F8A6E",
+            color: "var(--safe)",
           }}
         >
           <CheckCircle2 size={14} /> Every incident in this packet links back to a dated entry in
@@ -880,7 +880,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
           margin: "0 0 6px",
           fontSize: 13,
           fontWeight: 700,
-          color: "#5B4BA4",
+          color: "var(--pp-accent)",
           textTransform: "uppercase",
           letterSpacing: "0.08em",
         }}
@@ -896,10 +896,10 @@ const prose: React.CSSProperties = { margin: 0, fontSize: 14, lineHeight: 1.65, 
 const list: React.CSSProperties = { ...prose, paddingLeft: 20, display: "grid", gap: 6 };
 const demoButton: React.CSSProperties = {
   background: "white",
-  color: "#5B4BA4",
+  color: "var(--pp-accent)",
   padding: "8px 14px",
   borderRadius: 18,
-  border: "1px solid rgba(91,75,164,0.25)",
+  border: "1px solid rgba(65,50,180,0.25)",
   fontSize: 13,
   fontWeight: 600,
   cursor: "pointer",

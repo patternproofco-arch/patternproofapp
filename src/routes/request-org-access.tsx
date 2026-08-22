@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Check } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { MARK_COLORWAYS } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/request-org-access")({
@@ -214,8 +215,8 @@ function RequestOrgAccess() {
                   marginTop: 8,
                   padding: "14px 24px",
                   borderRadius: 18,
-                  background: "#2F4E34",
-                  color: "#1A1224",
+                  background: MARK_COLORWAYS.advocate.solid,
+                  color: "#FFFFFF",
                   fontWeight: 700,
                   fontSize: 15,
                   border: "none",
@@ -238,14 +239,14 @@ function RequestOrgAccess() {
           Already partnering with us?{" "}
           <Link
             to="/org-feedback"
-            style={{ color: "#33268C", fontWeight: 600, textDecoration: "underline" }}
+            style={{ color: MARK_COLORWAYS.advocate.solid, fontWeight: 600, textDecoration: "underline" }}
           >
             Share feedback about PatternProof
           </Link>{" "}
           ·{" "}
           <Link
             to="/org-portal"
-            style={{ color: "#33268C", fontWeight: 600, textDecoration: "underline" }}
+            style={{ color: MARK_COLORWAYS.advocate.solid, fontWeight: 600, textDecoration: "underline" }}
           >
             Go to your partner dashboard
           </Link>

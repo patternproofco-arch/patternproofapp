@@ -213,7 +213,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
             gap: 8,
             padding: "10px 16px",
             borderRadius: 0,
-            background: !file || !acknowledged ? "rgba(26,18,36,0.22)" : "#4132B4",
+            background: !file || !acknowledged ? "rgba(26,18,36,0.22)" : "var(--pp-accent)",
             color: "#FAF8F4",
             fontWeight: 700,
             fontSize: 13,

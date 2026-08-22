@@ -115,7 +115,8 @@ function ForAttorneys() {
           style={{
             marginTop: 32,
             maxWidth: 660,
-            border: `1px solid ${RULE}`,
+            borderRadius: "var(--pp-r-lg)",
+            boxShadow: "var(--pp-shadow-sm)",
             background: "var(--pp-card)",
             padding: "22px 24px",
           }}

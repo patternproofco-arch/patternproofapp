@@ -94,7 +94,7 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
     >
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="label-eyebrow" style={{ color: "#4132B4" }}>
+          <div className="label-eyebrow" style={{ color: "var(--pp-accent)" }}>
             Call log · Photos
           </div>
           <h3
@@ -174,7 +174,7 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
           gap: 8,
           padding: "10px 14px",
           borderRadius: 0,
-          background: "#4132B4",
+          background: "var(--pp-accent)",
           color: "#FAF8F4",
           fontWeight: 700,
           fontSize: 13,
@@ -248,7 +248,7 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
             gap: 8,
             padding: "10px 16px",
             borderRadius: 0,
-            background: shots.length === 0 ? "rgba(26,18,36,0.22)" : "#4132B4",
+            background: shots.length === 0 ? "rgba(26,18,36,0.22)" : "var(--pp-accent)",
             color: "#FAF8F4",
             fontWeight: 700,
             fontSize: 13,

@@ -1,15 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { MARK_COLORWAYS } from "@/components/BrandMark";
 
 /**
  * Fictional, read-only sample case shown to prospective attorneys.
  * Uses the redaction/exhibit visual system (same as /for-attorneys).
  */
 
-const INK = "#1A1224";
-const PAPER = "#FAF8F4";
-const NAVY = "#022063";
-const MUTED = "#6B6A78";
-const RULE = "rgba(26,18,36,0.14)";
+const INK = "var(--pp-ink)";
+const PAPER = "var(--pp-paper, #FAF8F4)";
+const NAVY = MARK_COLORWAYS.attorney.solid!;
+const MUTED = "var(--pp-muted)";
+const RULE = "var(--pp-hairline, rgba(26,18,36,0.14))";
 
 const SERIF = "var(--font-serif)";
 const SANS = "var(--font-sans)";
@@ -235,8 +236,8 @@ function SampleCase() {
             disabled
             title="Disabled in this sample — available on real cases"
             style={{
-              background: "#CBCAD3",
-              color: "#7A798A",
+              background: "var(--pp-ground)",
+              color: MUTED,
               padding: "14px 26px",
               fontFamily: MONO,
               fontSize: 13,
@@ -255,7 +256,7 @@ function SampleCase() {
         </div>
       </section>
 
-      <section style={{ borderTop: `1px solid ${RULE}`, background: "#EFEDE6" }}>
+      <section style={{ borderTop: `1px solid ${RULE}`, background: "var(--pp-ground)" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px" }}>
           <div
             style={{

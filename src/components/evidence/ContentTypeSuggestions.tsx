@@ -103,10 +103,10 @@ export function ContentTypeSuggestions() {
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Sparkles size={15} style={{ color: "#4132B4" }} />
+          <Sparkles size={15} style={{ color: "var(--pp-accent)" }} />
           <span
             className="text-[11px] font-bold uppercase tracking-[0.15em]"
-            style={{ color: "#4132B4" }}
+            style={{ color: "var(--pp-accent)" }}
           >
             AI suggestion — content type only
           </span>

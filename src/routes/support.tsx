@@ -226,7 +226,7 @@ const backLink = {
   alignItems: "center",
   gap: 6,
   fontSize: 13,
-  color: "#4132B4",
+  color: "var(--pp-accent)",
   textDecoration: "none",
   fontWeight: 500,
 } as const;
@@ -235,7 +235,7 @@ const eyebrow = {
   fontSize: 11,
   letterSpacing: "0.22em",
   textTransform: "uppercase",
-  color: "#4132B4",
+  color: "var(--pp-accent)",
   fontWeight: 700,
   marginBottom: 10,
   fontFamily: "var(--font-mono)",
@@ -300,7 +300,7 @@ const input = {
 
 const errorText = {
   fontSize: 13.5,
-  color: "#4132B4",
+  color: "var(--pp-accent)",
   margin: "0 0 12px",
   lineHeight: 1.55,
 } as const;
@@ -348,7 +348,7 @@ const copyBtn = {
 } as const;
 
 const inlineLink = {
-  color: "#4132B4",
+  color: "var(--pp-accent)",
   textDecoration: "underline",
   textUnderlineOffset: 3,
 } as const;
