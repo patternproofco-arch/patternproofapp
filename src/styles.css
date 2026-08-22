@@ -208,19 +208,24 @@
 /* Persona scoping — one ground + accent per screen. Neumorphic tints:
    only a few % of saturation so switching portals feels like a change
    of material, not a loss of the shadow read. */
+/* Monochrome neumorphic material: ground stays a near-neutral warm
+   gray in every portal — barely a few % of hue — so color reads as a
+   deliberate accent (a slider, a status dot), never as the surface
+   itself. Portals differ by accent hue, not by how colorful the
+   ground is. */
 [data-persona="attorney"] {
   --pp-accent: var(--pp-accent-attorney); --pp-accent-fg: #FFFFFF; --pp-link: #3F6DF0;
-  --pp-ground: #E8EBF4; --pp-ground-hi: #EEF1F8; --pp-shadow-dark: #C0C8DD;
+  --pp-ground: #ECEEF1; --pp-ground-hi: #F1F3F5; --pp-shadow-dark: #CBD0D8;
   --background: var(--pp-ground); --pp-card: var(--pp-ground);
 }
 [data-persona="org"] {
   --pp-accent: var(--pp-accent-org); --pp-accent-fg: #FFFFFF; --pp-link: #5D7A52;
-  --pp-ground: #ECEFE9; --pp-ground-hi: #F1F4EE; --pp-shadow-dark: #C6CEC1;
+  --pp-ground: #ECEEEA; --pp-ground-hi: #F1F3EF; --pp-shadow-dark: #CDD1C8;
   --background: var(--pp-ground); --pp-card: var(--pp-ground);
 }
 [data-persona="survivor"] {
   --pp-accent: var(--pp-accent-survivor); --pp-accent-fg: #FFFFFF; --pp-link: #2BA8C6;
-  --pp-ground: #F0EBF4; --pp-ground-hi: #F5F1F8; --pp-shadow-dark: #CCC4D6;
+  --pp-ground: #EFEDF0; --pp-ground-hi: #F3F1F4; --pp-shadow-dark: #D0CCD2;
   --background: var(--pp-ground); --pp-card: var(--pp-ground);
   --font-serif: "Source Serif 4", Georgia, serif;
   --font-sans: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -335,8 +340,6 @@ em, .font-serif em, h1 em, h2 em, h3 em { font-style: italic; color: var(--pp-in
   border: none;
   text-shadow: 0 1px 1px rgba(0,0,0,0.18);
 }
-[data-persona="survivor"] .btn-primary,
-[data-persona="survivor"] .btn-primary, [data-persona="survivor"] .pp-btn-primary { background: linear-gradient(135deg, #E879F9, #8B5CF6 50%, #38D9F0); }
 .btn-primary:hover, .pp-btn-primary:hover:not(:disabled) { box-shadow: var(--pp-shadow-up); transform: none; }
 .btn-primary:disabled, .pp-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
@@ -633,11 +636,13 @@ textarea.input-pp, .pp-textarea { min-height: 120px; resize: vertical; }
 
 .redaction-confirmed { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; color: var(--pp-confirmed); }
 
-/* The gradient underline: one thesis phrase per page, never two. */
+/* The underline: one thesis phrase per page, never two. Monochrome
+   material — color shows up here as a single thin accent rule, not a
+   dominant gradient, matching the rest of the app's restraint. */
 .highlight-thread {
-  background-image: linear-gradient(90deg, #E9A6C4 0%, #9E8CA8 50%, #8FBDB6 100%);
+  background-image: linear-gradient(90deg, var(--pp-accent) 0%, var(--pp-link) 100%);
   background-repeat: no-repeat;
-  background-size: 100% 5px;
+  background-size: 100% 3px;
   background-position: 0 100%;
   padding-bottom: 5px;
 }
