@@ -7,13 +7,13 @@ import { useState } from "react";
 // audience, mono eyebrows, Fraunces serif headings, exhibit-row layout with
 // a leading two-digit index.
 
-const INK = "#1A1224";
-const PAPER = "#FAF8F4";
-const MUTED = "#6B6A78";
-const SUBTEXT = "#3A3849";
-const RULE = "rgba(26,18,36,0.14)";
-const NAVY = "#022063";
-const SAGE = "#3F5A48";
+const INK = "var(--pp-ink)";
+const PAPER = "var(--pp-paper)";
+const MUTED = "var(--pp-muted)";
+const SUBTEXT = "var(--pp-muted)";
+const RULE = "var(--pp-hairline)";
+const NAVY = "var(--pp-accent-attorney)";
+const SAGE = "var(--pp-accent-org)";
 
 const SERIF = "var(--font-serif)";
 const SANS = "var(--font-sans)";
@@ -76,7 +76,7 @@ function HowItWorks() {
         <h1
           style={{
             fontFamily: SERIF,
-            fontWeight: 300,
+            fontWeight: 700,
             fontSize: "clamp(2rem,4.6vw,3.2rem)",
             lineHeight: 1.06,
             letterSpacing: "-0.02em",
@@ -247,7 +247,7 @@ function Step({
       </div>
       <div>
         <div
-          style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 22, color: INK, lineHeight: 1.2 }}
+          style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 22, color: INK, lineHeight: 1.2 }}
         >
           {title}
         </div>
@@ -480,3 +480,4 @@ function Foot() {
     </footer>
   );
 }
+

@@ -2,6 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 
+/** Recorded alongside every terms acceptance so we know which text a user agreed to. */
+export const TERMS_VERSION = "2026-08-rev2";
+
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
@@ -16,31 +19,28 @@ export const Route = createFileRoute("/terms")({
 });
 
 function H2({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="font-serif mt-8 mb-3" style={{ fontSize: 22 }}>{children}</h2>
-  );
+  return <h2>{children}</h2>;
 }
 
 function Terms() {
-  const updated = "August 2026";
+  const updated = "August 2026"; // keep in sync with TERMS_VERSION above
   return (
-    <div style={{ background: "var(--background)", minHeight: "100vh" }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", maxWidth: 1100, margin: "0 auto" }}>
-        <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--muted-foreground)", textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
-          <ArrowLeft size={16} /> Home
-        </Link>
-        <BrandLogo size={34} showTagline={false} />
-      </header>
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "24px 24px 96px" }}>
-        <div style={{ fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--muted-foreground)", fontWeight: 700 }}>
-          Terms of Service
-        </div>
-        <h1 className="font-serif mt-2" style={{ fontSize: 40, lineHeight: 1.1 }}>The rules of using PatternProof.</h1>
-        <p className="mt-3 text-[14px]" style={{ color: "var(--muted-foreground)" }}>Last updated: {updated}</p>
+    <div data-persona="survivor" className="pp-legal-shell">
+      <div className="pp-legal-sheet">
+        <header className="pp-legal-nav justify-between">
+          <Link to="/" className="pp-legal-link">
+            <ArrowLeft size={16} /> Home
+          </Link>
+          <BrandLogo size={34} showTagline={false} />
+        </header>
+        <main>
+          <p className="pp-legal-kicker">Terms of Service</p>
+          <h1 className="pp-legal-title">The rules of using PatternProof.</h1>
+          <p className="pp-legal-meta">Last updated: {updated}</p>
 
-        <section style={{ fontSize: 15, lineHeight: 1.7, color: "var(--foreground)" }}>
+          <section className="pp-legal-prose">
           <H2>1. Who we are</H2>
-          <p>PatternProof is a sole proprietorship operated by Grace Burns, doing business as PatternProof ("PatternProof," "we," "us"). PatternProof is not a separate legal entity from Grace Burns individually. By creating an account or using the Service, you agree to these Terms, including the limitation of liability and indemnification provisions below.</p>
+          <p>PatternProof is operated by G Burns Company LLC, doing business as PatternProof ("PatternProof," "we," "us"). PatternProof is operated through G Burns Company LLC, a New Jersey limited liability company. By creating an account or using the Service, you agree to these Terms, including the limitation of liability and indemnification provisions below.</p>
 
           <H2>2. What PatternProof is — and isn't</H2>
           <p>PatternProof is a documentation and evidence-organization tool. It is <strong>not a law firm</strong>, does not provide legal advice, and does not create an attorney-client relationship. AI outputs (patterns, summaries, drafts) are informational and may contain errors — always verify before relying on them in legal proceedings.</p>
@@ -75,15 +75,16 @@ function Terms() {
 
           <H2>11. Disclaimers, Limitation of Liability &amp; Indemnification</H2>
           <p>The service is provided "as is" without warranties of any kind. To the maximum extent permitted by law, PatternProof's total liability for any claim relating to the service is limited to the amount you paid us in the 12 months before the claim.</p>
-          <p>You agree to indemnify and hold harmless Grace Burns and PatternProof from any claims, damages, losses, or expenses (including reasonable attorney's fees) arising out of: (a) your violation of these Terms; (b) content you upload or submit, including any claim that it was fabricated, obtained illegally, or violates another person's rights; or (c) your violation of any law, including recording-consent laws, in connection with your use of the Service.</p>
+          <p>You agree to indemnify and hold harmless G Burns Company LLC and its members from any claims, damages, losses, or expenses (including reasonable attorney's fees) arising out of: (a) your violation of these Terms; (b) content you upload or submit, including any claim that it was fabricated, obtained illegally, or violates another person's rights; or (c) your violation of any law, including recording-consent laws, in connection with your use of the Service.</p>
 
           <H2>12. Governing law</H2>
           <p>These Terms are governed by the laws of the State of New Jersey, without regard to conflict-of-law rules.</p>
 
           <H2>13. Contact</H2>
-          <p>Questions about these Terms? Email <a href="mailto:gracieburns200@gmail.com" style={{ color: "var(--accent)" }}>gracieburns200@gmail.com</a>.</p>
-        </section>
-      </main>
+          <p>Questions about these Terms? Email <a href="mailto:gracieburns200@gmail.com" className="pp-legal-link">gracieburns200@gmail.com</a>.</p>
+          </section>
+        </main>
+      </div>
     </div>
   );
 }

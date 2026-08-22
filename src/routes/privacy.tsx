@@ -15,60 +15,32 @@ export const Route = createFileRoute("/privacy")({
 
 function PrivacyPage() {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background:
-          "#FAF8F4",
-        color: "#1F1A2E",
-        fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-        padding: "32px 20px 80px",
-      }}
-    >
-      <div style={{ maxWidth: 680, margin: "0 auto" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
+    <div data-persona="survivor" className="pp-legal-shell">
+      <div className="pp-legal-sheet">
+        <nav className="pp-legal-nav" aria-label="Legal document navigation">
           <Link
             to="/"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 13,
-              color: "#6B5FA4",
-              textDecoration: "none",
-              fontWeight: 500,
-            }}
+            className="pp-legal-link"
           >
             <ArrowLeft size={14} /> Back to home
           </Link>
           <Link
             to="/pricing"
-            style={{
-              fontSize: 13,
-              color: "#6B5FA4",
-              textDecoration: "underline",
-              fontWeight: 500,
-            }}
+            className="pp-legal-link"
           >
             Pricing
           </Link>
-        </div>
+        </nav>
 
-        <header style={{ marginBottom: 36 }}>
-          <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#4132B4", fontWeight: 700, marginBottom: 12 }}>
-            PatternProof
-          </div>
-          <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.02em", margin: 0, color: "#1F1A2E" }}>
-            Privacy Policy
-          </h1>
-          <p style={{ marginTop: 12, fontSize: 13, color: "#6B6478" }}>
-            Effective Date: June 2026 &nbsp;|&nbsp; Last Updated: August 2026
-          </p>
+        <header className="mb-9">
+          <p className="pp-legal-kicker">PatternProof</p>
+          <h1 className="pp-legal-title">Privacy Policy</h1>
+          <p className="pp-legal-meta">Last Updated: August 2026</p>
         </header>
 
         <Prose>
           <p>
-            PatternProof, operating as PatternProof ("PatternProof," "we," "us," or "our"),
+            PatternProof, operated by G Burns Company LLC ("PatternProof," "we," "us," or "our"),
             is committed to protecting the privacy and safety of our users. This Privacy Policy
             explains how we collect, use, store, and protect your information when you use our
             platform and associated services (collectively, the "Services").
@@ -317,12 +289,10 @@ function PrivacyPage() {
             Grace Burns, Founder<br />
             PatternProof<br />
             gracieburns200@gmail.com<br />
-            Philadelphia, PA, United States
+            Burlington County, New Jersey, United States
           </p>
 
-          <p style={{ marginTop: 32, fontStyle: "italic", color: "#4132B4", textAlign: "center" }}>
-            The truth is in the pattern.
-          </p>
+          <p className="pp-legal-signoff">The truth is in the pattern.</p>
         </Prose>
       </div>
     </div>
@@ -331,20 +301,7 @@ function PrivacyPage() {
 
 function Prose({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        fontSize: 15,
-        lineHeight: 1.7,
-        color: "#2B2640",
-      }}
-      className="pp-privacy-prose"
-    >
-      <style>{`
-        .pp-privacy-prose p { margin: 0 0 16px; }
-        .pp-privacy-prose ul { margin: 0 0 20px; padding-left: 22px; }
-        .pp-privacy-prose li { margin-bottom: 6px; }
-        .pp-privacy-prose strong { color: #1F1A2E; font-weight: 600; }
-      `}</style>
+    <div className="pp-legal-prose">
       {children}
     </div>
   );
@@ -352,23 +309,12 @@ function Prose({ children }: { children: React.ReactNode }) {
 
 function H2({ children }: { children: React.ReactNode }) {
   return (
-    <h2 style={{
-      fontSize: 20, fontWeight: 700, marginTop: 36, marginBottom: 14,
-      color: "#3A2E6E", letterSpacing: "-0.01em",
-      borderBottom: "1px solid rgba(124,92,196,0.18)", paddingBottom: 8,
-    }}>
-      {children}
-    </h2>
+    <h2>{children}</h2>
   );
 }
 
 function H3({ children }: { children: React.ReactNode }) {
   return (
-    <h3 style={{
-      fontSize: 15, fontWeight: 600, marginTop: 20, marginBottom: 8,
-      color: "#33268C",
-    }}>
-      {children}
-    </h3>
+    <h3>{children}</h3>
   );
 }
