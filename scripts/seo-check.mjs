@@ -44,8 +44,17 @@ try {
 // exempt from canonical (since they shouldn't be indexed).
 const PAGE_ROUTES = [
   { file: "src/routes/index.tsx", path: "/", requireCanonical: true },
-  { file: "src/routes/login.tsx", path: "/login", requireCanonical: true },
+  { file: "src/routes/signin.tsx", path: "/signin", requireCanonical: true },
   { file: "src/routes/attorney.$token.tsx", path: "/attorney/$token", requireCanonical: false },
+  { file: "src/routes/demo.tsx", path: "/demo", requireCanonical: true },
+  { file: "src/routes/privacy.tsx", path: "/privacy", requireCanonical: true },
+  { file: "src/routes/resources.tsx", path: "/resources", requireCanonical: true },
+  { file: "src/routes/self-help-guide.tsx", path: "/self-help-guide", requireCanonical: true },
+  { file: "src/routes/safety.tsx", path: "/safety", requireCanonical: true },
+  { file: "src/routes/evidence-integrity.tsx", path: "/evidence-integrity", requireCanonical: true },
+  { file: "src/routes/ai-transparency.tsx", path: "/ai-transparency", requireCanonical: true },
+  { file: "src/routes/professional-access.tsx", path: "/professional-access", requireCanonical: true },
+  { file: "src/routes/support.tsx", path: "/support", requireCanonical: true },
 ];
 
 const readQuoted = (src, startIdx) => {

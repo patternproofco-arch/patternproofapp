@@ -23,9 +23,17 @@ export const Route = createFileRoute("/support")({
         content:
           "Send a support request privately — no email client needed. Help with access, billing, uploads, and exports.",
       },
+      { property: "og:url", content: "https://pattern-proof.tech/support" },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Technical Support — PatternProof" },
+      {
+        name: "twitter:description",
+        content:
+          "Send a support request privately — no email client needed. Help with access, billing, uploads, and exports.",
+      },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/support" }],
   }),
   component: SupportPage,
 });

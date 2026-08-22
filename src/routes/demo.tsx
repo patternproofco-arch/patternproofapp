@@ -32,7 +32,15 @@ export const Route = createFileRoute("/demo")({
         content:
           "See how survivors document incidents and generate professional-review evidence. Sample case, no signup.",
       },
+      { property: "og:url", content: "https://pattern-proof.tech/demo" },
+      { name: "twitter:title", content: "Interactive Demo — PatternProof" },
+      {
+        name: "twitter:description",
+        content:
+          "See how survivors document incidents and generate professional-review evidence. Sample case, no signup.",
+      },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/demo" }],
   }),
   component: DemoPage,
 });

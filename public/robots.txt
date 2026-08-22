@@ -2,4 +2,46 @@ User-agent: *
 Allow: /
 Disallow: /attorney/
 
+# Authenticated app — requires a real session, nothing here is meant for
+# search discovery. Listed explicitly since these pages have no noindex
+# meta of their own to rely on (unlike /login, /signin, /signup, etc.).
+Disallow: /dashboard
+Disallow: /case
+Disallow: /calendar
+Disallow: /communications
+Disallow: /court-ready
+Disallow: /court-dates
+Disallow: /court-packet
+Disallow: /court-systems
+Disallow: /evidence
+Disallow: /feedback
+Disallow: /import-messages
+Disallow: /journal
+Disallow: /legal-documents
+Disallow: /live-recording
+Disallow: /message-threads
+Disallow: /onboarding
+Disallow: /opra-helper
+Disallow: /patterns
+Disallow: /search
+Disallow: /settings
+Disallow: /share-with-advocate
+Disallow: /share-with-attorney
+Disallow: /timeline
+Disallow: /voice-notes
+Disallow: /why-courts-struggle
+Disallow: /agent
+Disallow: /attorney-billing
+Disallow: /attorney-portal
+Disallow: /attorney-feedback
+Disallow: /billing
+Disallow: /caseload
+Disallow: /clients
+Disallow: /conflict-check
+Disallow: /setup
+Disallow: /subscribe
+Disallow: /trust
+Disallow: /advocate-cases
+Disallow: /admin
+
 Sitemap: https://pattern-proof.tech/sitemap.xml
