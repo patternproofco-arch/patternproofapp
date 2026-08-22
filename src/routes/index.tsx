@@ -301,13 +301,15 @@ function Index() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                gap: 16,
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: 10,
                 alignItems: "stretch",
               }}
             >
               <PathCard
-                accent="#5B4EA6"
+                accent="var(--pp-accent-survivor)"
+                barBackground="var(--pp-accent-survivor-gradient, linear-gradient(135deg, #EBA4E2 0%, #A5BAF2 100%))"
+                iconColor={INK}
                 icon={FileText}
                 label="Survivor"
                 body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
@@ -315,20 +317,20 @@ function Index() {
                 cta="Start documenting →"
               />
               <PathCard
-                accent="#0F2BB8"
-                icon={Briefcase}
-                label="Attorney"
-                body="A source-linked chronology on day one, with chain of custody intact — prep starts with strategy, not sorting."
-                to="/sample-case"
-                cta="See a sample case →"
-              />
-              <PathCard
-                accent="#4F6249"
+                accent="var(--pp-accent-org)"
                 icon={Users}
                 label="DV Organization"
                 body="A free intake tool for your advocates — she documents once, referrals arrive clean, at no cost to your program."
                 to="/for-organizations"
                 cta="See how it fits your program →"
+              />
+              <PathCard
+                accent="var(--pp-accent-attorney)"
+                icon={Briefcase}
+                label="Attorney"
+                body="A source-linked chronology on day one, with chain of custody intact — prep starts with strategy, not sorting."
+                to="/sample-case"
+                cta="See a sample case →"
               />
             </div>
           </Section>
@@ -783,6 +785,8 @@ function DashboardPreview() {
 
 function PathCard({
   accent,
+  barBackground,
+  iconColor = "#FFFFFF",
   icon: Icon,
   label,
   body,
@@ -790,6 +794,8 @@ function PathCard({
   cta,
 }: {
   accent: string;
+  barBackground?: string;
+  iconColor?: string;
   icon: ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
   body: string;
@@ -816,15 +822,15 @@ function PathCard({
       <div
         style={{
           position: "relative",
-          height: 60,
+          height: 48,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: accent,
+          background: barBackground ?? accent,
         }}
       >
         <span aria-hidden="true">
-          <Icon color="#FFFFFF" size={22} strokeWidth={1.6} />
+          <Icon color={iconColor} size={19} strokeWidth={1.6} />
         </span>
       </div>
 
@@ -834,7 +840,7 @@ function PathCard({
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: "14px 15px",
+          padding: "10px 9px",
           boxShadow: `inset 3px 0 0 ${accent}`,
         }}
       >
@@ -842,8 +848,8 @@ function PathCard({
           <div
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 9.5,
-              letterSpacing: "0.14em",
+              fontSize: 8.5,
+              letterSpacing: "0.1em",
               textTransform: "uppercase",
               fontWeight: 700,
               color: accent,
@@ -853,11 +859,11 @@ function PathCard({
           </div>
           <p
             style={{
-              margin: "7px 0 11px",
+              margin: "6px 0 9px",
               fontFamily: "var(--font-serif)",
               fontWeight: 400,
-              fontSize: 13.5,
-              lineHeight: 1.4,
+              fontSize: 12,
+              lineHeight: 1.38,
               color: INK,
             }}
           >
@@ -868,12 +874,12 @@ function PathCard({
           style={{
             display: "inline-block",
             fontFamily: "var(--font-mono)",
-            fontSize: 10,
+            fontSize: 9,
             fontWeight: 700,
-            letterSpacing: "0.1em",
+            letterSpacing: "0.06em",
             textTransform: "uppercase",
             textDecoration: "underline",
-            textUnderlineOffset: 4,
+            textUnderlineOffset: 3,
           }}
         >
           {cta}
