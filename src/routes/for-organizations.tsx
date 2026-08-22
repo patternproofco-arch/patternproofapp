@@ -7,12 +7,12 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
  * shows what advocate intake looks like without and with PatternProof.
  */
 
-const INK = "#1A1224";
-const PAPER = "#FAF8F4";
-const SAGE = "#2F4E34";
-const SAGE_DEEP = "#2F4E34";
-const MUTED = "#6B6A78";
-const RULE = "rgba(26,18,36,0.14)";
+const INK = "var(--pp-ink)";
+const PAPER = "var(--pp-paper)";
+const SAGE = "var(--pp-accent-org)";
+const SAGE_DEEP = "var(--pp-accent-org)";
+const MUTED = "var(--pp-muted)";
+const RULE = "var(--pp-hairline)";
 
 const SERIF = "var(--font-serif)";
 const SANS = "var(--font-sans)";
@@ -73,7 +73,7 @@ function ForOrganizations() {
         <h1
           style={{
             fontFamily: SERIF,
-            fontWeight: 300,
+            fontWeight: 700,
             fontSize: "clamp(2.2rem,5.2vw,3.8rem)",
             lineHeight: 1.05,
             letterSpacing: "-0.02em",
@@ -96,7 +96,7 @@ function ForOrganizations() {
             display: "inline-block",
             marginTop: 34,
             background: SAGE,
-            color: "#1A1224",
+            color: "var(--pp-ink)",
             padding: "14px 26px",
             fontFamily: MONO,
             fontSize: 13,
@@ -144,7 +144,7 @@ function ForOrganizations() {
           <div
             style={{
               fontFamily: SERIF,
-              fontWeight: 300,
+              fontWeight: 700,
               fontSize: 22,
               lineHeight: 1.5,
               color: INK,
@@ -177,7 +177,7 @@ function ForOrganizations() {
         <p
           style={{
             fontFamily: SERIF,
-            fontWeight: 300,
+            fontWeight: 700,
             fontSize: 20,
             lineHeight: 1.55,
             color: INK,
@@ -192,7 +192,7 @@ function ForOrganizations() {
           style={{
             marginTop: 18,
             fontFamily: SERIF,
-            fontWeight: 300,
+            fontWeight: 700,
             fontSize: 20,
             lineHeight: 1.55,
             color: INK,
@@ -437,3 +437,4 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
     </div>
   );
 }
+
