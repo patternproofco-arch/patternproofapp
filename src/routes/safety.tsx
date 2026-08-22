@@ -8,9 +8,13 @@ export const Route = createFileRoute("/safety")({
       { name: "description", content: "How PatternProof reduces risk on shared devices, in shared accounts, and around abusive partners. What Quick Exit does, what it does not do, and safer-use practices." },
       { property: "og:title", content: "Survivor Safety — PatternProof" },
       { property: "og:description", content: "Safer documentation on shared or monitored devices. Quick Exit limits, notification hygiene, and account recovery guidance." },
+      { property: "og:url", content: "https://pattern-proof.tech/safety" },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Survivor Safety — PatternProof" },
+      { name: "twitter:description", content: "Safer documentation on shared or monitored devices. Quick Exit limits, notification hygiene, and account recovery guidance." },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/safety" }],
   }),
   component: SafetyPage,
 });

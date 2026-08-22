@@ -31,9 +31,16 @@ export const Route = createFileRoute("/resources")({
         property: "og:description",
         content: "National hotlines, state DV coalitions, and plain-language court guidance.",
       },
+      { property: "og:url", content: "https://pattern-proof.tech/resources" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Resources — PatternProof" },
+      {
+        name: "twitter:description",
+        content: "National hotlines, state DV coalitions, and plain-language court guidance.",
+      },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/resources" }],
   }),
   component: ResourcesRoute,
 });
