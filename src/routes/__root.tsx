@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Public+Sans:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
       },
       {
         rel: "manifest",
@@ -181,7 +181,19 @@ function RootComponent() {
       <AuthProvider>
         <GoogleAnalyticsRouteTracker />
         <Outlet />
-        <Toaster position="top-center" toastOptions={{ style: { background: "#F5F2F8", color: "#1F1B2E", border: "none", borderRadius: "20px", fontFamily: "Nunito, system-ui", boxShadow: "-3px -3px 7px #FFFFFF, 3px 3px 7px #D4C9DE" } }} />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: "var(--pp-ground)",
+              color: "var(--pp-ink)",
+              border: "none",
+              borderRadius: "var(--pp-r-lg, 20px)",
+              fontFamily: "var(--font-sans)",
+              boxShadow: "var(--pp-shadow-up)",
+            },
+          }}
+        />
       </AuthProvider>
     </QueryClientProvider>
   );
