@@ -81,8 +81,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "PatternProof — Private documentation for your case" },
       { name: "twitter:description", content: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit." },
       { name: "twitter:site", content: "@PatternProof" },
-      // Home-screen identity only (installed app), deliberately low-signal.
-      // Browser tab title and marketing copy above stay branded.
       { name: "apple-mobile-web-app-title", content: "Notes" },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169" },
@@ -96,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Figtree:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
       },
       {
         rel: "manifest",
@@ -183,7 +181,7 @@ function RootComponent() {
       <AuthProvider>
         <GoogleAnalyticsRouteTracker />
         <Outlet />
-        <Toaster position="top-center" toastOptions={{ style: { background: "#FFFCF1", color: "#1F1A14", border: "1px solid rgba(31,26,20,0.12)", borderRadius: "14px", fontFamily: "Inter, system-ui" } }} />
+        <Toaster position="top-center" toastOptions={{ style: { background: "#F5F2F8", color: "#1F1B2E", border: "none", borderRadius: "20px", fontFamily: "Nunito, system-ui", boxShadow: "-3px -3px 7px #FFFFFF, 3px 3px 7px #D4C9DE" } }} />
       </AuthProvider>
     </QueryClientProvider>
   );
