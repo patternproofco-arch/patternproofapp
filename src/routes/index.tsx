@@ -183,8 +183,8 @@ function Index() {
               screenshots. Hearing prep starts with strategy, not sorting.
             </p>
             <div style={{ marginTop: 34 }}>
-              <Link to="/sample-case" className="btn-primary" style={{ textDecoration: "none" }}>
-                See a sample case →
+              <Link to="/demo" className="btn-primary" style={{ textDecoration: "none" }}>
+                Try the demo →
               </Link>
               <div style={{ marginTop: 18 }}>
                 <Link
@@ -223,10 +223,13 @@ function Index() {
               <Link to="/signup" className="btn-primary" style={{ textDecoration: "none" }}>
                 Start Documenting — Free
               </Link>
-              <span style={{ fontSize: 12.5, color: INK_3 }}>
-                No credit card · No obligation · 100% private
-              </span>
+              <Link to="/demo" className="btn-ghost" style={{ textDecoration: "none" }}>
+                Try the demo →
+              </Link>
             </div>
+            <p style={{ marginTop: 12, fontSize: 12.5, color: INK_3 }}>
+              No credit card · No obligation · 100% private
+            </p>
           </>
         )}
       </section>
@@ -321,8 +324,8 @@ function Index() {
                 icon={Briefcase}
                 label="Attorney"
                 body="A source-linked chronology on day one, with chain of custody intact — prep starts with strategy, not sorting."
-                to="/sample-case"
-                cta="See a sample case →"
+                to="/demo"
+                cta="Try the demo →"
               />
               <PathCard
                 accent="#4F6249"

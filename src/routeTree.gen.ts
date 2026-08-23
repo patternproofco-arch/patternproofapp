@@ -18,7 +18,6 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
-import { Route as SampleCaseRouteImport } from './routes/sample-case'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
@@ -155,11 +154,6 @@ const SigninRoute = SigninRouteImport.update({
 const SelfHelpGuideRoute = SelfHelpGuideRouteImport.update({
   id: '/self-help-guide',
   path: '/self-help-guide',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SampleCaseRoute = SampleCaseRouteImport.update({
-  id: '/sample-case',
-  path: '/sample-case',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SafetyRoute = SafetyRouteImport.update({
@@ -670,7 +664,6 @@ export interface FileRoutesByFullPath {
   '/request-org-access': typeof RequestOrgAccessRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
-  '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -771,7 +764,6 @@ export interface FileRoutesByTo {
   '/request-org-access': typeof RequestOrgAccessRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
-  '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -874,7 +866,6 @@ export interface FileRoutesById {
   '/request-org-access': typeof RequestOrgAccessRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
-  '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -977,7 +968,6 @@ export interface FileRouteTypes {
     | '/request-org-access'
     | '/resources'
     | '/safety'
-    | '/sample-case'
     | '/self-help-guide'
     | '/signin'
     | '/signup'
@@ -1078,7 +1068,6 @@ export interface FileRouteTypes {
     | '/request-org-access'
     | '/resources'
     | '/safety'
-    | '/sample-case'
     | '/self-help-guide'
     | '/signin'
     | '/signup'
@@ -1180,7 +1169,6 @@ export interface FileRouteTypes {
     | '/request-org-access'
     | '/resources'
     | '/safety'
-    | '/sample-case'
     | '/self-help-guide'
     | '/signin'
     | '/signup'
@@ -1285,7 +1273,6 @@ export interface RootRouteChildren {
   RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   ResourcesRoute: typeof ResourcesRoute
   SafetyRoute: typeof SafetyRoute
-  SampleCaseRoute: typeof SampleCaseRoute
   SelfHelpGuideRoute: typeof SelfHelpGuideRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
@@ -1381,13 +1368,6 @@ declare module '@tanstack/react-router' {
       path: '/self-help-guide'
       fullPath: '/self-help-guide'
       preLoaderRoute: typeof SelfHelpGuideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sample-case': {
-      id: '/sample-case'
-      path: '/sample-case'
-      fullPath: '/sample-case'
-      preLoaderRoute: typeof SampleCaseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/safety': {
@@ -2205,7 +2185,6 @@ const rootRouteChildren: RootRouteChildren = {
   RequestOrgAccessRoute: RequestOrgAccessRoute,
   ResourcesRoute: ResourcesRoute,
   SafetyRoute: SafetyRoute,
-  SampleCaseRoute: SampleCaseRoute,
   SelfHelpGuideRoute: SelfHelpGuideRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
