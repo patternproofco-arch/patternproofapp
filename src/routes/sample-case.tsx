@@ -4,14 +4,12 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 /**
  * Fictional, read-only sample case shown to prospective attorneys.
- * Uses the redaction/exhibit visual system (same as /for-attorneys).
+ * Neumorphic ground + soft-shadow cards, navy accent only.
  */
 
 const INK = "var(--pp-ink)";
-const PAPER = "var(--pp-paper, #FAF8F4)";
 const NAVY = MARK_COLORWAYS.attorney.solid!;
 const MUTED = "var(--pp-muted)";
-const RULE = "var(--pp-hairline, rgba(26,18,36,0.14))";
 
 const SERIF = "var(--font-serif)";
 const SANS = "var(--font-sans)";
@@ -140,7 +138,9 @@ const CLUSTERS: Cluster[] = [
 
 function SampleCase() {
   return (
-    <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+    <div
+      style={{ background: "var(--pp-ground)", color: INK, minHeight: "100vh", fontFamily: SANS }}
+    >
       <PublicQuickExit />
       <TopBar />
 
@@ -176,7 +176,7 @@ function SampleCase() {
             marginTop: 16,
             fontSize: 15.5,
             lineHeight: 1.6,
-            color: "#3A3849",
+            color: "var(--pp-muted)",
             maxWidth: 680,
           }}
         >
@@ -239,6 +239,7 @@ function SampleCase() {
             title="Disabled in this sample — available on real cases"
             style={{
               background: "var(--pp-ground)",
+              boxShadow: "var(--pp-shadow-in-sm)",
               color: MUTED,
               padding: "14px 26px",
               fontFamily: MONO,
@@ -246,7 +247,7 @@ function SampleCase() {
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               border: "none",
-              borderRadius: 0,
+              borderRadius: "var(--pp-r-pill)",
               cursor: "not-allowed",
             }}
           >
@@ -258,7 +259,7 @@ function SampleCase() {
         </div>
       </section>
 
-      <section style={{ borderTop: `1px solid ${RULE}`, background: "var(--pp-ground)" }}>
+      <section style={{ background: "var(--pp-ground)" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px" }}>
           <div
             style={{
@@ -285,7 +286,7 @@ function SampleCase() {
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               textDecoration: "none",
-              borderRadius: 0,
+              borderRadius: "var(--pp-r-pill)",
             }}
           >
             Create your attorney account →
@@ -300,7 +301,7 @@ function SampleCase() {
 
 function TopBar() {
   return (
-    <header style={{ borderBottom: `1px solid ${RULE}` }}>
+    <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
       <div
         style={{
           maxWidth: 1040,
@@ -344,7 +345,7 @@ function Foot() {
   return (
     <footer
       style={{
-        borderTop: `1px solid ${RULE}`,
+        boxShadow: "inset 0 1px 0 var(--pp-shadow-dark)",
         padding: "24px",
         fontFamily: MONO,
         fontSize: 11,
@@ -383,14 +384,21 @@ function SectionRule({ label }: { label: string }) {
       >
         {label}
       </div>
-      <div style={{ flex: 1, height: 1, background: RULE }} />
+      <div style={{ flex: 1, height: 1, background: "var(--pp-shadow-dark)" }} />
     </div>
   );
 }
 
 function MetaCell({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ border: `1px solid ${RULE}`, padding: "10px 12px", background: PAPER }}>
+    <div
+      style={{
+        background: "var(--pp-card)",
+        boxShadow: "var(--pp-shadow-sm)",
+        borderRadius: "var(--pp-r-md)",
+        padding: "10px 12px",
+      }}
+    >
       <div
         style={{
           fontFamily: MONO,
@@ -418,10 +426,10 @@ function ExhibitRow({ ex }: { ex: Exhibit }) {
   return (
     <div
       style={{
-        border: `1px solid ${RULE}`,
-        background: PAPER,
+        background: "var(--pp-card)",
+        boxShadow: "var(--pp-shadow-sm)",
+        borderRadius: "var(--pp-r-lg)",
         padding: "18px 20px",
-        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
         borderLeft: `3px solid ${certColor}`,
       }}
     >
@@ -460,7 +468,7 @@ function ExhibitRow({ ex }: { ex: Exhibit }) {
       <div style={{ fontFamily: SERIF, fontSize: 18, lineHeight: 1.4, color: INK, marginTop: 8 }}>
         {ex.title}
       </div>
-      <div style={{ fontSize: 14, lineHeight: 1.6, color: "#3A3849", marginTop: 6 }}>
+      <div style={{ fontSize: 14, lineHeight: 1.6, color: "var(--pp-muted)", marginTop: 6 }}>
         {ex.detail}
       </div>
     </div>
@@ -471,10 +479,10 @@ function ClusterRow({ c }: { c: Cluster }) {
   return (
     <div
       style={{
-        border: `1px solid ${RULE}`,
-        background: PAPER,
+        background: "var(--pp-card)",
+        boxShadow: "var(--pp-shadow-sm)",
+        borderRadius: "var(--pp-r-lg)",
         padding: "18px 20px",
-        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
         borderLeft: `3px solid ${NAVY}`,
       }}
     >
