@@ -100,8 +100,9 @@ function OrgPortal() {
       <p
         style={{ color: "var(--muted-foreground)", fontSize: 14, maxWidth: 620, marginBottom: 24 }}
       >
-        Counts only. PatternProof never shows an organization who a survivor is or anything they
-        have documented — no names, no records, no dates.
+        Privacy-protected referral totals only. Counts are delayed seven days, shown in groups of
+        five, and hidden for smaller cohorts. PatternProof never shows survivor identities, records,
+        or dates.
       </p>
 
       <div
@@ -113,7 +114,6 @@ function OrgPortal() {
         }}
       >
         <Stat label="Referred, all time" value={stats.totals.all_time} />
-        <Stat label="Last 7 days" value={stats.totals.last_7_days} />
         <Stat label="Last 30 days" value={stats.totals.last_30_days} />
         <Stat label="Last 90 days" value={stats.totals.last_90_days} />
       </div>
@@ -165,8 +165,9 @@ function OrgPortal() {
                     </span>
                   </div>
                   <div style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-                    {c.referred_count} {c.referred_count === 1 ? "person" : "people"} signed up
-                    through this link
+                    {c.referred_count === null
+                      ? "Referral count hidden until the privacy threshold is met"
+                      : `${c.referred_count}+ people signed up through this link`}
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button
@@ -256,7 +257,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({ label, value }: { label: string; value: number | null }) {
   return (
     <div
       style={{
@@ -266,7 +267,9 @@ function Stat({ label, value }: { label: string; value: number }) {
         background: "var(--pp-card)",
       }}
     >
-      <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em" }}>{value}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em" }}>
+        {value === null ? "Hidden" : `${value}+`}
+      </div>
       <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 2 }}>{label}</div>
     </div>
   );

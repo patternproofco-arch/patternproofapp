@@ -10,9 +10,7 @@ import {
   Preview,
   Text,
 } from "@react-email/components";
-import type { TemplateEntry } from "./registry";
-
-type Props = {
+export type TeamInvitationEmailProps = {
   teamName: string;
   teamKind: "firm" | "organization";
   role: "admin" | "member";
@@ -20,7 +18,13 @@ type Props = {
   expiresLabel: string;
 };
 
-const TeamInvitationEmail = ({ teamName, teamKind, role, acceptUrl, expiresLabel }: Props) => (
+const TeamInvitationEmail = ({
+  teamName,
+  teamKind,
+  role,
+  acceptUrl,
+  expiresLabel,
+}: TeamInvitationEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>You have been invited to a PatternProof team.</Preview>
@@ -45,20 +49,6 @@ const TeamInvitationEmail = ({ teamName, teamKind, role, acceptUrl, expiresLabel
     </Body>
   </Html>
 );
-
-export const template = {
-  component: TeamInvitationEmail,
-  subject: ({ teamName }: Record<string, unknown>) =>
-    `Invitation to join ${String(teamName || "a PatternProof team")}`,
-  displayName: "Team invitation",
-  previewData: {
-    teamName: "Example Legal",
-    teamKind: "firm",
-    role: "member",
-    acceptUrl: "https://pattern-proof.tech/team-invite#firm=example",
-    expiresLabel: "7 days",
-  },
-} satisfies TemplateEntry;
 
 const main = {
   backgroundColor: "#ffffff",

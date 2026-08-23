@@ -10,6 +10,7 @@ import {
   leaveMyFirm,
   removeFirmMember,
   revokeFirmMemberInvitation,
+  setMyFirm,
 } from "@/lib/firm-grants.functions";
 
 export const Route = createFileRoute("/_attorney/team")({ component: FirmTeamSettings });
@@ -23,7 +24,9 @@ function FirmTeamSettings() {
   const changeRole = useServerFn(changeFirmMemberRole);
   const remove = useServerFn(removeFirmMember);
   const leave = useServerFn(leaveMyFirm);
+  const createFirm = useServerFn(setMyFirm);
   const [data, setData] = useState<TeamData | null>(null);
+  const [firmName, setFirmName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "member">("member");
   const [busy, setBusy] = useState(false);
@@ -44,24 +47,6 @@ function FirmTeamSettings() {
     return { used: data?.members.length ?? 0, total: Math.max(1, included + purchased) };
   }, [data]);
 
-  if (!data) return <div className="att-card">Loading team settings…</div>;
-  if (!data.firm || !data.membership) {
-    return (
-      <div className="att-card" style={{ maxWidth: 720 }}>
-        <h1 className="att-page-title">Create your firm team</h1>
-        <p>
-          Finish firm setup first. Membership is invitation-only; typing a matching firm name never
-          joins a team.
-        </p>
-        <Link to="/setup" className="att-btn att-btn-primary">
-          Open setup
-        </Link>
-      </div>
-    );
-  }
-  const actorRole = data.membership.role;
-  const manager = actorRole === "owner" || actorRole === "admin";
-
   const run = async (action: () => Promise<unknown>, success: string) => {
     setBusy(true);
     try {
@@ -74,6 +59,48 @@ function FirmTeamSettings() {
       setBusy(false);
     }
   };
+
+  if (!data) return <div className="att-card">Loading team settings…</div>;
+  if (!data.firm || !data.membership) {
+    return (
+      <form
+        className="att-card"
+        style={{ maxWidth: 720, display: "grid", gap: 14 }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          void run(async () => {
+            await createFirm({ data: { name: firmName } });
+            setFirmName("");
+          }, "Firm team created.");
+        }}
+      >
+        <h1 className="att-page-title">Create your firm team</h1>
+        <p>
+          Your active Firm plan includes up to 15 separate verified logins. Creating a team never
+          joins or combines accounts by matching a firm name.
+        </p>
+        <input
+          className="att-input"
+          required
+          minLength={2}
+          maxLength={200}
+          value={firmName}
+          onChange={(event) => setFirmName(event.target.value)}
+          placeholder="Firm legal or operating name"
+        />
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button className="att-btn att-btn-primary" disabled={busy}>
+            Create firm team
+          </button>
+          <Link to="/billing" className="att-btn">
+            Review Firm plan
+          </Link>
+        </div>
+      </form>
+    );
+  }
+  const actorRole = data.membership.role;
+  const manager = actorRole === "owner" || actorRole === "admin";
 
   return (
     <div style={{ display: "grid", gap: 20, maxWidth: 980, margin: "0 auto" }}>

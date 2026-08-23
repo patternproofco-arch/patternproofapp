@@ -49,7 +49,8 @@ export const BASE_TIERS: Tier[] = [
     name: "Contribute",
     price: "Pay what you can",
     sub: "$1 – $500",
-    quote: "An optional, one-time contribution if PatternProof helped you. It does not unlock anything — every survivor feature is already free.",
+    quote:
+      "An optional, one-time contribution if PatternProof helped you. It does not unlock anything — every survivor feature is already free.",
     features: [
       "Everything in Survivor — already included at no cost",
       "No features are gated behind this contribution",
@@ -66,7 +67,7 @@ export const BASE_TIERS: Tier[] = [
     sub: "/month · Solo",
     quote: "For solo practitioners taking DV and custody cases one at a time.",
     features: [
-      "Single attorney account (seats and matter counts are not metered today)",
+      "One verified attorney login",
       "Structured chronological timeline",
       "Source-linked supporting records",
       "Exportable case summary (ZIP) — imports into practice management systems",
@@ -111,14 +112,14 @@ export const ATTORNEY_PORTAL_TIER_BULLETS: {
   firm: string[];
 } = {
   solo: [
-    "Single attorney account (seats and matter counts are not metered today)",
+    "One verified attorney login",
     "Structured chronological timeline + pattern analysis",
     "Exportable case summary (ZIP) — imports into practice management systems",
     "Private attorney notes per incident",
     "Conflict check across your own caseload",
   ],
   firm_charter: [
-    "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+    "Up to 15 separate verified team logins",
     "Everything in Solo Attorney",
     "No matter limit enforced today",
     "Multi-attorney collaboration and shared case notes",
@@ -128,7 +129,7 @@ export const ATTORNEY_PORTAL_TIER_BULLETS: {
     "$597/month rate locked for 12 months, then $897/month list",
   ],
   firm: [
-    "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+    "Up to 15 separate verified team logins",
     "Everything in Solo Attorney",
     "No matter limit enforced today",
     "Multi-attorney collaboration and shared case notes",
@@ -149,7 +150,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         eyebrowNote: "Charter cohort is full — thank you.",
         quote: "Built for 3–15 attorney family-law firms.",
         features: [
-          "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+          "Up to 15 separate verified team logins",
           "Everything in Solo Attorney",
           "No matter limit enforced today",
           "Multi-attorney collaboration and shared case notes",
@@ -173,7 +174,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
             : `${remainingCharter} of ${CHARTER_COHORT_CAP} Charter spots remaining`,
         quote: "Built for 3–15 attorney family-law firms.",
         features: [
-          "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+          "Up to 15 separate verified team logins",
           "Everything in Solo Attorney",
           "No matter limit enforced today",
           "Multi-attorney collaboration and shared case notes",

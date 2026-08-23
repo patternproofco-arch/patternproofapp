@@ -10,6 +10,7 @@ import {
   type TeamRole,
 } from "@/lib/team-permissions";
 import { enqueueTeamInvitation, recordTeamAudit, runTeamRpc } from "@/lib/team-invitations.server";
+import { firmSeatsForSubscription } from "@/lib/firm-seats";
 
 function newInvitationToken() {
   return randomBytes(32).toString("base64url");
@@ -46,6 +47,23 @@ async function assertFirmManager(userId: string) {
     throw new Error("Only a firm owner or administrator can manage members.");
   }
   return member;
+}
+
+async function currentFirmSeatEntitlement(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: subscription, error } = await supabaseAdmin
+    .from("subscriptions")
+    .select("price_id,status,current_period_end")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return firmSeatsForSubscription({
+    priceId: subscription?.price_id,
+    status: subscription?.status,
+    currentPeriodEnd: subscription?.current_period_end,
+  });
 }
 
 /* ------------------------ firm membership ------------------------ */
@@ -142,15 +160,26 @@ export const setMyFirm = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ name: z.string().trim().min(2).max(200) }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: attorneyRole } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "attorney")
+      .maybeSingle();
+    if (!attorneyRole) throw new Error("A verified attorney account is required.");
     if (await currentFirmMembership(context.userId)) {
       throw new Error(
         "You already belong to a firm. Ask an owner to remove you before creating another.",
       );
     }
+    const seatsIncluded = await currentFirmSeatEntitlement(context.userId);
+    if (!seatsIncluded) {
+      throw new Error("An active Firm plan is required to create a firm team.");
+    }
     const name = data.name.trim();
     const { data: firm, error: firmError } = await supabaseAdmin
       .from("firms")
-      .insert({ name, created_by: context.userId })
+      .insert({ name, created_by: context.userId, seats_included: seatsIncluded })
       .select("id")
       .single();
     if (firmError || !firm) throw new Error(firmError?.message ?? "Could not create firm.");

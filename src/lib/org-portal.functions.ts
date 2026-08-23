@@ -10,6 +10,10 @@ import {
   type TeamRole,
 } from "@/lib/team-permissions";
 import { enqueueTeamInvitation, recordTeamAudit, runTeamRpc } from "@/lib/team-invitations.server";
+import {
+  isReferralEligibleForReporting,
+  privacyBucketReferralCount,
+} from "@/lib/org-referral-privacy";
 
 /**
  * DV organization partner portal.
@@ -59,12 +63,16 @@ async function requireAdmin(userId: string) {
 
 export type OrgPartnerStats = {
   org_name: string | null;
-  codes: Array<{ code: string; org_name: string; is_active: boolean; referred_count: number }>;
+  codes: Array<{
+    code: string;
+    org_name: string;
+    is_active: boolean;
+    referred_count: number | null;
+  }>;
   totals: {
-    all_time: number;
-    last_7_days: number;
-    last_30_days: number;
-    last_90_days: number;
+    all_time: number | null;
+    last_30_days: number | null;
+    last_90_days: number | null;
   };
 };
 
@@ -110,8 +118,8 @@ export const getMyOrgPartnerStats = createServerFn({ method: "GET" })
     const codes = (links ?? []).map((l) => l.code);
     const empty: OrgPartnerStats = {
       org_name: org.name,
-      codes: (links ?? []).map((l) => ({ ...l, referred_count: 0 })),
-      totals: { all_time: 0, last_7_days: 0, last_30_days: 0, last_90_days: 0 },
+      codes: (links ?? []).map((l) => ({ ...l, referred_count: null })),
+      totals: { all_time: null, last_30_days: null, last_90_days: null },
     };
     if (!codes.length) return empty;
 
@@ -121,25 +129,31 @@ export const getMyOrgPartnerStats = createServerFn({ method: "GET" })
       .from("user_referrals")
       .select("user_id,referred_by_code,created_at")
       .in("referred_by_code", codes);
-    const rows = referrals ?? [];
-    if (!rows.length) return empty;
-    const totals = { ...empty.totals };
-    const perCode = new Map<string, number>();
     const now = Date.now();
+    const rows = (referrals ?? []).filter((r) => isReferralEligibleForReporting(r.created_at, now));
+    if (!rows.length) return empty;
+    const rawTotals = { all_time: 0, last_30_days: 0, last_90_days: 0 };
+    const perCode = new Map<string, number>();
     const within = (iso: string, days: number) =>
       now - new Date(iso).getTime() <= days * 86_400_000;
     for (const r of rows) {
-      totals.all_time += 1;
-      if (within(r.created_at, 7)) totals.last_7_days += 1;
-      if (within(r.created_at, 30)) totals.last_30_days += 1;
-      if (within(r.created_at, 90)) totals.last_90_days += 1;
+      rawTotals.all_time += 1;
+      if (within(r.created_at, 30)) rawTotals.last_30_days += 1;
+      if (within(r.created_at, 90)) rawTotals.last_90_days += 1;
       if (r.referred_by_code)
         perCode.set(r.referred_by_code, (perCode.get(r.referred_by_code) ?? 0) + 1);
     }
     return {
       org_name: org.name,
-      codes: (links ?? []).map((l) => ({ ...l, referred_count: perCode.get(l.code) ?? 0 })),
-      totals,
+      codes: (links ?? []).map((l) => ({
+        ...l,
+        referred_count: privacyBucketReferralCount(perCode.get(l.code) ?? 0),
+      })),
+      totals: {
+        all_time: privacyBucketReferralCount(rawTotals.all_time),
+        last_30_days: privacyBucketReferralCount(rawTotals.last_30_days),
+        last_90_days: privacyBucketReferralCount(rawTotals.last_90_days),
+      },
     };
   });
 

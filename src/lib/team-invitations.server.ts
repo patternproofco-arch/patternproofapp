@@ -1,11 +1,12 @@
 import React from "react";
 import { render } from "@react-email/render";
-import TeamInvitationEmail, { template } from "@/lib/email-templates/team-invitation";
+import TeamInvitationEmail from "@/lib/email-templates/team-invitation";
+import { teamInvitationSubject } from "@/lib/email-templates/team-invitation.config";
 import type { Json } from "@/integrations/supabase/types";
 
 const SITE_ORIGIN = process.env.SITE_URL || "https://pattern-proof.tech";
 
-export async function enqueueTeamInvitation(input: {
+export type TeamInvitationInput = {
   invitationId: string;
   email: string;
   teamName: string;
@@ -13,10 +14,14 @@ export async function enqueueTeamInvitation(input: {
   role: "admin" | "member";
   token: string;
   expiresDays: number;
-}) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+};
+
+export async function buildTeamInvitationMessage(
+  input: TeamInvitationInput,
+  siteOrigin = SITE_ORIGIN,
+) {
   const fragmentKey = input.teamKind === "firm" ? "firm" : "org";
-  const acceptUrl = `${SITE_ORIGIN}/team-invite#${fragmentKey}=${encodeURIComponent(input.token)}`;
+  const acceptUrl = `${siteOrigin.replace(/\/$/, "")}/team-invite#${fragmentKey}=${encodeURIComponent(input.token)}`;
   const props = {
     teamName: input.teamName,
     teamKind: input.teamKind,
@@ -29,13 +34,11 @@ export async function enqueueTeamInvitation(input: {
     render(element),
     render(element, { plainText: true }),
   ]);
-  const subject =
-    typeof template.subject === "function" ? template.subject(props) : template.subject;
-  const messageId = crypto.randomUUID();
-  const { error } = await supabaseAdmin.rpc("enqueue_email", {
-    queue_name: "transactional_emails",
+  const subject = teamInvitationSubject(props.teamName);
+  return {
+    acceptUrl,
     payload: {
-      message_id: messageId,
+      message_id: crypto.randomUUID(),
       to: input.email,
       from: "PatternProof <noreply@pattern-proof.tech>",
       sender_domain: "notify.pattern-proof.tech",
@@ -46,7 +49,16 @@ export async function enqueueTeamInvitation(input: {
       label: "team-invitation",
       idempotency_key: `team-invitation:${input.invitationId}`,
       queued_at: new Date().toISOString(),
-    } as Json,
+    },
+  };
+}
+
+export async function enqueueTeamInvitation(input: TeamInvitationInput) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const message = await buildTeamInvitationMessage(input);
+  const { error } = await supabaseAdmin.rpc("enqueue_email", {
+    queue_name: "transactional_emails",
+    payload: message.payload as Json,
   });
   if (error) throw new Error("Invitation created, but the email could not be queued.");
 }
