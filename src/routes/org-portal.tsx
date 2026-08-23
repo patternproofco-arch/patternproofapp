@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
+import { OrgTeamSettings } from "@/components/team/OrgTeamSettings";
 import {
   getMyOrgPartnerStats,
   setReferralCodeActive,
@@ -117,22 +118,6 @@ function OrgPortal() {
         <Stat label="Last 90 days" value={stats.totals.last_90_days} />
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
-          gap: 12,
-          marginBottom: 32,
-        }}
-      >
-        <Stat
-          label={`Actively documenting (${stats.active_window_days}d)`}
-          value={stats.totals.actively_documenting}
-        />
-        <Stat label="Quiet lately" value={stats.totals.inactive} />
-        <Stat label="Signed up, not started" value={stats.totals.signed_up_only} />
-      </div>
-
       <Section title="Your referral links">
         {stats.codes.length === 0 ? (
           <p style={{ fontSize: 14, color: "var(--muted-foreground)" }}>
@@ -209,7 +194,7 @@ function OrgPortal() {
         )}
       </Section>
 
-
+      <OrgTeamSettings />
     </Shell>
   );
 }

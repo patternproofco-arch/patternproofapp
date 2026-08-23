@@ -1,0 +1,291 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { MailPlus, ShieldCheck, Trash2, UserMinus, Users } from "lucide-react";
+import { toast } from "sonner";
+import {
+  changeFirmMemberRole,
+  createFirmMemberInvitation,
+  getMyFirm,
+  leaveMyFirm,
+  removeFirmMember,
+  revokeFirmMemberInvitation,
+} from "@/lib/firm-grants.functions";
+
+export const Route = createFileRoute("/_attorney/team")({ component: FirmTeamSettings });
+
+type TeamData = Awaited<ReturnType<typeof getMyFirm>>;
+
+function FirmTeamSettings() {
+  const getTeam = useServerFn(getMyFirm);
+  const invite = useServerFn(createFirmMemberInvitation);
+  const revoke = useServerFn(revokeFirmMemberInvitation);
+  const changeRole = useServerFn(changeFirmMemberRole);
+  const remove = useServerFn(removeFirmMember);
+  const leave = useServerFn(leaveMyFirm);
+  const [data, setData] = useState<TeamData | null>(null);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"admin" | "member">("member");
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(
+    () =>
+      getTeam()
+        .then(setData)
+        .catch((e) => toast.error(e instanceof Error ? e.message : "Could not load team.")),
+    [getTeam],
+  );
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const seats = useMemo(() => {
+    const included = data?.firm?.seats_included ?? 1;
+    const purchased = data?.firm?.seats_purchased ?? 0;
+    return { used: data?.members.length ?? 0, total: Math.max(1, included + purchased) };
+  }, [data]);
+
+  if (!data) return <div className="att-card">Loading team settings…</div>;
+  if (!data.firm || !data.membership) {
+    return (
+      <div className="att-card" style={{ maxWidth: 720 }}>
+        <h1 className="att-page-title">Create your firm team</h1>
+        <p>
+          Finish firm setup first. Membership is invitation-only; typing a matching firm name never
+          joins a team.
+        </p>
+        <Link to="/setup" className="att-btn att-btn-primary">
+          Open setup
+        </Link>
+      </div>
+    );
+  }
+  const actorRole = data.membership.role;
+  const manager = actorRole === "owner" || actorRole === "admin";
+
+  const run = async (action: () => Promise<unknown>, success: string) => {
+    setBusy(true);
+    try {
+      await action();
+      toast.success(success);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "That action could not be completed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div style={{ display: "grid", gap: 20, maxWidth: 980, margin: "0 auto" }}>
+      <div>
+        <div className="att-eyebrow">Settings · Team</div>
+        <h1 className="att-page-title">{data.firm.name}</h1>
+        <p style={{ color: "var(--att-text-2)" }}>
+          Every seat has a separate verified login. Case access is still granted matter by matter.
+        </p>
+      </div>
+
+      <div
+        className="att-card"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 16,
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <div className="att-eyebrow">Firm seats</div>
+          <strong style={{ fontSize: 22 }}>
+            {seats.used} of {seats.total} used
+          </strong>
+        </div>
+        <Link to="/billing" className="att-btn att-btn-primary">
+          Manage seats &amp; billing
+        </Link>
+      </div>
+
+      {manager && (
+        <form
+          className="att-card"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void run(async () => {
+              await invite({ data: { email, role, expires_days: 7 } });
+              setEmail("");
+            }, "Invitation email queued.");
+          }}
+        >
+          <h2 style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <MailPlus size={18} /> Invite a teammate
+          </h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(220px,1fr) 160px auto",
+              gap: 10,
+            }}
+          >
+            <input
+              className="att-input"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="colleague@example.com"
+            />
+            <select
+              className="att-input"
+              value={role}
+              onChange={(e) => setRole(e.target.value as "admin" | "member")}
+            >
+              <option value="member">Member</option>
+              {actorRole === "owner" && <option value="admin">Administrator</option>}
+            </select>
+            <button className="att-btn att-btn-primary" disabled={busy}>
+              Send invite
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div className="att-card">
+        <h2 style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <Users size={18} /> Members
+        </h2>
+        <div style={{ display: "grid", gap: 8 }}>
+          {data.members.map((m) => {
+            const canEdit = actorRole === "owner" && m.role !== "owner" && !m.is_current_user;
+            const canRemove =
+              !m.is_current_user &&
+              m.role !== "owner" &&
+              (actorRole === "owner" || (actorRole === "admin" && m.role === "member"));
+            return (
+              <div
+                key={m.user_id}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(200px,1fr) 150px auto",
+                  gap: 10,
+                  alignItems: "center",
+                  padding: "10px 0",
+                  borderBottom: "1px solid var(--att-border)",
+                }}
+              >
+                <div>
+                  <strong>{m.full_name || m.email || "Team member"}</strong>
+                  <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+                    {m.email}
+                    {m.is_current_user ? " · You" : ""}
+                  </div>
+                </div>
+                {canEdit ? (
+                  <select
+                    className="att-input"
+                    value={m.role}
+                    disabled={busy}
+                    onChange={(e) =>
+                      void run(
+                        () =>
+                          changeRole({
+                            data: {
+                              user_id: m.user_id,
+                              role: e.target.value as "admin" | "member",
+                            },
+                          }),
+                        "Role updated.",
+                      )
+                    }
+                  >
+                    <option value="member">Member</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                ) : (
+                  <span className="att-tag">{m.role}</span>
+                )}
+                {canRemove && (
+                  <button
+                    className="att-btn"
+                    disabled={busy}
+                    onClick={() =>
+                      window.confirm("Remove this member and revoke their firm case grants?") &&
+                      void run(
+                        () => remove({ data: { user_id: m.user_id } }),
+                        "Member removed and grants revoked.",
+                      )
+                    }
+                  >
+                    <UserMinus size={14} /> Remove
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {manager && data.invitations.some((i) => i.status === "pending") && (
+        <div className="att-card">
+          <h2>Pending invitations</h2>
+          {data.invitations
+            .filter((i) => i.status === "pending")
+            .map((i) => (
+              <div
+                key={i.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  padding: "8px 0",
+                  borderBottom: "1px solid var(--att-border)",
+                }}
+              >
+                <span>
+                  {i.email} · {i.role} · expires {new Date(i.expires_at).toLocaleDateString()}
+                </span>
+                <button
+                  className="att-btn"
+                  disabled={busy}
+                  onClick={() =>
+                    void run(() => revoke({ data: { id: i.id } }), "Invitation revoked.")
+                  }
+                >
+                  <Trash2 size={14} /> Revoke
+                </button>
+              </div>
+            ))}
+        </div>
+      )}
+
+      <div className="att-card">
+        <h2 style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <ShieldCheck size={18} /> Team audit
+        </h2>
+        {data.audit.length ? (
+          data.audit.map((a) => (
+            <div key={a.id} style={{ fontSize: 12, padding: "6px 0" }}>
+              {new Date(a.created_at).toLocaleString()} ·{" "}
+              {a.event_type.replace("team.", "").replaceAll("_", " ")}
+            </div>
+          ))
+        ) : (
+          <p>No team changes recorded yet.</p>
+        )}
+      </div>
+
+      {actorRole !== "owner" && (
+        <button
+          className="att-btn"
+          disabled={busy}
+          onClick={() =>
+            window.confirm("Leave this firm? Your firm case grants will be revoked immediately.") &&
+            void run(() => leave(), "You left the firm.")
+          }
+        >
+          <UserMinus size={14} /> Leave firm
+        </button>
+      )}
+    </div>
+  );
+}
