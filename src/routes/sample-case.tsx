@@ -250,7 +250,7 @@ function SampleCase() {
               cursor: "not-allowed",
             }}
           >
-            Generate court packet
+            Generate professional-review packet
           </button>
           <div style={{ fontFamily: MONO, fontSize: 11, color: MUTED, letterSpacing: "0.06em" }}>
             Disabled in this sample — available on real cases.

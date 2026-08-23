@@ -65,7 +65,7 @@ function RequestOrgAccess() {
   return (
     <div
       data-persona="org"
-      style={{ minHeight: "100vh", background: "#FAF8F4", padding: "60px 24px" }}
+      style={{ minHeight: "100vh", background: "var(--pp-ground)", padding: "60px 24px" }}
     >
       <PublicQuickExit />
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
@@ -241,14 +241,22 @@ function RequestOrgAccess() {
           Already partnering with us?{" "}
           <Link
             to="/org-feedback"
-            style={{ color: MARK_COLORWAYS.advocate.solid, fontWeight: 600, textDecoration: "underline" }}
+            style={{
+              color: MARK_COLORWAYS.advocate.solid,
+              fontWeight: 600,
+              textDecoration: "underline",
+            }}
           >
             Share feedback about PatternProof
           </Link>{" "}
           ·{" "}
           <Link
             to="/org-portal"
-            style={{ color: MARK_COLORWAYS.advocate.solid, fontWeight: 600, textDecoration: "underline" }}
+            style={{
+              color: MARK_COLORWAYS.advocate.solid,
+              fontWeight: 600,
+              textDecoration: "underline",
+            }}
           >
             Go to your partner dashboard
           </Link>

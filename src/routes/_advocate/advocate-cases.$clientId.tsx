@@ -189,7 +189,7 @@ function AccessTab({ data }: { data: CaseData }) {
       )}
       {row("Expires", c.expires_at ? (fmt(c.expires_at) as string) : "No expiry set")}
       <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 12, lineHeight: 1.6 }}>
-        The survivor may withdraw this access at any time. When she does, live access ends immediately — this page will
+        The survivor may withdraw this access at any time. When they do, live access ends immediately — this page will
         stop opening. Anything you already exported stays on your own computer and is yours to handle under your
         organization's records policy.
       </p>

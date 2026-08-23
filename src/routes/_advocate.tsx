@@ -51,10 +51,11 @@ function AdvocateLayout() {
   if (loading || checking) {
     return (
       <div
+        className="pp-portal-shell"
         data-persona="org"
         style={{
           minHeight: "100vh",
-          background: "var(--background)",
+          background: "var(--pp-ground)",
           display: "grid",
           placeItems: "center",
         }}
@@ -66,17 +67,18 @@ function AdvocateLayout() {
 
   return (
     <div
+      className="pp-portal-shell"
       data-persona="org"
-      style={{ minHeight: "100vh", background: "var(--background)", color: "var(--foreground)" }}
+      style={{ minHeight: "100vh", background: "var(--pp-ground)", color: "var(--foreground)" }}
     >
       <header
+        className="pp-portal-header"
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 12,
           padding: "12px 20px",
-          borderBottom: "1px solid var(--border)",
         }}
       >
         <Link
@@ -103,7 +105,10 @@ function AdvocateLayout() {
         </div>
       </header>
       <AccessDisclaimerBar persona="org" />
-      <main style={{ maxWidth: 1000, margin: "0 auto", padding: "28px 20px 64px" }}>
+      <main
+        className="pp-portal-main"
+        style={{ maxWidth: 1000, margin: "0 auto", padding: "28px 20px 64px" }}
+      >
         <FocusModeProvider accentColor="var(--pp-accent-org)">
           <Outlet />
         </FocusModeProvider>

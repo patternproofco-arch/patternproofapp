@@ -24,7 +24,7 @@ export const Route = createFileRoute("/demo")({
       {
         name: "description",
         content:
-          "Explore PatternProof with a sample survivor case. No signup required — click through the journal, timeline, pattern analysis, and court packet.",
+          "Explore PatternProof with a sample survivor case. No signup required — click through the journal, timeline, pattern analysis, and professional-review packet.",
       },
       { property: "og:title", content: "Interactive Demo — PatternProof" },
       {

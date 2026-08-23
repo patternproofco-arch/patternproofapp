@@ -425,12 +425,12 @@ function EvidencePage() {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: "#1A1714" }}>
-            Import Messages from screenshots
+            Quick import: just screenshots
           </div>
           <div style={{ fontSize: 13, color: "#3D3832", marginTop: 2, lineHeight: 1.5 }}>
-            Add screenshots of a text conversation in any order. They&apos;re read here on your
-            device — no app can open your phone&apos;s Messages history, so this works from your own
-            screenshots.
+            Add screenshots of a text conversation in any order — nothing else needed. Read here on
+            your device and turned into a searchable, reviewable message list before anything is
+            saved.
           </div>
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-accent)" }}>Open →</span>
@@ -461,11 +461,11 @@ function EvidencePage() {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: "#1A1714" }}>
-            Upload a Message Thread
+            More options: backup exports, screen recording, or call logs
           </div>
           <div style={{ fontSize: 13, color: "#3D3832", marginTop: 2, lineHeight: 1.5 }}>
-            Import iPhone, iMessage, or SMS exports (PDF, CSV/Excel, TXT, RSMF, ZIP) into a
-            searchable, flagged timeline.
+            For hundreds of messages, a phone backup (PDF, CSV/Excel, TXT, RSMF, ZIP), a screen
+            recording, or a call-log import — with guidance on which option fits your situation.
           </div>
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-accent)" }}>Open →</span>

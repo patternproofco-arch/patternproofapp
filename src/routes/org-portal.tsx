@@ -277,7 +277,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
   return (
     <div
       data-persona="org"
-      style={{ minHeight: "100vh", background: "#FAF8F4", color: "var(--foreground)" }}
+      style={{ minHeight: "100vh", background: "var(--pp-ground)", color: "var(--foreground)" }}
     >
       <PublicQuickExit />
       <header
