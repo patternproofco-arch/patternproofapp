@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { isPossibleNameOverlap } from "@/lib/name-match";
 
 /* ------------------------- shared helpers ------------------------- */
 
@@ -16,35 +15,16 @@ async function assertAttorney(userId: string) {
   if (!data) throw new Error("Attorney role required");
 }
 
-async function resolveFirmId(firmName: string | null | undefined, createdBy: string): Promise<string | null> {
-  const name = firmName?.trim();
-  if (!name) return null;
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: existing } = await supabaseAdmin
-    .from("firms")
-    .select("id")
-    .ilike("name", name)
-    .limit(1)
-    .maybeSingle();
-  if (existing?.id) return existing.id;
-  const { data: created, error } = await supabaseAdmin
-    .from("firms")
-    .insert({ name, created_by: createdBy })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-  return created.id;
-}
-
 async function assertSameFirm(attorneyA: string, attorneyB: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("attorney_profiles")
+  const { data, error } = await supabaseAdmin
+    .from("firm_members")
     .select("user_id,firm_id")
     .in("user_id", [attorneyA, attorneyB]);
-  const a = (data ?? []).find((p) => p.user_id === attorneyA)?.firm_id;
-  const b = (data ?? []).find((p) => p.user_id === attorneyB)?.firm_id;
-  if (!a || !b || a !== b) throw new Error("No active firm-level access");
+  if (error) throw new Error(error.message);
+  const a = (data ?? []).find((m) => m.user_id === attorneyA)?.firm_id;
+  const b = (data ?? []).find((m) => m.user_id === attorneyB)?.firm_id;
+  if (!a || !b || a !== b) throw new Error("No verified firm membership for this case grant");
 }
 
 async function assertLink(attorneyId: string, clientId: string) {
@@ -250,14 +230,14 @@ export const upsertAttorneyProfile = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const firm_id = await resolveFirmId(data.firm_name, context.userId);
+    // firm_name is profile text only. Joining a firm requires a verified invitation.
     await supabaseAdmin.from("user_roles").upsert(
       { user_id: context.userId, role: "attorney" },
       { onConflict: "user_id,role" },
     );
     const { error } = await supabaseAdmin
       .from("attorney_profiles")
-      .upsert({ user_id: context.userId, ...data, firm_id, updated_at: new Date().toISOString() });
+      .upsert({ user_id: context.userId, ...data, updated_at: new Date().toISOString() });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -277,7 +257,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const firm_id = await resolveFirmId(data.firm_name, context.userId);
+    // firm_name is profile text only. Joining a firm requires a verified invitation.
     await supabaseAdmin.from("user_roles").upsert(
       { user_id: context.userId, role: "attorney" },
       { onConflict: "user_id,role" },
@@ -289,7 +269,6 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
         full_name: data.full_name,
         email: data.email,
         firm_name: data.firm_name ?? null,
-        firm_id,
         bar_number: data.bar_number ?? null,
         jurisdiction: data.jurisdiction ?? null,
         role: data.role,
@@ -1267,86 +1246,10 @@ export const getClientThread = createServerFn({ method: "POST" })
 // here is just a prompt to double-check, not an auto-action.
 export const getFirmConflictFlags = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: me } = await supabaseAdmin
-      .from("attorney_profiles")
-      .select("firm_id")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (!me?.firm_id) return { firm_id: null as string | null, flags: [] as ConflictFlag[] };
-
-    const { data: colleagues } = await supabaseAdmin
-      .from("attorney_profiles")
-      .select("user_id,full_name")
-      .eq("firm_id", me.firm_id);
-    const others = (colleagues ?? []).filter((c) => c.user_id !== context.userId);
-    if (others.length === 0) return { firm_id: me.firm_id, flags: [] as ConflictFlag[] };
-
-    const allAttorneyIds = [context.userId, ...others.map((o) => o.user_id)];
-    const nameByAttorney = new Map<string, string>();
-    for (const c of colleagues ?? []) nameByAttorney.set(c.user_id, c.full_name);
-
-    // Active client links per attorney.
-    const { data: links } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("attorney_user_id,client_user_id")
-      .in("attorney_user_id", allAttorneyIds)
-      .eq("status", "active");
-    if (!links || links.length === 0) return { firm_id: me.firm_id, flags: [] as ConflictFlag[] };
-
-    const clientIds = Array.from(new Set(links.map((l) => l.client_user_id)));
-    const { data: cases } = await supabaseAdmin
-      .from("cases")
-      .select("user_id,other_party")
-      .in("user_id", clientIds);
-    const otherPartyByClient = new Map<string, string>();
-    for (const c of cases ?? []) {
-      if (c.other_party && c.other_party.trim()) otherPartyByClient.set(c.user_id, c.other_party);
-    }
-
-    // My clients (with other_party) vs colleagues' clients (with other_party).
-    type Row = { attorney_id: string; client_id: string; other_party: string };
-    const rowsByAttorney = new Map<string, Row[]>();
-    for (const l of links) {
-      const op = otherPartyByClient.get(l.client_user_id);
-      if (!op) continue;
-      if (!rowsByAttorney.has(l.attorney_user_id)) rowsByAttorney.set(l.attorney_user_id, []);
-      rowsByAttorney.get(l.attorney_user_id)!.push({
-        attorney_id: l.attorney_user_id,
-        client_id: l.client_user_id,
-        other_party: op,
-      });
-    }
-
-    const mine = rowsByAttorney.get(context.userId) ?? [];
-    if (mine.length === 0) return { firm_id: me.firm_id, flags: [] as ConflictFlag[] };
-
-    const flags: ConflictFlag[] = [];
-    const seen = new Set<string>();
-    for (const other of others) {
-      const theirs = rowsByAttorney.get(other.user_id) ?? [];
-      for (const a of mine) {
-        for (const b of theirs) {
-          if (a.client_id === b.client_id) continue;
-          if (!isPossibleNameOverlap(a.other_party, b.other_party)) continue;
-          const key = [a.client_id, b.client_id, other.user_id].sort().join("|");
-          if (seen.has(key)) continue;
-          seen.add(key);
-          flags.push({
-            my_client_id: a.client_id,
-            other_client_id: b.client_id,
-            other_attorney_id: other.user_id,
-            other_attorney_name: nameByAttorney.get(other.user_id) ?? "Colleague",
-            my_matched_name: a.other_party,
-            other_matched_name: b.other_party,
-          });
-        }
-      }
-    }
-
-    return { firm_id: me.firm_id, flags };
+  .handler(async () => {
+    // A shared firm membership is not a case grant. The former cross-firm
+    // matcher inspected ungranted case data, so it is deliberately disabled.
+    return { firm_id: null as string | null, flags: [] as ConflictFlag[] };
   });
 
 export type ConflictFlag = {
