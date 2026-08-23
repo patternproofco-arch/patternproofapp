@@ -46,7 +46,7 @@ export const BASE_TIERS: Tier[] = [
   },
   {
     key: "court_ready",
-    name: "Court Ready",
+    name: "Professional Review",
     price: "Pay what you can",
     sub: "$1 – $500",
     quote: "An optional, one-time contribution if PatternProof helped you. It does not unlock anything — every survivor feature is already free.",
@@ -143,6 +143,6 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         ctaTo: "/lawyer-signup",
         featured: true,
       };
-  // Order: Survivor · Court Ready · Solo · Firm (featured, middle) · DV Organization
+  // Order: Survivor · Professional Review · Solo · Firm (featured, middle) · DV Organization
   return [BASE_TIERS[0], BASE_TIERS[1], BASE_TIERS[2], firm, BASE_TIERS[3]];
 }

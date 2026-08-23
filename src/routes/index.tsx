@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Private documentation software that turns scattered evidence into court-ready patterns. Free for survivors. Free for DV organizations.",
+          "Private documentation software that turns scattered evidence into organized, professional-review patterns. Free for survivors. Free for DV organizations.",
       },
       { property: "og:title", content: "PatternProof — The truth is in the pattern." },
       {
@@ -127,8 +127,8 @@ function Index() {
           }}
         >
           {attorneyMode
-            ? "Source-linked · Chain of custody · Court-ready"
-            : "Private · Secure · Court-ready"}
+            ? "Source-linked · Chain of custody · Professional-review ready"
+            : "Private · Secure · Professional-review ready"}
         </p>
         {!attorneyMode && (
           <p
@@ -718,7 +718,7 @@ function DashboardPreview() {
         {[
           { icon: FileText, label: "Document" },
           { icon: Scale, label: "Patterns" },
-          { icon: ShieldCheck, label: "Court-Ready" },
+          { icon: ShieldCheck, label: "Review" },
           { icon: Lock, label: "Safety" },
         ].map(({ icon: Icon, label }) => (
           <div key={label} style={{ textAlign: "center" }}>
