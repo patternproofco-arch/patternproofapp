@@ -348,31 +348,7 @@ function Index() {
           </Section>
 
           {/* ───────────────────────── How it works ───────────────────────── */}
-          <Section eyebrow="How it works" title="Three steps. One clear pattern.">
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 16,
-              }}
-            >
-              <Step
-                n={1}
-                title="Write it down"
-                body="Photos, texts, voice notes — whatever you have, whenever you have a moment. Nothing is required."
-              />
-              <Step
-                n={2}
-                title="It organizes itself"
-                body="Every entry is timestamped and dated with its own confidence level — exact, approximate, or unknown. No pattern is invented for you."
-              />
-              <Step
-                n={3}
-                title="Share only what you choose"
-                body="Nothing leaves your account until you decide — with an attorney, an advocate, or a court, on your terms."
-              />
-            </div>
-          </Section>
+          <HowItWorks />
 
           {/* ───────────────────────── Safety built in ───────────────────────── */}
           <Section eyebrow="Safety built in" title="Designed for the moment you need it most.">
@@ -587,39 +563,139 @@ function Section({
   );
 }
 
-function Step({ n, title, body }: { n: number; title: string; body: string }) {
+const HIW_PURPLE = "#5B4EA6";
+const HIW_BLUE = "#0F2BB8";
+
+function Squiggle({ id }: { id: string }) {
   return (
-    <div className="card-pp" style={{ padding: 20 }}>
-      <div
+    <div style={{ flex: 1, width: 40, minHeight: 48, display: "flex", justifyContent: "center" }}>
+      <svg
+        width="40"
+        height="100%"
+        viewBox="0 0 40 90"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+        style={{ display: "block", overflow: "visible" }}
+      >
+        <defs>
+          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={HIW_PURPLE} />
+            <stop offset="100%" stopColor={HIW_BLUE} />
+          </linearGradient>
+        </defs>
+        <path
+          d="M20 0 Q36 15 20 30 Q4 45 20 60 Q36 75 20 90"
+          fill="none"
+          stroke={`url(#${id})`}
+          strokeWidth={3}
+          strokeLinecap="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function HowItWorks() {
+  const steps = [
+    {
+      n: 1,
+      title: "Write it down",
+      body: "Photos, texts, voice notes — whatever you have, whenever you have a moment. Nothing is required.",
+    },
+    {
+      n: 2,
+      title: "It organizes itself",
+      body: "Every entry is timestamped and dated with its own confidence level — exact, approximate, or unknown. No pattern is invented for you.",
+    },
+    {
+      n: 3,
+      title: "Share only what you choose",
+      body: "Nothing leaves your account until you decide — with an attorney, an advocate, or a court, on your terms.",
+    },
+  ];
+
+  return (
+    <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px", marginTop: 64 }}>
+      <p
         style={{
-          width: 30,
-          height: 30,
-          borderRadius: 999,
-          display: "grid",
-          placeItems: "center",
-          boxShadow: "var(--pp-shadow-in-sm)",
           fontFamily: "var(--font-mono)",
+          fontSize: 10.5,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
           fontWeight: 700,
-          fontSize: 13,
-          color: "var(--pp-accent)",
-          marginBottom: 12,
+          color: HIW_PURPLE,
+          marginBottom: 8,
         }}
       >
-        {n}
-      </div>
-      <h4
+        How it works
+      </p>
+      <h2
         style={{
           fontFamily: "var(--font-serif)",
-          fontWeight: 500,
-          fontSize: 16,
+          fontWeight: 400,
+          fontSize: "clamp(1.5rem, 3vw, 2rem)",
           color: INK,
-          margin: 0,
+          marginBottom: 28,
         }}
       >
-        {title}
-      </h4>
-      <p style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, color: INK_2 }}>{body}</p>
-    </div>
+        Three steps. One clear pattern.
+      </h2>
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {steps.map((s, i) => {
+          const last = i === steps.length - 1;
+          return (
+            <div
+              key={s.n}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "56px 1fr",
+                columnGap: 20,
+                alignItems: "stretch",
+                paddingBottom: last ? 0 : 14,
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    flexShrink: 0,
+                    borderRadius: 999,
+                    display: "grid",
+                    placeItems: "center",
+                    background: "var(--pp-ground)",
+                    boxShadow: "var(--pp-shadow-up)",
+                    fontFamily: "var(--font-serif)",
+                    fontWeight: 500,
+                    fontSize: 20,
+                    color: HIW_PURPLE,
+                  }}
+                >
+                  {s.n}
+                </div>
+                {!last && <Squiggle id={`hiw-squiggle-${s.n}`} />}
+              </div>
+
+              <div className="card-pp" style={{ padding: "18px 24px", alignSelf: "start" }}>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontWeight: 500,
+                    fontSize: 18,
+                    color: INK,
+                    margin: 0,
+                  }}
+                >
+                  {s.title}
+                </h3>
+                <p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.6, color: INK_2 }}>{s.body}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
