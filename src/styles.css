@@ -89,6 +89,11 @@
   --pp-accent-survivor: var(--oxblood);
   --pp-accent-shared: var(--oxblood-deep);
 
+  /* Survivor's one gradient accent — the actual logo gradient (see
+     BrandMark.tsx's MARK_COLORWAYS), used as a real surface/fill color
+     wherever the survivor persona should read as itself, not just chrome. */
+  --pp-accent-survivor-gradient: linear-gradient(135deg, #E5A1E4, #A1BDF3);
+
   /* Default accent for un-scoped surfaces */
   --pp-accent: var(--pp-accent-survivor);
   --pp-accent-fg: var(--paper);

@@ -308,6 +308,8 @@ function Index() {
             >
               <PathCard
                 accent="#5B4EA6"
+                accentBg="var(--pp-accent-survivor-gradient)"
+                iconColor="#3D1F63"
                 icon={FileText}
                 label="Survivor"
                 body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
@@ -788,6 +790,8 @@ function DashboardPreview() {
 
 function PathCard({
   accent,
+  accentBg,
+  iconColor,
   icon: Icon,
   label,
   body,
@@ -795,6 +799,13 @@ function PathCard({
   cta,
 }: {
   accent: string;
+  /** Background for the icon strip only — defaults to `accent`. Lets the
+   * survivor card carry its real logo gradient as a surface fill while
+   * `accent` stays a solid, legible color for text and the inset border. */
+  accentBg?: string;
+  /** Icon color against accentBg — defaults to white. The survivor
+   * gradient is light pastel at both ends, so white would be illegible. */
+  iconColor?: string;
   icon: ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
   body: string;
@@ -825,11 +836,11 @@ function PathCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: accent,
+          background: accentBg ?? accent,
         }}
       >
         <span aria-hidden="true">
-          <Icon color="#FFFFFF" size={22} strokeWidth={1.6} />
+          <Icon color={iconColor ?? "#FFFFFF"} size={22} strokeWidth={1.6} />
         </span>
       </div>
 
