@@ -82,8 +82,9 @@ function SurvivorFeedbackPage() {
               gap: 10,
               padding: "8px 14px",
               borderRadius: 18,
-              background: "rgba(127,161,137,0.20)",
-              color: "#0F6E56",
+              background: "var(--pp-card)",
+              boxShadow: "var(--pp-shadow-in-sm)",
+              color: "var(--pp-confirmed)",
               fontWeight: 700,
               fontSize: 13,
               marginBottom: 18,
@@ -91,10 +92,12 @@ function SurvivorFeedbackPage() {
           >
             <Check size={16} /> Thank you
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px", color: "#1A1224" }}>
+          <h1
+            style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px", color: "var(--pp-ink)" }}
+          >
             Received. Every word you shared helps.
           </h1>
-          <p style={{ color: "#4E3B31", lineHeight: 1.6, marginBottom: 24 }}>
+          <p style={{ color: "var(--pp-muted)", lineHeight: 1.6, marginBottom: 24 }}>
             Your response is stored privately. We only see the words you chose to share here — not
             anything from your Archive or evidence.
           </p>
@@ -119,13 +122,13 @@ function SurvivorFeedbackPage() {
             fontWeight: 800,
             letterSpacing: "-0.02em",
             margin: "10px 0 12px",
-            color: "#1A1224",
-            fontFamily: "Georgia, 'Palatino Linotype', serif",
+            color: "var(--pp-ink)",
+            fontFamily: "var(--font-serif)",
           }}
         >
           How is PatternProof feeling for you?
         </h1>
-        <p style={{ color: "#4E3B31", lineHeight: 1.65, marginBottom: 24 }}>
+        <p style={{ color: "var(--pp-muted)", lineHeight: 1.65, marginBottom: 24 }}>
           Honest answers help us make this safer and easier for the people who come next. Nothing
           here is required — share what you want, skip what you don't.
         </p>
@@ -228,7 +231,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
           display: "block",
           fontSize: 14,
           fontWeight: 700,
-          color: "#1A1224",
+          color: "var(--pp-ink)",
           marginBottom: 10,
           lineHeight: 1.4,
         }}
@@ -263,21 +266,21 @@ function TextArea({
   );
 }
 
-/* --- styling (iridescent, matches dashboard/journal warmth) --- */
+/* --- styling: neumorphic, on the shared token system --- */
 const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "40px 20px 80px",
-  background: "#FAF8F4",
+  background: "var(--pp-ground)",
 };
 
 const cardStyle: React.CSSProperties = {
   maxWidth: 640,
   margin: "0 auto",
-  background: "#FAF8F4",
+  background: "var(--pp-card)",
   borderRadius: 18,
   padding: "36px 32px",
   boxShadow: "var(--pp-shadow-sm)",
-  border: "1px solid rgba(255,255,255,0.4)",
+  border: "none",
 };
 
 const backLink: React.CSSProperties = {
@@ -285,7 +288,7 @@ const backLink: React.CSSProperties = {
   alignItems: "center",
   gap: 6,
   fontSize: 13,
-  color: "#4E3B31",
+  color: "var(--pp-muted)",
   textDecoration: "none",
   marginBottom: 20,
   maxWidth: 640,
@@ -299,7 +302,7 @@ const eyebrow: React.CSSProperties = {
   fontSize: 11,
   letterSpacing: "0.18em",
   textTransform: "uppercase",
-  color: "#7A5C4A",
+  color: "var(--pp-muted)",
   fontWeight: 700,
 };
 
@@ -307,18 +310,19 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "12px 14px",
   borderRadius: 18,
-  border: "1px solid rgba(26,18,36,0.25)",
-  background: "#FAF8F4",
-  color: "#1A1224",
+  border: "none",
+  background: "var(--pp-card)",
+  color: "var(--pp-ink)",
   fontSize: 14,
   outline: "none",
+  boxShadow: "var(--pp-shadow-in-sm)",
 };
 
 const ctaBtn: React.CSSProperties = {
   padding: "14px 28px",
   borderRadius: 18,
   background: "var(--pp-accent)",
-  color: "#FFFFFF",
+  color: "var(--pp-accent-fg)",
   fontWeight: 700,
   fontSize: 15,
   border: "none",
@@ -330,11 +334,12 @@ function pillBtn(active: boolean): React.CSSProperties {
   return {
     padding: "10px 16px",
     borderRadius: 18,
-    border: active ? "1px solid var(--pp-accent)" : "1px solid rgba(26,18,36,0.25)",
-    background: active ? "var(--pp-accent)" : "#FAF8F4",
-    color: active ? "#FFFFFF" : "#1A1224",
+    border: "none",
+    background: active ? "var(--pp-accent)" : "var(--pp-card)",
+    color: active ? "var(--pp-accent-fg)" : "var(--pp-ink)",
     fontWeight: 600,
     fontSize: 14,
     cursor: "pointer",
+    boxShadow: active ? "var(--pp-shadow-in-sm)" : "var(--pp-shadow-xs)",
   };
 }

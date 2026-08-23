@@ -9,7 +9,11 @@ export const Route = createFileRoute("/privacy")({
       { name: "description", content: "How PatternProof collects, uses, stores, and protects your information. Privacy-by-design documentation platform for survivors of domestic violence and coercive control." },
       { property: "og:title", content: "Privacy Policy — PatternProof" },
       { property: "og:description", content: "Privacy-by-design protections for survivors. Read how PatternProof handles your documentation, AI processing, and data sharing." },
+      { property: "og:url", content: "https://pattern-proof.tech/privacy" },
+      { name: "twitter:title", content: "Privacy Policy — PatternProof" },
+      { name: "twitter:description", content: "Privacy-by-design protections for survivors. Read how PatternProof handles your documentation, AI processing, and data sharing." },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/privacy" }],
   }),
   component: PrivacyPage,
 });

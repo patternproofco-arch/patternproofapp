@@ -96,7 +96,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
       style={{
         borderRadius: 0,
         padding: 22,
-        background: "#FAF8F4",
+        background: "var(--pp-ground)",
         border: "1px solid rgba(122,31,61,0.2)",
       }}
     >

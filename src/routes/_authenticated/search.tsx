@@ -130,7 +130,7 @@ function SearchPage() {
               >
                 <span
                   className="grid h-6 w-6 place-items-center rounded-2xl"
-                  style={{ background: meta.accent, color: "#1A1714" }}
+                  style={{ background: meta.accent, color: "var(--pp-ink)" }}
                 >
                   <Icon size={12} />
                 </span>
@@ -153,7 +153,10 @@ function SearchPage() {
                         )}
                       </div>
                       {h.snippet && (
-                        <p className="mt-1 line-clamp-2 text-[13px]" style={{ color: "#2A1A10" }}>
+                        <p
+                          className="mt-1 line-clamp-2 text-[13px]"
+                          style={{ color: "var(--pp-ink)" }}
+                        >
                           {h.snippet}
                         </p>
                       )}

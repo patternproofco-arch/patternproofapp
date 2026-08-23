@@ -34,12 +34,6 @@ export const Route = createFileRoute("/org-portal")({
   component: OrgPortal,
 });
 
-const STATUS_LABEL: Record<string, string> = {
-  actively_documenting: "Actively documenting",
-  inactive: "Quiet lately",
-  signed_up: "Signed up",
-};
-
 function OrgPortal() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -165,7 +159,7 @@ function OrgPortal() {
                     <code
                       style={{
                         fontSize: 13,
-                        background: "#F5F5F0",
+                        background: "var(--pp-ground)",
                         padding: "6px 10px",
                         borderRadius: 18,
                         overflowWrap: "anywhere",
@@ -215,46 +209,7 @@ function OrgPortal() {
         )}
       </Section>
 
-      <Section title="Referred survivors">
-        {stats.referred.length === 0 ? (
-          <p style={{ fontSize: 14, color: "var(--muted-foreground)" }}>
-            Nothing here yet — when someone signs up through your link, they'll show up as a count.
-          </p>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr
-                style={{
-                  textAlign: "left",
-                  color: "var(--muted-foreground)",
-                  fontSize: 11,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                }}
-              >
-                <th style={{ padding: "8px 0" }}>Joined</th>
-                <th style={{ padding: "8px 0" }}>Link</th>
-                <th style={{ padding: "8px 0" }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.referred.map((r, i) => (
-                <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                  <td style={{ padding: "10px 0" }}>{r.signed_up_month}</td>
-                  <td style={{ padding: "10px 0" }}>
-                    <code style={{ fontSize: 12 }}>{r.code}</code>
-                  </td>
-                  <td style={{ padding: "10px 0" }}>{STATUS_LABEL[r.status] ?? r.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-        <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 12 }}>
-          "Actively documenting" means at least one new entry in the last {stats.active_window_days}{" "}
-          days. We never show what was written.
-        </p>
-      </Section>
+
     </Shell>
   );
 }
@@ -277,7 +232,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
   return (
     <div
       data-persona="org"
-      style={{ minHeight: "100vh", background: "#FAF8F4", color: "var(--foreground)" }}
+      style={{ minHeight: "100vh", background: "var(--pp-ground)", color: "var(--foreground)" }}
     >
       <PublicQuickExit />
       <header

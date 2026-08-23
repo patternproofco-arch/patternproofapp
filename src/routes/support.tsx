@@ -15,7 +15,7 @@ export const Route = createFileRoute("/support")({
       {
         name: "description",
         content:
-          "Get help with login, billing, evidence uploads, or court packet exports. Send a support request without using your own email client.",
+          "Get help with login, billing, evidence uploads, or professional-review packet exports. Send a support request without using your own email client.",
       },
       { property: "og:title", content: "Technical Support — PatternProof" },
       {
@@ -23,9 +23,17 @@ export const Route = createFileRoute("/support")({
         content:
           "Send a support request privately — no email client needed. Help with access, billing, uploads, and exports.",
       },
+      { property: "og:url", content: "https://pattern-proof.tech/support" },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Technical Support — PatternProof" },
+      {
+        name: "twitter:description",
+        content:
+          "Send a support request privately — no email client needed. Help with access, billing, uploads, and exports.",
+      },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/support" }],
   }),
   component: SupportPage,
 });
@@ -215,7 +223,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const page = {
   minHeight: "100vh",
-  background: "#FAF8F4",
+  background: "var(--pp-ground)",
   color: "#1A1224",
   fontFamily: "var(--font-sans)",
   padding: "32px 20px 96px",
@@ -293,7 +301,7 @@ const input = {
   fontSize: 15,
   fontFamily: "var(--font-sans)",
   color: "#1A1224",
-  background: "#FAF8F4",
+  background: "var(--pp-ground)",
   border: "1px solid rgba(26,18,36,0.16)",
   borderRadius: 18,
 } as const;
@@ -337,7 +345,7 @@ const copyBtn = {
   display: "inline-flex",
   alignItems: "center",
   gap: 6,
-  background: "#FAF8F4",
+  background: "var(--pp-ground)",
   border: "1px solid rgba(26,18,36,0.16)",
   borderRadius: 18,
   padding: "6px 12px",
