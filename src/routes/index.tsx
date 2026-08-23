@@ -205,7 +205,21 @@ function Index() {
         ) : (
           <>
             <p
-              style={{ marginTop: 20, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
+              style={{
+                marginTop: 18,
+                fontFamily: "var(--font-sans)",
+                fontSize: 18,
+                fontWeight: 500,
+                lineHeight: 1.5,
+                color: INK,
+                maxWidth: 620,
+              }}
+            >
+              Private documentation that turns scattered evidence into court-ready patterns.{" "}
+              <span style={{ color: "var(--pp-accent)" }}>Free for survivors.</span>
+            </p>
+            <p
+              style={{ marginTop: 14, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
             >
               Photos, messages, and voice notes stay encrypted and private — nothing is ever shared
               until you choose to share it. Free for survivors. Free for DV organizations. Built by
@@ -339,6 +353,7 @@ function Index() {
           </Section>
 
           {/* ───────────────────────── How it works ───────────────────────── */}
+          <HowItWorks />
           <Section eyebrow="How it works" title="Three steps. One clear pattern.">
             <div className="pp-thread">
               <Step
@@ -572,8 +587,61 @@ function Section({
   );
 }
 
-function Step({ n, title, body }: { n: number; title: string; body: string }) {
+const HIW_PURPLE = "#5B4EA6";
+const HIW_BLUE = "#0F2BB8";
+
+function Squiggle({ id }: { id: string }) {
   return (
+    <div style={{ flex: 1, width: 40, minHeight: 48, display: "flex", justifyContent: "center" }}>
+      <svg
+        width="40"
+        height="100%"
+        viewBox="0 0 40 90"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+        style={{ display: "block", overflow: "visible" }}
+      >
+        <defs>
+          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={HIW_PURPLE} />
+            <stop offset="100%" stopColor={HIW_BLUE} />
+          </linearGradient>
+        </defs>
+        <path
+          d="M20 0 Q36 15 20 30 Q4 45 20 60 Q36 75 20 90"
+          fill="none"
+          stroke={`url(#${id})`}
+          strokeWidth={3}
+          strokeLinecap="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function HowItWorks() {
+  const steps = [
+    {
+      n: 1,
+      title: "Write it down",
+      body: "Photos, texts, voice notes — whatever you have, whenever you have a moment. Nothing is required.",
+    },
+    {
+      n: 2,
+      title: "It organizes itself",
+      body: "Every entry is timestamped and dated with its own confidence level — exact, approximate, or unknown. No pattern is invented for you.",
+    },
+    {
+      n: 3,
+      title: "Share only what you choose",
+      body: "Nothing leaves your account until you decide — with an attorney, an advocate, or a court, on your terms.",
+    },
+  ];
+
+  return (
+    <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px", marginTop: 64 }}>
+      <p
+        style={{
     <div className="pp-thread-row">
       <div
         className="pp-thread-node"
@@ -586,7 +654,83 @@ function Step({ n, title, body }: { n: number; title: string; body: string }) {
           background: "var(--pp-card)",
           boxShadow: "var(--pp-shadow-in-sm)",
           fontFamily: "var(--font-mono)",
+          fontSize: 10.5,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
           fontWeight: 700,
+          color: HIW_PURPLE,
+          marginBottom: 8,
+        }}
+      >
+        How it works
+      </p>
+      <h2
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontWeight: 400,
+          fontSize: "clamp(1.5rem, 3vw, 2rem)",
+          color: INK,
+          marginBottom: 28,
+        }}
+      >
+        Three steps. One clear pattern.
+      </h2>
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {steps.map((s, i) => {
+          const last = i === steps.length - 1;
+          return (
+            <div
+              key={s.n}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "56px 1fr",
+                columnGap: 20,
+                alignItems: "stretch",
+                paddingBottom: last ? 0 : 14,
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    flexShrink: 0,
+                    borderRadius: 999,
+                    display: "grid",
+                    placeItems: "center",
+                    background: "var(--pp-ground)",
+                    boxShadow: "var(--pp-shadow-up)",
+                    fontFamily: "var(--font-serif)",
+                    fontWeight: 500,
+                    fontSize: 20,
+                    color: HIW_PURPLE,
+                  }}
+                >
+                  {s.n}
+                </div>
+                {!last && <Squiggle id={`hiw-squiggle-${s.n}`} />}
+              </div>
+
+              <div className="card-pp" style={{ padding: "18px 24px", alignSelf: "start" }}>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontWeight: 500,
+                    fontSize: 18,
+                    color: INK,
+                    margin: 0,
+                  }}
+                >
+                  {s.title}
+                </h3>
+                <p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.6, color: INK_2 }}>{s.body}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
           fontSize: 15,
           color: "var(--pp-accent)",
         }}
