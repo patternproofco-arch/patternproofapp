@@ -20,34 +20,6 @@ export const Route = createFileRoute("/_authenticated/case")({
   component: CaseHub,
 });
 
-const SECTIONS: Array<{ to: string; title: string; body: string }> = [
-  {
-    to: "/case-builder",
-    title: "Case builder",
-    body: "Name the other party, describe the pattern in your words, and choose the Marks that matter most.",
-  },
-  {
-    to: "/court-packet",
-    title: "Court packet",
-    body: "A printable summary of your case: chronology, pattern summary, and indexed exhibits.",
-  },
-  {
-    to: "/communications",
-    title: "Communication log",
-    body: "Calls, texts, emails and handoffs — logged with dates so they sit alongside your Marks.",
-  },
-  {
-    to: "/court-dates",
-    title: "Court dates",
-    body: "Hearings and deadlines, so nothing sneaks up on you.",
-  },
-  {
-    to: "/share-with-attorney",
-    title: "Share with attorney",
-    body: "Choose exactly what an attorney can see. Nothing is shared until you say so.",
-  },
-];
-
 function CaseHub() {
   const { user } = useAuth();
   const [attorneyConnected, setAttorneyConnected] = useState(false);
@@ -95,25 +67,6 @@ function CaseHub() {
           </span>
         </div>
       )}
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {SECTIONS.map((s) => (
-          <Link
-            key={s.to}
-            to={s.to}
-            className="card-pp block"
-            style={{ borderLeft: "3px solid var(--accent)" }}
-          >
-            <div className="font-serif text-[19px] leading-tight">{s.title}</div>
-            <p
-              className="mt-2 text-[13px] leading-relaxed"
-              style={{ color: "var(--muted-foreground)" }}
-            >
-              {s.body}
-            </p>
-          </Link>
-        ))}
-      </div>
     </div>
   );
 }

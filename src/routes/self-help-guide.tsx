@@ -2,9 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 const INK = "var(--pp-ink)";
-const PAPER = "var(--pp-paper, #FAF8F4)";
+const GROUND = "var(--pp-ground)";
 const MUTED = "var(--pp-muted)";
-const RULE = "var(--pp-hairline, rgba(26,18,36,0.14))";
 const VIOLET = "var(--pp-accent)";
 const CAUTION = "var(--pp-warning, #8A5A2E)";
 
@@ -27,16 +26,24 @@ export const Route = createFileRoute("/self-help-guide")({
         content:
           "General information about protective orders, custody, and evidence — with pointers to free legal help.",
       },
+      { property: "og:url", content: "https://pattern-proof.tech/self-help-guide" },
+      { name: "twitter:title", content: "Self-help guide — PatternProof" },
+      {
+        name: "twitter:description",
+        content:
+          "General information about protective orders, custody, and evidence — with pointers to free legal help.",
+      },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/self-help-guide" }],
   }),
   component: SelfHelpGuide,
 });
 
 function SelfHelpGuide() {
   return (
-    <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+    <div style={{ background: GROUND, color: INK, minHeight: "100vh", fontFamily: SANS }}>
       <PublicQuickExit />
-      <header style={{ borderBottom: `1px solid ${RULE}` }}>
+      <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
         <div
           style={{
             maxWidth: 780,
@@ -80,8 +87,8 @@ function SelfHelpGuide() {
           position: "sticky",
           top: 0,
           zIndex: 10,
-          background: PAPER,
-          borderBottom: `1px solid ${RULE}`,
+          background: GROUND,
+          boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)",
           padding: "14px 24px",
         }}
       >
@@ -89,10 +96,11 @@ function SelfHelpGuide() {
           style={{
             maxWidth: 780,
             margin: "0 auto",
-            border: `1px solid ${CAUTION}`,
+            background: "var(--pp-card)",
+            boxShadow: "var(--pp-shadow-sm)",
+            borderRadius: "var(--pp-r-lg)",
             borderLeft: `3px solid ${CAUTION}`,
             padding: "12px 16px",
-            background: "rgba(180,83,9,0.04)",
           }}
         >
           <div
@@ -130,7 +138,7 @@ function SelfHelpGuide() {
           <br />
           <em>answered honestly.</em>
         </h1>
-        <p style={{ marginTop: 20, fontSize: 16, lineHeight: 1.6, color: "#3A3849" }}>
+        <p style={{ marginTop: 20, fontSize: 16, lineHeight: 1.6, color: MUTED }}>
           Some questions have general answers. Others only a lawyer who knows your case can answer.
           We'll be clear about which is which.
         </p>
@@ -290,7 +298,7 @@ function SelfHelpGuide() {
 
       <footer
         style={{
-          borderTop: `1px solid ${RULE}`,
+          boxShadow: "inset 0 1px 0 var(--pp-shadow-dark)",
           padding: "24px",
           fontFamily: MONO,
           fontSize: 11,
@@ -334,11 +342,11 @@ function Exchange({
   return (
     <article
       style={{
-        border: `1px solid ${RULE}`,
+        background: "var(--pp-card)",
+        boxShadow: "var(--pp-shadow-sm)",
+        borderRadius: "var(--pp-r-lg)",
         borderLeft: `3px solid ${tagColor}`,
         padding: "24px",
-        background: PAPER,
-        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
       }}
     >
       <div

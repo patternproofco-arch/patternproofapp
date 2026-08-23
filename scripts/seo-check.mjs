@@ -32,7 +32,8 @@ try {
   const sm = readFileSync("src/routes/sitemap[.]xml.ts", "utf8");
   const baseMatch = sm.match(/BASE_URL\s*=\s*["'`]([^"'`]*)["'`]/);
   if (!baseMatch) fail("sitemap: BASE_URL constant not found");
-  else if (!isAbsolute(baseMatch[1])) fail(`sitemap: BASE_URL must be absolute (got "${baseMatch[1]}")`);
+  else if (!isAbsolute(baseMatch[1]))
+    fail(`sitemap: BASE_URL must be absolute (got "${baseMatch[1]}")`);
   else pass(`sitemap BASE_URL: ${baseMatch[1]}`);
 } catch (e) {
   fail(`sitemap: ${e.message}`);
@@ -44,8 +45,19 @@ try {
 // exempt from canonical (since they shouldn't be indexed).
 const PAGE_ROUTES = [
   { file: "src/routes/index.tsx", path: "/", requireCanonical: true },
-  { file: "src/routes/login.tsx", path: "/login", requireCanonical: true },
+  { file: "src/routes/signin.tsx", path: "/signin", requireCanonical: true },
+  { file: "src/routes/signup.tsx", path: "/signup", requireCanonical: true },
+  // /login is a legacy redirect to /signin and deliberately renders no page head.
   { file: "src/routes/attorney.$token.tsx", path: "/attorney/$token", requireCanonical: false },
+  { file: "src/routes/demo.tsx", path: "/demo", requireCanonical: true },
+  { file: "src/routes/privacy.tsx", path: "/privacy", requireCanonical: true },
+  { file: "src/routes/resources.tsx", path: "/resources", requireCanonical: true },
+  { file: "src/routes/self-help-guide.tsx", path: "/self-help-guide", requireCanonical: true },
+  { file: "src/routes/safety.tsx", path: "/safety", requireCanonical: true },
+  { file: "src/routes/evidence-integrity.tsx", path: "/evidence-integrity", requireCanonical: true },
+  { file: "src/routes/ai-transparency.tsx", path: "/ai-transparency", requireCanonical: true },
+  { file: "src/routes/professional-access.tsx", path: "/professional-access", requireCanonical: true },
+  { file: "src/routes/support.tsx", path: "/support", requireCanonical: true },
 ];
 
 const readQuoted = (src, startIdx) => {
@@ -58,7 +70,11 @@ const readQuoted = (src, startIdx) => {
   i++;
   while (i < src.length) {
     const c = src[i];
-    if (c === "\\") { out += src[i + 1] ?? ""; i += 2; continue; }
+    if (c === "\\") {
+      out += src[i + 1] ?? "";
+      i += 2;
+      continue;
+    }
     if (c === q) return [out, i + 1];
     out += c;
     i++;
@@ -97,9 +113,17 @@ for (const route of PAGE_ROUTES) {
   const checks = [
     { name: "og:url", value: getMeta(src, "og:url", "property"), mustBeAbsolute: true },
     { name: "og:title", value: getMeta(src, "og:title", "property"), mustBeAbsolute: false },
-    { name: "og:description", value: getMeta(src, "og:description", "property"), mustBeAbsolute: false },
+    {
+      name: "og:description",
+      value: getMeta(src, "og:description", "property"),
+      mustBeAbsolute: false,
+    },
     { name: "twitter:title", value: getMeta(src, "twitter:title", "name"), mustBeAbsolute: false },
-    { name: "twitter:description", value: getMeta(src, "twitter:description", "name"), mustBeAbsolute: false },
+    {
+      name: "twitter:description",
+      value: getMeta(src, "twitter:description", "name"),
+      mustBeAbsolute: false,
+    },
   ];
 
   for (const c of checks) {

@@ -113,7 +113,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   });
 
 /**
- * Pay-What-You-Can checkout for the Court Ready tier.
+ * Pay-What-You-Can checkout for the Professional Review tier.
  * Survivors choose any amount from $1 to $500 (one-time payment).
  */
 export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })

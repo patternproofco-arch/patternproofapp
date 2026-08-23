@@ -28,7 +28,7 @@ export function PortalStatHero({
   children,
 }: Props) {
   const t = portalTheme(variant);
-  const shadow = neuShadow(t.ground);
+  const shadow = neuShadow();
   return (
     <section
       style={{

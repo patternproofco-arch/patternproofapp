@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Private documentation software that turns scattered evidence into court-ready patterns. Free for survivors. Free for DV organizations.",
+          "Private documentation software that turns scattered evidence into organized patterns. Free for survivors. Free for DV organizations.",
       },
       { property: "og:title", content: "PatternProof — The truth is in the pattern." },
       {
@@ -127,8 +127,8 @@ function Index() {
           }}
         >
           {attorneyMode
-            ? "Source-linked · Chain of custody · Court-ready"
-            : "Private · Secure · Court-ready"}
+            ? "Source-linked · Chain of custody · Export-ready"
+            : "Private · Secure · Export-ready"}
         </p>
         {!attorneyMode && (
           <p
@@ -183,8 +183,8 @@ function Index() {
               screenshots. Hearing prep starts with strategy, not sorting.
             </p>
             <div style={{ marginTop: 34 }}>
-              <Link to="/sample-case" className="btn-primary" style={{ textDecoration: "none" }}>
-                See a sample case →
+              <Link to="/demo" className="btn-primary" style={{ textDecoration: "none" }}>
+                Try the demo →
               </Link>
               <div style={{ marginTop: 18 }}>
                 <Link
@@ -205,11 +205,25 @@ function Index() {
         ) : (
           <>
             <p
-              style={{ marginTop: 20, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
+              style={{
+                marginTop: 18,
+                fontFamily: "var(--font-sans)",
+                fontSize: 18,
+                fontWeight: 500,
+                lineHeight: 1.5,
+                color: INK,
+                maxWidth: 620,
+              }}
             >
-              Photos, messages, and voice notes stay encrypted and private — nothing is ever shared
-              until you choose to share it. Free for survivors. Free for DV organizations. Built by
-              someone who lived it.
+              Private documentation that turns scattered evidence into court-ready patterns.{" "}
+              <span style={{ color: "var(--pp-accent)" }}>Free for survivors.</span>
+            </p>
+            <p
+              style={{ marginTop: 14, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
+            >
+              Photos, messages, and voice notes stay encrypted in transit and private — nothing is
+              ever shared until you choose to share it. Free for survivors. Free for DV
+              organizations. Built by someone who lived it.
             </p>
             <div
               style={{
@@ -223,10 +237,13 @@ function Index() {
               <Link to="/signup" className="btn-primary" style={{ textDecoration: "none" }}>
                 Start Documenting — Free
               </Link>
-              <span style={{ fontSize: 12.5, color: INK_3 }}>
-                No credit card · No obligation · 100% private
-              </span>
+              <Link to="/demo" className="btn-ghost" style={{ textDecoration: "none" }}>
+                Try the demo →
+              </Link>
             </div>
+            <p style={{ marginTop: 12, fontSize: 12.5, color: INK_3 }}>
+              No credit card · No obligation · 100% private
+            </p>
           </>
         )}
       </section>
@@ -272,8 +289,8 @@ function Index() {
                 Document your story, privately.
               </h3>
               <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.6, color: INK_2 }}>
-                Photos, messages, voice notes — timestamped and encrypted. Share only when you
-                choose.
+                Photos, messages, voice notes — timestamped and encrypted in transit. Share only
+                when you choose.
               </p>
               <Link
                 to="/signup"
@@ -310,6 +327,9 @@ function Index() {
                 accent="var(--pp-accent-survivor)"
                 barBackground="var(--pp-accent-survivor-gradient, linear-gradient(135deg, #EBA4E2 0%, #A5BAF2 100%))"
                 iconColor={INK}
+                accent="#5B4EA6"
+                accentBg="var(--pp-accent-survivor-gradient)"
+                iconColor="#3D1F63"
                 icon={FileText}
                 label="Survivor"
                 body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
@@ -318,9 +338,18 @@ function Index() {
               />
               <PathCard
                 accent="var(--pp-accent-org)"
+                accent="#000039"
+                icon={Briefcase}
+                label="Attorney"
+                body="A source-linked chronology on day one, with chain of custody intact — prep starts with strategy, not sorting."
+                to="/demo"
+                cta="Try the demo →"
+              />
+              <PathCard
+                accent="#4F6249"
                 icon={Users}
                 label="DV Organization"
-                body="A free intake tool for your advocates — she documents once, referrals arrive clean, at no cost to your program."
+                body="A free intake tool for your advocates — the survivor documents once, referrals arrive clean, at no cost to your program."
                 to="/for-organizations"
                 cta="See how it fits your program →"
               />
@@ -336,14 +365,9 @@ function Index() {
           </Section>
 
           {/* ───────────────────────── How it works ───────────────────────── */}
+          <HowItWorks />
           <Section eyebrow="How it works" title="Three steps. One clear pattern.">
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 16,
-              }}
-            >
+            <div className="pp-thread">
               <Step
                 n={1}
                 title="Write it down"
@@ -388,8 +412,8 @@ function Index() {
               />
               <SafetyPoint
                 icon={ShieldCheck}
-                title="Encrypted, always"
-                body="Your documentation is encrypted in transit and at rest, on every plan, with no exceptions."
+                title="Protected, in transit"
+                body="Your documentation is encrypted in transit and protected by per-user access controls, on every plan. At-rest encryption is a property of our infrastructure host that we have not independently audited."
               />
             </div>
           </Section>
@@ -575,38 +599,178 @@ function Section({
   );
 }
 
-function Step({ n, title, body }: { n: number; title: string; body: string }) {
+const HIW_PURPLE = "#5B4EA6";
+const HIW_BLUE = "#0F2BB8";
+
+function Squiggle({ id }: { id: string }) {
   return (
-    <div className="card-pp" style={{ padding: 20 }}>
-      <div
+    <div style={{ flex: 1, width: 40, minHeight: 48, display: "flex", justifyContent: "center" }}>
+      <svg
+        width="40"
+        height="100%"
+        viewBox="0 0 40 90"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+        style={{ display: "block", overflow: "visible" }}
+      >
+        <defs>
+          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={HIW_PURPLE} />
+            <stop offset="100%" stopColor={HIW_BLUE} />
+          </linearGradient>
+        </defs>
+        <path
+          d="M20 0 Q36 15 20 30 Q4 45 20 60 Q36 75 20 90"
+          fill="none"
+          stroke={`url(#${id})`}
+          strokeWidth={3}
+          strokeLinecap="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function HowItWorks() {
+  const steps = [
+    {
+      n: 1,
+      title: "Write it down",
+      body: "Photos, texts, voice notes — whatever you have, whenever you have a moment. Nothing is required.",
+    },
+    {
+      n: 2,
+      title: "It organizes itself",
+      body: "Every entry is timestamped and dated with its own confidence level — exact, approximate, or unknown. No pattern is invented for you.",
+    },
+    {
+      n: 3,
+      title: "Share only what you choose",
+      body: "Nothing leaves your account until you decide — with an attorney, an advocate, or a court, on your terms.",
+    },
+  ];
+
+  return (
+    <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px", marginTop: 64 }}>
+      <p
         style={{
-          width: 30,
-          height: 30,
+    <div className="pp-thread-row">
+      <div
+        className="pp-thread-node"
+        style={{
+          width: 44,
+          height: 44,
           borderRadius: 999,
           display: "grid",
           placeItems: "center",
+          background: "var(--pp-card)",
           boxShadow: "var(--pp-shadow-in-sm)",
           fontFamily: "var(--font-mono)",
+          fontSize: 10.5,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
           fontWeight: 700,
-          fontSize: 13,
+          color: HIW_PURPLE,
+          marginBottom: 8,
+        }}
+      >
+        How it works
+      </p>
+      <h2
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontWeight: 400,
+          fontSize: "clamp(1.5rem, 3vw, 2rem)",
+          color: INK,
+          marginBottom: 28,
+        }}
+      >
+        Three steps. One clear pattern.
+      </h2>
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {steps.map((s, i) => {
+          const last = i === steps.length - 1;
+          return (
+            <div
+              key={s.n}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "56px 1fr",
+                columnGap: 20,
+                alignItems: "stretch",
+                paddingBottom: last ? 0 : 14,
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    flexShrink: 0,
+                    borderRadius: 999,
+                    display: "grid",
+                    placeItems: "center",
+                    background: "var(--pp-ground)",
+                    boxShadow: "var(--pp-shadow-up)",
+                    fontFamily: "var(--font-serif)",
+                    fontWeight: 500,
+                    fontSize: 20,
+                    color: HIW_PURPLE,
+                  }}
+                >
+                  {s.n}
+                </div>
+                {!last && <Squiggle id={`hiw-squiggle-${s.n}`} />}
+              </div>
+
+              <div className="card-pp" style={{ padding: "18px 24px", alignSelf: "start" }}>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontWeight: 500,
+                    fontSize: 18,
+                    color: INK,
+                    margin: 0,
+                  }}
+                >
+                  {s.title}
+                </h3>
+                <p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.6, color: INK_2 }}>{s.body}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+          fontSize: 15,
           color: "var(--pp-accent)",
-          marginBottom: 12,
         }}
       >
         {n}
       </div>
-      <h4
+      <div
+        className="pp-thread-card"
         style={{
-          fontFamily: "var(--font-serif)",
-          fontWeight: 500,
-          fontSize: 16,
-          color: INK,
-          margin: 0,
+          borderRadius: "var(--pp-r-lg)",
+          background: "var(--pp-card)",
+          boxShadow: "var(--pp-shadow-up)",
+          padding: 24,
         }}
       >
-        {title}
-      </h4>
-      <p style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, color: INK_2 }}>{body}</p>
+        <h4
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontWeight: 500,
+            fontSize: 16,
+            color: INK,
+            margin: 0,
+          }}
+        >
+          {title}
+        </h4>
+        <p style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, color: INK_2 }}>{body}</p>
+      </div>
     </div>
   );
 }
@@ -720,7 +884,7 @@ function DashboardPreview() {
         {[
           { icon: FileText, label: "Document" },
           { icon: Scale, label: "Patterns" },
-          { icon: ShieldCheck, label: "Court-Ready" },
+          { icon: ShieldCheck, label: "Review" },
           { icon: Lock, label: "Safety" },
         ].map(({ icon: Icon, label }) => (
           <div key={label} style={{ textAlign: "center" }}>
@@ -787,6 +951,8 @@ function PathCard({
   accent,
   barBackground,
   iconColor = "#FFFFFF",
+  accentBg,
+  iconColor,
   icon: Icon,
   label,
   body,
@@ -795,6 +961,12 @@ function PathCard({
 }: {
   accent: string;
   barBackground?: string;
+  /** Background for the icon strip only — defaults to `accent`. Lets the
+   * survivor card carry its real logo gradient as a surface fill while
+   * `accent` stays a solid, legible color for text and the inset border. */
+  accentBg?: string;
+  /** Icon color against accentBg — defaults to white. The survivor
+   * gradient is light pastel at both ends, so white would be illegible. */
   iconColor?: string;
   icon: ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
@@ -831,6 +1003,11 @@ function PathCard({
       >
         <span aria-hidden="true">
           <Icon color={iconColor} size={19} strokeWidth={1.6} />
+          background: accentBg ?? accent,
+        }}
+      >
+        <span aria-hidden="true">
+          <Icon color={iconColor ?? "#FFFFFF"} size={22} strokeWidth={1.6} />
         </span>
       </div>
 

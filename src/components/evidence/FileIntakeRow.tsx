@@ -18,27 +18,48 @@ interface Props {
  * embedded photo metadata without asking — both directions are legitimate,
  * and only she knows whether this file might be shared later.
  */
-export function FileIntakeRow({ name, sizeLabel, typeLabel, statusLabel, exif, choice, onChoice, onRemove }: Props) {
+export function FileIntakeRow({
+  name,
+  sizeLabel,
+  typeLabel,
+  statusLabel,
+  exif,
+  choice,
+  onChoice,
+  onRemove,
+}: Props) {
   const needsChoice = !!exif && (exif.hasGps || !!exif.capturedOn || exif.hasMetadata);
 
   return (
     <div className="rounded-xl p-2" style={{ background: "var(--input)" }}>
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[13px]" style={{ fontWeight: 600 }}>{name}</div>
+          <div className="truncate text-[13px]" style={{ fontWeight: 600 }}>
+            {name}
+          </div>
           <div className="mt-0.5 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-            {sizeLabel}{typeLabel ? ` · ${typeLabel}` : ""}{statusLabel}
+            {sizeLabel}
+            {typeLabel ? ` · ${typeLabel}` : ""}
+            {statusLabel}
           </div>
         </div>
         {onRemove && (
-          <button type="button" onClick={onRemove} className="text-[12px] underline" style={{ color: "var(--muted-foreground)" }}>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-[12px] underline"
+            style={{ color: "var(--muted-foreground)" }}
+          >
             Remove
           </button>
         )}
       </div>
 
       {needsChoice && (
-        <div className="mt-2 rounded-lg p-2 text-[12px]" style={{ background: "rgba(231,208,163,0.35)", color: "#5a3a12" }}>
+        <div
+          className="mt-2 rounded-lg p-2 text-[12px]"
+          style={{ background: "rgba(231,208,163,0.35)", color: "var(--pp-urgent)" }}
+        >
           <div style={{ fontWeight: 600 }}>
             This photo carries hidden details
             {exif?.capturedOn ? ` — taken ${exif.capturedOn}` : ""}
@@ -46,8 +67,8 @@ export function FileIntakeRow({ name, sizeLabel, typeLabel, statusLabel, exif, c
           </div>
           <p className="mt-1" style={{ lineHeight: 1.5 }}>
             Keeping them can help show when and where a photo was taken. Removing them is safer if
-            this file might ever be sent to or opened by someone else. Your choice — we won&apos;t decide
-            for you.
+            this file might ever be sent to or opened by someone else. Your choice — we won&apos;t
+            decide for you.
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             <button

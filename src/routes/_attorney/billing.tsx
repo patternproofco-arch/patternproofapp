@@ -18,6 +18,7 @@ import {
 } from "@/lib/clio-matter-links.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
+import { ATTORNEY_PORTAL_TIER_BULLETS } from "@/lib/pricing-tiers";
 
 export const Route = createFileRoute("/_attorney/billing")({
   component: BillingPage,
@@ -40,12 +41,7 @@ const TIERS: Array<{
     price: "$297",
     per: "/mo",
     priceId: "attorney_solo_monthly",
-    bullets: [
-      "Single attorney account (seats and matter counts are not metered today)",
-      "Professional-review ZIP exports",
-      "Pattern + deposition prep",
-      "Private attorney notes",
-    ],
+    bullets: ATTORNEY_PORTAL_TIER_BULLETS.solo,
   },
   {
     key: "firm_charter",
@@ -55,13 +51,7 @@ const TIERS: Array<{
     per: "/mo · locked 12 months",
     priceId: "attorney_firm_charter_monthly",
     recommended: true,
-    bullets: [
-      "Shared firm workspace — invite colleagues to a case (seats not metered today)",
-      "No matter limit enforced today",
-      "Multi-attorney collaboration and shared case notes",
-      "Conflict-of-interest check across your own PatternProof caseload",
-      "Charter rate locked 12 months, then $897/mo",
-    ],
+    bullets: ATTORNEY_PORTAL_TIER_BULLETS.firm_charter,
   },
   {
     key: "firm",
@@ -69,13 +59,7 @@ const TIERS: Array<{
     price: "$897",
     per: "/mo",
     priceId: "attorney_firm_monthly",
-    bullets: [
-      "Shared firm workspace — invite colleagues to a case (seats not metered today)",
-      "No matter limit enforced today",
-      "Multi-attorney collaboration and shared case notes",
-      "Conflict-of-interest check across your own PatternProof caseload",
-      "Priority client onboarding support",
-    ],
+    bullets: ATTORNEY_PORTAL_TIER_BULLETS.firm,
   },
 ];
 

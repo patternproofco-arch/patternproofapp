@@ -2,17 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 /**
- * DV organization landing — redaction/exhibit vernacular, sage accent only.
- * Framed as a referral partnership, not a paid product. Before/after
- * shows what advocate intake looks like without and with PatternProof.
+ * DV organization landing — neumorphic ground + soft-shadow cards, sage
+ * accent only. Framed as a referral partnership, not a paid product.
+ * Before/after shows what advocate intake looks like without and with
+ * PatternProof.
  */
 
 const INK = "var(--pp-ink)";
-const PAPER = "var(--pp-paper)";
 const SAGE = "var(--pp-accent-org)";
-const SAGE_DEEP = "var(--pp-accent-org)";
 const MUTED = "var(--pp-muted)";
-const RULE = "var(--pp-hairline)";
 
 const SERIF = "var(--font-serif)";
 const SANS = "var(--font-sans)";
@@ -25,13 +23,13 @@ export const Route = createFileRoute("/for-organizations")({
       {
         name: "description",
         content:
-          "A free, private documentation tool you can hand every survivor at intake. No cost to your org, no data-sharing with PatternProof — just a cleaner referral to counsel.",
+          "A free, private documentation tool you can hand every survivor at intake. No cost to your org, no data integration required from your systems — just a cleaner referral to counsel.",
       },
       { property: "og:title", content: "PatternProof — Partner referrals for DV organizations" },
       {
         property: "og:description",
         content:
-          "Free survivor tool your advocates can hand out at intake. Cleaner referrals, no cost, no data-sharing.",
+          "Free survivor tool your advocates can hand out at intake. Cleaner referrals, no cost, no org data integration required.",
       },
       { property: "og:url", content: "https://pattern-proof.tech/for-organizations" },
       { property: "og:type", content: "website" },
@@ -50,7 +48,7 @@ function ForOrganizations() {
   return (
     <div
       data-persona="org"
-      style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}
+      style={{ background: "var(--pp-ground)", color: INK, minHeight: "100vh", fontFamily: SANS }}
     >
       <PublicQuickExit />
       <TopBar />
@@ -85,7 +83,13 @@ function ForOrganizations() {
           <em>More people served.</em>
         </h1>
         <p
-          style={{ marginTop: 24, fontSize: 18, lineHeight: 1.6, color: "#3A3849", maxWidth: 640 }}
+          style={{
+            marginTop: 24,
+            fontSize: 18,
+            lineHeight: 1.6,
+            color: "var(--pp-muted)",
+            maxWidth: 640,
+          }}
         >
           Less time on paperwork no one but your funder sees. More time with the person in front of
           you.
@@ -103,7 +107,7 @@ function ForOrganizations() {
             letterSpacing: "0.1em",
             textTransform: "uppercase",
             textDecoration: "none",
-            borderRadius: 0,
+            borderRadius: "var(--pp-r-pill)",
           }}
         >
           See how it fits your program →
@@ -115,13 +119,13 @@ function ForOrganizations() {
         <div style={{ display: "grid", gap: 16 }}>
           <BeforeAfter
             label="Intake"
-            before="She repeats her story to multiple staff members. Notes end up inconsistent across the team."
-            after="Her history is documented once. Staff can review it without asking her to repeat it."
+            before="The survivor repeats their story to multiple staff members. Notes end up inconsistent across the team."
+            after="Their history is documented once. Staff can review it without asking them to repeat it."
           />
           <BeforeAfter
             label="Case files"
             before="Scattered across paper files, shared drives, and individual caseworkers' notebooks."
-            after="One organized record per survivor, visible to the staff she has approved."
+            after="One organized record per survivor, visible to the staff they have approved."
           />
           <BeforeAfter
             label="Serving more people"
@@ -135,10 +139,11 @@ function ForOrganizations() {
         <SectionRule label="The number that hasn't moved" />
         <div
           style={{
-            border: `1px solid ${RULE}`,
+            background: "var(--pp-card)",
+            boxShadow: "var(--pp-shadow-sm)",
+            borderRadius: "var(--pp-r-lg)",
             borderLeft: `3px solid ${SAGE}`,
             padding: "24px 26px",
-            clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
           }}
         >
           <div
@@ -199,7 +204,7 @@ function ForOrganizations() {
           }}
         >
           Every record stays under the survivor's control. This doesn't replace your judgment, your
-          relationship with her, or your team's expertise — it gives you more of your day back to
+          relationship with them, or your team's expertise — it gives you more of your day back to
           use it.
         </p>
 
@@ -230,7 +235,7 @@ function ForOrganizations() {
               textUnderlineOffset: 4,
             }}
           >
-            How this handles VAWA confidentiality requirements →
+            How PatternProof handles data privacy →
           </Link>
           <Link
             to="/waitlist"
@@ -257,7 +262,7 @@ function ForOrganizations() {
 
 function TopBar() {
   return (
-    <header style={{ borderBottom: `1px solid ${RULE}` }}>
+    <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
       <div
         style={{
           maxWidth: 1040,
@@ -296,21 +301,6 @@ function TopBar() {
           >
             How it works
           </Link>
-          <Link
-            to="/waitlist"
-            search={{ as: "organization" as const }}
-            style={{
-              fontFamily: MONO,
-              fontSize: 11,
-              letterSpacing: "0.14em",
-              color: INK,
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-              textTransform: "uppercase",
-            }}
-          >
-            Get updates
-          </Link>
           <div
             style={{
               fontFamily: MONO,
@@ -332,7 +322,7 @@ function Foot() {
   return (
     <footer
       style={{
-        borderTop: `1px solid ${RULE}`,
+        boxShadow: "inset 0 1px 0 var(--pp-shadow-dark)",
         padding: "24px",
         fontFamily: MONO,
         fontSize: 11,
@@ -371,7 +361,7 @@ function SectionRule({ label }: { label: string }) {
       >
         {label}
       </div>
-      <div style={{ flex: 1, height: 1, background: RULE }} />
+      <div style={{ flex: 1, height: 1, background: "var(--pp-shadow-dark)" }} />
     </div>
   );
 }
@@ -380,10 +370,10 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
   return (
     <div
       style={{
-        border: `1px solid ${RULE}`,
-        background: PAPER,
+        background: "var(--pp-card)",
+        boxShadow: "var(--pp-shadow-sm)",
+        borderRadius: "var(--pp-r-lg)",
         padding: "20px 22px",
-        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
       }}
     >
       <div
@@ -422,7 +412,7 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
               fontFamily: MONO,
               fontSize: 10.5,
               letterSpacing: "0.14em",
-              color: SAGE_DEEP,
+              color: SAGE,
               textTransform: "uppercase",
               marginBottom: 4,
             }}
@@ -437,4 +427,3 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
     </div>
   );
 }
-
