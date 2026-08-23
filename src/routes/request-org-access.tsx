@@ -218,7 +218,7 @@ function RequestOrgAccess() {
                   padding: "14px 24px",
                   borderRadius: 18,
                   background: MARK_COLORWAYS.advocate.solid,
-                  color: "#FFFFFF",
+                  color: "var(--pp-ink)",
                   fontWeight: 700,
                   fontSize: 15,
                   border: "none",

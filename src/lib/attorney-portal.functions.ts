@@ -689,7 +689,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       }
     }
     // Quarantined GPS fields must never reach the attorney UI — the survivor
-    // opts in per-item in her own view, and even then it's not shared.
+    // opts in per-item in their own view, and even then it's not shared.
     const evidence = (evQ.data ?? []).map((e) => {
       const clone = { ...(e as Record<string, unknown>) };
       delete clone.gps_lat;
@@ -855,10 +855,10 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
     const link = await assertLink(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Survivor-controlled consent to have her own words AI-rephrased into
+    // Survivor-controlled consent to have their own words AI-rephrased into
     // "court-safe" language. Off by default; the rest of deposition prep
     // (contradictions, credibility_gaps, weak_spots, cross_warnings, etc.)
-    // runs without this consent because those items don't rephrase her words.
+    // runs without this consent because those items don't rephrase their words.
     const { data: linkFull } = await supabaseAdmin
       .from("attorney_client_links")
       .select("deposition_prep_consent")
