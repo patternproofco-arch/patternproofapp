@@ -232,7 +232,6 @@ function OrgPortal() {
                   textTransform: "uppercase",
                 }}
               >
-                <th style={{ padding: "8px 0" }}>Joined</th>
                 <th style={{ padding: "8px 0" }}>Link</th>
                 <th style={{ padding: "8px 0" }}>Status</th>
               </tr>
@@ -240,7 +239,6 @@ function OrgPortal() {
             <tbody>
               {stats.referred.map((r, i) => (
                 <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                  <td style={{ padding: "10px 0" }}>{r.signed_up_month}</td>
                   <td style={{ padding: "10px 0" }}>
                     <code style={{ fontSize: 12 }}>{r.code}</code>
                   </td>

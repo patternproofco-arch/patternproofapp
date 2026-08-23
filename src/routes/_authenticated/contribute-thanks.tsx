@@ -19,8 +19,8 @@ function ContributeThanks() {
     const finish = () => {
       if (cancelled) return;
       clearInterval(poll);
-      toast.success("Professional Review is unlocked.", {
-        description: "Your full packet, exports, and Recurline are ready.",
+      toast.success("Thank you for contributing.", {
+        description: "Your court packet, exports, and Recurline were already free and stay free.",
       });
       navigate({ to: "/court-packet", replace: true });
     };

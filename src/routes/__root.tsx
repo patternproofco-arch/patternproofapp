@@ -152,7 +152,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function gtag(){dataLayer.push(arguments);}
 window.gtag = gtag;
 gtag('js', new Date());
-gtag('config', '${GA_MEASUREMENT_ID}');`,
+// send_page_view is off — GA4's default auto-pageview captures the raw
+// URL (query string and all). GoogleAnalyticsRouteTracker sends every
+// pageview itself, including the first, with tokens/query stripped first.
+gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`,
       },
       {
         type: "application/ld+json",

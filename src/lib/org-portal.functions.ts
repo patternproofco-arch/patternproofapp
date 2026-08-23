@@ -62,8 +62,8 @@ export type OrgPartnerStats = {
     inactive: number;
     signed_up_only: number;
   };
-  /** Coarse, unidentifiable rows — status + the code they came through only. */
-  referred: Array<{ code: string; signed_up_month: string; status: CoarseStatus }>;
+  /** Coarse, unidentifiable rows — status + the code they came through only, no dates. */
+  referred: Array<{ code: string; status: CoarseStatus }>;
   active_window_days: number;
 };
 
@@ -103,7 +103,11 @@ export const getMyOrgPartnerStats = createServerFn({ method: "GET" })
       .select("user_id,referred_by_code,created_at")
       .in("referred_by_code", codes);
 
-    const rows = referrals ?? [];
+    // Sorted newest-first server-side so display order still reflects recency
+    // without ever attaching a date to a row we send to the client.
+    const rows = [...(referrals ?? [])].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
     if (rows.length === 0) return empty;
 
     // Activity heuristic only — we read timestamps, never incident content.
@@ -148,12 +152,9 @@ export const getMyOrgPartnerStats = createServerFn({ method: "GET" })
       perCode.set(r.referred_by_code!, (perCode.get(r.referred_by_code!) ?? 0) + 1);
       referred.push({
         code: r.referred_by_code!,
-        signed_up_month: r.created_at.slice(0, 7),
         status,
       });
     }
-
-    referred.sort((a, b) => (a.signed_up_month < b.signed_up_month ? 1 : -1));
 
     return {
       org_name: profile?.org_name ?? profile?.full_name ?? null,

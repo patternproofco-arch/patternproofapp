@@ -725,7 +725,7 @@ function DashboardPreview() {
         {[
           { icon: FileText, label: "Document" },
           { icon: Scale, label: "Patterns" },
-          { icon: ShieldCheck, label: "Court-Ready" },
+          { icon: ShieldCheck, label: "Review" },
           { icon: Lock, label: "Safety" },
         ].map(({ icon: Icon, label }) => (
           <div key={label} style={{ textAlign: "center" }}>

@@ -186,6 +186,6 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         ctaTo: "/lawyer-signup",
         featured: true,
       };
-  // Order: Survivor · Court Ready · Solo · Firm (featured, middle) · DV Organization
+  // Order: Survivor · Contribute · Solo · Firm (featured, middle) · DV Organization
   return [BASE_TIERS[0], BASE_TIERS[1], BASE_TIERS[2], firm, BASE_TIERS[3]];
 }

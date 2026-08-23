@@ -219,20 +219,6 @@ function ForOrganizations() {
             Wondering if this fits your existing VOCA/FVPSA funding? →
           </Link>
           <Link
-            to="/privacy"
-            style={{
-              fontFamily: MONO,
-              fontSize: 12,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: INK,
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-            }}
-          >
-            How this handles VAWA confidentiality requirements →
-          </Link>
-          <Link
             to="/waitlist"
             search={{ as: "organization" as const }}
             style={{
