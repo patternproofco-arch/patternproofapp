@@ -1071,73 +1071,6 @@ export const createDocRequest = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const listDocRequests = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ link_id: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertLinkParticipant(data.link_id, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: requests } = await supabaseAdmin
-      .from("attorney_document_requests")
-      .select("*")
-      .eq("link_id", data.link_id)
-      .order("created_at", { ascending: false });
-    return { requests: requests ?? [] };
-  });
-
-/* ------------------------- time logging ------------------------- */
-
-export const logTime = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({
-      clientId: z.string().uuid(),
-      page_path: z.string().max(200).optional(),
-      duration_seconds: z.number().int().min(1).max(60 * 60 * 4),
-    }).parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    await assertAttorney(context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: link } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("id, status")
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .maybeSingle();
-    if (!link || link.status !== "active") {
-      throw new Error("No active link for this client");
-    }
-    const now = new Date();
-    const started = new Date(now.getTime() - data.duration_seconds * 1000);
-    await supabaseAdmin.from("attorney_time_logs").insert({
-      attorney_user_id: context.userId,
-      client_user_id: data.clientId,
-      link_id: link.id,
-      page_path: data.page_path ?? null,
-      started_at: started.toISOString(),
-      ended_at: now.toISOString(),
-      duration_seconds: data.duration_seconds,
-    });
-    return { ok: true };
-  });
-
-export const getTimeSummary = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAttorney(context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: logs } = await supabaseAdmin
-      .from("attorney_time_logs")
-      .select("duration_seconds,started_at,page_path")
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .order("started_at", { ascending: false });
-    const total_seconds = (logs ?? []).reduce((s, r) => s + (r.duration_seconds ?? 0), 0);
-    return { logs: logs ?? [], total_seconds };
-  });
-
 /* ------------------------- attorney private notes ------------------------- */
 
 export const listAttorneyNotes = createServerFn({ method: "POST" })
@@ -1283,27 +1216,6 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
       .from("evidence-files")
       .createSignedUrl(ev.file_url, 60 * 30);
     return { url: signed?.signedUrl ?? null, file_type: ev.file_type, title: ev.title };
-  });
-
-/* ------------------------- has-active-share for survivor ------------------------- */
-
-export const hasActiveAttorneyShare = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [{ count: links }, { count: invites }] = await Promise.all([
-      supabaseAdmin
-        .from("attorney_client_links")
-        .select("id", { count: "exact", head: true })
-        .eq("client_user_id", context.userId)
-        .eq("status", "active"),
-      supabaseAdmin
-        .from("attorney_invitations")
-        .select("id", { count: "exact", head: true })
-        .eq("client_user_id", context.userId)
-        .eq("status", "pending"),
-    ]);
-    return { active_links: links ?? 0, pending_invites: invites ?? 0 };
   });
 
 /* ------------------------- message threads (attorney view) ------------------------- */

@@ -184,7 +184,7 @@ function ForAttorneys() {
           </p>
         </div>
         <Link
-          to="/sample-case"
+          to="/demo"
           style={{
             display: "inline-block",
             marginTop: 34,
@@ -199,7 +199,7 @@ function ForAttorneys() {
             borderRadius: 0,
           }}
         >
-          See a sample case →
+          Try the demo →
         </Link>
         <div
           style={{
