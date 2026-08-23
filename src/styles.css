@@ -76,9 +76,9 @@
   --red-bright:   #A38BEB;
   --lav:          #7EB6FF;
   --ink:          #1A1224;
-  --paper:        #FAF8F4;
-  --paper-2:      #F1ECE4;
-  --line:         #E4DDD3;
+  --paper:        #F7F7F6;
+  --paper-2:      #EFEFED;
+  --line:         #E1E1DF;
 
   /* ---- Global tokens (single source of truth) ---- */
   --pp-ink: var(--ink);
@@ -204,11 +204,11 @@
   --pp-r-xl: 30px;
   --pp-r-pill: 999px;
 
-  /* Default ground + shadow-dark (survivor tint; personas override below) */
-  --pp-ground: #f0ebf4;
-  --pp-ground-hi: #f5f1f8;
-  --pp-shadow-dark: #ccc4d6;
-  --pp-shadow-lite: #ffffff;
+  /* Default ground + shadow-dark (neutral gray; personas override below) */
+  --pp-ground:       #EFEFEE;
+  --pp-ground-hi:    #F4F4F3;
+  --pp-shadow-dark:  #CFCFCD;
+  --pp-shadow-lite:  #FFFFFF;
 
   --pp-shadow-up: -6px -6px 13px var(--pp-shadow-lite), 6px 6px 13px var(--pp-shadow-dark);
   --pp-shadow-sm: -3px -3px 7px var(--pp-shadow-lite), 3px 3px 7px var(--pp-shadow-dark);

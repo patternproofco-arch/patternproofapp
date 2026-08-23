@@ -165,7 +165,7 @@ function OrgPortal() {
                     <code
                       style={{
                         fontSize: 13,
-                        background: "#F5F5F0",
+                        background: "var(--pp-ground)",
                         padding: "6px 10px",
                         borderRadius: 18,
                         overflowWrap: "anywhere",
