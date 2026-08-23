@@ -907,17 +907,17 @@
   --att-bg: #e8eaec;
   --att-surface: #e8eaec;
   --att-surface-2: #eef0f2;
-  --att-navy: #5f7896;
-  --att-navy-mid: #4e6681;
-  --att-navy-deep: #3f5369;
+  --att-navy: #1b2a6b;
+  --att-navy-mid: #22314f;
+  --att-navy-deep: #0e1729;
   --att-text: #3d424b;
   --att-text-2: #616a76;
   --att-muted: #7b838e;
-  --att-accent: #5f7896;
-  --att-accent-hover: #4e6681;
-  --att-accent-soft: rgba(95, 120, 150, 0.1);
-  --att-accent-border: rgba(95, 120, 150, 0.24);
-  --pp-accent: #5f7896;
+  --att-accent: #1b2a6b;
+  --att-accent-hover: #22314f;
+  --att-accent-soft: rgba(21, 32, 56, 0.06);
+  --att-accent-border: rgba(21, 32, 56, 0.24);
+  --pp-accent: #1b2a6b;
   --pp-accent-fg: #ffffff;
 }
 .att-root.att-cockpit,

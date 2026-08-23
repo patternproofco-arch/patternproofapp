@@ -70,12 +70,12 @@ import { Route as AuthenticatedEvidenceReviewRouteImport } from './routes/_authe
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCourtSystemsRouteImport } from './routes/_authenticated/court-systems'
+import { Route as AuthenticatedCourtReadyThanksRouteImport } from './routes/_authenticated/court-ready-thanks'
+import { Route as AuthenticatedCourtReadyRouteImport } from './routes/_authenticated/court-ready'
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
 import { Route as AuthenticatedCourtDatesRouteImport } from './routes/_authenticated/court-dates'
 import { Route as AuthenticatedContributeThanksRouteImport } from './routes/_authenticated/contribute-thanks'
 import { Route as AuthenticatedContributeRouteImport } from './routes/_authenticated/contribute'
-import { Route as AuthenticatedCourtReadyRouteImport } from './routes/_authenticated/court-ready'
-import { Route as AuthenticatedCourtReadyThanksRouteImport } from './routes/_authenticated/court-ready-thanks'
 import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
 import { Route as AuthenticatedCaseRouteImport } from './routes/_authenticated/case'
@@ -422,6 +422,17 @@ const AuthenticatedCourtSystemsRoute =
     path: '/court-systems',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCourtReadyThanksRoute =
+  AuthenticatedCourtReadyThanksRouteImport.update({
+    id: '/court-ready-thanks',
+    path: '/court-ready-thanks',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCourtReadyRoute = AuthenticatedCourtReadyRouteImport.update({
+  id: '/court-ready',
+  path: '/court-ready',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedCourtPacketRoute =
   AuthenticatedCourtPacketRouteImport.update({
     id: '/court-packet',
@@ -442,16 +453,6 @@ const AuthenticatedContributeThanksRoute =
 const AuthenticatedContributeRoute = AuthenticatedContributeRouteImport.update({
   id: '/contribute',
   path: '/contribute',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedCourtReadyThanksRoute = AuthenticatedCourtReadyThanksRouteImport.update({
-  id: '/court-ready-thanks',
-  path: '/court-ready-thanks',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedCourtReadyRoute = AuthenticatedCourtReadyRouteImport.update({
-  id: '/court-ready',
-  path: '/court-ready',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedCommunicationsRoute =
@@ -476,16 +477,16 @@ const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAttorneyBillingRoute =
-  AuthenticatedAttorneyBillingRouteImport.update({
-    id: '/attorney-billing',
-    path: '/attorney-billing',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedAttorneyTimeLogRoute =
   AuthenticatedAttorneyTimeLogRouteImport.update({
     id: '/attorney-time-log',
     path: '/attorney-time-log',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAttorneyBillingRoute =
+  AuthenticatedAttorneyBillingRouteImport.update({
+    id: '/attorney-billing',
+    path: '/attorney-billing',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
@@ -691,8 +692,8 @@ export interface FileRoutesByFullPath {
   '/subscribe': typeof AttorneySubscribeRoute
   '/trust': typeof AttorneyTrustRoute
   '/agent': typeof AuthenticatedAgentRouteWithChildren
-  '/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
+  '/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case': typeof AuthenticatedCaseRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -790,8 +791,8 @@ export interface FileRoutesByTo {
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
   '/trust': typeof AttorneyTrustRoute
-  '/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
+  '/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case': typeof AuthenticatedCaseRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -895,8 +896,8 @@ export interface FileRoutesById {
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
   '/_attorney/trust': typeof AttorneyTrustRoute
   '/_authenticated/agent': typeof AuthenticatedAgentRouteWithChildren
-  '/_authenticated/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
   '/_authenticated/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
+  '/_authenticated/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/case': typeof AuthenticatedCaseRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
@@ -998,8 +999,8 @@ export interface FileRouteTypes {
     | '/subscribe'
     | '/trust'
     | '/agent'
-    | '/attorney-time-log'
     | '/attorney-billing'
+    | '/attorney-time-log'
     | '/calendar'
     | '/case'
     | '/case-builder'
@@ -1097,8 +1098,8 @@ export interface FileRouteTypes {
     | '/setup'
     | '/subscribe'
     | '/trust'
-    | '/attorney-time-log'
     | '/attorney-billing'
+    | '/attorney-time-log'
     | '/calendar'
     | '/case'
     | '/case-builder'
@@ -1201,6 +1202,7 @@ export interface FileRouteTypes {
     | '/_attorney/subscribe'
     | '/_attorney/trust'
     | '/_authenticated/agent'
+    | '/_authenticated/attorney-billing'
     | '/_authenticated/attorney-time-log'
     | '/_authenticated/calendar'
     | '/_authenticated/case'
@@ -1211,6 +1213,7 @@ export interface FileRouteTypes {
     | '/_authenticated/court-dates'
     | '/_authenticated/court-packet'
     | '/_authenticated/court-ready'
+    | '/_authenticated/court-ready-thanks'
     | '/_authenticated/court-systems'
     | '/_authenticated/dashboard'
     | '/_authenticated/evidence'
@@ -1744,13 +1747,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCourtSystemsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/court-packet': {
-      id: '/_authenticated/court-packet'
-      path: '/court-packet'
-      fullPath: '/court-packet'
-      preLoaderRoute: typeof AuthenticatedCourtPacketRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/court-ready-thanks': {
       id: '/_authenticated/court-ready-thanks'
       path: '/court-ready-thanks'
@@ -1763,6 +1759,13 @@ declare module '@tanstack/react-router' {
       path: '/court-ready'
       fullPath: '/court-ready'
       preLoaderRoute: typeof AuthenticatedCourtReadyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/court-packet': {
+      id: '/_authenticated/court-packet'
+      path: '/court-packet'
+      fullPath: '/court-packet'
+      preLoaderRoute: typeof AuthenticatedCourtPacketRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/court-dates': {
@@ -1814,18 +1817,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/attorney-billing': {
-      id: '/_authenticated/attorney-billing'
-      path: '/attorney-billing'
-      fullPath: '/attorney-billing'
-      preLoaderRoute: typeof AuthenticatedAttorneyBillingRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/attorney-time-log': {
       id: '/_authenticated/attorney-time-log'
       path: '/attorney-time-log'
       fullPath: '/attorney-time-log'
       preLoaderRoute: typeof AuthenticatedAttorneyTimeLogRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/attorney-billing': {
+      id: '/_authenticated/attorney-billing'
+      path: '/attorney-billing'
+      fullPath: '/attorney-billing'
+      preLoaderRoute: typeof AuthenticatedAttorneyBillingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/agent': {
@@ -2105,8 +2108,8 @@ const AuthenticatedAgentRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAgentRoute: typeof AuthenticatedAgentRouteWithChildren
-  AuthenticatedAttorneyTimeLogRoute: typeof AuthenticatedAttorneyTimeLogRoute
   AuthenticatedAttorneyBillingRoute: typeof AuthenticatedAttorneyBillingRoute
+  AuthenticatedAttorneyTimeLogRoute: typeof AuthenticatedAttorneyTimeLogRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCaseRoute: typeof AuthenticatedCaseRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
@@ -2140,8 +2143,8 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAgentRoute: AuthenticatedAgentRouteWithChildren,
-  AuthenticatedAttorneyTimeLogRoute: AuthenticatedAttorneyTimeLogRoute,
   AuthenticatedAttorneyBillingRoute: AuthenticatedAttorneyBillingRoute,
+  AuthenticatedAttorneyTimeLogRoute: AuthenticatedAttorneyTimeLogRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCaseRoute: AuthenticatedCaseRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,

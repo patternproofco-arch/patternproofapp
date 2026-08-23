@@ -1561,10 +1561,10 @@ textarea.input-pp,
   --input: var(--pp-ground);
   --popover: var(--pp-ground);
   --secondary: var(--pp-ground);
-  --pp-accent-survivor: #7188f0;
-  --pp-accent-attorney: #5f7896;
-  --pp-accent-org: #71836c;
-  --pp-accent-shared: #7188f0;
+  --pp-accent-survivor: var(--oxblood);
+  --pp-accent-attorney: var(--purple);
+  --pp-accent-org: var(--purple-mid);
+  --pp-accent-shared: var(--oxblood-deep);
   --pp-accent: var(--pp-accent-survivor);
   --primary: var(--pp-accent);
   --accent: var(--pp-accent);
