@@ -26,7 +26,15 @@ export const Route = createFileRoute("/self-help-guide")({
         content:
           "General information about protective orders, custody, and evidence — with pointers to free legal help.",
       },
+      { property: "og:url", content: "https://pattern-proof.tech/self-help-guide" },
+      { name: "twitter:title", content: "Self-help guide — PatternProof" },
+      {
+        name: "twitter:description",
+        content:
+          "General information about protective orders, custody, and evidence — with pointers to free legal help.",
+      },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/self-help-guide" }],
   }),
   component: SelfHelpGuide,
 });

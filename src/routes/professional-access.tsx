@@ -8,9 +8,13 @@ export const Route = createFileRoute("/professional-access")({
       { name: "description", content: "How PatternProof lets survivors share documentation with attorneys and advocates: scoped, time-bound, revocable, and logged." },
       { property: "og:title", content: "Professional Access — PatternProof" },
       { property: "og:description", content: "Survivor-approved, limited, revocable, and logged professional access. Professionals can add notes but never overwrite survivor statements or original evidence." },
+      { property: "og:url", content: "https://pattern-proof.tech/professional-access" },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Professional Access — PatternProof" },
+      { name: "twitter:description", content: "Survivor-approved, limited, revocable, and logged professional access. Professionals can add notes but never overwrite survivor statements or original evidence." },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/professional-access" }],
   }),
   component: () => (
     <TrustPage title="Professional Access" subtitle="How survivors share documentation with attorneys and advocates.">

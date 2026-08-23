@@ -269,6 +269,8 @@ export const Route = createFileRoute("/connect")({
       },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
+      // Advanced/account-linking feature — not meant for public search discovery.
+      { name: "robots", content: "noindex" },
     ],
   }),
   component: ConnectPage,

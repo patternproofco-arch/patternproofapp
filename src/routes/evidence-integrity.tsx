@@ -8,9 +8,13 @@ export const Route = createFileRoute("/evidence-integrity")({
       { name: "description", content: "How PatternProof preserves original files, generates SHA-256 hashes, tracks derivatives, and reports what a hash does and does not prove." },
       { property: "og:title", content: "Evidence Integrity — PatternProof" },
       { property: "og:description", content: "Original files are preserved byte-for-byte. Previews, transcripts, and redactions are stored as separate derivatives. Every export includes a provenance and integrity report." },
+      { property: "og:url", content: "https://pattern-proof.tech/evidence-integrity" },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Evidence Integrity — PatternProof" },
+      { name: "twitter:description", content: "Original files are preserved byte-for-byte. Previews, transcripts, and redactions are stored as separate derivatives. Every export includes a provenance and integrity report." },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/evidence-integrity" }],
   }),
   component: () => (
     <TrustPage title="Evidence Integrity" subtitle="How PatternProof preserves your original records — and what our integrity checks actually prove.">
