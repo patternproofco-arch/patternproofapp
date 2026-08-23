@@ -60,19 +60,19 @@
 
 :root {
   /* ---- Brand system: oxblood & deep purple moiré ---- */
-  /* Survivor is #4132B4->#5C1FAD: a solid, legible anchor mathematically
-     derived from the brand mark's pink->periwinkle gradient (blended hue,
-     darkened for AA contrast) — the mark itself is a gradient, which chrome
-     surfaces (text color, box-shadow, white-on-accent buttons) can't render.
-     Attorney and DV-org are the exact hex from BrandMark.tsx's
-     MARK_COLORWAYS, the canonical source for every persona's brand color.
-     --purple-mid keeps its legacy name but now holds the org sage-green,
-     not a purple — renaming it would touch every alias below for no
-     behavioral gain. */
-  --oxblood:      #5C1FAD;
+  /* Founder direction (2026-08-23): survivor reads calmer/more pastel,
+     attorney reads as a deeper navy, org/DV-org reads as a lighter pastel
+     sage (~6/10 on a 1=saturated .. 10=pastel scale). Attorney and org
+     stay in sync with BrandMark.tsx's MARK_COLORWAYS (the canonical brand
+     source) — updated there too, so mark and chrome never drift apart.
+     Survivor's solid anchor was lightened one step from its prior AA-9.3:1
+     value; still >5:1 against white, still passes WCAG AA. --purple-mid
+     keeps its legacy name but holds the org sage-green, not a purple —
+     renaming it would touch every alias below for no behavioral gain. */
+  --oxblood:      #7B4FC7;
   --oxblood-deep: #33268C;
-  --purple:       #1A42BA;
-  --purple-mid:   #5F6E5C;
+  --purple:       #16235C;
+  --purple-mid:   #A9C4A0;
   --red-bright:   #A38BEB;
   --lav:          #7EB6FF;
   --ink:          #1A1224;
@@ -241,7 +241,11 @@
 }
 [data-persona="org"] {
   --pp-accent: var(--pp-accent-org);
-  --pp-accent-fg: #ffffff;
+  /* Sage went light-pastel; white text no longer reads on it, so the
+     accent foreground flips to dark ink instead (same idea as survivor's
+     solid-vs-gradient split — a lightened accent needs a foreground that
+     still passes contrast against it). */
+  --pp-accent-fg: var(--ink);
   --pp-link: #5d7a52;
   --pp-ground: #eceeea;
   --pp-ground-hi: #f1f3ef;
@@ -252,10 +256,10 @@
 [data-persona="survivor"] {
   --pp-accent: var(--pp-accent-survivor);
   --pp-accent-fg: #ffffff;
-  --pp-link: #2ba8c6;
-  --pp-ground: #efedf0;
-  --pp-ground-hi: #f3f1f4;
-  --pp-shadow-dark: #d0ccd2;
+  --pp-link: #8b7fd1;
+  --pp-ground: #f3edf6;
+  --pp-ground-hi: #f8f3fa;
+  --pp-shadow-dark: #d9cedd;
   --background: var(--pp-ground);
   --pp-card: var(--pp-ground);
   --font-serif: "Source Serif 4", Georgia, serif;
@@ -1546,7 +1550,7 @@ textarea.input-pp,
 }
 [data-persona="survivor"] { --pp-thread-grad: linear-gradient(180deg, #E5A1E4, #A1BDF3); }
 [data-persona="attorney"] { --pp-thread-grad: linear-gradient(180deg, #3F6DF0, #1B2A6B); }
-[data-persona="org"]      { --pp-thread-grad: linear-gradient(180deg, #8FA383, #4A5C43); }
+[data-persona="org"]      { --pp-thread-grad: linear-gradient(180deg, #C3DBBC, #8FAF84); }
 
 .pp-thread {
   display: flex;
@@ -1656,11 +1660,11 @@ textarea.input-pp,
 }
 
 [data-persona="survivor"] {
-  --pp-ground: #e8ebef;
-  --pp-ground-hi: #f1f3f6;
-  --pp-shadow-dark: #c6cbd2;
+  --pp-ground: #f3edf6;
+  --pp-ground-hi: #f8f3fa;
+  --pp-shadow-dark: #d9cedd;
   --pp-accent: var(--pp-accent-survivor);
-  --pp-link: #536dcf;
+  --pp-link: #8b7fd1;
 }
 [data-persona="attorney"] {
   --pp-ground: #e8eaec;
@@ -1817,7 +1821,7 @@ textarea.input-pp,
   background: var(--pp-ground);
 }
 .pp-shell-header {
-  min-height: 78px;
+  min-height: 44px;
   position: relative;
   z-index: 2;
 }
