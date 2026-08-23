@@ -60,16 +60,25 @@
 
 :root {
   /* ---- Brand system: oxblood & deep purple moiré ---- */
-  --oxblood: #4132b4;
-  --oxblood-deep: #33268c;
-  --purple: #196cd4;
-  --purple-mid: #1552a3;
-  --red-bright: #a38beb;
-  --lav: #7eb6ff;
-  --ink: #1a1224;
-  --paper: #faf8f4;
-  --paper-2: #f1ece4;
-  --line: #e4ddd3;
+  /* Survivor is #4132B4->#5C1FAD: a solid, legible anchor mathematically
+     derived from the brand mark's pink->periwinkle gradient (blended hue,
+     darkened for AA contrast) — the mark itself is a gradient, which chrome
+     surfaces (text color, box-shadow, white-on-accent buttons) can't render.
+     Attorney and DV-org are the exact hex from BrandMark.tsx's
+     MARK_COLORWAYS, the canonical source for every persona's brand color.
+     --purple-mid keeps its legacy name but now holds the org sage-green,
+     not a purple — renaming it would touch every alias below for no
+     behavioral gain. */
+  --oxblood:      #5C1FAD;
+  --oxblood-deep: #33268C;
+  --purple:       #1A42BA;
+  --purple-mid:   #5F6E5C;
+  --red-bright:   #A38BEB;
+  --lav:          #7EB6FF;
+  --ink:          #1A1224;
+  --paper:        #FAF8F4;
+  --paper-2:      #F1ECE4;
+  --line:         #E4DDD3;
 
   /* ---- Global tokens (single source of truth) ---- */
   --pp-ink: var(--ink);
