@@ -2,17 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 /**
- * DV organization landing — redaction/exhibit vernacular, sage accent only.
- * Framed as a referral partnership, not a paid product. Before/after
- * shows what advocate intake looks like without and with PatternProof.
+ * DV organization landing — neumorphic ground + soft-shadow cards, sage
+ * accent only. Framed as a referral partnership, not a paid product.
+ * Before/after shows what advocate intake looks like without and with
+ * PatternProof.
  */
 
 const INK = "var(--pp-ink)";
-const PAPER = "var(--pp-paper)";
 const SAGE = "var(--pp-accent-org)";
-const SAGE_DEEP = "var(--pp-accent-org)";
 const MUTED = "var(--pp-muted)";
-const RULE = "var(--pp-hairline)";
 
 const SERIF = "var(--font-serif)";
 const SANS = "var(--font-sans)";
@@ -50,7 +48,7 @@ function ForOrganizations() {
   return (
     <div
       data-persona="org"
-      style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}
+      style={{ background: "var(--pp-ground)", color: INK, minHeight: "100vh", fontFamily: SANS }}
     >
       <PublicQuickExit />
       <TopBar />
@@ -85,7 +83,13 @@ function ForOrganizations() {
           <em>More people served.</em>
         </h1>
         <p
-          style={{ marginTop: 24, fontSize: 18, lineHeight: 1.6, color: "#3A3849", maxWidth: 640 }}
+          style={{
+            marginTop: 24,
+            fontSize: 18,
+            lineHeight: 1.6,
+            color: "var(--pp-muted)",
+            maxWidth: 640,
+          }}
         >
           Less time on paperwork no one but your funder sees. More time with the person in front of
           you.
@@ -103,7 +107,7 @@ function ForOrganizations() {
             letterSpacing: "0.1em",
             textTransform: "uppercase",
             textDecoration: "none",
-            borderRadius: 0,
+            borderRadius: "var(--pp-r-pill)",
           }}
         >
           See how it fits your program →
@@ -135,10 +139,11 @@ function ForOrganizations() {
         <SectionRule label="The number that hasn't moved" />
         <div
           style={{
-            border: `1px solid ${RULE}`,
+            background: "var(--pp-card)",
+            boxShadow: "var(--pp-shadow-sm)",
+            borderRadius: "var(--pp-r-lg)",
             borderLeft: `3px solid ${SAGE}`,
             padding: "24px 26px",
-            clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
           }}
         >
           <div
@@ -243,7 +248,7 @@ function ForOrganizations() {
 
 function TopBar() {
   return (
-    <header style={{ borderBottom: `1px solid ${RULE}` }}>
+    <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
       <div
         style={{
           maxWidth: 1040,
@@ -318,7 +323,7 @@ function Foot() {
   return (
     <footer
       style={{
-        borderTop: `1px solid ${RULE}`,
+        boxShadow: "inset 0 1px 0 var(--pp-shadow-dark)",
         padding: "24px",
         fontFamily: MONO,
         fontSize: 11,
@@ -357,7 +362,7 @@ function SectionRule({ label }: { label: string }) {
       >
         {label}
       </div>
-      <div style={{ flex: 1, height: 1, background: RULE }} />
+      <div style={{ flex: 1, height: 1, background: "var(--pp-shadow-dark)" }} />
     </div>
   );
 }
@@ -366,10 +371,10 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
   return (
     <div
       style={{
-        border: `1px solid ${RULE}`,
-        background: PAPER,
+        background: "var(--pp-card)",
+        boxShadow: "var(--pp-shadow-sm)",
+        borderRadius: "var(--pp-r-lg)",
         padding: "20px 22px",
-        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
       }}
     >
       <div
@@ -408,7 +413,7 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
               fontFamily: MONO,
               fontSize: 10.5,
               letterSpacing: "0.14em",
-              color: SAGE_DEEP,
+              color: SAGE,
               textTransform: "uppercase",
               marginBottom: 4,
             }}
@@ -423,4 +428,3 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
     </div>
   );
 }
-
