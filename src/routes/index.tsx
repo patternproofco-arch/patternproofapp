@@ -221,9 +221,9 @@ function Index() {
             <p
               style={{ marginTop: 14, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
             >
-              Photos, messages, and voice notes stay encrypted and private — nothing is ever shared
-              until you choose to share it. Free for survivors. Free for DV organizations. Built by
-              someone who lived it.
+              Photos, messages, and voice notes stay encrypted in transit and private — nothing is
+              ever shared until you choose to share it. Free for survivors. Free for DV
+              organizations. Built by someone who lived it.
             </p>
             <div
               style={{
@@ -289,8 +289,8 @@ function Index() {
                 Document your story, privately.
               </h3>
               <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.6, color: INK_2 }}>
-                Photos, messages, voice notes — timestamped and encrypted. Share only when you
-                choose.
+                Photos, messages, voice notes — timestamped and encrypted in transit. Share only
+                when you choose.
               </p>
               <Link
                 to="/signup"
@@ -400,8 +400,8 @@ function Index() {
               />
               <SafetyPoint
                 icon={ShieldCheck}
-                title="Encrypted, always"
-                body="Your documentation is encrypted in transit and at rest, on every plan, with no exceptions."
+                title="Protected, in transit"
+                body="Your documentation is encrypted in transit and protected by per-user access controls, on every plan. At-rest encryption is a property of our infrastructure host that we have not independently audited."
               />
             </div>
           </Section>

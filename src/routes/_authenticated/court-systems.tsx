@@ -84,7 +84,7 @@ function CourtSystemsPage() {
 
       <CollapsibleCard
         eyebrow="Patterns vs. incidents"
-        title="Why pattern evidence wins where single incidents lose"
+        title="Why documented patterns are harder to dismiss than single incidents"
         icon={<BookOpen size={20} style={{ color: BROWN }} />}
         accent={ROSE}
       >
@@ -92,10 +92,11 @@ function CourtSystemsPage() {
           className="text-[17px] font-medium leading-relaxed"
           style={{ color: "var(--foreground)" }}
         >
-          A single argument looks like "a bad day." Forty-seven documented incidents over eighteen
-          months — escalating in frequency, with consistent control tactics — looks like a campaign.
-          Courts are trained to weigh patterns. Your job is to make the pattern undeniable,
-          chronological, and cross-referenced.
+          A single argument can look like "a bad day." Forty-seven documented incidents over
+          eighteen months — escalating in frequency, with consistent control tactics — can look
+          very different. Courts vary in how they weigh documented patterns, but a chronological,
+          cross-referenced record gives your attorney more to work with than an isolated incident
+          does.
         </p>
         <ul
           className="mt-5 space-y-3 text-[16px] font-medium"
@@ -108,7 +109,7 @@ function CourtSystemsPage() {
             ],
             [
               "Consistency",
-              "The same tactics — financial control, isolation, monitoring — appearing across months proves intent, not coincidence.",
+              "The same tactics — financial control, isolation, monitoring — appearing across months is harder to dismiss as coincidence than a single incident.",
             ],
             [
               "Corroboration",
@@ -116,7 +117,7 @@ function CourtSystemsPage() {
             ],
             [
               "Severity arc",
-              "Escalation flags graphed over time tell a judge what the next six months will look like if nothing changes.",
+              "Escalation flags graphed over time give your attorney a clear picture of the trend so far — not a prediction of what happens next.",
             ],
           ].map(([k, v]) => (
             <li key={k} className="flex gap-3">
