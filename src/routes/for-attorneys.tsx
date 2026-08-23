@@ -400,21 +400,6 @@ function TopBar() {
             How it works
           </Link>
           <Link
-            to="/waitlist"
-            search={{ as: "attorney" as const }}
-            style={{
-              fontFamily: MONO,
-              fontSize: 11,
-              letterSpacing: "0.14em",
-              color: INK,
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-              textTransform: "uppercase",
-            }}
-          >
-            Get updates
-          </Link>
-          <Link
             to="/subscribe"
             style={{
               fontFamily: MONO,

@@ -223,21 +223,6 @@ function ForOrganizations() {
           >
             Wondering if this fits your existing VOCA/FVPSA funding? →
           </Link>
-          <Link
-            to="/waitlist"
-            search={{ as: "organization" as const }}
-            style={{
-              fontFamily: MONO,
-              fontSize: 12,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: INK,
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-            }}
-          >
-            Not ready to sign up your organization yet? Leave your email →
-          </Link>
         </div>
       </section>
 
@@ -286,21 +271,6 @@ function TopBar() {
             }}
           >
             How it works
-          </Link>
-          <Link
-            to="/waitlist"
-            search={{ as: "organization" as const }}
-            style={{
-              fontFamily: MONO,
-              fontSize: 11,
-              letterSpacing: "0.14em",
-              color: INK,
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-              textTransform: "uppercase",
-            }}
-          >
-            Get updates
           </Link>
           <div
             style={{
