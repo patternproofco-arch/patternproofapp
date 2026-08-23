@@ -638,24 +638,6 @@
   }
 }
 
-/* Reference-aligned attorney material override */
-.att-root {
-  --att-bg: #e8eaec;
-  --att-surface: #e8eaec;
-  --att-surface-2: #eef0f2;
-  --att-navy: var(--pp-accent-attorney, #16235C);
-  --att-navy-mid: #22314f;
-  --att-navy-deep: #0e1729;
-  --att-text: #3d424b;
-  --att-text-2: #616a76;
-  --att-muted: #7b838e;
-  --att-accent: var(--att-navy);
-  --att-accent-hover: #22314f;
-  --att-accent-soft: rgba(21, 32, 56, 0.06);
-  --att-accent-border: rgba(21, 32, 56, 0.24);
-  --pp-accent: var(--att-navy);
-  --pp-accent-fg: #ffffff;
-}
 .att-root.att-cockpit {
   background: var(--att-bg);
   color: var(--att-text);
