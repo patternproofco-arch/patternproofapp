@@ -56,7 +56,7 @@ function Gate() {
     };
   }, [loading, user, readAppLock]);
 
-  // Auto-lock after inactivity — only meaningful once she's set up a PIN or
+  // Auto-lock after inactivity — only meaningful once they've set up a PIN or
   // biometric unlock, otherwise there's nothing to unlock with.
   useIdleLock(
     !loading && !!user && (hasPin || hasBiometric) && !isLocked,

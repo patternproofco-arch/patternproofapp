@@ -84,8 +84,8 @@ const BADGE: Record<DocType, { label: string; bg: string; fg: string }> = {
   custody_order: { label: "Custody Order", bg: "#A8D8B9", fg: "#1A1224" },
   court_order: { label: "Court Order", bg: "#A8D8B9", fg: "#1A1224" },
   cps_report: { label: "CPS", bg: "#D2B48C", fg: "#1A1224" },
-  hearing_transcript: { label: "Transcript", bg: "#1A1224", fg: "#FAF8F4" },
-  other: { label: "Other", bg: "#1A1224", fg: "#FAF8F4" },
+  hearing_transcript: { label: "Transcript", bg: "#1A1224", fg: "#F5F3F0" },
+  other: { label: "Other", bg: "#1A1224", fg: "#F5F3F0" },
 };
 
 const GROUPS: { label: string; types: DocType[] }[] = [

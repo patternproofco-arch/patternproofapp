@@ -2,16 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { useState } from "react";
 
-// Reuses the redaction/exhibit vernacular already established on
-// for-attorneys.tsx and for-organizations.tsx: ink on paper, one accent per
-// audience, mono eyebrows, Fraunces serif headings, exhibit-row layout with
-// a leading two-digit index.
+// Neumorphic ground + soft-shadow cards, matching the rest of the app. Each
+// audience keeps its own accent color (survivor ink / attorney navy / org
+// sage) and mono eyebrows; steps reuse the .pp-thread connecting-line motif
+// from the homepage's "How it works" section.
 
 const INK = "var(--pp-ink)";
-const PAPER = "var(--pp-paper)";
 const MUTED = "var(--pp-muted)";
 const SUBTEXT = "var(--pp-muted)";
-const RULE = "var(--pp-hairline)";
 const NAVY = "var(--pp-accent-attorney)";
 const SAGE = "var(--pp-accent-org)";
 
@@ -54,7 +52,9 @@ function HowItWorks() {
   const accent = aud === "attorney" ? NAVY : aud === "org" ? SAGE : INK;
 
   return (
-    <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+    <div
+      style={{ background: "var(--pp-ground)", color: INK, minHeight: "100vh", fontFamily: SANS }}
+    >
       <PublicQuickExit />
       <TopBar />
 
@@ -90,26 +90,18 @@ function HowItWorks() {
         </p>
       </section>
 
-      <section
-        style={{
-          maxWidth: 780,
-          margin: "0 auto",
-          padding: "8px 24px 12px",
-          borderTop: `1px solid ${RULE}`,
-        }}
-      >
+      <section style={{ maxWidth: 780, margin: "0 auto", padding: "8px 24px 12px" }}>
         <div
           role="tablist"
           aria-label="Audience"
           style={{
             display: "flex",
             flexWrap: "wrap",
-            gap: 24,
-            padding: "18px 0",
-            fontFamily: MONO,
-            fontSize: 12,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
+            gap: 6,
+            padding: 8,
+            borderRadius: "var(--pp-r-lg)",
+            background: "var(--pp-ground)",
+            boxShadow: "var(--pp-shadow-in-sm)",
           }}
         >
           <Picker
@@ -133,14 +125,7 @@ function HowItWorks() {
         </div>
       </section>
 
-      <section
-        style={{
-          maxWidth: 780,
-          margin: "0 auto",
-          padding: "8px 24px 32px",
-          borderTop: `1px solid ${RULE}`,
-        }}
-      >
+      <section style={{ maxWidth: 780, margin: "0 auto", padding: "24px 24px 32px" }}>
         {aud === "survivor" && <SurvivorFlow accent={accent} />}
         {aud === "attorney" && <AttorneyFlow accent={accent} />}
         {aud === "org" && <OrgFlow accent={accent} />}
@@ -149,8 +134,10 @@ function HowItWorks() {
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "16px 24px 88px" }}>
         <div
           style={{
-            borderTop: `1px solid ${RULE}`,
-            paddingTop: 28,
+            borderRadius: "var(--pp-r-lg)",
+            background: "var(--pp-card)",
+            boxShadow: "var(--pp-shadow-sm)",
+            padding: 24,
             display: "flex",
             flexWrap: "wrap",
             gap: 24,
@@ -203,14 +190,16 @@ function Picker({
       aria-selected={active}
       onClick={onClick}
       style={{
-        background: "transparent",
+        background: active ? "var(--pp-card)" : "transparent",
+        boxShadow: active ? "var(--pp-shadow-sm)" : "none",
         border: 0,
-        padding: "4px 0",
+        borderRadius: "var(--pp-r-pill)",
+        padding: "10px 16px",
         cursor: "pointer",
         color: active ? accent : MUTED,
-        borderBottom: `2px solid ${active ? accent : "transparent"}`,
         fontFamily: MONO,
         fontSize: 12,
+        fontWeight: active ? 700 : 500,
         letterSpacing: "0.1em",
         textTransform: "uppercase",
       }}
@@ -232,28 +221,40 @@ function Step({
   accent: string;
 }) {
   return (
-    <div style={{ display: "flex", gap: 22, padding: "22px 0", borderBottom: `1px solid ${RULE}` }}>
+    <div className="pp-thread-row">
       <div
+        className="pp-thread-node"
         style={{
-          minWidth: 44,
+          width: 44,
+          height: 44,
+          borderRadius: 999,
+          display: "grid",
+          placeItems: "center",
+          background: "var(--pp-card)",
+          boxShadow: "var(--pp-shadow-in-sm)",
           fontFamily: MONO,
-          fontSize: 11,
-          letterSpacing: "0.14em",
+          fontWeight: 700,
+          fontSize: 13,
           color: accent,
-          paddingTop: 4,
         }}
       >
         {n}
       </div>
-      <div>
+      <div
+        className="pp-thread-card"
+        style={{
+          borderRadius: "var(--pp-r-lg)",
+          background: "var(--pp-card)",
+          boxShadow: "var(--pp-shadow-up)",
+          padding: 24,
+        }}
+      >
         <div
           style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 22, color: INK, lineHeight: 1.2 }}
         >
           {title}
         </div>
-        <p style={{ marginTop: 8, fontSize: 15.5, color: SUBTEXT, lineHeight: 1.6, maxWidth: 640 }}>
-          {body}
-        </p>
+        <p style={{ marginTop: 8, fontSize: 15.5, color: SUBTEXT, lineHeight: 1.6 }}>{body}</p>
       </div>
     </div>
   );
@@ -263,30 +264,32 @@ function SurvivorFlow({ accent }: { accent: string }) {
   return (
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="Survivor · What happens" accent={accent} />
-      <Step
-        n="01"
-        accent={accent}
-        title="Add something whenever you're ready."
-        body="A screenshot, a voice note, a few lines about what happened. No forms to finish, no pressure to be complete. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share."
-      />
-      <Step
-        n="02"
-        accent={accent}
-        title="It becomes a timeline on its own."
-        body="Entries organize themselves by date, place, and type — including approximate dates like 'around April.' You can keep adding out of order; the record stays chronological."
-      />
-      <Step
-        n="03"
-        accent={accent}
-        title="Corroboration surfaces what repeats."
-        body="When the same person, place, or pattern shows up across separate entries, PatternProof quietly connects them — so a shape appears without you having to see it yourself."
-      />
-      <Step
-        n="04"
-        accent={accent}
-        title="Share a read-only link — only if and when you choose."
-        body="If you decide to work with an attorney or advocate, you can share a scoped, revocable link to specific incidents or the whole record. Nothing leaves your account otherwise."
-      />
+      <div className="pp-thread" style={{ marginTop: 16 }}>
+        <Step
+          n="01"
+          accent={accent}
+          title="Add something whenever you're ready."
+          body="A screenshot, a voice note, a few lines about what happened. No forms to finish, no pressure to be complete. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share."
+        />
+        <Step
+          n="02"
+          accent={accent}
+          title="It becomes a timeline on its own."
+          body="Entries organize themselves by date, place, and type — including approximate dates like 'around April.' You can keep adding out of order; the record stays chronological."
+        />
+        <Step
+          n="03"
+          accent={accent}
+          title="Corroboration surfaces what repeats."
+          body="When the same person, place, or pattern shows up across separate entries, PatternProof quietly connects them — so a shape appears without you having to see it yourself."
+        />
+        <Step
+          n="04"
+          accent={accent}
+          title="Share a read-only link — only if and when you choose."
+          body="If you decide to work with an attorney or advocate, you can share a scoped, revocable link to specific incidents or the whole record. Nothing leaves your account otherwise."
+        />
+      </div>
     </div>
   );
 }
@@ -295,30 +298,40 @@ function AttorneyFlow({ accent }: { accent: string }) {
   return (
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="Attorney · What happens" accent={accent} />
-      <Step
-        n="01"
-        accent={accent}
-        title="Your client shares her record."
-        body="You receive a scoped link — she chooses what you see. No shoebox handoff, no reconstructing three years from screenshots."
-      />
-      <Step
-        n="02"
-        accent={accent}
-        title="You open a source-linked chronology on day one."
-        body="Every date, location, and quote is attached to the entry it came from. Nothing floats loose; nothing is inferred without a citation."
-      />
-      <Step
-        n="03"
-        accent={accent}
-        title="Cross-reference flags inconsistencies."
-        body="Where the same event appears with different times, places, or details, the cross-reference view marks them — so you know exactly what to verify against the other party's account before hearing."
-      />
-      <Step
-        n="04"
-        accent={accent}
-        title="Export a de-branded court packet."
-        body="A neutral PDF with exhibit labels, timeline, and source references — no PatternProof branding on the filing. Ready to hand a paralegal or attach to a motion."
-      />
+      <div
+        className="pp-thread"
+        style={
+          {
+            marginTop: 16,
+            "--pp-thread-grad": "linear-gradient(180deg, #3F6DF0, #1B2A6B)",
+          } as React.CSSProperties
+        }
+      >
+        <Step
+          n="01"
+          accent={accent}
+          title="Your client shares their record."
+          body="You receive a scoped link — they choose what you see. No shoebox handoff, no reconstructing three years from screenshots."
+        />
+        <Step
+          n="02"
+          accent={accent}
+          title="You open a source-linked chronology on day one."
+          body="Every date, location, and quote is attached to the entry it came from. Nothing floats loose; nothing is inferred without a citation."
+        />
+        <Step
+          n="03"
+          accent={accent}
+          title="Cross-reference flags inconsistencies."
+          body="Where the same event appears with different times, places, or details, the cross-reference view marks them — so you know exactly what to verify against the other party's account before hearing."
+        />
+        <Step
+          n="04"
+          accent={accent}
+          title="Export a de-branded professional-review packet."
+          body="A neutral PDF with exhibit labels, timeline, and source references — no PatternProof branding on the filing. Ready to hand a paralegal or attach to a motion."
+        />
+      </div>
     </div>
   );
 }
@@ -327,24 +340,34 @@ function OrgFlow({ accent }: { accent: string }) {
   return (
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="DV org / advocate · What happens" accent={accent} />
-      <Step
-        n="01"
-        accent={accent}
-        title="Hand a survivor the free tool at intake."
-        body="PatternProof is free for survivors. You share your org's referral link — no seats to buy, no accounts to provision on your side."
-      />
-      <Step
-        n="02"
-        accent={accent}
-        title="She documents at her own pace. You see nothing unless she shares it."
-        body="Her account is hers. Your organization has no automatic visibility into what she writes. If she chooses to share with an advocate at your org, she grants a scoped, revocable link and can end it at any time."
-      />
-      <Step
-        n="03"
-        accent={accent}
-        title="At referral to counsel, she shares a structured record."
-        body="Instead of arriving at an attorney's office with a bag of screenshots, she arrives with a dated, source-linked chronology she wrote herself."
-      />
+      <div
+        className="pp-thread"
+        style={
+          {
+            marginTop: 16,
+            "--pp-thread-grad": "linear-gradient(180deg, #C3DBBC, #8FAF84)",
+          } as React.CSSProperties
+        }
+      >
+        <Step
+          n="01"
+          accent={accent}
+          title="Hand a survivor the free tool at intake."
+          body="PatternProof is free for survivors. You share your org's referral link — no seats to buy, no accounts to provision on your side."
+        />
+        <Step
+          n="02"
+          accent={accent}
+          title="The survivor documents at their own pace. You see nothing unless they share it."
+          body="Their account is theirs. Your organization has no automatic visibility into what they write. If they choose to share with an advocate at your org, they grant a scoped, revocable link and can end it at any time."
+        />
+        <Step
+          n="03"
+          accent={accent}
+          title="At referral to counsel, the survivor shares a structured record."
+          body="Instead of arriving at an attorney's office with a bag of screenshots, they arrive with a dated, source-linked chronology they wrote themselves."
+        />
+      </div>
     </div>
   );
 }
@@ -381,7 +404,7 @@ function PrimaryLink({ to, accent, label }: { to: string; accent: string; label:
         letterSpacing: "0.1em",
         textTransform: "uppercase",
         textDecoration: "none",
-        borderRadius: 0,
+        borderRadius: "var(--pp-r-pill)",
       }}
     >
       {label}
@@ -412,7 +435,7 @@ function GhostLink({ to, label }: { to: string; label: string }) {
 
 function TopBar() {
   return (
-    <header style={{ borderBottom: `1px solid ${RULE}` }}>
+    <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
       <div
         style={{
           maxWidth: 1040,
@@ -456,7 +479,7 @@ function Foot() {
   return (
     <footer
       style={{
-        borderTop: `1px solid ${RULE}`,
+        boxShadow: "inset 0 1px 0 var(--pp-shadow-dark)",
         padding: "24px",
         fontFamily: MONO,
         fontSize: 11,
@@ -480,4 +503,3 @@ function Foot() {
     </footer>
   );
 }
-

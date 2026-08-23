@@ -320,7 +320,7 @@ function MessageThreadsPage() {
             title="Screen recording"
             body="Only when nothing else works — for hundreds of messages you can't screenshot one by one. The video itself is your evidence; the AI transcript is a searchable index only."
             hint="Takes longer and means more time looking at the conversation."
-            accent="#8A5A2E"
+            accent="var(--pp-urgent)"
             Icon={Video}
             cta="Use screen recording"
             onClick={() => setTier("tier3")}
@@ -479,8 +479,12 @@ function MessageThreadsPage() {
                   >
                     <Icon size={22} color="var(--pp-accent)" />
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 16, color: "var(--pp-ink)" }}>{c.title}</div>
-                  <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--pp-muted)", flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 16, color: "var(--pp-ink)" }}>
+                    {c.title}
+                  </div>
+                  <p
+                    style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--pp-muted)", flex: 1 }}
+                  >
                     {c.blurb}
                   </p>
                   <button
@@ -569,14 +573,14 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
           : null;
   const statusColor =
     t.parse_status === "parsed"
-      ? "#4132B4"
+      ? "var(--pp-accent)"
       : t.parse_status === "queued"
-        ? "#4132B4"
+        ? "var(--pp-accent)"
         : t.parse_status === "partial"
-          ? "#B88B2A"
+          ? "var(--pp-urgent)"
           : t.parse_status === "failed"
-            ? "#8A5A2E"
-            : "#4132B4";
+            ? "var(--pp-urgent)"
+            : "var(--pp-accent)";
   return (
     <article
       style={{
@@ -615,7 +619,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
             fontWeight: 700,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            color: "#8A5A2E",
+            color: "var(--pp-urgent)",
             marginBottom: 8,
           }}
         >
@@ -687,12 +691,10 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
       </header>
 
       {t.parse_error && (
-        <p
-          style={{ fontSize: 13, color: "var(--pp-muted)", marginBottom: 12, lineHeight: 1.5 }}
-        >
+        <p style={{ fontSize: 13, color: "var(--pp-muted)", marginBottom: 12, lineHeight: 1.5 }}>
           <AlertTriangle
             size={12}
-            style={{ display: "inline", marginRight: 6, color: "#B88B2A" }}
+            style={{ display: "inline", marginRight: 6, color: "var(--pp-urgent)" }}
           />
           {t.parse_error}
         </p>
@@ -712,13 +714,15 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
           <div className="label-eyebrow" style={{ color: "var(--pp-accent)", marginBottom: 6 }}>
             Summary for professional review
           </div>
-          <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "var(--pp-muted)" }}>{t.attorney_summary}</p>
+          <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "var(--pp-muted)" }}>
+            {t.attorney_summary}
+          </p>
         </div>
       )}
 
       {Array.isArray(t.flags) && t.flags.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "#8A5A2E", marginBottom: 8 }}>
+          <div className="label-eyebrow" style={{ color: "var(--pp-urgent)", marginBottom: 8 }}>
             Flags & patterns
           </div>
           <div className="flex flex-wrap gap-2">
@@ -739,10 +743,10 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
                         : "#E4F3EE",
                   color:
                     f.severity === "high"
-                      ? "#8A5A2E"
+                      ? "var(--pp-urgent)"
                       : f.severity === "medium"
-                        ? "#8A5A2E"
-                        : "#0F6E56",
+                        ? "var(--pp-urgent)"
+                        : "var(--pp-confirmed)",
                 }}
               >
                 {f.label}

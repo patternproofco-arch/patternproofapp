@@ -108,8 +108,8 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
 }
 
 /**
- * Court Ready Pay-What-You-Can: a one-time payment that grants 12 months
- * of Court Ready access. We synthesize a `subscriptions` row keyed on the
+ * Professional Review Pay-What-You-Can: a one-time payment that grants 12
+ * months of Professional Review access. We synthesize a `subscriptions` row keyed on the
  * checkout session id so `useSubscription` / `tier` resolution works the
  * same as the recurring plan.
  */
@@ -123,7 +123,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   const oneYear = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
   const supabase = getSupabase();
 
-  // Source of truth for the Court Ready export paywall. Written with the
+  // Source of truth for the Professional Review export paywall. Written with the
   // service role only — the client can read its own row, never write it.
   const { error: entErr } = await supabase.from("entitlements").upsert(
     {
