@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Private documentation software that turns scattered evidence into court-ready patterns. Free for survivors. Free for DV organizations.",
+          "Private documentation software that turns scattered evidence into organized patterns. Free for survivors. Free for DV organizations.",
       },
       { property: "og:title", content: "PatternProof — The truth is in the pattern." },
       {
@@ -127,8 +127,8 @@ function Index() {
           }}
         >
           {attorneyMode
-            ? "Source-linked · Chain of custody · Court-ready"
-            : "Private · Secure · Court-ready"}
+            ? "Source-linked · Chain of custody · Export-ready"
+            : "Private · Secure · Export-ready"}
         </p>
         {!attorneyMode && (
           <p
@@ -308,6 +308,8 @@ function Index() {
             >
               <PathCard
                 accent="#5B4EA6"
+                accentBg="var(--pp-accent-survivor-gradient)"
+                iconColor="#3D1F63"
                 icon={FileText}
                 label="Survivor"
                 body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
@@ -326,7 +328,7 @@ function Index() {
                 accent="#4F6249"
                 icon={Users}
                 label="DV Organization"
-                body="A free intake tool for your advocates — she documents once, referrals arrive clean, at no cost to your program."
+                body="A free intake tool for your advocates — the survivor documents once, referrals arrive clean, at no cost to your program."
                 to="/for-organizations"
                 cta="See how it fits your program →"
               />
@@ -335,13 +337,7 @@ function Index() {
 
           {/* ───────────────────────── How it works ───────────────────────── */}
           <Section eyebrow="How it works" title="Three steps. One clear pattern.">
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 16,
-              }}
-            >
+            <div className="pp-thread">
               <Step
                 n={1}
                 title="Write it down"
@@ -575,36 +571,47 @@ function Section({
 
 function Step({ n, title, body }: { n: number; title: string; body: string }) {
   return (
-    <div className="card-pp" style={{ padding: 20 }}>
+    <div className="pp-thread-row">
       <div
+        className="pp-thread-node"
         style={{
-          width: 30,
-          height: 30,
+          width: 44,
+          height: 44,
           borderRadius: 999,
           display: "grid",
           placeItems: "center",
+          background: "var(--pp-card)",
           boxShadow: "var(--pp-shadow-in-sm)",
           fontFamily: "var(--font-mono)",
           fontWeight: 700,
-          fontSize: 13,
+          fontSize: 15,
           color: "var(--pp-accent)",
-          marginBottom: 12,
         }}
       >
         {n}
       </div>
-      <h4
+      <div
+        className="pp-thread-card"
         style={{
-          fontFamily: "var(--font-serif)",
-          fontWeight: 500,
-          fontSize: 16,
-          color: INK,
-          margin: 0,
+          borderRadius: "var(--pp-r-lg)",
+          background: "var(--pp-card)",
+          boxShadow: "var(--pp-shadow-up)",
+          padding: 24,
         }}
       >
-        {title}
-      </h4>
-      <p style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, color: INK_2 }}>{body}</p>
+        <h4
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontWeight: 500,
+            fontSize: 16,
+            color: INK,
+            margin: 0,
+          }}
+        >
+          {title}
+        </h4>
+        <p style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, color: INK_2 }}>{body}</p>
+      </div>
     </div>
   );
 }
@@ -783,6 +790,8 @@ function DashboardPreview() {
 
 function PathCard({
   accent,
+  accentBg,
+  iconColor,
   icon: Icon,
   label,
   body,
@@ -790,6 +799,13 @@ function PathCard({
   cta,
 }: {
   accent: string;
+  /** Background for the icon strip only — defaults to `accent`. Lets the
+   * survivor card carry its real logo gradient as a surface fill while
+   * `accent` stays a solid, legible color for text and the inset border. */
+  accentBg?: string;
+  /** Icon color against accentBg — defaults to white. The survivor
+   * gradient is light pastel at both ends, so white would be illegible. */
+  iconColor?: string;
   icon: ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
   body: string;
@@ -820,11 +836,11 @@ function PathCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: accent,
+          background: accentBg ?? accent,
         }}
       >
         <span aria-hidden="true">
-          <Icon color="#FFFFFF" size={22} strokeWidth={1.6} />
+          <Icon color={iconColor ?? "#FFFFFF"} size={22} strokeWidth={1.6} />
         </span>
       </div>
 

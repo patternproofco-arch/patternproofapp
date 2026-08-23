@@ -4801,7 +4801,7 @@ function CrossReferenceSection({ clientId }: { clientId: string }) {
               style={{
                 borderLeft: "2px solid #1A1224",
                 padding: "8px 12px",
-                background: "#FAF8F4",
+                background: "var(--pp-ground)",
               }}
             >
               <div

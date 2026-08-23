@@ -241,14 +241,22 @@ function RequestOrgAccess() {
           Already partnering with us?{" "}
           <Link
             to="/org-feedback"
-            style={{ color: MARK_COLORWAYS.advocate.solid, fontWeight: 600, textDecoration: "underline" }}
+            style={{
+              color: MARK_COLORWAYS.advocate.solid,
+              fontWeight: 600,
+              textDecoration: "underline",
+            }}
           >
             Share feedback about PatternProof
           </Link>{" "}
           ·{" "}
           <Link
             to="/org-portal"
-            style={{ color: MARK_COLORWAYS.advocate.solid, fontWeight: 600, textDecoration: "underline" }}
+            style={{
+              color: MARK_COLORWAYS.advocate.solid,
+              fontWeight: 600,
+              textDecoration: "underline",
+            }}
           >
             Go to your partner dashboard
           </Link>

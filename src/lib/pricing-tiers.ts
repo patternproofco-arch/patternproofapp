@@ -37,7 +37,7 @@ export const BASE_TIERS: Tier[] = [
       "Photo, document & audio evidence upload",
       "Structured chronological timeline",
       "Pattern detection",
-      "Court packet export — printable case summary (HTML/PDF), free",
+      "Professional-review packet export — printable case summary (HTML/PDF), free",
       "Attorney sharing — send a secure link to your attorney, free",
       "Encrypted in transit; per-user access controls",
     ],
@@ -46,7 +46,7 @@ export const BASE_TIERS: Tier[] = [
   },
   {
     key: "court_ready",
-    name: "Court Ready",
+    name: "Contribute",
     price: "Pay what you can",
     sub: "$1 – $500",
     quote: "An optional, one-time contribution if PatternProof helped you. It does not unlock anything — every survivor feature is already free.",
@@ -94,6 +94,49 @@ export const BASE_TIERS: Tier[] = [
     ctaTo: "/request-org-access",
   },
 ];
+
+/**
+ * Shared feature-bullet content for the attorney portal's internal
+ * billing.tsx (post-purchase account management) and subscribe.tsx
+ * (pre-purchase paywall) pages. Those two pages each show firm_charter and
+ * firm as distinct, separately selectable tiers — unlike buildTiers() below,
+ * which returns one auto-switching "Firm" row for the public marketing
+ * pages — so they can't just import buildTiers() output directly. This is
+ * the single source for the bullet *content* so the two internal pages
+ * can't reword or drop features independently of each other again.
+ */
+export const ATTORNEY_PORTAL_TIER_BULLETS: {
+  solo: string[];
+  firm_charter: string[];
+  firm: string[];
+} = {
+  solo: [
+    "Single attorney account (seats and matter counts are not metered today)",
+    "Structured chronological timeline + pattern analysis",
+    "Exportable case summary (ZIP) — imports into practice management systems",
+    "Private attorney notes per incident",
+    "Conflict check across your own caseload",
+  ],
+  firm_charter: [
+    "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+    "Everything in Solo Attorney",
+    "No matter limit enforced today",
+    "Multi-attorney collaboration and shared case notes",
+    "Caseload and capacity view across the firm",
+    "Conflict check across your own caseload",
+    "Charter program: personal setup, case import, and staff training",
+    "$597/month rate locked for 12 months, then $897/month list",
+  ],
+  firm: [
+    "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+    "Everything in Solo Attorney",
+    "No matter limit enforced today",
+    "Multi-attorney collaboration and shared case notes",
+    "Caseload and capacity view across the firm",
+    "Conflict check across your own caseload",
+    "Priority client onboarding + practice-management-ready exports",
+  ],
+};
 
 export function buildTiers(remainingCharter: number | null): Tier[] {
   const charterFull = remainingCharter !== null && remainingCharter <= 0;
