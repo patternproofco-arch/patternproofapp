@@ -18,7 +18,7 @@
      exact blue, from BrandMark.tsx's MARK_COLORWAYS) instead of its own
      hardcoded value, so this portal can't drift from the central token
      again. */
-  --att-navy: var(--pp-accent-attorney, #1A42BA);
+  --att-navy: var(--pp-accent-attorney, #16235C);
   --att-navy-mid: #22314F;
   --att-navy-deep: #0E1729;
   --att-slate: #63708A;
@@ -911,7 +911,7 @@
   --att-bg: #e8eaec;
   --att-surface: #e8eaec;
   --att-surface-2: #eef0f2;
-  --att-navy: var(--pp-accent-attorney, #1a42ba);
+  --att-navy: var(--pp-accent-attorney, #16235C);
   --att-navy-mid: #22314f;
   --att-navy-deep: #0e1729;
   --att-text: #3d424b;

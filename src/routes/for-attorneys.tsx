@@ -6,17 +6,15 @@ import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 
 /**
- * Attorney landing — redaction/exhibit vernacular, navy accent only.
- * Day-to-day relief leads; case-volume math is second, framed as
+ * Attorney landing — neumorphic ground + soft-shadow cards, navy accent
+ * only. Day-to-day relief leads; case-volume math is second, framed as
  * proof, not the headline. Before/after comparison is muted-gray
  * "before" vs. single navy "after" — no more than two colors.
  */
 
 const INK = "var(--pp-ink)";
-const PAPER = "var(--pp-paper)";
 const NAVY = "var(--pp-accent-attorney)";
 const MUTED = "var(--pp-muted)";
-const RULE = "var(--pp-hairline)";
 
 const SERIF = "var(--font-serif)";
 const SANS = "var(--font-sans)";
@@ -73,7 +71,9 @@ function ForAttorneys() {
     ? `Firm plans available — ${firm.price} / month${firm.priceStrike ? ` (list ${firm.priceStrike})` : ""}${firm.eyebrowNote ? `. ${firm.eyebrowNote}.` : "."}`
     : "";
   return (
-    <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+    <div
+      style={{ background: "var(--pp-ground)", color: INK, minHeight: "100vh", fontFamily: SANS }}
+    >
       <PublicQuickExit />
       <TopBar />
 
@@ -107,7 +107,13 @@ function ForAttorneys() {
           <em>not just faster invoices.</em>
         </h1>
         <p
-          style={{ marginTop: 24, fontSize: 18, lineHeight: 1.6, color: "#3A3849", maxWidth: 640 }}
+          style={{
+            marginTop: 24,
+            fontSize: 18,
+            lineHeight: 1.6,
+            color: "var(--pp-muted)",
+            maxWidth: 640,
+          }}
         >
           Less time buried in scattered files. More of your day spent on the actual case.
         </p>
@@ -147,7 +153,7 @@ function ForAttorneys() {
                   gap: 10,
                   fontSize: 15,
                   lineHeight: 1.55,
-                  color: "#3A3849",
+                  color: "var(--pp-muted)",
                 }}
               >
                 <span aria-hidden="true" style={{ color: NAVY, flexShrink: 0 }}>
@@ -196,7 +202,7 @@ function ForAttorneys() {
             letterSpacing: "0.1em",
             textTransform: "uppercase",
             textDecoration: "none",
-            borderRadius: 0,
+            borderRadius: "var(--pp-r-pill)",
           }}
         >
           Try the demo →
@@ -274,8 +280,10 @@ function ForAttorneys() {
                 justifyContent: "space-between",
                 gap: 16,
                 flexWrap: "wrap",
-                borderTop: `1px solid ${RULE}`,
-                paddingTop: 12,
+                background: "var(--pp-card)",
+                boxShadow: "var(--pp-shadow-sm)",
+                borderRadius: "var(--pp-r-lg)",
+                padding: "14px 18px",
               }}
             >
               <span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 20, color: INK }}>
@@ -324,7 +332,7 @@ function ForAttorneys() {
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               textDecoration: "none",
-              borderRadius: 0,
+              borderRadius: "var(--pp-r-pill)",
             }}
           >
             Create your attorney account →
@@ -352,7 +360,7 @@ function ForAttorneys() {
 
 function TopBar() {
   return (
-    <header style={{ borderBottom: `1px solid ${RULE}` }}>
+    <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
       <div
         style={{
           maxWidth: 1040,
@@ -392,21 +400,6 @@ function TopBar() {
             How it works
           </Link>
           <Link
-            to="/waitlist"
-            search={{ as: "attorney" as const }}
-            style={{
-              fontFamily: MONO,
-              fontSize: 11,
-              letterSpacing: "0.14em",
-              color: INK,
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-              textTransform: "uppercase",
-            }}
-          >
-            Get updates
-          </Link>
-          <Link
             to="/subscribe"
             style={{
               fontFamily: MONO,
@@ -430,7 +423,7 @@ function Foot() {
   return (
     <footer
       style={{
-        borderTop: `1px solid ${RULE}`,
+        boxShadow: "inset 0 1px 0 var(--pp-shadow-dark)",
         padding: "24px",
         fontFamily: MONO,
         fontSize: 11,
@@ -469,7 +462,7 @@ function SectionRule({ label }: { label: string }) {
       >
         {label}
       </div>
-      <div style={{ flex: 1, height: 1, background: RULE }} />
+      <div style={{ flex: 1, height: 1, background: "var(--pp-shadow-dark)" }} />
     </div>
   );
 }
@@ -478,10 +471,10 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
   return (
     <div
       style={{
-        border: `1px solid ${RULE}`,
-        background: PAPER,
+        background: "var(--pp-card)",
+        boxShadow: "var(--pp-shadow-sm)",
+        borderRadius: "var(--pp-r-lg)",
         padding: "20px 22px",
-        clipPath: "polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%)",
       }}
     >
       <div
@@ -535,4 +528,3 @@ function BeforeAfter({ label, before, after }: { label: string; before: string; 
     </div>
   );
 }
-

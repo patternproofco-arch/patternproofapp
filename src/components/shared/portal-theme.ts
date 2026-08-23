@@ -50,7 +50,7 @@ const SHARED_TOKENS = {
 
 const GRADIENTS: Record<PortalVariant, { from: string; mid?: string; to: string }> = {
   survivor: { from: "#E879F9", mid: "#8B5CF6", to: "#38D9F0" },
-  advocate: { from: "#8FA383", to: "#4A5C43" },
+  advocate: { from: "#9BB690", to: "#5C7754" },
   attorney: { from: "#3F6DF0", to: "#1B2A6B" },
 };
 

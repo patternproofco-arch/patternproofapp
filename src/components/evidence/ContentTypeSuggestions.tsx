@@ -121,7 +121,7 @@ export function ContentTypeSuggestions() {
           Accept all
         </button>
       </div>
-      <p className="mt-2 text-[13px]" style={{ color: "#3A3849" }}>
+      <p className="mt-2 text-[13px]" style={{ color: "var(--pp-muted)" }}>
         These describe what a file looks like — nothing more. Nothing is saved to a file until you
         say so.
       </p>
@@ -150,10 +150,10 @@ export function ContentTypeSuggestions() {
               />
             )}
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[14px]" style={{ color: "#1A1224" }}>
+              <div className="truncate text-[14px]" style={{ color: "var(--pp-ink)" }}>
                 {s.title ?? "Untitled file"}
               </div>
-              <div className="text-[12px]" style={{ color: "#3A3849" }}>
+              <div className="text-[12px]" style={{ color: "var(--pp-muted)" }}>
                 {KIND_LABELS[s.suggested_kind as SuggestedKind] ?? s.suggested_kind}
                 {s.rationale ? ` · ${s.rationale}` : ""}
               </div>

@@ -196,9 +196,10 @@ function DemoPage() {
   const [tab, setTab] = useState<Tab>("overview");
   return (
     <div
+      data-persona="survivor"
       style={{
         minHeight: "100vh",
-        background: "var(--pp-paper, #FAF8F4)",
+        background: "var(--pp-ground)",
         color: "var(--pp-ink)",
         fontFamily: "var(--font-sans)",
       }}
@@ -280,7 +281,7 @@ function DemoHeader() {
           to="/signup"
           style={{
             background: "var(--pp-accent)",
-            color: "white",
+            color: "var(--pp-accent-fg)",
             padding: "10px 18px",
             borderRadius: 18,
             fontSize: 13,
@@ -341,10 +342,9 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         display: "flex",
         gap: 4,
         overflowX: "auto",
-        background: "white",
+        background: "var(--pp-card)",
         padding: 6,
         borderRadius: 18,
-        border: "1px solid rgba(65,50,180,0.12)",
         boxShadow: "var(--pp-shadow-sm)",
       }}
     >
@@ -367,7 +367,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
               cursor: "pointer",
               whiteSpace: "nowrap",
               background: active ? "var(--pp-accent)" : "transparent",
-              color: active ? "white" : "#5A5469",
+              color: active ? "var(--pp-accent-fg)" : "var(--pp-muted)",
             }}
           >
             <Icon size={14} /> {t.label}
@@ -382,10 +382,9 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
   return (
     <div
       style={{
-        background: "white",
+        background: "var(--pp-card)",
         borderRadius: 18,
         padding: 20,
-        border: "1px solid rgba(65,50,180,0.10)",
         boxShadow: "var(--pp-shadow-sm)",
         ...style,
       }}
@@ -406,7 +405,7 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
     <div style={{ display: "grid", gap: 20 }}>
       <Card>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Sample case: "M.R. v. T.R."</h2>
-        <p style={{ marginTop: 8, fontSize: 14, color: "#5A5469", lineHeight: 1.6 }}>
+        <p style={{ marginTop: 8, fontSize: 14, color: "var(--pp-muted)", lineHeight: 1.6 }}>
           A custody matter with documented emotional abuse, coercive control, financial
           interference, and one physical incident. Four months of documentation, ready for an
           attorney consultation.
@@ -424,7 +423,12 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
             return (
               <div
                 key={s.label}
-                style={{ background: "rgba(65,50,180,0.05)", borderRadius: 18, padding: 14 }}
+                style={{
+                  background: "var(--pp-ground-hi)",
+                  boxShadow: "var(--pp-shadow-in-sm)",
+                  borderRadius: 18,
+                  padding: 14,
+                }}
               >
                 <I size={16} style={{ color: "var(--pp-accent)" }} />
                 <div style={{ fontSize: 22, fontWeight: 700, marginTop: 6 }}>{s.value}</div>
@@ -450,8 +454,8 @@ function Overview({ onJump }: { onJump: (t: Tab) => void }) {
               onClick={() => onJump(key)}
               style={{
                 textAlign: "left",
-                background: "transparent",
-                border: "1px solid rgba(65,50,180,0.15)",
+                background: "var(--pp-card)",
+                boxShadow: "var(--pp-shadow-xs)",
                 padding: "10px 14px",
                 borderRadius: 18,
                 fontSize: 13,
@@ -477,7 +481,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 function TypeBadge({ t }: { t: string }) {
-  const color = TYPE_COLORS[t] ?? "#5A5469";
+  const color = TYPE_COLORS[t] ?? "var(--pp-muted)";
   return (
     <span
       style={{
@@ -485,9 +489,8 @@ function TypeBadge({ t }: { t: string }) {
         fontWeight: 600,
         padding: "3px 9px",
         borderRadius: 18,
-        background: color + "18",
+        background: `color-mix(in srgb, ${color} 15%, var(--pp-card))`,
         color,
-        border: "1px solid " + color + "30",
       }}
     >
       {t}
@@ -506,7 +509,9 @@ function formatDate(iso: string) {
 function IncidentRow({ inc }: { inc: Incident }) {
   const evidence = EVIDENCE.filter((e) => inc.evidence_ids.includes(e.id));
   return (
-    <Card style={{ borderLeft: "3px solid " + (TYPE_COLORS[inc.abuse_types[0]] ?? "var(--pp-accent)") }}>
+    <Card
+      style={{ borderLeft: "3px solid " + (TYPE_COLORS[inc.abuse_types[0]] ?? "var(--pp-accent)") }}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         <div style={{ fontSize: 13, fontWeight: 700 }}>
           {formatDate(inc.date)} · {inc.time}
@@ -528,12 +533,12 @@ function IncidentRow({ inc }: { inc: Incident }) {
           <TypeBadge key={t} t={t} />
         ))}
       </div>
-      <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: "#2A2440" }}>
+      <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: "var(--pp-ink)" }}>
         {inc.description}
       </p>
       {inc.witnesses && (
         <div style={{ fontSize: 12, color: "var(--pp-muted)", marginTop: 6 }}>
-          <strong style={{ color: "#5A5469" }}>Witnesses:</strong> {inc.witnesses}
+          <strong style={{ color: "var(--pp-ink)" }}>Witnesses:</strong> {inc.witnesses}
         </div>
       )}
       {inc.emotional_impact && (
@@ -546,7 +551,7 @@ function IncidentRow({ inc }: { inc: Incident }) {
           style={{
             marginTop: 12,
             paddingTop: 10,
-            borderTop: "1px dashed rgba(65,50,180,0.15)",
+            boxShadow: "inset 0 1px 0 var(--pp-shadow-dark)",
             display: "flex",
             flexWrap: "wrap",
             gap: 8,
@@ -557,8 +562,8 @@ function IncidentRow({ inc }: { inc: Incident }) {
               key={e.id}
               style={{
                 fontSize: 11,
-                color: "#5A5469",
-                background: "rgba(65,50,180,0.06)",
+                color: "var(--pp-muted)",
+                background: "var(--pp-ground-hi)",
                 padding: "3px 8px",
                 borderRadius: 18,
                 display: "inline-flex",
@@ -625,7 +630,7 @@ function Timeline() {
             top: 6,
             bottom: 6,
             width: 2,
-            background: "rgba(65,50,180,0.18)",
+            background: "var(--pp-shadow-dark)",
           }}
         />
         {sorted.map((inc) => (
@@ -639,7 +644,7 @@ function Timeline() {
                 height: 12,
                 borderRadius: 999,
                 background: TYPE_COLORS[inc.abuse_types[0]] ?? "var(--pp-accent)",
-                border: "2px solid white",
+                border: "2px solid var(--pp-card)",
                 boxShadow: "var(--pp-shadow-sm)",
               }}
             />
@@ -680,7 +685,7 @@ function Patterns() {
                 {p.incidents.length} entries
               </span>
             </div>
-            <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: "#2A2440" }}>
+            <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: "var(--pp-ink)" }}>
               {p.body}
             </p>
             <div style={{ marginTop: 10, fontSize: 12, color: "var(--pp-muted)" }}>
@@ -736,7 +741,8 @@ function EvidenceLibrary() {
                     width: 32,
                     height: 32,
                     borderRadius: 18,
-                    background: "rgba(65,50,180,0.08)",
+                    background: "var(--pp-ground-hi)",
+                    boxShadow: "var(--pp-shadow-in-sm)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -751,7 +757,9 @@ function EvidenceLibrary() {
                   <div style={{ fontSize: 11, color: "var(--pp-muted)", marginTop: 2 }}>
                     {formatDate(e.date)} · {e.kind}
                   </div>
-                  <div style={{ fontSize: 12, color: "#5A5469", marginTop: 6 }}>{e.note}</div>
+                  <div style={{ fontSize: 12, color: "var(--pp-muted)", marginTop: 6 }}>
+                    {e.note}
+                  </div>
                 </div>
               </div>
             </Card>
@@ -793,7 +801,7 @@ function CourtPacket() {
       <Card>
         <div
           style={{
-            borderBottom: "1px solid rgba(65,50,180,0.12)",
+            boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)",
             paddingBottom: 14,
             marginBottom: 14,
           }}
@@ -894,14 +902,19 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-const prose: React.CSSProperties = { margin: 0, fontSize: 14, lineHeight: 1.65, color: "#2A2440" };
+const prose: React.CSSProperties = {
+  margin: 0,
+  fontSize: 14,
+  lineHeight: 1.65,
+  color: "var(--pp-ink)",
+};
 const list: React.CSSProperties = { ...prose, paddingLeft: 20, display: "grid", gap: 6 };
 const demoButton: React.CSSProperties = {
-  background: "white",
+  background: "var(--pp-card)",
   color: "var(--pp-accent)",
   padding: "8px 14px",
   borderRadius: 18,
-  border: "1px solid rgba(65,50,180,0.25)",
+  boxShadow: "var(--pp-shadow-xs)",
   fontSize: 13,
   fontWeight: 600,
   cursor: "pointer",
