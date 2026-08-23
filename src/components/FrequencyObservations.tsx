@@ -77,7 +77,7 @@ export function FrequencyObservations({ compact = false }: { compact?: boolean }
             style={{ background: "rgba(255,255,255,0.6)" }}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-[14px]" style={{ color: "#1A1224" }}>
+              <span className="text-[14px]" style={{ color: "var(--pp-ink)" }}>
                 {o.text}
               </span>
               <div className="flex items-center gap-2">

@@ -30,8 +30,8 @@ export interface MarkColorway {
 
 export const MARK_COLORWAYS: Record<Exclude<MarkVariant, "neutral">, MarkColorway> = {
   survivor: { kind: "gradient", gradientFrom: "#E5A1E4", gradientTo: "#A1BDF3" },
-  attorney: { kind: "solid", solid: "#16235C" },
-  advocate: { kind: "solid", solid: "#A9C4A0" },
+  attorney: { kind: "solid", solid: "var(--pp-accent-attorney)" },
+  advocate: { kind: "solid", solid: "var(--pp-accent-org)" },
 };
 
 export function markColorway(variant: MarkVariant = "neutral"): MarkColorway {

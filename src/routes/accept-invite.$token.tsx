@@ -8,6 +8,7 @@ import { peekInvitation, acceptInvitation } from "@/lib/attorney-invitations.fun
 import { toast } from "sonner";
 import attorneyCss from "@/styles/attorney.css?url";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
+import { BrandMark } from "@/components/BrandMark";
 
 export const Route = createFileRoute("/accept-invite/$token")({
   head: () => ({
@@ -89,7 +90,9 @@ function AcceptInvite() {
   return (
     <Frame>
       <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <div className="att-nav-brand-mark" style={{ width: 40, height: 40, margin: "0 auto 14px" }} />
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+          <BrandMark size={40} variant="attorney" />
+        </div>
         <div className="att-eyebrow">PatternProof · Attorney Portal</div>
         <h1 style={{ fontSize: 32, marginTop: 8, marginBottom: 6 }}>Confidential case access</h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 13 }}>

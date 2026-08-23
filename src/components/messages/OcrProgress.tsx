@@ -33,7 +33,7 @@ export function OcrProgress({ done, total, currentName, found }: Props) {
           style={{
             width: `${pct}%`,
             height: "100%",
-            background: "#1A1224",
+            background: "var(--pp-ink)",
             transition: "width 240ms linear",
           }}
         />

@@ -57,13 +57,6 @@ type FileState = {
 
 const MAX_FILES = 50;
 
-function humanBytes(n: number | null | undefined): string {
-  if (n == null) return "";
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 function StatusChip({ item }: { item: PreservationReceiptItem }) {
   const map: Record<string, { label: string; bg: string; fg: string; Icon: typeof Check }> = {
     preserved: {
@@ -87,19 +80,19 @@ function StatusChip({ item }: { item: PreservationReceiptItem }) {
     needs_attention: {
       label: "Needs attention",
       bg: "rgba(231,123,86,0.35)",
-      fg: "#5a1e0c",
+      fg: "var(--pp-urgent)",
       Icon: AlertTriangle,
     },
     failed: {
       label: "Not preserved",
       bg: "rgba(231,123,86,0.35)",
-      fg: "#5a1e0c",
+      fg: "var(--pp-urgent)",
       Icon: AlertTriangle,
     },
     upload_incomplete: {
       label: "Upload incomplete",
       bg: "rgba(231,123,86,0.35)",
-      fg: "#5a1e0c",
+      fg: "var(--pp-urgent)",
       Icon: AlertTriangle,
     },
   };
@@ -579,7 +572,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
               <FileIntakeRow
                 key={f.id}
                 name={f.file.name}
-                sizeLabel={humanBytes(f.file.size)}
+                sizeLabel={humanSize(f.file.size)}
                 typeLabel={f.file.type}
                 statusLabel={
                   f.phase === "uploading"
@@ -661,7 +654,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
                       style={{ color: "var(--muted-foreground)" }}
                     >
                       {it.sha256
-                        ? `sha256 ${it.sha256.slice(0, 16)}… · ${humanBytes(it.bytes)}`
+                        ? `sha256 ${it.sha256.slice(0, 16)}… · ${it.bytes != null ? humanSize(it.bytes) : "size unknown"}`
                         : (it.message ?? "No fingerprint recorded.")}
                     </div>
                   </div>

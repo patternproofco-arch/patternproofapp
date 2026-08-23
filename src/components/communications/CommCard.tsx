@@ -28,7 +28,7 @@ export function CommCard({ comm, screenshotUrl, incident, onRemove, onOpenIncide
             </span>
             <span className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize" style={{ background: "var(--panel)", color: "#FFFFFF" }}>{comm.direction}</span>
             {comm.harassment_flag && (
-              <span className="flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold" style={{ background: "var(--primary)", color: "#fff" }}>
+              <span className="flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold" style={{ background: "var(--primary)", color: "var(--pp-accent-fg, #fff)" }}>
                 <AlertTriangle size={10} /> Harassment
               </span>
             )}

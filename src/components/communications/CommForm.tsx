@@ -96,7 +96,7 @@ export function CommForm({ userId, incidents, onSaved }: Props) {
             return (
               <button type="button" key={value} onClick={() => setForm({ ...form, channel: value })}
                 className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2"
-                style={{ background: on ? "var(--accent)" : "transparent", color: on ? "#fff" : "var(--foreground)", border: "1.5px solid var(--accent)" }}>
+                style={{ background: on ? "var(--accent)" : "transparent", color: on ? "var(--pp-accent-fg, #fff)" : "var(--foreground)", border: "1.5px solid var(--accent)" }}>
                 <Icon size={12} /> {label}
               </button>
             );
@@ -112,7 +112,7 @@ export function CommForm({ userId, incidents, onSaved }: Props) {
             return (
               <button type="button" key={d} onClick={() => setForm({ ...form, direction: d })}
                 className="rounded-full px-3 py-1.5 text-[12px] font-semibold capitalize transition-colors"
-                style={{ background: on ? "var(--primary)" : "transparent", color: on ? "#fff" : "var(--foreground)", border: "1.5px solid var(--primary)" }}>
+                style={{ background: on ? "var(--primary)" : "transparent", color: on ? "var(--pp-accent-fg, #fff)" : "var(--foreground)", border: "1.5px solid var(--primary)" }}>
                 {d}
               </button>
             );

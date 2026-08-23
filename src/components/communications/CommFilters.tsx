@@ -16,7 +16,7 @@ export function CommFilters({ search, onSearch, filter, onFilter }: Props) {
     return (
       <button key={value} onClick={() => onFilter(value)}
         className="shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold capitalize"
-        style={{ background: on ? "var(--accent)" : "transparent", color: on ? "#fff" : "var(--foreground)", border: "1px solid var(--accent)" }}>
+        style={{ background: on ? "var(--accent)" : "transparent", color: on ? "var(--pp-accent-fg, #fff)" : "var(--foreground)", border: "1px solid var(--accent)" }}>
         {label}
       </button>
     );

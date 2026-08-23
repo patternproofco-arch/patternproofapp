@@ -102,7 +102,7 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
               fontFamily: "var(--font-serif)",
               fontWeight: 300,
               fontSize: 24,
-              color: "#1A1224",
+              color: "var(--pp-ink)",
               marginTop: 4,
             }}
           >

@@ -90,7 +90,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
     >
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="label-eyebrow" style={{ color: "#8A5A2E" }}>
+          <div className="label-eyebrow" style={{ color: "var(--pp-urgent)" }}>
             Tier 3 · Fallback
           </div>
           <h3
@@ -98,7 +98,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
               fontFamily: "var(--font-serif)",
               fontWeight: 300,
               fontSize: 24,
-              color: "#1A1224",
+              color: "var(--pp-ink)",
               marginTop: 4,
             }}
           >
@@ -126,9 +126,9 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
           marginBottom: 14,
         }}
       >
-        <AlertTriangle size={20} color="#8A5A2E" style={{ flexShrink: 0, marginTop: 2 }} />
+        <AlertTriangle size={20} color="var(--pp-urgent)" style={{ flexShrink: 0, marginTop: 2 }} />
         <div style={{ fontSize: 13.5, color: "#3A3849", lineHeight: 1.55 }}>
-          <div style={{ fontWeight: 700, marginBottom: 4, color: "#8A5A2E" }}>
+          <div style={{ fontWeight: 700, marginBottom: 4, color: "var(--pp-urgent)" }}>
             Before you record
           </div>
           Screen recording means more time looking at the conversation. If you can, the{" "}
