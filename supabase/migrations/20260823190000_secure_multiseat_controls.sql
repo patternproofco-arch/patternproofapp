@@ -170,3 +170,14 @@ GRANT EXECUTE ON FUNCTION public.remove_firm_member(uuid,uuid,uuid) TO service_r
 GRANT EXECUTE ON FUNCTION public.change_firm_member_role(uuid,uuid,uuid,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.remove_org_member(uuid,uuid,uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.change_org_member_role(uuid,uuid,uuid,text) TO service_role;
+
+-- Organization records are server-managed. Keep the table behind RLS and
+-- remove direct browser access, matching the membership tables above.
+ALTER TABLE public.dv_organizations ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.dv_organizations FROM anon, authenticated;
+GRANT ALL ON public.dv_organizations TO service_role;
+
+-- Trigger functions do not need direct RPC execution. PostgreSQL grants
+-- EXECUTE to PUBLIC by default, so revoke it explicitly from this
+-- SECURITY DEFINER seat-limit function.
+REVOKE ALL ON FUNCTION public.enforce_firm_seat_limit() FROM PUBLIC, anon, authenticated;
