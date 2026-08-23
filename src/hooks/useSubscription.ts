@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getMySubscription } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +15,47 @@ export type SubscriptionState = {
   cancelAtPeriodEnd: boolean;
   refetch: () => void;
 };
+
+// useSubscription() is called from more than one component at once for the
+// same signed-in attorney — the portal layout (for the paywall gate) and
+// individual pages (clients.index.tsx, billing.tsx, subscribe.tsx, etc.)
+// each call it independently. Supabase's realtime client reuses the same
+// channel object for a given topic name, so a second, unrelated
+// `.channel("sub-<userId>").on(...)` call — from the second component's own
+// effect — throws ("cannot add postgres_changes callbacks... after
+// subscribe()") because that channel is already subscribed. Dedupe to one
+// real channel per user, ref-counted across every hook instance watching it.
+const subscriptionChannels = new Map<
+  string,
+  { channel: RealtimeChannel; refCount: number; listeners: Set<() => void> }
+>();
+
+function watchSubscriptionChanges(userId: string, onChange: () => void): () => void {
+  let entry = subscriptionChannels.get(userId);
+  if (!entry) {
+    const listeners = new Set<() => void>();
+    const channel = supabase
+      .channel(`sub-${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${userId}` },
+        () => listeners.forEach((l) => l()),
+      )
+      .subscribe();
+    entry = { channel, refCount: 0, listeners };
+    subscriptionChannels.set(userId, entry);
+  }
+  entry.refCount += 1;
+  entry.listeners.add(onChange);
+  return () => {
+    entry.listeners.delete(onChange);
+    entry.refCount -= 1;
+    if (entry.refCount <= 0) {
+      supabase.removeChannel(entry.channel);
+      subscriptionChannels.delete(userId);
+    }
+  };
+}
 
 function computeActive(row: {
   status: string;
@@ -60,21 +102,15 @@ export function useSubscription(): SubscriptionState {
     return () => { active = false; };
   }, []);
 
-  // ...so the channel is created synchronously here and its cleanup is the
-  // effect's own return value (React only registers cleanups returned from the
-  // effect body — a cleanup returned inside a .then() is silently dropped,
-  // which left the channel subscribed and re-subscribed on every re-run).
+  // ...so the subscription is registered synchronously here and its cleanup
+  // is the effect's own return value (React only registers cleanups returned
+  // from the effect body — a cleanup returned inside a .then() is silently
+  // dropped, which left the channel subscribed and re-subscribed on every
+  // re-run). See watchSubscriptionChanges above for why this shares one real
+  // channel across every useSubscription() instance for the same user.
   useEffect(() => {
     if (!userId) return;
-    const channel = supabase
-      .channel(`sub-${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${userId}` },
-        () => loadRef.current(),
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return watchSubscriptionChanges(userId, () => loadRef.current());
   }, [userId]);
 
   return {
