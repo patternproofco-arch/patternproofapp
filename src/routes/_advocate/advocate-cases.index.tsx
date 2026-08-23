@@ -20,7 +20,9 @@ function AdvocateCases() {
   const [clients, setClients] = useState<Clients | null>(null);
 
   useEffect(() => {
-    listFn().then((r) => setClients(r.clients)).catch(() => setClients([]));
+    listFn()
+      .then((r) => setClients(r.clients))
+      .catch(() => setClients([]));
   }, [listFn]);
 
   const active = (clients ?? []).filter((c) => c.status === "active");
@@ -44,7 +46,9 @@ function AdvocateCases() {
     id: c.id,
     icon: Clock3,
     title: c.case_label ?? "Case",
-    timestamp: c.revoked_at ? `access withdrawn ${new Date(c.revoked_at).toLocaleDateString()}` : "access withdrawn",
+    timestamp: c.revoked_at
+      ? `access withdrawn ${new Date(c.revoked_at).toLocaleDateString()}`
+      : "access withdrawn",
   }));
 
   return (
@@ -55,7 +59,7 @@ function AdvocateCases() {
         heading="Cases shared with you"
         value={clients === null ? "—" : active.length}
         label={active.length === 1 ? "case open to you" : "cases open to you"}
-        message="Read-only. Access is given by the survivor and can be withdrawn by her at any time."
+        message="Read-only. Access is given by the survivor and can be withdrawn at any time."
       />
 
       <FocusRegion id="advocate-followup">

@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Private documentation software that turns scattered evidence into court-ready patterns. Free for survivors. Free for DV organizations.",
+          "Private documentation software that turns scattered evidence into organized patterns. Free for survivors. Free for DV organizations.",
       },
       { property: "og:title", content: "PatternProof — The truth is in the pattern." },
       {
@@ -127,8 +127,8 @@ function Index() {
           }}
         >
           {attorneyMode
-            ? "Source-linked · Chain of custody · Court-ready"
-            : "Private · Secure · Court-ready"}
+            ? "Source-linked · Chain of custody · Export-ready"
+            : "Private · Secure · Export-ready"}
         </p>
         {!attorneyMode && (
           <p
@@ -183,8 +183,8 @@ function Index() {
               screenshots. Hearing prep starts with strategy, not sorting.
             </p>
             <div style={{ marginTop: 34 }}>
-              <Link to="/sample-case" className="btn-primary" style={{ textDecoration: "none" }}>
-                See a sample case →
+              <Link to="/demo" className="btn-primary" style={{ textDecoration: "none" }}>
+                Try the demo →
               </Link>
               <div style={{ marginTop: 18 }}>
                 <Link
@@ -237,10 +237,13 @@ function Index() {
               <Link to="/signup" className="btn-primary" style={{ textDecoration: "none" }}>
                 Start Documenting — Free
               </Link>
-              <span style={{ fontSize: 12.5, color: INK_3 }}>
-                No credit card · No obligation · 100% private
-              </span>
+              <Link to="/demo" className="btn-ghost" style={{ textDecoration: "none" }}>
+                Try the demo →
+              </Link>
             </div>
+            <p style={{ marginTop: 12, fontSize: 12.5, color: INK_3 }}>
+              No credit card · No obligation · 100% private
+            </p>
           </>
         )}
       </section>
@@ -322,6 +325,8 @@ function Index() {
             >
               <PathCard
                 accent="#5B4EA6"
+                accentBg="var(--pp-accent-survivor-gradient)"
+                iconColor="#3D1F63"
                 icon={FileText}
                 label="Survivor"
                 body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
@@ -333,14 +338,14 @@ function Index() {
                 icon={Briefcase}
                 label="Attorney"
                 body="A source-linked chronology on day one, with chain of custody intact — prep starts with strategy, not sorting."
-                to="/sample-case"
-                cta="See a sample case →"
+                to="/demo"
+                cta="Try the demo →"
               />
               <PathCard
                 accent="#4F6249"
                 icon={Users}
                 label="DV Organization"
-                body="A free intake tool for your advocates — she documents once, referrals arrive clean, at no cost to your program."
+                body="A free intake tool for your advocates — the survivor documents once, referrals arrive clean, at no cost to your program."
                 to="/for-organizations"
                 cta="See how it fits your program →"
               />
@@ -349,6 +354,25 @@ function Index() {
 
           {/* ───────────────────────── How it works ───────────────────────── */}
           <HowItWorks />
+          <Section eyebrow="How it works" title="Three steps. One clear pattern.">
+            <div className="pp-thread">
+              <Step
+                n={1}
+                title="Write it down"
+                body="Photos, texts, voice notes — whatever you have, whenever you have a moment. Nothing is required."
+              />
+              <Step
+                n={2}
+                title="It organizes itself"
+                body="Every entry is timestamped and dated with its own confidence level — exact, approximate, or unknown. No pattern is invented for you."
+              />
+              <Step
+                n={3}
+                title="Share only what you choose"
+                body="Nothing leaves your account until you decide — with an attorney, an advocate, or a court, on your terms."
+              />
+            </div>
+          </Section>
 
           {/* ───────────────────────── Safety built in ───────────────────────── */}
           <Section eyebrow="Safety built in" title="Designed for the moment you need it most.">
@@ -618,6 +642,17 @@ function HowItWorks() {
     <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px", marginTop: 64 }}>
       <p
         style={{
+    <div className="pp-thread-row">
+      <div
+        className="pp-thread-node"
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 999,
+          display: "grid",
+          placeItems: "center",
+          background: "var(--pp-card)",
+          boxShadow: "var(--pp-shadow-in-sm)",
           fontFamily: "var(--font-mono)",
           fontSize: 10.5,
           letterSpacing: "0.16em",
@@ -696,6 +731,35 @@ function HowItWorks() {
         })}
       </div>
     </section>
+          fontSize: 15,
+          color: "var(--pp-accent)",
+        }}
+      >
+        {n}
+      </div>
+      <div
+        className="pp-thread-card"
+        style={{
+          borderRadius: "var(--pp-r-lg)",
+          background: "var(--pp-card)",
+          boxShadow: "var(--pp-shadow-up)",
+          padding: 24,
+        }}
+      >
+        <h4
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontWeight: 500,
+            fontSize: 16,
+            color: INK,
+            margin: 0,
+          }}
+        >
+          {title}
+        </h4>
+        <p style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, color: INK_2 }}>{body}</p>
+      </div>
+    </div>
   );
 }
 
@@ -808,7 +872,7 @@ function DashboardPreview() {
         {[
           { icon: FileText, label: "Document" },
           { icon: Scale, label: "Patterns" },
-          { icon: ShieldCheck, label: "Court-Ready" },
+          { icon: ShieldCheck, label: "Review" },
           { icon: Lock, label: "Safety" },
         ].map(({ icon: Icon, label }) => (
           <div key={label} style={{ textAlign: "center" }}>
@@ -873,6 +937,8 @@ function DashboardPreview() {
 
 function PathCard({
   accent,
+  accentBg,
+  iconColor,
   icon: Icon,
   label,
   body,
@@ -880,6 +946,13 @@ function PathCard({
   cta,
 }: {
   accent: string;
+  /** Background for the icon strip only — defaults to `accent`. Lets the
+   * survivor card carry its real logo gradient as a surface fill while
+   * `accent` stays a solid, legible color for text and the inset border. */
+  accentBg?: string;
+  /** Icon color against accentBg — defaults to white. The survivor
+   * gradient is light pastel at both ends, so white would be illegible. */
+  iconColor?: string;
   icon: ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
   body: string;
@@ -910,11 +983,11 @@ function PathCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: accent,
+          background: accentBg ?? accent,
         }}
       >
         <span aria-hidden="true">
-          <Icon color="#FFFFFF" size={22} strokeWidth={1.6} />
+          <Icon color={iconColor ?? "#FFFFFF"} size={22} strokeWidth={1.6} />
         </span>
       </div>
 

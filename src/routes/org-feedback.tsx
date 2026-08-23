@@ -186,7 +186,9 @@ function OrgFeedbackPage() {
                 </OField>
 
                 {error && (
-                  <div style={{ color: "#8B3A3A", fontSize: 13, fontWeight: 600 }}>{error}</div>
+                  <div style={{ color: "var(--pp-urgent)", fontSize: 13, fontWeight: 600 }}>
+                    {error}
+                  </div>
                 )}
 
                 <div>
@@ -269,7 +271,7 @@ function OTextArea({
 const pageWrap: React.CSSProperties = {
   minHeight: "100vh",
   padding: "60px 24px 100px",
-  background: "var(--pp-paper, #FAF8F4)",
+  background: "var(--pp-ground)",
 };
 const cardStyle: React.CSSProperties = {
   background: "var(--pp-card)",
@@ -310,7 +312,7 @@ const ctaBtn: React.CSSProperties = {
   padding: "14px 26px",
   borderRadius: 18,
   background: MARK_COLORWAYS.advocate.solid,
-  color: "#FFFFFF",
+  color: "var(--pp-ink)",
   fontWeight: 700,
   fontSize: 15,
   border: "none",
@@ -324,7 +326,7 @@ function pillBtn(active: boolean): React.CSSProperties {
     border: "none",
     boxShadow: active ? "var(--pp-shadow-in-sm)" : "var(--pp-shadow-sm)",
     background: active ? MARK_COLORWAYS.advocate.solid : "var(--pp-card)",
-    color: active ? "#FFFFFF" : "var(--pp-ink)",
+    color: "var(--pp-ink)",
     fontWeight: 600,
     fontSize: 13,
     cursor: "pointer",

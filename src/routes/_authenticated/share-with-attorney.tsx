@@ -181,7 +181,7 @@ function ShareWithAttorney() {
 
       <div className="mt-4">
         <Link
-          to="/attorney-billing"
+          to="/attorney-time-log"
           className="btn-ghost inline-flex items-center gap-2 text-[12px]"
         >
           <Clock size={13} /> View attorney time logged on your case
@@ -268,7 +268,7 @@ function ShareWithAttorney() {
                     return (
                       <div
                         className="mt-2 rounded-2xl p-2 text-[12px]"
-                        style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}
+                        style={{ background: "rgba(231,208,163,0.4)", color: "var(--pp-urgent)" }}
                       >
                         This case doesn't have any incidents or files added to it yet, so your
                         attorney would open an empty file.{" "}
@@ -376,11 +376,7 @@ function ShareWithAttorney() {
             </div>
 
             <div className="flex gap-2">
-              <button
-                onClick={submit}
-                disabled={busy}
-                className="btn-primary"
-              >
+              <button onClick={submit} disabled={busy} className="btn-primary">
                 {busy ? "Creating…" : "Generate Secure Access Link"}
               </button>
               <button onClick={() => setOpen(false)} className="btn-ghost">

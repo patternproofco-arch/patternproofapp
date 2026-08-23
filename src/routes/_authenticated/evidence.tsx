@@ -424,13 +424,13 @@ function EvidencePage() {
           <MessageSquare size={18} color="#3D2C5C" />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: "#1A1714" }}>
-            Import Messages from screenshots
+          <div style={{ fontWeight: 700, fontSize: 14, color: "var(--pp-ink)" }}>
+            Quick import: just screenshots
           </div>
-          <div style={{ fontSize: 13, color: "#3D3832", marginTop: 2, lineHeight: 1.5 }}>
-            Add screenshots of a text conversation in any order. They&apos;re read here on your
-            device — no app can open your phone&apos;s Messages history, so this works from your own
-            screenshots.
+          <div style={{ fontSize: 13, color: "var(--pp-muted)", marginTop: 2, lineHeight: 1.5 }}>
+            Add screenshots of a text conversation in any order — nothing else needed. Read here on
+            your device and turned into a searchable, reviewable message list before anything is
+            saved.
           </div>
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-accent)" }}>Open →</span>
@@ -441,7 +441,7 @@ function EvidencePage() {
         className="mt-3 flex items-start gap-3 rounded-2xl p-4"
         style={{
           background: "var(--pp-card)",
-          border: "1px solid rgba(124,92,196,0.22)",
+          boxShadow: "var(--pp-shadow-sm)",
           color: "var(--foreground)",
           textDecoration: "none",
         }}
@@ -460,12 +460,12 @@ function EvidencePage() {
           <MessageSquare size={18} color="#3D2C5C" />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: "#1A1714" }}>
-            Upload a Message Thread
+          <div style={{ fontWeight: 700, fontSize: 14, color: "var(--pp-ink)" }}>
+            More options: backup exports, screen recording, or call logs
           </div>
-          <div style={{ fontSize: 13, color: "#3D3832", marginTop: 2, lineHeight: 1.5 }}>
-            Import iPhone, iMessage, or SMS exports (PDF, CSV/Excel, TXT, RSMF, ZIP) into a
-            searchable, flagged timeline.
+          <div style={{ fontSize: 13, color: "var(--pp-muted)", marginTop: 2, lineHeight: 1.5 }}>
+            For hundreds of messages, a phone backup (PDF, CSV/Excel, TXT, RSMF, ZIP), a screen
+            recording, or a call-log import — with guidance on which option fits your situation.
           </div>
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-accent)" }}>Open →</span>
@@ -647,7 +647,10 @@ function EvidencePage() {
                           {it.review_status === "suggested" && (
                             <div
                               className="mt-2 rounded-2xl p-2 text-[12px]"
-                              style={{ background: "rgba(231,208,163,0.4)", color: "#5a3a12" }}
+                              style={{
+                                background: "rgba(231,208,163,0.4)",
+                                color: "var(--pp-urgent)",
+                              }}
                             >
                               Held back from court packets and anything you share with an attorney
                               until you review the suggested match.{" "}
@@ -765,7 +768,7 @@ function EvidencePage() {
             {!reviewBusy && reviewError && (
               <div
                 className="my-4 rounded-2xl bg-white/40 p-4 text-[13px]"
-                style={{ color: "#2A1A10" }}
+                style={{ color: "var(--pp-ink)" }}
               >
                 {reviewError}
               </div>
@@ -831,8 +834,8 @@ function EvidencePage() {
                             }}
                             className="rounded-2xl px-3 py-1 text-[12px] font-semibold"
                             style={{
-                              background: active ? opt.color : "rgba(255,255,255,0.55)",
-                              color: active ? "#FFFFFF" : "#2A1A10",
+                              background: active ? opt.color : "var(--pp-card)",
+                              color: active ? "#FFFFFF" : "var(--pp-ink)",
                               border: active
                                 ? `1px solid ${opt.color}`
                                 : "1px solid rgba(0,0,0,0.10)",
@@ -850,7 +853,7 @@ function EvidencePage() {
                             <li
                               key={opt.value}
                               className="text-[11px] leading-snug"
-                              style={{ color: "#5C4A3E" }}
+                              style={{ color: "var(--pp-muted)" }}
                             >
                               <span className="font-semibold" style={{ color: opt.color }}>
                                 {opt.label}:
