@@ -585,7 +585,7 @@ function EvidencePage() {
                       style={{
                         background:
                           tab === "documentation" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
-                        color: tab === "documentation" ? "#FFFDD0" : "var(--foreground)",
+                        color: tab === "documentation" ? "var(--pp-paper)" : "var(--foreground)",
                         border:
                           tab === "documentation"
                             ? "1px solid var(--foreground)"
@@ -601,7 +601,7 @@ function EvidencePage() {
                       style={{
                         background:
                           tab === "evidence" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
-                        color: tab === "evidence" ? "#FFFDD0" : "var(--foreground)",
+                        color: tab === "evidence" ? "var(--pp-paper)" : "var(--foreground)",
                         border:
                           tab === "evidence"
                             ? "1px solid var(--foreground)"

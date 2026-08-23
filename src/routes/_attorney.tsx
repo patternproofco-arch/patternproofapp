@@ -254,7 +254,7 @@ function ClioStatusChip() {
         aria-hidden
         style={{
           width: 7, height: 7, borderRadius: 999,
-          background: tone === "on" ? "#5F8B67" : "rgba(255,255,255,0.45)",
+          background: tone === "on" ? "var(--pp-confirmed)" : "rgba(255,255,255,0.45)",
           outline: tone === "on" ? "none" : "1px solid rgba(255,255,255,0.45)",
         }}
       />

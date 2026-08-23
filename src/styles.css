@@ -1617,70 +1617,13 @@ textarea.input-pp,
 }
 
 /* ============================================================
-   Reference-aligned material system
-   A quiet, monochrome ground with controls carved from the same
-   surface. Accent is limited to selected states and primary actions.
+   Shared app-shell utility classes.
+   Token values live in one place — the :root and [data-persona]
+   blocks at the top of this file. Do not redefine --paper, --ink,
+   --pp-ground, --pp-shadow-*, or --pp-r-* here; a second definition
+   later in the file wins the cascade and silently drifts from the
+   documented palette above.
    ============================================================ */
-:root {
-  --paper: #e8ebef;
-  --paper-2: #dfe3e8;
-  --line: #d4d8de;
-  --ink: #3d424b;
-  --pp-muted: #707681;
-  --pp-ground: #e8ebef;
-  --pp-ground-hi: #f1f3f6;
-  --pp-shadow-dark: #c6cbd2;
-  --pp-shadow-lite: #ffffff;
-  --pp-card: var(--pp-ground);
-  --background: var(--pp-ground);
-  --card: var(--pp-ground);
-  --input: var(--pp-ground);
-  --popover: var(--pp-ground);
-  --secondary: var(--pp-ground);
-  --pp-accent-survivor: var(--oxblood);
-  --pp-accent-attorney: var(--purple);
-  --pp-accent-org: var(--purple-mid);
-  --pp-accent-shared: var(--oxblood-deep);
-  --pp-accent: var(--pp-accent-survivor);
-  --primary: var(--pp-accent);
-  --accent: var(--pp-accent);
-  --ring: var(--pp-accent);
-  --pp-r-sm: 14px;
-  --pp-r-md: 20px;
-  --pp-r-lg: 26px;
-  --pp-r-xl: 32px;
-  --pp-shadow-up: -8px -8px 18px var(--pp-shadow-lite), 8px 8px 18px var(--pp-shadow-dark);
-  --pp-shadow-sm: -4px -4px 10px var(--pp-shadow-lite), 4px 4px 10px var(--pp-shadow-dark);
-  --pp-shadow-xs: -2px -2px 5px var(--pp-shadow-lite), 2px 2px 5px var(--pp-shadow-dark);
-  --pp-shadow-lg: -12px -12px 26px var(--pp-shadow-lite), 12px 12px 26px var(--pp-shadow-dark);
-  --pp-shadow-in:
-    inset -6px -6px 12px var(--pp-shadow-lite), inset 6px 6px 12px var(--pp-shadow-dark);
-  --pp-shadow-in-sm:
-    inset -3px -3px 7px var(--pp-shadow-lite), inset 3px 3px 7px var(--pp-shadow-dark);
-}
-
-[data-persona="survivor"] {
-  --pp-ground: #f3edf6;
-  --pp-ground-hi: #f8f3fa;
-  --pp-shadow-dark: #d9cedd;
-  --pp-accent: var(--pp-accent-survivor);
-  --pp-link: #8b7fd1;
-}
-[data-persona="attorney"] {
-  --pp-ground: #e8eaec;
-  --pp-ground-hi: #f0f2f4;
-  --pp-shadow-dark: #c5c9cf;
-  --pp-accent: var(--pp-accent-attorney);
-  --pp-link: #4d6480;
-}
-[data-persona="org"] {
-  --pp-ground: #e8ebe7;
-  --pp-ground-hi: #f0f3ef;
-  --pp-shadow-dark: #c8cdc5;
-  --pp-accent: var(--pp-accent-org);
-  --pp-link: #5b7355;
-}
-
 .pp-app,
 .pp-app body {
   min-width: 320px;
