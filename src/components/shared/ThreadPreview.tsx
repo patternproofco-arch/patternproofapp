@@ -28,7 +28,7 @@ export function ThreadPreview({
   to?: string;
 }) {
   const t = portalTheme(variant);
-  const shadow = neuShadow(t.ground);
+  const shadow = neuShadow();
 
   if (items.length === 0) {
     return (

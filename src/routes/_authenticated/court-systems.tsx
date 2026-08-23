@@ -8,6 +8,8 @@ import {
   AlertTriangle,
   BookOpen,
   ArrowRight,
+  Sparkles,
+  Compass,
 } from "lucide-react";
 import { CollapsibleCard } from "@/components/CollapsibleCard";
 import { HubTabs, RESOURCE_TABS } from "@/components/HubTabs";
@@ -150,6 +152,163 @@ function CourtSystemsPage() {
         </div>
       </CollapsibleCard>
 
+      <CollapsibleCard
+        eyebrow="A briefing for the record"
+        title="Why courts struggle with abuse patterns"
+        icon={<Sparkles size={20} style={{ color: BROWN }} />}
+        accent={ROSE}
+      >
+        <p className="text-[15px] leading-relaxed" style={{ color: BROWN_SOFT }}>
+          Not advice. Not reassurance. A plain reading of how the system was built, how it fails
+          survivors of coercive control, and what the record can do that a five-minute hearing
+          cannot.
+        </p>
+
+        <div className="mt-6 space-y-3">
+          <h3 className="flex items-center gap-2 font-serif text-[19px]" style={{ color: BROWN }}>
+            <Scale size={16} style={{ color: ROSE }} /> The gap between the law and the lived
+            experience
+          </h3>
+          <p className="text-[15px] leading-relaxed" style={{ color: "var(--foreground)" }}>
+            Courts are built to adjudicate <strong>isolated incidents</strong> — an assault on a
+            specific date, a threat sent at a specific time, a single breach of a single order.
+            Evidence rules, charging documents, and trial formats all assume a discrete event with
+            discrete proof.
+          </p>
+          <p className="text-[15px] leading-relaxed" style={{ color: "var(--foreground)" }}>
+            Abuse rarely works that way. It is <strong>cumulative and strategic</strong> — a
+            pattern of small, deliberate acts that researchers describe as "death by a thousand
+            cuts." Each act, viewed alone, can look minor. Together they form a system of control.
+          </p>
+          <p className="text-[15px] leading-relaxed" style={{ color: "var(--foreground)" }}>
+            Family courts in particular focus on <strong>"present danger"</strong> rather than
+            historical patterns of control. Criminal courts demand{" "}
+            <strong>proof beyond a reasonable doubt</strong> for single events. Neither forum is
+            designed to weigh years of coercion compressed into a five-minute hearing — so
+            survivors who try are often read as scattered, hostile, or "difficult to understand."
+          </p>
+          <ResourceQuote>
+            Evan Stark's framework of <em>coercive control</em> (2007) reframes domestic abuse as
+            a "liberty crime" — a sustained course of conduct, not a series of assaults. Most
+            courts still adjudicate the assaults.
+          </ResourceQuote>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <h3 className="flex items-center gap-2 font-serif text-[19px]" style={{ color: BROWN }}>
+            <Gavel size={16} style={{ color: ROSE }} /> How narcissistic and controlling abusers
+            present in court
+          </h3>
+          <p className="text-[15px] leading-relaxed" style={{ color: "var(--foreground)" }}>
+            The research is consistent. In adversarial proceedings, abusers often:
+          </p>
+          <ul className="ml-1 space-y-2 text-[15px] leading-relaxed" style={{ color: "var(--foreground)" }}>
+            <ResourceBullet>
+              Appear <strong>calm, organized, and cooperative</strong> — not because they are
+              well, but because they are winning. The courtroom is not a trigger; it is a stage.
+            </ResourceBullet>
+            <ResourceBullet>
+              Use the legal system itself as <strong>continued abuse</strong> — vexatious
+              litigation, repeat filings, and custody manipulation are documented post-separation
+              tactics.
+            </ResourceBullet>
+            <ResourceBullet>
+              <strong>Charm professionals</strong> — judges, custody evaluators, guardians ad
+              litem, and mediators. Lundy Bancroft's clinical work documents how presentation is
+              rehearsed for exactly this audience.
+            </ResourceBullet>
+            <ResourceBullet>
+              <strong>Reframe the survivor's trauma responses</strong> — hypervigilance,
+              tearfulness, anger, protective refusal — as "instability," "alienation," or "high
+              conflict."
+            </ResourceBullet>
+            <ResourceBullet>
+              Exploit the fact that most judges receive{" "}
+              <strong>little training in coercive control</strong>, and routinely mistake
+              composure for credibility.
+            </ResourceBullet>
+          </ul>
+          <ResourceQuote>
+            Heather Douglas and Evan Stark describe this as <em>institutional betrayal</em> — when
+            the systems a survivor turns to for protection instead become tools of the abuse.
+          </ResourceQuote>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <h3 className="flex items-center gap-2 font-serif text-[19px]" style={{ color: BROWN }}>
+            <Sparkles size={16} style={{ color: ROSE }} /> What PatternProof does differently
+          </h3>
+          <ul className="ml-1 space-y-2 text-[15px] leading-relaxed" style={{ color: "var(--foreground)" }}>
+            <ResourceBullet>
+              Organizes scattered evidence — texts, screenshots, voice notes, photos — into a{" "}
+              <strong>recognizable behavioral timeline</strong>.
+            </ResourceBullet>
+            <ResourceBullet>
+              Surfaces <strong>coercive control patterns</strong>: isolation, monitoring,
+              financial control, threats, and the escalation that links them.
+            </ResourceBullet>
+            <ResourceBullet>
+              Produces <strong>professional-review summaries</strong> that show escalation and
+              repetition rather than asking a judge to assemble them in real time.
+            </ResourceBullet>
+            <ResourceBullet>
+              Generates <strong>objective, date-anchored timelines</strong> that reduce the
+              burden of emotional testimony on the survivor.
+            </ResourceBullet>
+            <ResourceBullet>
+              Gives attorneys <strong>evidence they can actually use</strong> — labeled, dated,
+              cross-referenced — instead of 400 screenshots in a phone gallery.
+            </ResourceBullet>
+          </ul>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <h3 className="flex items-center gap-2 font-serif text-[19px]" style={{ color: BROWN }}>
+            <Compass size={16} style={{ color: ROSE }} /> What you can do
+          </h3>
+          <ul className="ml-1 space-y-2 text-[15px] leading-relaxed" style={{ color: "var(--foreground)" }}>
+            <ResourceBullet>
+              <strong>Document consistently.</strong> The "small" incidents are what establish a
+              pattern. Compounding is the point.
+            </ResourceBullet>
+            <ResourceBullet>
+              <strong>Focus on patterns, not only physical violence.</strong> Coercive control is
+              the throughline most courts miss.
+            </ResourceBullet>
+            <ResourceBullet>
+              <strong>Request judges trained in coercive control</strong> when jurisdiction
+              allows it — and ask your attorney whether your court has specialty DV dockets.
+            </ResourceBullet>
+            <ResourceBullet>
+              <strong>Work with DV-informed attorneys</strong> who understand post-separation
+              abuse, not only divorce mechanics.
+            </ResourceBullet>
+            <ResourceBullet>
+              <strong>Use PatternProof's exported timelines as evidence exhibits</strong> —
+              dated, sourced, and ready to attach.
+            </ResourceBullet>
+          </ul>
+        </div>
+
+        <div
+          className="mt-6 rounded-2xl p-5 text-[13px] leading-relaxed"
+          style={{ background: "var(--pp-ground)", color: BROWN_SOFT }}
+        >
+          <div className="label-eyebrow">Sources</div>
+          <p className="mt-2">
+            Stark, E. (2007). <em>Coercive Control: How Men Entrap Women in Personal Life.</em>{" "}
+            Oxford University Press. · Bancroft, L. (2002).{" "}
+            <em>Why Does He Do That? Inside the Minds of Angry and Controlling Men.</em> · Douglas,
+            H. &amp; Stark, E. (2023). Work on coercive control and institutional response in
+            family law. · Meier, J. (2020).{" "}
+            <em>
+              U.S. Child Custody Outcomes in Cases Involving Parental Alienation and Abuse
+              Allegations.
+            </em>
+          </p>
+        </div>
+      </CollapsibleCard>
+
       {/* CTAs */}
       <section
         className="rounded-2xl px-7 py-7 md:px-9"
@@ -235,6 +394,26 @@ function CourtCard({
         </p>
       </div>
     </div>
+  );
+}
+
+function ResourceBullet({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex gap-3">
+      <span style={{ color: BROWN_SOFT }}>·</span>
+      <span>{children}</span>
+    </li>
+  );
+}
+
+function ResourceQuote({ children }: { children: React.ReactNode }) {
+  return (
+    <blockquote
+      className="mt-2 rounded-xl border-l-2 px-4 py-3 text-[14px] italic leading-relaxed"
+      style={{ borderColor: BROWN_SOFT, background: "var(--pp-ground)", color: BROWN_SOFT }}
+    >
+      {children}
+    </blockquote>
   );
 }
 

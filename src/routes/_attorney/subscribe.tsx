@@ -6,6 +6,7 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
+import { ATTORNEY_PORTAL_TIER_BULLETS } from "@/lib/pricing-tiers";
 
 export const Route = createFileRoute("/_attorney/subscribe")({
   component: SubscribePage,
@@ -31,14 +32,7 @@ const TIERS: Record<
     price: "$297",
     cadence: "/month",
     priceId: "attorney_solo_monthly",
-    bullets: [
-      "One attorney seat",
-      "Single attorney account (matter counts are not metered today)",
-      "Structured chronological timeline + pattern analysis",
-      "Exportable case summary (ZIP) — imports into practice management systems",
-      "Private attorney notes per incident",
-      "Conflict check across your own caseload",
-    ],
+    bullets: ATTORNEY_PORTAL_TIER_BULLETS.solo,
     close: "$297/month — a single attorney account.",
   },
   firm_charter: {
@@ -48,16 +42,7 @@ const TIERS: Record<
     cadence: "/month · locked 12 months",
     priceId: "attorney_firm_charter_monthly",
     recommended: true,
-    bullets: [
-      "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
-      "Everything in Solo Attorney",
-      "No matter limit enforced today",
-      "Multi-attorney collaboration and shared case notes",
-      "Caseload and capacity view across the firm",
-      "Conflict check across your own caseload",
-      "Charter program: personal setup, case import, and staff training",
-      "$597/month rate locked for 12 months, then $897/month list",
-    ],
+    bullets: ATTORNEY_PORTAL_TIER_BULLETS.firm_charter,
     close: "Charter program — personal setup and locked rate for 12 months.",
     note: "Charter program — limited to 10 firms.",
   },
@@ -66,15 +51,7 @@ const TIERS: Record<
     price: "$897",
     cadence: "/month",
     priceId: "attorney_firm_monthly",
-    bullets: [
-      "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
-      "Everything in Solo Attorney",
-      "No matter limit enforced today",
-      "Multi-attorney collaboration and shared case notes",
-      "Caseload and capacity view across the firm",
-      "Conflict check across your own caseload",
-      "Priority client onboarding support",
-    ],
+    bullets: ATTORNEY_PORTAL_TIER_BULLETS.firm,
     close: "Built for 3–15 attorney family-law firms.",
   },
 };

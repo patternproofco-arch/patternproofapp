@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from "crypto";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -15,7 +16,15 @@ import { z } from "zod";
 
 const ACTIVE_WINDOW_DAYS = 30;
 
-type CoarseStatus = "signed_up" | "actively_documenting" | "inactive";
+async function verifiedAccountEmail(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+  const email = data.user?.email?.trim().toLowerCase();
+  if (error || !email || !data.user.email_confirmed_at) {
+    throw new Error("A verified account email is required to accept this invitation.");
+  }
+  return email;
+}
 
 async function requireAdvocate(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -45,14 +54,7 @@ async function requireAdmin(userId: string) {
 
 export type OrgPartnerStats = {
   org_name: string | null;
-  codes: Array<{
-    code: string;
-    org_name: string;
-    is_active: boolean;
-    created_at: string;
-    deactivated_at: string | null;
-    referred_count: number;
-  }>;
+  codes: Array<{ code: string; org_name: string; is_active: boolean; referred_count: number }>;
   totals: {
     all_time: number;
     last_7_days: number;
@@ -62,135 +64,146 @@ export type OrgPartnerStats = {
     inactive: number;
     signed_up_only: number;
   };
-  /** Coarse, unidentifiable rows — status + the code they came through only. */
-  referred: Array<{ code: string; signed_up_month: string; status: CoarseStatus }>;
   active_window_days: number;
 };
+
+async function requireOrgMembership(userId: string) {
+  const supabaseAdmin = await requireAdvocate(userId);
+  const { data: member, error } = await supabaseAdmin
+    .from("org_members")
+    .select("org_id,role")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!member) throw new Error("You are not a verified member of a partner organization.");
+  return { supabaseAdmin, member };
+}
+
+async function requireOrgManager(userId: string) {
+  const { supabaseAdmin, member } = await requireOrgMembership(userId);
+  if (member.role !== "owner" && member.role !== "admin") {
+    throw new Error("Only an organization owner or administrator can manage referral links.");
+  }
+  return { supabaseAdmin, member };
+}
 
 export const getMyOrgPartnerStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<OrgPartnerStats> => {
-    const supabaseAdmin = await requireAdvocate(context.userId);
+    const { supabaseAdmin, member } = await requireOrgMembership(context.userId);
+    const { data: org, error: orgError } = await supabaseAdmin
+      .from("dv_organizations").select("name").eq("id", member.org_id).maybeSingle();
+    if (orgError || !org) throw new Error(orgError?.message ?? "Organization not found.");
 
-    const { data: profile } = await supabaseAdmin
-      .from("advocate_profiles")
-      .select("org_name,full_name")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-
-    // Scoped strictly to codes owned by the calling org account.
-    const { data: links } = await supabaseAdmin
+    // Membership, rather than the historical org_user_id field, scopes all
+    // organization dashboard data. Returned values are aggregates only.
+    const { data: links, error: linksError } = await supabaseAdmin
       .from("referral_links")
-      .select("code,org_name,is_active,created_at,deactivated_at")
-      .eq("org_user_id", context.userId)
-      .order("created_at", { ascending: true });
-
+      .select("code,org_name,is_active")
+      .eq("org_id", member.org_id)
+      .order("code", { ascending: true });
+    if (linksError) throw new Error(linksError.message);
     const codes = (links ?? []).map((l) => l.code);
     const empty: OrgPartnerStats = {
-      org_name: profile?.org_name ?? profile?.full_name ?? null,
+      org_name: org.name,
       codes: (links ?? []).map((l) => ({ ...l, referred_count: 0 })),
-      totals: {
-        all_time: 0, last_7_days: 0, last_30_days: 0, last_90_days: 0,
-        actively_documenting: 0, inactive: 0, signed_up_only: 0,
-      },
-      referred: [],
+      totals: { all_time: 0, last_7_days: 0, last_30_days: 0, last_90_days: 0, actively_documenting: 0, inactive: 0, signed_up_only: 0 },
       active_window_days: ACTIVE_WINDOW_DAYS,
     };
-    if (codes.length === 0) return empty;
+    if (!codes.length) return empty;
 
+    // User ids and timestamps are used only inside this server function to
+    // calculate aggregates; neither is ever included in the response.
     const { data: referrals } = await supabaseAdmin
-      .from("user_referrals")
-      .select("user_id,referred_by_code,created_at")
-      .in("referred_by_code", codes);
-
+      .from("user_referrals").select("user_id,referred_by_code,created_at").in("referred_by_code", codes);
     const rows = referrals ?? [];
-    if (rows.length === 0) return empty;
-
-    // Activity heuristic only — we read timestamps, never incident content.
-    const since = new Date(Date.now() - ACTIVE_WINDOW_DAYS * 86400000).toISOString();
+    if (!rows.length) return empty;
     const userIds = rows.map((r) => r.user_id);
+    const since = new Date(Date.now() - ACTIVE_WINDOW_DAYS * 86_400_000).toISOString();
     const [{ data: recent }, { data: everRows }] = await Promise.all([
-      supabaseAdmin
-        .from("incidents")
-        .select("user_id")
-        .in("user_id", userIds)
-        .is("deleted_at", null)
-        .gte("created_at", since),
-      supabaseAdmin
-        .from("incidents")
-        .select("user_id")
-        .in("user_id", userIds)
-        .is("deleted_at", null),
+      supabaseAdmin.from("incidents").select("user_id").in("user_id", userIds).is("deleted_at", null).gte("created_at", since),
+      supabaseAdmin.from("incidents").select("user_id").in("user_id", userIds).is("deleted_at", null),
     ]);
     const recentSet = new Set((recent ?? []).map((r) => r.user_id));
     const everSet = new Set((everRows ?? []).map((r) => r.user_id));
-
-    const now = Date.now();
-    const within = (iso: string, days: number) => now - new Date(iso).getTime() <= days * 86400000;
-
     const totals = { ...empty.totals };
     const perCode = new Map<string, number>();
-    const referred: OrgPartnerStats["referred"] = [];
-
+    const now = Date.now();
+    const within = (iso: string, days: number) => now - new Date(iso).getTime() <= days * 86_400_000;
     for (const r of rows) {
-      const status: CoarseStatus = recentSet.has(r.user_id)
-        ? "actively_documenting"
-        : everSet.has(r.user_id)
-          ? "inactive"
-          : "signed_up";
       totals.all_time += 1;
       if (within(r.created_at, 7)) totals.last_7_days += 1;
       if (within(r.created_at, 30)) totals.last_30_days += 1;
       if (within(r.created_at, 90)) totals.last_90_days += 1;
-      if (status === "actively_documenting") totals.actively_documenting += 1;
-      else if (status === "inactive") totals.inactive += 1;
+      if (recentSet.has(r.user_id)) totals.actively_documenting += 1;
+      else if (everSet.has(r.user_id)) totals.inactive += 1;
       else totals.signed_up_only += 1;
-      perCode.set(r.referred_by_code!, (perCode.get(r.referred_by_code!) ?? 0) + 1);
-      referred.push({
-        code: r.referred_by_code!,
-        signed_up_month: r.created_at.slice(0, 7),
-        status,
-      });
+      if (r.referred_by_code) perCode.set(r.referred_by_code, (perCode.get(r.referred_by_code) ?? 0) + 1);
     }
-
-    referred.sort((a, b) => (a.signed_up_month < b.signed_up_month ? 1 : -1));
-
     return {
-      org_name: profile?.org_name ?? profile?.full_name ?? null,
+      org_name: org.name,
       codes: (links ?? []).map((l) => ({ ...l, referred_count: perCode.get(l.code) ?? 0 })),
       totals,
-      referred,
       active_window_days: ACTIVE_WINDOW_DAYS,
     };
   });
 
 export const setReferralCodeActive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({
-      code: z.string().min(1).max(64).regex(/^[A-Za-z0-9_-]+$/),
-      is_active: z.boolean(),
-    }).parse(input),
-  )
+  .inputValidator((input) => z.object({
+    code: z.string().min(1).max(64).regex(/^[A-Za-z0-9_-]+$/), is_active: z.boolean(),
+  }).parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    const supabaseAdmin = await requireAdvocate(context.userId);
-    const { data: owned } = await supabaseAdmin
-      .from("referral_links")
-      .select("code")
-      .eq("code", data.code)
-      .eq("org_user_id", context.userId)
-      .maybeSingle();
-    if (!owned) throw new Error("That code isn't on your account.");
-    const { error } = await supabaseAdmin
-      .from("referral_links")
-      .update({
-        is_active: data.is_active,
-        deactivated_at: data.is_active ? null : new Date().toISOString(),
-      })
-      .eq("code", data.code)
-      .eq("org_user_id", context.userId);
+    const { supabaseAdmin, member } = await requireOrgManager(context.userId);
+    const { error } = await supabaseAdmin.from("referral_links")
+      .update({ is_active: data.is_active, deactivated_at: data.is_active ? null : new Date().toISOString() })
+      .eq("code", data.code).eq("org_id", member.org_id);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+
+/** Owner/admin-only, email-bound organization invitation. No raw token is retained. */
+export const createOrgMemberInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({
+    email: z.string().email().max(255), role: z.enum(["admin", "member"]).default("member"),
+    expires_days: z.number().int().min(1).max(30).default(7),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin, member } = await requireOrgManager(context.userId);
+    const email = data.email.trim().toLowerCase();
+    const { error: revokeError } = await supabaseAdmin
+      .from("org_member_invitations")
+      .update({ status: "revoked" })
+      .eq("org_id", member.org_id)
+      .eq("email", email)
+      .eq("status", "pending");
+    if (revokeError) throw new Error(revokeError.message);
+    const token = randomBytes(32).toString("base64url");
+    const { data: invitation, error } = await supabaseAdmin.from("org_member_invitations")
+      .insert({
+        org_id: member.org_id, email,
+        token_hash: createHash("sha256").update(token, "utf8").digest("hex"),
+        invited_by: context.userId, role: data.role,
+        expires_at: new Date(Date.now() + data.expires_days * 86_400_000).toISOString(),
+      }).select("id,expires_at").single();
+    if (error || !invitation) throw new Error(error?.message ?? "Could not create invitation.");
+    return { invitation: { ...invitation, token } };
+  });
+
+export const acceptOrgMemberInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ token: z.string().min(20).max(200) }).parse(input))
+  .handler(async ({ data, context }) => {
+    const email = await verifiedAccountEmail(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: orgId, error } = await supabaseAdmin.rpc("accept_org_member_invitation", {
+      p_token_hash: createHash("sha256").update(data.token, "utf8").digest("hex"),
+      p_user_id: context.userId, p_email: email,
+    });
+    if (error || !orgId) throw new Error(error?.message ?? "Could not accept invitation.");
+    return { ok: true, org_id: orgId };
   });
 
 /* -------------------------------- admin side ------------------------------- */
@@ -257,14 +270,20 @@ export const approveOrgAccessRequest = createServerFn({ method: "POST" })
       .from("user_roles")
       .upsert({ user_id: userId, role: "advocate" }, { onConflict: "user_id,role" });
 
+    // Approval establishes the first verified organization membership. A
+    // profile's free-form org name is never used as authorization.
+    const { data: createdOrg, error: orgError } = await supabaseAdmin
+      .from("dv_organizations")
+      .insert({ name: req.org_name.trim(), created_by: userId })
+      .select("id")
+      .single();
+    if (orgError || !createdOrg) throw new Error(orgError?.message ?? "Could not create organization.");
+    const orgId = createdOrg.id;
+    const { error: memberError } = await supabaseAdmin.from("org_members")
+      .upsert({ org_id: orgId, user_id: userId, role: "owner" }, { onConflict: "org_id,user_id" });
+    if (memberError) throw new Error(memberError.message);
     await supabaseAdmin.from("advocate_profiles").upsert(
-      {
-        user_id: userId,
-        full_name: req.contact_name,
-        org_name: req.org_name,
-        email,
-        onboarded: true,
-      },
+      { user_id: userId, full_name: req.contact_name, org_name: req.org_name, org_id: orgId, email, onboarded: true },
       { onConflict: "user_id" },
     );
 
@@ -286,6 +305,7 @@ export const approveOrgAccessRequest = createServerFn({ method: "POST" })
       code,
       org_name: req.org_name,
       org_user_id: userId,
+      org_id: orgId,
       request_id: req.id,
       is_active: true,
       notes: `Approved from org access request ${req.id}`,

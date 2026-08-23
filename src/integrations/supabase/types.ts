@@ -1984,7 +1984,8 @@ export type Database = {
           expires_at: string
           firm_id: string
           id: string
-          invite_token: string
+          invite_token: string | null
+          token_hash: string | null
           invited_by: string
           role: string
           status: string
@@ -1997,7 +1998,8 @@ export type Database = {
           expires_at?: string
           firm_id: string
           id?: string
-          invite_token: string
+          invite_token?: string | null
+          token_hash?: string | null
           invited_by: string
           role?: string
           status?: string
@@ -2010,7 +2012,8 @@ export type Database = {
           expires_at?: string
           firm_id?: string
           id?: string
-          invite_token?: string
+          invite_token?: string | null
+          token_hash?: string | null
           invited_by?: string
           role?: string
           status?: string
@@ -2628,7 +2631,8 @@ export type Database = {
           email: string
           expires_at: string
           id: string
-          invite_token: string
+          invite_token: string | null
+          token_hash: string | null
           invited_by: string
           org_id: string
           role: string
@@ -2641,7 +2645,8 @@ export type Database = {
           email: string
           expires_at?: string
           id?: string
-          invite_token: string
+          invite_token?: string | null
+          token_hash?: string | null
           invited_by: string
           org_id: string
           role?: string
@@ -2654,7 +2659,8 @@ export type Database = {
           email?: string
           expires_at?: string
           id?: string
-          invite_token?: string
+          invite_token?: string | null
+          token_hash?: string | null
           invited_by?: string
           org_id?: string
           role?: string
@@ -2899,6 +2905,7 @@ export type Database = {
           is_active: boolean
           notes: string | null
           org_name: string
+          org_id: string | null
           org_user_id: string | null
           request_id: string | null
         }
@@ -2910,6 +2917,7 @@ export type Database = {
           is_active?: boolean
           notes?: string | null
           org_name: string
+          org_id?: string | null
           org_user_id?: string | null
           request_id?: string | null
         }
@@ -2921,6 +2929,7 @@ export type Database = {
           is_active?: boolean
           notes?: string | null
           org_name?: string
+          org_id?: string | null
           org_user_id?: string | null
           request_id?: string | null
         }
@@ -3473,6 +3482,14 @@ export type Database = {
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      accept_firm_member_invitation: {
+        Args: { p_token_hash: string; p_user_id: string; p_email: string }
+        Returns: string
+      }
+      accept_org_member_invitation: {
+        Args: { p_token_hash: string; p_user_id: string; p_email: string }
+        Returns: string
       }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {

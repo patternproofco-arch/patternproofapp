@@ -12,7 +12,10 @@ export const Route = createFileRoute("/unsubscribe")({
       { name: "description", content: "Stop receiving PatternProof emails at this address." },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Unsubscribe — PatternProof" },
-      { property: "og:description", content: "Stop receiving PatternProof emails at this address." },
+      {
+        property: "og:description",
+        content: "Stop receiving PatternProof emails at this address.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -28,7 +31,10 @@ function UnsubscribePage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!token) { setState("invalid"); return; }
+    if (!token) {
+      setState("invalid");
+      return;
+    }
     fetch(`/email/unsubscribe?token=${encodeURIComponent(token)}`)
       .then(async (r) => {
         const b = await r.json().catch(() => ({}));
@@ -57,10 +63,20 @@ function UnsubscribePage() {
   };
 
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#FAF8F4" }}>
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        padding: 24,
+        background: "var(--pp-ground)",
+      }}
+    >
       <div className="card-pp" style={{ maxWidth: 460, width: "100%" }}>
         <div className="label-eyebrow">Email preferences</div>
-        {state === "checking" && <p className="mt-3 text-[14px]">One moment — checking this link…</p>}
+        {state === "checking" && (
+          <p className="mt-3 text-[14px]">One moment — checking this link…</p>
+        )}
         {state === "ready" && (
           <>
             <h1 className="mt-2 font-serif text-[24px]">Stop receiving these emails?</h1>
