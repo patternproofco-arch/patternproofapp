@@ -45,6 +45,8 @@ try {
 // exempt from canonical (since they shouldn't be indexed).
 const PAGE_ROUTES = [
   { file: "src/routes/index.tsx", path: "/", requireCanonical: true },
+  { file: "src/routes/signin.tsx", path: "/signin", requireCanonical: true },
+  { file: "src/routes/signup.tsx", path: "/signup", requireCanonical: true },
   // /login is a legacy redirect to /signin and deliberately renders no page head.
   { file: "src/routes/attorney.$token.tsx", path: "/attorney/$token", requireCanonical: false },
 ];
