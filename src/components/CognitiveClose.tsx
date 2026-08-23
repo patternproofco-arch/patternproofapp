@@ -12,7 +12,7 @@ type To =
   | "/communications"
   | "/calendar"
   | "/share-with-attorney"
-  | "/court-ready"
+  | "/contribute"
   | "/resources";
 
 interface Props {

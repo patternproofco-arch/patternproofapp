@@ -298,8 +298,8 @@ function AttorneyFlow({ accent }: { accent: string }) {
       <Step
         n="01"
         accent={accent}
-        title="Your client shares her record."
-        body="You receive a scoped link — she chooses what you see. No shoebox handoff, no reconstructing three years from screenshots."
+        title="Your client shares their record."
+        body="You receive a scoped link — they choose what you see. No shoebox handoff, no reconstructing three years from screenshots."
       />
       <Step
         n="02"
@@ -316,7 +316,7 @@ function AttorneyFlow({ accent }: { accent: string }) {
       <Step
         n="04"
         accent={accent}
-        title="Export a de-branded court packet."
+        title="Export a de-branded professional-review packet."
         body="A neutral PDF with exhibit labels, timeline, and source references — no PatternProof branding on the filing. Ready to hand a paralegal or attach to a motion."
       />
     </div>
@@ -336,14 +336,14 @@ function OrgFlow({ accent }: { accent: string }) {
       <Step
         n="02"
         accent={accent}
-        title="She documents at her own pace. You see nothing unless she shares it."
-        body="Her account is hers. Your organization has no automatic visibility into what she writes. If she chooses to share with an advocate at your org, she grants a scoped, revocable link and can end it at any time."
+        title="The survivor documents at their own pace. You see nothing unless they share it."
+        body="Their account is theirs. Your organization has no automatic visibility into what they write. If they choose to share with an advocate at your org, they grant a scoped, revocable link and can end it at any time."
       />
       <Step
         n="03"
         accent={accent}
-        title="At referral to counsel, she shares a structured record."
-        body="Instead of arriving at an attorney's office with a bag of screenshots, she arrives with a dated, source-linked chronology she wrote herself."
+        title="At referral to counsel, the survivor shares a structured record."
+        body="Instead of arriving at an attorney's office with a bag of screenshots, they arrive with a dated, source-linked chronology they wrote themselves."
       />
     </div>
   );

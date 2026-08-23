@@ -13,26 +13,11 @@ export interface HubTab {
 export function HubTabs({ tabs }: { tabs: HubTab[] }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <nav
-      aria-label="Section"
-      className="no-print mb-6 flex flex-wrap gap-x-5 gap-y-2"
-      style={{ borderBottom: "1px solid var(--border)", paddingBottom: 8 }}
-    >
+    <nav aria-label="Section" className="pp-hub-tabs no-print">
       {tabs.map((t) => {
         const active = pathname === t.to || pathname.startsWith(t.to + "/");
         return (
-          <Link
-            key={t.to}
-            to={t.to}
-            className="text-[13px]"
-            style={{
-              color: active ? "var(--foreground)" : "var(--muted-foreground)",
-              fontWeight: active ? 700 : 500,
-              paddingBottom: 6,
-              marginBottom: -9,
-              borderBottom: active ? "2px solid var(--primary)" : "2px solid transparent",
-            }}
-          >
+          <Link key={t.to} to={t.to} className="pp-hub-tab" data-active={active ? "true" : "false"}>
             {t.label}
           </Link>
         );

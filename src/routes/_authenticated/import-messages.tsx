@@ -375,7 +375,7 @@ function ImportMessagesPage() {
 
         <section
           style={{
-            background: "#FAF8F4",
+            background: "var(--pp-ground)",
             boxShadow: "var(--pp-shadow-sm)",
             borderRadius: 18,
             padding: 16,

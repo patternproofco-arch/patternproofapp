@@ -84,7 +84,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
       style={{
         borderRadius: 0,
         padding: 22,
-        background: "#FAF8F4",
+        background: "var(--pp-ground)",
         border: "1px solid rgba(197,103,74,0.25)",
       }}
     >
