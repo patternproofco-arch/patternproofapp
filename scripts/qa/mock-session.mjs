@@ -174,6 +174,7 @@ function gatekeeperHandlers(persona) {
     getClioStatus: () => ({ connected: false }),
     listClioMatterLinks: () => ({ links: [] }),
     listSurvivorInvites: () => ({ invites: [] }),
+    listContentSuggestions: () => ({ suggestions: [] }),
     getDashboardStats: () => ({
       incident_count: 0,
       unconfirmed_ai_count: 0,

@@ -175,7 +175,10 @@ function EvidenceReviewPage() {
                       {it.match_reason && (
                         <div
                           className="rounded-2xl p-2 text-[12px]"
-                          style={{ background: "rgba(106,146,214,0.14)", color: "#1f3a68" }}
+                          style={{
+                            background: "rgba(106,146,214,0.14)",
+                            color: "var(--pp-approximate)",
+                          }}
                         >
                           Why it matched: {it.match_reason}
                         </div>
