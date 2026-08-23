@@ -205,7 +205,21 @@ function Index() {
         ) : (
           <>
             <p
-              style={{ marginTop: 20, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
+              style={{
+                marginTop: 18,
+                fontFamily: "var(--font-sans)",
+                fontSize: 18,
+                fontWeight: 500,
+                lineHeight: 1.5,
+                color: INK,
+                maxWidth: 620,
+              }}
+            >
+              Private documentation that turns scattered evidence into court-ready patterns.{" "}
+              <span style={{ color: "var(--pp-accent)" }}>Free for survivors.</span>
+            </p>
+            <p
+              style={{ marginTop: 14, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
             >
               Photos, messages, and voice notes stay encrypted and private — nothing is ever shared
               until you choose to share it. Free for survivors. Free for DV organizations. Built by
