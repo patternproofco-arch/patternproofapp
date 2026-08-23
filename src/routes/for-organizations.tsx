@@ -237,21 +237,6 @@ function ForOrganizations() {
           >
             How PatternProof handles data privacy →
           </Link>
-          <Link
-            to="/waitlist"
-            search={{ as: "organization" as const }}
-            style={{
-              fontFamily: MONO,
-              fontSize: 12,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: INK,
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-            }}
-          >
-            Not ready to sign up your organization yet? Leave your email →
-          </Link>
         </div>
       </section>
 
