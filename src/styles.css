@@ -1514,6 +1514,64 @@ textarea.input-pp,
   animation: pp-skel-shimmer 2.5s ease-in-out infinite;
 }
 
+/* ============================================================
+   Thread — the real layout spine, not decoration.
+   A thick, iridescent wavy line runs through a column of nodes,
+   connecting a sequence of cards into one thread instead of a
+   disconnected grid. Standalone cards, linked by the thread —
+   never a colored background wash. The line is drawn as a CSS
+   mask (an S-curve tile, repeated vertically) filled with a
+   gradient background — --pp-thread-grad defaults to the
+   survivor logo's own pink-to-blue gradient and is redefined per
+   [data-persona] below, so the thread always reads in whichever
+   portal's own color it's rendered in. The mask only supplies
+   the wave shape.
+   ============================================================ */
+:root {
+  --pp-thread-grad: linear-gradient(180deg, #E5A1E4, #A1BDF3);
+}
+[data-persona="survivor"] { --pp-thread-grad: linear-gradient(180deg, #E5A1E4, #A1BDF3); }
+[data-persona="attorney"] { --pp-thread-grad: linear-gradient(180deg, #3F6DF0, #1B2A6B); }
+[data-persona="org"]      { --pp-thread-grad: linear-gradient(180deg, #8FA383, #4A5C43); }
+
+.pp-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.pp-thread-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+.pp-thread-row:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 22px;
+  top: 44px;
+  bottom: -24px;
+  width: 44px;
+  transform: translateX(-50%);
+  background: var(--pp-thread-grad);
+  opacity: 0.85;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+  -webkit-mask-size: 44px 44px;
+  mask-size: 44px 44px;
+}
+.pp-thread-node {
+  position: relative;
+  z-index: 1;
+  flex: none;
+}
+.pp-thread-card {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Thread connecting skeleton blocks */
 .pp-skeleton-connector {
   display: flex;

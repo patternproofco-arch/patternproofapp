@@ -335,13 +335,7 @@ function Index() {
 
           {/* ───────────────────────── How it works ───────────────────────── */}
           <Section eyebrow="How it works" title="Three steps. One clear pattern.">
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 16,
-              }}
-            >
+            <div className="pp-thread">
               <Step
                 n={1}
                 title="Write it down"
@@ -575,36 +569,47 @@ function Section({
 
 function Step({ n, title, body }: { n: number; title: string; body: string }) {
   return (
-    <div className="card-pp" style={{ padding: 20 }}>
+    <div className="pp-thread-row">
       <div
+        className="pp-thread-node"
         style={{
-          width: 30,
-          height: 30,
+          width: 44,
+          height: 44,
           borderRadius: 999,
           display: "grid",
           placeItems: "center",
+          background: "var(--pp-card)",
           boxShadow: "var(--pp-shadow-in-sm)",
           fontFamily: "var(--font-mono)",
           fontWeight: 700,
-          fontSize: 13,
+          fontSize: 15,
           color: "var(--pp-accent)",
-          marginBottom: 12,
         }}
       >
         {n}
       </div>
-      <h4
+      <div
+        className="pp-thread-card"
         style={{
-          fontFamily: "var(--font-serif)",
-          fontWeight: 500,
-          fontSize: 16,
-          color: INK,
-          margin: 0,
+          borderRadius: "var(--pp-r-lg)",
+          background: "var(--pp-card)",
+          boxShadow: "var(--pp-shadow-up)",
+          padding: 24,
         }}
       >
-        {title}
-      </h4>
-      <p style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, color: INK_2 }}>{body}</p>
+        <h4
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontWeight: 500,
+            fontSize: 16,
+            color: INK,
+            margin: 0,
+          }}
+        >
+          {title}
+        </h4>
+        <p style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, color: INK_2 }}>{body}</p>
+      </div>
     </div>
   );
 }
