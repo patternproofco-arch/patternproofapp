@@ -145,6 +145,7 @@ export type Database = {
           email: string
           full_name: string
           onboarded: boolean
+          org_id: string | null
           org_name: string | null
           updated_at: string
           user_id: string
@@ -154,6 +155,7 @@ export type Database = {
           email: string
           full_name: string
           onboarded?: boolean
+          org_id?: string | null
           org_name?: string | null
           updated_at?: string
           user_id: string
@@ -163,11 +165,20 @@ export type Database = {
           email?: string
           full_name?: string
           onboarded?: boolean
+          org_id?: string | null
           org_name?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "advocate_profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agent_messages: {
         Row: {
@@ -1262,6 +1273,30 @@ export type Database = {
         }
         Relationships: []
       }
+      dv_organizations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_relay_attempts: {
         Row: {
           created_at: string
@@ -1740,12 +1775,99 @@ export type Database = {
         }
         Relationships: []
       }
+      firm_member_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          firm_id: string
+          id: string
+          invite_token: string | null
+          invited_by: string
+          role: string
+          status: string
+          token_hash: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          firm_id: string
+          id?: string
+          invite_token?: string | null
+          invited_by: string
+          role?: string
+          status?: string
+          token_hash?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          firm_id?: string
+          id?: string
+          invite_token?: string | null
+          invited_by?: string
+          role?: string
+          status?: string
+          token_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "firm_member_invitations_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "firms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      firm_members: {
+        Row: {
+          firm_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          firm_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          firm_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "firm_members_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "firms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       firms: {
         Row: {
           created_at: string
           created_by: string
           id: string
           name: string
+          seats_included: number
+          seats_purchased: number
           updated_at: string
         }
         Insert: {
@@ -1753,6 +1875,8 @@ export type Database = {
           created_by: string
           id?: string
           name: string
+          seats_included?: number
+          seats_purchased?: number
           updated_at?: string
         }
         Update: {
@@ -1760,6 +1884,8 @@ export type Database = {
           created_by?: string
           id?: string
           name?: string
+          seats_included?: number
+          seats_purchased?: number
           updated_at?: string
         }
         Relationships: []
@@ -2196,6 +2322,91 @@ export type Database = {
         }
         Relationships: []
       }
+      org_member_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invite_token: string | null
+          invited_by: string
+          org_id: string
+          role: string
+          status: string
+          token_hash: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invite_token?: string | null
+          invited_by: string
+          org_id: string
+          role?: string
+          status?: string
+          token_hash?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invite_token?: string | null
+          invited_by?: string
+          org_id?: string
+          role?: string
+          status?: string
+          token_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_member_invitations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_members: {
+        Row: {
+          id: string
+          joined_at: string
+          org_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          org_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          org_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_members_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pattern_analyses: {
         Row: {
           analysis: Json
@@ -2346,6 +2557,7 @@ export type Database = {
           id: string
           is_active: boolean
           notes: string | null
+          org_id: string | null
           org_name: string
           org_user_id: string | null
           request_id: string | null
@@ -2357,6 +2569,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           notes?: string | null
+          org_id?: string | null
           org_name: string
           org_user_id?: string | null
           request_id?: string | null
@@ -2368,11 +2581,19 @@ export type Database = {
           id?: string
           is_active?: boolean
           notes?: string | null
+          org_id?: string | null
           org_name?: string
           org_user_id?: string | null
           request_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "referral_links_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "referral_links_request_id_fkey"
             columns: ["request_id"]
@@ -2918,6 +3139,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_firm_member_invitation: {
+        Args: { p_email: string; p_token_hash: string; p_user_id: string }
+        Returns: string
+      }
+      accept_org_member_invitation: {
+        Args: { p_email: string; p_token_hash: string; p_user_id: string }
+        Returns: string
+      }
+      change_firm_member_role: {
+        Args: {
+          p_actor_id: string
+          p_firm_id: string
+          p_role: string
+          p_target_user_id: string
+        }
+        Returns: boolean
+      }
+      change_org_member_role: {
+        Args: {
+          p_actor_id: string
+          p_org_id: string
+          p_role: string
+          p_target_user_id: string
+        }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2965,6 +3212,18 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      remove_firm_member: {
+        Args: {
+          p_actor_id: string
+          p_firm_id: string
+          p_target_user_id: string
+        }
+        Returns: boolean
+      }
+      remove_org_member: {
+        Args: { p_actor_id: string; p_org_id: string; p_target_user_id: string }
+        Returns: boolean
       }
       revoke_my_oauth_consent: {
         Args: { _consent_id: string }
