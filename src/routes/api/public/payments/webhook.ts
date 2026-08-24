@@ -1,35 +1,47 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type Stripe from "stripe";
 import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
+import { firmSeatsForSubscription } from "@/lib/firm-seats";
 
 let _supabase: SupabaseClient | null = null;
 function getSupabase(): SupabaseClient {
   if (!_supabase) {
-    _supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    _supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
   }
   return _supabase;
 }
 
-async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
+async function syncFirmSeats(
+  userId: string,
+  priceId: string | null | undefined,
+  status: string | null | undefined,
+  currentPeriodEnd: number | null | undefined,
+) {
+  const seats = firmSeatsForSubscription({ priceId, status, currentPeriodEnd });
+  const { error } = await getSupabase()
+    .from("firms")
+    .update({ seats_included: Math.max(1, seats), updated_at: new Date().toISOString() })
+    .eq("created_by", userId);
+  if (error) throw new Error(`Could not synchronize firm seats: ${error.message}`);
+}
+
+async function handleSubscriptionCreated(subscription: Stripe.Subscription, env: StripeEnv) {
   const userId = subscription.metadata?.userId;
   if (!userId) {
     console.error("No userId in subscription metadata");
     return;
   }
   const item = subscription.items?.data?.[0];
-  const priceId = item?.price?.lookup_key
-    || item?.price?.metadata?.lovable_external_id
-    || item?.price?.id;
+  const priceId =
+    item?.price?.lookup_key || item?.price?.metadata?.lovable_external_id || item?.price?.id;
   const productId = item?.price?.product;
-  const periodStart = item?.current_period_start ?? subscription.current_period_start;
-  const periodEnd = item?.current_period_end ?? subscription.current_period_end;
+  const periodStart = item?.current_period_start;
+  const periodEnd = item?.current_period_end;
 
   // Charter Firm — locked rate for 12 months from first activation.
-  const isCharter = priceId === "attorney_firm_charter_monthly"
-    || subscription.metadata?.plan_tier === "charter";
+  const isCharter =
+    priceId === "attorney_firm_charter_monthly" || subscription.metadata?.plan_tier === "charter";
   const planTier = isCharter ? "charter" : null;
   // Preserve an existing expiry rather than resetting on every webhook.
   const supabase = getSupabase();
@@ -40,9 +52,10 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
       .select("charter_rate_expires_at")
       .eq("stripe_subscription_id", subscription.id)
       .maybeSingle();
-    const existingExpiry = (existing as { charter_rate_expires_at: string | null } | null)?.charter_rate_expires_at;
-    charterExpiresAt = existingExpiry
-      ?? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+    const existingExpiry = (existing as { charter_rate_expires_at: string | null } | null)
+      ?.charter_rate_expires_at;
+    charterExpiresAt =
+      existingExpiry ?? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
   }
 
   await supabase.from("subscriptions").upsert(
@@ -62,18 +75,28 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
     },
     { onConflict: "stripe_subscription_id" },
   );
+  await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
 }
 
-async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
+async function handleSubscriptionUpdated(subscription: Stripe.Subscription, env: StripeEnv) {
   const item = subscription.items?.data?.[0];
-  const priceId = item?.price?.lookup_key
-    || item?.price?.metadata?.lovable_external_id
-    || item?.price?.id;
+  const priceId =
+    item?.price?.lookup_key || item?.price?.metadata?.lovable_external_id || item?.price?.id;
   const productId = item?.price?.product;
-  const periodStart = item?.current_period_start ?? subscription.current_period_start;
-  const periodEnd = item?.current_period_end ?? subscription.current_period_end;
+  const periodStart = item?.current_period_start;
+  const periodEnd = item?.current_period_end;
   const isCharter = priceId === "attorney_firm_charter_monthly";
   const supabase = getSupabase();
+  let userId = subscription.metadata?.userId as string | undefined;
+  if (!userId) {
+    const { data: existingSubscription } = await supabase
+      .from("subscriptions")
+      .select("user_id")
+      .eq("stripe_subscription_id", subscription.id)
+      .eq("environment", env)
+      .maybeSingle();
+    userId = existingSubscription?.user_id as string | undefined;
+  }
   const update: Record<string, unknown> = {
     status: subscription.status,
     product_id: productId,
@@ -93,17 +116,28 @@ async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
     .update(update)
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+  if (userId) await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
   if (["canceled", "unpaid", "incomplete_expired"].includes(subscription.status)) {
     await pauseAttorneyAccessIfApplicable(subscription);
   }
 }
 
-async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
-  await getSupabase()
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription, env: StripeEnv) {
+  const supabase = getSupabase();
+  const { data: existingSubscription } = await supabase
+    .from("subscriptions")
+    .select("user_id")
+    .eq("stripe_subscription_id", subscription.id)
+    .eq("environment", env)
+    .maybeSingle();
+  await supabase
     .from("subscriptions")
     .update({ status: "canceled", updated_at: new Date().toISOString() })
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+  const userId = (subscription.metadata?.userId ?? existingSubscription?.user_id) as
+    string | undefined;
+  if (userId) await syncFirmSeats(userId, null, "canceled", null);
   await pauseAttorneyAccessIfApplicable(subscription);
 }
 
@@ -113,7 +147,7 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
  * checkout session id so `useSubscription` / `tier` resolution works the
  * same as the recurring plan.
  */
-async function handleCheckoutCompleted(session: any, env: StripeEnv) {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: StripeEnv) {
   if (session.mode !== "payment") return;
   if (session.metadata?.tier !== "court_ready_pwyc") return;
   const userId = session.metadata?.userId;
@@ -178,7 +212,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
  * and notify each affected survivor. Survivors keep their data — only
  * the attorney's shared view is suspended until they re-subscribe.
  */
-async function pauseAttorneyAccessIfApplicable(subscription: any) {
+async function pauseAttorneyAccessIfApplicable(subscription: Stripe.Subscription) {
   const attorneyUserId: string | undefined = subscription.metadata?.userId;
   if (!attorneyUserId) return;
   const supabase = getSupabase();
@@ -198,18 +232,18 @@ async function pauseAttorneyAccessIfApplicable(subscription: any) {
     .eq("status", "active");
   if (!links || links.length === 0) return;
 
-  const ids = links.map((l: any) => l.id);
+  const ids = links.map((link: { id: string }) => link.id);
   await supabase
     .from("attorney_client_links")
     .update({ status: "paused", updated_at: new Date().toISOString() })
     .in("id", ids);
 
-  const rows = links.map((l: any) => ({
-    user_id: l.client_user_id,
+  const rows = links.map((link: { id: string; client_user_id: string }) => ({
+    user_id: link.client_user_id,
     kind: "attorney_access_paused",
     title: "Your attorney's access is paused",
     body: "Your records are safe and unchanged. Your attorney's shared view is paused until their subscription is active again.",
-    metadata: { link_id: l.id, attorney_user_id: attorneyUserId },
+    metadata: { link_id: link.id, attorney_user_id: attorneyUserId },
   }));
   if (rows.length) await supabase.from("notifications").insert(rows);
 }

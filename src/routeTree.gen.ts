@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TriageRouteImport } from './routes/triage'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TeamInviteRouteImport } from './routes/team-invite'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
@@ -82,6 +83,7 @@ import { Route as AuthenticatedAttorneyTimeLogRouteImport } from './routes/_auth
 import { Route as AuthenticatedAttorneyBillingRouteImport } from './routes/_authenticated/attorney-billing'
 import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AttorneyTrustRouteImport } from './routes/_attorney/trust'
+import { Route as AttorneyTeamRouteImport } from './routes/_attorney/team'
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
 import { Route as AttorneySetupRouteImport } from './routes/_attorney/setup'
 import { Route as AttorneyConflictCheckRouteImport } from './routes/_attorney/conflict-check'
@@ -123,6 +125,11 @@ const TriageRoute = TriageRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamInviteRoute = TeamInviteRouteImport.update({
+  id: '/team-invite',
+  path: '/team-invite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SupportRoute = SupportRouteImport.update({
@@ -487,6 +494,11 @@ const AttorneyTrustRoute = AttorneyTrustRouteImport.update({
   path: '/trust',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AttorneyTeamRoute = AttorneyTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AttorneySubscribeRoute = AttorneySubscribeRouteImport.update({
   id: '/subscribe',
   path: '/subscribe',
@@ -663,6 +675,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/team-invite': typeof TeamInviteRoute
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -676,6 +689,7 @@ export interface FileRoutesByFullPath {
   '/conflict-check': typeof AttorneyConflictCheckRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
+  '/team': typeof AttorneyTeamRoute
   '/trust': typeof AttorneyTrustRoute
   '/agent': typeof AuthenticatedAgentRouteWithChildren
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
@@ -762,6 +776,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/team-invite': typeof TeamInviteRoute
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -774,6 +789,7 @@ export interface FileRoutesByTo {
   '/conflict-check': typeof AttorneyConflictCheckRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
+  '/team': typeof AttorneyTeamRoute
   '/trust': typeof AttorneyTrustRoute
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
   '/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
@@ -863,6 +879,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/team-invite': typeof TeamInviteRoute
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -876,6 +893,7 @@ export interface FileRoutesById {
   '/_attorney/conflict-check': typeof AttorneyConflictCheckRoute
   '/_attorney/setup': typeof AttorneySetupRoute
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
+  '/_attorney/team': typeof AttorneyTeamRoute
   '/_attorney/trust': typeof AttorneyTrustRoute
   '/_authenticated/agent': typeof AuthenticatedAgentRouteWithChildren
   '/_authenticated/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
@@ -964,6 +982,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/support'
+    | '/team-invite'
     | '/terms'
     | '/triage'
     | '/unsubscribe'
@@ -977,6 +996,7 @@ export interface FileRouteTypes {
     | '/conflict-check'
     | '/setup'
     | '/subscribe'
+    | '/team'
     | '/trust'
     | '/agent'
     | '/attorney-billing'
@@ -1063,6 +1083,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/support'
+    | '/team-invite'
     | '/terms'
     | '/triage'
     | '/unsubscribe'
@@ -1075,6 +1096,7 @@ export interface FileRouteTypes {
     | '/conflict-check'
     | '/setup'
     | '/subscribe'
+    | '/team'
     | '/trust'
     | '/attorney-billing'
     | '/attorney-time-log'
@@ -1163,6 +1185,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/support'
+    | '/team-invite'
     | '/terms'
     | '/triage'
     | '/unsubscribe'
@@ -1176,6 +1199,7 @@ export interface FileRouteTypes {
     | '/_attorney/conflict-check'
     | '/_attorney/setup'
     | '/_attorney/subscribe'
+    | '/_attorney/team'
     | '/_attorney/trust'
     | '/_authenticated/agent'
     | '/_authenticated/attorney-billing'
@@ -1266,6 +1290,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
+  TeamInviteRoute: typeof TeamInviteRoute
   TermsRoute: typeof TermsRoute
   TriageRoute: typeof TriageRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
@@ -1313,6 +1338,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team-invite': {
+      id: '/team-invite'
+      path: '/team-invite'
+      fullPath: '/team-invite'
+      preLoaderRoute: typeof TeamInviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/support': {
@@ -1805,6 +1837,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyTrustRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_attorney/team': {
+      id: '/_attorney/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AttorneyTeamRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/_attorney/subscribe': {
       id: '/_attorney/subscribe'
       path: '/subscribe'
@@ -2034,6 +2073,7 @@ interface AttorneyRouteChildren {
   AttorneyConflictCheckRoute: typeof AttorneyConflictCheckRoute
   AttorneySetupRoute: typeof AttorneySetupRoute
   AttorneySubscribeRoute: typeof AttorneySubscribeRoute
+  AttorneyTeamRoute: typeof AttorneyTeamRoute
   AttorneyTrustRoute: typeof AttorneyTrustRoute
 }
 
@@ -2046,6 +2086,7 @@ const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneyConflictCheckRoute: AttorneyConflictCheckRoute,
   AttorneySetupRoute: AttorneySetupRoute,
   AttorneySubscribeRoute: AttorneySubscribeRoute,
+  AttorneyTeamRoute: AttorneyTeamRoute,
   AttorneyTrustRoute: AttorneyTrustRoute,
 }
 
@@ -2170,6 +2211,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
+  TeamInviteRoute: TeamInviteRoute,
   TermsRoute: TermsRoute,
   TriageRoute: TriageRoute,
   UnsubscribeRoute: UnsubscribeRoute,
