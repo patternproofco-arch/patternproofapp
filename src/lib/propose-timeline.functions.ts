@@ -173,7 +173,7 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
             ? "audio"
             : row.mime?.startsWith("image/")
               ? "image"
-              : row.file_type ?? "file",
+              : (row.file_type ?? "file"),
         title: row.title ?? row.original_filename ?? "Untitled",
         date_hint: dateHint,
         text: text.slice(0, 6000),
@@ -184,7 +184,9 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
     if (data.include_threads) {
       const { data: threads } = await supabase
         .from("message_threads")
-        .select("id, source_filename, summary, attorney_summary, captured_at, created_at, message_count")
+        .select(
+          "id, source_filename, summary, attorney_summary, captured_at, created_at, message_count",
+        )
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(10);
@@ -194,7 +196,11 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
           kind: "message_thread",
           title: t.source_filename ?? "Message thread",
           date_hint: t.captured_at ?? t.created_at,
-          text: (t.attorney_summary ?? t.summary ?? `Thread with ${t.message_count ?? 0} messages`).slice(0, 3000),
+          text: (
+            t.attorney_summary ??
+            t.summary ??
+            `Thread with ${t.message_count ?? 0} messages`
+          ).slice(0, 3000),
         });
       }
     }
@@ -290,31 +296,30 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
     }
 
     const batchId = crypto.randomUUID();
-    const rowsToInsert =
-      (parsed.proposed_timeline ?? [])
-        .filter((p) => p.draft_incident?.description)
-        .map((p) => {
-          const draft = DraftIncidentSchema.safeParse(p.draft_incident);
-          if (!draft.success) return null;
-          return {
-            user_id: userId,
-            batch_id: batchId,
-            sort_key: p.sort_key ?? draft.data.date ?? null,
-            date_certainty:
-              p.date_certainty === "confirmed" ||
-              p.date_certainty === "approximate" ||
-              p.date_certainty === "unknown"
-                ? p.date_certainty
-                : "unknown",
-            draft: draft.data,
-            source_evidence_ids: p.source_evidence_ids ?? [],
-            source_summary: p.source_summary ?? null,
-            confidence_notes: p.confidence_notes ?? [],
-            status: "pending",
-            model: "google/gemini-2.5-pro",
-          };
-        })
-        .filter(Boolean) as Array<Record<string, unknown>>;
+    const rowsToInsert = (parsed.proposed_timeline ?? [])
+      .filter((p) => p.draft_incident?.description)
+      .map((p) => {
+        const draft = DraftIncidentSchema.safeParse(p.draft_incident);
+        if (!draft.success) return null;
+        return {
+          user_id: userId,
+          batch_id: batchId,
+          sort_key: p.sort_key ?? draft.data.date ?? null,
+          date_certainty:
+            p.date_certainty === "confirmed" ||
+            p.date_certainty === "approximate" ||
+            p.date_certainty === "unknown"
+              ? p.date_certainty
+              : "unknown",
+          draft: draft.data,
+          source_evidence_ids: p.source_evidence_ids ?? [],
+          source_summary: p.source_summary ?? null,
+          confidence_notes: p.confidence_notes ?? [],
+          status: "pending",
+          model: "google/gemini-2.5-pro",
+        };
+      })
+      .filter((row): row is NonNullable<typeof row> => row !== null);
 
     if (rowsToInsert.length === 0) {
       return {
@@ -413,8 +418,6 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
         emotional_impact: finalDraft.emotional_impact ?? null,
         date_precision: datePrecision,
         source: "ai_proposed",
-        source_type: "timeline_synthesis",
-        is_draft: false,
       })
       .select("id")
       .single();
@@ -450,9 +453,7 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
 /** Deny a proposal — it will not be auto-reproposed. */
 export const denyProposedIncident = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ proposal_id: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input) => z.object({ proposal_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { error } = await supabase
