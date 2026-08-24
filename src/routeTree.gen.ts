@@ -20,10 +20,10 @@ import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as ResourcesRouteImport } from './routes/resources'
-import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
 import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as OrgSignupRouteImport } from './routes/org-signup'
 import { Route as OrgPortalRouteImport } from './routes/org-portal'
 import { Route as OrgFeedbackRouteImport } from './routes/org-feedback'
 import { Route as McpRouteImport } from './routes/mcp'
@@ -48,7 +48,6 @@ import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborat
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdvocateInviteTokenRouteImport } from './routes/advocate-invite.$token'
-import { Route as AdminOrgRequestsRouteImport } from './routes/admin.org-requests'
 import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
@@ -167,11 +166,6 @@ const ResourcesRoute = ResourcesRouteImport.update({
   path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RequestOrgAccessRoute = RequestOrgAccessRouteImport.update({
-  id: '/request-org-access',
-  path: '/request-org-access',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProfessionalAccessRoute = ProfessionalAccessRouteImport.update({
   id: '/professional-access',
   path: '/professional-access',
@@ -185,6 +179,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrgSignupRoute = OrgSignupRouteImport.update({
+  id: '/org-signup',
+  path: '/org-signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrgPortalRoute = OrgPortalRouteImport.update({
@@ -302,11 +301,6 @@ const ApiChatRoute = ApiChatRouteImport.update({
 const AdvocateInviteTokenRoute = AdvocateInviteTokenRouteImport.update({
   id: '/advocate-invite/$token',
   path: '/advocate-invite/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminOrgRequestsRoute = AdminOrgRequestsRouteImport.update({
-  id: '/admin/org-requests',
-  path: '/admin/org-requests',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcceptInviteTokenRoute = AcceptInviteTokenRouteImport.update({
@@ -664,10 +658,10 @@ export interface FileRoutesByFullPath {
   '/mcp': typeof McpRoute
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
+  '/org-signup': typeof OrgSignupRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
-  '/request-org-access': typeof RequestOrgAccessRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
@@ -724,7 +718,6 @@ export interface FileRoutesByFullPath {
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
-  '/admin/org-requests': typeof AdminOrgRequestsRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
@@ -765,10 +758,10 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
+  '/org-signup': typeof OrgSignupRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
-  '/request-org-access': typeof RequestOrgAccessRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
@@ -823,7 +816,6 @@ export interface FileRoutesByTo {
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
-  '/admin/org-requests': typeof AdminOrgRequestsRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
@@ -868,10 +860,10 @@ export interface FileRoutesById {
   '/mcp': typeof McpRoute
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
+  '/org-signup': typeof OrgSignupRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
-  '/request-org-access': typeof RequestOrgAccessRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
@@ -928,7 +920,6 @@ export interface FileRoutesById {
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
-  '/admin/org-requests': typeof AdminOrgRequestsRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
@@ -971,10 +962,10 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/org-feedback'
     | '/org-portal'
+    | '/org-signup'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
-    | '/request-org-access'
     | '/resources'
     | '/safety'
     | '/self-help-guide'
@@ -1031,7 +1022,6 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/voice-notes'
     | '/accept-invite/$token'
-    | '/admin/org-requests'
     | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
@@ -1072,10 +1062,10 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/org-feedback'
     | '/org-portal'
+    | '/org-signup'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
-    | '/request-org-access'
     | '/resources'
     | '/safety'
     | '/self-help-guide'
@@ -1130,7 +1120,6 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/voice-notes'
     | '/accept-invite/$token'
-    | '/admin/org-requests'
     | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
@@ -1174,10 +1163,10 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/org-feedback'
     | '/org-portal'
+    | '/org-signup'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
-    | '/request-org-access'
     | '/resources'
     | '/safety'
     | '/self-help-guide'
@@ -1234,7 +1223,6 @@ export interface FileRouteTypes {
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
     | '/accept-invite/$token'
-    | '/admin/org-requests'
     | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
@@ -1279,10 +1267,10 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   OrgFeedbackRoute: typeof OrgFeedbackRoute
   OrgPortalRoute: typeof OrgPortalRoute
+  OrgSignupRoute: typeof OrgSignupRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
-  RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   ResourcesRoute: typeof ResourcesRoute
   SafetyRoute: typeof SafetyRoute
   SelfHelpGuideRoute: typeof SelfHelpGuideRoute
@@ -1297,7 +1285,6 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
-  AdminOrgRequestsRoute: typeof AdminOrgRequestsRoute
   AdvocateInviteTokenRoute: typeof AdvocateInviteTokenRoute
   ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
@@ -1396,13 +1383,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/request-org-access': {
-      id: '/request-org-access'
-      path: '/request-org-access'
-      fullPath: '/request-org-access'
-      preLoaderRoute: typeof RequestOrgAccessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/professional-access': {
       id: '/professional-access'
       path: '/professional-access'
@@ -1422,6 +1402,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/org-signup': {
+      id: '/org-signup'
+      path: '/org-signup'
+      fullPath: '/org-signup'
+      preLoaderRoute: typeof OrgSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/org-portal': {
@@ -1590,13 +1577,6 @@ declare module '@tanstack/react-router' {
       path: '/advocate-invite/$token'
       fullPath: '/advocate-invite/$token'
       preLoaderRoute: typeof AdvocateInviteTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/org-requests': {
-      id: '/admin/org-requests'
-      path: '/admin/org-requests'
-      fullPath: '/admin/org-requests'
-      preLoaderRoute: typeof AdminOrgRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/accept-invite/$token': {
@@ -2200,10 +2180,10 @@ const rootRouteChildren: RootRouteChildren = {
   McpRoute: McpRoute,
   OrgFeedbackRoute: OrgFeedbackRoute,
   OrgPortalRoute: OrgPortalRoute,
+  OrgSignupRoute: OrgSignupRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProfessionalAccessRoute: ProfessionalAccessRoute,
-  RequestOrgAccessRoute: RequestOrgAccessRoute,
   ResourcesRoute: ResourcesRoute,
   SafetyRoute: SafetyRoute,
   SelfHelpGuideRoute: SelfHelpGuideRoute,
@@ -2219,7 +2199,6 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,
-  AdminOrgRequestsRoute: AdminOrgRequestsRoute,
   AdvocateInviteTokenRoute: AdvocateInviteTokenRoute,
   ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,

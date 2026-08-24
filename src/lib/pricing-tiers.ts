@@ -92,10 +92,10 @@ export const BASE_TIERS: Tier[] = [
       "Referral link so we can attribute outcomes back to your advocacy",
       "Priority support for your intake team",
       "Direct line to the PatternProof team",
-      "We onboard a limited number of organizations at a time",
+      "Self-serve sign-up — start in minutes",
     ],
     cta: "Partner with us",
-    ctaTo: "/request-org-access",
+    ctaTo: "/org-signup",
   },
 ];
 
