@@ -1,4 +1,6 @@
-export const FIRM_INCLUDED_SEATS = 15;
+import { FIRM_SEAT_MAX } from "@/lib/pricing-tiers";
+
+export const FIRM_INCLUDED_SEATS = FIRM_SEAT_MAX;
 
 const FIRM_PRICE_IDS = new Set([
   "attorney_firm_monthly",

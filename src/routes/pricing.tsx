@@ -6,7 +6,7 @@ import { BrandMark, MARK_COLORWAYS } from "@/components/BrandMark";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { buildTiers, type Tier } from "@/lib/pricing-tiers";
+import { buildTiers, FIRM_SEAT_MAX, type Tier } from "@/lib/pricing-tiers";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -56,7 +56,7 @@ const FAQS = [
   },
   {
     q: "How is the Firm tier different from Solo?",
-    a: "Firm includes a shared workspace for up to 15 separate verified team logins. Owners and administrators invite members, and lawyers receive access to each survivor matter only through an explicit case grant. Solo is limited to one attorney login. Matter counts are not currently metered.",
+    a: `Firm includes a shared workspace for up to ${FIRM_SEAT_MAX} separate verified team logins. Owners and administrators invite members, and lawyers receive access to each survivor matter only through an explicit case grant. Solo is limited to one attorney login. Matter counts are not currently metered.`,
   },
   {
     q: "Why don't you sell to DV organizations?",

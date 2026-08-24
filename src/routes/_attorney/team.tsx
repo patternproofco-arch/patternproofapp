@@ -12,6 +12,7 @@ import {
   revokeFirmMemberInvitation,
   setMyFirm,
 } from "@/lib/firm-grants.functions";
+import { FIRM_SEAT_MAX } from "@/lib/pricing-tiers";
 
 export const Route = createFileRoute("/_attorney/team")({ component: FirmTeamSettings });
 
@@ -77,8 +78,8 @@ function FirmTeamSettings() {
       >
         <h1 className="att-page-title">Create your firm team</h1>
         <p>
-          Your active Firm plan includes up to 15 separate verified logins. Creating a team never
-          joins or combines accounts by matching a firm name.
+          Your active Firm plan includes up to {FIRM_SEAT_MAX} separate verified logins. Creating a
+          team never joins or combines accounts by matching a firm name.
         </p>
         <input
           className="att-input"
