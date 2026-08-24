@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
@@ -12,6 +12,7 @@ import { FocusRegion } from "@/components/survivor/focus-mode";
 import { useServerFn } from "@tanstack/react-start";
 import { findCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
+import { ProposedTimelineReview } from "@/components/ProposedTimelineReview";
 
 interface Item {
   id: string;
@@ -133,7 +134,12 @@ function TimelinePage() {
   const [to, setTo] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [xrefs, setXrefs] = useState<XrefCluster[]>([]);
+  const [timelineTick, setTimelineTick] = useState(0);
   const fetchXrefs = useServerFn(findCrossReferences);
+
+  const reloadTimeline = useCallback(() => {
+    setTimelineTick((t) => t + 1);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -236,7 +242,7 @@ function TimelinePage() {
         setMsgDays([]);
       }
     })();
-  }, [user]);
+  }, [user, timelineTick]);
 
   type Row =
     | { kind: "incident"; date: string; item: Item }
@@ -289,6 +295,8 @@ function TimelinePage() {
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         The pattern, <em>over time.</em>
       </h1>
+
+      <ProposedTimelineReview onAccepted={reloadTimeline} />
 
       {xrefs.length > 0 && <CorroborationSection clusters={xrefs} />}
 
