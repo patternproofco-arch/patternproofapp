@@ -52,7 +52,8 @@ export const BASE_TIERS: Tier[] = [
     name: "Contribute",
     price: "Pay what you can",
     sub: "$1 – $500",
-    quote: "An optional, one-time contribution if PatternProof helped you. It does not unlock anything — every survivor feature is already free.",
+    quote:
+      "An optional, one-time contribution if PatternProof helped you. It does not unlock anything — every survivor feature is already free.",
     features: [
       "Everything in Survivor — already included at no cost",
       "No features are gated behind this contribution",

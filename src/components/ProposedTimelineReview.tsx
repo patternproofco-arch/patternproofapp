@@ -82,7 +82,9 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
       if (!r.proposed_timeline?.length) {
         toast(r.message ?? "No new draft entries from your current uploads.");
       } else {
-        toast(`${r.proposed_timeline.length} draft${r.proposed_timeline.length === 1 ? "" : "s"} ready to review.`);
+        toast(
+          `${r.proposed_timeline.length} draft${r.proposed_timeline.length === 1 ? "" : "s"} ready to review.`,
+        );
       }
       await reload();
     } catch (e) {
@@ -136,9 +138,12 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
     }
   };
 
-  const certaintyLabel =
-    (c: string) =>
-      c === "confirmed" ? "Date confirmed" : c === "approximate" ? "Date approximate" : "Date unknown";
+  const certaintyLabel = (c: string) =>
+    c === "confirmed"
+      ? "Date confirmed"
+      : c === "approximate"
+        ? "Date approximate"
+        : "Date unknown";
 
   return (
     <section
@@ -151,9 +156,18 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
             <span className="exhibit-tag">AI DRAFTS</span>
             <span className="mono-meta mono-meta--muted">Review before anything is saved</span>
           </div>
-          <p style={{ marginTop: 8, fontSize: 13, color: "var(--pp-muted)", maxWidth: 520, lineHeight: 1.5 }}>
-            Your uploads can be organized into chronological draft entries. Each draft is a suggestion
-            only — accept, edit, or delete. Nothing joins your timeline until you accept it.
+          <p
+            style={{
+              marginTop: 8,
+              fontSize: 13,
+              color: "var(--pp-muted)",
+              maxWidth: 520,
+              lineHeight: 1.5,
+            }}
+          >
+            Your uploads can be organized into chronological draft entries. Each draft is a
+            suggestion only — accept, edit, or delete. Nothing joins your timeline until you accept
+            it.
           </p>
         </div>
         <button
@@ -191,11 +205,17 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
                   borderLeft: "3px solid var(--pp-accent)",
                 }}
               >
-                <div className="flex flex-wrap items-center gap-2 text-[11px]" style={{ color: "var(--pp-muted)" }}>
+                <div
+                  className="flex flex-wrap items-center gap-2 text-[11px]"
+                  style={{ color: "var(--pp-muted)" }}
+                >
                   <span className="font-semibold">{certaintyLabel(p.date_certainty)}</span>
                   {p.sort_key && <span>· {p.sort_key}</span>}
                   {(p.source_evidence_ids?.length ?? 0) > 0 && (
-                    <span>· {p.source_evidence_ids.length} source file{p.source_evidence_ids.length === 1 ? "" : "s"}</span>
+                    <span>
+                      · {p.source_evidence_ids.length} source file
+                      {p.source_evidence_ids.length === 1 ? "" : "s"}
+                    </span>
                   )}
                 </div>
 
@@ -241,7 +261,10 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
                   </div>
                 ) : (
                   <>
-                    <p className="mt-2 text-[14px] leading-relaxed" style={{ color: "var(--pp-ink)" }}>
+                    <p
+                      className="mt-2 text-[14px] leading-relaxed"
+                      style={{ color: "var(--pp-ink)" }}
+                    >
                       {draft?.description || "(no description)"}
                     </p>
                     {(draft?.location || draft?.time) && (

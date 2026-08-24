@@ -2,6 +2,37 @@
 -- Existing attorney_profiles.firm_id is legacy display metadata only; access is
 -- exclusively controlled by the explicit membership rows below.
 
+ALTER TABLE public.firms
+  ADD COLUMN IF NOT EXISTS seats_included integer NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS seats_purchased integer NOT NULL DEFAULT 0;
+
+DO $$ BEGIN
+  ALTER TABLE public.firms
+    ADD CONSTRAINT firms_seats_included_nonnegative CHECK (seats_included >= 1),
+    ADD CONSTRAINT firms_seats_purchased_nonnegative CHECK (seats_purchased >= 0);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- Firm and Enterprise subscriptions include up to 15 verified logins. Existing
+-- firms without a current firm subscription remain at the one-owner default.
+UPDATE public.firms f
+SET seats_included = 15
+WHERE EXISTS (
+  SELECT 1
+  FROM public.subscriptions s
+  WHERE s.user_id = f.created_by
+    AND s.price_id IN (
+      'attorney_firm_monthly',
+      'attorney_firm_charter_monthly',
+      'attorney_enterprise_monthly'
+    )
+    AND (
+      (s.status IN ('active', 'trialing', 'past_due')
+        AND (s.current_period_end IS NULL OR s.current_period_end > now()))
+      OR (s.status = 'canceled' AND s.current_period_end > now())
+    )
+);
+
 CREATE TABLE IF NOT EXISTS public.firm_members (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   firm_id uuid NOT NULL REFERENCES public.firms(id) ON DELETE CASCADE,
@@ -96,9 +127,15 @@ BEGIN
   IF v_inv.status <> 'pending' THEN RAISE EXCEPTION 'Invitation is no longer valid'; END IF;
   IF v_inv.expires_at <= now() THEN
     UPDATE public.firm_member_invitations SET status = 'expired' WHERE id = v_inv.id;
-    RAISE EXCEPTION 'Invitation expired';
+    RETURN NULL;
   END IF;
   IF lower(v_inv.email) <> lower(p_email) THEN RAISE EXCEPTION 'This invitation was sent to a different email address'; END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = p_user_id AND role <> 'attorney'::public.app_role
+  ) THEN
+    RAISE EXCEPTION 'Use a separate verified attorney login for firm access';
+  END IF;
   INSERT INTO public.firm_members (firm_id, user_id, role) VALUES (v_inv.firm_id, p_user_id, v_inv.role);
   INSERT INTO public.user_roles (user_id, role)
   VALUES (p_user_id, 'attorney'::public.app_role)
@@ -208,9 +245,15 @@ BEGIN
   IF v_inv.status <> 'pending' THEN RAISE EXCEPTION 'Invitation is no longer valid'; END IF;
   IF v_inv.expires_at <= now() THEN
     UPDATE public.org_member_invitations SET status = 'expired' WHERE id = v_inv.id;
-    RAISE EXCEPTION 'Invitation expired';
+    RETURN NULL;
   END IF;
   IF lower(v_inv.email) <> lower(p_email) THEN RAISE EXCEPTION 'This invitation was sent to a different email address'; END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = p_user_id AND role <> 'advocate'::public.app_role
+  ) THEN
+    RAISE EXCEPTION 'Use a separate verified advocate login for organization access';
+  END IF;
   INSERT INTO public.org_members (org_id, user_id, role) VALUES (v_inv.org_id, p_user_id, v_inv.role);
   INSERT INTO public.user_roles (user_id, role)
   VALUES (p_user_id, 'advocate'::public.app_role)
