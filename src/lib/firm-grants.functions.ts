@@ -263,8 +263,9 @@ export const createFirmMemberInvitation = createServerFn({ method: "POST" })
       .select("name")
       .eq("id", manager.firm_id)
       .single();
+    let acceptUrl: string;
     try {
-      await enqueueTeamInvitation({
+      ({ acceptUrl } = await enqueueTeamInvitation({
         invitationId: invitation.id,
         email,
         teamName: firm?.name ?? "your firm",
@@ -272,7 +273,7 @@ export const createFirmMemberInvitation = createServerFn({ method: "POST" })
         role: data.role,
         token,
         expiresDays: data.expires_days,
-      });
+      }));
     } catch (error) {
       await supabaseAdmin
         .from("firm_member_invitations")
@@ -288,7 +289,10 @@ export const createFirmMemberInvitation = createServerFn({ method: "POST" })
       subjectId: manager.firm_id,
       meta: { invitation_id: invitation.id, role: data.role },
     });
-    return { invitation: { ...invitation, email, role: data.role, status: "pending" as const } };
+    return {
+      invitation: { ...invitation, email, role: data.role, status: "pending" as const },
+      acceptUrl,
+    };
   });
 
 export const acceptFirmMemberInvitation = createServerFn({ method: "POST" })

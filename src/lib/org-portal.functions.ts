@@ -288,8 +288,9 @@ export const createOrgMemberInvitation = createServerFn({ method: "POST" })
       .select("name")
       .eq("id", member.org_id)
       .single();
+    let acceptUrl: string;
     try {
-      await enqueueTeamInvitation({
+      ({ acceptUrl } = await enqueueTeamInvitation({
         invitationId: invitation.id,
         email,
         teamName: org?.name ?? "your organization",
@@ -297,7 +298,7 @@ export const createOrgMemberInvitation = createServerFn({ method: "POST" })
         role: data.role,
         token,
         expiresDays: data.expires_days,
-      });
+      }));
     } catch (error) {
       await supabaseAdmin
         .from("org_member_invitations")
@@ -313,7 +314,10 @@ export const createOrgMemberInvitation = createServerFn({ method: "POST" })
       subjectId: member.org_id,
       meta: { invitation_id: invitation.id, role: data.role },
     });
-    return { invitation: { ...invitation, email, role: data.role, status: "pending" as const } };
+    return {
+      invitation: { ...invitation, email, role: data.role, status: "pending" as const },
+      acceptUrl,
+    };
   });
 
 export const acceptOrgMemberInvitation = createServerFn({ method: "POST" })

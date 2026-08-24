@@ -1,6 +1,6 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
-import { MailPlus, ShieldCheck, Trash2, UserMinus, Users } from "lucide-react";
+import { Copy, MailPlus, ShieldCheck, Trash2, UserMinus, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   changeOrgMemberRole,
@@ -24,6 +24,7 @@ export function OrgTeamSettings() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "member">("member");
   const [busy, setBusy] = useState(false);
+  const [lastInviteLink, setLastInviteLink] = useState<{ email: string; url: string } | null>(null);
   const load = useCallback(
     () =>
       getTeam()
@@ -69,10 +70,12 @@ export function OrgTeamSettings() {
           style={card}
           onSubmit={(e) => {
             e.preventDefault();
+            const invitedEmail = email;
             void run(async () => {
-              await invite({ data: { email, role, expires_days: 7 } });
+              const result = await invite({ data: { email, role, expires_days: 7 } });
+              setLastInviteLink({ email: invitedEmail, url: result.acceptUrl });
               setEmail("");
-            }, "Invitation email queued.");
+            }, "Invitation created.");
           }}
         >
           <h3 style={title}>
@@ -102,6 +105,36 @@ export function OrgTeamSettings() {
             </button>
           </div>
         </form>
+      )}
+
+      {lastInviteLink && (
+        <div style={card}>
+          <h3 style={title}>
+            <Copy size={17} /> Invite link for {lastInviteLink.email}
+          </h3>
+          <p style={muted}>
+            The invitation email may take a few minutes to arrive. If it doesn't, copy this link and
+            send it to them directly (Slack, text, etc.) — it works the same way.
+          </p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input
+              style={{ ...input, flex: 1, minWidth: 240 }}
+              readOnly
+              value={lastInviteLink.url}
+              onFocus={(e) => e.currentTarget.select()}
+            />
+            <button
+              type="button"
+              style={button}
+              onClick={() => {
+                void navigator.clipboard.writeText(lastInviteLink.url);
+                toast.success("Invite link copied.");
+              }}
+            >
+              <Copy size={13} /> Copy link
+            </button>
+          </div>
+        </div>
       )}
 
       <div style={card}>

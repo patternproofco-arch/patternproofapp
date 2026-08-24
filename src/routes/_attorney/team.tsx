@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MailPlus, ShieldCheck, Trash2, UserMinus, Users } from "lucide-react";
+import { Copy, MailPlus, ShieldCheck, Trash2, UserMinus, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   changeFirmMemberRole,
@@ -30,6 +30,7 @@ function FirmTeamSettings() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "member">("member");
   const [busy, setBusy] = useState(false);
+  const [lastInviteLink, setLastInviteLink] = useState<{ email: string; url: string } | null>(null);
   const load = useCallback(
     () =>
       getTeam()
@@ -138,10 +139,12 @@ function FirmTeamSettings() {
           className="att-card"
           onSubmit={(e) => {
             e.preventDefault();
+            const invitedEmail = email;
             void run(async () => {
-              await invite({ data: { email, role, expires_days: 7 } });
+              const result = await invite({ data: { email, role, expires_days: 7 } });
+              setLastInviteLink({ email: invitedEmail, url: result.acceptUrl });
               setEmail("");
-            }, "Invitation email queued.");
+            }, "Invitation created.");
           }}
         >
           <h2 style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -175,6 +178,37 @@ function FirmTeamSettings() {
             </button>
           </div>
         </form>
+      )}
+
+      {lastInviteLink && (
+        <div className="att-card">
+          <h2 style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <Copy size={18} /> Invite link for {lastInviteLink.email}
+          </h2>
+          <p style={{ color: "var(--att-text-2)" }}>
+            The invitation email may take a few minutes to arrive. If it doesn't, copy this link and
+            send it to them directly (Slack, text, etc.) — it works the same way.
+          </p>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <input
+              className="att-input"
+              readOnly
+              value={lastInviteLink.url}
+              onFocus={(e) => e.currentTarget.select()}
+              style={{ flex: 1, minWidth: 260 }}
+            />
+            <button
+              type="button"
+              className="att-btn"
+              onClick={() => {
+                void navigator.clipboard.writeText(lastInviteLink.url);
+                toast.success("Invite link copied.");
+              }}
+            >
+              <Copy size={14} /> Copy link
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="att-card">

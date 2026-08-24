@@ -61,6 +61,7 @@ export async function enqueueTeamInvitation(input: TeamInvitationInput) {
     payload: message.payload as Json,
   });
   if (error) throw new Error("Invitation created, but the email could not be queued.");
+  return { acceptUrl: message.acceptUrl };
 }
 
 export async function recordTeamAudit(input: {
