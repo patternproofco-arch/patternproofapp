@@ -95,7 +95,7 @@ function ForOrganizations() {
           you.
         </p>
         <Link
-          to="/request-org-access"
+          to="/org-signup"
           style={{
             display: "inline-block",
             marginTop: 34,
@@ -210,7 +210,7 @@ function ForOrganizations() {
 
         <div style={{ marginTop: 32, display: "grid", gap: 10 }}>
           <Link
-            to="/request-org-access"
+            to="/org-signup"
             style={{
               fontFamily: MONO,
               fontSize: 12,

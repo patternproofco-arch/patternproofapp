@@ -160,7 +160,7 @@ function HowItWorks() {
             )}
             {aud === "org" && (
               <>
-                <PrimaryLink to="/request-org-access" accent={SAGE} label="Partner with us →" />
+                <PrimaryLink to="/org-signup" accent={SAGE} label="Partner with us →" />
                 <GhostLink to="/for-organizations" label="Organization overview" />
               </>
             )}
