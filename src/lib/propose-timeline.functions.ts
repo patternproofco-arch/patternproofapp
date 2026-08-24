@@ -314,7 +314,7 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
             model: "google/gemini-2.5-pro",
           };
         })
-        .filter(Boolean) as Array<Record<string, unknown>>;
+        .filter((row): row is NonNullable<typeof row> => row !== null);
 
     if (rowsToInsert.length === 0) {
       return {
@@ -411,8 +411,6 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
         emotional_impact: finalDraft.emotional_impact ?? null,
         date_precision: datePrecision,
         source: "ai_proposed",
-        source_type: "timeline_synthesis",
-        is_draft: false,
       })
       .select("id")
       .single();
