@@ -3,6 +3,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+/** Hard maximum members per firm (owner + colleagues). */
+export const FIRM_SEAT_MAX = 5;
+
 function newInvitationToken() {
   return randomBytes(32).toString("base64url");
 }
@@ -40,6 +43,29 @@ async function assertFirmManager(userId: string) {
   return member;
 }
 
+async function firmSeatUsage(firmId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const [{ data: firm, error: firmError }, { count: memberCount, error: memberError }] =
+    await Promise.all([
+      supabaseAdmin
+        .from("firms")
+        .select("seats_included,seats_purchased")
+        .eq("id", firmId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("firm_members")
+        .select("id", { count: "exact", head: true })
+        .eq("firm_id", firmId),
+    ]);
+  if (firmError) throw new Error(firmError.message);
+  if (memberError) throw new Error(memberError.message);
+  const rawLimit =
+    Math.max(1, (firm?.seats_included ?? FIRM_SEAT_MAX) + (firm?.seats_purchased ?? 0));
+  const limit = Math.min(FIRM_SEAT_MAX, rawLimit);
+  const used = memberCount ?? 0;
+  return { limit, used, available: Math.max(0, limit - used) };
+}
+
 /* ------------------------ firm membership ------------------------ */
 
 export const getMyFirm = createServerFn({ method: "GET" })
@@ -54,13 +80,14 @@ export const getMyFirm = createServerFn({ method: "GET" })
         .maybeSingle(),
       currentFirmMembership(context.userId),
     ]);
-    if (!membership) return { profile: profile ?? null, firm: null, membership: null, colleagues: [] };
+    if (!membership) return { profile: profile ?? null, firm: null, membership: null, colleagues: [], seats: null };
     const { data: firm, error: firmError } = await supabaseAdmin
       .from("firms")
       .select("id,name,created_at,seats_included,seats_purchased")
       .eq("id", membership.firm_id)
       .maybeSingle();
     if (firmError) throw new Error(firmError.message);
+    const seats = await firmSeatUsage(membership.firm_id);
     const { data: members, error: membersError } = await supabaseAdmin
       .from("firm_members")
       .select("user_id,role")
@@ -77,6 +104,7 @@ export const getMyFirm = createServerFn({ method: "GET" })
       profile: profile ?? null,
       firm: firm ?? null,
       membership,
+      seats,
       colleagues: (profiles ?? []).map((p) => ({ ...p, membership_role: roleByUser.get(p.user_id) ?? "member" })),
     };
   });
@@ -93,7 +121,12 @@ export const setMyFirm = createServerFn({ method: "POST" })
     const name = data.name.trim();
     const { data: firm, error: firmError } = await supabaseAdmin
       .from("firms")
-      .insert({ name, created_by: context.userId })
+      .insert({
+        name,
+        created_by: context.userId,
+        seats_included: FIRM_SEAT_MAX,
+        seats_purchased: 0,
+      })
       .select("id")
       .single();
     if (firmError || !firm) throw new Error(firmError?.message ?? "Could not create firm.");
@@ -136,6 +169,10 @@ export const createFirmMemberInvitation = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const manager = await assertFirmManager(context.userId);
+    const seats = await firmSeatUsage(manager.firm_id);
+    if (seats.available < 1) {
+      throw new Error(`This firm has reached its seat limit (${seats.limit} of ${FIRM_SEAT_MAX}).`);
+    }
     const email = data.email.trim().toLowerCase();
     const { error: revokeError } = await supabaseAdmin
       .from("firm_member_invitations")

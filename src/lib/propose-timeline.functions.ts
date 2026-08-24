@@ -326,7 +326,9 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
       };
     }
 
-    const { data: inserted, error: insertError } = await supabase
+    // Inserts are service-role only (RLS denies authenticated INSERT on purpose).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: inserted, error: insertError } = await supabaseAdmin
       .from("proposed_incidents")
       .insert(rowsToInsert)
       .select(
