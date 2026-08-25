@@ -29,7 +29,6 @@ export const Route = createFileRoute("/professional-access")({
           <li>Confirm the recipient</li>
           <li>Choose which records are included</li>
           <li>Choose permissions and expiration</li>
-          <li>Choose whether downloads are permitted</li>
           <li>Review the known limitations of your export</li>
         </ul>
       </Section>

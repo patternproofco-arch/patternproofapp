@@ -64,7 +64,7 @@ const FAQS = [
   },
   {
     q: "Does this work with my practice management system?",
-    a: "There is no live sync. Attorney and Organization plans include a ZIP export of standard CSVs plus every evidence file, which you can import into the practice management system you already use.",
+    a: "There is no live sync. Attorney plans include a ZIP export of standard CSVs plus every evidence file, which you can import into the practice management system you already use. Organization/advocate accounts currently get a plain-text case summary export, not a ZIP.",
   },
   {
     q: "Is my data safe?",

@@ -226,7 +226,7 @@ export function AuthPage({
                 style={{ background: "transparent", boxShadow: "var(--pp-shadow-sm)" }}
               >
                 <Fingerprint size={18} />
-                Sign in with Face ID / Touch ID
+                Use a saved passkey
               </button>
             )}
           </div>
