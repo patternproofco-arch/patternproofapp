@@ -2743,6 +2743,7 @@ export type Database = {
           batch_id: string
           confidence_notes: string[]
           created_at: string
+          created_incident_id: string | null
           date_certainty: string
           draft: Json
           id: string
@@ -2758,6 +2759,7 @@ export type Database = {
           batch_id: string
           confidence_notes?: string[]
           created_at?: string
+          created_incident_id?: string | null
           date_certainty?: string
           draft?: Json
           id?: string
@@ -2773,6 +2775,7 @@ export type Database = {
           batch_id?: string
           confidence_notes?: string[]
           created_at?: string
+          created_incident_id?: string | null
           date_certainty?: string
           draft?: Json
           id?: string
@@ -2784,7 +2787,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "proposed_incidents_created_incident_id_fkey"
+            columns: ["created_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       record_requests: {
         Row: {
