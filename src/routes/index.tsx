@@ -72,11 +72,11 @@ export const Route = createFileRoute("/")({
             },
             {
               "@type": "Offer",
-              name: "DV Organization — Invite",
+              name: "DV Organization — Partner",
               price: "0",
               priceCurrency: "USD",
               url: "https://pattern-proof.tech/for-organizations",
-              availability: "https://schema.org/LimitedAvailability",
+              availability: "https://schema.org/InStock",
             },
           ],
         }),
@@ -276,7 +276,7 @@ function Index() {
                   color: "var(--pp-accent)",
                 }}
               >
-                Free forever · Survivor
+                Free · Survivor
               </p>
               <h3
                 style={{
@@ -372,8 +372,8 @@ function Index() {
               />
               <SafetyPoint
                 icon={WifiOff}
-                title="No cloud sync by default"
-                body="You choose whether your account syncs at all. Nothing leaves your device unless you turn it on."
+                title="Works through a dropped connection"
+                body="If you lose signal mid-upload, files wait safely on your device and finish the moment you're back online — nothing is lost."
               />
               <SafetyPoint
                 icon={MapPinOff}
@@ -423,7 +423,7 @@ function Index() {
               />
               <Faq
                 q="Is it really free?"
-                a="Yes, for survivors, permanently — no credit card, no trial period, no upsell."
+                a="Yes, for survivors — no credit card, no trial period, no upsell."
               />
             </div>
           </Section>

@@ -328,8 +328,8 @@ function AttorneyFlow({ accent }: { accent: string }) {
         <Step
           n="04"
           accent={accent}
-          title="Export a de-branded professional-review packet."
-          body="A neutral PDF with exhibit labels, timeline, and source references — no PatternProof branding on the filing. Ready to hand a paralegal or attach to a motion."
+          title="Export a professional-review packet."
+          body="A ZIP of source files and a written case summary, or an editable Word document — timeline, patterns, and source references included. Ready to hand a paralegal or attach to a motion."
         />
       </div>
     </div>

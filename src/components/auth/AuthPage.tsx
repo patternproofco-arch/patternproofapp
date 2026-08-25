@@ -226,7 +226,7 @@ export function AuthPage({
                 style={{ background: "transparent", boxShadow: "var(--pp-shadow-sm)" }}
               >
                 <Fingerprint size={18} />
-                Sign in with Face ID / Touch ID
+                Use a saved passkey
               </button>
             )}
           </div>
@@ -316,7 +316,7 @@ export function AuthPage({
           className="mt-5 flex items-center justify-center gap-2 text-[11px]"
           style={{ color: "var(--muted-foreground)", letterSpacing: "2px", fontWeight: 600 }}
         >
-          <Lock size={12} /> PRIVATE BY DEFAULT · ENCRYPTED IN TRANSIT &amp; AT REST
+          <Lock size={12} /> PRIVATE BY DEFAULT · ENCRYPTED IN TRANSIT
         </div>
       </div>
     </div>
