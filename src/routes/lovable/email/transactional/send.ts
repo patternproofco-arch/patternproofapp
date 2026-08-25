@@ -53,11 +53,15 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
         if (!supabaseUrl || !supabaseServiceKey) {
-          console.error('Missing required environment variables')
+          const missing = [
+            !supabaseUrl && 'SUPABASE_URL',
+            !supabaseServiceKey && 'SUPABASE_SERVICE_ROLE_KEY',
+          ].filter(Boolean)
+          console.error(`Missing required environment variables: ${missing.join(', ')}`)
           return Response.json(
             { error: 'Server configuration error' },
             { status: 500 }
