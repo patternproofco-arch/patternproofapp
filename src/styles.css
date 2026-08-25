@@ -6,7 +6,16 @@
    PatternProof — neumorphic design system
    Source of truth visual: soft raised cards on same-color ground,
    paired light/dark shadows, no hard borders.
-   Accent colors are LOCKED — do not change oxblood / purple / sage.
+
+   Active persona accents are LOCKED — do not change:
+     attorney → --purple (deep navy)
+     org      → --pp-sage (light pastel sage)
+     survivor → --pp-iridescent-violet
+     shared   → --pp-iridescent-teal
+   NOTE: --oxblood / --oxblood-deep / --purple-mid / --red-bright below
+   are leftover names from an earlier palette and are NOT what any
+   persona accent currently resolves to, despite the names. See the
+   LEGACY comment at their definition before touching or trusting them.
    ============================================================ */
 
 @theme inline {
@@ -58,13 +67,30 @@
 }
 
 :root {
-  /* ---- Accent colors LOCKED (do not change) ---- */
+  --purple:       #16235C;   /* deep navy blue (attorney) — ACTIVE, feeds --pp-accent-attorney */
+
+  /* LEGACY — from a prior brand triad, superseded by --pp-sage /
+     --pp-iridescent-violet / --pp-iridescent-teal below. None of these
+     four feed any --pp-accent-* persona variable anymore, and their
+     names no longer match their colors (e.g. --oxblood is violet, not
+     oxblood; --purple-mid is sage green; --red-bright is lavender).
+     Known live reference: pricing.tsx uses --oxblood-deep as a var()
+     fallback. Keeping these defined (not deleting) since this session
+     can't confirm every place a `bg-oxblood-*` / `text-red-bright`
+     Tailwind utility class might still be used across the app — grep
+     the full repo before deleting or renaming any of the four. */
   --oxblood:      #7B4FC7;
   --oxblood-deep: #33268C;
-  --purple:       #16235C;
   --purple-mid:   #A9C4A0;
   --red-bright:   #A38BEB;
   --lav:          #7EB6FF;
+
+  /* Persona accent values (brand triad) */
+  --pp-sage:        #C9DCC0;   /* light pastel sage (org/advocate) */
+  --pp-sage-soft:   #DFEAD9;
+  --pp-iridescent-violet: #8B7FD6; /* iridescent violet (survivor) */
+  --pp-iridescent-teal:   #7FB8C9;
+  --pp-iridescent-pink:   #E0A6D2;
   --ink:          #5A5A6A;
   --paper:        #F0F2F5;
   --paper-2:      #E8EAEF;
@@ -82,12 +108,12 @@
   --pp-unknown: #5A5A6A;
   --pp-urgent: #8a5a2e;
 
-  /* Persona accents — LOCKED */
-  --pp-accent-attorney: var(--purple);
-  --pp-accent-org: var(--purple-mid);
-  --pp-accent-survivor: var(--oxblood);
-  --pp-accent-shared: var(--oxblood-deep);
-  --pp-accent-survivor-gradient: linear-gradient(135deg, #E5A1E4, #A1BDF3);
+  /* Persona accents — LOCKED to brand persona palette */
+  --pp-accent-attorney: var(--purple);                 /* deep navy blue */
+  --pp-accent-org: var(--pp-sage);                     /* light pastel sage */
+  --pp-accent-survivor: var(--pp-iridescent-violet);   /* iridescent */
+  --pp-accent-shared: var(--pp-iridescent-teal);
+  --pp-accent-survivor-gradient: linear-gradient(135deg, #C9B7EF, #AFA9DE, #A9E0CF);
 
   --pp-accent: var(--pp-accent-survivor);
   --pp-accent-fg: #ffffff;
@@ -169,7 +195,6 @@
   --pp-purple: var(--pp-accent-survivor);
   --pp-thread: var(--pp-accent-survivor);
   --pp-mint: var(--pp-accent-org);
-  --pp-sage: var(--pp-accent-org);
   --pp-clay: var(--pp-urgent);
   --pp-sblue: var(--pp-approximate);
   --pp-lilac: var(--pp-accent-survivor);
