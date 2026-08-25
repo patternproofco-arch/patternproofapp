@@ -70,7 +70,21 @@ export async function enqueueReferralSignupNotification(input: {
         queued_at: new Date().toISOString(),
       },
     });
-    return !error;
+    if (error) return false;
+
+    // Send immediately rather than waiting on a scheduler — there is no cron
+    // trigger wired up to drain this queue any other way.
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (apiKey) {
+      const { drainEmailQueues } = await import("@/lib/email-queue-drain.server");
+      try {
+        await drainEmailQueues(supabaseAdmin, apiKey, process.env.LOVABLE_SEND_URL);
+      } catch (drainError) {
+        console.error("Immediate drain after enqueue failed", { drainError });
+      }
+    }
+
+    return true;
   } catch {
     return false;
   }

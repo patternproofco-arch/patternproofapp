@@ -61,6 +61,23 @@ export async function enqueueTeamInvitation(input: TeamInvitationInput) {
     payload: message.payload as Json,
   });
   if (error) throw new Error("Invitation created, but the email could not be queued.");
+
+  // Send immediately rather than waiting on a scheduler — there is no cron
+  // trigger wired up to drain this queue any other way.
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (apiKey) {
+    const { drainEmailQueues } = await import("@/lib/email-queue-drain.server");
+    try {
+      await drainEmailQueues(supabaseAdmin, apiKey, process.env.LOVABLE_SEND_URL);
+    } catch (drainError) {
+      console.error("Immediate drain after enqueue failed", { drainError });
+    }
+  } else {
+    console.error(
+      "LOVABLE_API_KEY not configured — invitation email will not send until drained manually",
+    );
+  }
+
   return { acceptUrl: message.acceptUrl };
 }
 

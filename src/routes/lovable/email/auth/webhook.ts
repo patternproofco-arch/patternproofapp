@@ -10,6 +10,7 @@ import { MagicLinkEmail } from '@/lib/email-templates/magic-link'
 import { RecoveryEmail } from '@/lib/email-templates/recovery'
 import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
+import { drainEmailQueues } from '@/lib/email-queue-drain.server'
 
 const EMAIL_SUBJECTS: Record<string, string> = {
   signup: 'Confirm your email',
@@ -213,6 +214,14 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           email_redacted: redactEmail(payload.data.email),
           run_id,
         })
+
+        // Send immediately rather than waiting on a scheduler — there is no
+        // cron trigger wired up to drain this queue any other way.
+        try {
+          await drainEmailQueues(supabase, apiKey, process.env.LOVABLE_SEND_URL)
+        } catch (error) {
+          console.error('Immediate drain after enqueue failed', { error })
+        }
 
         return Response.json({ success: true, queued: true })
       },

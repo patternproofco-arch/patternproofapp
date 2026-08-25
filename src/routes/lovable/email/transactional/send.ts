@@ -3,6 +3,7 @@ import { render } from '@react-email/render'
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { TEMPLATES } from '@/lib/email-templates/registry'
+import { drainEmailQueues } from '@/lib/email-queue-drain.server'
 
 // Configuration baked in at scaffold time
 const SITE_NAME = "patternproofapp"
@@ -55,8 +56,9 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
       POST: async ({ request }) => {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+        const apiKey = process.env.LOVABLE_API_KEY
 
-        if (!supabaseUrl || !supabaseServiceKey) {
+        if (!supabaseUrl || !supabaseServiceKey || !apiKey) {
           console.error('Missing required environment variables')
           return Response.json(
             { error: 'Server configuration error' },
@@ -426,6 +428,14 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           templateName,
           recipient_redacted: redactEmail(effectiveRecipient),
         })
+
+        // Send immediately rather than waiting on a scheduler — there is no
+        // cron trigger wired up to drain this queue any other way.
+        try {
+          await drainEmailQueues(supabase, apiKey, process.env.LOVABLE_SEND_URL)
+        } catch (error) {
+          console.error('Immediate drain after enqueue failed', { error })
+        }
 
         return Response.json({ success: true, queued: true })
       },
