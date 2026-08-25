@@ -1984,10 +1984,11 @@ export type Database = {
           expires_at: string
           firm_id: string
           id: string
-          invite_token: string
+          invite_token: string | null
           invited_by: string
           role: string
           status: string
+          token_hash: string | null
         }
         Insert: {
           accepted_at?: string | null
@@ -1997,10 +1998,11 @@ export type Database = {
           expires_at?: string
           firm_id: string
           id?: string
-          invite_token: string
+          invite_token?: string | null
           invited_by: string
           role?: string
           status?: string
+          token_hash?: string | null
         }
         Update: {
           accepted_at?: string | null
@@ -2010,10 +2012,11 @@ export type Database = {
           expires_at?: string
           firm_id?: string
           id?: string
-          invite_token?: string
+          invite_token?: string | null
           invited_by?: string
           role?: string
           status?: string
+          token_hash?: string | null
         }
         Relationships: [
           {
@@ -2628,11 +2631,12 @@ export type Database = {
           email: string
           expires_at: string
           id: string
-          invite_token: string
+          invite_token: string | null
           invited_by: string
           org_id: string
           role: string
           status: string
+          token_hash: string | null
         }
         Insert: {
           accepted_at?: string | null
@@ -2641,11 +2645,12 @@ export type Database = {
           email: string
           expires_at?: string
           id?: string
-          invite_token: string
+          invite_token?: string | null
           invited_by: string
           org_id: string
           role?: string
           status?: string
+          token_hash?: string | null
         }
         Update: {
           accepted_at?: string | null
@@ -2654,11 +2659,12 @@ export type Database = {
           email?: string
           expires_at?: string
           id?: string
-          invite_token?: string
+          invite_token?: string | null
           invited_by?: string
           org_id?: string
           role?: string
           status?: string
+          token_hash?: string | null
         }
         Relationships: [
           {
@@ -2728,6 +2734,54 @@ export type Database = {
           incident_count_at_time?: number
           model_used?: string | null
           reviewed_status?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      proposed_incidents: {
+        Row: {
+          batch_id: string
+          confidence_notes: string[]
+          created_at: string
+          date_certainty: string
+          draft: Json
+          id: string
+          model: string | null
+          sort_key: string | null
+          source_evidence_ids: string[]
+          source_summary: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          batch_id: string
+          confidence_notes?: string[]
+          created_at?: string
+          date_certainty?: string
+          draft?: Json
+          id?: string
+          model?: string | null
+          sort_key?: string | null
+          source_evidence_ids?: string[]
+          source_summary?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          batch_id?: string
+          confidence_notes?: string[]
+          created_at?: string
+          date_certainty?: string
+          draft?: Json
+          id?: string
+          model?: string | null
+          sort_key?: string | null
+          source_evidence_ids?: string[]
+          source_summary?: string | null
+          status?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -2898,6 +2952,7 @@ export type Database = {
           id: string
           is_active: boolean
           notes: string | null
+          org_id: string | null
           org_name: string
           org_user_id: string | null
           request_id: string | null
@@ -2909,6 +2964,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           notes?: string | null
+          org_id?: string | null
           org_name: string
           org_user_id?: string | null
           request_id?: string | null
@@ -2920,11 +2976,19 @@ export type Database = {
           id?: string
           is_active?: boolean
           notes?: string | null
+          org_id?: string | null
           org_name?: string
           org_user_id?: string | null
           request_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "referral_links_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "referral_links_request_id_fkey"
             columns: ["request_id"]
@@ -3470,6 +3534,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_firm_member_invitation: {
+        Args: { p_email: string; p_token_hash: string; p_user_id: string }
+        Returns: string
+      }
+      accept_org_member_invitation: {
+        Args: { p_email: string; p_token_hash: string; p_user_id: string }
+        Returns: string
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
