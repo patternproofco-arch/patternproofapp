@@ -103,9 +103,9 @@ function ForAttorneys() {
             margin: 0,
           }}
         >
-          Smoother days,
+          Review an organized case timeline,
           <br />
-          <em>not just faster invoices.</em>
+          <em>without rebuilding it yourself.</em>
         </h1>
         <p
           style={{
@@ -116,7 +116,7 @@ function ForAttorneys() {
             maxWidth: 640,
           }}
         >
-          Less time buried in scattered files. More of your day spent on the actual case.
+          PatternProof turns client approved photos, messages, notes, and dates into a source-linked chronology you can review.
         </p>
         <div
           style={{
@@ -206,7 +206,7 @@ function ForAttorneys() {
             borderRadius: "var(--pp-r-pill)",
           }}
         >
-          Try the demo →
+          View the Attorney Demo →
         </Link>
         <div
           style={{

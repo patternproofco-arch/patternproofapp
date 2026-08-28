@@ -79,9 +79,9 @@ function ForOrganizations() {
             margin: 0,
           }}
         >
-          Smoother days.
+          Survivors document once.
           <br />
-          <em>More people served.</em>
+          <em>Approved staff review one organized record.</em>
         </h1>
         <p
           style={{
@@ -92,8 +92,8 @@ function ForOrganizations() {
             maxWidth: 640,
           }}
         >
-          Less time on paperwork no one but your funder sees. More time with the person in front of
-          you.
+          PatternProof helps survivors organize their history privately, then share it with your team
+          only when they choose.
         </p>
         <Link
           to="/org-signup"
@@ -111,7 +111,7 @@ function ForOrganizations() {
             borderRadius: "var(--pp-r-pill)",
           }}
         >
-          See how it fits your program →
+          Request a Program Review →
         </Link>
       </section>
 
