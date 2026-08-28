@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ThreadGroup } from "@/components/ThreadConnector";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { useEffect, useState } from "react";
 import { buildTiers } from "@/lib/pricing-tiers";
@@ -222,7 +223,7 @@ function ForAttorneys() {
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 24px 80px" }}>
         <SectionRule label="Before / after" />
-        <div style={{ display: "grid", gap: 16 }}>
+        <ThreadGroup persona="attorney" orientation="vertical-behind" style={{ display: "grid", gap: 16 }}>
           <BeforeAfter
             label="Getting the records"
             before="Scattered across email, text exports, and files. Hours of sorting before you can start reading."
@@ -238,7 +239,7 @@ function ForAttorneys() {
             before="Days spent organizing before the legal work even begins."
             after="Review starts the day the file arrives."
           />
-        </div>
+        </ThreadGroup>
 
         <div style={{ marginTop: 40, display: "grid", gap: 14, maxWidth: 720 }}>
           <p

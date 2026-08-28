@@ -5,6 +5,7 @@ import type { ComponentType, ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Link } from "@tanstack/react-router";
 import { BrandLogo } from "@/components/BrandLogo";
+import { ThreadConnector, ThreadGroup } from "@/components/ThreadConnector";
 import { BrandMark } from "@/components/BrandMark";
 import {
   Briefcase,
@@ -316,7 +317,8 @@ function Index() {
             title="Choose the path that fits you."
             style={{ marginTop: 56 }}
           >
-            <div
+            <ThreadGroup
+              persona="shared"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
@@ -326,7 +328,7 @@ function Index() {
             >
               <PathCard
                 accent="var(--pp-accent-survivor)"
-                accentBg="var(--pp-accent-survivor-gradient, linear-gradient(135deg, #EBA4E2 0%, #A5BAF2 100%))"
+                accentBg="var(--pp-accent-survivor-gradient)"
                 iconColor={INK}
                 icon={FileText}
                 label="Survivor"
@@ -350,7 +352,7 @@ function Index() {
                 to="/for-organizations"
                 cta="See how it fits your program →"
               />
-            </div>
+            </ThreadGroup>
           </Section>
 
           {/* ───────────────────────── How it works ───────────────────────── */}
@@ -358,7 +360,8 @@ function Index() {
 
           {/* ───────────────────────── Safety built in ───────────────────────── */}
           <Section eyebrow="Safety built in" title="Designed for the moment you need it most.">
-            <div
+            <ThreadGroup
+              persona="shared"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -385,7 +388,7 @@ function Index() {
                 title="Protected, in transit"
                 body="Your documentation is encrypted in transit and protected by per-user access controls, on every plan. At-rest encryption is a property of our infrastructure host that we have not independently audited."
               />
-            </div>
+            </ThreadGroup>
           </Section>
 
           {/* ───────────────────────── Testimonials ───────────────────────── */}
@@ -569,38 +572,6 @@ function Section({
   );
 }
 
-const HIW_PURPLE = "#5B4EA6";
-const HIW_BLUE = "#0F2BB8";
-
-function Squiggle({ id }: { id: string }) {
-  return (
-    <div style={{ flex: 1, width: 40, minHeight: 48, display: "flex", justifyContent: "center" }}>
-      <svg
-        width="40"
-        height="100%"
-        viewBox="0 0 40 90"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-        style={{ display: "block", overflow: "visible" }}
-      >
-        <defs>
-          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={HIW_PURPLE} />
-            <stop offset="100%" stopColor={HIW_BLUE} />
-          </linearGradient>
-        </defs>
-        <path
-          d="M20 0 Q36 15 20 30 Q4 45 20 60 Q36 75 20 90"
-          fill="none"
-          stroke={`url(#${id})`}
-          strokeWidth={3}
-          strokeLinecap="round"
-        />
-      </svg>
-    </div>
-  );
-}
-
 function HowItWorks() {
   const steps = [
     {
@@ -629,7 +600,7 @@ function HowItWorks() {
           letterSpacing: "0.16em",
           textTransform: "uppercase",
           fontWeight: 700,
-          color: HIW_PURPLE,
+          color: "var(--pp-accent-shared)",
           marginBottom: 8,
         }}
       >
@@ -675,12 +646,12 @@ function HowItWorks() {
                     fontFamily: "var(--font-serif)",
                     fontWeight: 500,
                     fontSize: 20,
-                    color: HIW_PURPLE,
+                    color: "var(--pp-accent-shared)",
                   }}
                 >
                   {s.n}
                 </div>
-                {!last && <Squiggle id={`hiw-squiggle-${s.n}`} />}
+                {!last && <ThreadConnector persona="shared" />}
               </div>
 
               <div className="card-pp" style={{ padding: "18px 24px", alignSelf: "start" }}>

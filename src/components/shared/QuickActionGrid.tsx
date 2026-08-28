@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
+import { ThreadGroup, type ThreadPersona } from "@/components/ThreadConnector";
 import { portalTheme, neuShadow, type PortalVariant } from "./portal-theme";
 
 export interface QuickAction {
@@ -21,8 +22,11 @@ export function QuickActionGrid({
   const t = portalTheme(variant);
   const shadow = neuShadow();
   const cols = Math.max(2, Math.ceil(actions.length / 2));
+  const persona: ThreadPersona =
+    variant === "advocate" ? "org" : variant === "attorney" ? "attorney" : "survivor";
   return (
-    <div
+    <ThreadGroup
+      persona={persona}
       style={{
         display: "grid",
         gap: 10,
@@ -68,6 +72,6 @@ export function QuickActionGrid({
           </Link>
         );
       })}
-    </div>
+    </ThreadGroup>
   );
 }

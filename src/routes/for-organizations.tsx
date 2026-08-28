@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ThreadGroup } from "@/components/ThreadConnector";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 /**
@@ -116,7 +117,7 @@ function ForOrganizations() {
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 24px 80px" }}>
         <SectionRule label="Before / after" />
-        <div style={{ display: "grid", gap: 16 }}>
+        <ThreadGroup persona="org" orientation="vertical-behind" style={{ display: "grid", gap: 16 }}>
           <BeforeAfter
             label="Intake"
             before="The survivor repeats their story to multiple staff members. Notes end up inconsistent across the team."
@@ -132,7 +133,7 @@ function ForOrganizations() {
             before="Capacity is capped by hours spent per file — not by how many people are asking for help."
             after="Same staff, more room for the people already reaching out."
           />
-        </div>
+        </ThreadGroup>
       </section>
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 80px" }}>
