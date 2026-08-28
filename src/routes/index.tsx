@@ -26,11 +26,11 @@ export const Route = createFileRoute("/")({
     typeof search.ref === "string" ? { ref: search.ref } : {},
   head: () => ({
     meta: [
-      { title: "PatternProof — Turn scattered evidence into structured patterns" },
+      { title: "PatternProof — Organize evidence into one clear timeline" },
       {
         name: "description",
         content:
-          "Private documentation software that turns scattered evidence into organized patterns. Free for survivors. Free for DV organizations.",
+          "Organize photos, messages, voice notes, and written entries into one private, source-linked timeline you control.",
       },
       { property: "og:title", content: "PatternProof — The truth is in the pattern." },
       {
@@ -166,10 +166,10 @@ function Index() {
             </>
           ) : (
             <>
-              The file is not the story.
+              Document what happened.
               <br />
               <em>
-                <span className="highlight-thread">The pattern is.</span>
+                <span className="highlight-thread">See the full pattern.</span>
               </em>
             </>
           )}
@@ -216,16 +216,14 @@ function Index() {
                 maxWidth: 620,
               }}
             >
-              Private documentation that turns scattered evidence into a structured, source-linked
-              pattern.{" "}
-              <span style={{ color: "var(--pp-accent)" }}>Free for survivors.</span>
+              PatternProof organizes your photos, messages, voice notes, and written entries into one
+              clear, source-linked timeline.
             </p>
             <p
               style={{ marginTop: 14, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
             >
-              Photos, messages, and voice notes stay encrypted in transit and private — nothing is
-              ever shared until you choose to share it. Free for survivors. Free for DV
-              organizations. Built by someone who lived it.
+              You decide what to add, what to share, and who can see it. Survivor accounts are free,
+              with no trial or credit card.
             </p>
             <div
               style={{
@@ -237,14 +235,14 @@ function Index() {
               }}
             >
               <Link to="/signup" className="btn-primary" style={{ textDecoration: "none" }}>
-                Start Documenting — Free
+                Create My Free Account
               </Link>
               <Link to="/demo" className="btn-ghost" style={{ textDecoration: "none" }}>
                 Try the demo →
               </Link>
             </div>
             <p style={{ marginTop: 12, fontSize: 12.5, color: INK_3 }}>
-              No credit card · No obligation · 100% private
+              Free for survivors · Private by default · You control sharing
             </p>
           </>
         )}
@@ -288,11 +286,11 @@ function Index() {
                   color: INK,
                 }}
               >
-                Document your story, privately.
+                Your documentation, organized in one place.
               </h3>
               <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.6, color: INK_2 }}>
-                Photos, messages, voice notes — timestamped and encrypted in transit. Share only
-                when you choose.
+                Add photos, messages, voice notes, and written entries. PatternProof keeps each item tied
+                to its date and source.
               </p>
               <Link
                 to="/signup"
@@ -332,7 +330,7 @@ function Index() {
                 iconColor={INK}
                 icon={FileText}
                 label="Survivor"
-                body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
+                body="Create a private, organized timeline from photos, messages, voice notes, and written entries."
                 to="/signup"
                 cta="Start documenting →"
               />
@@ -340,7 +338,7 @@ function Index() {
                 accent="var(--pp-accent-attorney)"
                 icon={Briefcase}
                 label="Attorney"
-                body="A source-linked chronology on day one, with chain of custody intact — prep starts with strategy, not sorting."
+                body="Review a dated, source-linked chronology instead of sorting screenshots and files by hand."
                 to="/demo"
                 cta="Try the demo →"
               />
@@ -348,7 +346,7 @@ function Index() {
                 accent="var(--pp-accent-org)"
                 icon={Users}
                 label="DV Organization"
-                body="A free intake tool for your advocates — the survivor documents once, referrals arrive clean, at no cost to your program."
+                body="Let survivors document once and share an organized record with approved staff when they choose."
                 to="/for-organizations"
                 cta="See how it fits your program →"
               />
