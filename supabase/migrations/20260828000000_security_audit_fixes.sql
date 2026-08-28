@@ -94,3 +94,26 @@ WHERE id = 'conversation-recordings';
 UPDATE storage.buckets
 SET file_size_limit = 209715200 -- 200 MB
 WHERE id = 'message-exports';
+
+/* ---------------------------------------------------------------------- */
+/* 4. AI chat rate limiting                                                */
+/* ---------------------------------------------------------------------- */
+
+-- sidekickChat (src/lib/ai-chat.functions.ts) had no per-user throttle at
+-- all against the shared AI-gateway key. Internal counter table only —
+-- service-role access exclusively, same pattern as clio_oauth_states /
+-- email_relay_attempts (RLS enabled, no policies = deny-all to
+-- anon/authenticated, service role bypasses RLS).
+CREATE TABLE IF NOT EXISTS public.ai_chat_requests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ai_chat_requests_user_created_idx
+  ON public.ai_chat_requests (user_id, created_at DESC);
+ALTER TABLE public.ai_chat_requests ENABLE ROW LEVEL SECURITY;
+GRANT ALL ON public.ai_chat_requests TO service_role;
+-- Rows only need to answer "how many in the last minute" and this table has
+-- no scheduled cleanup job in this codebase today — if it's added to a
+-- pg_cron schedule later, `DELETE FROM ai_chat_requests WHERE created_at <
+-- now() - interval '1 day'` is all it needs.

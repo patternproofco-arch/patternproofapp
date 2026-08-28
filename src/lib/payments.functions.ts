@@ -32,12 +32,25 @@ async function resolveOrCreateCustomer(
     const existing = await stripe.customers.list({ email: options.email, limit: 1 });
     if (existing.data.length) {
       const customer = existing.data[0];
-      if (options.userId && customer.metadata?.userId !== options.userId) {
-        await stripe.customers.update(customer.id, {
-          metadata: { ...customer.metadata, userId: options.userId },
-        });
+      const existingUserId = customer.metadata?.userId;
+      // Only attach ownership when the customer isn't already claimed by a
+      // DIFFERENT account. Blindly overwriting metadata.userId here would
+      // reassign an existing Stripe customer (and whatever subscription is
+      // attached to it) to whoever next checks out with a matching email —
+      // a real risk if a stale/orphaned customer record shares an email with
+      // a new account. If it's already claimed by someone else, fall through
+      // and create a fresh customer instead of reusing this one.
+      if (!existingUserId) {
+        if (options.userId) {
+          await stripe.customers.update(customer.id, {
+            metadata: { ...customer.metadata, userId: options.userId },
+          });
+        }
+        return customer.id;
       }
-      return customer.id;
+      if (!options.userId || existingUserId === options.userId) {
+        return customer.id;
+      }
     }
   }
   const created = await stripe.customers.create({
@@ -451,7 +464,18 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
         .order("created_at"),
     ]);
     const incidents = incRes.data ?? [];
-    const evidence = evRes.data ?? [];
+    // Quarantined GPS fields must never leave the survivor's own account —
+    // export-zip.functions.ts (the survivor's own export) already strips
+    // these; this attorney-facing packet previously did not, so EXIF GPS
+    // coordinates for every evidence item (not just ones the survivor opted
+    // to reveal) landed unfiltered in evidence.csv.
+    const evidence = (evRes.data ?? []).map((e) => {
+      const clone = { ...(e as Record<string, unknown>) };
+      delete clone.gps_lat;
+      delete clone.gps_lon;
+      delete clone.gps_reveal_opt_in;
+      return clone;
+    });
     const comms = commsRes.data ?? [];
     const latestAnalysis = paRes.data?.[0];
     const latestCase = casesRes.data?.[0];

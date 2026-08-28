@@ -157,7 +157,7 @@ export const verifyPinServer = createServerFn({ method: "POST" })
       .from("user_security_settings")
       .update({ pin_failed_attempts: fails, pin_locked_until: lockedUntil })
       .eq("user_id", context.userId);
-    return { result: (lockedUntil ? "locked-out" : "wrong") as const };
+    return { result: lockedUntil ? ("locked-out" as const) : ("wrong" as const) };
   });
 
 export const setBiometricEnabled = createServerFn({ method: "POST" })
