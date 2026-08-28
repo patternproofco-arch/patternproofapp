@@ -2,6 +2,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+async function verifiedAccountEmail(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+  const email = data.user?.email?.trim().toLowerCase();
+  if (error || !email || !data.user.email_confirmed_at) {
+    throw new Error("A verified account email is required to accept this invitation.");
+  }
+  return email;
+}
+
 /**
  * DV organization advocate access.
  *
@@ -206,8 +216,10 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
     if (inv.status !== "pending") throw new Error("Invitation no longer valid");
     if (inv.expires_at && new Date(inv.expires_at) < new Date()) throw new Error("Invitation expired");
 
-    const jwtEmail = (context.claims as { email?: string } | undefined)?.email?.toLowerCase();
-    if (!jwtEmail || jwtEmail !== String(inv.advocate_email).toLowerCase()) {
+    // Verified (not just claimed) email, so a link that leaks to the wrong
+    // inbox can't be redeemed by someone who never actually owns that address.
+    const jwtEmail = await verifiedAccountEmail(context.userId);
+    if (jwtEmail !== String(inv.advocate_email).toLowerCase()) {
       throw new Error("This invitation was sent to a different email address.");
     }
 
@@ -245,6 +257,7 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
           include_all_evidence: inv.include_all_evidence,
           include_patterns: inv.include_patterns,
           case_id: inv.case_id ?? null,
+          expires_at: inv.expires_at ?? null,
         })
         .eq("id", linkId);
     } else {
@@ -260,6 +273,7 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
           scope_incidents: inv.scope_incidents,
           scope_evidence: inv.scope_evidence,
           case_id: inv.case_id ?? null,
+          expires_at: inv.expires_at ?? null,
           status: "active",
         })
         .select("id")
@@ -336,11 +350,31 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: link } = await supabaseAdmin
       .from("advocate_client_links")
-      .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,created_at,invitation_id")
+      .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,created_at,invitation_id,expires_at")
       .eq("advocate_user_id", context.userId)
       .eq("client_user_id", data.clientId)
       .maybeSingle();
-    if (!link || link.status !== "active") throw new Error("No active access");
+    const expired = !!link?.expires_at && new Date(link.expires_at).getTime() < Date.now();
+    if (!link || link.status !== "active" || expired) throw new Error("No active access");
+
+    // Provenance: record that this advocate opened the case file. Mirrors
+    // the attorney-side case.viewed_by_professional event — previously only
+    // the one-time "access granted" event existed on this side, so repeated
+    // or anomalous access after the fact was invisible to the survivor.
+    await supabaseAdmin
+      .rpc("record_audit_event", {
+        p_user_id: data.clientId,
+        p_event_type: "case.viewed_by_advocate",
+        p_subject_kind: "case",
+        p_subject_id: undefined,
+        p_actor_kind: "advocate",
+        p_actor_id: context.userId,
+        p_meta: { link_id: link.id ?? null },
+      })
+      .then(
+        () => undefined,
+        (e: unknown) => console.error("[audit] advocate case view log failed", e),
+      );
 
     let includeAllIncidents = link.include_all_incidents;
     let includeAllEvidence = link.include_all_evidence;
@@ -397,8 +431,17 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       | { analysis: any; reviewed_status?: any; created_at?: string }
       | null;
+    // When this grant is case-scoped, also restrict pattern analysis to the
+    // incidents actually granted — the analysis row is generated once per
+    // account across ALL incidents, so without this an advocate given access
+    // to just one case could still see narrative/severity claims drawn from
+    // a case the survivor deliberately did not share.
     const gatedPattern = rawPattern
-      ? buildPatternExport(rawPattern.analysis, rawPattern.reviewed_status)
+      ? buildPatternExport(
+          rawPattern.analysis,
+          rawPattern.reviewed_status,
+          link.case_id ? scopedIncidents : null,
+        )
       : null;
     const patternForAdvocate =
       rawPattern && gatedPattern && Object.keys(gatedPattern.redactedAnalysis).length > 0

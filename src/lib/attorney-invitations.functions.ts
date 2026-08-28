@@ -2,6 +2,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+async function verifiedAccountEmail(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+  const email = data.user?.email?.trim().toLowerCase();
+  if (error || !email || !data.user.email_confirmed_at) {
+    throw new Error("A verified account email is required to accept this invitation.");
+  }
+  return email;
+}
+
 /* ---------- survivor side: invitations ---------- */
 
 export const createInvitation = createServerFn({ method: "POST" })
@@ -17,6 +27,12 @@ export const createInvitation = createServerFn({ method: "POST" })
       include_all_incidents: z.boolean().default(true),
       include_all_evidence: z.boolean().default(true),
       include_patterns: z.boolean().default(true),
+      // Voice notes, communications, and legal documents default to false —
+      // sharing them requires explicit opt-in, unlike the three categories
+      // above which predate this consent model.
+      include_voice_notes: z.boolean().default(false),
+      include_communications: z.boolean().default(false),
+      include_legal_documents: z.boolean().default(false),
       expires_days: z.number().int().min(1).max(365).default(30),
       case_id: z.string().uuid().optional().nullable(),
     }).parse(input),
@@ -50,6 +66,9 @@ export const createInvitation = createServerFn({ method: "POST" })
         include_all_incidents: data.include_all_incidents,
         include_all_evidence: data.include_all_evidence,
         include_patterns: data.include_patterns,
+        include_voice_notes: data.include_voice_notes,
+        include_communications: data.include_communications,
+        include_legal_documents: data.include_legal_documents,
         expires_at: expires,
         case_id: scopedCaseId,
       })
@@ -70,7 +89,7 @@ export const listMyInvitations = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     const { data: links } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id,attorney_user_id,invitation_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,deposition_prep_consent,deposition_prep_consent_at,clio_share_consent,clio_share_consent_at,case_id")
+      .select("id,attorney_user_id,invitation_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,deposition_prep_consent,deposition_prep_consent_at,clio_share_consent,clio_share_consent_at,case_id")
       .eq("client_user_id", context.userId)
       .order("created_at", { ascending: false });
     const attorneyIds = (links ?? []).map((l) => l.attorney_user_id);
@@ -155,7 +174,7 @@ export const peekInvitation = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: inv } = await supabaseAdmin
       .from("attorney_invitations")
-      .select("id,attorney_email,attorney_name,status,expires_at,include_all_incidents,include_all_evidence,include_patterns,case_id")
+      .select("id,attorney_email,attorney_name,status,expires_at,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,case_id")
       .eq("invite_token", data.token)
       .maybeSingle();
     if (!inv) return { status: "not-found" as const };
@@ -187,9 +206,13 @@ export const acceptInvitation = createServerFn({ method: "POST" })
     if (inv.status !== "pending") throw new Error("Invitation no longer valid");
     if (inv.expires_at && new Date(inv.expires_at) < new Date()) throw new Error("Invitation expired");
 
-    // Verify the authenticated user's email matches the invitation's attorney_email.
-    const jwtEmail = (context.claims as { email?: string } | undefined)?.email?.toLowerCase();
-    if (!jwtEmail || jwtEmail !== String(inv.attorney_email).toLowerCase()) {
+    // Verify the authenticated user's email matches the invitation's
+    // attorney_email AND that this account's email is actually confirmed —
+    // otherwise anyone who obtains the link (forwarded email, shared device,
+    // phished from the survivor) could sign up with that address and accept
+    // it without ever proving inbox ownership.
+    const jwtEmail = await verifiedAccountEmail(context.userId);
+    if (jwtEmail !== String(inv.attorney_email).toLowerCase()) {
       throw new Error("This invitation was sent to a different email address.");
     }
 
@@ -211,7 +234,11 @@ export const acceptInvitation = createServerFn({ method: "POST" })
         include_all_incidents: inv.include_all_incidents,
         include_all_evidence: inv.include_all_evidence,
         include_patterns: inv.include_patterns,
+        include_voice_notes: inv.include_voice_notes,
+        include_communications: inv.include_communications,
+        include_legal_documents: inv.include_legal_documents,
         case_id: inv.case_id ?? null,
+        expires_at: inv.expires_at ?? null,
         status: "active",
       })
       .select("id,client_user_id")

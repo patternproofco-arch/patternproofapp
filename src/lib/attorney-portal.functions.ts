@@ -1,8 +1,22 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { isAttorneyEntitled } from "@/lib/payments.functions";
 
 /* ------------------------- shared helpers ------------------------- */
+
+/**
+ * Entitlement was previously enforced only in the UI (getAttorneyEntitlement
+ * driving a paywall screen) and on the two ZIP-export endpoints. Every other
+ * case-data server function trusted the client to have already checked —
+ * meaning a direct call to any of them (bypassing the React paywall gate)
+ * returned full case data to an unsubscribed attorney. This makes the check
+ * unavoidable at the data layer itself.
+ */
+async function assertEntitled(attorneyId: string, clientId: string) {
+  const ent = await isAttorneyEntitled(attorneyId, clientId);
+  if (!ent.entitled) throw new Error("An active attorney subscription is required.");
+}
 
 async function assertAttorney(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -67,17 +81,25 @@ async function verifiedFirmGrantLinkIds(
   );
 }
 
+/** True once a grant's expiry has passed. Expired access is treated the same as revoked. */
+function isExpired(expiresAt: string | null | undefined): boolean {
+  return !!expiresAt && new Date(expiresAt).getTime() < Date.now();
+}
+
+const LINK_COLUMNS =
+  "id,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,scope_incidents,scope_evidence,case_id,expires_at";
+
 async function assertLink(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("attorney_client_links")
-    .select(
-      "id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id",
-    )
+    .select(LINK_COLUMNS)
     .eq("attorney_user_id", attorneyId)
     .eq("client_user_id", clientId)
     .maybeSingle();
-  if (!data || data.status !== "active") throw new Error("No active access");
+  if (!data || data.status !== "active" || isExpired(data.expires_at)) {
+    throw new Error("No active access");
+  }
   await applyCaseScope(data, clientId);
   return data;
 }
@@ -136,11 +158,15 @@ async function assertCaseAccess(
     include_all_incidents: boolean;
     include_all_evidence: boolean;
     include_patterns: boolean;
+    include_voice_notes: boolean;
+    include_communications: boolean;
+    include_legal_documents: boolean;
     scope_incidents: string[] | null;
     scope_evidence: string[] | null;
     scope_legal_documents?: string[];
     scope_threads?: string[];
     case_id?: string | null;
+    expires_at?: string | null;
   };
   role: "owner" | "collaborator";
   collabRole?: "paralegal" | "associate" | "attorney";
@@ -148,13 +174,11 @@ async function assertCaseAccess(
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: owner } = await supabaseAdmin
     .from("attorney_client_links")
-    .select(
-      "id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id",
-    )
+    .select(LINK_COLUMNS)
     .eq("attorney_user_id", userId)
     .eq("client_user_id", clientId)
     .maybeSingle();
-  if (owner && owner.status === "active") {
+  if (owner && owner.status === "active" && !isExpired(owner.expires_at)) {
     await applyCaseScope(owner, clientId);
     return { link: owner, role: "owner" };
   }
@@ -180,14 +204,12 @@ async function assertCaseAccess(
 
   const { data: link } = await supabaseAdmin
     .from("attorney_client_links")
-    .select(
-      "id,attorney_user_id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,client_user_id,case_id",
-    )
+    .select(`${LINK_COLUMNS},attorney_user_id,client_user_id`)
     .in("id", candidateLinkIds)
     .eq("client_user_id", clientId)
     .eq("status", "active")
     .maybeSingle();
-  if (!link) throw new Error("No active access");
+  if (!link || isExpired(link.expires_at)) throw new Error("No active access");
   await applyCaseScope(link, clientId);
   const collabRole = (collabRows ?? []).find((c) => c.link_id === link.id)?.role as
     "paralegal" | "associate" | "attorney" | undefined;
@@ -211,12 +233,15 @@ async function assertLinkParticipant(
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: link } = await supabaseAdmin
     .from("attorney_client_links")
-    .select("id,attorney_user_id,client_user_id,status")
+    .select("id,attorney_user_id,client_user_id,status,expires_at")
     .eq("id", linkId)
     .maybeSingle();
   if (!link || link.status !== "active") throw new Error("No active link");
-  if (link.attorney_user_id === userId) return { link, role: "owner" };
   if (link.client_user_id === userId) return { link, role: "survivor" };
+  // Expiry only gates the attorney side — the survivor can always reach her
+  // own thread even after a grant window she set has lapsed.
+  if (isExpired(link.expires_at)) throw new Error("No active link");
+  if (link.attorney_user_id === userId) return { link, role: "owner" };
   const { data: collab } = await supabaseAdmin
     .from("case_collaborators")
     .select("id")
@@ -815,6 +840,7 @@ export const getClientCase = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { link } = await assertCaseAccess(context.userId, data.clientId);
+    await assertEntitled(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Provenance: record that this professional opened the case file.
     await supabaseAdmin
@@ -896,47 +922,58 @@ export const getClientCase = createServerFn({ method: "POST" })
               .in("incident_id", scopedIncidentIds)
               .order("created_at", { ascending: false })
           : Promise.resolve({ data: [] }),
-      isCaseScoped
-        ? Promise.resolve({ data: [] })
-        : supabaseAdmin
+      // Voice notes have no case-level scoping mechanism (a case only tracks
+      // highlighted incidents/evidence), so this is consent-flag-only — and
+      // the flag defaults to false. Previously this ran unconditionally
+      // whenever the invite wasn't scoped to a single case, regardless of
+      // whether the survivor ever agreed to share voice notes at all.
+      link.include_voice_notes
+        ? supabaseAdmin
             .from("voice_notes")
             .select("id,title,date,transcript,duration_seconds")
             .eq("user_id", data.clientId)
-            .order("date", { ascending: false }),
-      isCaseScoped
-        ? scopedIncidentIds.length
-          ? supabaseAdmin
+            .order("date", { ascending: false })
+        : Promise.resolve({ data: [] }),
+      !link.include_communications
+        ? Promise.resolve({ data: [] })
+        : isCaseScoped
+          ? scopedIncidentIds.length
+            ? supabaseAdmin
+                .from("communications")
+                .select(
+                  "id,date,time,direction,channel,from_party,content,harassment_flag,linked_incident_id",
+                )
+                .eq("user_id", data.clientId)
+                .in("linked_incident_id", scopedIncidentIds)
+                .order("date", { ascending: false })
+            : Promise.resolve({ data: [] })
+          : supabaseAdmin
               .from("communications")
               .select(
                 "id,date,time,direction,channel,from_party,content,harassment_flag,linked_incident_id",
               )
               .eq("user_id", data.clientId)
-              .in("linked_incident_id", scopedIncidentIds)
-              .order("date", { ascending: false })
-          : Promise.resolve({ data: [] })
-        : supabaseAdmin
-            .from("communications")
-            .select(
-              "id,date,time,direction,channel,from_party,content,harassment_flag,linked_incident_id",
-            )
-            .eq("user_id", data.clientId)
-            .order("date", { ascending: false }),
-      isCaseScoped
-        ? scopedLegalDocumentIds.length
-          ? supabaseAdmin
+              .order("date", { ascending: false }),
+      !link.include_legal_documents
+        ? Promise.resolve({ data: [] })
+        : isCaseScoped
+          ? scopedLegalDocumentIds.length
+            ? supabaseAdmin
+                .from("legal_documents")
+                .select(
+                  "id,title,document_type,effective_date,expiration_date,case_number,court_name",
+                )
+                .eq("user_id", data.clientId)
+                .in("id", scopedLegalDocumentIds)
+                .order("effective_date", { ascending: false })
+            : Promise.resolve({ data: [] })
+          : supabaseAdmin
               .from("legal_documents")
               .select(
                 "id,title,document_type,effective_date,expiration_date,case_number,court_name",
               )
               .eq("user_id", data.clientId)
-              .in("id", scopedLegalDocumentIds)
-              .order("effective_date", { ascending: false })
-          : Promise.resolve({ data: [] })
-        : supabaseAdmin
-            .from("legal_documents")
-            .select("id,title,document_type,effective_date,expiration_date,case_number,court_name")
-            .eq("user_id", data.clientId)
-            .order("effective_date", { ascending: false }),
+              .order("effective_date", { ascending: false }),
       isCaseScoped
         ? supabaseAdmin
             .from("cases")
@@ -992,11 +1029,28 @@ export const getClientCase = createServerFn({ method: "POST" })
       return clone as typeof e;
     });
     const flags = escQ.data ?? [];
-    const pattern = (patQ.data ?? null) as {
+    const rawPattern = (patQ.data ?? null) as {
       analysis: AnyJson;
       created_at: string;
       reviewed_status?: AnyJson;
     } | null;
+
+    // Pattern analysis is generated once per account across ALL incidents —
+    // it has no case boundary of its own. Route it through the same
+    // survivor-review gate used for exports, and additionally scope it to
+    // only the incidents this grant actually covers when the link is
+    // case-scoped: otherwise a case-scoped attorney invite (meant to cover
+    // one case) could surface narrative and severity claims drawn from a
+    // case the survivor never shared with this attorney.
+    const { buildPatternExport } = await import("@/lib/pattern-export");
+    const patternScope = isCaseScoped ? scopedIncidentIds : null;
+    const gatedPattern = rawPattern
+      ? buildPatternExport(rawPattern.analysis, rawPattern.reviewed_status, patternScope)
+      : null;
+    const pattern =
+      rawPattern && gatedPattern && Object.keys(gatedPattern.redactedAnalysis).length > 0
+        ? { analysis: gatedPattern.redactedAnalysis, created_at: rawPattern.created_at }
+        : null;
 
     /* ---- behavior categories: derived from structured abuse_types tags,
        not regex on free-text descriptions. This is a simple survivor-logged
@@ -1013,7 +1067,7 @@ export const getClientCase = createServerFn({ method: "POST" })
        abuse_types tags. AI-generated behaviour labels ("abuser_tactics") are
        never surfaced: the app reports frequency only, never interpretation. ---- */
     const patternAnalysis = pattern?.analysis ?? {};
-    const patternReviewedStatus = (pattern?.reviewed_status ?? {}) as Record<string, AnyJson>;
+    const patternReviewedStatus = (rawPattern?.reviewed_status ?? {}) as Record<string, AnyJson>;
     const checklist = Object.entries(categoryCounts)
       .sort(([, a], [, b]) => b - a)
       .map(([type, count]) => ({
@@ -1073,7 +1127,11 @@ export const getClientCase = createServerFn({ method: "POST" })
       });
     }
     // AI pattern-analysis gaps: { gap, suggestion } per pattern-analysis schema.
-    const rawPatternGaps = Array.isArray(patternAnalysis.gaps) ? patternAnalysis.gaps : [];
+    // Not citation-tagged per incident (unlike severity_indicators), so it
+    // can't be verified as scoped to a case-scoped grant's incident subset —
+    // only surfaced for full-account access, same as the narrative fields.
+    const rawPatternGapsSource = isCaseScoped ? [] : (rawPattern?.analysis?.gaps ?? []);
+    const rawPatternGaps = Array.isArray(rawPatternGapsSource) ? rawPatternGapsSource : [];
     for (const g of rawPatternGaps) {
       const label = typeof g === "string" ? g : String((g as AnyJson)?.gap ?? "").trim();
       const suggestion =
@@ -1151,6 +1209,9 @@ export const getClientCase = createServerFn({ method: "POST" })
         include_all_incidents: link.include_all_incidents,
         include_all_evidence: link.include_all_evidence,
         include_patterns: link.include_patterns,
+        include_voice_notes: link.include_voice_notes,
+        include_communications: link.include_communications,
+        include_legal_documents: link.include_legal_documents,
         scoped_incident_count: link.include_all_incidents ? null : scopedIncidentIds.length,
         scoped_evidence_count: link.include_all_evidence ? null : scopedEvidenceIds.length,
         date_range_start: grantRange.start,
@@ -1169,6 +1230,7 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
     const link = await assertLink(context.userId, data.clientId);
+    await assertEntitled(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Survivor-controlled consent to have their own words AI-rephrased into
@@ -1567,6 +1629,7 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { link } = await assertCaseAccess(context.userId, data.clientId);
+    await assertEntitled(context.userId, data.clientId);
     if (!link.include_all_evidence && !(link.scope_evidence ?? []).includes(data.evidenceId)) {
       throw new Error("Evidence not shared for this case");
     }
@@ -1608,6 +1671,7 @@ export const listClientThreads = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { link } = await assertCaseAccess(context.userId, data.clientId);
+    await assertEntitled(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let query = supabaseAdmin
       .from("message_threads")
@@ -1631,6 +1695,7 @@ export const getClientThread = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { link } = await assertCaseAccess(context.userId, data.clientId);
+    await assertEntitled(context.userId, data.clientId);
     if (link.case_id && !(link.scope_threads ?? []).includes(data.threadId)) {
       throw new Error("Thread not shared for this case");
     }
@@ -1649,6 +1714,24 @@ export const getClientThread = createServerFn({ method: "POST" })
       .eq("user_id", data.clientId)
       .order("position", { ascending: true })
       .limit(2000);
+    // Thread content is comparable in sensitivity to an evidence download —
+    // it's often the survivor's messages with the other party — but wasn't
+    // covered by the audit-logging pass that added case-view/evidence/export
+    // events.
+    await supabaseAdmin
+      .rpc("record_audit_event", {
+        p_user_id: data.clientId,
+        p_event_type: "thread.viewed_by_professional",
+        p_subject_kind: "message_thread",
+        p_subject_id: data.threadId,
+        p_actor_kind: "attorney",
+        p_actor_id: context.userId,
+        p_meta: { link_id: link.id ?? null },
+      })
+      .then(
+        () => undefined,
+        (e: unknown) => console.error("[audit] thread view log failed", e),
+      );
     return { thread, messages: messages ?? [] };
   });
 /* ------------------------- firm conflict check ------------------------- */

@@ -61,6 +61,9 @@ function ShareWithAttorney() {
   const [incIncidents, setIncIncidents] = useState(true);
   const [incEvidence, setIncEvidence] = useState(true);
   const [incPatterns, setIncPatterns] = useState(true);
+  const [incVoiceNotes, setIncVoiceNotes] = useState(false);
+  const [incCommunications, setIncCommunications] = useState(false);
+  const [incLegalDocuments, setIncLegalDocuments] = useState(false);
   const [rangeFrom, setRangeFrom] = useState("");
   const [rangeTo, setRangeTo] = useState("");
   const [personalNote, setPersonalNote] = useState("");
@@ -129,6 +132,9 @@ function ShareWithAttorney() {
           include_all_incidents: incIncidents,
           include_all_evidence: incEvidence,
           include_patterns: incPatterns,
+          include_voice_notes: incVoiceNotes,
+          include_communications: incCommunications,
+          include_legal_documents: incLegalDocuments,
           expires_days: days,
           case_id: caseId || null,
         },
@@ -326,6 +332,9 @@ function ShareWithAttorney() {
                 ["Include all logged incidents", incIncidents, setIncIncidents],
                 ["Include uploaded evidence", incEvidence, setIncEvidence],
                 ["Include Recurline", incPatterns, setIncPatterns],
+                ["Include voice notes (with transcripts)", incVoiceNotes, setIncVoiceNotes],
+                ["Include communications log", incCommunications, setIncCommunications],
+                ["Include legal documents", incLegalDocuments, setIncLegalDocuments],
               ].map(([label, val, set]) => (
                 <label
                   key={String(label)}
@@ -431,6 +440,16 @@ function ShareWithAttorney() {
                       {l.include_all_evidence ? "all evidence files" : "selected evidence only"}
                       {" · "}
                       {l.include_patterns ? "Recurline included" : "no Recurline"}
+                      {" · "}
+                      {l.include_voice_notes ? "voice notes included" : "no voice notes"}
+                      {" · "}
+                      {l.include_communications
+                        ? "communications log included"
+                        : "no communications log"}
+                      {" · "}
+                      {l.include_legal_documents
+                        ? "legal documents included"
+                        : "no legal documents"}
                     </div>
                     <div style={{ color: "var(--muted-foreground)", marginTop: 3 }}>
                       When evidence is shared, they can open the actual files — not just titles and

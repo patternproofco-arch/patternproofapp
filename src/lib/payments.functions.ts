@@ -275,7 +275,7 @@ export const recordOrgReferral = createServerFn({ method: "POST" })
  * "The Pilot" (first client free) is marketing copy on the pricing page —
  * full app access requires an active Solo/Firm/Enterprise subscription.
  */
-async function isAttorneyEntitled(
+export async function isAttorneyEntitled(
   attorneyId: string,
   clientId: string,
 ): Promise<{ entitled: boolean; reason: "free" | "subscribed" | "paywall" }> {

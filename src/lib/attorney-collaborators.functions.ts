@@ -1,8 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { isAttorneyEntitled } from "@/lib/payments.functions";
 
 const ROLES = ["paralegal", "associate", "attorney"] as const;
+
+// Unlike firm-team seats (capped at FIRM_SEAT_MAX and gated on an active Firm
+// subscription in firm-grants.functions.ts), per-case collaborator invites had
+// no cap and no subscription check at all — a single Solo-tier (or even
+// unsubscribed) attorney could add unlimited "co-counsel" to one case, each
+// getting full case access, for free. Mirrors the firm-seat cap.
+const COLLABORATOR_SEAT_MAX = 5;
 
 async function assertOwnerLink(userId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -45,7 +53,21 @@ export const inviteCaseCollaborator = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const link = await assertOwnerLink(context.userId, data.clientId);
+    const ent = await isAttorneyEntitled(context.userId, data.clientId);
+    if (!ent.entitled) {
+      throw new Error("An active attorney subscription is required to invite collaborators.");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count } = await supabaseAdmin
+      .from("case_collaborators")
+      .select("id", { count: "exact", head: true })
+      .eq("link_id", link.id)
+      .in("status", ["pending", "active"]);
+    if ((count ?? 0) >= COLLABORATOR_SEAT_MAX) {
+      throw new Error(
+        `This case already has ${COLLABORATOR_SEAT_MAX} collaborators, the maximum allowed.`,
+      );
+    }
     const { data: row, error } = await supabaseAdmin
       .from("case_collaborators")
       .insert({
