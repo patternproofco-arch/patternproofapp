@@ -7,6 +7,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { buildTiers, FIRM_SEAT_MAX, type Tier } from "@/lib/pricing-tiers";
+import { ThreadGroup } from "@/components/ThreadConnector";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -146,7 +147,7 @@ function PricingPage() {
                 width: 6,
                 height: 6,
                 borderRadius: 18,
-                background: "var(--pp-accent-shared, var(--oxblood-deep))",
+                background: "var(--pp-accent-shared)",
               }}
             />
             Simple, transparent pricing
@@ -188,7 +189,8 @@ function PricingPage() {
         </div>
 
         {/* Cards */}
-        <div
+        <ThreadGroup
+          persona="shared"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
@@ -200,7 +202,7 @@ function PricingPage() {
           {tiers.map((tier) => (
             <TierCard key={tier.key} tier={tier} />
           ))}
-        </div>
+        </ThreadGroup>
 
         {/* FAQ */}
         <div style={{ maxWidth: 720, margin: "0 auto" }}>

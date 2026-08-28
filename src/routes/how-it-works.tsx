@@ -300,12 +300,8 @@ function AttorneyFlow({ accent }: { accent: string }) {
       <Eyebrow text="Attorney · What happens" accent={accent} />
       <div
         className="pp-thread"
-        style={
-          {
-            marginTop: 16,
-            "--pp-thread-grad": "linear-gradient(180deg, #3F6DF0, #1B2A6B)",
-          } as React.CSSProperties
-        }
+        data-persona="attorney"
+        style={{ marginTop: 16 }}
       >
         <Step
           n="01"
@@ -342,12 +338,8 @@ function OrgFlow({ accent }: { accent: string }) {
       <Eyebrow text="DV org / advocate · What happens" accent={accent} />
       <div
         className="pp-thread"
-        style={
-          {
-            marginTop: 16,
-            "--pp-thread-grad": "linear-gradient(180deg, #C3DBBC, #8FAF84)",
-          } as React.CSSProperties
-        }
+        data-persona="org"
+        style={{ marginTop: 16 }}
       >
         <Step
           n="01"
