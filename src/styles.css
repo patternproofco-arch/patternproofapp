@@ -807,12 +807,32 @@ textarea.input-pp {
   .pp-legal-sheet { padding: 24px 20px; }
 }
 
-:root {
-  --pp-thread-grad: linear-gradient(180deg, #E5A1E4, #A1BDF3);
+/* ── Connecting thread ─────────────────────────────────────────
+   ONE wavy-connector implementation, site-wide. The gradient is
+   derived from the four LOCKED persona accents — never hardcode a
+   thread color. Any element carrying `data-persona` (including the
+   <ThreadConnector> component itself) re-scopes the thread. */
+:root,
+[data-persona="shared"] {
+  --pp-thread-accent: var(--pp-accent-shared);
 }
-[data-persona="survivor"] { --pp-thread-grad: linear-gradient(180deg, #E5A1E4, #A1BDF3); }
-[data-persona="attorney"] { --pp-thread-grad: linear-gradient(180deg, #3F6DF0, #1B2A6B); }
-[data-persona="org"]      { --pp-thread-grad: linear-gradient(180deg, #C3DBBC, #8FAF84); }
+[data-persona="survivor"] { --pp-thread-accent: var(--pp-accent-survivor); }
+[data-persona="attorney"] { --pp-thread-accent: var(--pp-accent-attorney); }
+[data-persona="org"]      { --pp-thread-accent: var(--pp-accent-org); }
+
+:root,
+[data-persona] {
+  --pp-thread-grad: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--pp-thread-accent) 45%, white),
+    var(--pp-thread-accent)
+  );
+  --pp-thread-grad-h: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--pp-thread-accent) 45%, white),
+    var(--pp-thread-accent)
+  );
+}
 
 .pp-thread {
   display: flex;
@@ -831,16 +851,17 @@ textarea.input-pp {
   left: 22px;
   top: 44px;
   bottom: -24px;
-  width: 44px;
+  width: 52px;
+  z-index: 0;
   transform: translateX(-50%);
   background: var(--pp-thread-grad);
-  opacity: 0.85;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  opacity: 0.95;
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
   -webkit-mask-repeat: repeat-y;
   mask-repeat: repeat-y;
-  -webkit-mask-size: 44px 44px;
-  mask-size: 44px 44px;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
 }
 .pp-thread-node {
   position: relative;
@@ -851,6 +872,66 @@ textarea.input-pp {
   flex: 1;
   min-width: 0;
 }
+
+:root {
+  /* Deeper amplitude + thicker stroke than the original 4.5/44 wave. */
+  --pp-thread-mask-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Cpath d='M26 0C50 7 50 19 26 26C2 33 2 45 26 52' fill='none' stroke='black' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E");
+  --pp-thread-mask-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Cpath d='M0 26C7 2 19 2 26 26C33 50 45 50 52 26' fill='none' stroke='black' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* Standalone connector element (vertical), used between stacked nodes. */
+.pp-thread-line {
+  flex: 1;
+  align-self: stretch;
+  width: 52px;
+  min-height: 48px;
+  z-index: 0;
+  background: var(--pp-thread-grad);
+  opacity: 0.95;
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
+}
+
+/* Card-grid variant: a horizontal wave running behind a group of cards. */
+.pp-thread-group {
+  position: relative;
+}
+.pp-thread-group > * {
+  position: relative;
+  z-index: 1;
+}
+.pp-thread-line-h {
+  position: absolute;
+  left: -12px;
+  right: -12px;
+  top: 50%;
+  height: 52px;
+  margin-top: -26px;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--pp-thread-grad-h);
+  opacity: 0.5;
+  -webkit-mask-image: var(--pp-thread-mask-h);
+  mask-image: var(--pp-thread-mask-h);
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-thread-line,
+  .pp-thread-line-h,
+  .pp-thread-row:not(:last-child)::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 
 .pp-app,
 .pp-app body {
