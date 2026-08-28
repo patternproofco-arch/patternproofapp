@@ -388,7 +388,7 @@ function Index() {
                 title="Protected, in transit"
                 body="Your documentation is encrypted in transit and protected by per-user access controls, on every plan. At-rest encryption is a property of our infrastructure host that we have not independently audited."
               />
-            </div>
+            </ThreadGroup>
           </Section>
 
           {/* ───────────────────────── Testimonials ───────────────────────── */}
