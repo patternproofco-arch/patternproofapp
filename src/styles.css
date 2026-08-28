@@ -12,10 +12,8 @@
      org      → --pp-sage (light pastel sage)
      survivor → --pp-iridescent-violet
      shared   → --pp-iridescent-teal
-   NOTE: --oxblood / --oxblood-deep / --purple-mid / --red-bright below
-   are leftover names from an earlier palette and are NOT what any
-   persona accent currently resolves to, despite the names. See the
-   LEGACY comment at their definition before touching or trusting them.
+   The old --oxblood / --oxblood-deep / --purple-mid / --red-bright
+   legacy variables have been deleted; use the --pp-accent-* tokens.
    ============================================================ */
 
 @theme inline {
@@ -54,11 +52,7 @@
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
   /* Brand palette — accents LOCKED */
-  --color-oxblood: var(--oxblood);
-  --color-oxblood-deep: var(--oxblood-deep);
   --color-purple: var(--purple);
-  --color-purple-mid: var(--purple-mid);
-  --color-red-bright: var(--red-bright);
   --color-lav: var(--lav);
   --color-ink: var(--ink);
   --color-paper: var(--paper);
@@ -69,20 +63,6 @@
 :root {
   --purple:       #16235C;   /* deep navy blue (attorney) — ACTIVE, feeds --pp-accent-attorney */
 
-  /* LEGACY — from a prior brand triad, superseded by --pp-sage /
-     --pp-iridescent-violet / --pp-iridescent-teal below. None of these
-     four feed any --pp-accent-* persona variable anymore, and their
-     names no longer match their colors (e.g. --oxblood is violet, not
-     oxblood; --purple-mid is sage green; --red-bright is lavender).
-     Known live reference: pricing.tsx uses --oxblood-deep as a var()
-     fallback. Keeping these defined (not deleting) since this session
-     can't confirm every place a `bg-oxblood-*` / `text-red-bright`
-     Tailwind utility class might still be used across the app — grep
-     the full repo before deleting or renaming any of the four. */
-  --oxblood:      #7B4FC7;
-  --oxblood-deep: #33268C;
-  --purple-mid:   #A9C4A0;
-  --red-bright:   #A38BEB;
   --lav:          #7EB6FF;
 
   /* Persona accent values (brand triad) */
