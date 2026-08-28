@@ -923,8 +923,31 @@ textarea.input-pp {
   mask-size: 52px 52px;
 }
 
+/* Stacked-card variant: vertical wave running down the left gutter. */
+.pp-thread-line-v {
+  position: absolute;
+  top: -10px;
+  bottom: -10px;
+  left: -34px;
+  width: 52px;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--pp-thread-grad);
+  opacity: 0.5;
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
+}
+@media (max-width: 900px) {
+  .pp-thread-line-v { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pp-thread-line,
+  .pp-thread-line-v,
   .pp-thread-line-h,
   .pp-thread-row:not(:last-child)::after {
     animation: none !important;
