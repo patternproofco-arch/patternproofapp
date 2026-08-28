@@ -5,6 +5,7 @@ import type { ComponentType, ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Link } from "@tanstack/react-router";
 import { BrandLogo } from "@/components/BrandLogo";
+import { ThreadConnector, ThreadGroup } from "@/components/ThreadConnector";
 import { BrandMark } from "@/components/BrandMark";
 import {
   Briefcase,
@@ -316,7 +317,8 @@ function Index() {
             title="Choose the path that fits you."
             style={{ marginTop: 56 }}
           >
-            <div
+            <ThreadGroup
+              persona="shared"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
@@ -350,7 +352,7 @@ function Index() {
                 to="/for-organizations"
                 cta="See how it fits your program →"
               />
-            </div>
+            </ThreadGroup>
           </Section>
 
           {/* ───────────────────────── How it works ───────────────────────── */}
@@ -358,7 +360,8 @@ function Index() {
 
           {/* ───────────────────────── Safety built in ───────────────────────── */}
           <Section eyebrow="Safety built in" title="Designed for the moment you need it most.">
-            <div
+            <ThreadGroup
+              persona="shared"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
