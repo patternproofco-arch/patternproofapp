@@ -326,7 +326,7 @@ function Index() {
             >
               <PathCard
                 accent="var(--pp-accent-survivor)"
-                accentBg="var(--pp-accent-survivor-gradient, linear-gradient(135deg, #EBA4E2 0%, #A5BAF2 100%))"
+                accentBg="var(--pp-accent-survivor-gradient)"
                 iconColor={INK}
                 icon={FileText}
                 label="Survivor"
@@ -569,38 +569,6 @@ function Section({
   );
 }
 
-const HIW_PURPLE = "#5B4EA6";
-const HIW_BLUE = "#0F2BB8";
-
-function Squiggle({ id }: { id: string }) {
-  return (
-    <div style={{ flex: 1, width: 40, minHeight: 48, display: "flex", justifyContent: "center" }}>
-      <svg
-        width="40"
-        height="100%"
-        viewBox="0 0 40 90"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-        style={{ display: "block", overflow: "visible" }}
-      >
-        <defs>
-          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={HIW_PURPLE} />
-            <stop offset="100%" stopColor={HIW_BLUE} />
-          </linearGradient>
-        </defs>
-        <path
-          d="M20 0 Q36 15 20 30 Q4 45 20 60 Q36 75 20 90"
-          fill="none"
-          stroke={`url(#${id})`}
-          strokeWidth={3}
-          strokeLinecap="round"
-        />
-      </svg>
-    </div>
-  );
-}
-
 function HowItWorks() {
   const steps = [
     {
@@ -629,7 +597,7 @@ function HowItWorks() {
           letterSpacing: "0.16em",
           textTransform: "uppercase",
           fontWeight: 700,
-          color: HIW_PURPLE,
+          color: "var(--pp-accent-shared)",
           marginBottom: 8,
         }}
       >
@@ -675,12 +643,12 @@ function HowItWorks() {
                     fontFamily: "var(--font-serif)",
                     fontWeight: 500,
                     fontSize: 20,
-                    color: HIW_PURPLE,
+                    color: "var(--pp-accent-shared)",
                   }}
                 >
                   {s.n}
                 </div>
-                {!last && <Squiggle id={`hiw-squiggle-${s.n}`} />}
+                {!last && <ThreadConnector persona="shared" />}
               </div>
 
               <div className="card-pp" style={{ padding: "18px 24px", alignSelf: "start" }}>
