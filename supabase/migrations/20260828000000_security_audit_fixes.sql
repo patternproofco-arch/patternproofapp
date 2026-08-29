@@ -88,6 +88,20 @@ SET file_size_limit = 209715200, -- 200 MB, matches UPLOAD_LIMITS.video
     allowed_mime_types = ARRAY['audio/webm','video/webm','video/mp4']
 WHERE id = 'conversation-recordings';
 
+-- The message-exports bucket itself was never created — migration
+-- 20260623213804 added storage.objects RLS policies referencing
+-- bucket_id = 'message-exports' but never inserted the bucket row. Verified
+-- against production: zero rows in storage.objects for that bucket_id ever,
+-- meaning every message-thread import upload has been failing silently
+-- since the feature shipped (Supabase Storage rejects uploads to a
+-- bucket_id with no corresponding storage.buckets row). This is a separate,
+-- pre-existing functional bug turned up while applying this migration, not
+-- part of the original audit findings — fixed here since it blocks the same
+-- code path this migration is already touching.
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('message-exports', 'message-exports', false)
+ON CONFLICT (id) DO NOTHING;
+
 -- message-exports accepts a wider, less predictable set of import formats;
 -- cap size only (closes the unbounded-upload / storage-cost risk) without
 -- risking a legitimate import format being silently rejected.
