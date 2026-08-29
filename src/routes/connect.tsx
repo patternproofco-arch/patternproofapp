@@ -90,7 +90,7 @@ function CopyField({ value, label }: { value: string; label: string }) {
         }}
         style={{
           background: "var(--pp-confirmed)",
-          color: "#fff",
+          color: "var(--pp-paper)",
           border: 0,
           borderRadius: 18,
           padding: "10px 16px",

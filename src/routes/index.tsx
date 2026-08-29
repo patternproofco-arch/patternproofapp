@@ -149,11 +149,14 @@ function Index() {
             marginTop: 18,
             fontFamily: "var(--font-serif)",
             fontWeight: 300,
-            fontSize: "clamp(2.2rem, 5.2vw, 3.6rem)",
-            lineHeight: 1.08,
+            fontSize: attorneyMode
+              ? "clamp(2.2rem, 5.2vw, 3.6rem)"
+              : "clamp(1.9rem, 4.3vw, 3rem)",
+            lineHeight: 1.1,
             letterSpacing: "-0.02em",
             color: INK,
             marginBottom: 0,
+            maxWidth: 900,
           }}
         >
           {attorneyMode ? (
@@ -166,11 +169,11 @@ function Index() {
             </>
           ) : (
             <>
-              Document what happened.
-              <br />
-              <em>
-                <span className="highlight-thread">See the full pattern.</span>
-              </em>
+              PatternProof is documentation software for domestic violence survivors, their
+              attorneys, and DV organizations —{" "}
+              <span className="highlight-thread">
+                it turns scattered evidence into one organized, source-linked record.
+              </span>
             </>
           )}
         </h1>
@@ -207,18 +210,32 @@ function Index() {
           <>
             <p
               style={{
-                marginTop: 18,
+                marginTop: 16,
+                fontFamily: "var(--font-serif)",
+                fontStyle: "italic",
+                fontSize: "clamp(1.05rem, 2.1vw, 1.35rem)",
+                lineHeight: 1.35,
+                color: INK_2,
+                maxWidth: 620,
+              }}
+            >
+              Document what happened. See the full pattern.
+            </p>
+            <p
+              style={{
+                marginTop: 14,
                 fontFamily: "var(--font-sans)",
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: 500,
                 lineHeight: 1.5,
                 color: INK,
                 maxWidth: 620,
               }}
             >
-              PatternProof organizes your photos, messages, voice notes, and written entries into one
-              clear, source-linked timeline.
+              Photos, messages, voice notes, and written entries go into one clear timeline, each
+              item tied to its date and source.
             </p>
+
             <p
               style={{ marginTop: 14, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
             >

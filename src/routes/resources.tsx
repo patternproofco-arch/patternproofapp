@@ -203,7 +203,7 @@ function ResourcesPage() {
           Real people, on the other end of a phone.
         </h1>
         <p
-          style={{ marginTop: 16, fontSize: 16, lineHeight: 1.6, color: "#3A3849", maxWidth: 580 }}
+          style={{ marginTop: 16, fontSize: 16, lineHeight: 1.6, color: "var(--pp-muted)", maxWidth: 580 }}
         >
           Free and confidential. Call from a device the other person can't check when you can.
         </p>
@@ -342,7 +342,7 @@ const bodyStyle: React.CSSProperties = {
   marginTop: 6,
   fontSize: 15,
   lineHeight: 1.6,
-  color: "#3A3849",
+  color: "var(--pp-muted)",
 };
 
 const linkStyle: React.CSSProperties = {
