@@ -155,9 +155,7 @@ function Index() {
             marginTop: 18,
             fontFamily: "var(--font-serif)",
             fontWeight: 300,
-            fontSize: attorneyMode
-              ? "clamp(2.2rem, 5.2vw, 3.6rem)"
-              : "clamp(1.9rem, 4.3vw, 3rem)",
+            fontSize: attorneyMode ? "clamp(2.2rem, 5.2vw, 3.6rem)" : "clamp(1.9rem, 4.3vw, 3rem)",
             lineHeight: 1.1,
             letterSpacing: "-0.02em",
             color: INK,
@@ -175,11 +173,11 @@ function Index() {
             </>
           ) : (
             <>
-              PatternProof is documentation software for domestic violence survivors, their
-              attorneys, and DV organizations —{" "}
-              <span className="highlight-thread">
-                it turns scattered evidence into one organized, source-linked record.
-              </span>
+              One private timeline.
+              <br />
+              <em>
+                <span className="highlight-thread">Everything in the right order.</span>
+              </em>
             </>
           )}
         </h1>
@@ -282,6 +280,16 @@ function Index() {
 
       {!attorneyMode && (
         <>
+          <section
+            style={{
+              maxWidth: 1040,
+              margin: "0 auto",
+              padding: "44px 24px 0",
+            }}
+          >
+            <DashboardPreview />
+          </section>
+
           {/* ───────────────────────── Who it's for ───────────────────────── */}
           <Section
             eyebrow="Choose your portal"
@@ -310,6 +318,15 @@ function Index() {
                 cta="Start documenting →"
               />
               <PathCard
+                accent="var(--pp-accent-attorney)"
+                tint="rgba(22, 35, 92, 0.07)"
+                icon={Briefcase}
+                label="Attorney"
+                body="Review a dated, source-linked chronology instead of sorting screenshots and files by hand."
+                to="/for-attorneys"
+                cta="Learn more →"
+              />
+              <PathCard
                 accent="var(--pp-accent-org)"
                 tint="rgba(188, 214, 190, 0.22)"
                 icon={Users}
@@ -318,15 +335,6 @@ function Index() {
                 body="Let survivors document once and share an organized record with approved staff when they choose."
                 to="/for-organizations"
                 cta="See how it fits your program →"
-              />
-              <PathCard
-                accent="var(--pp-accent-attorney)"
-                tint="rgba(22, 35, 92, 0.07)"
-                icon={Briefcase}
-                label="Attorney"
-                body="Review a dated, source-linked chronology instead of sorting screenshots and files by hand."
-                to="/demo"
-                cta="Try the demo →"
               />
             </ThreadGroup>
           </Section>

@@ -20,6 +20,8 @@ import { CognitiveClose } from "@/components/CognitiveClose";
 import { useServerFn } from "@tanstack/react-start";
 import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
+import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
+import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
 import { FocusRegion } from "@/components/survivor/focus-mode";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { BatchDropzone } from "@/components/evidence/BatchDropzone";
@@ -45,6 +47,8 @@ interface EvidenceRow {
   exif_captured_at?: string | null;
   sha256?: string | null;
   review_status?: string | null;
+  transcript?: string | null;
+  transcript_status?: string | null;
 }
 // review_status: "suggested" rows are held back from exports/attorney views
 // until the survivor confirms the match on /evidence-review.
@@ -97,6 +101,8 @@ function EvidencePage() {
   const { user } = useAuth();
   const extractFn = useServerFn(extractIncidentFromImage);
   const ingestFn = useServerFn(ingestEvidenceBatch);
+  const transcribeFn = useServerFn(transcribeEvidence);
+  const proposeTimelineFn = useServerFn(proposeTimelineFromEvidence);
   const [items, setItems] = useState<EvidenceRow[]>([]);
   const [incidents, setIncidents] = useState<IncOption[]>([]);
   const [pending, setPending] = useState<File | null>(null);
@@ -124,7 +130,7 @@ function EvidencePage() {
       supabase
         .from("evidence")
         .select(
-          "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status",
+          "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status",
         )
         .eq("user_id", user.id)
         .is("deleted_at", null)
@@ -241,6 +247,7 @@ function EvidencePage() {
 
     // Reset form + reload
     const wasImageOrPdf = pending.type.startsWith("image/") || pending.type === "application/pdf";
+    const wasAudioOrVideo = pending.type.startsWith("audio/") || pending.type.startsWith("video/");
     const fileMime = pending.type;
     setPending(null);
     setTitle("");
@@ -249,6 +256,34 @@ function EvidencePage() {
     setLinkedId("");
     if (inputRef.current) inputRef.current.value = "";
     await load();
+
+    // Audio and video follow the same automatic transcription path as the
+    // batch uploader. The original remains the primary record; the transcript
+    // is a searchable, reviewable derivative used by timeline proposals.
+    if (wasAudioOrVideo) {
+      toast("Saved. Generating a searchable transcript…");
+      void transcribeFn({ data: { evidence_id: newRow.id } })
+        .then(async () => {
+          const proposal = await proposeTimelineFn({
+            data: {
+              evidence_ids: [newRow.id],
+              include_threads: false,
+              include_voice_notes: false,
+              max_items: 1,
+            },
+          });
+          toast(
+            proposal.ok && proposal.proposed_timeline?.length
+              ? "Transcript ready. A timeline draft is ready for your review."
+              : "Transcript ready. You can organize it from your timeline.",
+          );
+          await load();
+        })
+        .catch(() => {
+          toast("The file is safe, but transcription failed. You can retry below.");
+          return load();
+        });
+    }
 
     // Auto-run AI extraction for images / PDFs that aren't linked yet
     if (wasImageOrPdf && !newRow.linked_incident_id) {
@@ -496,7 +531,7 @@ function EvidencePage() {
               ref={inputRef}
               type="file"
               className="hidden"
-              accept="image/jpeg,image/png,image/webp,application/pdf,audio/mpeg,audio/mp4,audio/wav,audio/x-m4a,video/mp4"
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document,audio/mpeg,audio/mp4,audio/wav,audio/x-m4a,audio/aac,audio/ogg,video/mp4,video/quicktime,video/x-m4v,video/webm"
               onChange={(e) => onFile(e.target.files?.[0] ?? null)}
             />
           </label>
@@ -681,6 +716,21 @@ function EvidencePage() {
                               {it.description}
                             </p>
                           )}
+                          {(it.file_type === "audio" || it.file_type === "video") && (
+                            <div
+                              className="mt-2 rounded-2xl p-3 text-[12px]"
+                              style={{ background: "var(--input)", color: "var(--foreground)" }}
+                            >
+                              <div className="label-eyebrow mb-1">Transcript</div>
+                              {it.transcript_status === "ready" && it.transcript
+                                ? it.transcript
+                                : it.transcript_status === "pending"
+                                  ? "Transcription in progress…"
+                                  : it.transcript_status === "failed"
+                                    ? "Transcription failed. Your original file is still safe."
+                                    : "Not transcribed yet."}
+                            </div>
+                          )}
                           {linked && (
                             <div className="mt-2 text-[12px]" style={{ color: "var(--accent)" }}>
                               Linked: {linked.date}
@@ -705,6 +755,28 @@ function EvidencePage() {
                                   className="btn-ghost inline-flex items-center gap-1 text-[12px]"
                                 >
                                   <Sparkles size={13} /> AI review
+                                </button>
+                              )}
+                            {(it.file_type === "audio" || it.file_type === "video") &&
+                              it.transcript_status !== "pending" &&
+                              it.transcript_status !== "ready" && (
+                                <button
+                                  onClick={() => {
+                                    void transcribeFn({ data: { evidence_id: it.id } })
+                                      .then(() => {
+                                        toast("Transcript ready.");
+                                        return load();
+                                      })
+                                      .catch(() => {
+                                        toast(
+                                          "Couldn't transcribe this file. Try again in a moment.",
+                                        );
+                                        return load();
+                                      });
+                                  }}
+                                  className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                                >
+                                  <Sparkles size={13} /> Retry transcript
                                 </button>
                               )}
                             <button

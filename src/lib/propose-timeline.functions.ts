@@ -146,6 +146,20 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
     const { data: evidenceRows, error: evidenceError } = await evidenceQuery;
     if (evidenceError) throw new Error(evidenceError.message);
 
+    // Do not create repeated drafts for uploads that are already waiting for
+    // survivor review. Accepted uploads are excluded by linked_incident_id.
+    const pending = await supabase
+      .from("proposed_incidents")
+      .select("source_evidence_ids")
+      .eq("user_id", userId)
+      .eq("status", "pending");
+    const alreadyProposed = new Set<string>(
+      (pending.data ?? []).flatMap((row) => (row.source_evidence_ids ?? []) as string[]),
+    );
+    const availableEvidenceRows = (evidenceRows ?? []).filter(
+      (row) => !alreadyProposed.has(row.id),
+    );
+
     const materials: Array<{
       evidence_id: string;
       kind: string;
@@ -154,7 +168,13 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
       text: string;
     }> = [];
 
-    for (const row of evidenceRows ?? []) {
+    for (const row of availableEvidenceRows) {
+      const isRecordedMedia = row.mime?.startsWith("video/") || row.mime?.startsWith("audio/");
+      if (isRecordedMedia && (!row.transcript || row.transcript_status !== "ready")) {
+        // A filename or user title is not enough evidence to draft what
+        // happened in a recording. Wait for a real transcript.
+        continue;
+      }
       const dateHint =
         row.exif_captured_at ??
         row.in_image_timestamp_text ??
@@ -426,6 +446,20 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
     // Link source evidence when the IDs refer to evidence rows
     const sourceIds = (proposal.source_evidence_ids ?? []) as string[];
     if (sourceIds.length > 0) {
+      const { error: linkError } = await supabase.from("incident_evidence_links").upsert(
+        sourceIds.map((evidenceId) => ({
+          incident_id: incident.id,
+          evidence_id: evidenceId,
+          user_id: userId,
+          source: "ai_proposed_survivor_confirmed",
+        })),
+        { onConflict: "incident_id,evidence_id" },
+      );
+      if (linkError) throw new Error(linkError.message);
+
+      // Compatibility for existing exports and professional views. Never
+      // overwrite an earlier primary link; the junction table above is the
+      // complete many-to-many record.
       await supabase
         .from("evidence")
         .update({
@@ -433,6 +467,7 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
           review_status: "confirmed",
         })
         .eq("user_id", userId)
+        .is("linked_incident_id", null)
         .in("id", sourceIds);
     }
 

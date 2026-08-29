@@ -657,12 +657,6 @@ textarea.input-pp {
   }
 }
 
-@media (max-width: 767px) {
-  html {
-    zoom: 0.9;
-  }
-}
-
 [data-density="survivor"] {
   font-size: 14px;
   line-height: 1.55;
@@ -993,9 +987,9 @@ textarea.input-pp {
     90deg,
     #c9b7ef 0%,
     #afa9de 22%,
-    #bcd6be 48%,
-    #bcd6be 62%,
-    #16235c 100%
+    #16235c 48%,
+    #16235c 62%,
+    #bcd6be 100%
   );
 }
 

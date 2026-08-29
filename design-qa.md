@@ -38,5 +38,6 @@
 **Comparison history**
 
 - Pass 1: blocked before visual comparison. No P0, P1, or P2 visual fixes can be responsibly classified without browser rendered evidence.
+- Pass 2: corrected the approved landing promise, restored the timeline preview, restored portal order (Survivor, Attorney, DV Organization), corrected the Attorney destination, and removed global mobile `zoom: 0.9`. TypeScript, focused lint, tests, SEO, and the production build pass. A rendered comparison remains blocked because both the cloud preview route and local Chromium download failed in this environment.
 
 final result: blocked
