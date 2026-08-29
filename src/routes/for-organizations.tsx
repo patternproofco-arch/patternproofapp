@@ -172,6 +172,21 @@ function ForOrganizations() {
             Create an organization account →
           </Link>
           <Link
+            to="/org-feedback"
+            style={{
+              fontFamily: MONO,
+              fontSize: 12,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: INK,
+              textDecoration: "underline",
+              textUnderlineOffset: 4,
+            }}
+          >
+            Already referring survivors? Tell us how it&apos;s going →
+          </Link>
+          <Link
+
             to="/privacy"
             style={{
               fontFamily: MONO,

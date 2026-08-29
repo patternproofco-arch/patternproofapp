@@ -341,7 +341,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
     { key: "timeline", label: "Timeline", icon: Calendar },
     { key: "patterns", label: "Patterns", icon: Sparkles },
     { key: "evidence", label: "Evidence", icon: Paperclip },
-    { key: "packet", label: "Court Packet", icon: FileText },
+    { key: "packet", label: "Professional-review packet", icon: FileText },
   ];
   return (
     <div
@@ -791,7 +791,7 @@ function CourtPacket() {
         }}
       >
         <div>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Court packet preview</h2>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Professional-review packet preview</h2>
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--pp-muted)" }}>
             A source-linked summary of the case — generated from your records for professional
             review.
