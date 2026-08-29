@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
+import { OrgTeamSettings } from "@/components/team/OrgTeamSettings";
 import {
   getMyOrgPartnerStats,
   setReferralCodeActive,
@@ -33,12 +34,6 @@ export const Route = createFileRoute("/org-portal")({
   }),
   component: OrgPortal,
 });
-
-const STATUS_LABEL: Record<string, string> = {
-  actively_documenting: "Actively documenting",
-  inactive: "Quiet lately",
-  signed_up: "Signed up",
-};
 
 function OrgPortal() {
   const { user, loading } = useAuth();
@@ -105,8 +100,9 @@ function OrgPortal() {
       <p
         style={{ color: "var(--muted-foreground)", fontSize: 14, maxWidth: 620, marginBottom: 24 }}
       >
-        Counts only. PatternProof never shows an organization who a survivor is or anything they
-        have documented — no names, no records, no dates.
+        Privacy-protected referral totals only. Counts are delayed seven days, shown in groups of
+        five, and hidden for smaller cohorts. PatternProof never shows survivor identities, records,
+        or dates.
       </p>
 
       <div
@@ -118,25 +114,8 @@ function OrgPortal() {
         }}
       >
         <Stat label="Referred, all time" value={stats.totals.all_time} />
-        <Stat label="Last 7 days" value={stats.totals.last_7_days} />
         <Stat label="Last 30 days" value={stats.totals.last_30_days} />
         <Stat label="Last 90 days" value={stats.totals.last_90_days} />
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
-          gap: 12,
-          marginBottom: 32,
-        }}
-      >
-        <Stat
-          label={`Actively documenting (${stats.active_window_days}d)`}
-          value={stats.totals.actively_documenting}
-        />
-        <Stat label="Quiet lately" value={stats.totals.inactive} />
-        <Stat label="Signed up, not started" value={stats.totals.signed_up_only} />
       </div>
 
       <Section title="Your referral links">
@@ -165,7 +144,7 @@ function OrgPortal() {
                     <code
                       style={{
                         fontSize: 13,
-                        background: "#F5F5F0",
+                        background: "var(--pp-ground)",
                         padding: "6px 10px",
                         borderRadius: 18,
                         overflowWrap: "anywhere",
@@ -186,8 +165,9 @@ function OrgPortal() {
                     </span>
                   </div>
                   <div style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-                    {c.referred_count} {c.referred_count === 1 ? "person" : "people"} signed up
-                    through this link
+                    {c.referred_count === null
+                      ? "Referral count hidden until the privacy threshold is met"
+                      : `${c.referred_count}+ people signed up through this link`}
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button
@@ -215,46 +195,7 @@ function OrgPortal() {
         )}
       </Section>
 
-      <Section title="Referred survivors">
-        {stats.referred.length === 0 ? (
-          <p style={{ fontSize: 14, color: "var(--muted-foreground)" }}>
-            Nothing here yet — when someone signs up through your link, they'll show up as a count.
-          </p>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr
-                style={{
-                  textAlign: "left",
-                  color: "var(--muted-foreground)",
-                  fontSize: 11,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                }}
-              >
-                <th style={{ padding: "8px 0" }}>Joined</th>
-                <th style={{ padding: "8px 0" }}>Link</th>
-                <th style={{ padding: "8px 0" }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.referred.map((r, i) => (
-                <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                  <td style={{ padding: "10px 0" }}>{r.signed_up_month}</td>
-                  <td style={{ padding: "10px 0" }}>
-                    <code style={{ fontSize: 12 }}>{r.code}</code>
-                  </td>
-                  <td style={{ padding: "10px 0" }}>{STATUS_LABEL[r.status] ?? r.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-        <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 12 }}>
-          "Actively documenting" means at least one new entry in the last {stats.active_window_days}{" "}
-          days. We never show what was written.
-        </p>
-      </Section>
+      <OrgTeamSettings />
     </Shell>
   );
 }
@@ -277,7 +218,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
   return (
     <div
       data-persona="org"
-      style={{ minHeight: "100vh", background: "#FAF8F4", color: "var(--foreground)" }}
+      style={{ minHeight: "100vh", background: "var(--pp-ground)", color: "var(--foreground)" }}
     >
       <PublicQuickExit />
       <header
@@ -316,7 +257,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({ label, value }: { label: string; value: number | null }) {
   return (
     <div
       style={{
@@ -326,7 +267,9 @@ function Stat({ label, value }: { label: string; value: number }) {
         background: "var(--pp-card)",
       }}
     >
-      <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em" }}>{value}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em" }}>
+        {value === null ? "Hidden" : `${value}+`}
+      </div>
       <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 2 }}>{label}</div>
     </div>
   );

@@ -8,9 +8,13 @@ export const Route = createFileRoute("/evidence-integrity")({
       { name: "description", content: "How PatternProof preserves original files, generates SHA-256 hashes, tracks derivatives, and reports what a hash does and does not prove." },
       { property: "og:title", content: "Evidence Integrity — PatternProof" },
       { property: "og:description", content: "Original files are preserved byte-for-byte. Previews, transcripts, and redactions are stored as separate derivatives. Every export includes a provenance and integrity report." },
+      { property: "og:url", content: "https://pattern-proof.tech/evidence-integrity" },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Evidence Integrity — PatternProof" },
+      { name: "twitter:description", content: "Original files are preserved byte-for-byte. Previews, transcripts, and redactions are stored as separate derivatives. Every export includes a provenance and integrity report." },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/evidence-integrity" }],
   }),
   component: () => (
     <TrustPage title="Evidence Integrity" subtitle="How PatternProof preserves your original records — and what our integrity checks actually prove.">
@@ -18,7 +22,7 @@ export const Route = createFileRoute("/evidence-integrity")({
         <p>When you upload a file, PatternProof stores the original bytes exactly as received. Previews, thumbnails, OCR text, transcripts, redacted copies, and export copies are stored separately as derivatives. Editing or redacting never overwrites the original.</p>
       </Section>
       <Section title="SHA-256 hashes">
-        <p>Every preserved original is fingerprinted with SHA-256. Derivatives get their own hash. Your professional-review export includes a hash for every file plus a root hash of hashes.</p>
+        <p>Every preserved original is fingerprinted with SHA-256. Derivatives get their own hash. Every professional-review export includes a hash for every file; the full data export (ZIP) also includes a root hash of hashes.</p>
         <Callout>A SHA-256 hash only proves that the stored bytes match the preserved version. It does not prove truth, authorship, creation date, or admissibility. Any court or professional judgment about a file is separate from this integrity check.</Callout>
       </Section>
       <Section title="What we record with each file">
@@ -26,7 +30,7 @@ export const Route = createFileRoute("/evidence-integrity")({
           <li>Original filename, byte size, and MIME type</li>
           <li>Upload timestamp and reported source</li>
           <li>Raw metadata as received, and a normalized copy</li>
-          <li>Preservation status: received, preserved, extraction pending, needs attention, unsupported-but-preserved, or upload incomplete</li>
+          <li>Preservation status: preserved, extraction pending, needs attention, unsupported-but-preserved, or upload incomplete</li>
           <li>Version history and duplicate relationships</li>
         </ul>
       </Section>

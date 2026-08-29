@@ -44,7 +44,7 @@ function Badge({ state }: { state: string | undefined }) {
         padding: "1px 5px",
         borderRadius: 18,
         boxShadow: "var(--pp-shadow-sm)",
-        background: corrected ? "#1A1224" : "transparent",
+        background: corrected ? "var(--pp-ink)" : "transparent",
         color: corrected ? "#FAF8F4" : "rgba(26,18,36,0.55)",
       }}
     >
@@ -77,7 +77,7 @@ export function MessageRow({ message, thumbUrls, corrections, onCorrect }: Props
         background: "var(--pp-card)",
         boxShadow: "var(--pp-shadow-sm)",
         borderRadius: 18,
-        borderLeft: `3px solid ${mine ? "#1A1224" : "rgba(26,18,36,0.25)"}`,
+        borderLeft: `3px solid ${mine ? "var(--pp-ink)" : "rgba(26,18,36,0.25)"}`,
         padding: 14,
       }}
     >

@@ -44,12 +44,7 @@ export const Route = createFileRoute("/_authenticated/journal")({
 const today = () => new Date().toISOString().slice(0, 10);
 
 type Precision =
-  | "exact"
-  | "approximate_month"
-  | "range"
-  | "before_anchor"
-  | "after_anchor"
-  | "unknown";
+  "exact" | "approximate_month" | "range" | "before_anchor" | "after_anchor" | "unknown";
 
 const PRECISION_OPTIONS: { value: Precision; label: string }[] = [
   { value: "exact", label: "Exact date" },
@@ -480,7 +475,7 @@ function JournalPage() {
       {contradictions.length > 0 && (
         <section
           className="card-pp mt-6"
-          style={{ background: "#F4EFE4", borderLeft: "4px solid #6A7FA8" }}
+          style={{ borderLeft: "4px solid var(--pp-approximate)" }}
           aria-label="Same-day Marks with different details"
         >
           <h2 className="font-serif text-[18px]" style={{ color: "var(--foreground)" }}>
@@ -500,13 +495,13 @@ function JournalPage() {
                   key={`${c.incident_a_id}-${c.incident_b_id}-${c.conflict_type}-${idx}`}
                   className="rounded-2xl p-3"
                   style={{
-                    background: "rgba(255,255,255,0.6)",
-                    border: "1px solid rgba(42,37,32,0.08)",
+                    background: "var(--pp-ground-hi)",
+                    boxShadow: "var(--pp-shadow-in-sm)",
                   }}
                 >
                   <div
                     className="text-[11px] font-semibold uppercase tracking-wide"
-                    style={{ color: "#6A7FA8" }}
+                    style={{ color: "var(--pp-approximate)" }}
                   >
                     {c.date} ·{" "}
                     {c.conflict_type === "time" ? "Different times" : "Different locations"}
@@ -519,7 +514,7 @@ function JournalPage() {
                       type="button"
                       onClick={() => edit(a)}
                       className="rounded-2xl p-2 text-left text-[12px] hover:bg-black/5"
-                      style={{ border: "1px solid rgba(42,37,32,0.10)" }}
+                      style={{ boxShadow: "var(--pp-shadow-xs)" }}
                     >
                       <div
                         className="text-[10px] font-semibold uppercase tracking-wide"
@@ -533,7 +528,7 @@ function JournalPage() {
                       type="button"
                       onClick={() => edit(b)}
                       className="rounded-2xl p-2 text-left text-[12px] hover:bg-black/5"
-                      style={{ border: "1px solid rgba(42,37,32,0.10)" }}
+                      style={{ boxShadow: "var(--pp-shadow-xs)" }}
                     >
                       <div
                         className="text-[10px] font-semibold uppercase tracking-wide"

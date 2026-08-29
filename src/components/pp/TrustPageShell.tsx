@@ -13,19 +13,12 @@ export function TrustPage({
   children: ReactNode;
 }) {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "var(--pp-paper, #FAF8F4)",
-        color: "var(--pp-ink)",
-        fontFamily: "var(--font-sans)",
-        padding: "32px 20px 80px",
-      }}
-    >
+    <div className="pp-public-shell">
       <PublicQuickExit />
-      <div style={{ maxWidth: 720, margin: "0 auto" }}>
+      <div className="pp-public-rail" style={{ maxWidth: 720 }}>
         <Link
           to="/"
+          className="pp-legal-link"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -51,12 +44,32 @@ export function TrustPage({
           {title}
         </h1>
         {subtitle ? (
-          <p style={{ fontSize: 17, color: "var(--pp-muted)", margin: "0 0 28px", lineHeight: 1.55 }}>
+          <p
+            style={{ fontSize: 17, color: "var(--pp-muted)", margin: "0 0 28px", lineHeight: 1.55 }}
+          >
             {subtitle}
           </p>
         ) : null}
-        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>{children}</div>
-        <hr style={{ margin: "48px 0 20px", border: 0, borderTop: "1px solid var(--pp-hairline, rgba(0,0,0,0.08))" }} />
+        <div
+          style={{
+            background: "var(--pp-ground)",
+            boxShadow: "var(--pp-shadow-sm)",
+            borderRadius: "var(--pp-r-lg, 20px)",
+            padding: "28px 30px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 28,
+          }}
+        >
+          {children}
+        </div>
+        <hr
+          style={{
+            margin: "48px 0 20px",
+            border: 0,
+            borderTop: "1px solid var(--pp-hairline, rgba(0,0,0,0.08))",
+          }}
+        />
         <p style={{ fontSize: 12, color: "var(--pp-muted)" }}>
           This page describes controls that are implemented in PatternProof today. If a description
           does not match your experience, please tell us. Related:{" "}
@@ -93,7 +106,14 @@ const linkS = { color: "var(--pp-accent)", textDecoration: "none", fontWeight: 5
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section>
+    <section
+      style={{
+        background: "var(--pp-ground)",
+        boxShadow: "var(--pp-shadow-xs)",
+        borderRadius: "var(--pp-r-md, 16px)",
+        padding: "20px 22px",
+      }}
+    >
       <h2
         style={{
           fontFamily: "var(--font-serif)",
@@ -115,7 +135,11 @@ export function Callout({ children }: { children: ReactNode }) {
       style={{
         background: "var(--pp-ground)",
         boxShadow: "var(--pp-shadow-in-sm)",
-        borderRadius: "var(--pp-r-lg, 18px)",
+        // Was "var(--pp-r-lg, 18px)" — --pp-r-lg is always defined at :root
+        // (20px), so the fallback never actually applied, but it disagreed
+        // with the 20px used everywhere else this token appears. Aligned so
+        // nobody reads it as a deliberate smaller radius for callouts.
+        borderRadius: "var(--pp-r-lg, 20px)",
         padding: "12px 14px",
         fontSize: 14,
         color: "var(--pp-ink)",

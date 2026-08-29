@@ -41,14 +41,3 @@ export const logAudit = createServerFn({ method: "POST" })
     if (error) console.error("audit_log insert failed", error);
     return { ok: true };
   });
-
-export const startRecording = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context: { userId } }) => ({
-    started_at: new Date().toISOString(),
-    user_id: userId,
-  }));
-
-export const stopRecording = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async () => ({ ended_at: new Date().toISOString() }));

@@ -8,9 +8,13 @@ export const Route = createFileRoute("/ai-transparency")({
       { name: "description", content: "How PatternProof uses AI: what it extracts, what it interprets, what you can confirm or reject, and how AI provenance is recorded." },
       { property: "og:title", content: "AI Transparency — PatternProof" },
       { property: "og:description", content: "Separated AI extraction and interpretation, Confirm / Edit / Reject / Unsure on every suggestion, and full provenance on every AI output." },
+      { property: "og:url", content: "https://pattern-proof.tech/ai-transparency" },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "AI Transparency — PatternProof" },
+      { name: "twitter:description", content: "Separated AI extraction and interpretation, Confirm / Edit / Reject / Unsure on every suggestion, and full provenance on every AI output." },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/ai-transparency" }],
   }),
   component: () => (
     <TrustPage title="AI Transparency" subtitle="What our AI does, what it does not do, and how you stay in control.">

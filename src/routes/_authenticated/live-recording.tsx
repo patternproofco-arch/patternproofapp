@@ -209,8 +209,8 @@ function LiveRecording() {
                 className="rounded-2xl px-4 py-3"
                 style={{
                   background: "rgba(242,232,216,0.95)",
-                  color: "#2A1A10",
-                  border: "1px solid rgba(78,59,49,0.15)",
+                  color: "var(--pp-ink)",
+                  boxShadow: "var(--pp-shadow-sm)",
                 }}
               >
                 <p className="text-[13px]">
@@ -220,14 +220,14 @@ function LiveRecording() {
                   <button
                     onClick={discard}
                     className="rounded-2xl px-3 py-1.5 text-[12px] font-semibold"
-                    style={{ background: "#1A1224", color: "#FAF8F4" }}
+                    style={{ background: "var(--pp-ink)", color: "var(--pp-paper)" }}
                   >
                     Discard
                   </button>
                   <button
                     onClick={() => setAccidental(null)}
                     className="rounded-2xl px-3 py-1.5 text-[12px] font-semibold"
-                    style={{ background: "transparent", color: "#2A1A10" }}
+                    style={{ background: "transparent", color: "var(--pp-ink)" }}
                   >
                     Keep it
                   </button>

@@ -9,7 +9,11 @@ export const Route = createFileRoute("/privacy")({
       { name: "description", content: "How PatternProof collects, uses, stores, and protects your information. Privacy-by-design documentation platform for survivors of domestic violence and coercive control." },
       { property: "og:title", content: "Privacy Policy — PatternProof" },
       { property: "og:description", content: "Privacy-by-design protections for survivors. Read how PatternProof handles your documentation, AI processing, and data sharing." },
+      { property: "og:url", content: "https://pattern-proof.tech/privacy" },
+      { name: "twitter:title", content: "Privacy Policy — PatternProof" },
+      { name: "twitter:description", content: "Privacy-by-design protections for survivors. Read how PatternProof handles your documentation, AI processing, and data sharing." },
     ],
+    links: [{ rel: "canonical", href: "https://pattern-proof.tech/privacy" }],
   }),
   component: PrivacyPage,
 });
@@ -63,7 +67,7 @@ function PrivacyPage() {
           <ul>
             <li><strong>Company:</strong> PatternProof</li>
             <li><strong>Founder:</strong> Grace Burns</li>
-            <li><strong>Contact:</strong> gracieburns200@gmail.com</li>
+            <li><strong>Contact:</strong> grace@gburnscompany.com</li>
             <li><strong>Location:</strong> New Jersey, United States</li>
           </ul>
 
@@ -217,7 +221,7 @@ function PrivacyPage() {
           </p>
           <p>
             No system is 100% secure. If you believe your account has been compromised, contact
-            us immediately at gracieburns200@gmail.com.
+            us immediately at grace@gburnscompany.com.
           </p>
 
           <H2>7. Your Rights &amp; Choices</H2>
@@ -227,7 +231,7 @@ function PrivacyPage() {
           <p>
             Automated in-app account deletion is not yet available. To request
             deletion of your account and associated data, email
-            gracieburns200@gmail.com with the subject line "Data Deletion Request."
+            grace@gburnscompany.com with the subject line "Data Deletion Request."
             We aim to process requests within a reasonable time and will confirm
             when the deletion is complete. Until we can offer an automated
             deletion flow, this manual request process is the only supported
@@ -243,7 +247,7 @@ function PrivacyPage() {
             California residents have the right to know what personal information we collect,
             request deletion of their data, and opt out of the sale of personal information. We
             do not sell personal information. To exercise your rights, contact
-            gracieburns200@gmail.com.
+            grace@gburnscompany.com.
           </p>
           <H3>Opt Out of Communications</H3>
           <p>
@@ -268,7 +272,7 @@ function PrivacyPage() {
             information from anyone under the age of 18. If we learn we have collected
             information from a minor, we will delete it immediately. If you believe we may have
             inadvertently collected information from someone under 18, please contact us at
-            gracieburns200@gmail.com.
+            grace@gburnscompany.com.
           </p>
 
           <H2>10. Third-Party Links</H2>
@@ -290,7 +294,7 @@ function PrivacyPage() {
           <p>
             Grace Burns, Founder<br />
             PatternProof<br />
-            gracieburns200@gmail.com<br />
+            grace@gburnscompany.com<br />
             Burlington County, New Jersey, United States
           </p>
 
@@ -320,3 +324,4 @@ function H3({ children }: { children: React.ReactNode }) {
     <h3>{children}</h3>
   );
 }
+

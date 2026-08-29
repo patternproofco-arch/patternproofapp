@@ -93,8 +93,8 @@ export function IncidentCard({
                 <span
                   className="rounded-2xl px-2 py-0.5 text-[10px] font-semibold"
                   style={{
-                    background: "#FFE4B5",
-                    color: "#7A4A00",
+                    background: "rgba(231,208,163,0.5)",
+                    color: "var(--pp-urgent)",
                     border: "1px solid rgba(180,120,20,0.35)",
                   }}
                   title="Drafted by AI from an uploaded file. Please review and confirm."
@@ -193,7 +193,7 @@ export function IncidentCard({
               type="button"
               onClick={() => onConfirm(incident.id)}
               className="mt-2 rounded-2xl px-3 py-1 text-[11px] font-semibold"
-              style={{ background: "var(--primary)", color: "#fff" }}
+              style={{ background: "var(--primary)", color: "var(--pp-accent-fg, #fff)" }}
             >
               Confirm this record
             </button>

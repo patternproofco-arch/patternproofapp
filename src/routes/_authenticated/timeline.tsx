@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
@@ -12,6 +12,7 @@ import { FocusRegion } from "@/components/survivor/focus-mode";
 import { useServerFn } from "@tanstack/react-start";
 import { findCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
+import { ProposedTimelineReview } from "@/components/ProposedTimelineReview";
 
 interface Item {
   id: string;
@@ -84,13 +85,13 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
   return (
     <section
       className="mt-6"
-      style={{ background: "#FAF8F4", padding: 20, boxShadow: "var(--pp-shadow-sm)" }}
+      style={{ background: "var(--pp-paper)", padding: 20, boxShadow: "var(--pp-shadow-sm)" }}
     >
       <div className="flex items-baseline gap-3">
         <span className="exhibit-tag">CORROBORATION</span>
         <span className="mono-meta mono-meta--muted">Records that reinforce each other</span>
       </div>
-      <p style={{ marginTop: 8, fontSize: 13, color: "rgba(26,18,36,0.65)" }}>
+      <p style={{ marginTop: 8, fontSize: 13, color: "var(--pp-muted)" }}>
         These Marks share a date, place, or repeated pattern. Nothing is flagged as wrong — this is
         where your own records line up.
       </p>
@@ -103,7 +104,7 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
             </div>
             <ul style={{ marginTop: 6, paddingLeft: 14, listStyle: "square" }}>
               {c.exhibits.map((e) => (
-                <li key={e.kind + e.id} style={{ fontSize: 13, color: "#1A1224", lineHeight: 1.5 }}>
+                <li key={e.kind + e.id} style={{ fontSize: 13, color: "var(--pp-ink)", lineHeight: 1.5 }}>
                   <span className="mono-meta mono-meta--muted" style={{ marginRight: 6 }}>
                     {e.kind.toUpperCase()}
                   </span>
@@ -133,7 +134,12 @@ function TimelinePage() {
   const [to, setTo] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [xrefs, setXrefs] = useState<XrefCluster[]>([]);
+  const [timelineTick, setTimelineTick] = useState(0);
   const fetchXrefs = useServerFn(findCrossReferences);
+
+  const reloadTimeline = useCallback(() => {
+    setTimelineTick((t) => t + 1);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -236,7 +242,7 @@ function TimelinePage() {
         setMsgDays([]);
       }
     })();
-  }, [user]);
+  }, [user, timelineTick]);
 
   type Row =
     | { kind: "incident"; date: string; item: Item }
@@ -289,6 +295,8 @@ function TimelinePage() {
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         The pattern, <em>over time.</em>
       </h1>
+
+      <ProposedTimelineReview onAccepted={reloadTimeline} />
 
       {xrefs.length > 0 && <CorroborationSection clusters={xrefs} />}
 
@@ -376,7 +384,7 @@ function TimelinePage() {
                       className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4"
                       style={{ background: color, boxShadow: "var(--pp-shadow-sm)" }}
                     >
-                      <FileText size={10} color="#1A1224" />
+                      <FileText size={10} color="var(--pp-ink)" />
                     </span>
                     <div className="card-pp" style={{ borderLeft: `3px solid ${color}` }}>
                       <div className="font-serif italic text-[16px]">
@@ -389,7 +397,7 @@ function TimelinePage() {
                       <div className="mt-1">
                         <span
                           className="rounded-2xl px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ background: color, color: "#1A1224" }}
+                          style={{ background: color, color: "var(--pp-ink)" }}
                         >
                           {LEGAL_LABEL[l.document_type] ?? "Document"}
                         </span>
@@ -423,7 +431,7 @@ function TimelinePage() {
                       className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4"
                       style={{ background: "#C7E9E3", boxShadow: "var(--pp-shadow-sm)" }}
                     >
-                      <MessageSquare size={10} color="#1A1224" />
+                      <MessageSquare size={10} color="var(--pp-ink)" />
                     </span>
                     <div className="card-pp" style={{ borderLeft: "3px solid #C7E9E3" }}>
                       <div className="font-serif italic text-[16px]">
@@ -436,7 +444,7 @@ function TimelinePage() {
                       <div className="mt-1">
                         <span
                           className="rounded-2xl px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ background: "#C7E9E3", color: "#1A1224" }}
+                          style={{ background: "#C7E9E3", color: "var(--pp-ink)" }}
                         >
                           IMPORTED MESSAGES
                         </span>
@@ -494,7 +502,7 @@ function TimelinePage() {
                         <span
                           key={t}
                           className="rounded-2xl px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ background: typeColor(t), color: "#1A1714" }}
+                          style={{ background: typeColor(t), color: "var(--pp-ink)" }}
                         >
                           {typeLabel(t)}
                         </span>

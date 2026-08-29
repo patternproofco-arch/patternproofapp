@@ -15,7 +15,10 @@ import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
 
 function NotFoundComponent() {
   return (
-    <div data-persona="survivor" className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div
+      data-persona="survivor"
+      className="flex min-h-screen items-center justify-center bg-background px-4"
+    >
       <div className="pp-card max-w-md text-center">
         <p className="label-eyebrow">PatternProof</p>
         <h1 className="mt-3 font-display text-7xl text-foreground">404</h1>
@@ -38,7 +41,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
 
   return (
-    <div data-persona="survivor" className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div
+      data-persona="survivor"
+      className="flex min-h-screen items-center justify-center bg-background px-4"
+    >
       <div className="pp-card max-w-md text-center">
         <p className="label-eyebrow">PatternProof</p>
         <h1 className="mt-3 text-xl font-semibold tracking-tight text-foreground">
@@ -72,18 +78,38 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "PatternProof — Private documentation for your case" },
-      { name: "description", content: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit." },
+      {
+        name: "description",
+        content:
+          "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+      },
       { property: "og:site_name", content: "PatternProof" },
       { property: "og:type", content: "website" },
       { property: "og:title", content: "PatternProof — Private documentation for your case" },
-      { property: "og:description", content: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit." },
+      {
+        property: "og:description",
+        content:
+          "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "PatternProof — Private documentation for your case" },
-      { name: "twitter:description", content: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit." },
+      {
+        name: "twitter:description",
+        content:
+          "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+      },
       { name: "twitter:site", content: "@PatternProof" },
       { name: "apple-mobile-web-app-title", content: "Notes" },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169" },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2d6678a9-b954-43a8-9392-d823619bf169",
+      },
     ],
     links: [
       {
@@ -126,7 +152,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function gtag(){dataLayer.push(arguments);}
 window.gtag = gtag;
 gtag('js', new Date());
-gtag('config', '${GA_MEASUREMENT_ID}');`,
+// send_page_view is off — GA4's default auto-pageview captures the raw
+// URL (query string and all). GoogleAnalyticsRouteTracker sends every
+// pageview itself, including the first, with tokens/query stripped first.
+gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`,
       },
       {
         type: "application/ld+json",
@@ -138,14 +167,16 @@ gtag('config', '${GA_MEASUREMENT_ID}');`,
               "@id": "https://pattern-proof.tech/#organization",
               name: "PatternProof",
               url: "https://pattern-proof.tech/",
-              description: "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+              description:
+                "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
             },
             {
               "@type": "WebSite",
               "@id": "https://pattern-proof.tech/#website",
               name: "PatternProof",
               url: "https://pattern-proof.tech/",
-              description: "Private documentation for your case, encrypted in transit and protected with per-user access controls. Visible only to you and anyone you choose to share it with.",
+              description:
+                "Private documentation for your case, encrypted in transit and protected with per-user access controls. Visible only to you and anyone you choose to share it with.",
               publisher: { "@id": "https://pattern-proof.tech/#organization" },
             },
           ],
@@ -165,7 +196,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="pp-app">
         {children}
         <Scripts />
       </body>

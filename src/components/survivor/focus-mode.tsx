@@ -21,7 +21,7 @@ export function useFocusMode() {
  * bottom tab bar and any other persistent safety chrome live outside this
  * provider and are never dimmed, blurred or covered.
  */
-export function FocusModeProvider({ children, accentColor = "#1A1224" }: { children: ReactNode; accentColor?: string }) {
+export function FocusModeProvider({ children, accentColor = "var(--pp-ink)" }: { children: ReactNode; accentColor?: string }) {
   const [focusId, setFocusId] = useState<string | null>(null);
 
   const focus = useCallback((id: string) => setFocusId(id), []);

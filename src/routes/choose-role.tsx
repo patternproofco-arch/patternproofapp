@@ -3,9 +3,8 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { MARK_COLORWAYS } from "@/components/BrandMark";
 
 const INK = "var(--pp-ink)";
-const PAPER = "var(--pp-paper, #FAF8F4)";
+const GROUND = "var(--pp-ground)";
 const MUTED = "var(--pp-muted)";
-const RULE = "var(--pp-hairline, rgba(26,18,36,0.14))";
 const VIOLET = "var(--pp-accent)";
 const NAVY = MARK_COLORWAYS.attorney.solid!;
 const SAGE = MARK_COLORWAYS.advocate.solid!;
@@ -64,9 +63,9 @@ function RoleLink({
 
 function ChooseRole() {
   return (
-    <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+    <div style={{ background: GROUND, color: INK, minHeight: "100vh", fontFamily: SANS }}>
       <PublicQuickExit />
-      <header style={{ borderBottom: `1px solid ${RULE}` }}>
+      <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
         <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 24px" }}>
           <Link
             to="/"
@@ -122,7 +121,7 @@ function ChooseRole() {
             marginTop: 32,
             fontSize: 16,
             lineHeight: 1.6,
-            color: "#3A3849",
+            color: MUTED,
             fontFamily: SANS,
             maxWidth: 560,
           }}
@@ -130,7 +129,13 @@ function ChooseRole() {
           You can change this later. Nothing is shared until you choose to share it.
         </p>
 
-        <div style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${RULE}` }}>
+        <div
+          style={{
+            marginTop: 40,
+            paddingTop: 24,
+            boxShadow: "inset 0 1px 0 var(--pp-shadow-dark)",
+          }}
+        >
           <Link
             to="/how-it-works"
             style={{

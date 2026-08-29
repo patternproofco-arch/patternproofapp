@@ -57,49 +57,42 @@ type FileState = {
 
 const MAX_FILES = 50;
 
-function humanBytes(n: number | null | undefined): string {
-  if (n == null) return "";
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 function StatusChip({ item }: { item: PreservationReceiptItem }) {
   const map: Record<string, { label: string; bg: string; fg: string; Icon: typeof Check }> = {
     preserved: {
       label: "Preserved",
       bg: "rgba(168,216,185,0.35)",
-      fg: "#1f4d33",
+      fg: "var(--pp-confirmed)",
       Icon: ShieldCheck,
     },
     extraction_pending: {
       label: "Preserved · extraction pending",
       bg: "rgba(231,208,163,0.5)",
-      fg: "#5a3a12",
+      fg: "var(--pp-urgent)",
       Icon: Clock,
     },
     unsupported_but_preserved: {
       label: "Preserved · not previewable",
       bg: "rgba(231,208,163,0.5)",
-      fg: "#5a3a12",
+      fg: "var(--pp-urgent)",
       Icon: ShieldCheck,
     },
     needs_attention: {
       label: "Needs attention",
       bg: "rgba(231,123,86,0.35)",
-      fg: "#5a1e0c",
+      fg: "var(--pp-urgent)",
       Icon: AlertTriangle,
     },
     failed: {
       label: "Not preserved",
       bg: "rgba(231,123,86,0.35)",
-      fg: "#5a1e0c",
+      fg: "var(--pp-urgent)",
       Icon: AlertTriangle,
     },
     upload_incomplete: {
       label: "Upload incomplete",
       bg: "rgba(231,123,86,0.35)",
-      fg: "#5a1e0c",
+      fg: "var(--pp-urgent)",
       Icon: AlertTriangle,
     },
   };
@@ -117,7 +110,7 @@ function StatusChip({ item }: { item: PreservationReceiptItem }) {
       ? {
           ...base,
           bg: "rgba(231,208,163,0.5)",
-          fg: "#5a3a12",
+          fg: "var(--pp-urgent)",
           Icon: Eye,
           label: item.near_duplicate_of_title
             ? `Preserved · looks similar to "${item.near_duplicate_of_title}" — review when you have a moment`
@@ -579,7 +572,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
               <FileIntakeRow
                 key={f.id}
                 name={f.file.name}
-                sizeLabel={humanBytes(f.file.size)}
+                sizeLabel={humanSize(f.file.size)}
                 typeLabel={f.file.type}
                 statusLabel={
                   f.phase === "uploading"
@@ -636,12 +629,12 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           }}
         >
           <div className="flex items-center gap-2">
-            <ShieldCheck size={16} style={{ color: "#1f4d33" }} />
-            <div className="font-serif text-[16px]" style={{ color: "#1f4d33" }}>
+            <ShieldCheck size={16} style={{ color: "var(--pp-confirmed)" }} />
+            <div className="font-serif text-[16px]" style={{ color: "var(--pp-confirmed)" }}>
               Preservation receipt
             </div>
           </div>
-          <p className="mt-1 text-[12px]" style={{ color: "#2a3d31" }}>
+          <p className="mt-1 text-[12px]" style={{ color: "var(--pp-muted)" }}>
             {new Date(receipt.preserved_at).toLocaleString()} · batch {receipt.batch_id.slice(0, 8)}
           </p>
           <div className="mt-3 space-y-2">
@@ -661,7 +654,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
                       style={{ color: "var(--muted-foreground)" }}
                     >
                       {it.sha256
-                        ? `sha256 ${it.sha256.slice(0, 16)}… · ${humanBytes(it.bytes)}`
+                        ? `sha256 ${it.sha256.slice(0, 16)}… · ${it.bytes != null ? humanSize(it.bytes) : "size unknown"}`
                         : (it.message ?? "No fingerprint recorded.")}
                     </div>
                   </div>
@@ -670,7 +663,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
                 {it.near_duplicate_of && !it.duplicate_of && it.evidence_id && (
                   <div
                     className="mt-2 flex flex-wrap items-center gap-2 rounded-md p-2 text-[12px]"
-                    style={{ background: "rgba(231,208,163,0.35)", color: "#5a3a12" }}
+                    style={{ background: "rgba(231,208,163,0.35)", color: "var(--pp-urgent)" }}
                   >
                     {nearResolved[it.evidence_id] === "confirmed" ? (
                       <span>
@@ -710,7 +703,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           </div>
           <p
             className="mt-3 rounded-lg p-2 text-[12px]"
-            style={{ background: "rgba(231,208,163,0.35)", color: "#5a3a12" }}
+            style={{ background: "rgba(231,208,163,0.35)", color: "var(--pp-urgent)" }}
           >
             <AlertTriangle
               size={12}
@@ -724,8 +717,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
               className="mt-3 flex flex-wrap items-center gap-3 rounded-lg p-3 text-[13px]"
               style={{
                 background: "rgba(106,146,214,0.14)",
-                color: "#1f3a68",
-                border: "1px solid rgba(106,146,214,0.35)",
+                color: "var(--pp-approximate)",
               }}
             >
               <div className="flex-1">

@@ -181,8 +181,8 @@ function ClientCaseView() {
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
   const densityColor: Record<string, string> = {
     low: "var(--att-navy)",
-    moderate: "#6E6579",
-    elevated: "#6E6579",
+    moderate: "var(--att-muted)",
+    elevated: "var(--att-muted)",
     high: "var(--att-navy)",
   };
 
@@ -894,7 +894,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
                   fontSize: 13,
                   padding: "8px 10px",
                   background: "var(--pp-card)",
-                  borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "var(--att-navy)" : "#6E6579"}`,
+                  borderLeft: `3px solid ${(f.severity_tier ?? 0) >= 3 ? "var(--att-navy)" : "var(--att-muted)"}`,
                   borderRadius: 16,
                 }}
               >
@@ -1500,7 +1500,7 @@ function IntegrityStat({
     tone === "green"
       ? "var(--att-navy)"
       : tone === "amber"
-        ? "#6E6579"
+        ? "var(--att-muted)"
         : tone === "red"
           ? "var(--att-navy)"
           : "var(--att-text)";
@@ -1980,8 +1980,8 @@ function GapsTab({ data }: { data: CaseData }) {
 
   const sevColor: Record<string, string> = {
     high: "var(--att-navy)",
-    moderate: "#6E6579",
-    low: "#6E6579",
+    moderate: "var(--att-muted)",
+    low: "var(--att-muted)",
   };
 
   const requestClarification = async (idx: number, g: CaseData["gaps"][number]) => {
@@ -2028,7 +2028,7 @@ function GapsTab({ data }: { data: CaseData }) {
     totalGaps === 0 || closedGaps === totalGaps
       ? "var(--att-navy)"
       : closedGaps > 0
-        ? "#6E6579"
+        ? "var(--att-muted)"
         : "var(--att-navy)";
 
   const sendBucket = async (sev: "high" | "moderate" | "low") => {
@@ -2349,7 +2349,7 @@ function UnlinkedIncidentsSection({ data, clientId }: { data: CaseData; clientId
                   padding: "10px 12px",
                   background: "var(--att-surface-2)",
                   borderRadius: 16,
-                  borderLeft: "3px solid #6E6579",
+                  borderLeft: "3px solid var(--att-muted)",
                 }}
               >
                 <div
@@ -2449,10 +2449,10 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
   };
 
   const STATUS_OPTIONS: { value: string; label: string; color: string }[] = [
-    { value: "unreviewed", label: "Unreviewed", color: "#6E6579" },
+    { value: "unreviewed", label: "Unreviewed", color: "var(--att-muted)" },
     { value: "useful", label: "Useful", color: "var(--att-navy)" },
-    { value: "needs_context", label: "Needs context", color: "#6E6579" },
-    { value: "duplicate", label: "Duplicate", color: "#6E6579" },
+    { value: "needs_context", label: "Needs context", color: "var(--att-muted)" },
+    { value: "duplicate", label: "Duplicate", color: "var(--att-muted)" },
     { value: "exclude", label: "Exclude", color: "var(--att-navy)" },
     { value: "privileged", label: "Privileged", color: "var(--att-navy)" },
     { value: "exhibit_candidate", label: "Exhibit candidate", color: "var(--att-navy)" },
@@ -2860,7 +2860,7 @@ function DepoTab({
             title="Contradictions to reconcile"
             items={depo.prep.contradictions}
             keys={["topic", "conflicting_accounts", "how_to_reconcile"]}
-            accent="#6E6579"
+            accent="var(--att-muted)"
           />
           <DepoComplex
             title="Weak spots"
@@ -2883,7 +2883,7 @@ function DepoTab({
               <div
                 style={{
                   background: "var(--pp-card)",
-                  border: "1px solid #6E6579",
+                  border: "1px solid var(--att-muted)",
                   borderRadius: 16,
                   padding: "8px 12px",
                   marginBottom: 10,
@@ -2964,7 +2964,10 @@ function DepoComplex({
       <h3 style={{ fontSize: 16, marginBottom: 6 }}>{title}</h3>
       <ul style={{ display: "grid", gap: 8, listStyle: "none", padding: 0 }}>
         {items.map((row, i) => (
-          <li key={i} style={{ borderLeft: `3px solid ${accent ?? "#6E6579"}`, paddingLeft: 12 }}>
+          <li
+            key={i}
+            style={{ borderLeft: `3px solid ${accent ?? "var(--att-muted)"}`, paddingLeft: 12 }}
+          >
             {keys.map((k) => (
               <div key={k}>
                 <span className="att-eyebrow">{k.replace(/_/g, " ")}: </span>
@@ -3325,7 +3328,11 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
           ? "No evidence yet"
           : "Thin";
   const strengthColor =
-    strengthPct >= 70 ? "var(--att-navy)" : strengthPct >= 40 ? "#6E6579" : "var(--att-navy)";
+    strengthPct >= 70
+      ? "var(--att-navy)"
+      : strengthPct >= 40
+        ? "var(--att-muted)"
+        : "var(--att-navy)";
 
   const reviewPct = totalEv === 0 ? 0 : Math.round((reviewed / totalEv) * 100);
   const highRisk = data.flags.filter((f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3).length;
@@ -4801,7 +4808,7 @@ function CrossReferenceSection({ clientId }: { clientId: string }) {
               style={{
                 borderLeft: "2px solid #1A1224",
                 padding: "8px 12px",
-                background: "#FAF8F4",
+                background: "var(--pp-ground)",
               }}
             >
               <div

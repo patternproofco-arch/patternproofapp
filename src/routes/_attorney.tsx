@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut, Lock, LayoutGrid, Users, CreditCard, ShieldCheck, MessageSquare, ScanSearch } from "lucide-react";
+import { LogOut, Lock, LayoutGrid, Users, CreditCard, ShieldCheck, MessageSquare, ScanSearch, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -182,6 +182,7 @@ const NAV_ITEMS = [
   { to: "/clients", label: "Matters", icon: Users },
   { to: "/conflict-check", label: "Conflict check", icon: ScanSearch },
   { to: "/billing", label: "Billing", icon: CreditCard },
+  { to: "/team", label: "Team", icon: UserCog },
   { to: "/trust", label: "Settings", icon: ShieldCheck },
   { to: "/attorney-feedback", label: "Feedback", icon: MessageSquare },
 ] as const;
@@ -254,7 +255,7 @@ function ClioStatusChip() {
         aria-hidden
         style={{
           width: 7, height: 7, borderRadius: 999,
-          background: tone === "on" ? "#5F8B67" : "rgba(255,255,255,0.45)",
+          background: tone === "on" ? "var(--pp-confirmed)" : "rgba(255,255,255,0.45)",
           outline: tone === "on" ? "none" : "1px solid rgba(255,255,255,0.45)",
         }}
       />

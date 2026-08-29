@@ -73,7 +73,7 @@ function Terms() {
           <p>We aim for high availability but do not guarantee uninterrupted service. We may add, change, or remove features. Material changes to these Terms will be posted here with a new "last updated" date.</p>
 
           <H2>10. Termination</H2>
-          <p>You may request deletion of your account at any time by emailing gracieburns200@gmail.com (an automated in-app delete flow is not yet available). We may suspend or terminate accounts that violate these Terms or create legal or safety risk. On termination, we will delete your data per our Privacy Policy retention rules.</p>
+          <p>You may request deletion of your account at any time by emailing grace@gburnscompany.com (an automated in-app delete flow is not yet available). We may suspend or terminate accounts that violate these Terms or create legal or safety risk. On termination, we will delete your data per our Privacy Policy retention rules.</p>
 
           <H2>11. Disclaimers, Limitation of Liability &amp; Indemnification</H2>
           <p>The service is provided "as is" without warranties of any kind. To the maximum extent permitted by law, PatternProof's total liability for any claim relating to the service is limited to the amount you paid us in the 12 months before the claim.</p>
@@ -83,10 +83,11 @@ function Terms() {
           <p>These Terms are governed by the laws of the State of New Jersey, without regard to conflict-of-law rules.</p>
 
           <H2>13. Contact</H2>
-          <p>Questions about these Terms? Email <a href="mailto:gracieburns200@gmail.com" className="pp-legal-link">gracieburns200@gmail.com</a>.</p>
+          <p>Questions about these Terms? Email <a href="mailto:grace@gburnscompany.com" className="pp-legal-link">grace@gburnscompany.com</a>.</p>
           </section>
         </main>
       </div>
     </div>
   );
 }
+

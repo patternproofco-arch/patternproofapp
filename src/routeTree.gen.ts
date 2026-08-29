@@ -9,20 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WaitlistRouteImport } from './routes/waitlist'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TriageRouteImport } from './routes/triage'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TeamInviteRouteImport } from './routes/team-invite'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
-import { Route as SampleCaseRouteImport } from './routes/sample-case'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as ResourcesRouteImport } from './routes/resources'
-import { Route as RequestOrgAccessRouteImport } from './routes/request-org-access'
 import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as OrgSignupRouteImport } from './routes/org-signup'
 import { Route as OrgPortalRouteImport } from './routes/org-portal'
 import { Route as OrgFeedbackRouteImport } from './routes/org-feedback'
 import { Route as McpRouteImport } from './routes/mcp'
@@ -47,9 +48,7 @@ import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborat
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdvocateInviteTokenRouteImport } from './routes/advocate-invite.$token'
-import { Route as AdminOrgRequestsRouteImport } from './routes/admin.org-requests'
 import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
-import { Route as AuthenticatedWhyCourtsStruggleRouteImport } from './routes/_authenticated/why-courts-struggle'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
 import { Route as AuthenticatedShareWithAttorneyRouteImport } from './routes/_authenticated/share-with-attorney'
@@ -73,14 +72,17 @@ import { Route as AuthenticatedCourtReadyThanksRouteImport } from './routes/_aut
 import { Route as AuthenticatedCourtReadyRouteImport } from './routes/_authenticated/court-ready'
 import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
 import { Route as AuthenticatedCourtDatesRouteImport } from './routes/_authenticated/court-dates'
+import { Route as AuthenticatedContributeThanksRouteImport } from './routes/_authenticated/contribute-thanks'
+import { Route as AuthenticatedContributeRouteImport } from './routes/_authenticated/contribute'
 import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
 import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
 import { Route as AuthenticatedCaseRouteImport } from './routes/_authenticated/case'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
-import { Route as AuthenticatedAttorneyPortalRouteImport } from './routes/_authenticated/attorney-portal'
+import { Route as AuthenticatedAttorneyTimeLogRouteImport } from './routes/_authenticated/attorney-time-log'
 import { Route as AuthenticatedAttorneyBillingRouteImport } from './routes/_authenticated/attorney-billing'
 import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AttorneyTrustRouteImport } from './routes/_attorney/trust'
+import { Route as AttorneyTeamRouteImport } from './routes/_attorney/team'
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
 import { Route as AttorneySetupRouteImport } from './routes/_attorney/setup'
 import { Route as AttorneyConflictCheckRouteImport } from './routes/_attorney/conflict-check'
@@ -109,11 +111,6 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
-const WaitlistRoute = WaitlistRouteImport.update({
-  id: '/waitlist',
-  path: '/waitlist',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
   path: '/unsubscribe',
@@ -129,6 +126,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeamInviteRoute = TeamInviteRouteImport.update({
+  id: '/team-invite',
+  path: '/team-invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -139,14 +141,19 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SigninRoute = SigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SelfHelpGuideRoute = SelfHelpGuideRouteImport.update({
   id: '/self-help-guide',
   path: '/self-help-guide',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SampleCaseRoute = SampleCaseRouteImport.update({
-  id: '/sample-case',
-  path: '/sample-case',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SafetyRoute = SafetyRouteImport.update({
@@ -157,11 +164,6 @@ const SafetyRoute = SafetyRouteImport.update({
 const ResourcesRoute = ResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RequestOrgAccessRoute = RequestOrgAccessRouteImport.update({
-  id: '/request-org-access',
-  path: '/request-org-access',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfessionalAccessRoute = ProfessionalAccessRouteImport.update({
@@ -177,6 +179,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrgSignupRoute = OrgSignupRouteImport.update({
+  id: '/org-signup',
+  path: '/org-signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrgPortalRoute = OrgPortalRouteImport.update({
@@ -296,22 +303,11 @@ const AdvocateInviteTokenRoute = AdvocateInviteTokenRouteImport.update({
   path: '/advocate-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminOrgRequestsRoute = AdminOrgRequestsRouteImport.update({
-  id: '/admin/org-requests',
-  path: '/admin/org-requests',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AcceptInviteTokenRoute = AcceptInviteTokenRouteImport.update({
   id: '/accept-invite/$token',
   path: '/accept-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedWhyCourtsStruggleRoute =
-  AuthenticatedWhyCourtsStruggleRouteImport.update({
-    id: '/why-courts-struggle',
-    path: '/why-courts-struggle',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedVoiceNotesRoute = AuthenticatedVoiceNotesRouteImport.update({
   id: '/voice-notes',
   path: '/voice-notes',
@@ -437,6 +433,17 @@ const AuthenticatedCourtDatesRoute = AuthenticatedCourtDatesRouteImport.update({
   path: '/court-dates',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedContributeThanksRoute =
+  AuthenticatedContributeThanksRouteImport.update({
+    id: '/contribute-thanks',
+    path: '/contribute-thanks',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedContributeRoute = AuthenticatedContributeRouteImport.update({
+  id: '/contribute',
+  path: '/contribute',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedCommunicationsRoute =
   AuthenticatedCommunicationsRouteImport.update({
     id: '/communications',
@@ -459,10 +466,10 @@ const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAttorneyPortalRoute =
-  AuthenticatedAttorneyPortalRouteImport.update({
-    id: '/attorney-portal',
-    path: '/attorney-portal',
+const AuthenticatedAttorneyTimeLogRoute =
+  AuthenticatedAttorneyTimeLogRouteImport.update({
+    id: '/attorney-time-log',
+    path: '/attorney-time-log',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAttorneyBillingRoute =
@@ -479,6 +486,11 @@ const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
 const AttorneyTrustRoute = AttorneyTrustRouteImport.update({
   id: '/trust',
   path: '/trust',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AttorneyTeamRoute = AttorneyTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
   getParentRoute: () => AttorneyRoute,
 } as any)
 const AttorneySubscribeRoute = AttorneySubscribeRouteImport.update({
@@ -646,20 +658,21 @@ export interface FileRoutesByFullPath {
   '/mcp': typeof McpRoute
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
+  '/org-signup': typeof OrgSignupRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
-  '/request-org-access': typeof RequestOrgAccessRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
-  '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/team-invite': typeof TeamInviteRoute
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
-  '/waitlist': typeof WaitlistRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
@@ -670,14 +683,17 @@ export interface FileRoutesByFullPath {
   '/conflict-check': typeof AttorneyConflictCheckRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
+  '/team': typeof AttorneyTeamRoute
   '/trust': typeof AttorneyTrustRoute
   '/agent': typeof AuthenticatedAgentRouteWithChildren
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
-  '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
+  '/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case': typeof AuthenticatedCaseRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
+  '/contribute': typeof AuthenticatedContributeRoute
+  '/contribute-thanks': typeof AuthenticatedContributeThanksRoute
   '/court-dates': typeof AuthenticatedCourtDatesRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/court-ready': typeof AuthenticatedCourtReadyRoute
@@ -701,9 +717,7 @@ export interface FileRoutesByFullPath {
   '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
-  '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
-  '/admin/org-requests': typeof AdminOrgRequestsRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
@@ -744,20 +758,21 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
+  '/org-signup': typeof OrgSignupRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
-  '/request-org-access': typeof RequestOrgAccessRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
-  '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/team-invite': typeof TeamInviteRoute
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
-  '/waitlist': typeof WaitlistRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
@@ -767,13 +782,16 @@ export interface FileRoutesByTo {
   '/conflict-check': typeof AttorneyConflictCheckRoute
   '/setup': typeof AttorneySetupRoute
   '/subscribe': typeof AttorneySubscribeRoute
+  '/team': typeof AttorneyTeamRoute
   '/trust': typeof AttorneyTrustRoute
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
-  '/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
+  '/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/case': typeof AuthenticatedCaseRoute
   '/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/communications': typeof AuthenticatedCommunicationsRoute
+  '/contribute': typeof AuthenticatedContributeRoute
+  '/contribute-thanks': typeof AuthenticatedContributeThanksRoute
   '/court-dates': typeof AuthenticatedCourtDatesRoute
   '/court-packet': typeof AuthenticatedCourtPacketRoute
   '/court-ready': typeof AuthenticatedCourtReadyRoute
@@ -797,9 +815,7 @@ export interface FileRoutesByTo {
   '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
-  '/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
-  '/admin/org-requests': typeof AdminOrgRequestsRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
@@ -844,20 +860,21 @@ export interface FileRoutesById {
   '/mcp': typeof McpRoute
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
+  '/org-signup': typeof OrgSignupRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
-  '/request-org-access': typeof RequestOrgAccessRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
-  '/sample-case': typeof SampleCaseRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/team-invite': typeof TeamInviteRoute
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
-  '/waitlist': typeof WaitlistRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_attorney/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
@@ -868,14 +885,17 @@ export interface FileRoutesById {
   '/_attorney/conflict-check': typeof AttorneyConflictCheckRoute
   '/_attorney/setup': typeof AttorneySetupRoute
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
+  '/_attorney/team': typeof AttorneyTeamRoute
   '/_attorney/trust': typeof AttorneyTrustRoute
   '/_authenticated/agent': typeof AuthenticatedAgentRouteWithChildren
   '/_authenticated/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
-  '/_authenticated/attorney-portal': typeof AuthenticatedAttorneyPortalRoute
+  '/_authenticated/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/case': typeof AuthenticatedCaseRoute
   '/_authenticated/case-builder': typeof AuthenticatedCaseBuilderRoute
   '/_authenticated/communications': typeof AuthenticatedCommunicationsRoute
+  '/_authenticated/contribute': typeof AuthenticatedContributeRoute
+  '/_authenticated/contribute-thanks': typeof AuthenticatedContributeThanksRoute
   '/_authenticated/court-dates': typeof AuthenticatedCourtDatesRoute
   '/_authenticated/court-packet': typeof AuthenticatedCourtPacketRoute
   '/_authenticated/court-ready': typeof AuthenticatedCourtReadyRoute
@@ -899,9 +919,7 @@ export interface FileRoutesById {
   '/_authenticated/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
-  '/_authenticated/why-courts-struggle': typeof AuthenticatedWhyCourtsStruggleRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
-  '/admin/org-requests': typeof AdminOrgRequestsRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
@@ -944,20 +962,21 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/org-feedback'
     | '/org-portal'
+    | '/org-signup'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
-    | '/request-org-access'
     | '/resources'
     | '/safety'
-    | '/sample-case'
     | '/self-help-guide'
+    | '/signin'
+    | '/signup'
     | '/sitemap.xml'
     | '/support'
+    | '/team-invite'
     | '/terms'
     | '/triage'
     | '/unsubscribe'
-    | '/waitlist'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/attorney-feedback'
@@ -968,14 +987,17 @@ export interface FileRouteTypes {
     | '/conflict-check'
     | '/setup'
     | '/subscribe'
+    | '/team'
     | '/trust'
     | '/agent'
     | '/attorney-billing'
-    | '/attorney-portal'
+    | '/attorney-time-log'
     | '/calendar'
     | '/case'
     | '/case-builder'
     | '/communications'
+    | '/contribute'
+    | '/contribute-thanks'
     | '/court-dates'
     | '/court-packet'
     | '/court-ready'
@@ -999,9 +1021,7 @@ export interface FileRouteTypes {
     | '/share-with-attorney'
     | '/timeline'
     | '/voice-notes'
-    | '/why-courts-struggle'
     | '/accept-invite/$token'
-    | '/admin/org-requests'
     | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
@@ -1042,20 +1062,21 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/org-feedback'
     | '/org-portal'
+    | '/org-signup'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
-    | '/request-org-access'
     | '/resources'
     | '/safety'
-    | '/sample-case'
     | '/self-help-guide'
+    | '/signin'
+    | '/signup'
     | '/sitemap.xml'
     | '/support'
+    | '/team-invite'
     | '/terms'
     | '/triage'
     | '/unsubscribe'
-    | '/waitlist'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/attorney-feedback'
@@ -1065,13 +1086,16 @@ export interface FileRouteTypes {
     | '/conflict-check'
     | '/setup'
     | '/subscribe'
+    | '/team'
     | '/trust'
     | '/attorney-billing'
-    | '/attorney-portal'
+    | '/attorney-time-log'
     | '/calendar'
     | '/case'
     | '/case-builder'
     | '/communications'
+    | '/contribute'
+    | '/contribute-thanks'
     | '/court-dates'
     | '/court-packet'
     | '/court-ready'
@@ -1095,9 +1119,7 @@ export interface FileRouteTypes {
     | '/share-with-attorney'
     | '/timeline'
     | '/voice-notes'
-    | '/why-courts-struggle'
     | '/accept-invite/$token'
-    | '/admin/org-requests'
     | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
@@ -1141,20 +1163,21 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/org-feedback'
     | '/org-portal'
+    | '/org-signup'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
-    | '/request-org-access'
     | '/resources'
     | '/safety'
-    | '/sample-case'
     | '/self-help-guide'
+    | '/signin'
+    | '/signup'
     | '/sitemap.xml'
     | '/support'
+    | '/team-invite'
     | '/terms'
     | '/triage'
     | '/unsubscribe'
-    | '/waitlist'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_attorney/attorney-feedback'
@@ -1165,14 +1188,17 @@ export interface FileRouteTypes {
     | '/_attorney/conflict-check'
     | '/_attorney/setup'
     | '/_attorney/subscribe'
+    | '/_attorney/team'
     | '/_attorney/trust'
     | '/_authenticated/agent'
     | '/_authenticated/attorney-billing'
-    | '/_authenticated/attorney-portal'
+    | '/_authenticated/attorney-time-log'
     | '/_authenticated/calendar'
     | '/_authenticated/case'
     | '/_authenticated/case-builder'
     | '/_authenticated/communications'
+    | '/_authenticated/contribute'
+    | '/_authenticated/contribute-thanks'
     | '/_authenticated/court-dates'
     | '/_authenticated/court-packet'
     | '/_authenticated/court-ready'
@@ -1196,9 +1222,7 @@ export interface FileRouteTypes {
     | '/_authenticated/share-with-attorney'
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
-    | '/_authenticated/why-courts-struggle'
     | '/accept-invite/$token'
-    | '/admin/org-requests'
     | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
@@ -1243,24 +1267,24 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   OrgFeedbackRoute: typeof OrgFeedbackRoute
   OrgPortalRoute: typeof OrgPortalRoute
+  OrgSignupRoute: typeof OrgSignupRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
-  RequestOrgAccessRoute: typeof RequestOrgAccessRoute
   ResourcesRoute: typeof ResourcesRoute
   SafetyRoute: typeof SafetyRoute
-  SampleCaseRoute: typeof SampleCaseRoute
   SelfHelpGuideRoute: typeof SelfHelpGuideRoute
+  SigninRoute: typeof SigninRoute
+  SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
+  TeamInviteRoute: typeof TeamInviteRoute
   TermsRoute: typeof TermsRoute
   TriageRoute: typeof TriageRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
-  WaitlistRoute: typeof WaitlistRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
-  AdminOrgRequestsRoute: typeof AdminOrgRequestsRoute
   AdvocateInviteTokenRoute: typeof AdvocateInviteTokenRoute
   ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
@@ -1282,13 +1306,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/waitlist': {
-      id: '/waitlist'
-      path: '/waitlist'
-      fullPath: '/waitlist'
-      preLoaderRoute: typeof WaitlistRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/unsubscribe': {
       id: '/unsubscribe'
       path: '/unsubscribe'
@@ -1310,6 +1327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/team-invite': {
+      id: '/team-invite'
+      path: '/team-invite'
+      fullPath: '/team-invite'
+      preLoaderRoute: typeof TeamInviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/support': {
       id: '/support'
       path: '/support'
@@ -1324,18 +1348,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/self-help-guide': {
       id: '/self-help-guide'
       path: '/self-help-guide'
       fullPath: '/self-help-guide'
       preLoaderRoute: typeof SelfHelpGuideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sample-case': {
-      id: '/sample-case'
-      path: '/sample-case'
-      fullPath: '/sample-case'
-      preLoaderRoute: typeof SampleCaseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/safety': {
@@ -1350,13 +1381,6 @@ declare module '@tanstack/react-router' {
       path: '/resources'
       fullPath: '/resources'
       preLoaderRoute: typeof ResourcesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/request-org-access': {
-      id: '/request-org-access'
-      path: '/request-org-access'
-      fullPath: '/request-org-access'
-      preLoaderRoute: typeof RequestOrgAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/professional-access': {
@@ -1378,6 +1402,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/org-signup': {
+      id: '/org-signup'
+      path: '/org-signup'
+      fullPath: '/org-signup'
+      preLoaderRoute: typeof OrgSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/org-portal': {
@@ -1548,26 +1579,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdvocateInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/org-requests': {
-      id: '/admin/org-requests'
-      path: '/admin/org-requests'
-      fullPath: '/admin/org-requests'
-      preLoaderRoute: typeof AdminOrgRequestsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/accept-invite/$token': {
       id: '/accept-invite/$token'
       path: '/accept-invite/$token'
       fullPath: '/accept-invite/$token'
       preLoaderRoute: typeof AcceptInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/why-courts-struggle': {
-      id: '/_authenticated/why-courts-struggle'
-      path: '/why-courts-struggle'
-      fullPath: '/why-courts-struggle'
-      preLoaderRoute: typeof AuthenticatedWhyCourtsStruggleRouteImport
-      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/voice-notes': {
       id: '/_authenticated/voice-notes'
@@ -1730,6 +1747,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCourtDatesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/contribute-thanks': {
+      id: '/_authenticated/contribute-thanks'
+      path: '/contribute-thanks'
+      fullPath: '/contribute-thanks'
+      preLoaderRoute: typeof AuthenticatedContributeThanksRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/contribute': {
+      id: '/_authenticated/contribute'
+      path: '/contribute'
+      fullPath: '/contribute'
+      preLoaderRoute: typeof AuthenticatedContributeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/communications': {
       id: '/_authenticated/communications'
       path: '/communications'
@@ -1758,11 +1789,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/attorney-portal': {
-      id: '/_authenticated/attorney-portal'
-      path: '/attorney-portal'
-      fullPath: '/attorney-portal'
-      preLoaderRoute: typeof AuthenticatedAttorneyPortalRouteImport
+    '/_authenticated/attorney-time-log': {
+      id: '/_authenticated/attorney-time-log'
+      path: '/attorney-time-log'
+      fullPath: '/attorney-time-log'
+      preLoaderRoute: typeof AuthenticatedAttorneyTimeLogRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/attorney-billing': {
@@ -1784,6 +1815,13 @@ declare module '@tanstack/react-router' {
       path: '/trust'
       fullPath: '/trust'
       preLoaderRoute: typeof AttorneyTrustRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/team': {
+      id: '/_attorney/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AttorneyTeamRouteImport
       parentRoute: typeof AttorneyRoute
     }
     '/_attorney/subscribe': {
@@ -2015,6 +2053,7 @@ interface AttorneyRouteChildren {
   AttorneyConflictCheckRoute: typeof AttorneyConflictCheckRoute
   AttorneySetupRoute: typeof AttorneySetupRoute
   AttorneySubscribeRoute: typeof AttorneySubscribeRoute
+  AttorneyTeamRoute: typeof AttorneyTeamRoute
   AttorneyTrustRoute: typeof AttorneyTrustRoute
 }
 
@@ -2027,6 +2066,7 @@ const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneyConflictCheckRoute: AttorneyConflictCheckRoute,
   AttorneySetupRoute: AttorneySetupRoute,
   AttorneySubscribeRoute: AttorneySubscribeRoute,
+  AttorneyTeamRoute: AttorneyTeamRoute,
   AttorneyTrustRoute: AttorneyTrustRoute,
 }
 
@@ -2050,11 +2090,13 @@ const AuthenticatedAgentRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAgentRoute: typeof AuthenticatedAgentRouteWithChildren
   AuthenticatedAttorneyBillingRoute: typeof AuthenticatedAttorneyBillingRoute
-  AuthenticatedAttorneyPortalRoute: typeof AuthenticatedAttorneyPortalRoute
+  AuthenticatedAttorneyTimeLogRoute: typeof AuthenticatedAttorneyTimeLogRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCaseRoute: typeof AuthenticatedCaseRoute
   AuthenticatedCaseBuilderRoute: typeof AuthenticatedCaseBuilderRoute
   AuthenticatedCommunicationsRoute: typeof AuthenticatedCommunicationsRoute
+  AuthenticatedContributeRoute: typeof AuthenticatedContributeRoute
+  AuthenticatedContributeThanksRoute: typeof AuthenticatedContributeThanksRoute
   AuthenticatedCourtDatesRoute: typeof AuthenticatedCourtDatesRoute
   AuthenticatedCourtPacketRoute: typeof AuthenticatedCourtPacketRoute
   AuthenticatedCourtReadyRoute: typeof AuthenticatedCourtReadyRoute
@@ -2078,17 +2120,18 @@ interface AuthenticatedRouteChildren {
   AuthenticatedShareWithAttorneyRoute: typeof AuthenticatedShareWithAttorneyRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
-  AuthenticatedWhyCourtsStruggleRoute: typeof AuthenticatedWhyCourtsStruggleRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAgentRoute: AuthenticatedAgentRouteWithChildren,
   AuthenticatedAttorneyBillingRoute: AuthenticatedAttorneyBillingRoute,
-  AuthenticatedAttorneyPortalRoute: AuthenticatedAttorneyPortalRoute,
+  AuthenticatedAttorneyTimeLogRoute: AuthenticatedAttorneyTimeLogRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCaseRoute: AuthenticatedCaseRoute,
   AuthenticatedCaseBuilderRoute: AuthenticatedCaseBuilderRoute,
   AuthenticatedCommunicationsRoute: AuthenticatedCommunicationsRoute,
+  AuthenticatedContributeRoute: AuthenticatedContributeRoute,
+  AuthenticatedContributeThanksRoute: AuthenticatedContributeThanksRoute,
   AuthenticatedCourtDatesRoute: AuthenticatedCourtDatesRoute,
   AuthenticatedCourtPacketRoute: AuthenticatedCourtPacketRoute,
   AuthenticatedCourtReadyRoute: AuthenticatedCourtReadyRoute,
@@ -2112,7 +2155,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedShareWithAttorneyRoute: AuthenticatedShareWithAttorneyRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
-  AuthenticatedWhyCourtsStruggleRoute: AuthenticatedWhyCourtsStruggleRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -2138,25 +2180,25 @@ const rootRouteChildren: RootRouteChildren = {
   McpRoute: McpRoute,
   OrgFeedbackRoute: OrgFeedbackRoute,
   OrgPortalRoute: OrgPortalRoute,
+  OrgSignupRoute: OrgSignupRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProfessionalAccessRoute: ProfessionalAccessRoute,
-  RequestOrgAccessRoute: RequestOrgAccessRoute,
   ResourcesRoute: ResourcesRoute,
   SafetyRoute: SafetyRoute,
-  SampleCaseRoute: SampleCaseRoute,
   SelfHelpGuideRoute: SelfHelpGuideRoute,
+  SigninRoute: SigninRoute,
+  SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
+  TeamInviteRoute: TeamInviteRoute,
   TermsRoute: TermsRoute,
   TriageRoute: TriageRoute,
   UnsubscribeRoute: UnsubscribeRoute,
-  WaitlistRoute: WaitlistRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,
-  AdminOrgRequestsRoute: AdminOrgRequestsRoute,
   AdvocateInviteTokenRoute: AdvocateInviteTokenRoute,
   ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,

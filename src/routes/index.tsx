@@ -5,6 +5,7 @@ import type { ComponentType, ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Link } from "@tanstack/react-router";
 import { BrandLogo } from "@/components/BrandLogo";
+import { ThreadConnector, ThreadGroup } from "@/components/ThreadConnector";
 import { BrandMark } from "@/components/BrandMark";
 import {
   Briefcase,
@@ -25,11 +26,11 @@ export const Route = createFileRoute("/")({
     typeof search.ref === "string" ? { ref: search.ref } : {},
   head: () => ({
     meta: [
-      { title: "PatternProof — Turn scattered evidence into structured patterns" },
+      { title: "PatternProof — Organize evidence into one clear timeline" },
       {
         name: "description",
         content:
-          "Private documentation software that turns scattered evidence into court-ready patterns. Free for survivors. Free for DV organizations.",
+          "Organize photos, messages, voice notes, and written entries into one private, source-linked timeline you control.",
       },
       { property: "og:title", content: "PatternProof — The truth is in the pattern." },
       {
@@ -72,11 +73,11 @@ export const Route = createFileRoute("/")({
             },
             {
               "@type": "Offer",
-              name: "DV Organization — Invite",
+              name: "DV Organization — Partner",
               price: "0",
               priceCurrency: "USD",
               url: "https://pattern-proof.tech/for-organizations",
-              availability: "https://schema.org/LimitedAvailability",
+              availability: "https://schema.org/InStock",
             },
           ],
         }),
@@ -127,8 +128,8 @@ function Index() {
           }}
         >
           {attorneyMode
-            ? "Source-linked · Chain of custody · Court-ready"
-            : "Private · Secure · Court-ready"}
+            ? "Source-linked · Chain of custody · Export-ready"
+            : "Private · Secure · Export-ready"}
         </p>
         {!attorneyMode && (
           <p
@@ -165,10 +166,10 @@ function Index() {
             </>
           ) : (
             <>
-              The file is not the story.
+              Document what happened.
               <br />
               <em>
-                <span className="highlight-thread">The pattern is.</span>
+                <span className="highlight-thread">See the full pattern.</span>
               </em>
             </>
           )}
@@ -183,8 +184,8 @@ function Index() {
               screenshots. Hearing prep starts with strategy, not sorting.
             </p>
             <div style={{ marginTop: 34 }}>
-              <Link to="/sample-case" className="btn-primary" style={{ textDecoration: "none" }}>
-                See a sample case →
+              <Link to="/demo" className="btn-primary" style={{ textDecoration: "none" }}>
+                Try the demo →
               </Link>
               <div style={{ marginTop: 18 }}>
                 <Link
@@ -205,11 +206,24 @@ function Index() {
         ) : (
           <>
             <p
-              style={{ marginTop: 20, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
+              style={{
+                marginTop: 18,
+                fontFamily: "var(--font-sans)",
+                fontSize: 18,
+                fontWeight: 500,
+                lineHeight: 1.5,
+                color: INK,
+                maxWidth: 620,
+              }}
             >
-              Photos, messages, and voice notes stay encrypted and private — nothing is ever shared
-              until you choose to share it. Free for survivors. Free for DV organizations. Built by
-              someone who lived it.
+              PatternProof organizes your photos, messages, voice notes, and written entries into one
+              clear, source-linked timeline.
+            </p>
+            <p
+              style={{ marginTop: 14, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 600 }}
+            >
+              You decide what to add, what to share, and who can see it. Survivor accounts are free,
+              with no trial or credit card.
             </p>
             <div
               style={{
@@ -221,12 +235,15 @@ function Index() {
               }}
             >
               <Link to="/signup" className="btn-primary" style={{ textDecoration: "none" }}>
-                Start Documenting — Free
+                Create My Free Account
               </Link>
-              <span style={{ fontSize: 12.5, color: INK_3 }}>
-                No credit card · No obligation · 100% private
-              </span>
+              <Link to="/demo" className="btn-ghost" style={{ textDecoration: "none" }}>
+                Try the demo →
+              </Link>
             </div>
+            <p style={{ marginTop: 12, fontSize: 12.5, color: INK_3 }}>
+              Free for survivors · Private by default · You control sharing
+            </p>
           </>
         )}
       </section>
@@ -258,7 +275,7 @@ function Index() {
                   color: "var(--pp-accent)",
                 }}
               >
-                Free forever · Survivor
+                Free · Survivor
               </p>
               <h3
                 style={{
@@ -269,11 +286,11 @@ function Index() {
                   color: INK,
                 }}
               >
-                Document your story, privately.
+                Your documentation, organized in one place.
               </h3>
               <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.6, color: INK_2 }}>
-                Photos, messages, voice notes — timestamped and encrypted. Share only when you
-                choose.
+                Add photos, messages, voice notes, and written entries. PatternProof keeps each item tied
+                to its date and source.
               </p>
               <Link
                 to="/signup"
@@ -298,71 +315,51 @@ function Index() {
             title="Choose the path that fits you."
             style={{ marginTop: 56 }}
           >
-            <div
+            <ThreadGroup
+              persona="shared"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                gap: 16,
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: 10,
                 alignItems: "stretch",
               }}
             >
               <PathCard
-                accent="#5B4EA6"
+                accent="var(--pp-accent-survivor)"
+                accentBg="var(--pp-accent-survivor-gradient)"
+                iconColor={INK}
                 icon={FileText}
                 label="Survivor"
-                body="Write down what happened, at your own pace — photos, messages, and dates kept private and shared only when you choose."
+                body="Create a private, organized timeline from photos, messages, voice notes, and written entries."
                 to="/signup"
                 cta="Start documenting →"
               />
               <PathCard
-                accent="#0F2BB8"
+                accent="var(--pp-accent-attorney)"
                 icon={Briefcase}
                 label="Attorney"
-                body="A source-linked chronology on day one, with chain of custody intact — prep starts with strategy, not sorting."
-                to="/sample-case"
-                cta="See a sample case →"
+                body="Review a dated, source-linked chronology instead of sorting screenshots and files by hand."
+                to="/demo"
+                cta="Try the demo →"
               />
               <PathCard
-                accent="#4F6249"
+                accent="var(--pp-accent-org)"
                 icon={Users}
                 label="DV Organization"
-                body="A free intake tool for your advocates — she documents once, referrals arrive clean, at no cost to your program."
+                body="Let survivors document once and share an organized record with approved staff when they choose."
                 to="/for-organizations"
                 cta="See how it fits your program →"
               />
-            </div>
+            </ThreadGroup>
           </Section>
 
           {/* ───────────────────────── How it works ───────────────────────── */}
-          <Section eyebrow="How it works" title="Three steps. One clear pattern.">
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 16,
-              }}
-            >
-              <Step
-                n={1}
-                title="Write it down"
-                body="Photos, texts, voice notes — whatever you have, whenever you have a moment. Nothing is required."
-              />
-              <Step
-                n={2}
-                title="It organizes itself"
-                body="Every entry is timestamped and dated with its own confidence level — exact, approximate, or unknown. No pattern is invented for you."
-              />
-              <Step
-                n={3}
-                title="Share only what you choose"
-                body="Nothing leaves your account until you decide — with an attorney, an advocate, or a court, on your terms."
-              />
-            </div>
-          </Section>
+          <HowItWorks />
 
           {/* ───────────────────────── Safety built in ───────────────────────── */}
           <Section eyebrow="Safety built in" title="Designed for the moment you need it most.">
-            <div
+            <ThreadGroup
+              persona="shared"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -376,8 +373,8 @@ function Index() {
               />
               <SafetyPoint
                 icon={WifiOff}
-                title="No cloud sync by default"
-                body="You choose whether your account syncs at all. Nothing leaves your device unless you turn it on."
+                title="Works through a dropped connection"
+                body="If you lose signal mid-upload, files wait safely on your device and finish the moment you're back online — nothing is lost."
               />
               <SafetyPoint
                 icon={MapPinOff}
@@ -386,10 +383,10 @@ function Index() {
               />
               <SafetyPoint
                 icon={ShieldCheck}
-                title="Encrypted, always"
-                body="Your documentation is encrypted in transit and at rest, on every plan, with no exceptions."
+                title="Protected, in transit"
+                body="Your documentation is encrypted in transit and protected by per-user access controls, on every plan. At-rest encryption is a property of our infrastructure host that we have not independently audited."
               />
-            </div>
+            </ThreadGroup>
           </Section>
 
           {/* ───────────────────────── Testimonials ───────────────────────── */}
@@ -427,7 +424,7 @@ function Index() {
               />
               <Faq
                 q="Is it really free?"
-                a="Yes, for survivors, permanently — no credit card, no trial period, no upsell."
+                a="Yes, for survivors — no credit card, no trial period, no upsell."
               />
             </div>
           </Section>
@@ -573,39 +570,107 @@ function Section({
   );
 }
 
-function Step({ n, title, body }: { n: number; title: string; body: string }) {
+function HowItWorks() {
+  const steps = [
+    {
+      n: 1,
+      title: "Write it down",
+      body: "Photos, texts, voice notes — whatever you have, whenever you have a moment. Nothing is required.",
+    },
+    {
+      n: 2,
+      title: "It organizes itself",
+      body: "Every entry is timestamped and dated with its own confidence level — exact, approximate, or unknown. No pattern is invented for you.",
+    },
+    {
+      n: 3,
+      title: "Share only what you choose",
+      body: "Nothing leaves your account until you decide — with an attorney, an advocate, or a court, on your terms.",
+    },
+  ];
+
   return (
-    <div className="card-pp" style={{ padding: 20 }}>
-      <div
+    <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px", marginTop: 64 }}>
+      <p
         style={{
-          width: 30,
-          height: 30,
-          borderRadius: 999,
-          display: "grid",
-          placeItems: "center",
-          boxShadow: "var(--pp-shadow-in-sm)",
           fontFamily: "var(--font-mono)",
+          fontSize: 10.5,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
           fontWeight: 700,
-          fontSize: 13,
-          color: "var(--pp-accent)",
-          marginBottom: 12,
+          color: "var(--pp-accent-shared)",
+          marginBottom: 8,
         }}
       >
-        {n}
-      </div>
-      <h4
+        How it works
+      </p>
+      <h2
         style={{
           fontFamily: "var(--font-serif)",
-          fontWeight: 500,
-          fontSize: 16,
+          fontWeight: 400,
+          fontSize: "clamp(1.5rem, 3vw, 2rem)",
           color: INK,
-          margin: 0,
+          marginBottom: 28,
         }}
       >
-        {title}
-      </h4>
-      <p style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, color: INK_2 }}>{body}</p>
-    </div>
+        Three steps. One clear pattern.
+      </h2>
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {steps.map((s, i) => {
+          const last = i === steps.length - 1;
+          return (
+            <div
+              key={s.n}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "56px 1fr",
+                columnGap: 20,
+                alignItems: "stretch",
+                paddingBottom: last ? 0 : 14,
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    flexShrink: 0,
+                    borderRadius: 999,
+                    display: "grid",
+                    placeItems: "center",
+                    background: "var(--pp-ground)",
+                    boxShadow: "var(--pp-shadow-up)",
+                    fontFamily: "var(--font-serif)",
+                    fontWeight: 500,
+                    fontSize: 20,
+                    color: "var(--pp-accent-shared)",
+                  }}
+                >
+                  {s.n}
+                </div>
+                {!last && <ThreadConnector persona="shared" />}
+              </div>
+
+              <div className="card-pp" style={{ padding: "18px 24px", alignSelf: "start" }}>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontWeight: 500,
+                    fontSize: 18,
+                    color: INK,
+                    margin: 0,
+                  }}
+                >
+                  {s.title}
+                </h3>
+                <p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.6, color: INK_2 }}>{s.body}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -718,7 +783,7 @@ function DashboardPreview() {
         {[
           { icon: FileText, label: "Document" },
           { icon: Scale, label: "Patterns" },
-          { icon: ShieldCheck, label: "Court-Ready" },
+          { icon: ShieldCheck, label: "Review" },
           { icon: Lock, label: "Safety" },
         ].map(({ icon: Icon, label }) => (
           <div key={label} style={{ textAlign: "center" }}>
@@ -783,6 +848,8 @@ function DashboardPreview() {
 
 function PathCard({
   accent,
+  accentBg,
+  iconColor = "#FFFFFF",
   icon: Icon,
   label,
   body,
@@ -790,6 +857,13 @@ function PathCard({
   cta,
 }: {
   accent: string;
+  /** Background for the icon strip only — defaults to `accent`. Lets the
+   * survivor card carry its real logo gradient as a surface fill while
+   * `accent` stays a solid, legible color for text and the inset border. */
+  accentBg?: string;
+  /** Icon color against accentBg — defaults to white. The survivor
+   * gradient is light pastel at both ends, so white would be illegible. */
+  iconColor?: string;
   icon: ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
   body: string;
@@ -816,15 +890,15 @@ function PathCard({
       <div
         style={{
           position: "relative",
-          height: 60,
+          height: 48,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: accent,
+          background: accentBg ?? accent,
         }}
       >
         <span aria-hidden="true">
-          <Icon color="#FFFFFF" size={22} strokeWidth={1.6} />
+          <Icon color={iconColor} size={19} strokeWidth={1.6} />
         </span>
       </div>
 
@@ -834,7 +908,7 @@ function PathCard({
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: "14px 15px",
+          padding: "10px 9px",
           boxShadow: `inset 3px 0 0 ${accent}`,
         }}
       >
@@ -842,8 +916,8 @@ function PathCard({
           <div
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 9.5,
-              letterSpacing: "0.14em",
+              fontSize: 8.5,
+              letterSpacing: "0.1em",
               textTransform: "uppercase",
               fontWeight: 700,
               color: accent,
@@ -853,11 +927,11 @@ function PathCard({
           </div>
           <p
             style={{
-              margin: "7px 0 11px",
+              margin: "6px 0 9px",
               fontFamily: "var(--font-serif)",
               fontWeight: 400,
-              fontSize: 13.5,
-              lineHeight: 1.4,
+              fontSize: 12,
+              lineHeight: 1.38,
               color: INK,
             }}
           >
@@ -868,12 +942,12 @@ function PathCard({
           style={{
             display: "inline-block",
             fontFamily: "var(--font-mono)",
-            fontSize: 10,
+            fontSize: 9,
             fontWeight: 700,
-            letterSpacing: "0.1em",
+            letterSpacing: "0.06em",
             textTransform: "uppercase",
             textDecoration: "underline",
-            textUnderlineOffset: 4,
+            textUnderlineOffset: 3,
           }}
         >
           {cta}

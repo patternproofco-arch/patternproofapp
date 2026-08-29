@@ -30,8 +30,8 @@ export interface MarkColorway {
 
 export const MARK_COLORWAYS: Record<Exclude<MarkVariant, "neutral">, MarkColorway> = {
   survivor: { kind: "gradient", gradientFrom: "#E5A1E4", gradientTo: "#A1BDF3" },
-  attorney: { kind: "solid", solid: "#1A42BA" },
-  advocate: { kind: "solid", solid: "#5F6E5C" },
+  attorney: { kind: "solid", solid: "var(--pp-accent-attorney)" },
+  advocate: { kind: "solid", solid: "var(--pp-accent-org)" },
 };
 
 export function markColorway(variant: MarkVariant = "neutral"): MarkColorway {
@@ -55,20 +55,21 @@ interface BrandMarkProps {
 export function BrandMark({
   size = 40,
   variant = "neutral",
-  onDark: _onDark = false,
+  onDark = false,
   className,
 }: BrandMarkProps) {
   const colorway = markColorway(variant);
   const gradientId = useId();
   const fill = colorway.kind === "gradient" ? `url(#${gradientId})` : colorway.solid;
-  return (
+  const glyphSize = onDark ? size : Math.round(size * 0.6);
+  const svg = (
     <svg
       viewBox={MARK_VIEWBOX}
-      width={size}
-      height={size}
+      width={glyphSize}
+      height={glyphSize}
       role="img"
       aria-label="PatternProof"
-      className={className}
+      className={onDark ? className : undefined}
       style={{ display: "block", overflow: "hidden" }}
     >
       {colorway.kind === "gradient" && (
@@ -81,6 +82,29 @@ export function BrandMark({
       )}
       <path d={MARK_PATH} fill={fill} fillRule="evenodd" />
     </svg>
+  );
+
+  // On a dark surface there's no light neumorphic ground to carve the badge
+  // from, so the mark stays flat there. Everywhere else it gets the same
+  // extruded, soft-shadow treatment as the rest of the app's icon badges.
+  if (onDark) return svg;
+
+  return (
+    <span
+      className={className}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: Math.round(size * 0.32),
+        background: "var(--pp-ground)",
+        boxShadow: size >= 40 ? "var(--pp-shadow-up)" : "var(--pp-shadow-sm)",
+        display: "inline-grid",
+        placeItems: "center",
+        flexShrink: 0,
+      }}
+    >
+      {svg}
+    </span>
   );
 }
 

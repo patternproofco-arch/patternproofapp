@@ -6,7 +6,8 @@ import { BrandMark, MARK_COLORWAYS } from "@/components/BrandMark";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { buildTiers, type Tier } from "@/lib/pricing-tiers";
+import { buildTiers, FIRM_SEAT_MAX, type Tier } from "@/lib/pricing-tiers";
+import { ThreadGroup } from "@/components/ThreadConnector";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -48,7 +49,7 @@ export const Route = createFileRoute("/pricing")({
 const FAQS = [
   {
     q: "Is it really free for survivors?",
-    a: 'Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the professional-review packet export and sharing your case with an attorney. Professional Review is an optional add-on for AI-enhanced pattern analysis and premium formatting; nothing you need to walk into court is behind it.',
+    a: "Yes. No credit card, no trial, no catch. Survivors do not pay today — and that includes the professional-review packet export and sharing your case with an attorney. There's an optional one-time contribution (any amount, $1–$500) if PatternProof helped you — it doesn't unlock anything; every survivor feature is already free.",
   },
   {
     q: "What's the Charter Firm program?",
@@ -56,7 +57,7 @@ const FAQS = [
   },
   {
     q: "How is the Firm tier different from Solo?",
-    a: "Firm gives you a shared firm workspace: colleagues can be added to a firm and cases can be shared between them, with shared case notes and a caseload view of the cases shared with you. A conflict-of-interest check runs across your own PatternProof caseload. Solo is a single attorney account. We do not currently meter seats or matter counts on either plan — those limits are commercial expectations, not technical caps.",
+    a: `Firm includes a shared workspace for up to ${FIRM_SEAT_MAX} separate verified team logins. Owners and administrators invite members, and lawyers receive access to each survivor matter only through an explicit case grant. Solo is limited to one attorney login. Matter counts are not currently metered.`,
   },
   {
     q: "Why don't you sell to DV organizations?",
@@ -64,7 +65,7 @@ const FAQS = [
   },
   {
     q: "Does this work with my practice management system?",
-    a: "There is no live sync. Attorney and Organization plans include a ZIP export of standard CSVs plus every evidence file, which you can import into the practice management system you already use.",
+    a: "There is no live sync. Attorney plans include a ZIP export of standard CSVs plus every evidence file, which you can import into the practice management system you already use. Organization/advocate accounts currently get a plain-text case summary export, not a ZIP.",
   },
   {
     q: "Is my data safe?",
@@ -146,7 +147,7 @@ function PricingPage() {
                 width: 6,
                 height: 6,
                 borderRadius: 18,
-                background: "var(--pp-accent-shared, var(--oxblood-deep))",
+                background: "var(--pp-accent-shared)",
               }}
             />
             Simple, transparent pricing
@@ -188,7 +189,8 @@ function PricingPage() {
         </div>
 
         {/* Cards */}
-        <div
+        <ThreadGroup
+          persona="shared"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
@@ -200,7 +202,7 @@ function PricingPage() {
           {tiers.map((tier) => (
             <TierCard key={tier.key} tier={tier} />
           ))}
-        </div>
+        </ThreadGroup>
 
         {/* FAQ */}
         <div style={{ maxWidth: 720, margin: "0 auto" }}>

@@ -23,20 +23,6 @@ export const listCourtDates = createServerFn({ method: "GET" })
     return { dates: data ?? [] };
   });
 
-export const upcomingCourtDates = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("court_dates")
-      .select("id, court_name, hearing_type, hearing_at, location")
-      .eq("user_id", context.userId)
-      .gte("hearing_at", new Date().toISOString())
-      .order("hearing_at", { ascending: true })
-      .limit(3);
-    if (error) throw error;
-    return { dates: data ?? [] };
-  });
-
 export const upsertCourtDate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => upsertSchema.parse(d))
