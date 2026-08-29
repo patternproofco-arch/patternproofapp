@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
+import { ThreadConnector, ThreadGroup } from "@/components/ThreadConnector";
 import { useState } from "react";
 
 // Neumorphic ground + soft-shadow cards, matching the rest of the app. Each
@@ -125,7 +126,10 @@ function HowItWorks() {
         </div>
       </section>
 
-      <section style={{ maxWidth: 780, margin: "0 auto", padding: "24px 24px 32px" }}>
+      <section
+        data-persona={aud}
+        style={{ maxWidth: 780, margin: "0 auto", padding: "24px 24px 32px" }}
+      >
         {aud === "survivor" && <SurvivorFlow accent={accent} />}
         {aud === "attorney" && <AttorneyFlow accent={accent} />}
         {aud === "org" && <OrgFlow accent={accent} />}
@@ -221,27 +225,23 @@ function Step({
   accent: string;
 }) {
   return (
-    <div className="pp-thread-row">
+    <ThreadGroup
+      node={n}
+      nodeStyle={{
+        width: 44,
+        height: 44,
+        borderRadius: 999,
+        display: "grid",
+        placeItems: "center",
+        background: "var(--pp-card)",
+        boxShadow: "var(--pp-shadow-in-sm)",
+        fontFamily: MONO,
+        fontWeight: 700,
+        fontSize: 13,
+        color: accent,
+      }}
+    >
       <div
-        className="pp-thread-node"
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: 999,
-          display: "grid",
-          placeItems: "center",
-          background: "var(--pp-card)",
-          boxShadow: "var(--pp-shadow-in-sm)",
-          fontFamily: MONO,
-          fontWeight: 700,
-          fontSize: 13,
-          color: accent,
-        }}
-      >
-        {n}
-      </div>
-      <div
-        className="pp-thread-card"
         style={{
           borderRadius: "var(--pp-r-lg)",
           background: "var(--pp-card)",
@@ -256,7 +256,7 @@ function Step({
         </div>
         <p style={{ marginTop: 8, fontSize: 15.5, color: SUBTEXT, lineHeight: 1.6 }}>{body}</p>
       </div>
-    </div>
+    </ThreadGroup>
   );
 }
 
@@ -264,7 +264,7 @@ function SurvivorFlow({ accent }: { accent: string }) {
   return (
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="Survivor · What happens" accent={accent} />
-      <div className="pp-thread" style={{ marginTop: 16 }}>
+      <ThreadConnector style={{ marginTop: 16 }}>
         <Step
           n="01"
           accent={accent}
@@ -289,7 +289,7 @@ function SurvivorFlow({ accent }: { accent: string }) {
           title="Share a read-only link — only if and when you choose."
           body="If you decide to work with an attorney or advocate, you can share a scoped, revocable link to specific incidents or the whole record. Nothing leaves your account otherwise."
         />
-      </div>
+      </ThreadConnector>
     </div>
   );
 }
@@ -298,15 +298,7 @@ function AttorneyFlow({ accent }: { accent: string }) {
   return (
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="Attorney · What happens" accent={accent} />
-      <div
-        className="pp-thread"
-        style={
-          {
-            marginTop: 16,
-            "--pp-thread-grad": "linear-gradient(180deg, #3F6DF0, #1B2A6B)",
-          } as React.CSSProperties
-        }
-      >
+      <ThreadConnector style={{ marginTop: 16 }}>
         <Step
           n="01"
           accent={accent}
@@ -331,7 +323,7 @@ function AttorneyFlow({ accent }: { accent: string }) {
           title="Export a professional-review packet."
           body="A ZIP of source files and a written case summary, or an editable Word document — timeline, patterns, and source references included. Ready to hand a paralegal or attach to a motion."
         />
-      </div>
+      </ThreadConnector>
     </div>
   );
 }
@@ -340,15 +332,7 @@ function OrgFlow({ accent }: { accent: string }) {
   return (
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="DV org / advocate · What happens" accent={accent} />
-      <div
-        className="pp-thread"
-        style={
-          {
-            marginTop: 16,
-            "--pp-thread-grad": "linear-gradient(180deg, #C3DBBC, #8FAF84)",
-          } as React.CSSProperties
-        }
-      >
+      <ThreadConnector style={{ marginTop: 16 }}>
         <Step
           n="01"
           accent={accent}
@@ -367,7 +351,7 @@ function OrgFlow({ accent }: { accent: string }) {
           title="At referral to counsel, the survivor shares a structured record."
           body="Instead of arriving at an attorney's office with a bag of screenshots, they arrive with a dated, source-linked chronology they wrote themselves."
         />
-      </div>
+      </ThreadConnector>
     </div>
   );
 }

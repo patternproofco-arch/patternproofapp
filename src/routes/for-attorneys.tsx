@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { buildTiers } from "@/lib/pricing-tiers";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
+import { LeadCaptureCard } from "@/components/shared/LeadCaptureCard";
 
 /**
  * Attorney landing — neumorphic ground + soft-shadow cards, navy accent
@@ -72,6 +73,7 @@ function ForAttorneys() {
     : "";
   return (
     <div
+      data-persona="attorney"
       style={{ background: "var(--pp-ground)", color: INK, minHeight: "100vh", fontFamily: SANS }}
     >
       <PublicQuickExit />
@@ -92,6 +94,22 @@ function ForAttorneys() {
         >
           For attorneys
         </div>
+        {/* Plain-language statement before the tagline headline, so a
+            first-time visitor understands what this is within a few
+            seconds. */}
+        <p
+          style={{
+            fontSize: 16,
+            lineHeight: 1.5,
+            color: "var(--pp-muted)",
+            maxWidth: 560,
+            marginBottom: 18,
+          }}
+        >
+          PatternProof is a documentation platform your clients use to record domestic-violence
+          and coercive-control incidents — you receive a structured, source-linked chronology
+          instead of a folder of screenshots.
+        </p>
         <h1
           style={{
             fontFamily: SERIF,
@@ -351,6 +369,16 @@ function ForAttorneys() {
             {startsAt}. {firmLine}
           </div>
         </div>
+      </section>
+
+      <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 88px" }}>
+        <LeadCaptureCard
+          persona="attorney"
+          accent={NAVY}
+          kitName="Evidence Intake & Chronology Readiness Kit"
+          description="A short, practical checklist for taking on a documentation-heavy domestic-violence or coercive-control case."
+          sourcePage="/for-attorneys"
+        />
       </section>
 
       <Foot />

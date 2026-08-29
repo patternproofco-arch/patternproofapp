@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { OrgTeamSettings } from "@/components/team/OrgTeamSettings";
+import { ThreadConnector } from "@/components/ThreadConnector";
 import {
   getMyOrgPartnerStats,
   setReferralCodeActive,
@@ -105,6 +106,7 @@ function OrgPortal() {
         or dates.
       </p>
 
+      <ThreadConnector orientation="vertical-behind">
       <div
         style={{
           display: "grid",
@@ -117,6 +119,7 @@ function OrgPortal() {
         <Stat label="Last 30 days" value={stats.totals.last_30_days} />
         <Stat label="Last 90 days" value={stats.totals.last_90_days} />
       </div>
+      </ThreadConnector>
 
       <Section title="Your referral links">
         {stats.codes.length === 0 ? (
@@ -253,6 +256,19 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
         </span>
       </header>
       <main style={{ maxWidth: 880, margin: "0 auto", padding: "32px 20px 72px" }}>{children}</main>
+      <footer
+        style={{
+          maxWidth: 880,
+          margin: "0 auto",
+          padding: "0 20px 32px",
+          fontSize: 12,
+          color: "var(--muted-foreground)",
+        }}
+      >
+        <Link to="/org-feedback" style={{ color: "var(--pp-accent-org)", fontWeight: 600 }}>
+          Give us feedback on this partner dashboard →
+        </Link>
+      </footer>
     </div>
   );
 }

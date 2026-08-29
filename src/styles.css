@@ -813,6 +813,7 @@ textarea.input-pp {
 [data-persona="survivor"] { --pp-thread-grad: linear-gradient(180deg, #E5A1E4, #A1BDF3); }
 [data-persona="attorney"] { --pp-thread-grad: linear-gradient(180deg, #3F6DF0, #1B2A6B); }
 [data-persona="org"]      { --pp-thread-grad: linear-gradient(180deg, #C3DBBC, #8FAF84); }
+[data-persona="shared"]   { --pp-thread-grad: linear-gradient(180deg, #A9DCE6, #5C97A8); }
 
 .pp-thread {
   display: flex;
@@ -850,6 +851,101 @@ textarea.input-pp {
 .pp-thread-card {
   flex: 1;
   min-width: 0;
+}
+
+/* Horizontal variant — a row of cards connected left-to-right. Derived from
+   the active persona's own accent (already scoped by [data-persona]) via
+   color-mix(), rather than a third hand-tuned gradient per persona. */
+:root {
+  --pp-thread-grad-h: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--pp-accent) 55%, white),
+    var(--pp-accent)
+  );
+}
+.pp-thread--h {
+  flex-direction: row;
+  gap: 32px;
+  overflow-x: auto;
+}
+.pp-thread--h .pp-thread-row {
+  flex-direction: column;
+  align-items: stretch;
+  flex: 1;
+  min-width: 200px;
+}
+.pp-thread--h .pp-thread-row:not(:last-child)::after {
+  left: auto;
+  top: 22px;
+  right: -32px;
+  bottom: auto;
+  width: 44px;
+  height: 44px;
+  transform: translateY(-50%);
+  background: var(--pp-thread-grad-h);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M0 22C6 4 16 4 22 22C28 40 38 40 44 22' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M0 22C6 4 16 4 22 22C28 40 38 40 44 22' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: 44px 44px;
+  mask-size: 44px 44px;
+}
+.pp-thread--h .pp-thread-node {
+  align-self: flex-start;
+}
+
+/* "Behind" variant — a single continuous line run behind a stack of full-
+   width cards (no per-row node column). Used for card grids/stacks that
+   aren't a numbered step sequence. */
+.pp-thread--behind {
+  position: relative;
+  flex-direction: column;
+}
+.pp-thread--behind::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 44px;
+  transform: translateX(-50%);
+  background: var(--pp-thread-grad);
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+  -webkit-mask-size: 44px 44px;
+  mask-size: 44px 44px;
+}
+.pp-thread--behind > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* A slow, subtle shimmer along the thread — decorative only, so it's the
+   first thing to drop under reduced-motion rather than something load-
+   bearing for comprehension. */
+@media (prefers-reduced-motion: no-preference) {
+  .pp-thread-row:not(:last-child)::after,
+  .pp-thread--behind::before {
+    background-size: 200% 200%;
+    animation: pp-thread-shimmer 7s ease-in-out infinite;
+  }
+  .pp-thread--h .pp-thread-row:not(:last-child)::after {
+    background-size: 200% 200%;
+    animation: pp-thread-shimmer-h 7s ease-in-out infinite;
+  }
+}
+@keyframes pp-thread-shimmer {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+}
+@keyframes pp-thread-shimmer-h {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .pp-app,

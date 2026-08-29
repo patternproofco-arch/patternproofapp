@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Link } from "@tanstack/react-router";
 import { BrandLogo } from "@/components/BrandLogo";
 import { BrandMark } from "@/components/BrandMark";
+import { ThreadConnector } from "@/components/ThreadConnector";
 import {
   Briefcase,
   FileText,
@@ -129,6 +130,23 @@ function Index() {
           {attorneyMode
             ? "Source-linked · Chain of custody · Export-ready"
             : "Private · Secure · Export-ready"}
+        </p>
+        {/* Plain-language statement first, so a first-time visitor understands
+            what this is and who it's for within a few seconds — before the
+            tagline below. */}
+        <p
+          style={{
+            marginTop: 10,
+            fontFamily: "var(--font-sans)",
+            fontSize: 16,
+            lineHeight: 1.5,
+            color: INK_2,
+            maxWidth: 620,
+          }}
+        >
+          {attorneyMode
+            ? "PatternProof turns a client's own documentation into a structured, source-linked chronology you can review from day one."
+            : "PatternProof is a private documentation tool for survivors of domestic abuse and coercive control — for survivors, the attorneys they work with, and the DV organizations who refer them."}
         </p>
         {!attorneyMode && (
           <p
@@ -316,6 +334,8 @@ function Index() {
             title="Choose the path that fits you."
             style={{ marginTop: 56 }}
           >
+            <div data-persona="shared">
+            <ThreadConnector orientation="vertical-behind">
             <div
               style={{
                 display: "grid",
@@ -351,6 +371,8 @@ function Index() {
                 cta="See how it fits your program →"
               />
             </div>
+            </ThreadConnector>
+            </div>
           </Section>
 
           {/* ───────────────────────── How it works ───────────────────────── */}
@@ -358,6 +380,8 @@ function Index() {
 
           {/* ───────────────────────── Safety built in ───────────────────────── */}
           <Section eyebrow="Safety built in" title="Designed for the moment you need it most.">
+            <div data-persona="shared">
+            <ThreadConnector orientation="vertical-behind">
             <div
               style={{
                 display: "grid",
@@ -385,6 +409,8 @@ function Index() {
                 title="Protected, in transit"
                 body="Your documentation is encrypted in transit and protected by per-user access controls, on every plan. At-rest encryption is a property of our infrastructure host that we have not independently audited."
               />
+            </div>
+            </ThreadConnector>
             </div>
           </Section>
 

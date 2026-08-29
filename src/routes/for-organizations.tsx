@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
+import { LeadCaptureCard } from "@/components/shared/LeadCaptureCard";
 
 /**
  * DV organization landing — neumorphic ground + soft-shadow cards, sage
@@ -68,6 +69,21 @@ function ForOrganizations() {
         >
           For DV organizations
         </div>
+        {/* Plain-language statement before the tagline headline, so a
+            first-time visitor understands what this is within a few
+            seconds. */}
+        <p
+          style={{
+            fontSize: 16,
+            lineHeight: 1.5,
+            color: "var(--pp-muted)",
+            maxWidth: 560,
+            marginBottom: 18,
+          }}
+        >
+          PatternProof is a free, private documentation tool you can hand a survivor at intake —
+          no cost to your organization, no data integration required on your end.
+        </p>
         <h1
           style={{
             fontFamily: SERIF,
@@ -238,6 +254,16 @@ function ForOrganizations() {
             How PatternProof handles data privacy →
           </Link>
         </div>
+      </section>
+
+      <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 88px" }}>
+        <LeadCaptureCard
+          persona="org"
+          accent={SAGE}
+          kitName="Survivor Referral & Consent Readiness Kit"
+          description="A short, practical checklist for referring a survivor into a documentation tool — covering consent, safety, and what to say at handoff."
+          sourcePage="/for-organizations"
+        />
       </section>
 
       <Foot />
