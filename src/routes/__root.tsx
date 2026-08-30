@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
 import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
+import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
 
 function NotFoundComponent() {
   return (
@@ -212,6 +213,7 @@ function RootComponent() {
       <AuthProvider>
         <GoogleAnalyticsRouteTracker />
         <Outlet />
+        <ProfessionalReadinessKitCapture />
         <Toaster
           position="top-center"
           toastOptions={{
