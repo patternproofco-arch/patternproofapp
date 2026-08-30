@@ -35,7 +35,7 @@ export function ProfessionalReadinessKitCapture() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!name.trim() || !email.trim()) return;
+    if (!config || !name.trim() || !email.trim()) return;
     setStatus("sending");
     try {
       const result = await requestProfessionalReadinessKit({
