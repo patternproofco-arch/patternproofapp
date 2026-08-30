@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { buildTiers } from "@/lib/pricing-tiers";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { LeadCaptureCard } from "@/components/shared/LeadCaptureCard";
 
 /**
  * Attorney landing — neumorphic ground + soft-shadow cards, navy accent
@@ -369,16 +368,6 @@ function ForAttorneys() {
             {startsAt}. {firmLine}
           </div>
         </div>
-      </section>
-
-      <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 88px" }}>
-        <LeadCaptureCard
-          persona="attorney"
-          accent={NAVY}
-          kitName="Evidence Intake & Chronology Readiness Kit"
-          description="A short, practical checklist for taking on a documentation-heavy domestic-violence or coercive-control case."
-          sourcePage="/for-attorneys"
-        />
       </section>
 
       <Foot />

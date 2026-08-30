@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
-import { LeadCaptureCard } from "@/components/shared/LeadCaptureCard";
 
 /**
  * DV organization landing — neumorphic ground + soft-shadow cards, sage
@@ -254,16 +253,6 @@ function ForOrganizations() {
             How PatternProof handles data privacy →
           </Link>
         </div>
-      </section>
-
-      <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 88px" }}>
-        <LeadCaptureCard
-          persona="org"
-          accent={SAGE}
-          kitName="Survivor Referral & Consent Readiness Kit"
-          description="A short, practical checklist for referring a survivor into a documentation tool — covering consent, safety, and what to say at handoff."
-          sourcePage="/for-organizations"
-        />
       </section>
 
       <Foot />
