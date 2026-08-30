@@ -6,6 +6,8 @@
  * Prices here must match the live Stripe price lookup keys used in
  * src/lib/payments.functions.ts (attorney_solo_monthly, attorney_firm_monthly,
  * attorney_firm_charter_monthly).
+ * Attorney beta policy: docs/attorney-beta-pricing.md. Solo remains $297/month;
+ * the private free beta is separate from paid checkout and the Charter program.
  */
 
 /** Charter cohort cap — must match the guard in payments.functions.ts. */
