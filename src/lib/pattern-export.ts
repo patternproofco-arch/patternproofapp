@@ -26,9 +26,26 @@ export interface PatternExportResult {
   rejectedCount: number;
 }
 
-export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): PatternExportResult {
+/**
+ * `scopeToIncidentIds`: when the caller only has access to a subset of the
+ * survivor's incidents (a case-scoped attorney/advocate grant), pass the
+ * allowed incident id set here. `pattern_analyses` rows are generated once
+ * per account across *all* incidents, so account-wide narrative fields
+ * (pattern_summary, escalation_arc, attorney_summary, frequency_trends,
+ * abuse_type_breakdown, etc.) cannot be verified as drawn only from the
+ * granted subset and are suppressed entirely; severity_indicators are kept
+ * only when every incident they cite is inside the allowed set. Pass
+ * `null` (the default) for full-account access, where no extra scoping is
+ * applied beyond the existing survivor-review gate.
+ */
+export function buildPatternExport(
+  rawAnalysis: unknown,
+  rawReviewed: unknown,
+  scopeToIncidentIds: string[] | null = null,
+): PatternExportResult {
   const a = (rawAnalysis ?? {}) as AnyAnalysis;
   const reviewed = (rawReviewed ?? {}) as ReviewMap;
+  const allowedIncidentIds = scopeToIncidentIds ? new Set(scopeToIncidentIds) : null;
   const statusOf = (key: string): ClaimStatus => (reviewed[key]?.status ?? "unsure") as ClaimStatus;
   const textOf = (key: string, fallback: string) => {
     const st = reviewed[key];
@@ -54,7 +71,10 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
     lines.push(`Incidents counted in the record: ${a.corroborating_incident_count}`, ``);
   }
 
-  {
+  // Account-wide narrative — only shippable when the caller has full-account
+  // access. A case-scoped grant can't prove these sentences were drawn only
+  // from the incidents it was actually given.
+  if (!allowedIncidentIds) {
     if (a.pattern_summary) {
       lines.push(`## Overview`, ``, String(a.pattern_summary), ``);
       redacted.pattern_summary = a.pattern_summary;
@@ -71,10 +91,15 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
     }
   }
 
-  // Severity indicators — reviewable per item.
+  // Severity indicators — reviewable per item, and (when scoped) kept only
+  // when every incident it cites is inside the granted set.
   if (Array.isArray(a.severity_indicators) && a.severity_indicators.length) {
     const kept: AnyAnalysis[] = [];
     a.severity_indicators.forEach((s0: AnyAnalysis, i: number) => {
+      if (allowedIncidentIds) {
+        const cites = ((s0.source_incident_ids ?? []) as string[]).filter(Boolean);
+        if (!cites.length || !cites.every((id) => allowedIncidentIds.has(id))) return;
+      }
       const s = statusOf(`sev:${i}`);
       tally(s);
       if (!included(s)) return;
@@ -88,8 +113,8 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
     }
   }
 
-  // Attorney-facing restatement — reviewable.
-  if (a.attorney_summary) {
+  // Attorney-facing restatement — reviewable, account-wide only (see above).
+  if (a.attorney_summary && !allowedIncidentIds) {
     const s = statusOf("attorney_summary");
     tally(s);
     if (included(s)) {
@@ -100,9 +125,12 @@ export function buildPatternExport(rawAnalysis: unknown, rawReviewed: unknown): 
   }
 
   // Non-interpretive, count-based fields are factual restatements of the
-  // survivor's own records, not AI claims — they are not review-gated.
-  for (const key of ["frequency_trends", "abuse_type_breakdown", "severity_trajectory", "pattern_timeline_text"]) {
-    if (a[key] !== undefined) redacted[key] = a[key];
+  // survivor's own records, not AI claims — they are not review-gated, but
+  // they're still computed account-wide, so still scope-gated.
+  if (!allowedIncidentIds) {
+    for (const key of ["frequency_trends", "abuse_type_breakdown", "severity_trajectory", "pattern_timeline_text"]) {
+      if (a[key] !== undefined) redacted[key] = a[key];
+    }
   }
 
   if (unsureCount > 0) {

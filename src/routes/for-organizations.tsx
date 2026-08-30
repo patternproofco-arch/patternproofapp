@@ -69,6 +69,21 @@ function ForOrganizations() {
         >
           For DV organizations
         </div>
+        {/* Plain-language statement before the tagline headline, so a
+            first-time visitor understands what this is within a few
+            seconds. */}
+        <p
+          style={{
+            fontSize: 16,
+            lineHeight: 1.5,
+            color: "var(--pp-muted)",
+            maxWidth: 560,
+            marginBottom: 18,
+          }}
+        >
+          PatternProof is a free, private documentation tool you can hand a survivor at intake —
+          no cost to your organization, no data integration required on your end.
+        </p>
         <h1
           style={{
             fontFamily: SERIF,

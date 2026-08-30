@@ -69,6 +69,7 @@ function ForAttorneys() {
   const startsAt = `Plans start at ${solo?.price ?? "$297"} / month for a solo attorney seat`;
   return (
     <div
+      data-persona="attorney"
       style={{ background: "var(--pp-ground)", color: INK, minHeight: "100vh", fontFamily: SANS }}
     >
       <PublicQuickExit />
@@ -89,6 +90,22 @@ function ForAttorneys() {
         >
           For attorneys
         </div>
+        {/* Plain-language statement before the tagline headline, so a
+            first-time visitor understands what this is within a few
+            seconds. */}
+        <p
+          style={{
+            fontSize: 16,
+            lineHeight: 1.5,
+            color: "var(--pp-muted)",
+            maxWidth: 560,
+            marginBottom: 18,
+          }}
+        >
+          PatternProof is a documentation platform your clients use to record domestic-violence
+          and coercive-control incidents — you receive a structured, source-linked chronology
+          instead of a folder of screenshots.
+        </p>
         <h1
           style={{
             fontFamily: SERIF,

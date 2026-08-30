@@ -382,7 +382,6 @@ function DiagnosisCard({ clientCount, tier }: { clientCount: number | null; tier
         : tier === "solo"
           ? "Solo"
           : "Solo";
-  const cap = tier === "firm" || tier === "enterprise" ? "Unlimited" : "5";
   const status = clientCount === null ? "loading" : clientCount === 0 ? "empty" : "active";
   return (
     <div className="att-card" style={{ marginBottom: 24, borderLeft: "4px solid var(--att-navy)" }}>
@@ -402,7 +401,7 @@ function DiagnosisCard({ clientCount, tier }: { clientCount: number | null; tier
               `${clientCount} client case file${clientCount === 1 ? "" : "s"} active.`}
           </h2>
           <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
-            Plan: <strong>PatternProof {tierLabel}</strong> · Client cap: {cap}
+            Plan: <strong>PatternProof {tierLabel}</strong> · No matter limit enforced today
           </p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 220 }}>

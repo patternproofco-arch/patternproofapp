@@ -9,7 +9,7 @@ import { PinLockProvider, usePinLock } from "@/lib/pin-lock";
 import { useIdleLock } from "@/hooks/use-idle-lock";
 import { PinScreen } from "@/components/PinScreen";
 import { LockRecoveryScreen } from "@/components/LockRecoveryScreen";
-import { getAppLockState } from "@/lib/app-lock.functions";
+import { getPinLockState } from "@/lib/pin-lock.functions";
 import { RecordingProvider } from "@/lib/recording-context";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -32,11 +32,11 @@ function Gate() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { settings, update } = useSettings();
-  const { hasPin, hasBiometric, isLocked, lock } = usePinLock();
+  const { hasPin, hasBiometric, isLocked, ready: pinLockReady, lock } = usePinLock();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const ensureRole = useServerFn(ensureSurvivorRole);
   const roleChecked = useRef(false);
-  const readAppLock = useServerFn(getAppLockState);
+  const readAppLock = useServerFn(getPinLockState);
   const [serverLockOn, setServerLockOn] = useState<boolean | null>(null);
 
   // The server remembers whether a lock is turned on, so clearing site data
@@ -107,7 +107,7 @@ function Gate() {
     }
   }, [loading, user, settings.onboarded, pathname, navigate]);
 
-  if (loading || !user) {
+  if (loading || !user || !pinLockReady) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="label-eyebrow">Opening your space…</div>
@@ -115,23 +115,14 @@ function Gate() {
     );
   }
 
-  // Lock screen only shows when the user has opted in (PIN or biometric).
-  const localBiometric =
-    typeof window !== "undefined" && !!localStorage.getItem("pp_biometric_cred_v1");
-
-  // Server says a lock is on, but nothing on this device can open it — ask her
+  // Server says a lock is on, but nothing on this device can open it (e.g.
+  // biometric enrollment is device-bound and site data was cleared) — ask her
   // to sign back in rather than defaulting to unlocked.
-  if (
-    serverLockOn === true &&
-    !hasPin &&
-    !hasBiometric &&
-    !localBiometric &&
-    pathname !== "/onboarding"
-  ) {
+  if (serverLockOn === true && !hasPin && !hasBiometric && pathname !== "/onboarding") {
     return <LockRecoveryScreen />;
   }
 
-  if ((hasPin || localBiometric) && isLocked && pathname !== "/onboarding") {
+  if ((hasPin || hasBiometric) && isLocked && pathname !== "/onboarding") {
     return <PinScreen />;
   }
 

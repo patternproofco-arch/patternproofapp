@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { timingSafeEqual } from 'node:crypto';
 
 const getEnv = (key: string): string => {
   const value = process.env[key];
@@ -76,6 +77,13 @@ export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ typ
     new TextEncoder().encode(`${timestamp}.${body}`),
   );
   const expected = Buffer.from(new Uint8Array(signed)).toString('hex');
-  if (!v1Signatures.includes(expected)) throw new Error('Invalid webhook signature');
+  // Constant-time compare — plain string/array equality short-circuits on the
+  // first differing byte, a timing side-channel against the expected HMAC.
+  const expectedBuf = Buffer.from(expected, 'hex');
+  const matches = v1Signatures.some((sig) => {
+    const sigBuf = Buffer.from(sig, 'hex');
+    return sigBuf.length === expectedBuf.length && timingSafeEqual(sigBuf, expectedBuf);
+  });
+  if (!matches) throw new Error('Invalid webhook signature');
   return JSON.parse(body);
 }
