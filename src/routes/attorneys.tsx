@@ -1,8 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** Short alias: /attorneys → homepage in attorney-referral mode. */
+/**
+ * /attorneys is a legacy short alias. /for-attorneys is the canonical
+ * attorney marketing page, so forward permanently instead of keeping a
+ * second attorney-facing entry point alive.
+ */
 export const Route = createFileRoute("/attorneys")({
   beforeLoad: () => {
-    throw redirect({ to: "/", search: { ref: "attorney" }, replace: true });
+    throw redirect({ to: "/for-attorneys", replace: true });
   },
 });

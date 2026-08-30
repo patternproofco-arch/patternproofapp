@@ -118,14 +118,14 @@ const GUIDANCE: { title: string; body: string; to?: string; label?: string }[] =
   {
     title: "Records requests",
     body: "Ask police departments, schools, or agencies for the records they already hold about your situation, with wording that gets a real answer.",
-    to: "/opra-helper",
-    label: "Open the records-request helper",
+    to: "/signin",
+    label: "Sign in required — open the records-request helper",
   },
   {
     title: "How the courts work",
     body: "Which court hears which case, what judges look for, and how a record is usually read.",
-    to: "/court-systems",
-    label: "Open the court systems guide",
+    to: "/signin",
+    label: "Sign in required — open the court systems guide",
   },
   {
     title: "Something not working?",
@@ -203,7 +203,7 @@ function ResourcesPage() {
           Real people, on the other end of a phone.
         </h1>
         <p
-          style={{ marginTop: 16, fontSize: 16, lineHeight: 1.6, color: "#3A3849", maxWidth: 580 }}
+          style={{ marginTop: 16, fontSize: 16, lineHeight: 1.6, color: "var(--pp-muted)", maxWidth: 580 }}
         >
           Free and confidential. Call from a device the other person can't check when you can.
         </p>
@@ -342,7 +342,7 @@ const bodyStyle: React.CSSProperties = {
   marginTop: 6,
   fontSize: 15,
   lineHeight: 1.6,
-  color: "#3A3849",
+  color: "var(--pp-muted)",
 };
 
 const linkStyle: React.CSSProperties = {

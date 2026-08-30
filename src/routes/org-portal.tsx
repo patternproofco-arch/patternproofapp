@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { OrgTeamSettings } from "@/components/team/OrgTeamSettings";
-import { ThreadConnector } from "@/components/ThreadConnector";
+import { ThreadGroup } from "@/components/ThreadConnector";
 import {
   getMyOrgPartnerStats,
   setReferralCodeActive,
@@ -106,8 +106,9 @@ function OrgPortal() {
         or dates.
       </p>
 
-      <ThreadConnector orientation="vertical-behind">
-      <div
+      <ThreadGroup
+        persona="org"
+        orientation="vertical-behind"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
@@ -118,8 +119,7 @@ function OrgPortal() {
         <Stat label="Referred, all time" value={stats.totals.all_time} />
         <Stat label="Last 30 days" value={stats.totals.last_30_days} />
         <Stat label="Last 90 days" value={stats.totals.last_90_days} />
-      </div>
-      </ThreadConnector>
+      </ThreadGroup>
 
       <Section title="Your referral links">
         {stats.codes.length === 0 ? (

@@ -104,7 +104,10 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
             </div>
             <ul style={{ marginTop: 6, paddingLeft: 14, listStyle: "square" }}>
               {c.exhibits.map((e) => (
-                <li key={e.kind + e.id} style={{ fontSize: 13, color: "var(--pp-ink)", lineHeight: 1.5 }}>
+                <li
+                  key={e.kind + e.id}
+                  style={{ fontSize: 13, color: "var(--pp-ink)", lineHeight: 1.5 }}
+                >
                   <span className="mono-meta mono-meta--muted" style={{ marginRight: 6 }}>
                     {e.kind.toUpperCase()}
                   </span>
@@ -165,13 +168,37 @@ function TimelinePage() {
         .is("deleted_at", null)
         .order("date", { ascending: false, nullsFirst: false });
       setItems((data as Item[] | null) ?? []);
-      const { data: ev } = await supabase
-        .from("evidence")
-        .select("id,title,file_type,file_url,linked_incident_id")
-        .eq("user_id", user.id)
-        .is("deleted_at", null)
-        .not("linked_incident_id", "is", null);
-      const rows = (ev as EvItem[] | null) ?? [];
+      const { data: allLinks } = await supabase
+        .from("incident_evidence_links")
+        .select("incident_id,evidence_id")
+        .eq("user_id", user.id);
+      const linkedEvidenceIds = Array.from(
+        new Set((allLinks ?? []).map((link) => link.evidence_id)),
+      );
+      const [legacyEvidence, multiLinkedEvidence] = await Promise.all([
+        supabase
+          .from("evidence")
+          .select("id,title,file_type,file_url,linked_incident_id")
+          .eq("user_id", user.id)
+          .is("deleted_at", null)
+          .not("linked_incident_id", "is", null),
+        linkedEvidenceIds.length
+          ? supabase
+              .from("evidence")
+              .select("id,title,file_type,file_url,linked_incident_id")
+              .eq("user_id", user.id)
+              .is("deleted_at", null)
+              .in("id", linkedEvidenceIds)
+          : Promise.resolve({ data: [] }),
+      ]);
+      const rowsById = new Map<string, EvItem>();
+      for (const row of [
+        ...((legacyEvidence.data as EvItem[] | null) ?? []),
+        ...((multiLinkedEvidence.data as EvItem[] | null) ?? []),
+      ]) {
+        rowsById.set(row.id, row);
+      }
+      const rows = Array.from(rowsById.values());
       const withUrls = await Promise.all(
         rows.map(async (r) => {
           const { data: signed } = await supabase.storage
@@ -182,8 +209,15 @@ function TimelinePage() {
       );
       const grouped: Record<string, Array<EvItem & { url?: string }>> = {};
       withUrls.forEach((r) => {
-        const k = r.linked_incident_id!;
-        (grouped[k] ||= []).push(r);
+        const incidentIds = new Set(
+          (allLinks ?? [])
+            .filter((link) => link.evidence_id === r.id)
+            .map((link) => link.incident_id),
+        );
+        if (r.linked_incident_id) incidentIds.add(r.linked_incident_id);
+        incidentIds.forEach((incidentId) => {
+          (grouped[incidentId] ||= []).push(r);
+        });
       });
       setEvByIncident(grouped);
       const { data: ld } = await supabase

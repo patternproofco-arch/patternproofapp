@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { Check, ExternalLink, Lock, Star, Plug, Clock } from "lucide-react";
 import { createPortalSession } from "@/lib/payments.functions";
-import { ThreadConnector } from "@/components/ThreadConnector";
+import { ThreadGroup } from "@/components/ThreadConnector";
 import {
   getClioAvailability,
   getClioStatus,
@@ -160,8 +160,11 @@ function BillingPage() {
         <div className="att-eyebrow" style={{ marginBottom: 10 }}>
           Compare plans
         </div>
-        <ThreadConnector orientation="vertical-behind">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 14 }}>
+        <ThreadGroup
+          persona="attorney"
+          orientation="vertical-behind"
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 14 }}
+        >
           {TIERS.map((t) => {
             const isCurrent = sub.isActive && sub.priceId === t.priceId;
             return (
@@ -273,8 +276,7 @@ function BillingPage() {
               </div>
             );
           })}
-        </div>
-        </ThreadConnector>
+        </ThreadGroup>
       </div>
 
       <div

@@ -12,10 +12,8 @@
      org      → --pp-sage (light pastel sage)
      survivor → --pp-iridescent-violet
      shared   → --pp-iridescent-teal
-   NOTE: --oxblood / --oxblood-deep / --purple-mid / --red-bright below
-   are leftover names from an earlier palette and are NOT what any
-   persona accent currently resolves to, despite the names. See the
-   LEGACY comment at their definition before touching or trusting them.
+   The old --oxblood / --oxblood-deep / --purple-mid / --red-bright
+   legacy variables have been deleted; use the --pp-accent-* tokens.
    ============================================================ */
 
 @theme inline {
@@ -54,11 +52,7 @@
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
   /* Brand palette — accents LOCKED */
-  --color-oxblood: var(--oxblood);
-  --color-oxblood-deep: var(--oxblood-deep);
   --color-purple: var(--purple);
-  --color-purple-mid: var(--purple-mid);
-  --color-red-bright: var(--red-bright);
   --color-lav: var(--lav);
   --color-ink: var(--ink);
   --color-paper: var(--paper);
@@ -67,53 +61,39 @@
 }
 
 :root {
-  --purple:       #16235C;   /* deep navy blue (attorney) — ACTIVE, feeds --pp-accent-attorney */
+  --purple: #16235c; /* deep navy blue (attorney) — ACTIVE, feeds --pp-accent-attorney */
 
-  /* LEGACY — from a prior brand triad, superseded by --pp-sage /
-     --pp-iridescent-violet / --pp-iridescent-teal below. None of these
-     four feed any --pp-accent-* persona variable anymore, and their
-     names no longer match their colors (e.g. --oxblood is violet, not
-     oxblood; --purple-mid is sage green; --red-bright is lavender).
-     Known live reference: pricing.tsx uses --oxblood-deep as a var()
-     fallback. Keeping these defined (not deleting) since this session
-     can't confirm every place a `bg-oxblood-*` / `text-red-bright`
-     Tailwind utility class might still be used across the app — grep
-     the full repo before deleting or renaming any of the four. */
-  --oxblood:      #7B4FC7;
-  --oxblood-deep: #33268C;
-  --purple-mid:   #A9C4A0;
-  --red-bright:   #A38BEB;
-  --lav:          #7EB6FF;
+  --lav: #7eb6ff;
 
   /* Persona accent values (brand triad) */
-  --pp-sage:        #C9DCC0;   /* light pastel sage (org/advocate) */
-  --pp-sage-soft:   #DFEAD9;
-  --pp-iridescent-violet: #8B7FD6; /* iridescent violet (survivor) */
-  --pp-iridescent-teal:   #7FB8C9;
-  --pp-iridescent-pink:   #E0A6D2;
-  --ink:          #5A5A6A;
-  --paper:        #F0F2F5;
-  --paper-2:      #E8EAEF;
-  --line:         #D1D9E6;
+  --pp-sage: #c9dcc0; /* light pastel sage (org/advocate) */
+  --pp-sage-soft: #dfead9;
+  --pp-iridescent-violet: #8b7fd6; /* iridescent violet (survivor) */
+  --pp-iridescent-teal: #7fb8c9;
+  --pp-iridescent-pink: #e0a6d2;
+  --ink: #5a5a6a;
+  --paper: #f0f2f5;
+  --paper-2: #e8eaef;
+  --line: #d1d9e6;
 
   /* ---- Global tokens ---- */
   --pp-ink: var(--ink);
   --pp-paper: var(--paper);
   --pp-hairline: var(--line);
-  --pp-muted: #A8A8B8;
+  --pp-muted: #a8a8b8;
 
   /* Certainty — identical in every persona */
   --pp-confirmed: #0f6e56;
   --pp-approximate: #3a4fa8;
-  --pp-unknown: #5A5A6A;
+  --pp-unknown: #5a5a6a;
   --pp-urgent: #8a5a2e;
 
   /* Persona accents — LOCKED to brand persona palette */
-  --pp-accent-attorney: var(--purple);                 /* deep navy blue */
-  --pp-accent-org: var(--pp-sage);                     /* light pastel sage */
-  --pp-accent-survivor: var(--pp-iridescent-violet);   /* iridescent */
+  --pp-accent-attorney: var(--purple); /* deep navy blue */
+  --pp-accent-org: var(--pp-sage); /* light pastel sage */
+  --pp-accent-survivor: var(--pp-iridescent-violet); /* iridescent */
   --pp-accent-shared: var(--pp-iridescent-teal);
-  --pp-accent-survivor-gradient: linear-gradient(135deg, #C9B7EF, #AFA9DE, #A9E0CF);
+  --pp-accent-survivor-gradient: linear-gradient(135deg, #c9b7ef, #afa9de, #a9e0cf);
 
   --pp-accent: var(--pp-accent-survivor);
   --pp-accent-fg: #ffffff;
@@ -213,10 +193,10 @@
   --pp-r-pill: 999px;
 
   /* Soft ground + paired shadows (reference image) */
-  --pp-ground:       #F0F2F5;
-  --pp-ground-hi:    #F5F7FA;
-  --pp-shadow-dark:  #D1D9E6;
-  --pp-shadow-lite:  #FFFFFF;
+  --pp-ground: #f0f2f5;
+  --pp-ground-hi: #f5f7fa;
+  --pp-shadow-dark: #d1d9e6;
+  --pp-shadow-lite: #ffffff;
 
   /* Raised: light top-left, dark bottom-right — classic neumorphism */
   --pp-shadow-up: -8px -8px 16px var(--pp-shadow-lite), 8px 8px 16px var(--pp-shadow-dark);
@@ -235,9 +215,9 @@
   --pp-accent: var(--pp-accent-attorney);
   --pp-accent-fg: #ffffff;
   --pp-link: #3f6df0;
-  --pp-ground: #EDF0F5;
-  --pp-ground-hi: #F2F5F9;
-  --pp-shadow-dark: #C5D1E0;
+  --pp-ground: #edf0f5;
+  --pp-ground-hi: #f2f5f9;
+  --pp-shadow-dark: #c5d1e0;
   --background: var(--pp-ground);
   --pp-card: var(--pp-ground);
   --pp-paper: var(--pp-ground);
@@ -246,9 +226,9 @@
   --pp-accent: var(--pp-accent-org);
   --pp-accent-fg: var(--ink);
   --pp-link: #5d7a52;
-  --pp-ground: #EDF0EC;
-  --pp-ground-hi: #F2F5F0;
-  --pp-shadow-dark: #C5D1C0;
+  --pp-ground: #edf0ec;
+  --pp-ground-hi: #f2f5f0;
+  --pp-shadow-dark: #c5d1c0;
   --background: var(--pp-ground);
   --pp-card: var(--pp-ground);
   --pp-paper: var(--pp-ground);
@@ -257,9 +237,9 @@
   --pp-accent: var(--pp-accent-survivor);
   --pp-accent-fg: #ffffff;
   --pp-link: #8b7fd1;
-  --pp-ground: #F0F2F5;
-  --pp-ground-hi: #F5F7FA;
-  --pp-shadow-dark: #D1D9E6;
+  --pp-ground: #f0f2f5;
+  --pp-ground-hi: #f5f7fa;
+  --pp-shadow-dark: #d1d9e6;
   --background: var(--pp-ground);
   --pp-card: var(--pp-ground);
   --pp-paper: var(--pp-ground);
@@ -289,32 +269,54 @@
     font-weight: 400;
     color: var(--pp-ink);
   }
-  p, li, span, div, a, button, input, textarea, select, label {
+  p,
+  li,
+  span,
+  div,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  label {
     font-family: var(--font-sans);
   }
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-family: var(--font-serif);
     font-weight: 400;
     color: var(--pp-ink);
     letter-spacing: -0.02em;
     line-height: 1.15;
   }
-  h4, h5, h6 {
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-sans);
     font-weight: 600;
     color: var(--pp-ink);
     letter-spacing: -0.005em;
     line-height: 1.3;
   }
-  h1 { font-size: clamp(2.1rem, 4.2vw, 3rem); }
-  h2 { font-size: clamp(1.6rem, 2.6vw, 2.1rem); }
-  h3 { font-size: clamp(1.25rem, 1.9vw, 1.5rem); }
-  h4 { font-size: clamp(1.05rem, 1.4vw, 1.2rem); }
-  p, li {
+  h1 {
+    font-size: clamp(2.1rem, 4.2vw, 3rem);
+  }
+  h2 {
+    font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  }
+  h3 {
+    font-size: clamp(1.25rem, 1.9vw, 1.5rem);
+  }
+  h4 {
+    font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+  }
+  p,
+  li {
     font-size: 16px;
     line-height: 1.65;
     font-weight: 400;
-    color: #5A5A6A;
+    color: #5a5a6a;
   }
   small {
     font-size: 12px;
@@ -325,11 +327,13 @@
     color: var(--pp-ink);
     font-size: 13px;
   }
-  button, a {
+  button,
+  a {
     font-weight: 500;
     color: var(--pp-ink);
   }
-  nav a, nav button {
+  nav a,
+  nav button {
     font-size: 13px;
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -452,7 +456,9 @@ h3 em {
   border-radius: var(--pp-r-pill);
   border: none;
   cursor: pointer;
-  transition: box-shadow 0.17s ease, color 0.15s ease;
+  transition:
+    box-shadow 0.17s ease,
+    color 0.15s ease;
   white-space: nowrap;
   background: var(--pp-ground);
   box-shadow: var(--pp-shadow-sm);
@@ -520,9 +526,15 @@ textarea.input-pp {
   cursor: pointer;
   transition: box-shadow 0.17s ease;
 }
-.pp-option + .pp-option { margin-top: 10px; }
-.pp-option:hover { box-shadow: var(--pp-shadow-up); }
-.pp-option[aria-pressed="true"] { box-shadow: var(--pp-shadow-in-sm); }
+.pp-option + .pp-option {
+  margin-top: 10px;
+}
+.pp-option:hover {
+  box-shadow: var(--pp-shadow-up);
+}
+.pp-option[aria-pressed="true"] {
+  box-shadow: var(--pp-shadow-in-sm);
+}
 .pp-option-radio {
   width: 20px;
   height: 20px;
@@ -548,7 +560,9 @@ textarea.input-pp {
   display: block;
   color: var(--pp-ink);
 }
-.pp-option[aria-pressed="true"] .pp-option-title { color: var(--pp-accent); }
+.pp-option[aria-pressed="true"] .pp-option-title {
+  color: var(--pp-accent);
+}
 .pp-option-desc {
   font-size: 12.5px;
   color: var(--pp-muted);
@@ -569,7 +583,9 @@ textarea.input-pp {
   cursor: pointer;
   transition: box-shadow 0.17s ease;
 }
-.pp-chip:hover { box-shadow: var(--pp-shadow-sm); }
+.pp-chip:hover {
+  box-shadow: var(--pp-shadow-sm);
+}
 
 .pp-note {
   background: var(--pp-ground);
@@ -612,7 +628,9 @@ textarea.input-pp {
 .collapse-shell {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 240ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease;
+  transition:
+    grid-template-rows 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 200ms ease;
   opacity: 0;
   pointer-events: none;
 }
@@ -627,13 +645,16 @@ textarea.input-pp {
 }
 
 @media print {
-  body { background: #fff !important; color: #000 !important; }
-  .no-print { display: none !important; }
-  .print-page { padding: 0 !important; }
-}
-
-@media (max-width: 767px) {
-  html { zoom: 0.9; }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-page {
+    padding: 0 !important;
+  }
 }
 
 [data-density="survivor"] {
@@ -641,10 +662,14 @@ textarea.input-pp {
   line-height: 1.55;
 }
 @media (min-width: 640px) {
-  [data-density="survivor"] { font-size: 15px; }
+  [data-density="survivor"] {
+    font-size: 15px;
+  }
 }
 @media (min-width: 1024px) {
-  [data-density="survivor"] { font-size: 16px; }
+  [data-density="survivor"] {
+    font-size: 16px;
+  }
 }
 [data-density="survivor"] p,
 [data-density="survivor"] li,
@@ -674,10 +699,16 @@ textarea.input-pp {
   letter-spacing: 0.02em;
   color: var(--pp-ink);
 }
-.mono-meta--muted { color: var(--pp-muted); }
+.mono-meta--muted {
+  color: var(--pp-muted);
+}
 
 .highlight-thread {
-  background-image: linear-gradient(90deg, var(--pp-accent) 0%, var(--pp-link, var(--pp-accent)) 100%);
+  background-image: linear-gradient(
+    90deg,
+    var(--pp-accent) 0%,
+    var(--pp-link, var(--pp-accent)) 100%
+  );
   background-repeat: no-repeat;
   background-size: 100% 3px;
   background-position: 0 100%;
@@ -713,7 +744,9 @@ textarea.input-pp {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; }
+  * {
+    animation: none !important;
+  }
 }
 
 .pp-legal-shell {
@@ -747,7 +780,9 @@ textarea.input-pp {
   text-decoration: none;
 }
 .pp-legal-link:hover,
-.pp-legal-link:focus-visible { text-decoration: underline; }
+.pp-legal-link:focus-visible {
+  text-decoration: underline;
+}
 .pp-legal-kicker {
   margin: 0 0 12px;
   color: var(--pp-accent);
@@ -777,10 +812,20 @@ textarea.input-pp {
   font-size: 15px;
   line-height: 1.72;
 }
-.pp-legal-prose p { margin: 0 0 16px; }
-.pp-legal-prose ul { margin: 0 0 20px; padding-left: 22px; }
-.pp-legal-prose li { margin-bottom: 6px; }
-.pp-legal-prose strong { color: var(--pp-ink); font-weight: 700; }
+.pp-legal-prose p {
+  margin: 0 0 16px;
+}
+.pp-legal-prose ul {
+  margin: 0 0 20px;
+  padding-left: 22px;
+}
+.pp-legal-prose li {
+  margin-bottom: 6px;
+}
+.pp-legal-prose strong {
+  color: var(--pp-ink);
+  font-weight: 700;
+}
 .pp-legal-prose h2 {
   margin: 38px 0 14px;
   color: var(--pp-ink);
@@ -803,17 +848,46 @@ textarea.input-pp {
 }
 
 @media (max-width: 640px) {
-  .pp-legal-shell { padding: 18px 14px 52px; }
-  .pp-legal-sheet { padding: 24px 20px; }
+  .pp-legal-shell {
+    padding: 18px 14px 52px;
+  }
+  .pp-legal-sheet {
+    padding: 24px 20px;
+  }
 }
 
-:root {
-  --pp-thread-grad: linear-gradient(180deg, #E5A1E4, #A1BDF3);
+/* ── Connecting thread ─────────────────────────────────────────
+   ONE wavy-connector implementation, site-wide. The gradient is
+   derived from the four LOCKED persona accents — never hardcode a
+   thread color. Any element carrying `data-persona` (including the
+   <ThreadConnector> component itself) re-scopes the thread. */
+:root,
+[data-persona="shared"] {
+  --pp-thread-accent: var(--pp-accent-shared);
 }
-[data-persona="survivor"] { --pp-thread-grad: linear-gradient(180deg, #E5A1E4, #A1BDF3); }
-[data-persona="attorney"] { --pp-thread-grad: linear-gradient(180deg, #3F6DF0, #1B2A6B); }
-[data-persona="org"]      { --pp-thread-grad: linear-gradient(180deg, #C3DBBC, #8FAF84); }
-[data-persona="shared"]   { --pp-thread-grad: linear-gradient(180deg, #A9DCE6, #5C97A8); }
+[data-persona="survivor"] {
+  --pp-thread-accent: var(--pp-accent-survivor);
+}
+[data-persona="attorney"] {
+  --pp-thread-accent: var(--pp-accent-attorney);
+}
+[data-persona="org"] {
+  --pp-thread-accent: var(--pp-accent-org);
+}
+
+:root,
+[data-persona] {
+  --pp-thread-grad: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--pp-thread-accent) 45%, white),
+    var(--pp-thread-accent)
+  );
+  --pp-thread-grad-h: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--pp-thread-accent) 45%, white),
+    var(--pp-thread-accent)
+  );
+}
 
 .pp-thread {
   display: flex;
@@ -832,16 +906,17 @@ textarea.input-pp {
   left: 22px;
   top: 44px;
   bottom: -24px;
-  width: 44px;
+  width: 52px;
+  z-index: 0;
   transform: translateX(-50%);
   background: var(--pp-thread-grad);
-  opacity: 0.85;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  opacity: 0.95;
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
   -webkit-mask-repeat: repeat-y;
   mask-repeat: repeat-y;
-  -webkit-mask-size: 44px 44px;
-  mask-size: 44px 44px;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
 }
 .pp-thread-node {
   position: relative;
@@ -853,99 +928,172 @@ textarea.input-pp {
   min-width: 0;
 }
 
-/* Horizontal variant — a row of cards connected left-to-right. Derived from
-   the active persona's own accent (already scoped by [data-persona]) via
-   color-mix(), rather than a third hand-tuned gradient per persona. */
 :root {
-  --pp-thread-grad-h: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--pp-accent) 55%, white),
-    var(--pp-accent)
-  );
-}
-.pp-thread--h {
-  flex-direction: row;
-  gap: 32px;
-  overflow-x: auto;
-}
-.pp-thread--h .pp-thread-row {
-  flex-direction: column;
-  align-items: stretch;
-  flex: 1;
-  min-width: 200px;
-}
-.pp-thread--h .pp-thread-row:not(:last-child)::after {
-  left: auto;
-  top: 22px;
-  right: -32px;
-  bottom: auto;
-  width: 44px;
-  height: 44px;
-  transform: translateY(-50%);
-  background: var(--pp-thread-grad-h);
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M0 22C6 4 16 4 22 22C28 40 38 40 44 22' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M0 22C6 4 16 4 22 22C28 40 38 40 44 22' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  -webkit-mask-repeat: repeat-x;
-  mask-repeat: repeat-x;
-  -webkit-mask-size: 44px 44px;
-  mask-size: 44px 44px;
-}
-.pp-thread--h .pp-thread-node {
-  align-self: flex-start;
+  /* Deeper amplitude + thicker stroke than the original 4.5/44 wave. */
+  --pp-thread-mask-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Cpath d='M26 0C50 7 50 19 26 26C2 33 2 45 26 52' fill='none' stroke='black' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E");
+  --pp-thread-mask-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Cpath d='M0 26C7 2 19 2 26 26C33 50 45 50 52 26' fill='none' stroke='black' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
-/* "Behind" variant — a single continuous line run behind a stack of full-
-   width cards (no per-row node column). Used for card grids/stacks that
-   aren't a numbered step sequence. */
-.pp-thread--behind {
-  position: relative;
-  flex-direction: column;
-}
-.pp-thread--behind::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 44px;
-  transform: translateX(-50%);
-  background: var(--pp-thread-grad);
-  opacity: 0.5;
+/* Standalone connector element (vertical), used between stacked nodes. */
+.pp-thread-line {
+  flex: 1;
+  align-self: stretch;
+  width: 52px;
+  min-height: 48px;
   z-index: 0;
-  pointer-events: none;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background: var(--pp-thread-grad);
+  opacity: 0.95;
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
   -webkit-mask-repeat: repeat-y;
   mask-repeat: repeat-y;
-  -webkit-mask-size: 44px 44px;
-  mask-size: 44px 44px;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
 }
-.pp-thread--behind > * {
+
+/* Card-grid variant: a horizontal wave running behind a group of cards. */
+.pp-thread-group {
+  position: relative;
+}
+.pp-thread-group > * {
   position: relative;
   z-index: 1;
 }
+.pp-thread-line-h {
+  position: absolute;
+  left: -12px;
+  right: -12px;
+  top: 50%;
+  height: 52px;
+  margin-top: -26px;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--pp-thread-grad-h);
+  opacity: 0.5;
+  -webkit-mask-image: var(--pp-thread-mask-h);
+  mask-image: var(--pp-thread-mask-h);
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
+}
 
-/* A slow, subtle shimmer along the thread — decorative only, so it's the
-   first thing to drop under reduced-motion rather than something load-
-   bearing for comprehension. */
-@media (prefers-reduced-motion: no-preference) {
-  .pp-thread-row:not(:last-child)::after,
-  .pp-thread--behind::before {
-    background-size: 200% 200%;
-    animation: pp-thread-shimmer 7s ease-in-out infinite;
+/* Landing portal chooser: one generous thread carrying all three portal colors. */
+.portal-path-grid > .pp-thread-line-h {
+  top: 50%;
+  height: 76px;
+  opacity: 0.62;
+  background: linear-gradient(
+    90deg,
+    #c9b7ef 0%,
+    #afa9de 22%,
+    #16235c 48%,
+    #16235c 62%,
+    #bcd6be 100%
+  );
+}
+
+.portal-path-grid > a {
+  min-height: 250px;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.portal-path-grid > a:nth-of-type(2) {
+  transform: translateY(22px);
+}
+.portal-path-grid > a:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--pp-shadow-lg);
+}
+.portal-path-grid > a:nth-of-type(2):hover {
+  transform: translateY(18px);
+}
+
+.landing-close {
+  max-width: 992px;
+  margin: 78px auto 0;
+  padding: 26px 30px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 20px;
+  align-items: center;
+}
+
+.landing-close h2 {
+  margin: 0;
+  color: var(--pp-ink);
+  font-family: var(--font-serif);
+  font-size: clamp(1.25rem, 2.5vw, 1.65rem);
+  font-weight: 500;
+}
+
+.landing-close p {
+  margin: 4px 0 0;
+  color: #4c5568;
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .portal-path-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
   }
-  .pp-thread--h .pp-thread-row:not(:last-child)::after {
-    background-size: 200% 200%;
-    animation: pp-thread-shimmer-h 7s ease-in-out infinite;
+  .portal-path-grid > .pp-thread-line-h {
+    display: none;
+  }
+  .portal-path-grid > a,
+  .portal-path-grid > a:nth-of-type(2) {
+    min-height: 0;
+    transform: none;
+  }
+  .portal-path-grid > a:hover,
+  .portal-path-grid > a:nth-of-type(2):hover {
+    transform: translateY(-2px);
+  }
+  .landing-close {
+    margin: 56px 20px 0;
+    grid-template-columns: auto 1fr;
+  }
+  .landing-close .btn-primary {
+    grid-column: 1 / -1;
+    text-align: center;
   }
 }
-@keyframes pp-thread-shimmer {
-  0%, 100% { background-position: 0% 0%; }
-  50% { background-position: 100% 100%; }
+
+/* Stacked-card variant: vertical wave running down the left gutter. */
+.pp-thread-line-v {
+  position: absolute;
+  top: -10px;
+  bottom: -10px;
+  left: -34px;
+  width: 52px;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--pp-thread-grad);
+  opacity: 0.5;
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
 }
-@keyframes pp-thread-shimmer-h {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+@media (max-width: 900px) {
+  .pp-thread-line-v {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-thread-line,
+  .pp-thread-line-v,
+  .pp-thread-line-h,
+  .pp-thread-row:not(:last-child)::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 .pp-app,
@@ -1027,7 +1175,9 @@ textarea.input-pp {
 }
 
 @media (max-width: 640px) {
-  .pp-app { font-size: 15px; }
+  .pp-app {
+    font-size: 15px;
+  }
 }
 
 .pp-app-shell {
@@ -1083,7 +1233,9 @@ textarea.input-pp {
   background: var(--pp-ground);
   box-shadow: var(--pp-shadow-sm);
 }
-.pp-hub-tab:hover { color: var(--pp-ink); }
+.pp-hub-tab:hover {
+  color: var(--pp-ink);
+}
 
 .pp-public-shell {
   min-height: 100vh;
@@ -1097,8 +1249,14 @@ textarea.input-pp {
 }
 
 @media (max-width: 640px) {
-  .pp-shell-header::after { left: 20px; right: 20px; }
-  .pp-hub-tabs { gap: 6px; padding: 6px; }
+  .pp-shell-header::after {
+    left: 20px;
+    right: 20px;
+  }
+  .pp-hub-tabs {
+    gap: 6px;
+    padding: 6px;
+  }
   .pp-hub-tab {
     min-height: 34px;
     padding: 7px 10px;
@@ -1135,7 +1293,9 @@ textarea.input-pp {
   box-shadow: var(--pp-shadow-in-sm);
 }
 @media (min-width: 768px) {
-  .pp-bottom-tab-bar { padding-inline: 24px; }
+  .pp-bottom-tab-bar {
+    padding-inline: 24px;
+  }
 }
 
 .pp-portal-shell {

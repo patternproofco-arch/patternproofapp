@@ -224,7 +224,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const page = {
   minHeight: "100vh",
   background: "var(--pp-ground)",
-  color: "#1A1224",
+  color: "var(--pp-ink)",
   fontFamily: "var(--font-sans)",
   padding: "32px 20px 96px",
 } as const;
@@ -262,8 +262,8 @@ const h2 = {
   fontWeight: 500,
   margin: "0 0 8px",
 } as const;
-const sub = { fontSize: 16, lineHeight: 1.6, color: "#3A3849", margin: "12px 0 0" } as const;
-const bodyText = { fontSize: 14, lineHeight: 1.65, color: "#3A3849", margin: "0 0 12px" } as const;
+const sub = { fontSize: 16, lineHeight: 1.6, color: "var(--pp-muted)", margin: "12px 0 0" } as const;
+const bodyText = { fontSize: 14, lineHeight: 1.65, color: "var(--pp-muted)", margin: "0 0 12px" } as const;
 
 const safetyNote = {
   background: "rgba(122,31,61,0.07)",
@@ -272,7 +272,7 @@ const safetyNote = {
   padding: "12px 14px",
   fontSize: 13.5,
   lineHeight: 1.6,
-  color: "#1A1224",
+  color: "var(--pp-ink)",
   marginBottom: 24,
 } as const;
 
@@ -290,7 +290,7 @@ const labelText = {
   letterSpacing: "0.12em",
   textTransform: "uppercase",
   fontFamily: "var(--font-mono)",
-  color: "#3A3849",
+  color: "var(--pp-muted)",
   fontWeight: 600,
   marginBottom: 6,
 } as const;
@@ -300,7 +300,7 @@ const input = {
   padding: "10px 12px",
   fontSize: 15,
   fontFamily: "var(--font-sans)",
-  color: "#1A1224",
+  color: "var(--pp-ink)",
   background: "var(--pp-ground)",
   border: "1px solid rgba(26,18,36,0.16)",
   borderRadius: 18,
@@ -314,8 +314,8 @@ const errorText = {
 } as const;
 
 const submitBtn = {
-  background: "#1A1224",
-  color: "#FAF8F4",
+  background: "var(--pp-ink)",
+  color: "var(--pp-paper)",
   border: "none",
   borderRadius: 18,
   padding: "11px 22px",
@@ -338,7 +338,7 @@ const emailRow = {
 const emailText = {
   fontFamily: "var(--font-mono)",
   fontSize: 14,
-  color: "#1A1224",
+  color: "var(--pp-ink)",
 } as const;
 
 const copyBtn = {
@@ -351,7 +351,7 @@ const copyBtn = {
   padding: "6px 12px",
   fontSize: 12.5,
   fontWeight: 600,
-  color: "#1A1224",
+  color: "var(--pp-ink)",
   cursor: "pointer",
 } as const;
 

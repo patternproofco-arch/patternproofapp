@@ -7,7 +7,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { buildTiers, FIRM_SEAT_MAX, type Tier } from "@/lib/pricing-tiers";
-import { ThreadConnector } from "@/components/ThreadConnector";
+import { ThreadGroup } from "@/components/ThreadConnector";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms.",
+          "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months.",
       },
       { property: "og:title", content: "Pricing — PatternProof" },
       {
@@ -53,7 +53,7 @@ const FAQS = [
   },
   {
     q: "What's the Charter Firm program?",
-    a: "We're onboarding the first 10 Charter Firms personally — full setup, case import, and staff training. Every Charter Firm gets the same terms: $597/month, locked for 12 months. After 12 months, the rate moves to the standard Firm price of $897/month and we'll notify you at least 60 days in advance.",
+    a: "We're onboarding Charter Firms personally — full setup, case import, and staff training. Every Charter Firm gets the same terms: $597/month, locked for 12 months. After 12 months, the rate moves to the standard Firm price of $897/month and we'll notify you at least 60 days in advance.",
   },
   {
     q: "How is the Firm tier different from Solo?",
@@ -88,7 +88,7 @@ function PricingPage() {
   }, []);
   const tiers = buildTiers(remaining);
   return (
-    <div data-persona="shared" style={{ minHeight: "100vh", background: "var(--background)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--background)" }}>
       <PublicQuickExit />
       <header
         style={{
@@ -147,7 +147,7 @@ function PricingPage() {
                 width: 6,
                 height: 6,
                 borderRadius: 18,
-                background: "var(--pp-accent-shared, var(--oxblood-deep))",
+                background: "var(--pp-accent-shared)",
               }}
             />
             Simple, transparent pricing
@@ -189,21 +189,20 @@ function PricingPage() {
         </div>
 
         {/* Cards */}
-        <ThreadConnector orientation="vertical-behind">
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-              gap: 24,
-              marginBottom: 100,
-              alignItems: "start",
-            }}
-          >
-            {tiers.map((tier) => (
-              <TierCard key={tier.key} tier={tier} />
-            ))}
-          </div>
-        </ThreadConnector>
+        <ThreadGroup
+          persona="shared"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: 24,
+            marginBottom: 100,
+            alignItems: "start",
+          }}
+        >
+          {tiers.map((tier) => (
+            <TierCard key={tier.key} tier={tier} />
+          ))}
+        </ThreadGroup>
 
         {/* FAQ */}
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
@@ -475,27 +474,30 @@ function TierCard({ tier }: { tier: Tier }) {
 
 function FAQItem({ q, a }: { q: string; a: string }) {
   return (
-    <div
+    <details
       className="card-pp"
       style={{
-        padding: "24px 28px",
+        padding: "18px 22px",
       }}
     >
-      <h4
+      <summary
         style={{
           fontSize: 15,
           fontWeight: 700,
           color: "#1A1224",
-          marginBottom: 8,
           display: "flex",
           alignItems: "center",
           gap: 10,
+          cursor: "pointer",
+          listStyle: "none",
         }}
       >
         <HelpCircle size={16} style={{ color: "var(--primary)", flexShrink: 0 }} />
         {q}
-      </h4>
-      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6E6579", margin: 0 }}>{a}</p>
-    </div>
+      </summary>
+      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6E6579", margin: "12px 0 0 26px" }}>
+        {a}
+      </p>
+    </details>
   );
 }

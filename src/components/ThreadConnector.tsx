@@ -1,71 +1,64 @@
-import type { CSSProperties, ReactNode } from "react";
-
-/**
- * The shared "wavy thread connecting cards" motif, colored per-portal via
- * `--pp-thread-grad` / `--pp-thread-grad-h` (see src/styles.css), which are
- * themselves scoped by the nearest ancestor `[data-persona="survivor" |
- * "attorney" | "org" | "shared"]`. Never hardcode a thread color inline —
- * set `data-persona` on a wrapping element instead, so the whole page's
- * accent, ground, and thread shift together.
- *
- * This unifies what used to be two separate hand-rolled implementations of
- * "a wavy line between cards" (raw `.pp-thread` / `.pp-thread-row` classes
- * used directly in JSX, each re-declaring the persona gradient inline) into
- * one component with one place to fix bugs or add orientations.
- */
-export type ThreadOrientation = "vertical" | "horizontal" | "vertical-behind";
+export type ThreadPersona = "survivor" | "attorney" | "org" | "shared";
 
 interface ThreadConnectorProps {
-  /**
-   * "vertical" — a numbered/step sequence, each item gets a node + card side
-   * by side, connected top to bottom. Compose with <ThreadGroup>.
-   * "horizontal" — the same, laid out left to right.
-   * "vertical-behind" — a single line run behind a stack of full-width
-   * cards with no node column; pass the cards directly as children.
-   */
-  orientation?: ThreadOrientation;
-  children: ReactNode;
+  /** Which locked persona accent the thread reads. Defaults to the
+   *  surrounding [data-persona] context, falling back to `shared`. */
+  persona?: ThreadPersona;
+  /** `vertical` connects stacked nodes; `horizontal` runs behind a card grid. */
+  orientation?: "vertical" | "horizontal" | "vertical-behind";
   className?: string;
-  style?: CSSProperties;
+  style?: React.CSSProperties;
 }
 
+/**
+ * The single wavy "connecting thread" motif. Colors come only from the
+ * locked --pp-accent-* tokens via --pp-thread-grad in src/styles.css.
+ * Always decorative: aria-hidden and behind cards.
+ */
+const THREAD_CLASS = {
+  vertical: "pp-thread-line",
+  horizontal: "pp-thread-line-h",
+  "vertical-behind": "pp-thread-line-v",
+} as const;
+
 export function ThreadConnector({
+  persona,
   orientation = "vertical",
-  children,
   className,
   style,
 }: ThreadConnectorProps) {
-  const variantClass =
-    orientation === "horizontal"
-      ? "pp-thread--h"
-      : orientation === "vertical-behind"
-        ? "pp-thread--behind"
-        : undefined;
   return (
-    <div className={["pp-thread", variantClass, className].filter(Boolean).join(" ")} style={style}>
+    <div
+      aria-hidden="true"
+      data-persona={persona}
+      className={[THREAD_CLASS[orientation], className]
+        .filter(Boolean)
+        .join(" ")}
+      style={style}
+    />
+  );
+}
+
+/** Wraps a group of cards so a horizontal thread can sit behind them. */
+export function ThreadGroup({
+  persona,
+  orientation = "horizontal",
+  className,
+  style,
+  children,
+}: {
+  persona?: ThreadPersona;
+  orientation?: "horizontal" | "vertical-behind";
+  className?: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={["pp-thread-group", className].filter(Boolean).join(" ")} style={style}>
+      <ThreadConnector persona={persona} orientation={orientation} />
       {children}
     </div>
   );
 }
 
-interface ThreadGroupProps {
-  /** A number, icon, or dot rendered in the node marker. Omit for a plain connector with no marker. */
-  node?: ReactNode;
-  children: ReactNode;
-  className?: string;
-  nodeStyle?: CSSProperties;
-}
-
-/** One row/column in a "vertical" or "horizontal" ThreadConnector. Not used under "vertical-behind". */
-export function ThreadGroup({ node, children, className, nodeStyle }: ThreadGroupProps) {
-  return (
-    <div className={["pp-thread-row", className].filter(Boolean).join(" ")}>
-      {node !== undefined ? (
-        <div className="pp-thread-node" style={nodeStyle}>
-          {node}
-        </div>
-      ) : null}
-      <div className="pp-thread-card">{children}</div>
-    </div>
-  );
-}
+export default ThreadConnector;

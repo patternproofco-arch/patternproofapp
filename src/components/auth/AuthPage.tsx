@@ -170,18 +170,20 @@ export function AuthPage({
             className="font-nunito mt-3 text-[15px]"
             style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
           >
-            Private documentation for your case.
+            {mode === "login"
+              ? "Your private PatternProof account."
+              : "Create your free private account."}
           </p>
         </div>
 
         <div className="card-pp">
-          <h2 className="font-serif text-[22px]">
-            {mode === "login" ? "\n" : "Make space for your story."}
-          </h2>
+          <h1 className="font-serif text-[22px]">
+            {mode === "login" ? "Welcome back." : "Start organizing your documentation."}
+          </h1>
           <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             {mode === "login"
-              ? "\n"
-              : "Create an account. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share."}
+              ? "Sign in to continue to your private PatternProof account."
+              : "Add photos, messages, voice notes, and written entries to one private timeline. You control what is shared and who can see it."}
           </p>
 
           <div className="space-y-3 mb-4">
@@ -226,7 +228,7 @@ export function AuthPage({
                 style={{ background: "transparent", boxShadow: "var(--pp-shadow-sm)" }}
               >
                 <Fingerprint size={18} />
-                Use a saved passkey
+                Use a passkey
               </button>
             )}
           </div>
