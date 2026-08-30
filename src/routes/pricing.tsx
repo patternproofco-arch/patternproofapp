@@ -474,27 +474,30 @@ function TierCard({ tier }: { tier: Tier }) {
 
 function FAQItem({ q, a }: { q: string; a: string }) {
   return (
-    <div
+    <details
       className="card-pp"
       style={{
-        padding: "24px 28px",
+        padding: "18px 22px",
       }}
     >
-      <h4
+      <summary
         style={{
           fontSize: 15,
           fontWeight: 700,
           color: "#1A1224",
-          marginBottom: 8,
           display: "flex",
           alignItems: "center",
           gap: 10,
+          cursor: "pointer",
+          listStyle: "none",
         }}
       >
         <HelpCircle size={16} style={{ color: "var(--primary)", flexShrink: 0 }} />
         {q}
-      </h4>
-      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6E6579", margin: 0 }}>{a}</p>
-    </div>
+      </summary>
+      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6E6579", margin: "12px 0 0 26px" }}>
+        {a}
+      </p>
+    </details>
   );
 }

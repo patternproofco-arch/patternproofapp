@@ -66,11 +66,7 @@ function ForAttorneys() {
   }, []);
   const attorneyTiers = buildTiers(remaining).filter((t) => t.key.startsWith("attorney_"));
   const solo = attorneyTiers.find((t) => t.key === "attorney_solo");
-  const firm = attorneyTiers.find((t) => t.key === "attorney_firm");
   const startsAt = `Plans start at ${solo?.price ?? "$297"} / month for a solo attorney seat`;
-  const firmLine = firm
-    ? `Firm plans available — ${firm.price} / month${firm.priceStrike ? ` (list ${firm.priceStrike})` : ""}${firm.eyebrowNote ? `. ${firm.eyebrowNote}.` : "."}`
-    : "";
   return (
     <div
       style={{ background: "var(--pp-ground)", color: INK, minHeight: "100vh", fontFamily: SANS }}
@@ -116,7 +112,8 @@ function ForAttorneys() {
             maxWidth: 640,
           }}
         >
-          PatternProof turns client approved photos, messages, notes, and dates into a source-linked chronology you can review.
+          PatternProof turns client approved photos, messages, notes, and dates into a source-linked
+          chronology you can review.
         </p>
         <div
           style={{
@@ -142,10 +139,9 @@ function ForAttorneys() {
           </div>
           <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
             {[
-              "Dated, source-linked timeline (not raw text exports)",
-              "Organized uploads (messages, screenshots, photos, notes) tied to incidents",
-              "Pattern visibility across incidents over time — frequency and clustering, in one place",
-              "Exportable professional-review packet when it's time to file, negotiate, or prep for hearing",
+              "Dated, source-linked chronology",
+              "Uploaded records connected to each entry",
+              "Exportable professional-review packet",
             ].map((item) => (
               <li
                 key={item}
@@ -166,18 +162,6 @@ function ForAttorneys() {
           </ul>
           <p
             style={{
-              marginTop: 16,
-              marginBottom: 0,
-              fontSize: 13.5,
-              lineHeight: 1.6,
-              color: MUTED,
-            }}
-          >
-            What it replaces — hours of reconstructing a chronology from a client's phone, so you
-            spend time on strategy and advocacy instead of intake cleanup.
-          </p>
-          <p
-            style={{
               marginTop: 12,
               marginBottom: 0,
               fontFamily: MONO,
@@ -186,8 +170,8 @@ function ForAttorneys() {
               color: MUTED,
             }}
           >
-            PatternProof is not legal advice and does not replace attorney judgment. It helps
-            clients document and helps you review.
+            PatternProof organizes client-provided records. It does not provide legal advice or
+            replace attorney judgment.
           </p>
         </div>
         <Link
@@ -223,7 +207,11 @@ function ForAttorneys() {
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 24px 80px" }}>
         <SectionRule label="Before / after" />
-        <ThreadGroup persona="attorney" orientation="vertical-behind" style={{ display: "grid", gap: 16 }}>
+        <ThreadGroup
+          persona="attorney"
+          orientation="vertical-behind"
+          style={{ display: "grid", gap: 16 }}
+        >
           <BeforeAfter
             label="Getting the records"
             before="Scattered across email, text exports, and files. Hours of sorting before you can start reading."
@@ -241,7 +229,7 @@ function ForAttorneys() {
           />
         </ThreadGroup>
 
-        <div style={{ marginTop: 40, display: "grid", gap: 14, maxWidth: 720 }}>
+        <div style={{ marginTop: 40, maxWidth: 720 }}>
           <p
             style={{
               fontFamily: SERIF,
@@ -252,59 +240,17 @@ function ForAttorneys() {
               margin: 0,
             }}
           >
-            Every entry keeps its original source and metadata. Nothing here replaces your judgment.
-          </p>
-          <p
-            style={{
-              fontFamily: SERIF,
-              fontWeight: 700,
-              fontSize: 20,
-              lineHeight: 1.55,
-              color: INK,
-              margin: 0,
-            }}
-          >
-            Over time, less time spent sorting means more cases fit into the same week — without
-            changing how you bill.
+            Keep the original, add the context, and review the pattern without losing the source.
           </p>
         </div>
       </section>
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
         <SectionRule label="Pricing" />
-        <div style={{ display: "grid", gap: 12, maxWidth: 720 }}>
-          {attorneyTiers.map((t) => (
-            <div
-              key={t.key}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 16,
-                flexWrap: "wrap",
-                background: "var(--pp-card)",
-                boxShadow: "var(--pp-shadow-sm)",
-                borderRadius: "var(--pp-r-lg)",
-                padding: "14px 18px",
-              }}
-            >
-              <span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 20, color: INK }}>
-                {t.name}
-              </span>
-              <span
-                style={{
-                  fontFamily: MONO,
-                  fontSize: 12,
-                  letterSpacing: "0.08em",
-                  color: MUTED,
-                  textTransform: "uppercase",
-                }}
-              >
-                {t.price} {t.sub}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 18 }}>
+        <p style={{ margin: 0, color: MUTED, fontSize: 15 }}>
+          {startsAt}. Firm plans are available.
+        </p>
+        <div style={{ marginTop: 16 }}>
           <Link
             to="/pricing"
             style={{
@@ -317,7 +263,7 @@ function ForAttorneys() {
               textTransform: "uppercase",
             }}
           >
-            Full pricing details →
+            Compare attorney plans →
           </Link>
         </div>
         <div style={{ marginTop: 32 }}>
@@ -349,7 +295,7 @@ function ForAttorneys() {
               lineHeight: 1.6,
             }}
           >
-            {startsAt}. {firmLine}
+            Review the demo before choosing a plan.
           </div>
         </div>
       </section>

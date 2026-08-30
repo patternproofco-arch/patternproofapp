@@ -23,6 +23,7 @@ import {
 } from "@/lib/evidence-ingest.functions";
 import { enrichEvidence } from "@/lib/evidence-enrichment.functions";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
+import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
 import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 import { readExif, stripExif, type ExifSummary } from "@/lib/exif";
 import { FileIntakeRow, type ExifChoice } from "./FileIntakeRow";
@@ -144,6 +145,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const rejectNear = useServerFn(rejectNearDuplicate);
   const enrich = useServerFn(enrichEvidence);
   const transcribe = useServerFn(transcribeEvidence);
+  const proposeTimeline = useServerFn(proposeTimelineFromEvidence);
   const openBatch = useServerFn(openIntakeBatch);
   const updateBatch = useServerFn(updateIntakeBatch);
   const [files, setFiles] = useState<FileState[]>([]);
@@ -418,6 +420,32 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         }),
       );
       setSuggestionCount(suggested);
+
+      // Build review-only timeline drafts after media transcription and file
+      // enrichment finish. Nothing becomes a journal entry until accepted.
+      const evidenceIds = preserved
+        .map((it) => it.evidence_id)
+        .filter((id): id is string => Boolean(id));
+      if (evidenceIds.length > 0) {
+        try {
+          const proposed = await proposeTimeline({
+            data: {
+              evidence_ids: evidenceIds,
+              include_threads: false,
+              include_voice_notes: false,
+              max_items: Math.min(evidenceIds.length, 40),
+            },
+          });
+          if (proposed.ok && proposed.proposed_timeline?.length) {
+            toast(
+              `${proposed.proposed_timeline.length} timeline draft${proposed.proposed_timeline.length === 1 ? " is" : "s are"} ready for review.`,
+            );
+          }
+        } catch {
+          // Preservation and transcription succeeded. Timeline organization is
+          // additive and can be retried from the Timeline page.
+        }
+      }
     } catch (err) {
       toast(err instanceof Error ? err.message : "We couldn't finish preserving these files.");
       setFiles((prev) =>
