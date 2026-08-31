@@ -12,6 +12,7 @@ import { ThreadGroup } from "@/components/ThreadConnector";
 import {
   getMyOrgPartnerStats,
   setReferralCodeActive,
+  NO_ORG_MEMBERSHIP_MESSAGE,
   type OrgPartnerStats,
 } from "@/lib/org-portal.functions";
 
@@ -43,14 +44,23 @@ function OrgPortal() {
   const toggleFn = useServerFn(setReferralCodeActive);
   const [stats, setStats] = useState<OrgPartnerStats | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needsOrgSetup, setNeedsOrgSetup] = useState(false);
 
   const load = useCallback(() => {
     statsFn()
       .then((s) => {
         setStats(s);
         setError(null);
+        setNeedsOrgSetup(false);
       })
-      .catch(() => setError("We couldn't open your partner dashboard. Try again in a moment."));
+      .catch((err: unknown) => {
+        if (err instanceof Error && err.message === NO_ORG_MEMBERSHIP_MESSAGE) {
+          setNeedsOrgSetup(true);
+          setError(null);
+          return;
+        }
+        setError("We couldn't open your partner dashboard. Try again in a moment.");
+      });
   }, [statsFn]);
 
   useEffect(() => {
@@ -74,10 +84,30 @@ function OrgPortal() {
     }
   };
 
-  if (loading || (!stats && !error)) {
+  if (loading || (!stats && !error && !needsOrgSetup)) {
     return (
       <Shell>
         <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>Opening…</p>
+      </Shell>
+    );
+  }
+
+  if (needsOrgSetup) {
+    return (
+      <Shell>
+        <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 6px" }}>
+          Let's set up your organization.
+        </h1>
+        <p
+          style={{ color: "var(--muted-foreground)", fontSize: 14, maxWidth: 480, marginBottom: 20 }}
+        >
+          Your partner account is ready, but it isn't linked to an organization yet — that's
+          expected for a brand-new advocate account. Set up your organization to get your referral
+          link and see your dashboard.
+        </p>
+        <Link to="/org-signup" className="btn-primary" style={{ display: "inline-flex" }}>
+          Set up your organization →
+        </Link>
       </Shell>
     );
   }
