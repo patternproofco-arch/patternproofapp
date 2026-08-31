@@ -9,246 +9,123 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
-import { Route as TriageRouteImport } from './routes/triage'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as TeamInviteRouteImport } from './routes/team-invite'
-import { Route as SupportRouteImport } from './routes/support'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as SigninRouteImport } from './routes/signin'
-import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
-import { Route as SafetyRouteImport } from './routes/safety'
-import { Route as ResourcesRouteImport } from './routes/resources'
-import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as OrgSignupRouteImport } from './routes/org-signup'
-import { Route as OrgPortalRouteImport } from './routes/org-portal'
-import { Route as OrgFeedbackRouteImport } from './routes/org-feedback'
-import { Route as McpRouteImport } from './routes/mcp'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
-import { Route as HowItWorksRouteImport } from './routes/how-it-works'
-import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
-import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
-import { Route as EvidenceIntegrityRouteImport } from './routes/evidence-integrity'
-import { Route as DemoRouteImport } from './routes/demo'
-import { Route as ConnectRouteImport } from './routes/connect'
-import { Route as ChooseRoleRouteImport } from './routes/choose-role'
-import { Route as AttorneysRouteImport } from './routes/attorneys'
-import { Route as AiTransparencyRouteImport } from './routes/ai-transparency'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as AttorneyRouteImport } from './routes/_attorney'
-import { Route as AdvocateRouteImport } from './routes/_advocate'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
-import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
-import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
-import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
-import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as AdvocateInviteTokenRouteImport } from './routes/advocate-invite.$token'
-import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
-import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
-import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
-import { Route as AuthenticatedShareWithAttorneyRouteImport } from './routes/_authenticated/share-with-attorney'
-import { Route as AuthenticatedShareWithAdvocateRouteImport } from './routes/_authenticated/share-with-advocate'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
-import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
-import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
-import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
-import { Route as AuthenticatedMessageThreadsRouteImport } from './routes/_authenticated/message-threads'
-import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authenticated/live-recording'
-import { Route as AuthenticatedLegalDocumentsRouteImport } from './routes/_authenticated/legal-documents'
-import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
-import { Route as AuthenticatedImportMessagesRouteImport } from './routes/_authenticated/import-messages'
-import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
-import { Route as AuthenticatedEvidenceReviewRouteImport } from './routes/_authenticated/evidence-review'
-import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedCourtSystemsRouteImport } from './routes/_authenticated/court-systems'
-import { Route as AuthenticatedCourtReadyThanksRouteImport } from './routes/_authenticated/court-ready-thanks'
-import { Route as AuthenticatedCourtReadyRouteImport } from './routes/_authenticated/court-ready'
-import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
-import { Route as AuthenticatedCourtDatesRouteImport } from './routes/_authenticated/court-dates'
-import { Route as AuthenticatedContributeThanksRouteImport } from './routes/_authenticated/contribute-thanks'
-import { Route as AuthenticatedContributeRouteImport } from './routes/_authenticated/contribute'
-import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
-import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
-import { Route as AuthenticatedCaseRouteImport } from './routes/_authenticated/case'
-import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
-import { Route as AuthenticatedAttorneyTimeLogRouteImport } from './routes/_authenticated/attorney-time-log'
-import { Route as AuthenticatedAttorneyBillingRouteImport } from './routes/_authenticated/attorney-billing'
-import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
-import { Route as AttorneyTrustRouteImport } from './routes/_attorney/trust'
-import { Route as AttorneyTeamRouteImport } from './routes/_attorney/team'
-import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
-import { Route as AttorneySetupRouteImport } from './routes/_attorney/setup'
-import { Route as AttorneyConflictCheckRouteImport } from './routes/_attorney/conflict-check'
-import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
-import { Route as AttorneyCaseloadRouteImport } from './routes/_attorney/caseload'
-import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
-import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
-import { Route as AttorneyAttorneyFeedbackRouteImport } from './routes/_attorney/attorney-feedback'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AdvocateRouteImport } from './routes/_advocate'
+import { Route as AttorneyRouteImport } from './routes/_attorney'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AiTransparencyRouteImport } from './routes/ai-transparency'
+import { Route as AttorneysRouteImport } from './routes/attorneys'
+import { Route as ChooseRoleRouteImport } from './routes/choose-role'
+import { Route as ConnectRouteImport } from './routes/connect'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as EvidenceIntegrityRouteImport } from './routes/evidence-integrity'
+import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
+import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as OrgFeedbackRouteImport } from './routes/org-feedback'
+import { Route as OrgPortalRouteImport } from './routes/org-portal'
+import { Route as OrgSignupRouteImport } from './routes/org-signup'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
+import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
+import { Route as SigninRouteImport } from './routes/signin'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as TeamInviteRouteImport } from './routes/team-invite'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TriageRouteImport } from './routes/triage'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
-import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
-import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
-import { Route as AdvocateAdvocateCasesIndexRouteImport } from './routes/_advocate/advocate-cases.index'
-import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
-import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integrations.clio.deauthorize'
-import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
-import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
-import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
-import { Route as AdvocateAdvocateCasesClientIdRouteImport } from './routes/_advocate/advocate-cases.$clientId'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AttorneyAttorneyFeedbackRouteImport } from './routes/_attorney/attorney-feedback'
+import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
+import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
+import { Route as AttorneyCaseloadRouteImport } from './routes/_attorney/caseload'
+import { Route as AttorneyClientsRouteImport } from './routes/_attorney/clients'
+import { Route as AttorneyConflictCheckRouteImport } from './routes/_attorney/conflict-check'
+import { Route as AttorneySetupRouteImport } from './routes/_attorney/setup'
+import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
+import { Route as AttorneyTeamRouteImport } from './routes/_attorney/team'
+import { Route as AttorneyTrustRouteImport } from './routes/_attorney/trust'
+import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
+import { Route as AuthenticatedAttorneyBillingRouteImport } from './routes/_authenticated/attorney-billing'
+import { Route as AuthenticatedAttorneyTimeLogRouteImport } from './routes/_authenticated/attorney-time-log'
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
+import { Route as AuthenticatedCaseRouteImport } from './routes/_authenticated/case'
+import { Route as AuthenticatedCaseBuilderRouteImport } from './routes/_authenticated/case-builder'
+import { Route as AuthenticatedCommunicationsRouteImport } from './routes/_authenticated/communications'
+import { Route as AuthenticatedContributeRouteImport } from './routes/_authenticated/contribute'
+import { Route as AuthenticatedContributeThanksRouteImport } from './routes/_authenticated/contribute-thanks'
+import { Route as AuthenticatedCourtDatesRouteImport } from './routes/_authenticated/court-dates'
+import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenticated/court-packet'
+import { Route as AuthenticatedCourtReadyRouteImport } from './routes/_authenticated/court-ready'
+import { Route as AuthenticatedCourtReadyThanksRouteImport } from './routes/_authenticated/court-ready-thanks'
+import { Route as AuthenticatedCourtSystemsRouteImport } from './routes/_authenticated/court-systems'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
+import { Route as AuthenticatedEvidenceReviewRouteImport } from './routes/_authenticated/evidence-review'
+import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
+import { Route as AuthenticatedImportMessagesRouteImport } from './routes/_authenticated/import-messages'
+import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
+import { Route as AuthenticatedLegalDocumentsRouteImport } from './routes/_authenticated/legal-documents'
+import { Route as AuthenticatedLiveRecordingRouteImport } from './routes/_authenticated/live-recording'
+import { Route as AuthenticatedMessageThreadsRouteImport } from './routes/_authenticated/message-threads'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
+import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
+import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedShareWithAdvocateRouteImport } from './routes/_authenticated/share-with-advocate'
+import { Route as AuthenticatedShareWithAttorneyRouteImport } from './routes/_authenticated/share-with-attorney'
+import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
+import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
+import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
+import { Route as AdvocateInviteTokenRouteImport } from './routes/advocate-invite.$token'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
+import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
+import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
-import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
-import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as AdvocateAdvocateCasesIndexRouteImport } from './routes/_advocate/advocate-cases.index'
+import { Route as AdvocateAdvocateCasesClientIdRouteImport } from './routes/_advocate/advocate-cases.$clientId'
+import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
+import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
+import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
+import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
+import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
+import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integrations.clio.deauthorize'
+import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 
-const UnsubscribeRoute = UnsubscribeRouteImport.update({
-  id: '/unsubscribe',
-  path: '/unsubscribe',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TriageRoute = TriageRouteImport.update({
-  id: '/triage',
-  path: '/triage',
+const AdvocateRoute = AdvocateRouteImport.update({
+  id: '/_advocate',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const AttorneyRoute = AttorneyRouteImport.update({
+  id: '/_attorney',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TeamInviteRoute = TeamInviteRouteImport.update({
-  id: '/team-invite',
-  path: '/team-invite',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SupportRoute = SupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SigninRoute = SigninRouteImport.update({
-  id: '/signin',
-  path: '/signin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SelfHelpGuideRoute = SelfHelpGuideRouteImport.update({
-  id: '/self-help-guide',
-  path: '/self-help-guide',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SafetyRoute = SafetyRouteImport.update({
-  id: '/safety',
-  path: '/safety',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesRoute = ResourcesRouteImport.update({
-  id: '/resources',
-  path: '/resources',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfessionalAccessRoute = ProfessionalAccessRouteImport.update({
-  id: '/professional-access',
-  path: '/professional-access',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrgSignupRoute = OrgSignupRouteImport.update({
-  id: '/org-signup',
-  path: '/org-signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrgPortalRoute = OrgPortalRouteImport.update({
-  id: '/org-portal',
-  path: '/org-portal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrgFeedbackRoute = OrgFeedbackRouteImport.update({
-  id: '/org-feedback',
-  path: '/org-feedback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LawyerSignupRoute = LawyerSignupRouteImport.update({
-  id: '/lawyer-signup',
-  path: '/lawyer-signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HowItWorksRoute = HowItWorksRouteImport.update({
-  id: '/how-it-works',
-  path: '/how-it-works',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForOrganizationsRoute = ForOrganizationsRouteImport.update({
-  id: '/for-organizations',
-  path: '/for-organizations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForAttorneysRoute = ForAttorneysRouteImport.update({
-  id: '/for-attorneys',
-  path: '/for-attorneys',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EvidenceIntegrityRoute = EvidenceIntegrityRouteImport.update({
-  id: '/evidence-integrity',
-  path: '/evidence-integrity',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoRoute = DemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConnectRoute = ConnectRouteImport.update({
-  id: '/connect',
-  path: '/connect',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChooseRoleRoute = ChooseRoleRouteImport.update({
-  id: '/choose-role',
-  path: '/choose-role',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AttorneysRoute = AttorneysRouteImport.update({
-  id: '/attorneys',
-  path: '/attorneys',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AiTransparencyRoute = AiTransparencyRouteImport.update({
@@ -256,181 +133,251 @@ const AiTransparencyRoute = AiTransparencyRouteImport.update({
   path: '/ai-transparency',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const AttorneysRoute = AttorneysRouteImport.update({
+  id: '/attorneys',
+  path: '/attorneys',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AttorneyRoute = AttorneyRouteImport.update({
-  id: '/_attorney',
+const ChooseRoleRoute = ChooseRoleRouteImport.update({
+  id: '/choose-role',
+  path: '/choose-role',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdvocateRoute = AdvocateRouteImport.update({
-  id: '/_advocate',
+const ConnectRoute = ConnectRouteImport.update({
+  id: '/connect',
+  path: '/connect',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SurvivorInviteTokenRoute = SurvivorInviteTokenRouteImport.update({
-  id: '/survivor-invite/$token',
-  path: '/survivor-invite/$token',
+const EvidenceIntegrityRoute = EvidenceIntegrityRouteImport.update({
+  id: '/evidence-integrity',
+  path: '/evidence-integrity',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
-  id: '/email/unsubscribe',
-  path: '/email/unsubscribe',
+const ForAttorneysRoute = ForAttorneysRouteImport.update({
+  id: '/for-attorneys',
+  path: '/for-attorneys',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CollaboratorInviteTokenRoute = CollaboratorInviteTokenRouteImport.update({
-  id: '/collaborator-invite/$token',
-  path: '/collaborator-invite/$token',
+const ForOrganizationsRoute = ForOrganizationsRouteImport.update({
+  id: '/for-organizations',
+  path: '/for-organizations',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
-  id: '/attorney/$token',
-  path: '/attorney/$token',
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
+const LawyerSignupRoute = LawyerSignupRouteImport.update({
+  id: '/lawyer-signup',
+  path: '/lawyer-signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdvocateInviteTokenRoute = AdvocateInviteTokenRouteImport.update({
-  id: '/advocate-invite/$token',
-  path: '/advocate-invite/$token',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AcceptInviteTokenRoute = AcceptInviteTokenRouteImport.update({
-  id: '/accept-invite/$token',
-  path: '/accept-invite/$token',
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedVoiceNotesRoute = AuthenticatedVoiceNotesRouteImport.update({
-  id: '/voice-notes',
-  path: '/voice-notes',
+const OrgFeedbackRoute = OrgFeedbackRouteImport.update({
+  id: '/org-feedback',
+  path: '/org-feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrgPortalRoute = OrgPortalRouteImport.update({
+  id: '/org-portal',
+  path: '/org-portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrgSignupRoute = OrgSignupRouteImport.update({
+  id: '/org-signup',
+  path: '/org-signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfessionalAccessRoute = ProfessionalAccessRouteImport.update({
+  id: '/professional-access',
+  path: '/professional-access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelfHelpGuideRoute = SelfHelpGuideRouteImport.update({
+  id: '/self-help-guide',
+  path: '/self-help-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SigninRoute = SigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamInviteRoute = TeamInviteRouteImport.update({
+  id: '/team-invite',
+  path: '/team-invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TriageRoute = TriageRouteImport.update({
+  id: '/triage',
+  path: '/triage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AttorneyAttorneyFeedbackRoute =
+  AttorneyAttorneyFeedbackRouteImport.update({
+    id: '/attorney-feedback',
+    path: '/attorney-feedback',
+    getParentRoute: () => AttorneyRoute,
+  } as any)
+const AttorneyBillingRoute = AttorneyBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AttorneyBillingReturnRoute = AttorneyBillingReturnRouteImport.update({
+  id: '/billing-return',
+  path: '/billing-return',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AttorneyCaseloadRoute = AttorneyCaseloadRouteImport.update({
+  id: '/caseload',
+  path: '/caseload',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AttorneyClientsRoute = AttorneyClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AttorneyConflictCheckRoute = AttorneyConflictCheckRouteImport.update({
+  id: '/conflict-check',
+  path: '/conflict-check',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AttorneySetupRoute = AttorneySetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AttorneySubscribeRoute = AttorneySubscribeRouteImport.update({
+  id: '/subscribe',
+  path: '/subscribe',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AttorneyTeamRoute = AttorneyTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AttorneyTrustRoute = AttorneyTrustRouteImport.update({
+  id: '/trust',
+  path: '/trust',
+  getParentRoute: () => AttorneyRoute,
+} as any)
+const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedTimelineRoute = AuthenticatedTimelineRouteImport.update({
-  id: '/timeline',
-  path: '/timeline',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedShareWithAttorneyRoute =
-  AuthenticatedShareWithAttorneyRouteImport.update({
-    id: '/share-with-attorney',
-    path: '/share-with-attorney',
+const AuthenticatedAttorneyBillingRoute =
+  AuthenticatedAttorneyBillingRouteImport.update({
+    id: '/attorney-billing',
+    path: '/attorney-billing',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedShareWithAdvocateRoute =
-  AuthenticatedShareWithAdvocateRouteImport.update({
-    id: '/share-with-advocate',
-    path: '/share-with-advocate',
+const AuthenticatedAttorneyTimeLogRoute =
+  AuthenticatedAttorneyTimeLogRouteImport.update({
+    id: '/attorney-time-log',
+    path: '/attorney-time-log',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
-  id: '/search',
-  path: '/search',
+const AuthenticatedCaseRoute = AuthenticatedCaseRouteImport.update({
+  id: '/case',
+  path: '/case',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPatternsRoute = AuthenticatedPatternsRouteImport.update({
-  id: '/patterns',
-  path: '/patterns',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedOpraHelperRoute = AuthenticatedOpraHelperRouteImport.update({
-  id: '/opra-helper',
-  path: '/opra-helper',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMessageThreadsRoute =
-  AuthenticatedMessageThreadsRouteImport.update({
-    id: '/message-threads',
-    path: '/message-threads',
+const AuthenticatedCaseBuilderRoute =
+  AuthenticatedCaseBuilderRouteImport.update({
+    id: '/case-builder',
+    path: '/case-builder',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedLiveRecordingRoute =
-  AuthenticatedLiveRecordingRouteImport.update({
-    id: '/live-recording',
-    path: '/live-recording',
+const AuthenticatedCommunicationsRoute =
+  AuthenticatedCommunicationsRouteImport.update({
+    id: '/communications',
+    path: '/communications',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedLegalDocumentsRoute =
-  AuthenticatedLegalDocumentsRouteImport.update({
-    id: '/legal-documents',
-    path: '/legal-documents',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedJournalRoute = AuthenticatedJournalRouteImport.update({
-  id: '/journal',
-  path: '/journal',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedImportMessagesRoute =
-  AuthenticatedImportMessagesRouteImport.update({
-    id: '/import-messages',
-    path: '/import-messages',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
-  id: '/feedback',
-  path: '/feedback',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedEvidenceReviewRoute =
-  AuthenticatedEvidenceReviewRouteImport.update({
-    id: '/evidence-review',
-    path: '/evidence-review',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedEvidenceRoute = AuthenticatedEvidenceRouteImport.update({
-  id: '/evidence',
-  path: '/evidence',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedCourtSystemsRoute =
-  AuthenticatedCourtSystemsRouteImport.update({
-    id: '/court-systems',
-    path: '/court-systems',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedCourtReadyThanksRoute =
-  AuthenticatedCourtReadyThanksRouteImport.update({
-    id: '/court-ready-thanks',
-    path: '/court-ready-thanks',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedCourtReadyRoute = AuthenticatedCourtReadyRouteImport.update({
-  id: '/court-ready',
-  path: '/court-ready',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedCourtPacketRoute =
-  AuthenticatedCourtPacketRouteImport.update({
-    id: '/court-packet',
-    path: '/court-packet',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedCourtDatesRoute = AuthenticatedCourtDatesRouteImport.update({
-  id: '/court-dates',
-  path: '/court-dates',
+const AuthenticatedContributeRoute = AuthenticatedContributeRouteImport.update({
+  id: '/contribute',
+  path: '/contribute',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedContributeThanksRoute =
@@ -439,139 +386,209 @@ const AuthenticatedContributeThanksRoute =
     path: '/contribute-thanks',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedContributeRoute = AuthenticatedContributeRouteImport.update({
-  id: '/contribute',
-  path: '/contribute',
+const AuthenticatedCourtDatesRoute = AuthenticatedCourtDatesRouteImport.update({
+  id: '/court-dates',
+  path: '/court-dates',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedCommunicationsRoute =
-  AuthenticatedCommunicationsRouteImport.update({
-    id: '/communications',
-    path: '/communications',
+const AuthenticatedCourtPacketRoute =
+  AuthenticatedCourtPacketRouteImport.update({
+    id: '/court-packet',
+    path: '/court-packet',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedCaseBuilderRoute =
-  AuthenticatedCaseBuilderRouteImport.update({
-    id: '/case-builder',
-    path: '/case-builder',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedCaseRoute = AuthenticatedCaseRouteImport.update({
-  id: '/case',
-  path: '/case',
+const AuthenticatedCourtReadyRoute = AuthenticatedCourtReadyRouteImport.update({
+  id: '/court-ready',
+  path: '/court-ready',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedAttorneyTimeLogRoute =
-  AuthenticatedAttorneyTimeLogRouteImport.update({
-    id: '/attorney-time-log',
-    path: '/attorney-time-log',
+const AuthenticatedCourtReadyThanksRoute =
+  AuthenticatedCourtReadyThanksRouteImport.update({
+    id: '/court-ready-thanks',
+    path: '/court-ready-thanks',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedAttorneyBillingRoute =
-  AuthenticatedAttorneyBillingRouteImport.update({
-    id: '/attorney-billing',
-    path: '/attorney-billing',
+const AuthenticatedCourtSystemsRoute =
+  AuthenticatedCourtSystemsRouteImport.update({
+    id: '/court-systems',
+    path: '/court-systems',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
-  id: '/agent',
-  path: '/agent',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AttorneyTrustRoute = AttorneyTrustRouteImport.update({
-  id: '/trust',
-  path: '/trust',
-  getParentRoute: () => AttorneyRoute,
+const AuthenticatedEvidenceRoute = AuthenticatedEvidenceRouteImport.update({
+  id: '/evidence',
+  path: '/evidence',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AttorneyTeamRoute = AttorneyTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => AttorneyRoute,
-} as any)
-const AttorneySubscribeRoute = AttorneySubscribeRouteImport.update({
-  id: '/subscribe',
-  path: '/subscribe',
-  getParentRoute: () => AttorneyRoute,
-} as any)
-const AttorneySetupRoute = AttorneySetupRouteImport.update({
-  id: '/setup',
-  path: '/setup',
-  getParentRoute: () => AttorneyRoute,
-} as any)
-const AttorneyConflictCheckRoute = AttorneyConflictCheckRouteImport.update({
-  id: '/conflict-check',
-  path: '/conflict-check',
-  getParentRoute: () => AttorneyRoute,
-} as any)
-const AttorneyClientsRoute = AttorneyClientsRouteImport.update({
-  id: '/clients',
-  path: '/clients',
-  getParentRoute: () => AttorneyRoute,
-} as any)
-const AttorneyCaseloadRoute = AttorneyCaseloadRouteImport.update({
-  id: '/caseload',
-  path: '/caseload',
-  getParentRoute: () => AttorneyRoute,
-} as any)
-const AttorneyBillingReturnRoute = AttorneyBillingReturnRouteImport.update({
-  id: '/billing-return',
-  path: '/billing-return',
-  getParentRoute: () => AttorneyRoute,
-} as any)
-const AttorneyBillingRoute = AttorneyBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => AttorneyRoute,
-} as any)
-const AttorneyAttorneyFeedbackRoute =
-  AttorneyAttorneyFeedbackRouteImport.update({
-    id: '/attorney-feedback',
-    path: '/attorney-feedback',
-    getParentRoute: () => AttorneyRoute,
+const AuthenticatedEvidenceReviewRoute =
+  AuthenticatedEvidenceReviewRouteImport.update({
+    id: '/evidence-review',
+    path: '/evidence-review',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
+const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedImportMessagesRoute =
+  AuthenticatedImportMessagesRouteImport.update({
+    id: '/import-messages',
+    path: '/import-messages',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedJournalRoute = AuthenticatedJournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedLegalDocumentsRoute =
+  AuthenticatedLegalDocumentsRouteImport.update({
+    id: '/legal-documents',
+    path: '/legal-documents',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedLiveRecordingRoute =
+  AuthenticatedLiveRecordingRouteImport.update({
+    id: '/live-recording',
+    path: '/live-recording',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMessageThreadsRoute =
+  AuthenticatedMessageThreadsRouteImport.update({
+    id: '/message-threads',
+    path: '/message-threads',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedOpraHelperRoute = AuthenticatedOpraHelperRouteImport.update({
+  id: '/opra-helper',
+  path: '/opra-helper',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPatternsRoute = AuthenticatedPatternsRouteImport.update({
+  id: '/patterns',
+  path: '/patterns',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedShareWithAdvocateRoute =
+  AuthenticatedShareWithAdvocateRouteImport.update({
+    id: '/share-with-advocate',
+    path: '/share-with-advocate',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedShareWithAttorneyRoute =
+  AuthenticatedShareWithAttorneyRouteImport.update({
+    id: '/share-with-attorney',
+    path: '/share-with-attorney',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedTimelineRoute = AuthenticatedTimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedVoiceNotesRoute = AuthenticatedVoiceNotesRouteImport.update({
+  id: '/voice-notes',
+  path: '/voice-notes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AcceptInviteTokenRoute = AcceptInviteTokenRouteImport.update({
+  id: '/accept-invite/$token',
+  path: '/accept-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdvocateInviteTokenRoute = AdvocateInviteTokenRouteImport.update({
+  id: '/advocate-invite/$token',
+  path: '/advocate-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
+  id: '/attorney/$token',
+  path: '/attorney/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CollaboratorInviteTokenRoute = CollaboratorInviteTokenRouteImport.update({
+  id: '/collaborator-invite/$token',
+  path: '/collaborator-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
+  id: '/email/unsubscribe',
+  path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SurvivorInviteTokenRoute = SurvivorInviteTokenRouteImport.update({
+  id: '/survivor-invite/$token',
+  path: '/survivor-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedAgentIndexRoute = AuthenticatedAgentIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedAgentRoute,
-} as any)
-const AttorneyClientsIndexRoute = AttorneyClientsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AttorneyClientsRoute,
-} as any)
 const AdvocateAdvocateCasesIndexRoute =
   AdvocateAdvocateCasesIndexRouteImport.update({
     id: '/advocate-cases/',
     path: '/advocate-cases/',
     getParentRoute: () => AdvocateRoute,
   } as any)
-const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
-  id: '/lovable/email/suppression',
-  path: '/lovable/email/suppression',
-  getParentRoute: () => rootRouteImport,
+const AdvocateAdvocateCasesClientIdRoute =
+  AdvocateAdvocateCasesClientIdRouteImport.update({
+    id: '/advocate-cases/$clientId',
+    path: '/advocate-cases/$clientId',
+    getParentRoute: () => AdvocateRoute,
+  } as any)
+const AttorneyClientsIndexRoute = AttorneyClientsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AttorneyClientsRoute,
 } as any)
-const IntegrationsClioDeauthorizeRoute =
-  IntegrationsClioDeauthorizeRouteImport.update({
-    id: '/integrations/clio/deauthorize',
-    path: '/integrations/clio/deauthorize',
-    getParentRoute: () => rootRouteImport,
+const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
+  id: '/$clientId',
+  path: '/$clientId',
+  getParentRoute: () => AttorneyClientsRoute,
+} as any)
+const AuthenticatedAgentIndexRoute = AuthenticatedAgentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAgentRoute,
+} as any)
+const AuthenticatedAgentThreadIdRoute =
+  AuthenticatedAgentThreadIdRouteImport.update({
+    id: '/$threadId',
+    path: '/$threadId',
+    getParentRoute: () => AuthenticatedAgentRoute,
   } as any)
 const IntegrationsClioCallbackRoute =
   IntegrationsClioCallbackRouteImport.update({
@@ -579,38 +596,37 @@ const IntegrationsClioCallbackRoute =
     path: '/integrations/clio/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedAgentThreadIdRoute =
-  AuthenticatedAgentThreadIdRouteImport.update({
-    id: '/$threadId',
-    path: '/$threadId',
-    getParentRoute: () => AuthenticatedAgentRoute,
-  } as any)
-const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
-  id: '/$clientId',
-  path: '/$clientId',
-  getParentRoute: () => AttorneyClientsRoute,
-} as any)
-const AdvocateAdvocateCasesClientIdRoute =
-  AdvocateAdvocateCasesClientIdRouteImport.update({
-    id: '/advocate-cases/$clientId',
-    path: '/advocate-cases/$clientId',
-    getParentRoute: () => AdvocateRoute,
-  } as any)
-const Char91DotmcpChar93InvokeToolToolRoute =
-  Char91DotmcpChar93InvokeToolToolRouteImport.update({
-    id: '/.mcp/invoke-tool/$tool',
-    path: '/.mcp/invoke-tool/$tool',
+const IntegrationsClioDeauthorizeRoute =
+  IntegrationsClioDeauthorizeRouteImport.update({
+    id: '/integrations/clio/deauthorize',
+    path: '/integrations/clio/deauthorize',
     getParentRoute: () => rootRouteImport,
   } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
+const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
+  id: '/lovable/email/suppression',
+  path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailTransactionalSendRoute =
-  LovableEmailTransactionalSendRouteImport.update({
-    id: '/lovable/email/transactional/send',
-    path: '/lovable/email/transactional/send',
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
 const LovableEmailTransactionalPreviewRoute =
@@ -619,26 +635,10 @@ const LovableEmailTransactionalPreviewRoute =
     path: '/lovable/email/transactional/preview',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
-  id: '/lovable/email/auth/preview',
-  path: '/lovable/email/auth/preview',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPaymentsWebhookRoute =
-  ApiPublicPaymentsWebhookRouteImport.update({
-    id: '/api/public/payments/webhook',
-    path: '/api/public/payments/webhook',
+const LovableEmailTransactionalSendRoute =
+  LovableEmailTransactionalSendRouteImport.update({
+    id: '/lovable/email/transactional/send',
+    path: '/lovable/email/transactional/send',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -1306,221 +1306,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/unsubscribe': {
-      id: '/unsubscribe'
-      path: '/unsubscribe'
-      fullPath: '/unsubscribe'
-      preLoaderRoute: typeof UnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/triage': {
-      id: '/triage'
-      path: '/triage'
-      fullPath: '/triage'
-      preLoaderRoute: typeof TriageRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/team-invite': {
-      id: '/team-invite'
-      path: '/team-invite'
-      fullPath: '/team-invite'
-      preLoaderRoute: typeof TeamInviteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/support': {
-      id: '/support'
-      path: '/support'
-      fullPath: '/support'
-      preLoaderRoute: typeof SupportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signin': {
-      id: '/signin'
-      path: '/signin'
-      fullPath: '/signin'
-      preLoaderRoute: typeof SigninRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/self-help-guide': {
-      id: '/self-help-guide'
-      path: '/self-help-guide'
-      fullPath: '/self-help-guide'
-      preLoaderRoute: typeof SelfHelpGuideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/safety': {
-      id: '/safety'
-      path: '/safety'
-      fullPath: '/safety'
-      preLoaderRoute: typeof SafetyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources': {
-      id: '/resources'
-      path: '/resources'
-      fullPath: '/resources'
-      preLoaderRoute: typeof ResourcesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/professional-access': {
-      id: '/professional-access'
-      path: '/professional-access'
-      fullPath: '/professional-access'
-      preLoaderRoute: typeof ProfessionalAccessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/org-signup': {
-      id: '/org-signup'
-      path: '/org-signup'
-      fullPath: '/org-signup'
-      preLoaderRoute: typeof OrgSignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/org-portal': {
-      id: '/org-portal'
-      path: '/org-portal'
-      fullPath: '/org-portal'
-      preLoaderRoute: typeof OrgPortalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/org-feedback': {
-      id: '/org-feedback'
-      path: '/org-feedback'
-      fullPath: '/org-feedback'
-      preLoaderRoute: typeof OrgFeedbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lawyer-signup': {
-      id: '/lawyer-signup'
-      path: '/lawyer-signup'
-      fullPath: '/lawyer-signup'
-      preLoaderRoute: typeof LawyerSignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/how-it-works': {
-      id: '/how-it-works'
-      path: '/how-it-works'
-      fullPath: '/how-it-works'
-      preLoaderRoute: typeof HowItWorksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/for-organizations': {
-      id: '/for-organizations'
-      path: '/for-organizations'
-      fullPath: '/for-organizations'
-      preLoaderRoute: typeof ForOrganizationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/for-attorneys': {
-      id: '/for-attorneys'
-      path: '/for-attorneys'
-      fullPath: '/for-attorneys'
-      preLoaderRoute: typeof ForAttorneysRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/evidence-integrity': {
-      id: '/evidence-integrity'
-      path: '/evidence-integrity'
-      fullPath: '/evidence-integrity'
-      preLoaderRoute: typeof EvidenceIntegrityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo': {
-      id: '/demo'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/connect': {
-      id: '/connect'
-      path: '/connect'
-      fullPath: '/connect'
-      preLoaderRoute: typeof ConnectRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/choose-role': {
-      id: '/choose-role'
-      path: '/choose-role'
-      fullPath: '/choose-role'
-      preLoaderRoute: typeof ChooseRoleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/attorneys': {
-      id: '/attorneys'
-      path: '/attorneys'
-      fullPath: '/attorneys'
-      preLoaderRoute: typeof AttorneysRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ai-transparency': {
-      id: '/ai-transparency'
-      path: '/ai-transparency'
-      fullPath: '/ai-transparency'
-      preLoaderRoute: typeof AiTransparencyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
+    '/': {
+      id: '/'
+      path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_attorney': {
-      id: '/_attorney'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AttorneyRouteImport
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_advocate': {
@@ -1530,361 +1320,221 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdvocateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
+    '/_attorney': {
+      id: '/_attorney'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AttorneyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/survivor-invite/$token': {
-      id: '/survivor-invite/$token'
-      path: '/survivor-invite/$token'
-      fullPath: '/survivor-invite/$token'
-      preLoaderRoute: typeof SurvivorInviteTokenRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/email/unsubscribe': {
-      id: '/email/unsubscribe'
-      path: '/email/unsubscribe'
-      fullPath: '/email/unsubscribe'
-      preLoaderRoute: typeof EmailUnsubscribeRouteImport
+    '/ai-transparency': {
+      id: '/ai-transparency'
+      path: '/ai-transparency'
+      fullPath: '/ai-transparency'
+      preLoaderRoute: typeof AiTransparencyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/collaborator-invite/$token': {
-      id: '/collaborator-invite/$token'
-      path: '/collaborator-invite/$token'
-      fullPath: '/collaborator-invite/$token'
-      preLoaderRoute: typeof CollaboratorInviteTokenRouteImport
+    '/attorneys': {
+      id: '/attorneys'
+      path: '/attorneys'
+      fullPath: '/attorneys'
+      preLoaderRoute: typeof AttorneysRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/attorney/$token': {
-      id: '/attorney/$token'
-      path: '/attorney/$token'
-      fullPath: '/attorney/$token'
-      preLoaderRoute: typeof AttorneyTokenRouteImport
+    '/choose-role': {
+      id: '/choose-role'
+      path: '/choose-role'
+      fullPath: '/choose-role'
+      preLoaderRoute: typeof ChooseRoleRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
+    '/connect': {
+      id: '/connect'
+      path: '/connect'
+      fullPath: '/connect'
+      preLoaderRoute: typeof ConnectRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/advocate-invite/$token': {
-      id: '/advocate-invite/$token'
-      path: '/advocate-invite/$token'
-      fullPath: '/advocate-invite/$token'
-      preLoaderRoute: typeof AdvocateInviteTokenRouteImport
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/accept-invite/$token': {
-      id: '/accept-invite/$token'
-      path: '/accept-invite/$token'
-      fullPath: '/accept-invite/$token'
-      preLoaderRoute: typeof AcceptInviteTokenRouteImport
+    '/evidence-integrity': {
+      id: '/evidence-integrity'
+      path: '/evidence-integrity'
+      fullPath: '/evidence-integrity'
+      preLoaderRoute: typeof EvidenceIntegrityRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/voice-notes': {
-      id: '/_authenticated/voice-notes'
-      path: '/voice-notes'
-      fullPath: '/voice-notes'
-      preLoaderRoute: typeof AuthenticatedVoiceNotesRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/for-attorneys': {
+      id: '/for-attorneys'
+      path: '/for-attorneys'
+      fullPath: '/for-attorneys'
+      preLoaderRoute: typeof ForAttorneysRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/timeline': {
-      id: '/_authenticated/timeline'
-      path: '/timeline'
-      fullPath: '/timeline'
-      preLoaderRoute: typeof AuthenticatedTimelineRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/for-organizations': {
+      id: '/for-organizations'
+      path: '/for-organizations'
+      fullPath: '/for-organizations'
+      preLoaderRoute: typeof ForOrganizationsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/share-with-attorney': {
-      id: '/_authenticated/share-with-attorney'
-      path: '/share-with-attorney'
-      fullPath: '/share-with-attorney'
-      preLoaderRoute: typeof AuthenticatedShareWithAttorneyRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/share-with-advocate': {
-      id: '/_authenticated/share-with-advocate'
-      path: '/share-with-advocate'
-      fullPath: '/share-with-advocate'
-      preLoaderRoute: typeof AuthenticatedShareWithAdvocateRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/lawyer-signup': {
+      id: '/lawyer-signup'
+      path: '/lawyer-signup'
+      fullPath: '/lawyer-signup'
+      preLoaderRoute: typeof LawyerSignupRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/search': {
-      id: '/_authenticated/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof AuthenticatedSearchRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/patterns': {
-      id: '/_authenticated/patterns'
-      path: '/patterns'
-      fullPath: '/patterns'
-      preLoaderRoute: typeof AuthenticatedPatternsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/org-feedback': {
+      id: '/org-feedback'
+      path: '/org-feedback'
+      fullPath: '/org-feedback'
+      preLoaderRoute: typeof OrgFeedbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/opra-helper': {
-      id: '/_authenticated/opra-helper'
-      path: '/opra-helper'
-      fullPath: '/opra-helper'
-      preLoaderRoute: typeof AuthenticatedOpraHelperRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/org-portal': {
+      id: '/org-portal'
+      path: '/org-portal'
+      fullPath: '/org-portal'
+      preLoaderRoute: typeof OrgPortalRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/onboarding': {
-      id: '/_authenticated/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/org-signup': {
+      id: '/org-signup'
+      path: '/org-signup'
+      fullPath: '/org-signup'
+      preLoaderRoute: typeof OrgSignupRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/message-threads': {
-      id: '/_authenticated/message-threads'
-      path: '/message-threads'
-      fullPath: '/message-threads'
-      preLoaderRoute: typeof AuthenticatedMessageThreadsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/live-recording': {
-      id: '/_authenticated/live-recording'
-      path: '/live-recording'
-      fullPath: '/live-recording'
-      preLoaderRoute: typeof AuthenticatedLiveRecordingRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/legal-documents': {
-      id: '/_authenticated/legal-documents'
-      path: '/legal-documents'
-      fullPath: '/legal-documents'
-      preLoaderRoute: typeof AuthenticatedLegalDocumentsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/professional-access': {
+      id: '/professional-access'
+      path: '/professional-access'
+      fullPath: '/professional-access'
+      preLoaderRoute: typeof ProfessionalAccessRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/journal': {
-      id: '/_authenticated/journal'
-      path: '/journal'
-      fullPath: '/journal'
-      preLoaderRoute: typeof AuthenticatedJournalRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/import-messages': {
-      id: '/_authenticated/import-messages'
-      path: '/import-messages'
-      fullPath: '/import-messages'
-      preLoaderRoute: typeof AuthenticatedImportMessagesRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/feedback': {
-      id: '/_authenticated/feedback'
-      path: '/feedback'
-      fullPath: '/feedback'
-      preLoaderRoute: typeof AuthenticatedFeedbackRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/self-help-guide': {
+      id: '/self-help-guide'
+      path: '/self-help-guide'
+      fullPath: '/self-help-guide'
+      preLoaderRoute: typeof SelfHelpGuideRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/evidence-review': {
-      id: '/_authenticated/evidence-review'
-      path: '/evidence-review'
-      fullPath: '/evidence-review'
-      preLoaderRoute: typeof AuthenticatedEvidenceReviewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/evidence': {
-      id: '/_authenticated/evidence'
-      path: '/evidence'
-      fullPath: '/evidence'
-      preLoaderRoute: typeof AuthenticatedEvidenceRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/court-systems': {
-      id: '/_authenticated/court-systems'
-      path: '/court-systems'
-      fullPath: '/court-systems'
-      preLoaderRoute: typeof AuthenticatedCourtSystemsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/court-ready-thanks': {
-      id: '/_authenticated/court-ready-thanks'
-      path: '/court-ready-thanks'
-      fullPath: '/court-ready-thanks'
-      preLoaderRoute: typeof AuthenticatedCourtReadyThanksRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/team-invite': {
+      id: '/team-invite'
+      path: '/team-invite'
+      fullPath: '/team-invite'
+      preLoaderRoute: typeof TeamInviteRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/court-ready': {
-      id: '/_authenticated/court-ready'
-      path: '/court-ready'
-      fullPath: '/court-ready'
-      preLoaderRoute: typeof AuthenticatedCourtReadyRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/court-packet': {
-      id: '/_authenticated/court-packet'
-      path: '/court-packet'
-      fullPath: '/court-packet'
-      preLoaderRoute: typeof AuthenticatedCourtPacketRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/triage': {
+      id: '/triage'
+      path: '/triage'
+      fullPath: '/triage'
+      preLoaderRoute: typeof TriageRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/court-dates': {
-      id: '/_authenticated/court-dates'
-      path: '/court-dates'
-      fullPath: '/court-dates'
-      preLoaderRoute: typeof AuthenticatedCourtDatesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/contribute-thanks': {
-      id: '/_authenticated/contribute-thanks'
-      path: '/contribute-thanks'
-      fullPath: '/contribute-thanks'
-      preLoaderRoute: typeof AuthenticatedContributeThanksRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/contribute': {
-      id: '/_authenticated/contribute'
-      path: '/contribute'
-      fullPath: '/contribute'
-      preLoaderRoute: typeof AuthenticatedContributeRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/communications': {
-      id: '/_authenticated/communications'
-      path: '/communications'
-      fullPath: '/communications'
-      preLoaderRoute: typeof AuthenticatedCommunicationsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/case-builder': {
-      id: '/_authenticated/case-builder'
-      path: '/case-builder'
-      fullPath: '/case-builder'
-      preLoaderRoute: typeof AuthenticatedCaseBuilderRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/case': {
-      id: '/_authenticated/case'
-      path: '/case'
-      fullPath: '/case'
-      preLoaderRoute: typeof AuthenticatedCaseRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/calendar': {
-      id: '/_authenticated/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/attorney-time-log': {
-      id: '/_authenticated/attorney-time-log'
-      path: '/attorney-time-log'
-      fullPath: '/attorney-time-log'
-      preLoaderRoute: typeof AuthenticatedAttorneyTimeLogRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/attorney-billing': {
-      id: '/_authenticated/attorney-billing'
-      path: '/attorney-billing'
-      fullPath: '/attorney-billing'
-      preLoaderRoute: typeof AuthenticatedAttorneyBillingRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/agent': {
-      id: '/_authenticated/agent'
-      path: '/agent'
-      fullPath: '/agent'
-      preLoaderRoute: typeof AuthenticatedAgentRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_attorney/trust': {
-      id: '/_attorney/trust'
-      path: '/trust'
-      fullPath: '/trust'
-      preLoaderRoute: typeof AttorneyTrustRouteImport
-      parentRoute: typeof AttorneyRoute
-    }
-    '/_attorney/team': {
-      id: '/_attorney/team'
-      path: '/team'
-      fullPath: '/team'
-      preLoaderRoute: typeof AttorneyTeamRouteImport
-      parentRoute: typeof AttorneyRoute
-    }
-    '/_attorney/subscribe': {
-      id: '/_attorney/subscribe'
-      path: '/subscribe'
-      fullPath: '/subscribe'
-      preLoaderRoute: typeof AttorneySubscribeRouteImport
-      parentRoute: typeof AttorneyRoute
-    }
-    '/_attorney/setup': {
-      id: '/_attorney/setup'
-      path: '/setup'
-      fullPath: '/setup'
-      preLoaderRoute: typeof AttorneySetupRouteImport
-      parentRoute: typeof AttorneyRoute
-    }
-    '/_attorney/conflict-check': {
-      id: '/_attorney/conflict-check'
-      path: '/conflict-check'
-      fullPath: '/conflict-check'
-      preLoaderRoute: typeof AttorneyConflictCheckRouteImport
-      parentRoute: typeof AttorneyRoute
-    }
-    '/_attorney/clients': {
-      id: '/_attorney/clients'
-      path: '/clients'
-      fullPath: '/clients'
-      preLoaderRoute: typeof AttorneyClientsRouteImport
-      parentRoute: typeof AttorneyRoute
-    }
-    '/_attorney/caseload': {
-      id: '/_attorney/caseload'
-      path: '/caseload'
-      fullPath: '/caseload'
-      preLoaderRoute: typeof AttorneyCaseloadRouteImport
-      parentRoute: typeof AttorneyRoute
-    }
-    '/_attorney/billing-return': {
-      id: '/_attorney/billing-return'
-      path: '/billing-return'
-      fullPath: '/billing-return'
-      preLoaderRoute: typeof AttorneyBillingReturnRouteImport
-      parentRoute: typeof AttorneyRoute
-    }
-    '/_attorney/billing': {
-      id: '/_attorney/billing'
-      path: '/billing'
-      fullPath: '/billing'
-      preLoaderRoute: typeof AttorneyBillingRouteImport
-      parentRoute: typeof AttorneyRoute
-    }
-    '/_attorney/attorney-feedback': {
-      id: '/_attorney/attorney-feedback'
-      path: '/attorney-feedback'
-      fullPath: '/attorney-feedback'
-      preLoaderRoute: typeof AttorneyAttorneyFeedbackRouteImport
-      parentRoute: typeof AttorneyRoute
-    }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -1894,74 +1544,354 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/agent/': {
-      id: '/_authenticated/agent/'
-      path: '/'
-      fullPath: '/agent/'
-      preLoaderRoute: typeof AuthenticatedAgentIndexRouteImport
-      parentRoute: typeof AuthenticatedAgentRoute
-    }
-    '/_attorney/clients/': {
-      id: '/_attorney/clients/'
-      path: '/'
-      fullPath: '/clients/'
-      preLoaderRoute: typeof AttorneyClientsIndexRouteImport
-      parentRoute: typeof AttorneyClientsRoute
-    }
-    '/_advocate/advocate-cases/': {
-      id: '/_advocate/advocate-cases/'
-      path: '/advocate-cases'
-      fullPath: '/advocate-cases/'
-      preLoaderRoute: typeof AdvocateAdvocateCasesIndexRouteImport
-      parentRoute: typeof AdvocateRoute
-    }
-    '/lovable/email/suppression': {
-      id: '/lovable/email/suppression'
-      path: '/lovable/email/suppression'
-      fullPath: '/lovable/email/suppression'
-      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/integrations/clio/deauthorize': {
-      id: '/integrations/clio/deauthorize'
-      path: '/integrations/clio/deauthorize'
-      fullPath: '/integrations/clio/deauthorize'
-      preLoaderRoute: typeof IntegrationsClioDeauthorizeRouteImport
+    '/_attorney/attorney-feedback': {
+      id: '/_attorney/attorney-feedback'
+      path: '/attorney-feedback'
+      fullPath: '/attorney-feedback'
+      preLoaderRoute: typeof AttorneyAttorneyFeedbackRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/billing': {
+      id: '/_attorney/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof AttorneyBillingRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/billing-return': {
+      id: '/_attorney/billing-return'
+      path: '/billing-return'
+      fullPath: '/billing-return'
+      preLoaderRoute: typeof AttorneyBillingReturnRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/caseload': {
+      id: '/_attorney/caseload'
+      path: '/caseload'
+      fullPath: '/caseload'
+      preLoaderRoute: typeof AttorneyCaseloadRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/clients': {
+      id: '/_attorney/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof AttorneyClientsRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/conflict-check': {
+      id: '/_attorney/conflict-check'
+      path: '/conflict-check'
+      fullPath: '/conflict-check'
+      preLoaderRoute: typeof AttorneyConflictCheckRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/setup': {
+      id: '/_attorney/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof AttorneySetupRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/subscribe': {
+      id: '/_attorney/subscribe'
+      path: '/subscribe'
+      fullPath: '/subscribe'
+      preLoaderRoute: typeof AttorneySubscribeRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/team': {
+      id: '/_attorney/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AttorneyTeamRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_attorney/trust': {
+      id: '/_attorney/trust'
+      path: '/trust'
+      fullPath: '/trust'
+      preLoaderRoute: typeof AttorneyTrustRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
+    '/_authenticated/agent': {
+      id: '/_authenticated/agent'
+      path: '/agent'
+      fullPath: '/agent'
+      preLoaderRoute: typeof AuthenticatedAgentRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/attorney-billing': {
+      id: '/_authenticated/attorney-billing'
+      path: '/attorney-billing'
+      fullPath: '/attorney-billing'
+      preLoaderRoute: typeof AuthenticatedAttorneyBillingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/attorney-time-log': {
+      id: '/_authenticated/attorney-time-log'
+      path: '/attorney-time-log'
+      fullPath: '/attorney-time-log'
+      preLoaderRoute: typeof AuthenticatedAttorneyTimeLogRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/calendar': {
+      id: '/_authenticated/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/case': {
+      id: '/_authenticated/case'
+      path: '/case'
+      fullPath: '/case'
+      preLoaderRoute: typeof AuthenticatedCaseRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/case-builder': {
+      id: '/_authenticated/case-builder'
+      path: '/case-builder'
+      fullPath: '/case-builder'
+      preLoaderRoute: typeof AuthenticatedCaseBuilderRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/communications': {
+      id: '/_authenticated/communications'
+      path: '/communications'
+      fullPath: '/communications'
+      preLoaderRoute: typeof AuthenticatedCommunicationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/contribute': {
+      id: '/_authenticated/contribute'
+      path: '/contribute'
+      fullPath: '/contribute'
+      preLoaderRoute: typeof AuthenticatedContributeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/contribute-thanks': {
+      id: '/_authenticated/contribute-thanks'
+      path: '/contribute-thanks'
+      fullPath: '/contribute-thanks'
+      preLoaderRoute: typeof AuthenticatedContributeThanksRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/court-dates': {
+      id: '/_authenticated/court-dates'
+      path: '/court-dates'
+      fullPath: '/court-dates'
+      preLoaderRoute: typeof AuthenticatedCourtDatesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/court-packet': {
+      id: '/_authenticated/court-packet'
+      path: '/court-packet'
+      fullPath: '/court-packet'
+      preLoaderRoute: typeof AuthenticatedCourtPacketRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/court-ready': {
+      id: '/_authenticated/court-ready'
+      path: '/court-ready'
+      fullPath: '/court-ready'
+      preLoaderRoute: typeof AuthenticatedCourtReadyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/court-ready-thanks': {
+      id: '/_authenticated/court-ready-thanks'
+      path: '/court-ready-thanks'
+      fullPath: '/court-ready-thanks'
+      preLoaderRoute: typeof AuthenticatedCourtReadyThanksRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/court-systems': {
+      id: '/_authenticated/court-systems'
+      path: '/court-systems'
+      fullPath: '/court-systems'
+      preLoaderRoute: typeof AuthenticatedCourtSystemsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/evidence': {
+      id: '/_authenticated/evidence'
+      path: '/evidence'
+      fullPath: '/evidence'
+      preLoaderRoute: typeof AuthenticatedEvidenceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/evidence-review': {
+      id: '/_authenticated/evidence-review'
+      path: '/evidence-review'
+      fullPath: '/evidence-review'
+      preLoaderRoute: typeof AuthenticatedEvidenceReviewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/feedback': {
+      id: '/_authenticated/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof AuthenticatedFeedbackRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/import-messages': {
+      id: '/_authenticated/import-messages'
+      path: '/import-messages'
+      fullPath: '/import-messages'
+      preLoaderRoute: typeof AuthenticatedImportMessagesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/journal': {
+      id: '/_authenticated/journal'
+      path: '/journal'
+      fullPath: '/journal'
+      preLoaderRoute: typeof AuthenticatedJournalRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/legal-documents': {
+      id: '/_authenticated/legal-documents'
+      path: '/legal-documents'
+      fullPath: '/legal-documents'
+      preLoaderRoute: typeof AuthenticatedLegalDocumentsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/live-recording': {
+      id: '/_authenticated/live-recording'
+      path: '/live-recording'
+      fullPath: '/live-recording'
+      preLoaderRoute: typeof AuthenticatedLiveRecordingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/message-threads': {
+      id: '/_authenticated/message-threads'
+      path: '/message-threads'
+      fullPath: '/message-threads'
+      preLoaderRoute: typeof AuthenticatedMessageThreadsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/opra-helper': {
+      id: '/_authenticated/opra-helper'
+      path: '/opra-helper'
+      fullPath: '/opra-helper'
+      preLoaderRoute: typeof AuthenticatedOpraHelperRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/patterns': {
+      id: '/_authenticated/patterns'
+      path: '/patterns'
+      fullPath: '/patterns'
+      preLoaderRoute: typeof AuthenticatedPatternsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/search': {
+      id: '/_authenticated/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof AuthenticatedSearchRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/share-with-advocate': {
+      id: '/_authenticated/share-with-advocate'
+      path: '/share-with-advocate'
+      fullPath: '/share-with-advocate'
+      preLoaderRoute: typeof AuthenticatedShareWithAdvocateRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/share-with-attorney': {
+      id: '/_authenticated/share-with-attorney'
+      path: '/share-with-attorney'
+      fullPath: '/share-with-attorney'
+      preLoaderRoute: typeof AuthenticatedShareWithAttorneyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/timeline': {
+      id: '/_authenticated/timeline'
+      path: '/timeline'
+      fullPath: '/timeline'
+      preLoaderRoute: typeof AuthenticatedTimelineRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/voice-notes': {
+      id: '/_authenticated/voice-notes'
+      path: '/voice-notes'
+      fullPath: '/voice-notes'
+      preLoaderRoute: typeof AuthenticatedVoiceNotesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/accept-invite/$token': {
+      id: '/accept-invite/$token'
+      path: '/accept-invite/$token'
+      fullPath: '/accept-invite/$token'
+      preLoaderRoute: typeof AcceptInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/integrations/clio/callback': {
-      id: '/integrations/clio/callback'
-      path: '/integrations/clio/callback'
-      fullPath: '/integrations/clio/callback'
-      preLoaderRoute: typeof IntegrationsClioCallbackRouteImport
+    '/advocate-invite/$token': {
+      id: '/advocate-invite/$token'
+      path: '/advocate-invite/$token'
+      fullPath: '/advocate-invite/$token'
+      preLoaderRoute: typeof AdvocateInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/agent/$threadId': {
-      id: '/_authenticated/agent/$threadId'
-      path: '/$threadId'
-      fullPath: '/agent/$threadId'
-      preLoaderRoute: typeof AuthenticatedAgentThreadIdRouteImport
-      parentRoute: typeof AuthenticatedAgentRoute
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_attorney/clients/$clientId': {
-      id: '/_attorney/clients/$clientId'
-      path: '/$clientId'
-      fullPath: '/clients/$clientId'
-      preLoaderRoute: typeof AttorneyClientsClientIdRouteImport
-      parentRoute: typeof AttorneyClientsRoute
+    '/attorney/$token': {
+      id: '/attorney/$token'
+      path: '/attorney/$token'
+      fullPath: '/attorney/$token'
+      preLoaderRoute: typeof AttorneyTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_advocate/advocate-cases/$clientId': {
-      id: '/_advocate/advocate-cases/$clientId'
-      path: '/advocate-cases/$clientId'
-      fullPath: '/advocate-cases/$clientId'
-      preLoaderRoute: typeof AdvocateAdvocateCasesClientIdRouteImport
-      parentRoute: typeof AdvocateRoute
+    '/collaborator-invite/$token': {
+      id: '/collaborator-invite/$token'
+      path: '/collaborator-invite/$token'
+      fullPath: '/collaborator-invite/$token'
+      preLoaderRoute: typeof CollaboratorInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+    '/email/unsubscribe': {
+      id: '/email/unsubscribe'
+      path: '/email/unsubscribe'
+      fullPath: '/email/unsubscribe'
+      preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/survivor-invite/$token': {
+      id: '/survivor-invite/$token'
+      path: '/survivor-invite/$token'
+      fullPath: '/survivor-invite/$token'
+      preLoaderRoute: typeof SurvivorInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.lovable/oauth/consent': {
@@ -1971,32 +1901,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/transactional/send': {
-      id: '/lovable/email/transactional/send'
-      path: '/lovable/email/transactional/send'
-      fullPath: '/lovable/email/transactional/send'
-      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/transactional/preview': {
-      id: '/lovable/email/transactional/preview'
-      path: '/lovable/email/transactional/preview'
-      fullPath: '/lovable/email/transactional/preview'
-      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+    '/_advocate/advocate-cases/': {
+      id: '/_advocate/advocate-cases/'
+      path: '/advocate-cases'
+      fullPath: '/advocate-cases/'
+      preLoaderRoute: typeof AdvocateAdvocateCasesIndexRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
+    '/_advocate/advocate-cases/$clientId': {
+      id: '/_advocate/advocate-cases/$clientId'
+      path: '/advocate-cases/$clientId'
+      fullPath: '/advocate-cases/$clientId'
+      preLoaderRoute: typeof AdvocateAdvocateCasesClientIdRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
+    '/_attorney/clients/': {
+      id: '/_attorney/clients/'
+      path: '/'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AttorneyClientsIndexRouteImport
+      parentRoute: typeof AttorneyClientsRoute
+    }
+    '/_attorney/clients/$clientId': {
+      id: '/_attorney/clients/$clientId'
+      path: '/$clientId'
+      fullPath: '/clients/$clientId'
+      preLoaderRoute: typeof AttorneyClientsClientIdRouteImport
+      parentRoute: typeof AttorneyClientsRoute
+    }
+    '/_authenticated/agent/': {
+      id: '/_authenticated/agent/'
+      path: '/'
+      fullPath: '/agent/'
+      preLoaderRoute: typeof AuthenticatedAgentIndexRouteImport
+      parentRoute: typeof AuthenticatedAgentRoute
+    }
+    '/_authenticated/agent/$threadId': {
+      id: '/_authenticated/agent/$threadId'
+      path: '/$threadId'
+      fullPath: '/agent/$threadId'
+      preLoaderRoute: typeof AuthenticatedAgentThreadIdRouteImport
+      parentRoute: typeof AuthenticatedAgentRoute
+    }
+    '/integrations/clio/callback': {
+      id: '/integrations/clio/callback'
+      path: '/integrations/clio/callback'
+      fullPath: '/integrations/clio/callback'
+      preLoaderRoute: typeof IntegrationsClioCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+    '/integrations/clio/deauthorize': {
+      id: '/integrations/clio/deauthorize'
+      path: '/integrations/clio/deauthorize'
+      fullPath: '/integrations/clio/deauthorize'
+      preLoaderRoute: typeof IntegrationsClioDeauthorizeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/auth/webhook': {
-      id: '/lovable/email/auth/webhook'
-      path: '/lovable/email/auth/webhook'
-      fullPath: '/lovable/email/auth/webhook'
-      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+    '/lovable/email/suppression': {
+      id: '/lovable/email/suppression'
+      path: '/lovable/email/suppression'
+      fullPath: '/lovable/email/suppression'
+      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/auth/preview': {
@@ -2006,11 +1985,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/payments/webhook': {
-      id: '/api/public/payments/webhook'
-      path: '/api/public/payments/webhook'
-      fullPath: '/api/public/payments/webhook'
-      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/send': {
+      id: '/lovable/email/transactional/send'
+      path: '/lovable/email/transactional/send'
+      fullPath: '/lovable/email/transactional/send'
+      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
