@@ -76,6 +76,13 @@ export type OrgPartnerStats = {
   };
 };
 
+// Distinct, matchable message so the client can tell "you're an advocate but
+// haven't set up or joined an organization yet" (an actionable, expected
+// state — send them to /org-signup) apart from a real, unexpected failure
+// (a generic "try again" message).
+export const NO_ORG_MEMBERSHIP_MESSAGE =
+  "You are not a verified member of a partner organization.";
+
 async function requireOrgMembership(userId: string) {
   const supabaseAdmin = await requireAdvocate(userId);
   const { data: member, error } = await supabaseAdmin
@@ -84,7 +91,7 @@ async function requireOrgMembership(userId: string) {
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!member) throw new Error("You are not a verified member of a partner organization.");
+  if (!member) throw new Error(NO_ORG_MEMBERSHIP_MESSAGE);
   return { supabaseAdmin, member };
 }
 
