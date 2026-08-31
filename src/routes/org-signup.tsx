@@ -122,6 +122,29 @@ function OrgSignup() {
               <button className="btn-primary w-full" disabled={busy}>
                 {busy ? "One moment…" : mode === "signup" ? "Create account" : "Sign in"}
               </button>
+              {mode === "signup" && (
+                <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  By creating an account you agree to the{" "}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--accent)", textDecoration: "underline" }}
+                  >
+                    Terms of Service
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--accent)", textDecoration: "underline" }}
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
+              )}
             </form>
             <button
               type="button"
