@@ -150,17 +150,32 @@ function HowItWorks() {
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             {aud === "survivor" && (
-              <PrimaryLink to="/signin" accent={INK} label="Start documenting →" />
+              <PrimaryLink
+                to="/signin"
+                accent={INK}
+                fg="var(--pp-accent-fg)"
+                label="Start documenting →"
+              />
             )}
             {aud === "attorney" && (
               <>
-                <PrimaryLink to="/lawyer-signup" accent={NAVY} label="Attorney sign-up →" />
+                <PrimaryLink
+                  to="/lawyer-signup"
+                  accent={NAVY}
+                  fg="var(--pp-accent-fg)"
+                  label="Attorney sign-up →"
+                />
                 <GhostLink to="/for-attorneys" label="Attorney overview" />
               </>
             )}
             {aud === "org" && (
               <>
-                <PrimaryLink to="/org-signup" accent={SAGE} label="Partner with us →" />
+                <PrimaryLink
+                  to="/org-signup"
+                  accent={SAGE}
+                  fg="var(--ink)"
+                  label="Partner with us →"
+                />
                 <GhostLink to="/for-organizations" label="Organization overview" />
               </>
             )}
@@ -361,7 +376,17 @@ function Eyebrow({ text, accent }: { text: string; accent: string }) {
   );
 }
 
-function PrimaryLink({ to, accent, label }: { to: string; accent: string; label: string }) {
+function PrimaryLink({
+  to,
+  accent,
+  fg = "var(--pp-accent-fg)",
+  label,
+}: {
+  to: string;
+  accent: string;
+  fg?: string;
+  label: string;
+}) {
   return (
     <Link
       to={to}
@@ -369,7 +394,7 @@ function PrimaryLink({ to, accent, label }: { to: string; accent: string; label:
       style={{
         display: "inline-block",
         background: accent,
-        color: "#F4F6FB",
+        color: fg,
         padding: "12px 22px",
         fontFamily: MONO,
         fontSize: 12,

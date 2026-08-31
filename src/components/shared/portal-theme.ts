@@ -48,10 +48,23 @@ const SHARED_TOKENS = {
   bodyFont: "var(--font-sans)",
 } as const;
 
+// Every stop is derived from the persona's single LOCKED accent token via
+// color-mix() — same technique as --pp-thread-grad in styles.css — so this
+// gradient can never drift into a competing, unlocked hue.
 const GRADIENTS: Record<PortalVariant, { from: string; mid?: string; to: string }> = {
-  survivor: { from: "#E879F9", mid: "#8B5CF6", to: "#38D9F0" },
-  advocate: { from: "#9BB690", to: "#5C7754" },
-  attorney: { from: "#3F6DF0", to: "#1B2A6B" },
+  survivor: {
+    from: "color-mix(in srgb, var(--pp-accent-survivor) 55%, white)",
+    mid: "var(--pp-accent-survivor)",
+    to: "color-mix(in srgb, var(--pp-accent-survivor) 70%, black)",
+  },
+  advocate: {
+    from: "color-mix(in srgb, var(--pp-accent-org) 55%, white)",
+    to: "color-mix(in srgb, var(--pp-accent-org) 70%, black)",
+  },
+  attorney: {
+    from: "color-mix(in srgb, var(--pp-accent-attorney) 55%, white)",
+    to: "color-mix(in srgb, var(--pp-accent-attorney) 70%, black)",
+  },
 };
 
 export const PORTAL_THEME: Record<PortalVariant, PortalTheme> = {

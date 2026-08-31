@@ -146,9 +146,30 @@ function Index() {
               color: INK_3,
             }}
           >
-            For survivors · For attorneys · For DV organizations
+            <Link to="/choose-role" style={{ color: "inherit", textDecoration: "underline" }}>
+              For survivors · For attorneys · For DV organizations
+            </Link>
           </p>
         )}
+
+        {/* Plain-language statement before the tagline headline, so a
+            first-time visitor understands what this is within a few
+            seconds — matches the same rule applied on /for-attorneys. */}
+        <p
+          style={{
+            marginTop: 18,
+            fontSize: 16,
+            lineHeight: 1.5,
+            color: INK_2,
+            maxWidth: 620,
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        >
+          {attorneyMode
+            ? "PatternProof is a documentation platform your clients use to record domestic-violence and coercive-control incidents — you receive a structured, source-linked chronology instead of a folder of screenshots."
+            : "PatternProof is a private documentation app for survivors of domestic violence and coercive control — it turns your photos, messages, voice notes, and written entries into one organized, source-linked timeline."}
+        </p>
 
         <h1
           style={{
@@ -187,8 +208,7 @@ function Index() {
             <p
               style={{ marginTop: 20, fontSize: 17, lineHeight: 1.6, color: INK_2, maxWidth: 620 }}
             >
-              For attorneys: a structured, source-linked chronology on day one — not a shoebox of
-              screenshots. Hearing prep starts with strategy, not sorting.
+              Hearing prep starts with strategy, not sorting.
             </p>
             <div style={{ marginTop: 34 }}>
               <Link to="/demo" className="btn-primary" style={{ textDecoration: "none" }}>
@@ -224,22 +244,6 @@ function Index() {
               }}
             >
               Document what happened. See the full pattern.
-            </p>
-            <p
-              style={{
-                marginTop: 14,
-                fontFamily: "var(--font-sans)",
-                fontSize: 17,
-                fontWeight: 500,
-                lineHeight: 1.5,
-                color: INK,
-                maxWidth: 650,
-                marginLeft: "auto",
-                marginRight: "auto",
-              }}
-            >
-              PatternProof organizes your photos, messages, voice notes, and written entries into
-              one clear, source-linked timeline.
             </p>
 
             <p

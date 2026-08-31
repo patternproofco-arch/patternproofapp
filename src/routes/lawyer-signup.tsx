@@ -101,8 +101,27 @@ function LawyerSignup() {
               {mode === "signup" ? "Create your attorney account" : "Sign in"}
             </h2>
             <form onSubmit={auth} className="mt-4 space-y-3">
-              <input className="input-pp" type="email" required placeholder="Work email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              <input className="input-pp" type="password" required minLength={8} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <input
+                className="input-pp"
+                type="email"
+                required
+                autoComplete="email"
+                aria-label="Work email"
+                placeholder="Work email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <input
+                className="input-pp"
+                type="password"
+                required
+                minLength={8}
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                aria-label="Password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
               <button className="btn-primary w-full" disabled={busy}>
                 {busy ? "One moment…" : mode === "signup" ? "Create account" : "Sign in"}
               </button>
@@ -110,21 +129,59 @@ function LawyerSignup() {
             <button type="button" onClick={() => setMode(mode === "signup" ? "login" : "signup")} className="mt-4 w-full text-center text-[13px]" style={{ color: "var(--accent)" }}>
               {mode === "signup" ? "I already have an account" : "Create a new account"}
             </button>
+            {mode === "signup" && (
+              <p className="mt-4 text-center text-[12.5px]" style={{ color: "var(--muted-foreground)", lineHeight: 1.5 }}>
+                Next: tell us about your practice, then choose a plan — Solo attorney
+                or Firm. Not ready to commit? <a href="/demo" style={{ color: "var(--accent)", textDecoration: "underline" }}>Review the demo</a> first.
+              </p>
+            )}
           </div>
         ) : (
           <div className="card-pp">
             <h2 className="font-serif text-[20px]">Tell clients who they're working with</h2>
             <form onSubmit={saveProfile} className="mt-4 space-y-3">
-              <input className="input-pp" required placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-              <input className="input-pp" placeholder="Firm name (optional)" value={firm} onChange={(e) => setFirm(e.target.value)} />
+              <input
+                className="input-pp"
+                required
+                autoComplete="name"
+                aria-label="Full name"
+                placeholder="Full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+              <input
+                className="input-pp"
+                autoComplete="organization"
+                aria-label="Firm name (optional)"
+                placeholder="Firm name (optional)"
+                value={firm}
+                onChange={(e) => setFirm(e.target.value)}
+              />
               <div className="grid grid-cols-2 gap-3">
-                <input className="input-pp" placeholder="Bar #" value={bar} onChange={(e) => setBar(e.target.value)} />
-                <input className="input-pp" placeholder="Jurisdiction" value={jur} onChange={(e) => setJur(e.target.value)} />
+                <input
+                  className="input-pp"
+                  autoComplete="off"
+                  aria-label="Bar number"
+                  placeholder="Bar #"
+                  value={bar}
+                  onChange={(e) => setBar(e.target.value)}
+                />
+                <input
+                  className="input-pp"
+                  autoComplete="address-level1"
+                  aria-label="Jurisdiction"
+                  placeholder="Jurisdiction"
+                  value={jur}
+                  onChange={(e) => setJur(e.target.value)}
+                />
               </div>
               <button className="btn-primary w-full" disabled={busy}>
                 {busy ? "Saving…" : "Enter portal"}
               </button>
             </form>
+            <p className="mt-4 text-center text-[12.5px]" style={{ color: "var(--muted-foreground)", lineHeight: 1.5 }}>
+              One step left: choose Solo ($297/mo) or Firm pricing to activate your portal.
+            </p>
           </div>
         )}
       </div>

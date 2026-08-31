@@ -270,23 +270,26 @@ function PricingPage() {
 function TierCard({ tier }: { tier: Tier }) {
   const isAttorney = tier.key === "attorney_solo" || tier.key === "attorney_firm";
   const isOrg = tier.key === "organization";
+  const persona = isAttorney ? "attorney" : isOrg ? "org" : "survivor";
 
   const attorneyAccent = MARK_COLORWAYS.attorney.solid!;
-  const orgAccent = MARK_COLORWAYS.advocate.solid!;
 
   const cardBg = isAttorney ? attorneyAccent : "var(--pp-card)";
   const border = "none";
 
-  const textColor = isAttorney ? "#FFFFFF" : "var(--pp-ink)";
-  const mutedColor = isAttorney ? "rgba(255,255,255,0.72)" : "var(--pp-muted)";
-  const checkColor = isAttorney ? "#FFFFFF" : isOrg ? orgAccent : "var(--pp-accent)";
-  const eyebrowColor = isAttorney ? "#FFFFFF" : isOrg ? orgAccent : "var(--pp-accent)";
+  const textColor = isAttorney ? "var(--pp-accent-fg)" : "var(--pp-ink)";
+  const mutedColor = isAttorney
+    ? "color-mix(in srgb, var(--pp-accent-fg) 72%, transparent)"
+    : "var(--pp-muted)";
+  const checkColor = isAttorney ? "var(--pp-accent-fg)" : "var(--pp-accent)";
+  const eyebrowColor = isAttorney ? "var(--pp-accent-fg)" : "var(--pp-accent)";
 
-  const ctaBg = isAttorney ? "#FFFFFF" : isOrg ? orgAccent : "var(--pp-accent)";
-  const ctaColor = isAttorney ? attorneyAccent : "#FFFFFF";
+  const ctaBg = isAttorney ? "var(--pp-accent-fg)" : "var(--pp-accent)";
+  const ctaColor = isAttorney ? attorneyAccent : "var(--pp-accent-fg)";
 
   return (
     <div
+      data-persona={persona}
       style={{
         background: cardBg,
         border,
@@ -306,7 +309,7 @@ function TierCard({ tier }: { tier: Tier }) {
             left: "50%",
             transform: "translateX(-50%)",
             background: attorneyAccent,
-            color: "#FAF8F4",
+            color: "var(--pp-accent-fg)",
             padding: "6px 16px",
             borderRadius: 18,
             fontSize: 11,

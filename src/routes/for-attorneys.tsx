@@ -197,7 +197,7 @@ function ForAttorneys() {
             display: "inline-block",
             marginTop: 34,
             background: NAVY,
-            color: "#F4F6FB",
+            color: "var(--pp-accent-fg)",
             padding: "14px 26px",
             fontFamily: MONO,
             fontSize: 13,
@@ -285,11 +285,11 @@ function ForAttorneys() {
         </div>
         <div style={{ marginTop: 32 }}>
           <Link
-            to="/subscribe"
+            to="/lawyer-signup"
             style={{
               display: "inline-block",
               background: NAVY,
-              color: "#F4F6FB",
+              color: "var(--pp-accent-fg)",
               padding: "14px 26px",
               fontFamily: MONO,
               fontSize: 13,
