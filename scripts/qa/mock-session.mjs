@@ -21,7 +21,7 @@
 
 import { toCrossJSONAsync } from "seroval";
 
-const PROJECT_REF = (process.env.VITE_SUPABASE_URL || "https://muynotmkcmehxnkhffzl.supabase.co")
+const PROJECT_REF = (process.env.VITE_SUPABASE_URL || "https://obljoemiijkryjlxihic.supabase.co")
   .replace(/^https?:\/\//, "")
   .split(".")[0];
 const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`;
