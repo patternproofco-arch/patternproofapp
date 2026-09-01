@@ -20,7 +20,6 @@ export type Database = {
           case_id: string | null
           client_user_id: string
           created_at: string
-          expires_at: string | null
           id: string
           include_all_evidence: boolean
           include_all_incidents: boolean
@@ -36,7 +35,6 @@ export type Database = {
           case_id?: string | null
           client_user_id: string
           created_at?: string
-          expires_at?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
@@ -52,7 +50,6 @@ export type Database = {
           case_id?: string | null
           client_user_id?: string
           created_at?: string
-          expires_at?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
@@ -242,24 +239,6 @@ export type Database = {
         }
         Relationships: []
       }
-      ai_chat_requests: {
-        Row: {
-          created_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       ai_usage_log: {
         Row: {
           completion_tokens: number | null
@@ -376,14 +355,10 @@ export type Database = {
           created_at: string
           deposition_prep_consent: boolean
           deposition_prep_consent_at: string | null
-          expires_at: string | null
           id: string
           include_all_evidence: boolean
           include_all_incidents: boolean
-          include_communications: boolean
-          include_legal_documents: boolean
           include_patterns: boolean
-          include_voice_notes: boolean
           invitation_id: string | null
           org_id: string | null
           revoked_at: string | null
@@ -401,14 +376,10 @@ export type Database = {
           created_at?: string
           deposition_prep_consent?: boolean
           deposition_prep_consent_at?: string | null
-          expires_at?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
-          include_communications?: boolean
-          include_legal_documents?: boolean
           include_patterns?: boolean
-          include_voice_notes?: boolean
           invitation_id?: string | null
           org_id?: string | null
           revoked_at?: string | null
@@ -426,14 +397,10 @@ export type Database = {
           created_at?: string
           deposition_prep_consent?: boolean
           deposition_prep_consent_at?: string | null
-          expires_at?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
-          include_communications?: boolean
-          include_legal_documents?: boolean
           include_patterns?: boolean
-          include_voice_notes?: boolean
           invitation_id?: string | null
           org_id?: string | null
           revoked_at?: string | null
@@ -611,10 +578,7 @@ export type Database = {
           id: string
           include_all_evidence: boolean
           include_all_incidents: boolean
-          include_communications: boolean
-          include_legal_documents: boolean
           include_patterns: boolean
-          include_voice_notes: boolean
           invite_token: string
           personal_note: string | null
           scope_evidence: string[]
@@ -636,10 +600,7 @@ export type Database = {
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
-          include_communications?: boolean
-          include_legal_documents?: boolean
           include_patterns?: boolean
-          include_voice_notes?: boolean
           invite_token?: string
           personal_note?: string | null
           scope_evidence?: string[]
@@ -661,10 +622,7 @@ export type Database = {
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
-          include_communications?: boolean
-          include_legal_documents?: boolean
           include_patterns?: boolean
-          include_voice_notes?: boolean
           invite_token?: string
           personal_note?: string | null
           scope_evidence?: string[]
@@ -2165,45 +2123,6 @@ export type Database = {
         }
         Relationships: []
       }
-      incident_evidence_links: {
-        Row: {
-          created_at: string
-          evidence_id: string
-          incident_id: string
-          source: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          evidence_id: string
-          incident_id: string
-          source?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          evidence_id?: string
-          incident_id?: string
-          source?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "incident_evidence_links_evidence_id_fkey"
-            columns: ["evidence_id"]
-            isOneToOne: false
-            referencedRelation: "evidence"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "incident_evidence_links_incident_id_fkey"
-            columns: ["incident_id"]
-            isOneToOne: false
-            referencedRelation: "incidents"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       incidents: {
         Row: {
           abuse_types: string[]
@@ -3513,31 +3432,16 @@ export type Database = {
       user_security_settings: {
         Row: {
           app_lock_enabled: boolean
-          biometric_enabled: boolean
-          pin_failed_attempts: number
-          pin_hash: string | null
-          pin_locked_until: string | null
-          pin_salt: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           app_lock_enabled?: boolean
-          biometric_enabled?: boolean
-          pin_failed_attempts?: number
-          pin_hash?: string | null
-          pin_locked_until?: string | null
-          pin_salt?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           app_lock_enabled?: boolean
-          biometric_enabled?: boolean
-          pin_failed_attempts?: number
-          pin_hash?: string | null
-          pin_locked_until?: string | null
-          pin_salt?: string | null
           updated_at?: string
           user_id?: string
         }
