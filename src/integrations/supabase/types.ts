@@ -20,6 +20,7 @@ export type Database = {
           case_id: string | null
           client_user_id: string
           created_at: string
+          expires_at: string | null
           id: string
           include_all_evidence: boolean
           include_all_incidents: boolean
@@ -35,6 +36,7 @@ export type Database = {
           case_id?: string | null
           client_user_id: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
@@ -50,6 +52,7 @@ export type Database = {
           case_id?: string | null
           client_user_id?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
@@ -239,56 +242,20 @@ export type Database = {
         }
         Relationships: []
       }
-      ai_usage_log: {
+      ai_chat_requests: {
         Row: {
-          completion_tokens: number | null
           created_at: string
-          duration_ms: number | null
-          evidence_id: string | null
-          feature: string
-          file_type: string | null
-          http_status: number | null
           id: string
-          meta: Json
-          model: string | null
-          prompt_tokens: number | null
-          status: string
-          thread_id: string | null
-          total_tokens: number | null
           user_id: string
         }
         Insert: {
-          completion_tokens?: number | null
           created_at?: string
-          duration_ms?: number | null
-          evidence_id?: string | null
-          feature: string
-          file_type?: string | null
-          http_status?: number | null
           id?: string
-          meta?: Json
-          model?: string | null
-          prompt_tokens?: number | null
-          status?: string
-          thread_id?: string | null
-          total_tokens?: number | null
           user_id: string
         }
         Update: {
-          completion_tokens?: number | null
           created_at?: string
-          duration_ms?: number | null
-          evidence_id?: string | null
-          feature?: string
-          file_type?: string | null
-          http_status?: number | null
           id?: string
-          meta?: Json
-          model?: string | null
-          prompt_tokens?: number | null
-          status?: string
-          thread_id?: string | null
-          total_tokens?: number | null
           user_id?: string
         }
         Relationships: []
@@ -355,10 +322,14 @@ export type Database = {
           created_at: string
           deposition_prep_consent: boolean
           deposition_prep_consent_at: string | null
+          expires_at: string | null
           id: string
           include_all_evidence: boolean
           include_all_incidents: boolean
+          include_communications: boolean
+          include_legal_documents: boolean
           include_patterns: boolean
+          include_voice_notes: boolean
           invitation_id: string | null
           org_id: string | null
           revoked_at: string | null
@@ -376,10 +347,14 @@ export type Database = {
           created_at?: string
           deposition_prep_consent?: boolean
           deposition_prep_consent_at?: string | null
+          expires_at?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
+          include_communications?: boolean
+          include_legal_documents?: boolean
           include_patterns?: boolean
+          include_voice_notes?: boolean
           invitation_id?: string | null
           org_id?: string | null
           revoked_at?: string | null
@@ -397,10 +372,14 @@ export type Database = {
           created_at?: string
           deposition_prep_consent?: boolean
           deposition_prep_consent_at?: string | null
+          expires_at?: string | null
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
+          include_communications?: boolean
+          include_legal_documents?: boolean
           include_patterns?: boolean
+          include_voice_notes?: boolean
           invitation_id?: string | null
           org_id?: string | null
           revoked_at?: string | null
@@ -578,7 +557,10 @@ export type Database = {
           id: string
           include_all_evidence: boolean
           include_all_incidents: boolean
+          include_communications: boolean
+          include_legal_documents: boolean
           include_patterns: boolean
+          include_voice_notes: boolean
           invite_token: string
           personal_note: string | null
           scope_evidence: string[]
@@ -600,7 +582,10 @@ export type Database = {
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
+          include_communications?: boolean
+          include_legal_documents?: boolean
           include_patterns?: boolean
+          include_voice_notes?: boolean
           invite_token?: string
           personal_note?: string | null
           scope_evidence?: string[]
@@ -622,7 +607,10 @@ export type Database = {
           id?: string
           include_all_evidence?: boolean
           include_all_incidents?: boolean
+          include_communications?: boolean
+          include_legal_documents?: boolean
           include_patterns?: boolean
+          include_voice_notes?: boolean
           invite_token?: string
           personal_note?: string | null
           scope_evidence?: string[]
@@ -1086,16 +1074,12 @@ export type Database = {
       clio_connections: {
         Row: {
           access_token: string
-          clio_region: string
           clio_user_email: string | null
           clio_user_id: string | null
-          clio_user_name: string | null
           created_at: string
           expires_at: string
           firm_name: string | null
           id: string
-          last_refresh_at: string | null
-          last_verified_at: string | null
           refresh_token: string
           revoked_at: string | null
           updated_at: string
@@ -1103,16 +1087,12 @@ export type Database = {
         }
         Insert: {
           access_token: string
-          clio_region?: string
           clio_user_email?: string | null
           clio_user_id?: string | null
-          clio_user_name?: string | null
           created_at?: string
           expires_at: string
           firm_name?: string | null
           id?: string
-          last_refresh_at?: string | null
-          last_verified_at?: string | null
           refresh_token: string
           revoked_at?: string | null
           updated_at?: string
@@ -1120,16 +1100,12 @@ export type Database = {
         }
         Update: {
           access_token?: string
-          clio_region?: string
           clio_user_email?: string | null
           clio_user_id?: string | null
-          clio_user_name?: string | null
           created_at?: string
           expires_at?: string
           firm_name?: string | null
           id?: string
-          last_refresh_at?: string | null
-          last_verified_at?: string | null
           refresh_token?: string
           revoked_at?: string | null
           updated_at?: string
@@ -1302,68 +1278,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      consent_grants: {
-        Row: {
-          created_at: string
-          download_allowed: boolean
-          effective_at: string
-          expires_at: string | null
-          id: string
-          org_name: string | null
-          receipt: Json
-          recipient_user_id: string
-          request_id: string | null
-          revocation_reason: string | null
-          revoked_at: string | null
-          scope: Json
-          status: string
-          survivor_user_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          download_allowed?: boolean
-          effective_at?: string
-          expires_at?: string | null
-          id?: string
-          org_name?: string | null
-          receipt?: Json
-          recipient_user_id: string
-          request_id?: string | null
-          revocation_reason?: string | null
-          revoked_at?: string | null
-          scope?: Json
-          status?: string
-          survivor_user_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          download_allowed?: boolean
-          effective_at?: string
-          expires_at?: string | null
-          id?: string
-          org_name?: string | null
-          receipt?: Json
-          recipient_user_id?: string
-          request_id?: string | null
-          revocation_reason?: string | null
-          revoked_at?: string | null
-          scope?: Json
-          status?: string
-          survivor_user_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "consent_grants_request_id_fkey"
-            columns: ["request_id"]
-            isOneToOne: false
-            referencedRelation: "record_requests"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       court_dates: {
         Row: {
@@ -1615,10 +1529,8 @@ export type Database = {
       }
       evidence: {
         Row: {
-          ai_permission: string
           anchor_label: string | null
           bytes: number | null
-          conversation_context: string
           created_at: string
           date: string | null
           date_precision: string
@@ -1641,7 +1553,6 @@ export type Database = {
           in_image_timestamp_text: string | null
           ingested_at: string | null
           integrity_verified_at: string | null
-          is_sealed: boolean
           linked_incident_id: string | null
           linked_recording_id: string | null
           match_reason: string | null
@@ -1655,7 +1566,6 @@ export type Database = {
           preserved_at: string | null
           raw_metadata: Json | null
           review_status: string
-          sealed_at: string | null
           sha256: string | null
           suggested_incident_id: string | null
           title: string
@@ -1669,10 +1579,8 @@ export type Database = {
           voice_caption_audio_url: string | null
         }
         Insert: {
-          ai_permission?: string
           anchor_label?: string | null
           bytes?: number | null
-          conversation_context?: string
           created_at?: string
           date?: string | null
           date_precision?: string
@@ -1695,7 +1603,6 @@ export type Database = {
           in_image_timestamp_text?: string | null
           ingested_at?: string | null
           integrity_verified_at?: string | null
-          is_sealed?: boolean
           linked_incident_id?: string | null
           linked_recording_id?: string | null
           match_reason?: string | null
@@ -1709,7 +1616,6 @@ export type Database = {
           preserved_at?: string | null
           raw_metadata?: Json | null
           review_status?: string
-          sealed_at?: string | null
           sha256?: string | null
           suggested_incident_id?: string | null
           title: string
@@ -1723,10 +1629,8 @@ export type Database = {
           voice_caption_audio_url?: string | null
         }
         Update: {
-          ai_permission?: string
           anchor_label?: string | null
           bytes?: number | null
-          conversation_context?: string
           created_at?: string
           date?: string | null
           date_precision?: string
@@ -1749,7 +1653,6 @@ export type Database = {
           in_image_timestamp_text?: string | null
           ingested_at?: string | null
           integrity_verified_at?: string | null
-          is_sealed?: boolean
           linked_incident_id?: string | null
           linked_recording_id?: string | null
           match_reason?: string | null
@@ -1763,7 +1666,6 @@ export type Database = {
           preserved_at?: string | null
           raw_metadata?: Json | null
           review_status?: string
-          sealed_at?: string | null
           sha256?: string | null
           suggested_incident_id?: string | null
           title?: string
@@ -1887,66 +1789,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      evidence_incident_drafts: {
-        Row: {
-          created_at: string
-          created_incident_id: string | null
-          draft: Json
-          evidence_id: string
-          frame_count: number
-          id: string
-          model: string | null
-          source: string
-          status: string
-          transcript_excerpt: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          created_incident_id?: string | null
-          draft?: Json
-          evidence_id: string
-          frame_count?: number
-          id?: string
-          model?: string | null
-          source: string
-          status?: string
-          transcript_excerpt?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          created_incident_id?: string | null
-          draft?: Json
-          evidence_id?: string
-          frame_count?: number
-          id?: string
-          model?: string | null
-          source?: string
-          status?: string
-          transcript_excerpt?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "evidence_incident_drafts_created_incident_id_fkey"
-            columns: ["created_incident_id"]
-            isOneToOne: false
-            referencedRelation: "incidents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "evidence_incident_drafts_evidence_id_fkey"
-            columns: ["evidence_id"]
-            isOneToOne: true
-            referencedRelation: "evidence"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       feedback_submissions: {
         Row: {
@@ -2123,12 +1965,48 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_evidence_links: {
+        Row: {
+          created_at: string
+          evidence_id: string
+          incident_id: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          evidence_id: string
+          incident_id: string
+          source?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          evidence_id?: string
+          incident_id?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_evidence_links_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_evidence_links_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incidents: {
         Row: {
           abuse_types: string[]
-          actual_outcome: string | null
-          actual_outcome_date: string | null
-          ai_permission: string
           anchor_incident_id: string | null
           anchor_label: string | null
           confidence: number | null
@@ -2141,33 +2019,18 @@ export type Database = {
           deleted_at: string | null
           description: string
           emotional_impact: string | null
-          expectation_status: string
-          expected_due_date: string | null
-          expected_due_range_end: string | null
-          expected_due_range_start: string | null
-          expected_item: string | null
           has_escalation_flag: boolean
           id: string
-          is_draft: boolean
-          is_sealed: boolean
           location: string | null
-          practical_consequence: string | null
-          record_kind: string
-          sealed_at: string | null
           severity_level: number | null
           source: string
           source_evidence_id: string | null
-          source_type: string | null
-          template_key: string | null
           time: string | null
           user_id: string
           witnesses: string | null
         }
         Insert: {
           abuse_types?: string[]
-          actual_outcome?: string | null
-          actual_outcome_date?: string | null
-          ai_permission?: string
           anchor_incident_id?: string | null
           anchor_label?: string | null
           confidence?: number | null
@@ -2180,33 +2043,18 @@ export type Database = {
           deleted_at?: string | null
           description: string
           emotional_impact?: string | null
-          expectation_status?: string
-          expected_due_date?: string | null
-          expected_due_range_end?: string | null
-          expected_due_range_start?: string | null
-          expected_item?: string | null
           has_escalation_flag?: boolean
           id?: string
-          is_draft?: boolean
-          is_sealed?: boolean
           location?: string | null
-          practical_consequence?: string | null
-          record_kind?: string
-          sealed_at?: string | null
           severity_level?: number | null
           source?: string
           source_evidence_id?: string | null
-          source_type?: string | null
-          template_key?: string | null
           time?: string | null
           user_id: string
           witnesses?: string | null
         }
         Update: {
           abuse_types?: string[]
-          actual_outcome?: string | null
-          actual_outcome_date?: string | null
-          ai_permission?: string
           anchor_incident_id?: string | null
           anchor_label?: string | null
           confidence?: number | null
@@ -2219,24 +2067,12 @@ export type Database = {
           deleted_at?: string | null
           description?: string
           emotional_impact?: string | null
-          expectation_status?: string
-          expected_due_date?: string | null
-          expected_due_range_end?: string | null
-          expected_due_range_start?: string | null
-          expected_item?: string | null
           has_escalation_flag?: boolean
           id?: string
-          is_draft?: boolean
-          is_sealed?: boolean
           location?: string | null
-          practical_consequence?: string | null
-          record_kind?: string
-          sealed_at?: string | null
           severity_level?: number | null
           source?: string
           source_evidence_id?: string | null
-          source_type?: string | null
-          template_key?: string | null
           time?: string | null
           user_id?: string
           witnesses?: string | null
@@ -2360,6 +2196,39 @@ export type Database = {
           restrained_party?: string | null
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      marketing_leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip_hash: string | null
+          name: string
+          persona: string
+          phone: string | null
+          source_page: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip_hash?: string | null
+          name: string
+          persona: string
+          phone?: string | null
+          source_page: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip_hash?: string | null
+          name?: string
+          persona?: string
+          phone?: string | null
+          source_page?: string
         }
         Relationships: []
       }
@@ -2567,62 +2436,6 @@ export type Database = {
         }
         Relationships: []
       }
-      org_follow_ups: {
-        Row: {
-          created_at: string
-          created_by: string
-          due_at: string | null
-          grant_id: string | null
-          id: string
-          note: string | null
-          org_user_id: string
-          reference_label: string | null
-          resource_reference: string | null
-          status: string
-          survivor_user_id: string | null
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          due_at?: string | null
-          grant_id?: string | null
-          id?: string
-          note?: string | null
-          org_user_id: string
-          reference_label?: string | null
-          resource_reference?: string | null
-          status?: string
-          survivor_user_id?: string | null
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          due_at?: string | null
-          grant_id?: string | null
-          id?: string
-          note?: string | null
-          org_user_id?: string
-          reference_label?: string | null
-          resource_reference?: string | null
-          status?: string
-          survivor_user_id?: string | null
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "org_follow_ups_grant_id_fkey"
-            columns: ["grant_id"]
-            isOneToOne: false
-            referencedRelation: "consent_grants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       org_member_invitations: {
         Row: {
           accepted_at: string | null
@@ -2756,7 +2569,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          batch_id: string
+          batch_id?: string
           confidence_notes?: string[]
           created_at?: string
           created_incident_id?: string | null
@@ -2796,78 +2609,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      record_requests: {
-        Row: {
-          created_at: string
-          date_end: string | null
-          date_start: string | null
-          download_allowed: boolean
-          evidence_ids: string[] | null
-          expires_at: string | null
-          id: string
-          incident_ids: string[] | null
-          include_evidence: boolean
-          include_incidents: boolean
-          org_name: string | null
-          purpose: string
-          requester_user_id: string
-          responded_at: string | null
-          scope_summary: string | null
-          source_types: string[]
-          status: string
-          survivor_note: string | null
-          survivor_user_id: string
-          topics: string[]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          date_end?: string | null
-          date_start?: string | null
-          download_allowed?: boolean
-          evidence_ids?: string[] | null
-          expires_at?: string | null
-          id?: string
-          incident_ids?: string[] | null
-          include_evidence?: boolean
-          include_incidents?: boolean
-          org_name?: string | null
-          purpose: string
-          requester_user_id: string
-          responded_at?: string | null
-          scope_summary?: string | null
-          source_types?: string[]
-          status?: string
-          survivor_note?: string | null
-          survivor_user_id: string
-          topics?: string[]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          date_end?: string | null
-          date_start?: string | null
-          download_allowed?: boolean
-          evidence_ids?: string[] | null
-          expires_at?: string | null
-          id?: string
-          incident_ids?: string[] | null
-          include_evidence?: boolean
-          include_incidents?: boolean
-          org_name?: string | null
-          purpose?: string
-          requester_user_id?: string
-          responded_at?: string | null
-          scope_summary?: string | null
-          source_types?: string[]
-          status?: string
-          survivor_note?: string | null
-          survivor_user_id?: string
-          topics?: string[]
-          updated_at?: string
-        }
-        Relationships: []
       }
       recordings: {
         Row: {
@@ -2921,39 +2662,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      referral_engagements: {
-        Row: {
-          created_at: string
-          id: string
-          note: string | null
-          org_user_id: string
-          referral_code: string | null
-          status: string
-          survivor_user_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          note?: string | null
-          org_user_id: string
-          referral_code?: string | null
-          status?: string
-          survivor_user_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          note?: string | null
-          org_user_id?: string
-          referral_code?: string | null
-          status?: string
-          survivor_user_id?: string | null
-          updated_at?: string
-        }
-        Relationships: []
       }
       referral_links: {
         Row: {
@@ -3432,16 +3140,31 @@ export type Database = {
       user_security_settings: {
         Row: {
           app_lock_enabled: boolean
+          biometric_enabled: boolean
+          pin_failed_attempts: number
+          pin_hash: string | null
+          pin_locked_until: string | null
+          pin_salt: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           app_lock_enabled?: boolean
+          biometric_enabled?: boolean
+          pin_failed_attempts?: number
+          pin_hash?: string | null
+          pin_locked_until?: string | null
+          pin_salt?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           app_lock_enabled?: boolean
+          biometric_enabled?: boolean
+          pin_failed_attempts?: number
+          pin_hash?: string | null
+          pin_locked_until?: string | null
+          pin_salt?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -3553,18 +3276,32 @@ export type Database = {
         Args: { p_email: string; p_token_hash: string; p_user_id: string }
         Returns: string
       }
+      change_firm_member_role: {
+        Args: {
+          p_actor_id: string
+          p_firm_id: string
+          p_role: string
+          p_target_user_id: string
+        }
+        Returns: boolean
+      }
+      change_org_member_role: {
+        Args: {
+          p_actor_id: string
+          p_org_id: string
+          p_role: string
+          p_target_user_id: string
+        }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
-      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
-      firm_peer_user_ids: { Args: never; Returns: string[] }
-      is_firm_owner: { Args: { _firm_id: string }; Returns: boolean }
-      is_org_owner: { Args: { _org_id: string }; Returns: boolean }
       list_my_oauth_consents: {
         Args: never
         Returns: {
@@ -3585,9 +3322,6 @@ export type Database = {
         }
         Returns: number
       }
-      my_firm_id: { Args: never; Returns: string }
-      my_org_id: { Args: never; Returns: string }
-      org_peer_user_ids: { Args: never; Returns: string[] }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -3607,6 +3341,18 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      remove_firm_member: {
+        Args: {
+          p_actor_id: string
+          p_firm_id: string
+          p_target_user_id: string
+        }
+        Returns: boolean
+      }
+      remove_org_member: {
+        Args: { p_actor_id: string; p_org_id: string; p_target_user_id: string }
+        Returns: boolean
       }
       revoke_my_oauth_consent: {
         Args: { _consent_id: string }
@@ -3647,12 +3393,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3676,11 +3422,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3701,11 +3447,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3726,11 +3472,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3743,11 +3489,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
