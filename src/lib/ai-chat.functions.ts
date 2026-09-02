@@ -64,11 +64,26 @@ export const sidekickChat = createServerFn({ method: "POST" })
       recentIncidents: z.array(z.string().max(500)).max(3).optional(),
     }).parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) {
       return { reply: "The assistant isn't available right now. Please try again later." };
     }
+    // Unlike analyzePatterns (which has an incidental 24h cache), this
+    // endpoint had no per-user throttle at all — any authenticated user
+    // could loop calls against the shared AI-gateway key. Cap to 10
+    // messages/minute per user.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const since = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count } = await supabaseAdmin
+      .from("ai_chat_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", context.userId)
+      .gte("created_at", since);
+    if ((count ?? 0) >= 10) {
+      return { reply: "Lots of activity right now — please wait a moment before sending more." };
+    }
+    await supabaseAdmin.from("ai_chat_requests").insert({ user_id: context.userId });
     const ctxLine = `Current page: ${data.page}.${
       data.recentIncidents?.length
         ? " Recent incident snippets: " + data.recentIncidents.map((s) => `"${s}"`).join("; ")

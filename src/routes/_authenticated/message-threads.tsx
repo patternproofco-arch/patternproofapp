@@ -228,9 +228,9 @@ function MessageThreadsPage() {
       confirmLabel: "Delete",
       cancelLabel: "Keep",
     });
-    if (!ok) return;
+    if (!ok || !user) return;
     const t = threads.find((x) => x.id === id);
-    await supabase.from("message_threads").delete().eq("id", id);
+    await supabase.from("message_threads").delete().eq("id", id).eq("user_id", user.id);
     if (t)
       await supabase.storage
         .from("message-exports")

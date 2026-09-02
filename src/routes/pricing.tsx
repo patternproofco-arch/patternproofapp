@@ -6,7 +6,8 @@ import { BrandMark, MARK_COLORWAYS } from "@/components/BrandMark";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { buildTiers, type Tier } from "@/lib/pricing-tiers";
+import { buildTiers, FIRM_SEAT_MAX, type Tier } from "@/lib/pricing-tiers";
+import { ThreadGroup } from "@/components/ThreadConnector";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months for the first 10 firms.",
+          "PatternProof pricing: free for survivors. Solo attorney $297/mo. Firm plan $897/mo, with a Charter Firm rate of $597/mo locked for 12 months.",
       },
       { property: "og:title", content: "Pricing — PatternProof" },
       {
@@ -52,11 +53,11 @@ const FAQS = [
   },
   {
     q: "What's the Charter Firm program?",
-    a: "We're onboarding the first 10 Charter Firms personally — full setup, case import, and staff training. Every Charter Firm gets the same terms: $597/month, locked for 12 months. After 12 months, the rate moves to the standard Firm price of $897/month and we'll notify you at least 60 days in advance.",
+    a: "We're onboarding Charter Firms personally — full setup, case import, and staff training. Every Charter Firm gets the same terms: $597/month, locked for 12 months. After 12 months, the rate moves to the standard Firm price of $897/month and we'll notify you at least 60 days in advance.",
   },
   {
     q: "How is the Firm tier different from Solo?",
-    a: "Firm gives you a shared firm workspace: colleagues can be added to a firm and cases can be shared between them, with shared case notes and a caseload view of the cases shared with you. A conflict-of-interest check runs across your own PatternProof caseload. Solo is a single attorney account. We do not currently meter seats or matter counts on either plan — those limits are commercial expectations, not technical caps.",
+    a: `Firm includes a shared workspace for up to ${FIRM_SEAT_MAX} separate verified team logins. Owners and administrators invite members, and lawyers receive access to each survivor matter only through an explicit case grant. Solo is limited to one attorney login. Matter counts are not currently metered.`,
   },
   {
     q: "Why don't you sell to DV organizations?",
@@ -64,7 +65,7 @@ const FAQS = [
   },
   {
     q: "Does this work with my practice management system?",
-    a: "There is no live sync. Attorney and Organization plans include a ZIP export of standard CSVs plus every evidence file, which you can import into the practice management system you already use.",
+    a: "There is no live sync. Attorney plans include a ZIP export of standard CSVs plus every evidence file, which you can import into the practice management system you already use. Organization/advocate accounts currently get a plain-text case summary export, not a ZIP.",
   },
   {
     q: "Is my data safe?",
@@ -146,7 +147,7 @@ function PricingPage() {
                 width: 6,
                 height: 6,
                 borderRadius: 18,
-                background: "var(--pp-accent-shared, var(--oxblood-deep))",
+                background: "var(--pp-accent-shared)",
               }}
             />
             Simple, transparent pricing
@@ -188,7 +189,8 @@ function PricingPage() {
         </div>
 
         {/* Cards */}
-        <div
+        <ThreadGroup
+          persona="shared"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
@@ -200,7 +202,7 @@ function PricingPage() {
           {tiers.map((tier) => (
             <TierCard key={tier.key} tier={tier} />
           ))}
-        </div>
+        </ThreadGroup>
 
         {/* FAQ */}
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
@@ -472,27 +474,30 @@ function TierCard({ tier }: { tier: Tier }) {
 
 function FAQItem({ q, a }: { q: string; a: string }) {
   return (
-    <div
+    <details
       className="card-pp"
       style={{
-        padding: "24px 28px",
+        padding: "18px 22px",
       }}
     >
-      <h4
+      <summary
         style={{
           fontSize: 15,
           fontWeight: 700,
           color: "#1A1224",
-          marginBottom: 8,
           display: "flex",
           alignItems: "center",
           gap: 10,
+          cursor: "pointer",
+          listStyle: "none",
         }}
       >
         <HelpCircle size={16} style={{ color: "var(--primary)", flexShrink: 0 }} />
         {q}
-      </h4>
-      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6E6579", margin: 0 }}>{a}</p>
-    </div>
+      </summary>
+      <p style={{ fontSize: 14, lineHeight: 1.7, color: "#6E6579", margin: "12px 0 0 26px" }}>
+        {a}
+      </p>
+    </details>
   );
 }

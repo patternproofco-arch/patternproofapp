@@ -50,7 +50,19 @@ export function TrustPage({
             {subtitle}
           </p>
         ) : null}
-        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>{children}</div>
+        <div
+          style={{
+            background: "var(--pp-ground)",
+            boxShadow: "var(--pp-shadow-sm)",
+            borderRadius: "var(--pp-r-lg, 20px)",
+            padding: "28px 30px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 28,
+          }}
+        >
+          {children}
+        </div>
         <hr
           style={{
             margin: "48px 0 20px",
@@ -94,7 +106,14 @@ const linkS = { color: "var(--pp-accent)", textDecoration: "none", fontWeight: 5
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section>
+    <section
+      style={{
+        background: "var(--pp-ground)",
+        boxShadow: "var(--pp-shadow-xs)",
+        borderRadius: "var(--pp-r-md, 16px)",
+        padding: "20px 22px",
+      }}
+    >
       <h2
         style={{
           fontFamily: "var(--font-serif)",
@@ -116,7 +135,11 @@ export function Callout({ children }: { children: ReactNode }) {
       style={{
         background: "var(--pp-ground)",
         boxShadow: "var(--pp-shadow-in-sm)",
-        borderRadius: "var(--pp-r-lg, 18px)",
+        // Was "var(--pp-r-lg, 18px)" — --pp-r-lg is always defined at :root
+        // (20px), so the fallback never actually applied, but it disagreed
+        // with the 20px used everywhere else this token appears. Aligned so
+        // nobody reads it as a deliberate smaller radius for callouts.
+        borderRadius: "var(--pp-r-lg, 20px)",
         padding: "12px 14px",
         fontSize: 14,
         color: "var(--pp-ink)",

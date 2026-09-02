@@ -286,6 +286,7 @@ function LiveRecording() {
 }
 
 function RecCard({ r, onChanged }: { r: Rec; onChanged: () => void }) {
+  const { user } = useAuth();
   const { confirm, dialog } = useConfirm();
   const [url, setUrl] = useState<string>("");
   useEffect(() => {
@@ -302,8 +303,9 @@ function RecCard({ r, onChanged }: { r: Rec; onChanged: () => void }) {
       cancelLabel: "Keep",
     });
     if (!ok) return;
+    if (!user) return;
     await supabase.storage.from("conversation-recordings").remove([r.audio_url]);
-    await supabase.from("recordings").delete().eq("id", r.id);
+    await supabase.from("recordings").delete().eq("id", r.id).eq("user_id", user.id);
     onChanged();
   };
   return (

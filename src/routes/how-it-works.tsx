@@ -86,7 +86,7 @@ function HowItWorks() {
           Here is what actually happens.
         </h1>
         <p style={{ marginTop: 20, fontSize: 17, lineHeight: 1.6, color: SUBTEXT, maxWidth: 620 }}>
-          Three short walkthroughs — one at a time. Pick the one that fits.
+          Choose your role to see the three steps that matter to you.
         </p>
       </section>
 
@@ -160,7 +160,7 @@ function HowItWorks() {
             )}
             {aud === "org" && (
               <>
-                <PrimaryLink to="/request-org-access" accent={SAGE} label="Partner with us →" />
+                <PrimaryLink to="/org-signup" accent={SAGE} label="Partner with us →" />
                 <GhostLink to="/for-organizations" label="Organization overview" />
               </>
             )}
@@ -269,25 +269,19 @@ function SurvivorFlow({ accent }: { accent: string }) {
           n="01"
           accent={accent}
           title="Add something whenever you're ready."
-          body="A screenshot, a voice note, a few lines about what happened. No forms to finish, no pressure to be complete. Private by default. Protected with per-user access controls and encrypted in transit. You control what you share."
+          body="Add a screenshot, voice note, photo, or a few lines. You can start small and add more later."
         />
         <Step
           n="02"
           accent={accent}
           title="It becomes a timeline on its own."
-          body="Entries organize themselves by date, place, and type — including approximate dates like 'around April.' You can keep adding out of order; the record stays chronological."
+          body="Entries are organized by date and source, including approximate dates when the exact date is unknown."
         />
         <Step
           n="03"
           accent={accent}
-          title="Corroboration surfaces what repeats."
-          body="When the same person, place, or pattern shows up across separate entries, PatternProof quietly connects them — so a shape appears without you having to see it yourself."
-        />
-        <Step
-          n="04"
-          accent={accent}
-          title="Share a read-only link — only if and when you choose."
-          body="If you decide to work with an attorney or advocate, you can share a scoped, revocable link to specific incidents or the whole record. Nothing leaves your account otherwise."
+          title="Review and share only what you choose."
+          body="Review your timeline, then create a scoped, revocable link if you decide to share with an attorney or advocate."
         />
       </div>
     </div>
@@ -298,38 +292,24 @@ function AttorneyFlow({ accent }: { accent: string }) {
   return (
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="Attorney · What happens" accent={accent} />
-      <div
-        className="pp-thread"
-        style={
-          {
-            marginTop: 16,
-            "--pp-thread-grad": "linear-gradient(180deg, #3F6DF0, #1B2A6B)",
-          } as React.CSSProperties
-        }
-      >
+      <div className="pp-thread" data-persona="attorney" style={{ marginTop: 16 }}>
         <Step
           n="01"
           accent={accent}
           title="Your client shares their record."
-          body="You receive a scoped link — they choose what you see. No shoebox handoff, no reconstructing three years from screenshots."
+          body="You receive a scoped link. The client controls which records are included and can revoke access."
         />
         <Step
           n="02"
           accent={accent}
           title="You open a source-linked chronology on day one."
-          body="Every date, location, and quote is attached to the entry it came from. Nothing floats loose; nothing is inferred without a citation."
+          body="Dates and uploaded records stay connected to the entries they came from, so review starts with an organized chronology."
         />
         <Step
           n="03"
           accent={accent}
-          title="Cross-reference flags inconsistencies."
-          body="Where the same event appears with different times, places, or details, the cross-reference view marks them — so you know exactly what to verify against the other party's account before hearing."
-        />
-        <Step
-          n="04"
-          accent={accent}
-          title="Export a de-branded professional-review packet."
-          body="A neutral PDF with exhibit labels, timeline, and source references — no PatternProof branding on the filing. Ready to hand a paralegal or attach to a motion."
+          title="Review, verify, and export."
+          body="Use PatternProof to review the chronology and source files, then export a professional-review packet. Attorney judgment still determines how the material is used."
         />
       </div>
     </div>
@@ -340,32 +320,24 @@ function OrgFlow({ accent }: { accent: string }) {
   return (
     <div style={{ paddingTop: 8 }}>
       <Eyebrow text="DV org / advocate · What happens" accent={accent} />
-      <div
-        className="pp-thread"
-        style={
-          {
-            marginTop: 16,
-            "--pp-thread-grad": "linear-gradient(180deg, #C3DBBC, #8FAF84)",
-          } as React.CSSProperties
-        }
-      >
+      <div className="pp-thread" data-persona="org" style={{ marginTop: 16 }}>
         <Step
           n="01"
           accent={accent}
           title="Hand a survivor the free tool at intake."
-          body="PatternProof is free for survivors. You share your org's referral link — no seats to buy, no accounts to provision on your side."
+          body="Share your organization referral link. Survivor accounts are free and belong to the survivor."
         />
         <Step
           n="02"
           accent={accent}
-          title="The survivor documents at their own pace. You see nothing unless they share it."
-          body="Their account is theirs. Your organization has no automatic visibility into what they write. If they choose to share with an advocate at your org, they grant a scoped, revocable link and can end it at any time."
+          title="The survivor documents privately."
+          body="Your organization has no automatic access. Staff see records only after the survivor grants a scoped link."
         />
         <Step
           n="03"
           accent={accent}
           title="At referral to counsel, the survivor shares a structured record."
-          body="Instead of arriving at an attorney's office with a bag of screenshots, they arrive with a dated, source-linked chronology they wrote themselves."
+          body="When the survivor chooses, they can share an organized, source-linked chronology with approved staff or counsel."
         />
       </div>
     </div>

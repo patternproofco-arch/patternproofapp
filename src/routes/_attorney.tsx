@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut, Lock, LayoutGrid, Users, CreditCard, ShieldCheck, MessageSquare, ScanSearch } from "lucide-react";
+import { LogOut, Lock, LayoutGrid, Users, CreditCard, ShieldCheck, MessageSquare, ScanSearch, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,6 +72,20 @@ function AttorneyLayout() {
     return () => { cancelled = true; };
   }, [user, loading, getRole, getProfile, navigate, retryKey]);
 
+  // Belt-and-suspenders for the "Opening portal…" gate below: getRole/
+  // getProfile already surface a retry on failure via loadError, but
+  // sub.loading (a separate fetch — subscription status) has no such
+  // guard. If anything in the gate — including a network stall that never
+  // resolves or rejects — takes too long, surface the same retry instead of
+  // spinning forever.
+  useEffect(() => {
+    if (!(loading || checking || sub.loading)) return;
+    const timer = setTimeout(() => {
+      setLoadError((prev) => prev ?? "This is taking longer than it should.");
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, [loading, checking, sub.loading]);
+
   // Hard paywall: any non-billing route requires an active subscription.
   // /subscribe, /billing-return, and /setup are reachable without one.
   const billingPaths =
@@ -106,14 +120,6 @@ function AttorneyLayout() {
     }
   }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate, user, onboarded, userRole]);
 
-  if (loading || checking || sub.loading) {
-    return (
-      <div className="att-root" data-persona="attorney" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span className="att-eyebrow">Opening portal…</span>
-      </div>
-    );
-  }
-
   if (loadError) {
     return (
       <div className="att-root" data-persona="attorney" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -124,12 +130,25 @@ function AttorneyLayout() {
             <button
               type="button"
               className="att-btn att-btn-primary"
-              onClick={() => { setLoadError(null); setChecking(true); setRetryKey((k) => k + 1); }}
+              onClick={() => {
+                setLoadError(null);
+                setChecking(true);
+                setRetryKey((k) => k + 1);
+                sub.refetch();
+              }}
             >
               Try again
             </button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (loading || checking || sub.loading) {
+    return (
+      <div className="att-root" data-persona="attorney" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span className="att-eyebrow">Opening portal…</span>
       </div>
     );
   }
@@ -182,6 +201,7 @@ const NAV_ITEMS = [
   { to: "/clients", label: "Matters", icon: Users },
   { to: "/conflict-check", label: "Conflict check", icon: ScanSearch },
   { to: "/billing", label: "Billing", icon: CreditCard },
+  { to: "/team", label: "Team", icon: UserCog },
   { to: "/trust", label: "Settings", icon: ShieldCheck },
   { to: "/attorney-feedback", label: "Feedback", icon: MessageSquare },
 ] as const;

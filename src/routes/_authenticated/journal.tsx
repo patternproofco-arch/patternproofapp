@@ -310,8 +310,18 @@ function JournalPage() {
       toast("We couldn't save that. Try again in a moment.");
       return;
     }
-    const attachMsg = savedId && attachments.length ? await uploadAttachments(savedId) : null;
-    setBusy(false);
+    // The incident row is already saved at this point — an attachment upload
+    // failure (e.g. a thrown network error, not just a returned {error})
+    // must never leave the button stuck on "Saving…" with no confirmation,
+    // which could otherwise read as data loss and prompt a duplicate entry.
+    let attachMsg: string | null = null;
+    try {
+      attachMsg = savedId && attachments.length ? await uploadAttachments(savedId) : null;
+    } catch {
+      attachMsg = "Saved — but one or more attachments failed to upload. Add them from Evidence.";
+    } finally {
+      setBusy(false);
+    }
     toast(attachMsg ?? "Saved. Your record is safe.");
     reset();
     load();

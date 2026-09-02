@@ -1,35 +1,28 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { setAppLockEnabled } from "@/lib/app-lock.functions";
+import {
+  getPinLockState,
+  setPinServer,
+  clearPinServer,
+  verifyPinServer,
+  setBiometricEnabled,
+  issueUnlockToken,
+  checkUnlockToken,
+} from "@/lib/pin-lock.functions";
 
-const PIN_KEY = "pp_pin_hash_v1";
-const FAILS_KEY = "pp_pin_fails_v1";
-const LOCK_UNTIL_KEY = "pp_pin_lock_until_v1";
-const SESSION_UNLOCKED_KEY = "pp_session_unlocked_v1";
+const UNLOCK_TOKEN_KEY = "pp_unlock_token_v2";
 const BIO_CRED_KEY = "pp_biometric_cred_v1";
-
-/** Per-account salt: the same PIN on two accounts no longer shares a hash. */
-async function hash(pin: string, userId: string | null): Promise<string> {
-  const enc = new TextEncoder().encode(`pp::${userId ?? "anon"}::${pin}`);
-  const buf = await crypto.subtle.digest("SHA-256", enc);
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-/** Pre-salt format, kept only so an existing PIN still opens once and is then re-saved. */
-async function legacyHash(pin: string): Promise<string> {
-  const enc = new TextEncoder().encode("pp::" + pin);
-  const buf = await crypto.subtle.digest("SHA-256", enc);
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
 
 interface Ctx {
   hasPin: boolean;
   hasBiometric: boolean;
   biometricSupported: boolean;
   isLocked: boolean;
+  /** True once we've asked the server whether a stored unlock token is still valid. */
+  ready: boolean;
   setRealPin: (pin: string) => Promise<void>;
   clearPin: () => void;
-  unlock: (pin: string) => Promise<"real" | "wrong" | "locked-out">;
+  unlock: (pin: string) => Promise<"real" | "wrong" | "locked-out" | "no-pin">;
   enableBiometric: () => Promise<{ ok: true } | { ok: false; reason: string }>;
   unlockBiometric: () => Promise<"ok" | "failed" | "unsupported">;
   disableBiometric: () => void;
@@ -40,74 +33,90 @@ const PinCtx = createContext<Ctx | null>(null);
 
 export function PinLockProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const userId = user?.id ?? null;
   const [hasPin, setHasPin] = useState(false);
   const [hasBiometric, setHasBiometric] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);
-  const [isLocked, setIsLocked] = useState(false);
+  // Fail closed: nothing renders behind the lock screen until the server has
+  // confirmed either there's no lock configured, or a stored token is valid.
+  const [isLocked, setIsLocked] = useState(true);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = !!localStorage.getItem(PIN_KEY);
+    if (typeof window === "undefined" || !user) return;
+    let cancelled = false;
     const bio = !!localStorage.getItem(BIO_CRED_KEY);
-    setHasPin(stored);
-    setHasBiometric(bio);
     setBiometricSupported(
       typeof window.PublicKeyCredential !== "undefined" &&
-      typeof navigator.credentials?.create === "function"
+        typeof navigator.credentials?.create === "function",
     );
-    if (stored || bio) {
-      const sessionUnlocked = sessionStorage.getItem(SESSION_UNLOCKED_KEY);
-      setIsLocked(!sessionUnlocked);
-    }
-  }, []);
 
-  const syncServerLock = (enabled: boolean) => {
-    void setAppLockEnabled({ data: { enabled } }).catch(() => undefined);
+    (async () => {
+      const state = await getPinLockState().catch(() => null);
+      if (cancelled) return;
+      const serverHasPin = !!state?.has_pin;
+      const serverBiometric = !!state?.biometric_enabled && bio;
+      setHasPin(serverHasPin);
+      setHasBiometric(serverBiometric);
+
+      if (!serverHasPin && !serverBiometric) {
+        setIsLocked(false);
+        setReady(true);
+        return;
+      }
+      const token = sessionStorage.getItem(UNLOCK_TOKEN_KEY);
+      if (!token) {
+        setIsLocked(true);
+        setReady(true);
+        return;
+      }
+      const check = await checkUnlockToken({ data: { token } }).catch(() => ({ valid: false }));
+      if (cancelled) return;
+      if (check.valid) {
+        setIsLocked(false);
+      } else {
+        sessionStorage.removeItem(UNLOCK_TOKEN_KEY);
+        setIsLocked(true);
+      }
+      setReady(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  const storeToken = (token: string) => {
+    sessionStorage.setItem(UNLOCK_TOKEN_KEY, token);
   };
 
   const setRealPin = async (pin: string) => {
-    localStorage.setItem(PIN_KEY, await hash(pin, userId));
+    const r = await setPinServer({ data: { pin } });
+    storeToken(r.token);
     setHasPin(true);
     setIsLocked(false);
-    sessionStorage.setItem(SESSION_UNLOCKED_KEY, "1");
-    syncServerLock(true);
   };
 
   const clearPin = () => {
-    localStorage.removeItem(PIN_KEY);
-    localStorage.removeItem(FAILS_KEY);
-    localStorage.removeItem(LOCK_UNTIL_KEY);
+    void clearPinServer().catch(() => undefined);
     setHasPin(false);
-    if (!hasBiometric) syncServerLock(false);
+    if (!hasBiometric) {
+      sessionStorage.removeItem(UNLOCK_TOKEN_KEY);
+    }
   };
 
-  const unlock = async (pin: string): Promise<"real" | "wrong" | "locked-out"> => {
-    const lockUntil = Number(localStorage.getItem(LOCK_UNTIL_KEY) || 0);
-    if (lockUntil > Date.now()) return "locked-out";
-
-    const real = localStorage.getItem(PIN_KEY);
-    const h = await hash(pin, userId);
-    const matches = !!real && (h === real || (await legacyHash(pin)) === real);
-    if (matches) {
-      // Quietly upgrade a pre-salt hash to the per-account one.
-      if (real !== h) localStorage.setItem(PIN_KEY, h);
-      localStorage.setItem(FAILS_KEY, "0");
-      sessionStorage.setItem(SESSION_UNLOCKED_KEY, "1");
+  const unlock = async (pin: string): Promise<"real" | "wrong" | "locked-out" | "no-pin"> => {
+    const r = await verifyPinServer({ data: { pin } }).catch(
+      () => ({ result: "wrong" as const }),
+    );
+    if (r.result === "real") {
+      storeToken(r.token);
       setIsLocked(false);
-      return "real";
     }
-    const fails = Number(localStorage.getItem(FAILS_KEY) || 0) + 1;
-    localStorage.setItem(FAILS_KEY, String(fails));
-    if (fails >= 5) {
-      localStorage.setItem(LOCK_UNTIL_KEY, String(Date.now() + 30 * 60 * 1000));
-      return "locked-out";
-    }
-    return "wrong";
+    return r.result;
   };
 
   const lock = () => {
-    sessionStorage.removeItem(SESSION_UNLOCKED_KEY);
+    sessionStorage.removeItem(UNLOCK_TOKEN_KEY);
     if (hasPin || hasBiometric) setIsLocked(true);
   };
 
@@ -126,27 +135,36 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
   };
 
   const enableBiometric = async (): Promise<{ ok: true } | { ok: false; reason: string }> => {
-    if (!biometricSupported) return { ok: false, reason: "Your device doesn't support biometric unlock." };
+    if (!biometricSupported)
+      return { ok: false, reason: "Your device doesn't support biometric unlock." };
     try {
       const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const userId = crypto.getRandomValues(new Uint8Array(16));
+      const webauthnUserId = crypto.getRandomValues(new Uint8Array(16));
       const cred = (await navigator.credentials.create({
         publicKey: {
           challenge,
           rp: { name: "PatternProof" },
-          user: { id: userId, name: "patternproof-user", displayName: "PatternProof" },
-          pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
-          authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "preferred" },
+          user: { id: webauthnUserId, name: "patternproof-user", displayName: "PatternProof" },
+          pubKeyCredParams: [
+            { type: "public-key", alg: -7 },
+            { type: "public-key", alg: -257 },
+          ],
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            userVerification: "required",
+            residentKey: "preferred",
+          },
           timeout: 60000,
           attestation: "none",
         },
       })) as PublicKeyCredential | null;
       if (!cred) return { ok: false, reason: "Couldn't enroll. Try again." };
       localStorage.setItem(BIO_CRED_KEY, b64url(cred.rawId));
+      await setBiometricEnabled({ data: { enabled: true } });
+      const r = await issueUnlockToken();
+      storeToken(r.token);
       setHasBiometric(true);
-      sessionStorage.setItem(SESSION_UNLOCKED_KEY, "1");
       setIsLocked(false);
-      syncServerLock(true);
       return { ok: true };
     } catch (e) {
       return { ok: false, reason: e instanceof Error ? e.message : "Enrollment failed." };
@@ -168,7 +186,9 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
         },
       });
       if (!assertion) return "failed";
-      sessionStorage.setItem(SESSION_UNLOCKED_KEY, "1");
+      const r = await issueUnlockToken().catch(() => null);
+      if (!r) return "failed";
+      storeToken(r.token);
       setIsLocked(false);
       return "ok";
     } catch {
@@ -178,12 +198,28 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
 
   const disableBiometric = () => {
     localStorage.removeItem(BIO_CRED_KEY);
+    void setBiometricEnabled({ data: { enabled: false } }).catch(() => undefined);
     setHasBiometric(false);
-    if (!hasPin) syncServerLock(false);
+    if (!hasPin) sessionStorage.removeItem(UNLOCK_TOKEN_KEY);
   };
 
   return (
-    <PinCtx.Provider value={{ hasPin, hasBiometric, biometricSupported, isLocked, setRealPin, clearPin, unlock, enableBiometric, unlockBiometric, disableBiometric, lock }}>
+    <PinCtx.Provider
+      value={{
+        hasPin,
+        hasBiometric,
+        biometricSupported,
+        isLocked,
+        ready,
+        setRealPin,
+        clearPin,
+        unlock,
+        enableBiometric,
+        unlockBiometric,
+        disableBiometric,
+        lock,
+      }}
+    >
       {children}
     </PinCtx.Provider>
   );

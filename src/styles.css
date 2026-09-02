@@ -4,17 +4,23 @@
 
 /* ============================================================
    PatternProof — neumorphic design system
-   One ground colour per portal; every surface is carved or
-   extruded from it with paired light/dark shadows. No borders.
-   Confidence (confirmed/approximate/unknown) is still carried in
-   colour and words, never in shadow depth alone.
+   Source of truth visual: soft raised cards on same-color ground,
+   paired light/dark shadows, no hard borders.
+
+   Active persona accents are LOCKED — do not change:
+     attorney → --purple (deep navy)
+     org      → --pp-sage (light pastel sage)
+     survivor → --pp-iridescent-violet
+     shared   → --pp-iridescent-teal
+   The old --oxblood / --oxblood-deep / --purple-mid / --red-bright
+   legacy variables have been deleted; use the --pp-accent-* tokens.
    ============================================================ */
 
 @theme inline {
   --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 24px;
-  --radius-xl: 30px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -45,12 +51,8 @@
   --font-display: "Newsreader", Georgia, serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  /* Brand palette — oxblood & deep purple moiré system */
-  --color-oxblood: var(--oxblood);
-  --color-oxblood-deep: var(--oxblood-deep);
+  /* Brand palette — accents LOCKED */
   --color-purple: var(--purple);
-  --color-purple-mid: var(--purple-mid);
-  --color-red-bright: var(--red-bright);
   --color-lav: var(--lav);
   --color-ink: var(--ink);
   --color-paper: var(--paper);
@@ -59,65 +61,54 @@
 }
 
 :root {
-  /* ---- Brand system: oxblood & deep purple moiré ---- */
-  /* Founder direction (2026-08-23): survivor reads calmer/more pastel,
-     attorney reads as a deeper navy, org/DV-org reads as a lighter pastel
-     sage (~6/10 on a 1=saturated .. 10=pastel scale). Attorney and org
-     stay in sync with BrandMark.tsx's MARK_COLORWAYS (the canonical brand
-     source) — updated there too, so mark and chrome never drift apart.
-     Survivor's solid anchor was lightened one step from its prior AA-9.3:1
-     value; still >5:1 against white, still passes WCAG AA. --purple-mid
-     keeps its legacy name but holds the org sage-green, not a purple —
-     renaming it would touch every alias below for no behavioral gain. */
-  --oxblood:      #7B4FC7;
-  --oxblood-deep: #33268C;
-  --purple:       #16235C;
-  --purple-mid:   #A9C4A0;
-  --red-bright:   #A38BEB;
-  --lav:          #7EB6FF;
-  --ink:          #1A1224;
-  --paper:        #F7F7F6;
-  --paper-2:      #EFEFED;
-  --line:         #E1E1DF;
+  --purple: #16235c; /* deep navy blue (attorney) — ACTIVE, feeds --pp-accent-attorney */
 
-  /* ---- Global tokens (single source of truth) ---- */
+  --lav: #7eb6ff;
+
+  /* Persona accent values (brand triad) */
+  --pp-sage: #c9dcc0; /* light pastel sage (org/advocate) */
+  --pp-sage-soft: #dfead9;
+  --pp-iridescent-violet: #8b7fd6; /* iridescent violet (survivor) */
+  --pp-iridescent-teal: #7fb8c9;
+  --pp-iridescent-pink: #e0a6d2;
+  --ink: #5a5a6a;
+  --paper: #f0f2f5;
+  --paper-2: #e8eaef;
+  --line: #d1d9e6;
+
+  /* ---- Global tokens ---- */
   --pp-ink: var(--ink);
   --pp-paper: var(--paper);
   --pp-hairline: var(--line);
-  --pp-muted: #6e6579;
+  --pp-muted: #a8a8b8;
 
-  /* Certainty — identical in every persona, never tinted */
+  /* Certainty — identical in every persona */
   --pp-confirmed: #0f6e56;
   --pp-approximate: #3a4fa8;
-  --pp-unknown: #1a1224;
+  --pp-unknown: #5a5a6a;
   --pp-urgent: #8a5a2e;
 
-  /* Persona accents — chrome + primary buttons ONLY */
-  --pp-accent-attorney: var(--purple);
-  --pp-accent-org: var(--purple-mid);
-  --pp-accent-survivor: var(--oxblood);
-  --pp-accent-shared: var(--oxblood-deep);
+  /* Persona accents — LOCKED to brand persona palette */
+  --pp-accent-attorney: var(--purple); /* deep navy blue */
+  --pp-accent-org: var(--pp-sage); /* light pastel sage */
+  --pp-accent-survivor: var(--pp-iridescent-violet); /* iridescent */
+  --pp-accent-shared: var(--pp-iridescent-teal);
+  --pp-accent-survivor-gradient: linear-gradient(135deg, #c9b7ef, #afa9de, #a9e0cf);
 
-  /* Survivor's one gradient accent — the actual logo gradient (see
-     BrandMark.tsx's MARK_COLORWAYS), used as a real surface/fill color
-     wherever the survivor persona should read as itself, not just chrome. */
-  --pp-accent-survivor-gradient: linear-gradient(135deg, #E5A1E4, #A1BDF3);
-
-  /* Default accent for un-scoped surfaces */
   --pp-accent: var(--pp-accent-survivor);
-  --pp-accent-fg: var(--paper);
+  --pp-accent-fg: #ffffff;
 
-  /* ---- Legacy aliases mapped onto the locked palette ---- */
+  /* ---- Surfaces map to soft neumorphic ground ---- */
   --background: var(--pp-paper);
   --foreground: var(--pp-ink);
-  --card: #ffffff;
+  --card: var(--pp-paper);
   --panel: var(--pp-ink);
   --sidebar: var(--pp-ink);
   --sidebar-active: var(--pp-paper);
-  --sidebar-inactive: rgba(250, 248, 244, 0.62);
+  --sidebar-inactive: rgba(90, 90, 106, 0.55);
 
   --primary: var(--pp-accent-survivor);
-  --primary-foreground: var(--paper);
+  --primary-foreground: #ffffff;
   --accent: var(--pp-accent-survivor);
   --safe: var(--pp-confirmed);
   --gold: var(--pp-urgent);
@@ -125,25 +116,24 @@
   --brand-pink: var(--pp-accent-survivor);
   --brand-pink-strong: var(--pp-accent-survivor);
   --brand-pink-soft: #ffffff;
-  --brand-pink-tint: rgba(122, 31, 61, 0.06);
+  --brand-pink-tint: rgba(123, 79, 199, 0.08);
   --teal-dark: var(--pp-accent-shared);
   --purple-dark: var(--pp-accent-survivor);
 
   --charcoal-mid: var(--pp-muted);
   --warm-gray: var(--pp-muted);
   --muted-foreground: var(--pp-muted);
-  --border: var(--pp-hairline);
-  --input: #ffffff;
+  --border: transparent;
+  --input: var(--pp-paper);
   --ring: var(--pp-accent-survivor);
   --destructive: var(--pp-urgent);
-  --destructive-foreground: var(--paper);
-  --popover: #ffffff;
+  --destructive-foreground: #ffffff;
+  --popover: var(--pp-paper);
   --popover-foreground: var(--pp-ink);
-  --secondary: #ffffff;
+  --secondary: var(--pp-paper);
   --secondary-foreground: var(--pp-ink);
-  --muted: rgba(26, 18, 36, 0.04);
+  --muted: rgba(90, 90, 106, 0.06);
 
-  /* Flat surfaces — every tint collapses to paper/white */
   --pastel-teal: var(--pp-accent-shared);
   --pastel-purple: var(--pp-accent-survivor);
   --pastel-blue: var(--pp-approximate);
@@ -160,7 +150,7 @@
   --tint-pink: transparent;
   --tint-gold: transparent;
   --tint-sage: transparent;
-  --linen: #ffffff;
+  --linen: var(--pp-paper);
 
   --accent-butter: var(--pp-urgent);
   --accent-butter-ink: var(--pp-ink);
@@ -171,12 +161,11 @@
   --accent-sage-soft: var(--pp-accent-org);
   --accent-sage-soft-ink: var(--pp-ink);
 
-  /* Unified pp-* tokens */
   --pp-bg: var(--pp-paper);
   --pp-fg: var(--pp-ink);
-  --pp-card: #ffffff;
-  --pp-border: var(--pp-hairline);
-  --pp-border-strong: rgba(26, 18, 36, 0.24);
+  --pp-card: var(--pp-paper);
+  --pp-border: transparent;
+  --pp-border-strong: rgba(90, 90, 106, 0.18);
   --pp-muted-fg: var(--pp-muted);
   --pp-teal: var(--pp-accent-shared);
   --pp-navy: var(--pp-accent-attorney);
@@ -186,7 +175,6 @@
   --pp-purple: var(--pp-accent-survivor);
   --pp-thread: var(--pp-accent-survivor);
   --pp-mint: var(--pp-accent-org);
-  --pp-sage: var(--pp-accent-org);
   --pp-clay: var(--pp-urgent);
   --pp-sblue: var(--pp-approximate);
   --pp-lilac: var(--pp-accent-survivor);
@@ -197,82 +185,75 @@
   --pp-danger: var(--pp-urgent);
   --pp-destructive: var(--pp-urgent);
 
-  /* Neumorphic radius scale */
+  /* Neumorphic radius — match reference (cards ~20px, pill nav) */
   --pp-r-sm: 12px;
-  --pp-r-md: 18px;
-  --pp-r-lg: 24px;
-  --pp-r-xl: 30px;
+  --pp-r-md: 16px;
+  --pp-r-lg: 20px;
+  --pp-r-xl: 24px;
   --pp-r-pill: 999px;
 
-  /* Default ground + shadow-dark (neutral gray; personas override below) */
-  --pp-ground:       #EFEFEE;
-  --pp-ground-hi:    #F4F4F3;
-  --pp-shadow-dark:  #CFCFCD;
-  --pp-shadow-lite:  #FFFFFF;
+  /* Soft ground + paired shadows (reference image) */
+  --pp-ground: #f0f2f5;
+  --pp-ground-hi: #f5f7fa;
+  --pp-shadow-dark: #d1d9e6;
+  --pp-shadow-lite: #ffffff;
 
-  --pp-shadow-up: -6px -6px 13px var(--pp-shadow-lite), 6px 6px 13px var(--pp-shadow-dark);
-  --pp-shadow-sm: -3px -3px 7px var(--pp-shadow-lite), 3px 3px 7px var(--pp-shadow-dark);
-  --pp-shadow-xs: -2px -2px 4px var(--pp-shadow-lite), 2px 2px 4px var(--pp-shadow-dark);
-  --pp-shadow-lg: -9px -9px 20px var(--pp-shadow-lite), 9px 9px 20px var(--pp-shadow-dark);
+  /* Raised: light top-left, dark bottom-right — classic neumorphism */
+  --pp-shadow-up: -8px -8px 16px var(--pp-shadow-lite), 8px 8px 16px var(--pp-shadow-dark);
+  --pp-shadow-sm: -6px -6px 12px var(--pp-shadow-lite), 6px 6px 12px var(--pp-shadow-dark);
+  --pp-shadow-xs: -4px -4px 8px var(--pp-shadow-lite), 4px 4px 8px var(--pp-shadow-dark);
+  --pp-shadow-lg: -10px -10px 20px var(--pp-shadow-lite), 10px 10px 20px var(--pp-shadow-dark);
   --pp-shadow-in:
-    inset -4px -4px 8px var(--pp-shadow-lite), inset 4px 4px 8px var(--pp-shadow-dark);
+    inset 6px 6px 12px var(--pp-shadow-dark), inset -6px -6px 12px var(--pp-shadow-lite);
   --pp-shadow-in-sm:
-    inset -2px -2px 4px var(--pp-shadow-lite), inset 2px 2px 5px var(--pp-shadow-dark);
+    inset 4px 4px 8px var(--pp-shadow-dark), inset -4px -4px 8px var(--pp-shadow-lite);
   --pp-shadow-glow: none;
 }
 
-/* Persona scoping — one ground + accent per screen. Neumorphic tints:
-   only a few % of saturation so switching portals feels like a change
-   of material, not a loss of the shadow read. */
-/* Monochrome neumorphic material: ground stays a near-neutral warm
-   gray in every portal — barely a few % of hue — so color reads as a
-   deliberate accent (a slider, a status dot), never as the surface
-   itself. Portals differ by accent hue, not by how colorful the
-   ground is. */
+/* Persona grounds stay soft; accents LOCKED */
 [data-persona="attorney"] {
   --pp-accent: var(--pp-accent-attorney);
   --pp-accent-fg: #ffffff;
   --pp-link: #3f6df0;
-  --pp-ground: #eceef1;
-  --pp-ground-hi: #f1f3f5;
-  --pp-shadow-dark: #cbd0d8;
+  --pp-ground: #edf0f5;
+  --pp-ground-hi: #f2f5f9;
+  --pp-shadow-dark: #c5d1e0;
   --background: var(--pp-ground);
   --pp-card: var(--pp-ground);
+  --pp-paper: var(--pp-ground);
 }
 [data-persona="org"] {
   --pp-accent: var(--pp-accent-org);
-  /* Sage went light-pastel; white text no longer reads on it, so the
-     accent foreground flips to dark ink instead (same idea as survivor's
-     solid-vs-gradient split — a lightened accent needs a foreground that
-     still passes contrast against it). */
   --pp-accent-fg: var(--ink);
   --pp-link: #5d7a52;
-  --pp-ground: #eceeea;
-  --pp-ground-hi: #f1f3ef;
-  --pp-shadow-dark: #cdd1c8;
+  --pp-ground: #edf0ec;
+  --pp-ground-hi: #f2f5f0;
+  --pp-shadow-dark: #c5d1c0;
   --background: var(--pp-ground);
   --pp-card: var(--pp-ground);
+  --pp-paper: var(--pp-ground);
 }
 [data-persona="survivor"] {
   --pp-accent: var(--pp-accent-survivor);
   --pp-accent-fg: #ffffff;
   --pp-link: #8b7fd1;
-  --pp-ground: #f3edf6;
-  --pp-ground-hi: #f8f3fa;
-  --pp-shadow-dark: #d9cedd;
+  --pp-ground: #f0f2f5;
+  --pp-ground-hi: #f5f7fa;
+  --pp-shadow-dark: #d1d9e6;
   --background: var(--pp-ground);
   --pp-card: var(--pp-ground);
+  --pp-paper: var(--pp-ground);
   --font-serif: "Source Serif 4", Georgia, serif;
   --font-sans: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 [data-persona="shared"] {
   --pp-accent: var(--pp-accent-shared);
-  --pp-accent-fg: var(--paper);
+  --pp-accent-fg: #ffffff;
 }
 
 @layer base {
   * {
-    border-color: var(--pp-hairline);
+    border-color: transparent;
   }
   html,
   body {
@@ -335,7 +316,7 @@
     font-size: 16px;
     line-height: 1.65;
     font-weight: 400;
-    color: #3a3444;
+    color: #5a5a6a;
   }
   small {
     font-size: 12px;
@@ -357,7 +338,6 @@
     font-weight: 500;
     letter-spacing: 0.01em;
   }
-
   ::placeholder {
     color: var(--pp-muted);
     font-weight: 400;
@@ -378,9 +358,6 @@
   }
 }
 
-/* ============================================================
-   Ambient / decorative layers — intentionally neutralised
-   ============================================================ */
 body[data-page]::before {
   content: none !important;
 }
@@ -389,17 +366,19 @@ body[data-page]::before {
   z-index: 1;
 }
 
-.card-pp {
-  background: var(--pp-card, #ffffff);
+/* Cards = ground color + raised paired shadow (true neumorphism) */
+.card-pp,
+.pp-card {
+  background: var(--pp-ground);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   border: none;
   border-radius: var(--pp-r-lg);
   box-shadow: var(--pp-shadow-sm);
   padding: 24px;
+  transition: box-shadow 0.15s ease;
 }
 
-/* Micro-interactions */
 button,
 a[role="button"] {
   transition:
@@ -426,7 +405,7 @@ h3 em {
   color: var(--pp-ink);
 }
 
-/* ---- Buttons: raised neumorphic pill, accent fill for primary ---- */
+/* Primary button: accent fill + raised shadow */
 .btn-primary,
 .pp-btn-primary {
   background: var(--pp-accent);
@@ -438,7 +417,6 @@ h3 em {
   letter-spacing: 0.01em;
   box-shadow: var(--pp-shadow-sm);
   border: none;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
 }
 .btn-primary:hover,
 .pp-btn-primary:hover:not(:disabled) {
@@ -454,7 +432,7 @@ h3 em {
 .btn-ghost,
 .pp-btn-secondary {
   color: var(--pp-ink);
-  background: var(--pp-card, #ffffff);
+  background: var(--pp-ground);
   border-radius: var(--pp-r-pill);
   padding: 11px 20px;
   font-weight: 500;
@@ -482,17 +460,18 @@ h3 em {
     box-shadow 0.17s ease,
     color 0.15s ease;
   white-space: nowrap;
-  background: var(--pp-card, #ffffff);
+  background: var(--pp-ground);
   box-shadow: var(--pp-shadow-sm);
 }
 .pp-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
-/* ---- Inputs: carved (inset) wells ---- */
+
+/* Inputs: inset (carved) wells */
 .input-pp {
   width: 100%;
-  background: var(--pp-card, #ffffff);
+  background: var(--pp-ground);
   color: var(--pp-ink);
   border: none;
   border-radius: var(--pp-r-md);
@@ -516,17 +495,6 @@ textarea.input-pp {
   resize: vertical;
 }
 
-/* ---- Cards: ground-coloured, raised neumorphic shadow ---- */
-.pp-card {
-  background: var(--pp-card, #ffffff);
-  border: none;
-  border-radius: var(--pp-r-lg);
-  box-shadow: var(--pp-shadow-sm);
-  padding: 24px;
-  transition: box-shadow 0.15s ease;
-}
-
-/* ---- Badges: pill, carved well ---- */
 .pp-badge {
   display: inline-flex;
   align-items: center;
@@ -538,20 +506,19 @@ textarea.input-pp {
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  background: var(--pp-card, #ffffff);
+  background: var(--pp-ground);
   color: var(--pp-ink);
   border: none;
   box-shadow: var(--pp-shadow-in-sm);
 }
 
-/* ---- Option cards: raised radio row, carved when selected ---- */
 .pp-option {
   display: flex;
   gap: 14px;
   align-items: flex-start;
   width: 100%;
   text-align: left;
-  background: var(--pp-card, #ffffff);
+  background: var(--pp-ground);
   padding: 16px 17px;
   border-radius: var(--pp-r-lg);
   box-shadow: var(--pp-shadow-sm);
@@ -574,7 +541,7 @@ textarea.input-pp {
   border-radius: 50%;
   flex: none;
   margin-top: 1px;
-  background: var(--pp-card, #ffffff);
+  background: var(--pp-ground);
   box-shadow: var(--pp-shadow-in-sm);
   display: grid;
   place-items: center;
@@ -585,7 +552,6 @@ textarea.input-pp {
   height: 10px;
   border-radius: 50%;
   background: var(--pp-accent);
-  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 .pp-option-title {
   font-size: 13.5px;
@@ -604,14 +570,13 @@ textarea.input-pp {
   display: block;
 }
 
-/* ---- Chips: rounded, raised, pressed state carved ---- */
 .pp-chip {
   padding: 8px 14px;
   font-size: 12.5px;
   line-height: 1.3;
   text-align: left;
   color: var(--pp-ink);
-  background: var(--pp-card, #ffffff);
+  background: var(--pp-ground);
   border-radius: var(--pp-r-pill);
   box-shadow: var(--pp-shadow-xs);
   border: none;
@@ -622,9 +587,8 @@ textarea.input-pp {
   box-shadow: var(--pp-shadow-sm);
 }
 
-/* ---- Note row: icon + title + description, carved icon well ---- */
 .pp-note {
-  background: var(--pp-card, #ffffff);
+  background: var(--pp-ground);
   padding: 15px 16px;
   display: flex;
   gap: 12px;
@@ -638,7 +602,7 @@ textarea.input-pp {
   padding: 7px;
   flex: none;
   border-radius: var(--pp-r-sm);
-  background: var(--pp-card, #ffffff);
+  background: var(--pp-ground);
   box-shadow: var(--pp-shadow-in-sm);
   color: var(--pp-accent);
 }
@@ -656,13 +620,11 @@ textarea.input-pp {
   display: block;
 }
 
-/* Attorney cockpit — flat navy, no glow */
 .att-root.att-cockpit {
   background: var(--pp-accent-attorney);
   color: #f4f6fb;
 }
 
-/* Smooth expand/collapse */
 .collapse-shell {
   display: grid;
   grid-template-rows: 0fr;
@@ -695,13 +657,6 @@ textarea.input-pp {
   }
 }
 
-@media (max-width: 767px) {
-  html {
-    zoom: 0.9;
-  }
-}
-
-/* Survivor app density scale */
 [data-density="survivor"] {
   font-size: 14px;
   line-height: 1.55;
@@ -725,9 +680,6 @@ textarea.input-pp {
   font-size: max(0.875em, 12px);
 }
 
-/* =============================================================
-   Redaction / Exhibit vernacular
-   ============================================================= */
 .exhibit-tag {
   display: inline-block;
   font-family: var(--font-mono);
@@ -736,7 +688,7 @@ textarea.input-pp {
   text-transform: uppercase;
   color: var(--pp-ink);
   background: transparent;
-  border: 1px solid rgba(26, 18, 36, 0.35);
+  border: 1px solid rgba(90, 90, 106, 0.3);
   padding: 3px 8px;
   border-radius: 0;
 }
@@ -751,11 +703,12 @@ textarea.input-pp {
   color: var(--pp-muted);
 }
 
-/* The underline: one thesis phrase per page, never two. Monochrome
-   material — color shows up here as a single thin accent rule, not a
-   dominant gradient, matching the rest of the app's restraint. */
 .highlight-thread {
-  background-image: linear-gradient(90deg, var(--pp-accent) 0%, var(--pp-link) 100%);
+  background-image: linear-gradient(
+    90deg,
+    var(--pp-accent) 0%,
+    var(--pp-link, var(--pp-accent)) 100%
+  );
   background-repeat: no-repeat;
   background-size: 100% 3px;
   background-position: 0 100%;
@@ -785,7 +738,7 @@ textarea.input-pp {
   text-transform: uppercase;
   color: var(--pp-ink);
   padding: 2px 6px;
-  border: 1px solid rgba(26, 18, 36, 0.35);
+  border: 1px solid rgba(90, 90, 106, 0.3);
   display: inline-block;
   margin-right: 6px;
 }
@@ -807,7 +760,7 @@ textarea.input-pp {
   margin: 0 auto;
   padding: clamp(24px, 5vw, 44px);
   border-radius: var(--pp-r-lg);
-  background: var(--pp-card);
+  background: var(--pp-ground);
   box-shadow: var(--pp-shadow-sm);
 }
 .pp-legal-nav {
@@ -903,25 +856,38 @@ textarea.input-pp {
   }
 }
 
-/* ============================================================
-   Thread — the real layout spine, not decoration.
-   A thick, iridescent wavy line runs through a column of nodes,
-   connecting a sequence of cards into one thread instead of a
-   disconnected grid. Standalone cards, linked by the thread —
-   never a colored background wash. The line is drawn as a CSS
-   mask (an S-curve tile, repeated vertically) filled with a
-   gradient background — --pp-thread-grad defaults to the
-   survivor logo's own pink-to-blue gradient and is redefined per
-   [data-persona] below, so the thread always reads in whichever
-   portal's own color it's rendered in. The mask only supplies
-   the wave shape.
-   ============================================================ */
-:root {
-  --pp-thread-grad: linear-gradient(180deg, #E5A1E4, #A1BDF3);
+/* ── Connecting thread ─────────────────────────────────────────
+   ONE wavy-connector implementation, site-wide. The gradient is
+   derived from the four LOCKED persona accents — never hardcode a
+   thread color. Any element carrying `data-persona` (including the
+   <ThreadConnector> component itself) re-scopes the thread. */
+:root,
+[data-persona="shared"] {
+  --pp-thread-accent: var(--pp-accent-shared);
 }
-[data-persona="survivor"] { --pp-thread-grad: linear-gradient(180deg, #E5A1E4, #A1BDF3); }
-[data-persona="attorney"] { --pp-thread-grad: linear-gradient(180deg, #3F6DF0, #1B2A6B); }
-[data-persona="org"]      { --pp-thread-grad: linear-gradient(180deg, #C3DBBC, #8FAF84); }
+[data-persona="survivor"] {
+  --pp-thread-accent: var(--pp-accent-survivor);
+}
+[data-persona="attorney"] {
+  --pp-thread-accent: var(--pp-accent-attorney);
+}
+[data-persona="org"] {
+  --pp-thread-accent: var(--pp-accent-org);
+}
+
+:root,
+[data-persona] {
+  --pp-thread-grad: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--pp-thread-accent) 45%, white),
+    var(--pp-thread-accent)
+  );
+  --pp-thread-grad-h: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--pp-thread-accent) 45%, white),
+    var(--pp-thread-accent)
+  );
+}
 
 .pp-thread {
   display: flex;
@@ -940,16 +906,17 @@ textarea.input-pp {
   left: 22px;
   top: 44px;
   bottom: -24px;
-  width: 44px;
+  width: 52px;
+  z-index: 0;
   transform: translateX(-50%);
   background: var(--pp-thread-grad);
-  opacity: 0.85;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 0C40 6 40 16 22 22C4 28 4 38 22 44' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  opacity: 0.95;
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
   -webkit-mask-repeat: repeat-y;
   mask-repeat: repeat-y;
-  -webkit-mask-size: 44px 44px;
-  mask-size: 44px 44px;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
 }
 .pp-thread-node {
   position: relative;
@@ -961,14 +928,174 @@ textarea.input-pp {
   min-width: 0;
 }
 
-/* ============================================================
-   Shared app-shell utility classes.
-   Token values live in one place — the :root and [data-persona]
-   blocks at the top of this file. Do not redefine --paper, --ink,
-   --pp-ground, --pp-shadow-*, or --pp-r-* here; a second definition
-   later in the file wins the cascade and silently drifts from the
-   documented palette above.
-   ============================================================ */
+:root {
+  /* Deeper amplitude + thicker stroke than the original 4.5/44 wave. */
+  --pp-thread-mask-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Cpath d='M26 0C50 7 50 19 26 26C2 33 2 45 26 52' fill='none' stroke='black' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E");
+  --pp-thread-mask-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Cpath d='M0 26C7 2 19 2 26 26C33 50 45 50 52 26' fill='none' stroke='black' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* Standalone connector element (vertical), used between stacked nodes. */
+.pp-thread-line {
+  flex: 1;
+  align-self: stretch;
+  width: 52px;
+  min-height: 48px;
+  z-index: 0;
+  background: var(--pp-thread-grad);
+  opacity: 0.95;
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
+}
+
+/* Card-grid variant: a horizontal wave running behind a group of cards. */
+.pp-thread-group {
+  position: relative;
+}
+.pp-thread-group > * {
+  position: relative;
+  z-index: 1;
+}
+.pp-thread-line-h {
+  position: absolute;
+  left: -12px;
+  right: -12px;
+  top: 50%;
+  height: 52px;
+  margin-top: -26px;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--pp-thread-grad-h);
+  opacity: 0.5;
+  -webkit-mask-image: var(--pp-thread-mask-h);
+  mask-image: var(--pp-thread-mask-h);
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
+}
+
+/* Landing portal chooser: one generous thread carrying all three portal colors. */
+.portal-path-grid > .pp-thread-line-h {
+  top: 50%;
+  height: 76px;
+  opacity: 0.62;
+  background: linear-gradient(
+    90deg,
+    #c9b7ef 0%,
+    #afa9de 22%,
+    #16235c 48%,
+    #16235c 62%,
+    #bcd6be 100%
+  );
+}
+
+.portal-path-grid > a {
+  min-height: 250px;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.portal-path-grid > a:nth-of-type(2) {
+  transform: translateY(22px);
+}
+.portal-path-grid > a:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--pp-shadow-lg);
+}
+.portal-path-grid > a:nth-of-type(2):hover {
+  transform: translateY(18px);
+}
+
+.landing-close {
+  max-width: 992px;
+  margin: 78px auto 0;
+  padding: 26px 30px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 20px;
+  align-items: center;
+}
+
+.landing-close h2 {
+  margin: 0;
+  color: var(--pp-ink);
+  font-family: var(--font-serif);
+  font-size: clamp(1.25rem, 2.5vw, 1.65rem);
+  font-weight: 500;
+}
+
+.landing-close p {
+  margin: 4px 0 0;
+  color: #4c5568;
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .portal-path-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .portal-path-grid > .pp-thread-line-h {
+    display: none;
+  }
+  .portal-path-grid > a,
+  .portal-path-grid > a:nth-of-type(2) {
+    min-height: 0;
+    transform: none;
+  }
+  .portal-path-grid > a:hover,
+  .portal-path-grid > a:nth-of-type(2):hover {
+    transform: translateY(-2px);
+  }
+  .landing-close {
+    margin: 56px 20px 0;
+    grid-template-columns: auto 1fr;
+  }
+  .landing-close .btn-primary {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+}
+
+/* Stacked-card variant: vertical wave running down the left gutter. */
+.pp-thread-line-v {
+  position: absolute;
+  top: -10px;
+  bottom: -10px;
+  left: -34px;
+  width: 52px;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--pp-thread-grad);
+  opacity: 0.5;
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+  -webkit-mask-size: 52px 52px;
+  mask-size: 52px 52px;
+}
+@media (max-width: 900px) {
+  .pp-thread-line-v {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-thread-line,
+  .pp-thread-line-v,
+  .pp-thread-line-h,
+  .pp-thread-row:not(:last-child)::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 .pp-app,
 .pp-app body {
   min-width: 320px;
@@ -1053,7 +1180,6 @@ textarea.input-pp {
   }
 }
 
-/* Shared page shells */
 .pp-app-shell {
   background: var(--pp-ground);
 }
@@ -1069,7 +1195,7 @@ textarea.input-pp {
   right: 20px;
   bottom: -10px;
   height: 1px;
-  background: color-mix(in srgb, var(--pp-shadow-dark) 58%, transparent);
+  background: color-mix(in srgb, var(--pp-shadow-dark) 50%, transparent);
   box-shadow: -1px -1px 1px var(--pp-shadow-lite);
 }
 .pp-app-main {
@@ -1138,6 +1264,7 @@ textarea.input-pp {
   }
 }
 
+/* Floating pill bottom nav — matches reference */
 .pp-bottom-tab-bar {
   position: fixed;
   inset-inline: 0;

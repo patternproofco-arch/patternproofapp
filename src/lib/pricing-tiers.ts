@@ -6,10 +6,15 @@
  * Prices here must match the live Stripe price lookup keys used in
  * src/lib/payments.functions.ts (attorney_solo_monthly, attorney_firm_monthly,
  * attorney_firm_charter_monthly).
+ * Attorney beta policy: docs/attorney-beta-pricing.md. Solo remains $297/month;
+ * the private free beta is separate from paid checkout and the Charter program.
  */
 
 /** Charter cohort cap — must match the guard in payments.functions.ts. */
 export const CHARTER_COHORT_CAP = 10;
+
+/** Hard maximum members per firm — must match FIRM_SEAT_MAX in firm-grants.functions.ts. */
+export const FIRM_SEAT_MAX = 5;
 
 export type Tier = {
   key: string;
@@ -49,7 +54,8 @@ export const BASE_TIERS: Tier[] = [
     name: "Contribute",
     price: "Pay what you can",
     sub: "$1 – $500",
-    quote: "An optional, one-time contribution if PatternProof helped you. It does not unlock anything — every survivor feature is already free.",
+    quote:
+      "An optional, one-time contribution if PatternProof helped you. It does not unlock anything — every survivor feature is already free.",
     features: [
       "Everything in Survivor — already included at no cost",
       "No features are gated behind this contribution",
@@ -66,7 +72,7 @@ export const BASE_TIERS: Tier[] = [
     sub: "/month · Solo",
     quote: "For solo practitioners taking DV and custody cases one at a time.",
     features: [
-      "Single attorney account (seats and matter counts are not metered today)",
+      "Single attorney account",
       "Structured chronological timeline",
       "Source-linked supporting records",
       "Exportable case summary (ZIP) — imports into practice management systems",
@@ -88,10 +94,10 @@ export const BASE_TIERS: Tier[] = [
       "Referral link so we can attribute outcomes back to your advocacy",
       "Priority support for your intake team",
       "Direct line to the PatternProof team",
-      "We onboard a limited number of organizations at a time",
+      "Self-serve sign-up — start in minutes",
     ],
     cta: "Partner with us",
-    ctaTo: "/request-org-access",
+    ctaTo: "/org-signup",
   },
 ];
 
@@ -111,14 +117,14 @@ export const ATTORNEY_PORTAL_TIER_BULLETS: {
   firm: string[];
 } = {
   solo: [
-    "Single attorney account (seats and matter counts are not metered today)",
+    "Single attorney account",
     "Structured chronological timeline + pattern analysis",
     "Exportable case summary (ZIP) — imports into practice management systems",
     "Private attorney notes per incident",
     "Conflict check across your own caseload",
   ],
   firm_charter: [
-    "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+    `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
     "Everything in Solo Attorney",
     "No matter limit enforced today",
     "Multi-attorney collaboration and shared case notes",
@@ -128,7 +134,7 @@ export const ATTORNEY_PORTAL_TIER_BULLETS: {
     "$597/month rate locked for 12 months, then $897/month list",
   ],
   firm: [
-    "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+    `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
     "Everything in Solo Attorney",
     "No matter limit enforced today",
     "Multi-attorney collaboration and shared case notes",
@@ -147,9 +153,9 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         price: "$897",
         sub: "/month · shared firm workspace",
         eyebrowNote: "Charter cohort is full — thank you.",
-        quote: "Built for 3–15 attorney family-law firms.",
+        quote: `Built for small family-law firms — up to ${FIRM_SEAT_MAX} seats.`,
         features: [
-          "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+          `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
           "Everything in Solo Attorney",
           "No matter limit enforced today",
           "Multi-attorney collaboration and shared case notes",
@@ -171,9 +177,9 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
           remainingCharter === null
             ? `Charter program — limited to ${CHARTER_COHORT_CAP} firms`
             : `${remainingCharter} of ${CHARTER_COHORT_CAP} Charter spots remaining`,
-        quote: "Built for 3–15 attorney family-law firms.",
+        quote: `Built for small family-law firms — up to ${FIRM_SEAT_MAX} seats.`,
         features: [
-          "Shared firm workspace — invite colleagues to a case (seat counts are not metered today)",
+          `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
           "Everything in Solo Attorney",
           "No matter limit enforced today",
           "Multi-attorney collaboration and shared case notes",

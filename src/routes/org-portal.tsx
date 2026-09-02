@@ -7,9 +7,12 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
+import { OrgTeamSettings } from "@/components/team/OrgTeamSettings";
+import { ThreadGroup } from "@/components/ThreadConnector";
 import {
   getMyOrgPartnerStats,
   setReferralCodeActive,
+  NO_ORG_MEMBERSHIP_MESSAGE,
   type OrgPartnerStats,
 } from "@/lib/org-portal.functions";
 
@@ -41,14 +44,23 @@ function OrgPortal() {
   const toggleFn = useServerFn(setReferralCodeActive);
   const [stats, setStats] = useState<OrgPartnerStats | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needsOrgSetup, setNeedsOrgSetup] = useState(false);
 
   const load = useCallback(() => {
     statsFn()
       .then((s) => {
         setStats(s);
         setError(null);
+        setNeedsOrgSetup(false);
       })
-      .catch(() => setError("We couldn't open your partner dashboard. Try again in a moment."));
+      .catch((err: unknown) => {
+        if (err instanceof Error && err.message === NO_ORG_MEMBERSHIP_MESSAGE) {
+          setNeedsOrgSetup(true);
+          setError(null);
+          return;
+        }
+        setError("We couldn't open your partner dashboard. Try again in a moment.");
+      });
   }, [statsFn]);
 
   useEffect(() => {
@@ -72,10 +84,30 @@ function OrgPortal() {
     }
   };
 
-  if (loading || (!stats && !error)) {
+  if (loading || (!stats && !error && !needsOrgSetup)) {
     return (
       <Shell>
         <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>Opening…</p>
+      </Shell>
+    );
+  }
+
+  if (needsOrgSetup) {
+    return (
+      <Shell>
+        <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 6px" }}>
+          Let's set up your organization.
+        </h1>
+        <p
+          style={{ color: "var(--muted-foreground)", fontSize: 14, maxWidth: 480, marginBottom: 20 }}
+        >
+          Your partner account is ready, but it isn't linked to an organization yet — that's
+          expected for a brand-new advocate account. Set up your organization to get your referral
+          link and see your dashboard.
+        </p>
+        <Link to="/org-signup" className="btn-primary" style={{ display: "inline-flex" }}>
+          Set up your organization →
+        </Link>
       </Shell>
     );
   }
@@ -99,11 +131,14 @@ function OrgPortal() {
       <p
         style={{ color: "var(--muted-foreground)", fontSize: 14, maxWidth: 620, marginBottom: 24 }}
       >
-        Counts only. PatternProof never shows an organization who a survivor is or anything they
-        have documented — no names, no records, no dates.
+        Privacy-protected referral totals only. Counts are delayed seven days, shown in groups of
+        five, and hidden for smaller cohorts. PatternProof never shows survivor identities, records,
+        or dates.
       </p>
 
-      <div
+      <ThreadGroup
+        persona="org"
+        orientation="vertical-behind"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
@@ -112,26 +147,9 @@ function OrgPortal() {
         }}
       >
         <Stat label="Referred, all time" value={stats.totals.all_time} />
-        <Stat label="Last 7 days" value={stats.totals.last_7_days} />
         <Stat label="Last 30 days" value={stats.totals.last_30_days} />
         <Stat label="Last 90 days" value={stats.totals.last_90_days} />
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
-          gap: 12,
-          marginBottom: 32,
-        }}
-      >
-        <Stat
-          label={`Actively documenting (${stats.active_window_days}d)`}
-          value={stats.totals.actively_documenting}
-        />
-        <Stat label="Quiet lately" value={stats.totals.inactive} />
-        <Stat label="Signed up, not started" value={stats.totals.signed_up_only} />
-      </div>
+      </ThreadGroup>
 
       <Section title="Your referral links">
         {stats.codes.length === 0 ? (
@@ -180,8 +198,9 @@ function OrgPortal() {
                     </span>
                   </div>
                   <div style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-                    {c.referred_count} {c.referred_count === 1 ? "person" : "people"} signed up
-                    through this link
+                    {c.referred_count === null
+                      ? "Referral count hidden until the privacy threshold is met"
+                      : `${c.referred_count}+ people signed up through this link`}
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button
@@ -209,7 +228,7 @@ function OrgPortal() {
         )}
       </Section>
 
-
+      <OrgTeamSettings />
     </Shell>
   );
 }
@@ -267,11 +286,24 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
         </span>
       </header>
       <main style={{ maxWidth: 880, margin: "0 auto", padding: "32px 20px 72px" }}>{children}</main>
+      <footer
+        style={{
+          maxWidth: 880,
+          margin: "0 auto",
+          padding: "0 20px 32px",
+          fontSize: 12,
+          color: "var(--muted-foreground)",
+        }}
+      >
+        <Link to="/org-feedback" style={{ color: "var(--pp-accent-org)", fontWeight: 600 }}>
+          Give us feedback on this partner dashboard →
+        </Link>
+      </footer>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({ label, value }: { label: string; value: number | null }) {
   return (
     <div
       style={{
@@ -281,7 +313,9 @@ function Stat({ label, value }: { label: string; value: number }) {
         background: "var(--pp-card)",
       }}
     >
-      <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em" }}>{value}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em" }}>
+        {value === null ? "Hidden" : `${value}+`}
+      </div>
       <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 2 }}>{label}</div>
     </div>
   );

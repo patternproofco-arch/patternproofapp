@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ThreadGroup } from "@/components/ThreadConnector";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 /**
@@ -68,6 +69,21 @@ function ForOrganizations() {
         >
           For DV organizations
         </div>
+        {/* Plain-language statement before the tagline headline, so a
+            first-time visitor understands what this is within a few
+            seconds. */}
+        <p
+          style={{
+            fontSize: 16,
+            lineHeight: 1.5,
+            color: "var(--pp-muted)",
+            maxWidth: 560,
+            marginBottom: 18,
+          }}
+        >
+          PatternProof is a free, private documentation tool you can hand a survivor at intake —
+          no cost to your organization, no data integration required on your end.
+        </p>
         <h1
           style={{
             fontFamily: SERIF,
@@ -78,9 +94,9 @@ function ForOrganizations() {
             margin: 0,
           }}
         >
-          Smoother days.
+          Survivors document once.
           <br />
-          <em>More people served.</em>
+          <em>Approved staff review one organized record.</em>
         </h1>
         <p
           style={{
@@ -91,11 +107,11 @@ function ForOrganizations() {
             maxWidth: 640,
           }}
         >
-          Less time on paperwork no one but your funder sees. More time with the person in front of
-          you.
+          PatternProof helps survivors organize their history privately, then share it with your
+          team only when they choose.
         </p>
         <Link
-          to="/request-org-access"
+          to="/org-signup"
           style={{
             display: "inline-block",
             marginTop: 34,
@@ -110,13 +126,17 @@ function ForOrganizations() {
             borderRadius: "var(--pp-r-pill)",
           }}
         >
-          See how it fits your program →
+          Create Your Organization Account →
         </Link>
       </section>
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 24px 80px" }}>
         <SectionRule label="Before / after" />
-        <div style={{ display: "grid", gap: 16 }}>
+        <ThreadGroup
+          persona="org"
+          orientation="vertical-behind"
+          style={{ display: "grid", gap: 16 }}
+        >
           <BeforeAfter
             label="Intake"
             before="The survivor repeats their story to multiple staff members. Notes end up inconsistent across the team."
@@ -132,53 +152,11 @@ function ForOrganizations() {
             before="Capacity is capped by hours spent per file — not by how many people are asking for help."
             after="Same staff, more room for the people already reaching out."
           />
-        </div>
-      </section>
-
-      <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 80px" }}>
-        <SectionRule label="The number that hasn't moved" />
-        <div
-          style={{
-            background: "var(--pp-card)",
-            boxShadow: "var(--pp-shadow-sm)",
-            borderRadius: "var(--pp-r-lg)",
-            borderLeft: `3px solid ${SAGE}`,
-            padding: "24px 26px",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: SERIF,
-              fontWeight: 700,
-              fontSize: 22,
-              lineHeight: 1.5,
-              color: INK,
-            }}
-          >
-            Nationally, domestic violence programs turned away over{" "}
-            <strong style={{ fontWeight: 500 }}>
-              13,000 requests for help in a single day in 2025
-            </strong>{" "}
-            — not for lack of need, but for lack of staff time and resources. Time reclaimed from
-            paperwork isn't spare time. It already has somewhere to go.
-          </div>
-          <div
-            style={{
-              marginTop: 14,
-              fontFamily: MONO,
-              fontSize: 11,
-              color: MUTED,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-            }}
-          >
-            Source: NNEDV, 20th Annual Domestic Violence Counts Report, 2025
-          </div>
-        </div>
+        </ThreadGroup>
       </section>
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 96px" }}>
-        <SectionRule label="What this doesn't do" />
+        <SectionRule label="Clear boundaries" />
         <p
           style={{
             fontFamily: SERIF,
@@ -189,28 +167,13 @@ function ForOrganizations() {
             margin: 0,
           }}
         >
-          Documentation takes up a large share of an advocate's day. We haven't measured how much
-          time PatternProof saves your team, and we won't quote a number we can't stand behind — any
-          gain depends on your intake process.
-        </p>
-        <p
-          style={{
-            marginTop: 18,
-            fontFamily: SERIF,
-            fontWeight: 700,
-            fontSize: 20,
-            lineHeight: 1.55,
-            color: INK,
-          }}
-        >
-          Every record stays under the survivor's control. This doesn't replace your judgment, your
-          relationship with them, or your team's expertise — it gives you more of your day back to
-          use it.
+          Every record stays under the survivor's control. PatternProof does not replace advocate
+          judgment, safety planning, or your organization's intake process.
         </p>
 
         <div style={{ marginTop: 32, display: "grid", gap: 10 }}>
           <Link
-            to="/request-org-access"
+            to="/org-signup"
             style={{
               fontFamily: MONO,
               fontSize: 12,
@@ -221,9 +184,24 @@ function ForOrganizations() {
               textUnderlineOffset: 4,
             }}
           >
-            Wondering if this fits your existing VOCA/FVPSA funding? →
+            Create an organization account →
           </Link>
           <Link
+            to="/org-feedback"
+            style={{
+              fontFamily: MONO,
+              fontSize: 12,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: INK,
+              textDecoration: "underline",
+              textUnderlineOffset: 4,
+            }}
+          >
+            Already referring survivors? Tell us how it&apos;s going →
+          </Link>
+          <Link
+
             to="/privacy"
             style={{
               fontFamily: MONO,

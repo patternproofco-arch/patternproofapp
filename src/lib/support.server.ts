@@ -39,7 +39,9 @@ export async function enqueueSupportEmail(input: {
     if (!unsubscribeToken) {
       const bytes = new Uint8Array(32);
       crypto.getRandomValues(bytes);
-      const fresh = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+      const fresh = Array.from(bytes)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
       await supabaseAdmin
         .from("email_unsubscribe_tokens")
         .upsert({ token: fresh, email: inbox }, { onConflict: "email", ignoreDuplicates: true });
@@ -76,7 +78,21 @@ export async function enqueueSupportEmail(input: {
         queued_at: new Date().toISOString(),
       },
     });
-    return !error;
+    if (error) return false;
+
+    // Send immediately rather than waiting on a scheduler — there is no cron
+    // trigger wired up to drain this queue any other way.
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (apiKey) {
+      const { drainEmailQueues } = await import("@/lib/email-queue-drain.server");
+      try {
+        await drainEmailQueues(supabaseAdmin, apiKey, process.env.LOVABLE_SEND_URL);
+      } catch (drainError) {
+        console.error("Immediate drain after enqueue failed", { drainError });
+      }
+    }
+
+    return true;
   } catch {
     return false;
   }
