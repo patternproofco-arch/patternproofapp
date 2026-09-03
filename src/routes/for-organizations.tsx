@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ThreadGroup } from "@/components/ThreadConnector";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
+import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
 
 /**
  * DV organization landing — neumorphic ground + soft-shadow cards, sage
@@ -217,6 +218,8 @@ function ForOrganizations() {
           </Link>
         </div>
       </section>
+
+      <ProfessionalReadinessKitCapture />
 
       <Foot />
     </div>

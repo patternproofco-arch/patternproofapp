@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ThreadGroup } from "@/components/ThreadConnector";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
+import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
 import { useEffect, useState } from "react";
 import { buildTiers } from "@/lib/pricing-tiers";
 import { getCharterAvailability } from "@/lib/payments.functions";
@@ -316,6 +317,8 @@ function ForAttorneys() {
           </div>
         </div>
       </section>
+
+      <ProfessionalReadinessKitCapture />
 
       <Foot />
     </div>
