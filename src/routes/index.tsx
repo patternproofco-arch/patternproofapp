@@ -39,8 +39,10 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:url", content: "https://pattern-proof.tech/" },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://pattern-proof.tech/og-home.png" },
       { name: "twitter:title", content: "PatternProof — The truth is in the pattern." },
       { name: "twitter:description", content: "Turn scattered evidence into structured patterns." },
+      { name: "twitter:image", content: "https://pattern-proof.tech/og-home.png" },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/" }],
     scripts: [
