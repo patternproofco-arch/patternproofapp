@@ -14,6 +14,97 @@ import { Toaster } from "sonner";
 import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
 import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
 
+/**
+ * Quick Exit, reimplemented in plain JS and inlined so it works from first
+ * paint — before React has hydrated and QuickExitButton's own onClick has
+ * attached. Streamed SSR puts the button in the DOM immediately; this script
+ * runs in <head>, ahead of that markup, and listens via delegation on
+ * `document` so it doesn't need the button to exist yet at attach time.
+ *
+ * Deliberately backs off the instant real hydration completes
+ * (QuickExitButton sets window.__ppQuickExitHydrated = true on mount) so it
+ * never double-fires against React's own handler, and so drag-to-move keeps
+ * working normally once React is driving. Mirrors src/lib/quick-exit.ts —
+ * keep the two in sync if that file's exit sequence changes.
+ */
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
+const quickExitFallbackScript = `(function () {
+  var SUPABASE_URL = ${JSON.stringify(SUPABASE_URL)};
+  var SUPABASE_KEY = ${JSON.stringify(SUPABASE_PUBLISHABLE_KEY)};
+
+  function getExitUrl() {
+    try {
+      var raw = localStorage.getItem("pp_settings_v1");
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.exitUrl === "string" && parsed.exitUrl) return parsed.exitUrl;
+      }
+    } catch (e) {}
+    return "https://weather.com";
+  }
+
+  function quickExit() {
+    var url = getExitUrl();
+    var accessToken = null;
+    var authKeys = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf("sb-") === 0 && k.indexOf("auth-token") !== -1) authKeys.push(k);
+      }
+      for (var j = 0; j < authKeys.length; j++) {
+        var raw = localStorage.getItem(authKeys[j]);
+        if (raw) {
+          try {
+            var parsed = JSON.parse(raw);
+            accessToken = (parsed && parsed.access_token) || (parsed && parsed.currentSession && parsed.currentSession.access_token) || accessToken;
+          } catch (e) {}
+        }
+      }
+    } catch (e) {}
+    try {
+      for (var m = 0; m < authKeys.length; m++) localStorage.removeItem(authKeys[m]);
+    } catch (e) {}
+    try {
+      var sessionKeys = [];
+      for (var n = 0; n < sessionStorage.length; n++) {
+        var sk = sessionStorage.key(n);
+        if (sk && (sk.indexOf("pp.") === 0 || sk.indexOf("pp_") === 0)) sessionKeys.push(sk);
+      }
+      for (var p = 0; p < sessionKeys.length; p++) sessionStorage.removeItem(sessionKeys[p]);
+    } catch (e) {}
+    try {
+      if (accessToken && SUPABASE_URL && SUPABASE_KEY) {
+        fetch(SUPABASE_URL + "/auth/v1/logout?scope=global", {
+          method: "POST",
+          keepalive: true,
+          headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + accessToken, "Content-Type": "application/json" },
+        }).catch(function () {});
+      }
+    } catch (e) {}
+    try { document.title = "Weather"; } catch (e) {}
+    try { window.history.replaceState(null, "", "/"); } catch (e) {}
+    window.location.replace(url);
+  }
+
+  window.__ppLastEsc = 0;
+  document.addEventListener("click", function (e) {
+    if (window.__ppQuickExitHydrated) return;
+    var btn = e.target && e.target.closest && e.target.closest("[data-quick-exit]");
+    if (!btn) return;
+    quickExit();
+  }, true);
+  document.addEventListener("keydown", function (e) {
+    if (window.__ppQuickExitHydrated) return;
+    if (e.key === "Escape") {
+      var now = Date.now();
+      if (now - window.__ppLastEsc < 500) quickExit();
+      window.__ppLastEsc = now;
+    }
+  }, true);
+})();`;
+
 function NotFoundComponent() {
   return (
     <div
@@ -144,6 +235,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
     scripts: [
+      {
+        children: quickExitFallbackScript,
+      },
       {
         async: true,
         src: `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`,

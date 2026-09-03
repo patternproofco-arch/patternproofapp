@@ -17,6 +17,13 @@ export function QuickExitButton() {
   // Signs the user out for real, then redirects. See src/lib/quick-exit.ts.
   const exit = () => quickExit(settings.exitUrl);
 
+  // Tell the pre-hydration fallback in __root.tsx to stand down — React is
+  // driving now, so its own click/Escape handling below takes over (this is
+  // what restores drag-to-move and gives up the plain global listener).
+  useEffect(() => {
+    (window as unknown as { __ppQuickExitHydrated?: boolean }).__ppQuickExitHydrated = true;
+  }, []);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -40,6 +47,7 @@ export function QuickExitButton() {
       }}
       aria-label="Quick exit"
       title="Quick exit — signs you out and leaves. Drag to move, double-press Esc to exit"
+      data-quick-exit="true"
       className="no-print fixed z-[9999] inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold"
       style={{
         background: "#B7D8B0" /* pastel green */,
