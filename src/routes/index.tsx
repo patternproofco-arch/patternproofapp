@@ -134,7 +134,7 @@ function Index() {
           }}
         >
           {attorneyMode
-            ? "Source-linked · Chain of custody · Export-ready"
+            ? "Source-linked · File Check included · Export-ready"
             : "Private · Secure · Export-ready"}
         </p>
         {!attorneyMode && (
