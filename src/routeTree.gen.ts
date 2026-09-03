@@ -32,6 +32,7 @@ import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
 import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
+import { Route as FamilyLawWorkloadRouteImport } from './routes/family-law-workload'
 import { Route as EvidenceIntegrityRouteImport } from './routes/evidence-integrity'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as ConnectRouteImport } from './routes/connect'
@@ -224,6 +225,11 @@ const ForOrganizationsRoute = ForOrganizationsRouteImport.update({
 const ForAttorneysRoute = ForAttorneysRouteImport.update({
   id: '/for-attorneys',
   path: '/for-attorneys',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FamilyLawWorkloadRoute = FamilyLawWorkloadRouteImport.update({
+  id: '/family-law-workload',
+  path: '/family-law-workload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EvidenceIntegrityRoute = EvidenceIntegrityRouteImport.update({
@@ -650,6 +656,7 @@ export interface FileRoutesByFullPath {
   '/connect': typeof ConnectRoute
   '/demo': typeof DemoRoute
   '/evidence-integrity': typeof EvidenceIntegrityRoute
+  '/family-law-workload': typeof FamilyLawWorkloadRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -750,6 +757,7 @@ export interface FileRoutesByTo {
   '/connect': typeof ConnectRoute
   '/demo': typeof DemoRoute
   '/evidence-integrity': typeof EvidenceIntegrityRoute
+  '/family-law-workload': typeof FamilyLawWorkloadRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -852,6 +860,7 @@ export interface FileRoutesById {
   '/connect': typeof ConnectRoute
   '/demo': typeof DemoRoute
   '/evidence-integrity': typeof EvidenceIntegrityRoute
+  '/family-law-workload': typeof FamilyLawWorkloadRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -954,6 +963,7 @@ export interface FileRouteTypes {
     | '/connect'
     | '/demo'
     | '/evidence-integrity'
+    | '/family-law-workload'
     | '/for-attorneys'
     | '/for-organizations'
     | '/how-it-works'
@@ -1054,6 +1064,7 @@ export interface FileRouteTypes {
     | '/connect'
     | '/demo'
     | '/evidence-integrity'
+    | '/family-law-workload'
     | '/for-attorneys'
     | '/for-organizations'
     | '/how-it-works'
@@ -1155,6 +1166,7 @@ export interface FileRouteTypes {
     | '/connect'
     | '/demo'
     | '/evidence-integrity'
+    | '/family-law-workload'
     | '/for-attorneys'
     | '/for-organizations'
     | '/how-it-works'
@@ -1259,6 +1271,7 @@ export interface RootRouteChildren {
   ConnectRoute: typeof ConnectRoute
   DemoRoute: typeof DemoRoute
   EvidenceIntegrityRoute: typeof EvidenceIntegrityRoute
+  FamilyLawWorkloadRoute: typeof FamilyLawWorkloadRoute
   ForAttorneysRoute: typeof ForAttorneysRoute
   ForOrganizationsRoute: typeof ForOrganizationsRoute
   HowItWorksRoute: typeof HowItWorksRoute
@@ -1465,6 +1478,13 @@ declare module '@tanstack/react-router' {
       path: '/for-attorneys'
       fullPath: '/for-attorneys'
       preLoaderRoute: typeof ForAttorneysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/family-law-workload': {
+      id: '/family-law-workload'
+      path: '/family-law-workload'
+      fullPath: '/family-law-workload'
+      preLoaderRoute: typeof FamilyLawWorkloadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/evidence-integrity': {
@@ -2172,6 +2192,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConnectRoute: ConnectRoute,
   DemoRoute: DemoRoute,
   EvidenceIntegrityRoute: EvidenceIntegrityRoute,
+  FamilyLawWorkloadRoute: FamilyLawWorkloadRoute,
   ForAttorneysRoute: ForAttorneysRoute,
   ForOrganizationsRoute: ForOrganizationsRoute,
   HowItWorksRoute: HowItWorksRoute,

@@ -40,14 +40,16 @@ export const listEvidenceReviews = createServerFn({ method: "POST" })
 export const upsertEvidenceReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      clientId: z.string().uuid(),
-      evidenceId: z.string().uuid(),
-      status: z.enum(REVIEW_STATUSES).optional(),
-      exhibit_label: z.string().trim().max(60).optional().nullable(),
-      notes: z.string().trim().max(5000).optional().nullable(),
-      linked_incident_id: z.string().uuid().optional().nullable(),
-    }).parse(input),
+    z
+      .object({
+        clientId: z.string().uuid(),
+        evidenceId: z.string().uuid(),
+        status: z.enum(REVIEW_STATUSES).optional(),
+        exhibit_label: z.string().trim().max(60).optional().nullable(),
+        notes: z.string().trim().max(5000).optional().nullable(),
+        linked_incident_id: z.string().uuid().optional().nullable(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertActiveLink(context.userId, data.clientId);
@@ -57,7 +59,7 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
       client_user_id: string;
       evidence_id: string;
       updated_at: string;
-      status?: typeof REVIEW_STATUSES[number];
+      status?: (typeof REVIEW_STATUSES)[number];
       exhibit_label?: string | null;
       notes?: string | null;
       linked_incident_id?: string | null;

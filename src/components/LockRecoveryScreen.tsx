@@ -52,8 +52,8 @@ export function LockRecoveryScreen() {
             <div className="label-eyebrow">Screen lock</div>
             <h1 className="mt-2 font-serif text-[24px] leading-tight">Let's confirm it's you.</h1>
             <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Your screen lock is on for this account, but this device doesn't have it saved anymore.
-              Sign in with your account password to continue.
+              Your screen lock is on for this account, but this device doesn't have it saved
+              anymore. Sign in with your account password to continue.
             </p>
             <input
               className="input-pp mt-4"
@@ -82,7 +82,9 @@ export function LockRecoveryScreen() {
               onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
               placeholder="••••"
             />
-            <button className="btn-primary mt-3" onClick={savePin}>Save PIN</button>
+            <button className="btn-primary mt-3" onClick={savePin}>
+              Save PIN
+            </button>
             {biometricSupported ? (
               <button className="btn-ghost mt-2" onClick={enroll}>
                 Use Face ID / Fingerprint / Device passcode
@@ -91,7 +93,9 @@ export function LockRecoveryScreen() {
           </>
         )}
         {note ? (
-          <p className="mt-3 text-[12px]" style={{ color: "var(--muted-foreground)" }}>{note}</p>
+          <p className="mt-3 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            {note}
+          </p>
         ) : null}
         <p className="mt-4 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
           This screen lock helps deter casual access to your account. It is not a guarantee against

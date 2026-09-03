@@ -36,11 +36,18 @@ function AdvocateCaseView() {
   if (error) {
     return (
       <div className="card-pp" style={{ padding: 20 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>This case isn't open to you right now</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>
+          This case isn't open to you right now
+        </h1>
         <p style={{ fontSize: 13.5, color: "var(--muted-foreground)" }}>
-          Access may have been withdrawn by the survivor. Anything you already exported stays with you; live access has ended.
+          Access may have been withdrawn by the survivor. Anything you already exported stays with
+          you; live access has ended.
         </p>
-        <Link to="/advocate-cases" className="btn-ghost text-[13px]" style={{ marginTop: 12, display: "inline-block" }}>
+        <Link
+          to="/advocate-cases"
+          className="btn-ghost text-[13px]"
+          style={{ marginTop: 12, display: "inline-block" }}
+        >
           Back to cases
         </Link>
       </div>
@@ -52,19 +59,33 @@ function AdvocateCaseView() {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          gap: 12,
+          flexWrap: "wrap",
+        }}
+      >
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700 }}>{label}</h1>
           <p style={{ fontSize: 12.5, color: "var(--muted-foreground)" }}>
             Read-only · {data.incidents.length} entries · {data.evidence.length} evidence items
           </p>
         </div>
-        <button onClick={() => exportPacket(data, label)} className="btn-pp inline-flex items-center gap-2">
+        <button
+          onClick={() => exportPacket(data, label)}
+          className="btn-pp inline-flex items-center gap-2"
+        >
           <Download size={14} /> Export packet
         </button>
       </div>
 
-      <nav className="mb-6 mt-5 flex flex-wrap gap-x-5 gap-y-2" style={{ borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>
+      <nav
+        className="mb-6 mt-5 flex flex-wrap gap-x-5 gap-y-2"
+        style={{ borderBottom: "1px solid var(--border)", paddingBottom: 8 }}
+      >
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -73,8 +94,10 @@ function AdvocateCaseView() {
             style={{
               color: tab === t.id ? "var(--foreground)" : "var(--muted-foreground)",
               fontWeight: tab === t.id ? 700 : 500,
-              paddingBottom: 6, marginBottom: -9,
-              borderBottom: tab === t.id ? "2px solid var(--pp-accent-org)" : "2px solid transparent",
+              paddingBottom: 6,
+              marginBottom: -9,
+              borderBottom:
+                tab === t.id ? "2px solid var(--pp-accent-org)" : "2px solid transparent",
             }}
           >
             {t.label}
@@ -92,16 +115,28 @@ function AdvocateCaseView() {
 
 function TimelineTab({ data }: { data: CaseData }) {
   if (data.incidents.length === 0) {
-    return <p style={{ fontSize: 13.5, color: "var(--muted-foreground)" }}>No entries were shared with you.</p>;
+    return (
+      <p style={{ fontSize: 13.5, color: "var(--muted-foreground)" }}>
+        No entries were shared with you.
+      </p>
+    );
   }
   return (
     <div style={{ display: "grid", gap: 10 }}>
       {data.incidents.map((i) => (
-        <div key={i.id} className="card-pp" style={{ padding: 16, borderLeft: "3px solid var(--pp-accent-org)" }}>
+        <div
+          key={i.id}
+          className="card-pp"
+          style={{ padding: 16, borderLeft: "3px solid var(--pp-accent-org)" }}
+        >
           <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-            {i.date}{i.time ? ` · ${i.time}` : ""}{i.location ? ` · ${i.location}` : ""}
+            {i.date}
+            {i.time ? ` · ${i.time}` : ""}
+            {i.location ? ` · ${i.location}` : ""}
           </div>
-          <p style={{ fontSize: 14, lineHeight: 1.6, marginTop: 6, whiteSpace: "pre-wrap" }}>{i.description}</p>
+          <p style={{ fontSize: 14, lineHeight: 1.6, marginTop: 6, whiteSpace: "pre-wrap" }}>
+            {i.description}
+          </p>
           {(i.abuse_types ?? []).length > 0 && (
             <div style={{ fontSize: 11.5, color: "var(--muted-foreground)", marginTop: 8 }}>
               Tagged: {(i.abuse_types ?? []).join(", ")}
@@ -115,7 +150,11 @@ function TimelineTab({ data }: { data: CaseData }) {
 
 function EvidenceTab({ data }: { data: CaseData }) {
   if (data.evidence.length === 0) {
-    return <p style={{ fontSize: 13.5, color: "var(--muted-foreground)" }}>No evidence was shared with you.</p>;
+    return (
+      <p style={{ fontSize: 13.5, color: "var(--muted-foreground)" }}>
+        No evidence was shared with you.
+      </p>
+    );
   }
   return (
     <>
@@ -127,9 +166,12 @@ function EvidenceTab({ data }: { data: CaseData }) {
           <div key={e.id} className="card-pp" style={{ padding: 14 }}>
             <div style={{ fontWeight: 700, fontSize: 13.5 }}>{e.title}</div>
             <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-              {e.date ?? "Date not set"}{e.file_type ? ` · ${e.file_type}` : ""}
+              {e.date ?? "Date not set"}
+              {e.file_type ? ` · ${e.file_type}` : ""}
             </div>
-            {e.description && <p style={{ fontSize: 13, marginTop: 6, lineHeight: 1.55 }}>{e.description}</p>}
+            {e.description && (
+              <p style={{ fontSize: 13, marginTop: 6, lineHeight: 1.55 }}>{e.description}</p>
+            )}
           </div>
         ))}
       </div>
@@ -139,7 +181,12 @@ function EvidenceTab({ data }: { data: CaseData }) {
 
 function CaseTab({ data }: { data: CaseData }) {
   const c = data.case;
-  if (!c) return <p style={{ fontSize: 13.5, color: "var(--muted-foreground)" }}>No case summary has been built yet.</p>;
+  if (!c)
+    return (
+      <p style={{ fontSize: 13.5, color: "var(--muted-foreground)" }}>
+        No case summary has been built yet.
+      </p>
+    );
   const row = (l: string, v: string | null | undefined) =>
     v ? (
       <div style={{ display: "flex", gap: 10, fontSize: 13.5, lineHeight: 1.7 }}>
@@ -155,11 +202,17 @@ function CaseTab({ data }: { data: CaseData }) {
       {row("Case types", (c.case_types ?? []).join(", ") || null)}
       {c.pattern_summary && (
         <>
-          <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 14 }}>Summary written by the survivor</div>
-          <p style={{ fontSize: 14, lineHeight: 1.65, marginTop: 4, whiteSpace: "pre-wrap" }}>{c.pattern_summary}</p>
+          <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 14 }}>
+            Summary written by the survivor
+          </div>
+          <p style={{ fontSize: 14, lineHeight: 1.65, marginTop: 4, whiteSpace: "pre-wrap" }}>
+            {c.pattern_summary}
+          </p>
         </>
       )}
-      <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", marginTop: 16 }}>{ACCESS_DISCLAIMER}</p>
+      <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", marginTop: 16 }}>
+        {ACCESS_DISCLAIMER}
+      </p>
     </div>
   );
 }
@@ -177,8 +230,18 @@ function AccessTab({ data }: { data: CaseData }) {
     <div className="card-pp" style={{ padding: 18, borderLeft: "3px solid var(--pp-accent-org)" }}>
       <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 8 }}>Access granted to you</div>
       {row("Granted", fmt(c.granted_at) ?? "—")}
-      {row("Entries", c.include_all_incidents ? "All journal entries" : `${c.scoped_incident_count ?? 0} selected entries`)}
-      {row("Evidence", c.include_all_evidence ? "All evidence items" : `${c.scoped_evidence_count ?? 0} selected items`)}
+      {row(
+        "Entries",
+        c.include_all_incidents
+          ? "All journal entries"
+          : `${c.scoped_incident_count ?? 0} selected entries`,
+      )}
+      {row(
+        "Evidence",
+        c.include_all_evidence
+          ? "All evidence items"
+          : `${c.scoped_evidence_count ?? 0} selected items`,
+      )}
       {row("Pattern grouping", c.include_patterns ? "Included" : "Not shared")}
       {row("Scope", c.case_scoped ? "Single case" : "All of this person's cases")}
       {row(
@@ -189,9 +252,9 @@ function AccessTab({ data }: { data: CaseData }) {
       )}
       {row("Expires", c.expires_at ? (fmt(c.expires_at) as string) : "No expiry set")}
       <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 12, lineHeight: 1.6 }}>
-        The survivor may withdraw this access at any time. When they do, live access ends immediately — this page will
-        stop opening. Anything you already exported stays on your own computer and is yours to handle under your
-        organization's records policy.
+        The survivor may withdraw this access at any time. When they do, live access ends
+        immediately — this page will stop opening. Anything you already exported stays on your own
+        computer and is yours to handle under your organization's records policy.
       </p>
     </div>
   );
@@ -210,7 +273,10 @@ function exportPacket(data: CaseData, label: string) {
       if (data.case.other_party) lines.push(`Other party: ${data.case.other_party}`);
       if (data.case.relationship_type) lines.push(`Relationship: ${data.case.relationship_type}`);
       if (data.case.jurisdiction) lines.push(`Jurisdiction: ${data.case.jurisdiction}`);
-      if (data.case.pattern_summary) { lines.push(""); lines.push(data.case.pattern_summary); }
+      if (data.case.pattern_summary) {
+        lines.push("");
+        lines.push(data.case.pattern_summary);
+      }
       lines.push("");
     }
     lines.push(`TIMELINE (${data.incidents.length})`);
@@ -223,7 +289,9 @@ function exportPacket(data: CaseData, label: string) {
     lines.push("");
     lines.push(`EVIDENCE LIST (${data.evidence.length})`);
     for (const e of data.evidence) {
-      lines.push(`- ${e.title}${e.date ? ` (${e.date})` : ""}${e.file_type ? ` [${e.file_type}]` : ""}`);
+      lines.push(
+        `- ${e.title}${e.date ? ` (${e.date})` : ""}${e.file_type ? ` [${e.file_type}]` : ""}`,
+      );
     }
     const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);

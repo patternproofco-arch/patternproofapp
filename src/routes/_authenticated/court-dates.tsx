@@ -504,7 +504,10 @@ function DateRow({
   syncing: boolean;
 }) {
   return (
-    <li className="rounded-2xl bg-white/40 p-3" style={{ borderLeft: "3px solid var(--pp-accent)" }}>
+    <li
+      className="rounded-2xl bg-white/40 p-3"
+      style={{ borderLeft: "3px solid var(--pp-accent)" }}
+    >
       <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
         {new Date(r.hearing_at).toLocaleString(undefined, { hour: "numeric", minute: "2-digit" })}
       </div>

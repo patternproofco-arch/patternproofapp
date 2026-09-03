@@ -102,9 +102,9 @@ function ForAttorneys() {
             marginBottom: 18,
           }}
         >
-          PatternProof is a documentation platform your clients use to record domestic-violence
-          and coercive-control incidents — you receive a structured, source-linked chronology
-          instead of a folder of screenshots.
+          PatternProof is a documentation platform your clients use to record domestic-violence and
+          coercive-control incidents — you receive a structured, source-linked chronology instead of
+          a folder of screenshots.
         </p>
         <h1
           style={{

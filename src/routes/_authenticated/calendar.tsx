@@ -12,7 +12,9 @@ export const Route = createFileRoute("/_authenticated/calendar")({
 
 function CalendarPage() {
   const { user } = useAuth();
-  const [incidents, setIncidents] = useState<Array<{ date: string; severity_level: number | null; has_escalation_flag: boolean }>>([]);
+  const [incidents, setIncidents] = useState<
+    Array<{ date: string; severity_level: number | null; has_escalation_flag: boolean }>
+  >([]);
 
   useEffect(() => {
     if (!user) return;
@@ -22,7 +24,12 @@ function CalendarPage() {
         .select("date,severity_level,has_escalation_flag")
         .eq("user_id", user.id)
         .is("deleted_at", null);
-      setIncidents((data ?? []).filter((r): r is { date: string; severity_level: number | null; has_escalation_flag: boolean } => !!r.date));
+      setIncidents(
+        (data ?? []).filter(
+          (r): r is { date: string; severity_level: number | null; has_escalation_flag: boolean } =>
+            !!r.date,
+        ),
+      );
     })();
   }, [user]);
 
@@ -30,7 +37,9 @@ function CalendarPage() {
     <div>
       <HubTabs tabs={RECURLINE_TABS} />
       <div className="label-eyebrow">Marks Calendar</div>
-      <h1 className="mt-2 font-serif text-[34px] leading-tight">When it happens. <em>How often.</em></h1>
+      <h1 className="mt-2 font-serif text-[34px] leading-tight">
+        When it happens. <em>How often.</em>
+      </h1>
       <p className="mt-3 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
         Each square is a day. Darker squares mean more Marks that day.
       </p>

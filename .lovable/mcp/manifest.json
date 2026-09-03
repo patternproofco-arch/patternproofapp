@@ -5,9 +5,7 @@
   "auth": {
     "type": "oauth",
     "issuer": "https://muynotmkcmehxnkhffzl.supabase.co/auth/v1",
-    "accepted_audiences": [
-      "authenticated"
-    ]
+    "accepted_audiences": ["authenticated"]
   },
   "mcp": {
     "server": {
@@ -96,10 +94,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "date",
-            "description"
-          ]
+          "required": ["date", "description"]
         },
         "outputSchema": null
       },
@@ -152,9 +147,7 @@
               "description": "Text to search for."
             }
           },
-          "required": [
-            "query"
-          ]
+          "required": ["query"]
         },
         "outputSchema": null
       }

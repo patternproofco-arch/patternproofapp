@@ -105,9 +105,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
   };
 
   const unlock = async (pin: string): Promise<"real" | "wrong" | "locked-out" | "no-pin"> => {
-    const r = await verifyPinServer({ data: { pin } }).catch(
-      () => ({ result: "wrong" as const }),
-    );
+    const r = await verifyPinServer({ data: { pin } }).catch(() => ({ result: "wrong" as const }));
     if (r.result === "real") {
       storeToken(r.token);
       setIsLocked(false);

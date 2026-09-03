@@ -58,7 +58,9 @@ async function createClioDocument(
   const v = d.latest_document_version ?? {};
   const headers: Record<string, string> = {};
   if (Array.isArray(v.put_headers)) {
-    v.put_headers.forEach((h) => { if (h?.name) headers[h.name] = h.value; });
+    v.put_headers.forEach((h) => {
+      if (h?.name) headers[h.name] = h.value;
+    });
   } else if (v.put_headers && typeof v.put_headers === "object") {
     Object.assign(headers, v.put_headers as Record<string, string>);
   }
@@ -71,11 +73,14 @@ async function createClioDocument(
 }
 
 async function markFullyUploaded(token: string, documentId: string, versionUuid: string) {
-  const res = await fetch(`${CLIO_API_BASE}/documents/${encodeURIComponent(documentId)}.json?fields=id`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
-    body: JSON.stringify({ data: { uuid: versionUuid, fully_uploaded: true } }),
-  });
+  const res = await fetch(
+    `${CLIO_API_BASE}/documents/${encodeURIComponent(documentId)}.json?fields=id`,
+    {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ data: { uuid: versionUuid, fully_uploaded: true } }),
+    },
+  );
   if (!res.ok) {
     console.error("[clio] document confirm failed with status", res.status);
     throw new Error("Clio received the file but wouldn't finish the upload.");
@@ -98,7 +103,8 @@ export async function pushLatestPacketToClio(
     .eq("id", attorneyClientLinkId)
     .eq("attorney_user_id", attorneyUserId)
     .maybeSingle();
-  if (!link || link.status !== "active") return { ok: false, reason: "That case file isn't active for your account." };
+  if (!link || link.status !== "active")
+    return { ok: false, reason: "That case file isn't active for your account." };
   if (!link.clio_share_consent) {
     return { ok: false, reason: "This client hasn't approved Clio sharing. Nothing was sent." };
   }
@@ -119,13 +125,22 @@ export async function pushLatestPacketToClio(
   const { data: objects } = await supabaseAdmin.storage
     .from("exports")
     .list(attorneyUserId, { limit: 100, sortBy: { column: "name", order: "desc" } });
-  const latest = (objects ?? []).filter((o) => o.name.startsWith(prefix)).sort((a, b) => (a.name < b.name ? 1 : -1))[0];
+  const latest = (objects ?? [])
+    .filter((o) => o.name.startsWith(prefix))
+    .sort((a, b) => (a.name < b.name ? 1 : -1))[0];
   if (!latest) {
-    return { ok: false, reason: "No packet to send yet. Generate the professional-review packet for this client first." };
+    return {
+      ok: false,
+      reason:
+        "No packet to send yet. Generate the professional-review packet for this client first.",
+    };
   }
 
-  const dl = await supabaseAdmin.storage.from("exports").download(`${attorneyUserId}/${latest.name}`);
-  if (dl.error || !dl.data) return { ok: false, reason: "We couldn't read that packet. Try generating it again." };
+  const dl = await supabaseAdmin.storage
+    .from("exports")
+    .download(`${attorneyUserId}/${latest.name}`);
+  if (dl.error || !dl.data)
+    return { ok: false, reason: "We couldn't read that packet. Try generating it again." };
   const bytes = new Uint8Array(await dl.data.arrayBuffer());
 
   const { data: logRow } = await supabaseAdmin
@@ -168,19 +183,33 @@ export async function pushLatestPacketToClio(
     if (logRow?.id) {
       await supabaseAdmin
         .from("clio_document_exports")
-        .update({ status: "confirmed", clio_document_id: doc.id, confirmed_at: new Date().toISOString() })
+        .update({
+          status: "confirmed",
+          clio_document_id: doc.id,
+          confirmed_at: new Date().toISOString(),
+        })
         .eq("id", logRow.id);
     }
 
-    await supabaseAdmin.rpc("record_audit_event", {
-      p_user_id: link.client_user_id,
-      p_event_type: "clio.document_pushed",
-      p_subject_kind: "export",
-      p_actor_kind: "attorney",
-      p_actor_id: attorneyUserId,
-    }).then(() => undefined, (e: unknown) => console.error("[audit] clio push log failed", e));
+    await supabaseAdmin
+      .rpc("record_audit_event", {
+        p_user_id: link.client_user_id,
+        p_event_type: "clio.document_pushed",
+        p_subject_kind: "export",
+        p_actor_kind: "attorney",
+        p_actor_id: attorneyUserId,
+      })
+      .then(
+        () => undefined,
+        (e: unknown) => console.error("[audit] clio push log failed", e),
+      );
 
-    return { ok: true, clio_document_id: doc.id, document_name: latest.name, bytes: bytes.byteLength };
+    return {
+      ok: true,
+      clio_document_id: doc.id,
+      document_name: latest.name,
+      bytes: bytes.byteLength,
+    };
   } catch (e) {
     return await fail(
       e instanceof Error ? e.message : "We couldn't finish sending that packet to Clio.",

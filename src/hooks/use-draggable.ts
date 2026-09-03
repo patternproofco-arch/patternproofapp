@@ -8,14 +8,16 @@ import { useEffect, useRef, useState } from "react";
  */
 export function useDraggable(
   storageKey: string,
-  initial: { right?: number; bottom?: number; left?: number; top?: number }
+  initial: { right?: number; bottom?: number; left?: number; top?: number },
 ) {
   const [pos, setPos] = useState<{ left: number; top: number } | null>(() => {
     if (typeof window === "undefined") return null;
     try {
       const raw = window.localStorage.getItem(storageKey);
       if (raw) return JSON.parse(raw);
-    } catch {}
+    } catch {
+      // Invalid or unavailable local storage falls back to the default position.
+    }
     return null;
   });
   const ref = useRef<HTMLElement | null>(null);
@@ -41,7 +43,9 @@ export function useDraggable(
       moved.current = true;
       setPos({ left, top });
     };
-    const mm = (e: MouseEvent) => { if (dragging.current) onMove(e.clientX, e.clientY); };
+    const mm = (e: MouseEvent) => {
+      if (dragging.current) onMove(e.clientX, e.clientY);
+    };
     const tm = (e: TouchEvent) => {
       if (!dragging.current || !e.touches[0]) return;
       e.preventDefault();
@@ -51,7 +55,11 @@ export function useDraggable(
       if (!dragging.current) return;
       dragging.current = false;
       if (moved.current) {
-        try { window.localStorage.setItem(storageKey, JSON.stringify(pos)); } catch {}
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify(pos));
+        } catch {
+          // Dragging remains usable when local storage is unavailable.
+        }
       }
     };
     window.addEventListener("mousemove", mm);

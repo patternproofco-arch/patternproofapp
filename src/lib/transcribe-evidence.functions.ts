@@ -87,14 +87,11 @@ export const transcribeEvidence = createServerFn({ method: "POST" })
       // Request verbose JSON so we get segment timestamps.
       form.append("response_format", "verbose_json");
 
-      const res = await fetch(
-        "https://ai.gateway.lovable.dev/v1/audio/transcriptions",
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${key}` },
-          body: form,
-        },
-      );
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}` },
+        body: form,
+      });
       if (!res.ok) {
         const errText = await res.text().catch(() => "");
         await supabase

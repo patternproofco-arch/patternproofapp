@@ -8,8 +8,18 @@ export default defineTool({
   description:
     "List evidence items in the signed-in survivor's private vault. Returns title, description, date, file type, and any linked incident.",
   inputSchema: {
-    limit: z.number().int().min(1).max(100).optional().describe("Maximum items to return (default 25)."),
-    linked_incident_id: z.string().uuid().optional().describe("Only evidence linked to this incident."),
+    limit: z
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .optional()
+      .describe("Maximum items to return (default 25)."),
+    linked_incident_id: z
+      .string()
+      .uuid()
+      .optional()
+      .describe("Only evidence linked to this incident."),
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ limit, linked_incident_id }, ctx) => {

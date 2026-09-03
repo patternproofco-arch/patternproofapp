@@ -80,8 +80,7 @@ export type OrgPartnerStats = {
 // haven't set up or joined an organization yet" (an actionable, expected
 // state — send them to /org-signup) apart from a real, unexpected failure
 // (a generic "try again" message).
-export const NO_ORG_MEMBERSHIP_MESSAGE =
-  "You are not a verified member of a partner organization.";
+export const NO_ORG_MEMBERSHIP_MESSAGE = "You are not a verified member of a partner organization.";
 
 async function requireOrgMembership(userId: string) {
   const supabaseAdmin = await requireAdvocate(userId);
@@ -463,12 +462,7 @@ function slugify(v: string): string {
     .slice(0, 40);
 }
 
-/**
- * Self-serve organization signup — mirrors setMyFirm's attorney-side pattern.
- * Any authenticated user not already in an org can create one and becomes
- * its owner. Orgs are free (no subscription gate), so the only checks are
- * "not already a member" and basic input validation.
- */
+/** New organizations are provisioned only through the verified invitation flow. */
 export const setMyOrg = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -481,79 +475,8 @@ export const setMyOrg = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: existing, error: existingError } = await supabaseAdmin
-      .from("org_members")
-      .select("org_id")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (existingError) throw new Error(existingError.message);
-    if (existing) throw new Error("You already belong to a partner organization.");
-
-    const orgName = data.org_name.trim();
-    const email = data.email.trim().toLowerCase();
-
-    await supabaseAdmin
-      .from("user_roles")
-      .upsert({ user_id: context.userId, role: "advocate" }, { onConflict: "user_id,role" });
-
-    const { data: createdOrg, error: orgError } = await supabaseAdmin
-      .from("dv_organizations")
-      .insert({ name: orgName, created_by: context.userId })
-      .select("id")
-      .single();
-    if (orgError || !createdOrg)
-      throw new Error(orgError?.message ?? "Could not create organization.");
-    const orgId = createdOrg.id;
-
-    const { error: memberError } = await supabaseAdmin
-      .from("org_members")
-      .upsert(
-        { org_id: orgId, user_id: context.userId, role: "owner" },
-        { onConflict: "org_id,user_id" },
-      );
-    if (memberError) throw new Error(memberError.message);
-
-    await supabaseAdmin.from("advocate_profiles").upsert(
-      {
-        user_id: context.userId,
-        full_name: data.contact_name,
-        org_name: orgName,
-        org_id: orgId,
-        email,
-        onboarded: true,
-      },
-      { onConflict: "user_id" },
-    );
-
-    let code = slugify(orgName) || `org-${Math.random().toString(36).slice(2, 8)}`;
-    for (let attempt = 0; attempt < 20; attempt++) {
-      const candidate = attempt === 0 ? code : `${code}-${Math.random().toString(36).slice(2, 6)}`;
-      const { data: clash } = await supabaseAdmin
-        .from("referral_links")
-        .select("code")
-        .eq("code", candidate)
-        .maybeSingle();
-      if (!clash) {
-        code = candidate;
-        break;
-      }
-      if (attempt === 19) throw new Error("Could not generate a unique referral code.");
-    }
-
-    const { error: linkErr } = await supabaseAdmin.from("referral_links").insert({
-      code,
-      org_name: orgName,
-      org_user_id: context.userId,
-      org_id: orgId,
-      is_active: true,
-      notes: "Self-serve signup",
-    });
-    if (linkErr) throw new Error(linkErr.message);
-
-    return { ok: true as const, code };
+  .handler(async () => {
+    throw new Error("New partner accounts require a verified organization invitation.");
   });
 
 /**

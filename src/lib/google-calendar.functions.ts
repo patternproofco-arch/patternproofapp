@@ -7,13 +7,15 @@ const GATEWAY = "https://connector-gateway.lovable.dev/google_calendar/calendar/
 export const syncCourtDateToGoogle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      summary: z.string().min(1).max(200),
-      description: z.string().max(2000).optional().nullable(),
-      location: z.string().max(200).optional().nullable(),
-      startISO: z.string().min(1),
-      durationMinutes: z.number().int().min(15).max(480).default(60),
-    }).parse(d),
+    z
+      .object({
+        summary: z.string().min(1).max(200),
+        description: z.string().max(2000).optional().nullable(),
+        location: z.string().max(200).optional().nullable(),
+        startISO: z.string().min(1),
+        durationMinutes: z.number().int().min(15).max(480).default(60),
+      })
+      .parse(d),
   )
   .handler(async ({ data }) => {
     const lovableKey = process.env.LOVABLE_API_KEY;
@@ -30,15 +32,18 @@ export const syncCourtDateToGoogle = createServerFn({ method: "POST" })
       location: data.location ?? undefined,
       start: { dateTime: start.toISOString(), timeZone: tz },
       end: { dateTime: end.toISOString(), timeZone: tz },
-      reminders: { useDefault: false, overrides: [
-        { method: "popup", minutes: 24 * 60 },
-        { method: "popup", minutes: 60 },
-      ] },
+      reminders: {
+        useDefault: false,
+        overrides: [
+          { method: "popup", minutes: 24 * 60 },
+          { method: "popup", minutes: 60 },
+        ],
+      },
     };
     const res = await fetch(`${GATEWAY}/calendars/primary/events`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${lovableKey}`,
+        Authorization: `Bearer ${lovableKey}`,
         "X-Connection-Api-Key": connKey,
         "Content-Type": "application/json",
       },
@@ -48,6 +53,6 @@ export const syncCourtDateToGoogle = createServerFn({ method: "POST" })
       const text = await res.text().catch(() => "");
       return { ok: false as const, reason: `gateway-${res.status}`, detail: text.slice(0, 300) };
     }
-    const event = await res.json() as { id?: string; htmlLink?: string };
+    const event = (await res.json()) as { id?: string; htmlLink?: string };
     return { ok: true as const, eventId: event.id ?? null, htmlLink: event.htmlLink ?? null };
   });

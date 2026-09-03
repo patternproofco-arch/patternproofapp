@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import {
   Body,
   Container,
@@ -10,24 +10,24 @@ import {
   Preview,
   Section,
   Text,
-} from '@react-email/components'
-import type { TemplateEntry } from './registry'
+} from "@react-email/components";
+import type { TemplateEntry } from "./registry";
 
 interface Props {
-  attorneyName?: string
-  clientLabel?: string
-  personalNote?: string
-  acceptUrl?: string
-  expiresLabel?: string
-  caseLabel?: string | null
+  attorneyName?: string;
+  clientLabel?: string;
+  personalNote?: string;
+  acceptUrl?: string;
+  expiresLabel?: string;
+  caseLabel?: string | null;
 }
 
 const Email = ({
   attorneyName,
-  clientLabel = 'A PatternProof client',
+  clientLabel = "A PatternProof client",
   personalNote,
-  acceptUrl = 'https://pattern-proof.tech',
-  expiresLabel = '30 days',
+  acceptUrl = "https://pattern-proof.tech",
+  expiresLabel = "30 days",
   caseLabel,
 }: Props) => (
   <Html lang="en" dir="ltr">
@@ -37,12 +37,12 @@ const Email = ({
       <Container style={container}>
         <Text style={eyebrow}>PATTERNPROOF · SECURE CLIENT ACCESS</Text>
         <Heading style={h1}>
-          {attorneyName ? `${attorneyName}, a` : 'A'} client has shared their case record with you
+          {attorneyName ? `${attorneyName}, a` : "A"} client has shared their case record with you
         </Heading>
         <Text style={p}>
           {clientLabel} has granted you read-only access to their documented record
-          {caseLabel ? ` for ${caseLabel}` : ''} — a source-linked chronology of incidents and
-          the underlying evidence files.
+          {caseLabel ? ` for ${caseLabel}` : ""} — a source-linked chronology of incidents and the
+          underlying evidence files.
         </Text>
 
         {personalNote ? (
@@ -52,7 +52,7 @@ const Email = ({
           </Section>
         ) : null}
 
-        <Section style={{ margin: '24px 0' }}>
+        <Section style={{ margin: "24px 0" }}>
           <Link href={acceptUrl} style={button}>
             Open the secure access link
           </Link>
@@ -78,31 +78,64 @@ const Email = ({
       </Container>
     </Body>
   </Html>
-)
+);
 
 export const template = {
   component: Email,
-  subject: 'A client has shared their case record with you',
-  displayName: 'Attorney access invitation',
+  subject: "A client has shared their case record with you",
+  displayName: "Attorney access invitation",
   previewData: {
-    attorneyName: 'Dana Whitfield',
-    clientLabel: 'Your client',
-    personalNote: 'Here is everything I have documented so far. Thank you.',
-    acceptUrl: 'https://pattern-proof.tech/accept-invite/example-token',
-    expiresLabel: '30 days',
-    caseLabel: 'Custody matter',
+    attorneyName: "Dana Whitfield",
+    clientLabel: "Your client",
+    personalNote: "Here is everything I have documented so far. Thank you.",
+    acceptUrl: "https://pattern-proof.tech/accept-invite/example-token",
+    expiresLabel: "30 days",
+    caseLabel: "Custody matter",
   },
-} satisfies TemplateEntry
+} satisfies TemplateEntry;
 
-const main = { backgroundColor: '#ffffff', fontFamily: '"Space Grotesk", Helvetica, Arial, sans-serif' }
-const container = { padding: '28px 26px', maxWidth: '560px' }
-const eyebrow = { fontFamily: '"Space Grotesk", monospace', fontSize: '11px', letterSpacing: '0.08em', color: '#4132B4', margin: '0 0 10px' }
-const h1 = { fontSize: '22px', lineHeight: '1.3', color: '#1A1224', margin: '0 0 14px' }
-const p = { fontSize: '15px', lineHeight: '1.6', color: '#2A2735', margin: '0 0 12px' }
-const note = { background: '#FAF8F4', borderLeft: '3px solid #4132B4', borderRadius: '4px', padding: '14px 16px', margin: '18px 0' }
-const noteLabel = { fontFamily: '"Space Grotesk", monospace', fontSize: '11px', color: '#6B6779', margin: '0 0 6px', letterSpacing: '0.06em' }
-const noteBody = { fontSize: '14px', lineHeight: '1.6', color: '#2A2735', margin: 0 }
-const button = { background: '#022063', color: '#ffffff', padding: '12px 20px', borderRadius: '6px', fontSize: '15px', textDecoration: 'none', display: 'inline-block' }
-const small = { fontSize: '12px', lineHeight: '1.6', color: '#6B6779', margin: '0 0 8px' }
-const mono = { fontFamily: '"Space Grotesk", monospace', wordBreak: 'break-all' as const, color: '#022063' }
-const hr = { borderColor: '#E4E0D8', margin: '20px 0' }
+const main = {
+  backgroundColor: "#ffffff",
+  fontFamily: '"Space Grotesk", Helvetica, Arial, sans-serif',
+};
+const container = { padding: "28px 26px", maxWidth: "560px" };
+const eyebrow = {
+  fontFamily: '"Space Grotesk", monospace',
+  fontSize: "11px",
+  letterSpacing: "0.08em",
+  color: "#4132B4",
+  margin: "0 0 10px",
+};
+const h1 = { fontSize: "22px", lineHeight: "1.3", color: "#1A1224", margin: "0 0 14px" };
+const p = { fontSize: "15px", lineHeight: "1.6", color: "#2A2735", margin: "0 0 12px" };
+const note = {
+  background: "#FAF8F4",
+  borderLeft: "3px solid #4132B4",
+  borderRadius: "4px",
+  padding: "14px 16px",
+  margin: "18px 0",
+};
+const noteLabel = {
+  fontFamily: '"Space Grotesk", monospace',
+  fontSize: "11px",
+  color: "#6B6779",
+  margin: "0 0 6px",
+  letterSpacing: "0.06em",
+};
+const noteBody = { fontSize: "14px", lineHeight: "1.6", color: "#2A2735", margin: 0 };
+const button = {
+  background: "#022063",
+  color: "#ffffff",
+  padding: "12px 20px",
+  borderRadius: "6px",
+  fontSize: "15px",
+  textDecoration: "none",
+  display: "inline-block",
+};
+const small = { fontSize: "12px", lineHeight: "1.6", color: "#6B6779", margin: "0 0 8px" };
+const mono = {
+  fontFamily: '"Space Grotesk", monospace',
+  wordBreak: "break-all" as const,
+  color: "#022063",
+};
+const hr = { borderColor: "#E4E0D8", margin: "20px 0" };

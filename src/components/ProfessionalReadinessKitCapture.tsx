@@ -102,7 +102,8 @@ export function ProfessionalReadinessKitCapture() {
 
         {status === "sent" ? (
           <div role="status" style={{ lineHeight: 1.6 }}>
-            <strong>Request received.</strong> Check {email} for the kit. If delivery is delayed, your request is still saved.
+            <strong>Request received.</strong> Check {email} for the kit. If delivery is delayed,
+            your request is still saved.
           </div>
         ) : (
           <form onSubmit={onSubmit} style={{ display: "grid", gap: 14 }}>
@@ -130,7 +131,10 @@ export function ProfessionalReadinessKitCapture() {
               />
             </label>
             <label style={labelStyle}>
-              Phone <span style={{ color: "var(--pp-muted)", fontWeight: 400 }}>(optional, for scheduling a walkthrough)</span>
+              Phone{" "}
+              <span style={{ color: "var(--pp-muted)", fontWeight: 400 }}>
+                (optional, for scheduling a walkthrough)
+              </span>
               <input
                 type="tel"
                 maxLength={40}
@@ -150,11 +154,13 @@ export function ProfessionalReadinessKitCapture() {
             </button>
             {status === "error" && (
               <p role="alert" style={{ margin: 0, color: "var(--pp-muted)", fontSize: 13 }}>
-                We couldn't send the kit right now. Your information was not added to a marketing list; try again in a moment.
+                We couldn't send the kit right now. Your information was not added to a marketing
+                list; try again in a moment.
               </p>
             )}
             <p style={{ margin: 0, color: "var(--pp-muted)", fontSize: 12.5, lineHeight: 1.55 }}>
-              One-time resource delivery only. No pre-checked marketing consent and no automatic newsletter enrollment. Phone is optional.
+              One-time resource delivery only. No pre-checked marketing consent and no automatic
+              newsletter enrollment. Phone is optional.
             </p>
           </form>
         )}

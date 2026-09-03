@@ -28,21 +28,24 @@ export const openIntakeBatch = createServerFn({ method: "POST" })
       .insert({ user_id: context.userId, note: data.note ?? null })
       .select("id")
       .single();
-    if (res.error || !res.data) throw new Error("We couldn't start this batch. Try again in a moment.");
+    if (res.error || !res.data)
+      throw new Error("We couldn't start this batch. Try again in a moment.");
     return { batchId: res.data.id as string };
   });
 
 export const updateIntakeBatch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: {
-    batchId: string;
-    status?: "in_progress" | "complete" | "abandoned";
-    kindCounts?: Record<string, number>;
-    queuedFiles?: Array<{ name: string; bytes: number; mime: string }>;
-  }) => {
-    if (!input?.batchId) throw new Error("Missing batch");
-    return input;
-  })
+  .inputValidator(
+    (input: {
+      batchId: string;
+      status?: "in_progress" | "complete" | "abandoned";
+      kindCounts?: Record<string, number>;
+      queuedFiles?: Array<{ name: string; bytes: number; mime: string }>;
+    }) => {
+      if (!input?.batchId) throw new Error("Missing batch");
+      return input;
+    },
+  )
   .handler(async ({ data, context }) => {
     const patch: {
       status?: string;

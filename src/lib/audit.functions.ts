@@ -6,11 +6,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const logAudit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      action_type: z.string().min(1).max(80),
-      record_reference: z.string().max(200).optional(),
-      actor: z.string().max(80).optional(),
-    }).parse(input),
+    z
+      .object({
+        action_type: z.string().min(1).max(80),
+        record_reference: z.string().max(200).optional(),
+        actor: z.string().max(80).optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;

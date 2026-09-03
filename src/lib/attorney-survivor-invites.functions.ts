@@ -7,12 +7,14 @@ import { z } from "zod";
 export const createSurvivorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      survivor_email: z.string().email().max(255),
-      survivor_name: z.string().trim().max(120).optional().nullable(),
-      personal_note: z.string().trim().max(2000).optional().nullable(),
-      expires_days: z.number().int().min(1).max(365).default(30),
-    }).parse(input),
+    z
+      .object({
+        survivor_email: z.string().email().max(255),
+        survivor_name: z.string().trim().max(120).optional().nullable(),
+        personal_note: z.string().trim().max(2000).optional().nullable(),
+        expires_days: z.number().int().min(1).max(365).default(30),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -40,16 +42,23 @@ export const createSurvivorInvite = createServerFn({ method: "POST" })
 export const createSurvivorInvitesBulk = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      rows: z.array(z.object({
-        // Keep this outer schema permissive so bad rows can be reported in the
-        // per-row results instead of failing the whole batch before processing.
-        survivor_email: z.string(),
-        survivor_name: z.string().optional().nullable(),
-        personal_note: z.string().optional().nullable(),
-      })).min(1).max(100),
-      expires_days: z.number().int().min(1).max(365).default(30),
-    }).parse(input),
+    z
+      .object({
+        rows: z
+          .array(
+            z.object({
+              // Keep this outer schema permissive so bad rows can be reported in the
+              // per-row results instead of failing the whole batch before processing.
+              survivor_email: z.string(),
+              survivor_name: z.string().optional().nullable(),
+              personal_note: z.string().optional().nullable(),
+            }),
+          )
+          .min(1)
+          .max(100),
+        expires_days: z.number().int().min(1).max(365).default(30),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -141,7 +150,9 @@ export const listSurvivorInvites = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("attorney_survivor_invites")
-      .select("id,survivor_email,survivor_name,personal_note,invite_token,status,expires_at,accepted_at,created_at")
+      .select(
+        "id,survivor_email,survivor_name,personal_note,invite_token,status,expires_at,accepted_at,created_at",
+      )
       .eq("attorney_user_id", context.userId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -173,10 +184,12 @@ export const revokeSurvivorInvite = createServerFn({ method: "POST" })
 export const resendSurvivorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      id: z.string().uuid(),
-      expires_days: z.number().int().min(1).max(365).default(30),
-    }).parse(input),
+    z
+      .object({
+        id: z.string().uuid(),
+        expires_days: z.number().int().min(1).max(365).default(30),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -203,7 +216,8 @@ export const peekSurvivorInvite = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!inv) return { status: "not-found" as const };
     if (inv.status !== "pending") return { status: inv.status as "accepted" | "revoked" };
-    if (inv.expires_at && new Date(inv.expires_at) < new Date()) return { status: "expired" as const };
+    if (inv.expires_at && new Date(inv.expires_at) < new Date())
+      return { status: "expired" as const };
     const { data: prof } = await supabaseAdmin
       .from("attorney_profiles")
       .select("full_name,firm_name")
@@ -225,16 +239,20 @@ export const peekSurvivorInvite = createServerFn({ method: "POST" })
 export const acceptSurvivorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      token: z.string().min(8).max(128),
-      scope: z.object({
-        include_all_incidents: z.boolean(),
-        include_all_evidence: z.boolean(),
-        include_patterns: z.boolean(),
-        scope_incidents: z.array(z.string().uuid()).max(2000).optional().default([]),
-        scope_evidence: z.array(z.string().uuid()).max(2000).optional().default([]),
-      }).optional(),
-    }).parse(input),
+    z
+      .object({
+        token: z.string().min(8).max(128),
+        scope: z
+          .object({
+            include_all_incidents: z.boolean(),
+            include_all_evidence: z.boolean(),
+            include_patterns: z.boolean(),
+            scope_incidents: z.array(z.string().uuid()).max(2000).optional().default([]),
+            scope_evidence: z.array(z.string().uuid()).max(2000).optional().default([]),
+          })
+          .optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -297,7 +315,8 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
       .from("attorney_client_links")
       .insert(linkPayload);
     if (linkErr) {
-      if (!String(linkErr.message).toLowerCase().includes("duplicate")) throw new Error(linkErr.message);
+      if (!String(linkErr.message).toLowerCase().includes("duplicate"))
+        throw new Error(linkErr.message);
       const { error: updateErr } = await supabaseAdmin
         .from("attorney_client_links")
         .update({
@@ -315,7 +334,11 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
 
     await supabaseAdmin
       .from("attorney_survivor_invites")
-      .update({ status: "accepted", accepted_at: new Date().toISOString(), accepted_by: context.userId })
+      .update({
+        status: "accepted",
+        accepted_at: new Date().toISOString(),
+        accepted_by: context.userId,
+      })
       .eq("id", inv.id);
 
     return { ok: true };

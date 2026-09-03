@@ -92,9 +92,7 @@ function SurvivorFeedbackPage() {
           >
             <Check size={16} /> Thank you
           </div>
-          <h1
-            style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px", color: "var(--pp-ink)" }}
-          >
+          <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px", color: "var(--pp-ink)" }}>
             Received. Every word you shared helps.
           </h1>
           <p style={{ color: "var(--pp-muted)", lineHeight: 1.6, marginBottom: 24 }}>

@@ -55,14 +55,21 @@ Then follow their lead.`;
 export const sidekickChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      messages: z.array(z.object({
-        role: z.enum(["user", "assistant"]),
-        content: z.string().min(1).max(8000),
-      })).min(1).max(40),
-      page: z.string().max(40),
-      recentIncidents: z.array(z.string().max(500)).max(3).optional(),
-    }).parse(input),
+    z
+      .object({
+        messages: z
+          .array(
+            z.object({
+              role: z.enum(["user", "assistant"]),
+              content: z.string().min(1).max(8000),
+            }),
+          )
+          .min(1)
+          .max(40),
+        page: z.string().max(40),
+        recentIncidents: z.array(z.string().max(500)).max(3).optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const key = process.env.LOVABLE_API_KEY;
@@ -114,7 +121,8 @@ export const sidekickChat = createServerFn({ method: "POST" })
     if (!res.ok) {
       return { reply: "I couldn't respond just now. Try again in a moment." };
     }
-    const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
-    const reply = json.choices?.[0]?.message?.content?.trim() || "I'm here. Tell me what's on your mind.";
+    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const reply =
+      json.choices?.[0]?.message?.content?.trim() || "I'm here. Tell me what's on your mind.";
     return { reply };
   });

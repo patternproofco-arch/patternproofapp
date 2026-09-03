@@ -27,7 +27,6 @@ function OrgSignup() {
   const navigate = useNavigate();
   const createOrg = useServerFn(setMyOrg);
 
-  const [mode, setMode] = useState<"login" | "signup">("signup");
   const [step, setStep] = useState<"auth" | "profile">("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,24 +36,15 @@ function OrgSignup() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user && step === "auth") setStep("profile");
-  }, [user, loading, step]);
+    if (!loading && user && step === "auth") navigate({ to: "/org-portal", replace: true });
+  }, [user, loading, step, navigate]);
 
   const auth = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin + "/org-signup" },
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
     } catch (err) {
       toast(err instanceof Error ? err.message : "Try again in a moment.");
     } finally {
@@ -98,9 +88,10 @@ function OrgSignup() {
 
         {step === "auth" ? (
           <div className="card-pp">
-            <h2 className="font-serif text-[20px]">
-              {mode === "signup" ? "Create your organization account" : "Sign in"}
-            </h2>
+            <h2 className="font-serif text-[20px]">Partner sign in</h2>
+            <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              New partner accounts are invitation only while organization verification is completed.
+            </p>
             <form onSubmit={auth} className="mt-4 space-y-3">
               <input
                 className="input-pp"
@@ -120,40 +111,9 @@ function OrgSignup() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button className="btn-primary w-full" disabled={busy}>
-                {busy ? "One moment…" : mode === "signup" ? "Create account" : "Sign in"}
+                {busy ? "One moment…" : "Sign in"}
               </button>
-              {mode === "signup" && (
-                <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                  By creating an account you agree to the{" "}
-                  <a
-                    href="/terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: "var(--accent)", textDecoration: "underline" }}
-                  >
-                    Terms of Service
-                  </a>{" "}
-                  and{" "}
-                  <a
-                    href="/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: "var(--accent)", textDecoration: "underline" }}
-                  >
-                    Privacy Policy
-                  </a>
-                  .
-                </p>
-              )}
             </form>
-            <button
-              type="button"
-              onClick={() => setMode(mode === "signup" ? "login" : "signup")}
-              className="mt-4 w-full text-center text-[13px]"
-              style={{ color: "var(--accent)" }}
-            >
-              {mode === "signup" ? "I already have an account" : "Create a new account"}
-            </button>
           </div>
         ) : (
           <div className="card-pp">

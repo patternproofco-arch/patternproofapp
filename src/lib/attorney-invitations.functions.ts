@@ -17,25 +17,27 @@ async function verifiedAccountEmail(userId: string) {
 export const createInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      attorney_email: z.string().email().max(255),
-      attorney_name: z.string().trim().max(120).optional(),
-      firm_name: z.string().trim().max(200).optional(),
-      personal_note: z.string().trim().max(2000).optional(),
-      date_range_start: z.string().optional().nullable(),
-      date_range_end: z.string().optional().nullable(),
-      include_all_incidents: z.boolean().default(true),
-      include_all_evidence: z.boolean().default(true),
-      include_patterns: z.boolean().default(true),
-      // Voice notes, communications, and legal documents default to false —
-      // sharing them requires explicit opt-in, unlike the three categories
-      // above which predate this consent model.
-      include_voice_notes: z.boolean().default(false),
-      include_communications: z.boolean().default(false),
-      include_legal_documents: z.boolean().default(false),
-      expires_days: z.number().int().min(1).max(365).default(30),
-      case_id: z.string().uuid().optional().nullable(),
-    }).parse(input),
+    z
+      .object({
+        attorney_email: z.string().email().max(255),
+        attorney_name: z.string().trim().max(120).optional(),
+        firm_name: z.string().trim().max(200).optional(),
+        personal_note: z.string().trim().max(2000).optional(),
+        date_range_start: z.string().optional().nullable(),
+        date_range_end: z.string().optional().nullable(),
+        include_all_incidents: z.boolean().default(true),
+        include_all_evidence: z.boolean().default(true),
+        include_patterns: z.boolean().default(true),
+        // Voice notes, communications, and legal documents default to false —
+        // sharing them requires explicit opt-in, unlike the three categories
+        // above which predate this consent model.
+        include_voice_notes: z.boolean().default(false),
+        include_communications: z.boolean().default(false),
+        include_legal_documents: z.boolean().default(false),
+        expires_days: z.number().int().min(1).max(365).default(30),
+        case_id: z.string().uuid().optional().nullable(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -89,20 +91,34 @@ export const listMyInvitations = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     const { data: links } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id,attorney_user_id,invitation_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,deposition_prep_consent,deposition_prep_consent_at,clio_share_consent,clio_share_consent_at,case_id")
+      .select(
+        "id,attorney_user_id,invitation_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,deposition_prep_consent,deposition_prep_consent_at,clio_share_consent,clio_share_consent_at,case_id",
+      )
       .eq("client_user_id", context.userId)
       .order("created_at", { ascending: false });
     const attorneyIds = (links ?? []).map((l) => l.attorney_user_id);
     const { data: profiles } = attorneyIds.length
-      ? await supabaseAdmin.from("attorney_profiles").select("user_id,full_name,firm_name,email").in("user_id", attorneyIds)
-      : { data: [] as Array<{ user_id: string; full_name: string; firm_name: string | null; email: string }> };
+      ? await supabaseAdmin
+          .from("attorney_profiles")
+          .select("user_id,full_name,firm_name,email")
+          .in("user_id", attorneyIds)
+      : {
+          data: [] as Array<{
+            user_id: string;
+            full_name: string;
+            firm_name: string | null;
+            email: string;
+          }>,
+        };
     const profMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
     // Enrich with case labels so the UI can show "shared: <case name>" per link
     // and per pending invitation. Missing case_id means "all cases" (legacy).
-    const caseIds = Array.from(new Set([
-      ...(links ?? []).map((l) => l.case_id).filter((v): v is string => !!v),
-      ...(invitations ?? []).map((i) => i.case_id).filter((v): v is string => !!v),
-    ]));
+    const caseIds = Array.from(
+      new Set([
+        ...(links ?? []).map((l) => l.case_id).filter((v): v is string => !!v),
+        ...(invitations ?? []).map((i) => i.case_id).filter((v): v is string => !!v),
+      ]),
+    );
     const { data: cases } = caseIds.length
       ? await supabaseAdmin.from("cases").select("id,case_name,other_party").in("id", caseIds)
       : { data: [] as Array<{ id: string; case_name: string | null; other_party: string | null }> };
@@ -174,12 +190,15 @@ export const peekInvitation = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: inv } = await supabaseAdmin
       .from("attorney_invitations")
-      .select("id,attorney_email,attorney_name,status,expires_at,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,case_id")
+      .select(
+        "id,attorney_email,attorney_name,status,expires_at,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,case_id",
+      )
       .eq("invite_token", data.token)
       .maybeSingle();
     if (!inv) return { status: "not-found" as const };
     if (inv.status !== "pending") return { status: inv.status as "accepted" | "revoked" };
-    if (inv.expires_at && new Date(inv.expires_at) < new Date()) return { status: "expired" as const };
+    if (inv.expires_at && new Date(inv.expires_at) < new Date())
+      return { status: "expired" as const };
     let case_label: string | null = null;
     if (inv.case_id) {
       const { data: c } = await supabaseAdmin
@@ -204,7 +223,8 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!inv) throw new Error("Invitation not found");
     if (inv.status !== "pending") throw new Error("Invitation no longer valid");
-    if (inv.expires_at && new Date(inv.expires_at) < new Date()) throw new Error("Invitation expired");
+    if (inv.expires_at && new Date(inv.expires_at) < new Date())
+      throw new Error("Invitation expired");
 
     // Verify the authenticated user's email matches the invitation's
     // attorney_email AND that this account's email is actually confirmed —
@@ -217,10 +237,9 @@ export const acceptInvitation = createServerFn({ method: "POST" })
     }
 
     // Ensure attorney role
-    await supabaseAdmin.from("user_roles").upsert(
-      { user_id: context.userId, role: "attorney" },
-      { onConflict: "user_id,role" },
-    );
+    await supabaseAdmin
+      .from("user_roles")
+      .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
 
     // Create link
     const { data: link, error: linkErr } = await supabaseAdmin
@@ -247,7 +266,11 @@ export const acceptInvitation = createServerFn({ method: "POST" })
 
     await supabaseAdmin
       .from("attorney_invitations")
-      .update({ status: "accepted", accepted_at: new Date().toISOString(), accepted_by: context.userId })
+      .update({
+        status: "accepted",
+        accepted_at: new Date().toISOString(),
+        accepted_by: context.userId,
+      })
       .eq("id", inv.id);
 
     return { ok: true, link };

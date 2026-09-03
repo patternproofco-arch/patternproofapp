@@ -9,7 +9,10 @@ import { z } from "zod";
  * on the case. Enforced by RLS + the assertion below.
  */
 
-async function assertLinkAccess(userId: string, clientId: string): Promise<{ linkId: string; isOwner: boolean }> {
+async function assertLinkAccess(
+  userId: string,
+  clientId: string,
+): Promise<{ linkId: string; isOwner: boolean }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: owner } = await supabaseAdmin
     .from("attorney_client_links")
@@ -21,8 +24,16 @@ async function assertLinkAccess(userId: string, clientId: string): Promise<{ lin
   if (owner) return { linkId: owner.id, isOwner: true };
 
   const [{ data: collabs }, { data: grants }] = await Promise.all([
-    supabaseAdmin.from("case_collaborators").select("link_id").eq("collaborator_user_id", userId).eq("status", "active"),
-    supabaseAdmin.from("case_grants").select("client_link_id").eq("attorney_user_id", userId).is("revoked_at", null),
+    supabaseAdmin
+      .from("case_collaborators")
+      .select("link_id")
+      .eq("collaborator_user_id", userId)
+      .eq("status", "active"),
+    supabaseAdmin
+      .from("case_grants")
+      .select("client_link_id")
+      .eq("attorney_user_id", userId)
+      .is("revoked_at", null),
   ]);
   const ids = [
     ...(collabs ?? []).map((r) => r.link_id),
@@ -49,27 +60,39 @@ export const listTimeEntries = createServerFn({ method: "POST" })
     // Owners see everything on the case; contributors see only their own entries.
     let q = supabaseAdmin
       .from("time_entries")
-      .select("id,case_link_id,attorney_user_id,description,minutes,billable,entry_date,created_at,updated_at")
+      .select(
+        "id,case_link_id,attorney_user_id,description,minutes,billable,entry_date,created_at,updated_at",
+      )
       .eq("case_link_id", linkId);
     if (!isOwner) q = q.eq("attorney_user_id", context.userId);
-    const { data: rows, error } = await q.order("entry_date", { ascending: false }).order("created_at", { ascending: false });
+    const { data: rows, error } = await q
+      .order("entry_date", { ascending: false })
+      .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     const entries = rows ?? [];
     const total_minutes = entries.reduce((s, r) => s + (r.minutes ?? 0), 0);
-    const billable_minutes = entries.filter((r) => r.billable).reduce((s, r) => s + (r.minutes ?? 0), 0);
+    const billable_minutes = entries
+      .filter((r) => r.billable)
+      .reduce((s, r) => s + (r.minutes ?? 0), 0);
     return { entries, total_minutes, billable_minutes, is_owner: isOwner, link_id: linkId };
   });
 
 export const createTimeEntry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      clientId: z.string().uuid(),
-      description: z.string().trim().min(1).max(500),
-      minutes: z.number().int().min(1).max(24 * 60),
-      billable: z.boolean(),
-      entry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    }).parse(input),
+    z
+      .object({
+        clientId: z.string().uuid(),
+        description: z.string().trim().min(1).max(500),
+        minutes: z
+          .number()
+          .int()
+          .min(1)
+          .max(24 * 60),
+        billable: z.boolean(),
+        entry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { linkId } = await assertLinkAccess(context.userId, data.clientId);
@@ -84,7 +107,9 @@ export const createTimeEntry = createServerFn({ method: "POST" })
         billable: data.billable,
         entry_date: data.entry_date,
       })
-      .select("id,case_link_id,attorney_user_id,description,minutes,billable,entry_date,created_at,updated_at")
+      .select(
+        "id,case_link_id,attorney_user_id,description,minutes,billable,entry_date,created_at,updated_at",
+      )
       .single();
     if (error) throw new Error(error.message);
     return { entry: row };
@@ -93,13 +118,23 @@ export const createTimeEntry = createServerFn({ method: "POST" })
 export const updateTimeEntry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      id: z.string().uuid(),
-      description: z.string().trim().min(1).max(500).optional(),
-      minutes: z.number().int().min(1).max(24 * 60).optional(),
-      billable: z.boolean().optional(),
-      entry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    }).parse(input),
+    z
+      .object({
+        id: z.string().uuid(),
+        description: z.string().trim().min(1).max(500).optional(),
+        minutes: z
+          .number()
+          .int()
+          .min(1)
+          .max(24 * 60)
+          .optional(),
+        billable: z.boolean().optional(),
+        entry_date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -153,26 +188,40 @@ export const listMyAttorneyBilling = createServerFn({ method: "GET" })
     if (linksErr) throw new Error(linksErr.message);
     const linkList = links ?? [];
     if (linkList.length === 0) {
-      return { attorneys: [] as Array<{
-        link_id: string;
-        primary_attorney: { user_id: string; full_name: string | null; firm_name: string | null; email: string | null } | null;
-        total_minutes: number;
-        billable_minutes: number;
-        non_billable_minutes: number;
-        entries: Array<{ id: string; entry_date: string; minutes: number; billable: boolean; description: string; author_name: string | null }>;
-      }> };
+      return {
+        attorneys: [] as Array<{
+          link_id: string;
+          primary_attorney: {
+            user_id: string;
+            full_name: string | null;
+            firm_name: string | null;
+            email: string | null;
+          } | null;
+          total_minutes: number;
+          billable_minutes: number;
+          non_billable_minutes: number;
+          entries: Array<{
+            id: string;
+            entry_date: string;
+            minutes: number;
+            billable: boolean;
+            description: string;
+            author_name: string | null;
+          }>;
+        }>,
+      };
     }
     const linkIds = linkList.map((l) => l.id);
     const [{ data: entries, error: entriesErr }, { data: profiles }] = await Promise.all([
       supabaseAdmin
         .from("time_entries")
-        .select("id,case_link_id,attorney_user_id,description,minutes,billable,entry_date,created_at")
+        .select(
+          "id,case_link_id,attorney_user_id,description,minutes,billable,entry_date,created_at",
+        )
         .in("case_link_id", linkIds)
         .order("entry_date", { ascending: false })
         .order("created_at", { ascending: false }),
-      supabaseAdmin
-        .from("attorney_profiles")
-        .select("user_id,full_name,firm_name,email"),
+      supabaseAdmin.from("attorney_profiles").select("user_id,full_name,firm_name,email"),
     ]);
     if (entriesErr) throw new Error(entriesErr.message);
     const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
@@ -185,7 +234,12 @@ export const listMyAttorneyBilling = createServerFn({ method: "GET" })
         return {
           link_id: l.id,
           primary_attorney: primary
-            ? { user_id: primary.user_id, full_name: primary.full_name, firm_name: primary.firm_name, email: primary.email }
+            ? {
+                user_id: primary.user_id,
+                full_name: primary.full_name,
+                firm_name: primary.firm_name,
+                email: primary.email,
+              }
             : { user_id: l.attorney_user_id, full_name: null, firm_name: null, email: null },
           total_minutes: total,
           billable_minutes: billable,

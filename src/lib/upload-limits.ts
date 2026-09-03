@@ -35,7 +35,11 @@ export function uploadKindFor(mimeOrName: string): UploadKind {
  * Returns null when the file is fine, or a calm, specific message when it isn't.
  * Message copy is deliberately non-alarming and tells the survivor what to do.
  */
-export function checkUploadSize(file: { name: string; size: number; type?: string }): string | null {
+export function checkUploadSize(file: {
+  name: string;
+  size: number;
+  type?: string;
+}): string | null {
   const kind = uploadKindFor(file.type || file.name);
   const limit = UPLOAD_LIMITS[kind];
   if (file.size <= limit) return null;

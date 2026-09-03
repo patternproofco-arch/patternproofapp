@@ -181,7 +181,7 @@ function JournalPage() {
     if (!user || attachments.length === 0) return null;
     let ok = 0;
     for (const f of attachments) {
-      const key = `${user.id}/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]/g, "_")}`;
+      const key = `${user.id}/${crypto.randomUUID()}-${f.name.replace(/[^\w.-]/g, "_")}`;
       const { error: upErr } = await supabase.storage.from("evidence-files").upload(key, f);
       if (upErr) continue;
       const { error: rowErr } = await supabase.from("evidence").insert({

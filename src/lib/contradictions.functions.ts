@@ -51,10 +51,9 @@ function formatTime12(t: string): string {
  *    normalizeName() (exact mismatch — no fuzzy threshold).
  */
 export function detectContradictions(rows: ContradictionInput[]): ContradictionPair[] {
-  const eligible = rows.filter((r) =>
-    r.date &&
-    r.date_precision === "exact" &&
-    !(r.source === "ai_extracted" && !r.confirmed_at),
+  const eligible = rows.filter(
+    (r) =>
+      r.date && r.date_precision === "exact" && !(r.source === "ai_extracted" && !r.confirmed_at),
   );
   const byDate = new Map<string, ContradictionInput[]>();
   for (const r of eligible) {

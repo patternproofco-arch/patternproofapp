@@ -1,4 +1,12 @@
-import { MessageCircle, Phone, Mail, Voicemail, Share2, Users, type LucideIcon } from "lucide-react";
+import {
+  MessageCircle,
+  Phone,
+  Mail,
+  Voicemail,
+  Share2,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
 export type Channel = "text" | "call" | "email" | "voicemail" | "social" | "in_person" | "other";
 export type Direction = "incoming" | "outgoing" | "missed";

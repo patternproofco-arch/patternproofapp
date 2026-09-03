@@ -22,21 +22,27 @@ async function writeAudit(supabase: Sb, userId: string, action: string, ref: str
       record_reference: ref,
       timestamp_utc: new Date().toISOString(),
     });
-  } catch { /* audit must never block the survivor's work */ }
+  } catch {
+    /* audit must never block the survivor's work */
+  }
 }
 
 /** Creates (or resumes) a draft import thread. */
 export const startMessageImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({
-    participant: z.string().max(200).optional(),
-    notes: z.string().max(500).optional(),
-    captureMethod: z.enum(["multi_screenshot", "screen_recording"]).default("multi_screenshot"),
-    /** Storage path of the original recording, when this import came from video. */
-    videoPath: z.string().max(500).optional(),
-    videoDurationSec: z.number().int().min(0).optional(),
-    frameIntervalSec: z.number().min(0.1).max(30).optional(),
-  }).parse(i))
+  .inputValidator((i) =>
+    z
+      .object({
+        participant: z.string().max(200).optional(),
+        notes: z.string().max(500).optional(),
+        captureMethod: z.enum(["multi_screenshot", "screen_recording"]).default("multi_screenshot"),
+        /** Storage path of the original recording, when this import came from video. */
+        videoPath: z.string().max(500).optional(),
+        videoDurationSec: z.number().int().min(0).optional(),
+        frameIntervalSec: z.number().min(0.1).max(30).optional(),
+      })
+      .parse(i),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const isVideo = data.captureMethod === "screen_recording";
@@ -69,16 +75,20 @@ export const startMessageImport = createServerFn({ method: "POST" })
 /** Records one uploaded screenshot. Called before its OCR result is saved. */
 export const addSourceDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({
-    threadId: z.string().uuid(),
-    storagePath: z.string().min(1).max(500),
-    originalFilename: z.string().max(260).optional(),
-    uploadIndex: z.number().int().min(0).max(500),
-    bytes: z.number().int().min(0).optional(),
-    mime: z.string().max(120).optional(),
-    kind: z.enum(["screenshot", "video_frame"]).default("screenshot"),
-    frameTimeSec: z.number().min(0).optional(),
-  }).parse(i))
+  .inputValidator((i) =>
+    z
+      .object({
+        threadId: z.string().uuid(),
+        storagePath: z.string().min(1).max(500),
+        originalFilename: z.string().max(260).optional(),
+        uploadIndex: z.number().int().min(0).max(500),
+        bytes: z.number().int().min(0).optional(),
+        mime: z.string().max(120).optional(),
+        kind: z.enum(["screenshot", "video_frame"]).default("screenshot"),
+        frameTimeSec: z.number().min(0).optional(),
+      })
+      .parse(i),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
@@ -119,13 +129,17 @@ const draftSchema = z.object({
  */
 export const saveExtractedMessages = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({
-    threadId: z.string().uuid(),
-    processedCount: z.number().int().min(0),
-    participant: z.string().max(200).nullable().optional(),
-    complete: z.boolean().default(false),
-    messages: z.array(draftSchema).max(4000),
-  }).parse(i))
+  .inputValidator((i) =>
+    z
+      .object({
+        threadId: z.string().uuid(),
+        processedCount: z.number().int().min(0),
+        participant: z.string().max(200).nullable().optional(),
+        complete: z.boolean().default(false),
+        messages: z.array(draftSchema).max(4000),
+      })
+      .parse(i),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -186,7 +200,8 @@ export const saveExtractedMessages = createServerFn({ method: "POST" })
     }));
     if (rows.length) {
       const { error } = await supabase.from("thread_messages").insert(rows);
-      if (error) throw new Error("We couldn't save those messages. Your screenshots are still stored.");
+      if (error)
+        throw new Error("We couldn't save those messages. Your screenshots are still stored.");
     }
 
     await supabase
@@ -204,18 +219,23 @@ export const saveExtractedMessages = createServerFn({ method: "POST" })
       .eq("id", data.threadId)
       .eq("user_id", userId);
 
-    if (data.complete) await writeAudit(supabase, userId, "message_import_completed", data.threadId);
+    if (data.complete)
+      await writeAudit(supabase, userId, "message_import_completed", data.threadId);
     return { saved: rows.length };
   });
 
 /** Corrections ADD a value — the original OCR guess is never overwritten. */
 export const correctMessageField = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({
-    messageId: z.string().uuid(),
-    field: fieldEnum,
-    value: z.string().max(8000).nullable(),
-  }).parse(i))
+  .inputValidator((i) =>
+    z
+      .object({
+        messageId: z.string().uuid(),
+        field: fieldEnum,
+        value: z.string().max(8000).nullable(),
+      })
+      .parse(i),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: msg, error: readErr } = await supabase
@@ -271,8 +291,16 @@ export const deleteMessageImport = createServerFn({ method: "POST" })
     if (paths.length) {
       await supabase.storage.from("evidence-files").remove(paths);
     }
-    await supabase.from("thread_messages").delete().eq("thread_id", data.threadId).eq("user_id", userId);
-    await supabase.from("thread_source_documents").delete().eq("thread_id", data.threadId).eq("user_id", userId);
+    await supabase
+      .from("thread_messages")
+      .delete()
+      .eq("thread_id", data.threadId)
+      .eq("user_id", userId);
+    await supabase
+      .from("thread_source_documents")
+      .delete()
+      .eq("thread_id", data.threadId)
+      .eq("user_id", userId);
     const { error } = await supabase
       .from("message_threads")
       .delete()

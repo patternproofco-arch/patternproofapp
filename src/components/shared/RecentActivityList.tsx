@@ -36,21 +36,50 @@ export function RecentActivityList({
   const t = portalTheme(variant);
   return (
     <section style={{ display: "grid", gap: 10 }}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
-        <h2 style={{ margin: 0, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: t.muted }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <h2
+          style={{
+            margin: 0,
+            fontSize: 11,
+            letterSpacing: "0.16em",
+            textTransform: "uppercase",
+            color: t.muted,
+          }}
+        >
           {title}
         </h2>
         {viewAll ? (
           <Link
             to={viewAll.to}
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12.5, color: t.accent, textDecoration: "none" }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              fontSize: 12.5,
+              color: t.accent,
+              textDecoration: "none",
+            }}
           >
             {viewAll.label} <ArrowRight size={13} />
           </Link>
         ) : null}
       </div>
 
-      <div style={{ border: `1px solid ${t.line}`, borderRadius: 14, background: t.card, overflow: "hidden" }}>
+      <div
+        style={{
+          border: `1px solid ${t.line}`,
+          borderRadius: 14,
+          background: t.card,
+          overflow: "hidden",
+        }}
+      >
         {rows === null ? (
           <div style={{ padding: 18, fontSize: 13, color: t.muted }}>{loadingMessage}</div>
         ) : rows.length === 0 ? (
@@ -75,10 +104,20 @@ export function RecentActivityList({
                 >
                   <Icon size={15} strokeWidth={1.8} />
                 </span>
-                <span style={{ fontSize: 13.5, lineHeight: 1.45, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
+                <span
+                  style={{
+                    fontSize: 13.5,
+                    lineHeight: 1.45,
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   {r.title}
                 </span>
-                <span style={{ fontSize: 12, color: t.muted, whiteSpace: "nowrap" }}>{r.timestamp}</span>
+                <span style={{ fontSize: 12, color: t.muted, whiteSpace: "nowrap" }}>
+                  {r.timestamp}
+                </span>
               </>
             );
             const style: React.CSSProperties = {

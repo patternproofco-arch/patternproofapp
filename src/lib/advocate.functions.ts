@@ -89,7 +89,9 @@ export const listMyAdvocateAccess = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     const { data: links } = await supabaseAdmin
       .from("advocate_client_links")
-      .select("id,advocate_user_id,invitation_id,created_at,status,revoked_at,include_all_incidents,include_all_evidence,include_patterns,case_id")
+      .select(
+        "id,advocate_user_id,invitation_id,created_at,status,revoked_at,include_all_incidents,include_all_evidence,include_patterns,case_id",
+      )
       .eq("client_user_id", context.userId)
       .order("created_at", { ascending: false });
 
@@ -99,7 +101,14 @@ export const listMyAdvocateAccess = createServerFn({ method: "GET" })
           .from("advocate_profiles")
           .select("user_id,full_name,org_name,email")
           .in("user_id", advocateIds)
-      : { data: [] as Array<{ user_id: string; full_name: string; org_name: string | null; email: string }> };
+      : {
+          data: [] as Array<{
+            user_id: string;
+            full_name: string;
+            org_name: string | null;
+            email: string;
+          }>,
+        };
     const profMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
 
     const caseIds = Array.from(
@@ -122,7 +131,9 @@ export const listMyAdvocateAccess = createServerFn({ method: "GET" })
     return {
       invitations: (invitations ?? []).map((i) => ({ ...i, case_label: labelFor(i.case_id) })),
       links: (links ?? []).map((l) => {
-        const inv = l.invitation_id ? (invitations ?? []).find((i) => i.id === l.invitation_id) : undefined;
+        const inv = l.invitation_id
+          ? (invitations ?? []).find((i) => i.id === l.invitation_id)
+          : undefined;
         return {
           ...l,
           profile: profMap.get(l.advocate_user_id) ?? null,
@@ -176,12 +187,15 @@ export const peekAdvocateInvitation = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: inv } = await supabaseAdmin
       .from("advocate_invitations")
-      .select("id,advocate_email,advocate_name,org_name,personal_note,status,expires_at,include_all_incidents,include_all_evidence,include_patterns,case_id")
+      .select(
+        "id,advocate_email,advocate_name,org_name,personal_note,status,expires_at,include_all_incidents,include_all_evidence,include_patterns,case_id",
+      )
       .eq("invite_token", data.token)
       .maybeSingle();
     if (!inv) return { status: "not-found" as const };
     if (inv.status !== "pending") return { status: inv.status as "accepted" | "revoked" };
-    if (inv.expires_at && new Date(inv.expires_at) < new Date()) return { status: "expired" as const };
+    if (inv.expires_at && new Date(inv.expires_at) < new Date())
+      return { status: "expired" as const };
     let case_label: string | null = null;
     if (inv.case_id) {
       const { data: c } = await supabaseAdmin
@@ -214,7 +228,8 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!inv) throw new Error("Invitation not found");
     if (inv.status !== "pending") throw new Error("Invitation no longer valid");
-    if (inv.expires_at && new Date(inv.expires_at) < new Date()) throw new Error("Invitation expired");
+    if (inv.expires_at && new Date(inv.expires_at) < new Date())
+      throw new Error("Invitation expired");
 
     // Verified (not just claimed) email, so a link that leaks to the wrong
     // inbox can't be redeemed by someone who never actually owns that address.
@@ -284,7 +299,11 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
 
     await supabaseAdmin
       .from("advocate_invitations")
-      .update({ status: "accepted", accepted_at: new Date().toISOString(), accepted_by: context.userId })
+      .update({
+        status: "accepted",
+        accepted_at: new Date().toISOString(),
+        accepted_by: context.userId,
+      })
       .eq("id", inv.id);
 
     await supabaseAdmin.rpc("record_audit_event", {
@@ -329,14 +348,26 @@ export const listAdvocateClients = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     const clientIds = (links ?? []).map((l) => l.client_user_id);
     const { data: cases } = clientIds.length
-      ? await supabaseAdmin.from("cases").select("id,user_id,case_name,other_party").in("user_id", clientIds)
-      : { data: [] as Array<{ id: string; user_id: string; case_name: string | null; other_party: string | null }> };
+      ? await supabaseAdmin
+          .from("cases")
+          .select("id,user_id,case_name,other_party")
+          .in("user_id", clientIds)
+      : {
+          data: [] as Array<{
+            id: string;
+            user_id: string;
+            case_name: string | null;
+            other_party: string | null;
+          }>,
+        };
     return {
       clients: (links ?? []).map((l) => {
-        const c = (cases ?? []).find((x) => (l.case_id ? x.id === l.case_id : x.user_id === l.client_user_id));
+        const c = (cases ?? []).find((x) =>
+          l.case_id ? x.id === l.case_id : x.user_id === l.client_user_id,
+        );
         return {
           ...l,
-          case_label: c ? (c.case_name?.trim() || c.other_party?.trim() || "Case") : null,
+          case_label: c ? c.case_name?.trim() || c.other_party?.trim() || "Case" : null,
         };
       }),
     };
@@ -350,7 +381,9 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: link } = await supabaseAdmin
       .from("advocate_client_links")
-      .select("id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,created_at,invitation_id,expires_at")
+      .select(
+        "id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,created_at,invitation_id,expires_at",
+      )
       .eq("advocate_user_id", context.userId)
       .eq("client_user_id", data.clientId)
       .maybeSingle();
@@ -396,21 +429,64 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
 
     const [incQ, evQ, patQ, caseQ] = await Promise.all([
       includeAllIncidents
-        ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
+        ? supabaseAdmin
+            .from("incidents")
+            .select("*")
+            .eq("user_id", data.clientId)
+            .is("deleted_at", null)
+            .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+            .order("date", { ascending: true })
         : scopedIncidents.length
-          ? supabaseAdmin.from("incidents").select("*").eq("user_id", data.clientId).in("id", scopedIncidents).is("deleted_at", null).or("source.neq.ai_extracted,confirmed_at.not.is.null").order("date", { ascending: true })
+          ? supabaseAdmin
+              .from("incidents")
+              .select("*")
+              .eq("user_id", data.clientId)
+              .in("id", scopedIncidents)
+              .is("deleted_at", null)
+              .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+              .order("date", { ascending: true })
           : Promise.resolve({ data: [] }),
       includeAllEvidence
-        ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).is("deleted_at", null).neq("review_status", "suggested").order("date", { ascending: true })
+        ? supabaseAdmin
+            .from("evidence")
+            .select("*")
+            .eq("user_id", data.clientId)
+            .is("deleted_at", null)
+            .neq("review_status", "suggested")
+            .order("date", { ascending: true })
         : scopedEvidence.length
-          ? supabaseAdmin.from("evidence").select("*").eq("user_id", data.clientId).in("id", scopedEvidence).is("deleted_at", null).neq("review_status", "suggested").order("date", { ascending: true })
+          ? supabaseAdmin
+              .from("evidence")
+              .select("*")
+              .eq("user_id", data.clientId)
+              .in("id", scopedEvidence)
+              .is("deleted_at", null)
+              .neq("review_status", "suggested")
+              .order("date", { ascending: true })
           : Promise.resolve({ data: [] }),
       link.include_patterns
-        ? supabaseAdmin.from("pattern_analyses").select("*").eq("user_id", data.clientId).order("created_at", { ascending: false }).limit(1).maybeSingle()
+        ? supabaseAdmin
+            .from("pattern_analyses")
+            .select("*")
+            .eq("user_id", data.clientId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
         : Promise.resolve({ data: null }),
       link.case_id
-        ? supabaseAdmin.from("cases").select("*").eq("id", link.case_id).eq("user_id", data.clientId).maybeSingle()
-        : supabaseAdmin.from("cases").select("*").eq("user_id", data.clientId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+        ? supabaseAdmin
+            .from("cases")
+            .select("*")
+            .eq("id", link.case_id)
+            .eq("user_id", data.clientId)
+            .maybeSingle()
+        : supabaseAdmin
+            .from("cases")
+            .select("*")
+            .eq("user_id", data.clientId)
+            .order("updated_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
     ]);
 
     // GPS stays quarantined — it never leaves the survivor's own view. File
@@ -427,10 +503,12 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
     // Pattern analysis is survivor-review gated before it leaves the survivor's
     // account: claims marked "rejected" (or still "unsure") are stripped out.
     const { buildPatternExport } = await import("@/lib/pattern-export");
-    const rawPattern = patQ.data as
+    const rawPattern = patQ.data as {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      | { analysis: any; reviewed_status?: any; created_at?: string }
-      | null;
+      analysis: any;
+      reviewed_status?: any;
+      created_at?: string;
+    } | null;
     // When this grant is case-scoped, also restrict pattern analysis to the
     // incidents actually granted — the analysis row is generated once per
     // account across ALL incidents, so without this an advocate given access
@@ -453,7 +531,11 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
           }
         : null;
 
-    let grant = { date_range_start: null as string | null, date_range_end: null as string | null, expires_at: null as string | null };
+    let grant = {
+      date_range_start: null as string | null,
+      date_range_end: null as string | null,
+      expires_at: null as string | null,
+    };
     if (link.invitation_id) {
       const { data: inv } = await supabaseAdmin
         .from("advocate_invitations")

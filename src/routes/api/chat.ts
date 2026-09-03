@@ -31,7 +31,10 @@ export const Route = createFileRoute("/api/chat")({
 
         // Verify thread ownership (RLS will also enforce)
         const { data: thread, error: tErr } = await supa
-          .from("agent_threads").select("id").eq("id", threadId).maybeSingle();
+          .from("agent_threads")
+          .select("id")
+          .eq("id", threadId)
+          .maybeSingle();
         if (tErr || !thread) return new Response("Thread not found", { status: 404 });
 
         // Persist latest user message
@@ -66,7 +69,8 @@ export const Route = createFileRoute("/api/chat")({
                 role: "assistant",
                 message: assistant,
               });
-              await supa.from("agent_threads")
+              await supa
+                .from("agent_threads")
                 .update({ updated_at: new Date().toISOString() })
                 .eq("id", threadId);
             }

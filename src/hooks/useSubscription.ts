@@ -57,11 +57,13 @@ function watchSubscriptionChanges(userId: string, onChange: () => void): () => v
   };
 }
 
-function computeActive(row: {
-  status: string;
-  current_period_end: string | null;
-  cancel_at_period_end: boolean;
-} | null): boolean {
+function computeActive(
+  row: {
+    status: string;
+    current_period_end: string | null;
+    cancel_at_period_end: boolean;
+  } | null,
+): boolean {
   if (!row) return false;
   const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
   const future = end === null || end > Date.now();
@@ -72,19 +74,27 @@ function computeActive(row: {
 
 export function useSubscription(): SubscriptionState {
   const fetcher = useServerFn(getMySubscription);
-  const [row, setRow] = useState<Awaited<ReturnType<typeof getMySubscription>>["subscription"]>(null);
+  const [row, setRow] =
+    useState<Awaited<ReturnType<typeof getMySubscription>>["subscription"]>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
     setLoading(true);
     let env: ReturnType<typeof getStripeEnvironment>;
-    try { env = getStripeEnvironment(); } catch { setLoading(false); return; }
+    try {
+      env = getStripeEnvironment();
+    } catch {
+      setLoading(false);
+      return;
+    }
     fetcher({ data: { environment: env } })
       .then((r) => setRow(r.subscription))
       .finally(() => setLoading(false));
   }, [fetcher]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   // Keep the latest `load` in a ref so the realtime effect below depends only
   // on the user id. Otherwise a new `load` identity would tear down and
@@ -99,7 +109,9 @@ export function useSubscription(): SubscriptionState {
     supabase.auth.getUser().then(({ data }) => {
       if (active) setUserId(data.user?.id ?? null);
     });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   // ...so the subscription is registered synchronously here and its cleanup

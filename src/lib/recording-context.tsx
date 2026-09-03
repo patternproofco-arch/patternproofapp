@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 export interface PendingRecording {
   blob: Blob;
@@ -41,7 +49,9 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
       const m = new MediaRecorder(s);
       chunks.current = [];
       transcript.current = "";
-      m.ondataavailable = (e) => { if (e.data.size > 0) chunks.current.push(e.data); };
+      m.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.current.push(e.data);
+      };
       mr.current = m;
       m.start();
       startedAt.current = new Date().toISOString();
@@ -49,11 +59,24 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
       setElapsed(0);
       timer.current = window.setInterval(() => setElapsed((e) => e + 1), 1000);
 
-      const SR = (window as unknown as { SpeechRecognition?: new () => unknown; webkitSpeechRecognition?: new () => unknown }).SpeechRecognition
-        ?? (window as unknown as { webkitSpeechRecognition?: new () => unknown }).webkitSpeechRecognition;
+      const SR =
+        (
+          window as unknown as {
+            SpeechRecognition?: new () => unknown;
+            webkitSpeechRecognition?: new () => unknown;
+          }
+        ).SpeechRecognition ??
+        (window as unknown as { webkitSpeechRecognition?: new () => unknown })
+          .webkitSpeechRecognition;
       if (SR) {
         try {
-          const r = new SR() as { continuous: boolean; interimResults: boolean; onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void; start: () => void; stop: () => void };
+          const r = new SR() as {
+            continuous: boolean;
+            interimResults: boolean;
+            onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
+            start: () => void;
+            stop: () => void;
+          };
           r.continuous = true;
           r.interimResults = true;
           r.onresult = (e) => {
@@ -63,7 +86,9 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
           };
           r.start();
           sr.current = r;
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
       return true;
     } catch {
@@ -83,20 +108,34 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
         const blob = new Blob(chunks.current, { type: "audio/webm" });
         stream.current?.getTracks().forEach((t) => t.stop());
         stream.current = null;
-        if (timer.current) { clearInterval(timer.current); timer.current = undefined; }
-        try { sr.current?.stop(); } catch { /* ignore */ }
+        if (timer.current) {
+          clearInterval(timer.current);
+          timer.current = undefined;
+        }
+        try {
+          sr.current?.stop();
+        } catch {
+          /* ignore */
+        }
         sr.current = null;
         mr.current = null;
         setIsRecording(false);
         const result: PendingRecording = {
-          blob, transcript: tx, durationSec: dur,
-          startedAt: started, endedAt: new Date().toISOString(),
+          blob,
+          transcript: tx,
+          durationSec: dur,
+          startedAt: started,
+          endedAt: new Date().toISOString(),
         };
         setPending(result);
         setElapsed(0);
         resolve(result);
       };
-      try { m.stop(); } catch { resolve(null); }
+      try {
+        m.stop();
+      } catch {
+        resolve(null);
+      }
     });
   }, [elapsed]);
 
@@ -108,13 +147,18 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
 
   const discardPending = useCallback(() => setPending(null), []);
 
-  useEffect(() => () => {
-    if (timer.current) clearInterval(timer.current);
-    stream.current?.getTracks().forEach((t) => t.stop());
-  }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) clearInterval(timer.current);
+      stream.current?.getTracks().forEach((t) => t.stop());
+    },
+    [],
+  );
 
   return (
-    <RecCtx.Provider value={{ isRecording, elapsed, pending, start, stop, consumePending, discardPending }}>
+    <RecCtx.Provider
+      value={{ isRecording, elapsed, pending, start, stop, consumePending, discardPending }}
+    >
       {children}
     </RecCtx.Provider>
   );

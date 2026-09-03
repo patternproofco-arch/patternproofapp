@@ -35,7 +35,9 @@ export const renameAgentThread = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
-      .from("agent_threads").update({ title: data.title }).eq("id", data.id);
+      .from("agent_threads")
+      .update({ title: data.title })
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -44,8 +46,7 @@ export const deleteAgentThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("agent_threads").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("agent_threads").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

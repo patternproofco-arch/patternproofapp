@@ -41,17 +41,35 @@ export interface XrefCluster {
 }
 
 const STOP = new Set([
-  "the", "and", "for", "with", "from", "into", "our", "his", "her",
-  "street", "st", "ave", "avenue", "road", "rd", "apt", "apartment",
-  "unit", "suite", "north", "south", "east", "west",
+  "the",
+  "and",
+  "for",
+  "with",
+  "from",
+  "into",
+  "our",
+  "his",
+  "her",
+  "street",
+  "st",
+  "ave",
+  "avenue",
+  "road",
+  "rd",
+  "apt",
+  "apartment",
+  "unit",
+  "suite",
+  "north",
+  "south",
+  "east",
+  "west",
 ]);
 
 function tokenize(loc: string): string[] {
   const norm = normalizeName(loc);
   if (!norm) return [];
-  return norm
-    .split(/\s+/)
-    .filter((t) => t.length >= 4 && !STOP.has(t));
+  return norm.split(/\s+/).filter((t) => t.length >= 4 && !STOP.has(t));
 }
 
 function daysBetween(a: string, b: string): number {
@@ -64,7 +82,9 @@ function daysBetween(a: string, b: string): number {
 function fmtDate(d: string | null): string {
   if (!d) return "date unknown";
   return new Date(d + "T00:00:00").toLocaleDateString(undefined, {
-    year: "numeric", month: "short", day: "numeric",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 
@@ -80,9 +100,24 @@ interface RawIncident {
   source?: string | null;
   confirmed_at?: string | null;
 }
-interface RawEvidence { id: string; title: string; date: string | null; linked_incident_id: string | null }
-interface RawComm { id: string; date: string | null; content: string | null; linked_incident_id: string | null }
-interface RawLegal { id: string; title: string; effective_date: string | null; incident_date: string | null }
+interface RawEvidence {
+  id: string;
+  title: string;
+  date: string | null;
+  linked_incident_id: string | null;
+}
+interface RawComm {
+  id: string;
+  date: string | null;
+  content: string | null;
+  linked_incident_id: string | null;
+}
+interface RawLegal {
+  id: string;
+  title: string;
+  effective_date: string | null;
+  incident_date: string | null;
+}
 
 interface ExhibitNode extends XrefExhibit {
   location: string | null;
@@ -195,7 +230,8 @@ export function computeCrossReferences(
   const ranged = nodes.filter((n) => n.range_start && n.range_end);
   for (let i = 0; i < ranged.length; i++) {
     for (let j = i + 1; j < ranged.length; j++) {
-      const a = ranged[i], b = ranged[j];
+      const a = ranged[i],
+        b = ranged[j];
       const aStart = new Date(a.range_start! + "T00:00:00Z").getTime();
       const aEnd = new Date(a.range_end! + "T00:00:00Z").getTime();
       const bStart = new Date(b.range_start! + "T00:00:00Z").getTime();
@@ -240,7 +276,8 @@ export function computeCrossReferences(
   }
   for (let i = 0; i < withLoc.length; i++) {
     for (let j = i + 1; j < withLoc.length; j++) {
-      const a = withLoc[i], b = withLoc[j];
+      const a = withLoc[i],
+        b = withLoc[j];
       const ta = new Set(tokenize(a.location!));
       const tb = tokenize(b.location!);
       const shared = tb.filter((t) => ta.has(t));
@@ -269,9 +306,7 @@ export function computeCrossReferences(
     }
   }
   for (const [type, arr] of escGroups) {
-    const sorted = arr
-      .slice()
-      .sort((a, b) => (a.n.date! < b.n.date! ? -1 : 1));
+    const sorted = arr.slice().sort((a, b) => (a.n.date! < b.n.date! ? -1 : 1));
     let cluster: ExhibitNode[] = [];
     for (let i = 0; i < sorted.length; i++) {
       if (cluster.length === 0) {
@@ -288,7 +323,12 @@ export function computeCrossReferences(
           escOut.push({
             anchor_type: "escalation",
             detail: `${type} · ${cluster.length}× between ${fmtDate(first)} – ${fmtDate(end)}`,
-            exhibits: cluster.map((g) => ({ id: g.id, kind: g.kind, date: g.date, label: g.label })),
+            exhibits: cluster.map((g) => ({
+              id: g.id,
+              kind: g.kind,
+              date: g.date,
+              label: g.label,
+            })),
           });
         }
         cluster = [sorted[i].n];
@@ -315,7 +355,9 @@ export const findCrossReferences = createServerFn({ method: "GET" })
     const [inc, ev, cm, lg] = await Promise.all([
       supabase
         .from("incidents")
-        .select("id,date,date_range_start,date_range_end,anchor_incident_id,location,abuse_types,description,source,confirmed_at")
+        .select(
+          "id,date,date_range_start,date_range_end,anchor_incident_id,location,abuse_types,description,source,confirmed_at",
+        )
         .eq("user_id", userId)
         .is("deleted_at", null),
       supabase
@@ -368,7 +410,9 @@ export const findClientCrossReferences = createServerFn({ method: "POST" })
     // owning attorney OR active collaborator OR firm case-grant.
     const { data: owner } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id")
+      .select(
+        "id,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id",
+      )
       .eq("attorney_user_id", userId)
       .eq("client_user_id", data.clientId)
       .maybeSingle();
@@ -391,7 +435,9 @@ export const findClientCrossReferences = createServerFn({ method: "POST" })
       if (!ids.length) throw new Error("No active access");
       const { data: l } = await supabaseAdmin
         .from("attorney_client_links")
-        .select("id,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id")
+        .select(
+          "id,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id",
+        )
         .in("id", ids)
         .eq("client_user_id", data.clientId)
         .eq("status", "active")
@@ -420,17 +466,24 @@ export const findClientCrossReferences = createServerFn({ method: "POST" })
 
     let incQ = supabaseAdmin
       .from("incidents")
-      .select("id,date,date_range_start,date_range_end,anchor_incident_id,location,abuse_types,description,source,confirmed_at")
+      .select(
+        "id,date,date_range_start,date_range_end,anchor_incident_id,location,abuse_types,description,source,confirmed_at",
+      )
       .eq("user_id", data.clientId)
       .is("deleted_at", null);
-    if (scopeIncIds) incQ = incQ.in("id", scopeIncIds.length ? scopeIncIds : ["00000000-0000-0000-0000-000000000000"]);
+    if (scopeIncIds)
+      incQ = incQ.in(
+        "id",
+        scopeIncIds.length ? scopeIncIds : ["00000000-0000-0000-0000-000000000000"],
+      );
 
     let evQ = supabaseAdmin
       .from("evidence")
       .select("id,title,date,linked_incident_id")
       .eq("user_id", data.clientId)
       .is("deleted_at", null);
-    if (scopeEvIds) evQ = evQ.in("id", scopeEvIds.length ? scopeEvIds : ["00000000-0000-0000-0000-000000000000"]);
+    if (scopeEvIds)
+      evQ = evQ.in("id", scopeEvIds.length ? scopeEvIds : ["00000000-0000-0000-0000-000000000000"]);
 
     const [inc, ev, cm, lg] = await Promise.all([
       incQ,

@@ -13,7 +13,7 @@ const IN_IMAGE_PATTERNS: Array<RegExp> = [
   // "Mar 14, 9:14 AM", "March 14 2025 9:14 PM"
   /\b([A-Z][a-z]{2,8})\s+(\d{1,2})(?:,)?\s*(\d{4})?\s+(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)?\b/,
   // "03/14/25 09:14", "03-14-2025 09:14"
-  /\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\s+(\d{1,2}):(\d{2})\b/,
+  /\b(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\s+(\d{1,2}):(\d{2})\b/,
   // iOS "Today 9:14 AM"
   /\b(Today|Yesterday)\s+(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)\b/,
   // Bare "9:14 AM" or 24-h "09:14"
@@ -42,9 +42,7 @@ function firstOcrHit(source: string | null | undefined): string | null {
  */
 export const enrichEvidence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ evidence_id: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input) => z.object({ evidence_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -81,30 +79,31 @@ export const enrichEvidence = createServerFn({ method: "POST" })
     let ocrSourceText = "";
     try {
       const exifr = (await import("exifr")).default;
-      const parsed = await exifr.parse(buf, {
-        tiff: true,
-        exif: true,
-        gps: true,
-        xmp: true,
-        iptc: true,
-        pick: [
-          "DateTimeOriginal",
-          "CreateDate",
-          "ModifyDate",
-          "GPSLatitude",
-          "GPSLongitude",
-          "latitude",
-          "longitude",
-          "ImageDescription",
-          "UserComment",
-          "Caption",
-          "Headline",
-          "Description",
-        ],
-      }).catch(() => null);
+      const parsed = await exifr
+        .parse(buf, {
+          tiff: true,
+          exif: true,
+          gps: true,
+          xmp: true,
+          iptc: true,
+          pick: [
+            "DateTimeOriginal",
+            "CreateDate",
+            "ModifyDate",
+            "GPSLatitude",
+            "GPSLongitude",
+            "latitude",
+            "longitude",
+            "ImageDescription",
+            "UserComment",
+            "Caption",
+            "Headline",
+            "Description",
+          ],
+        })
+        .catch(() => null);
       if (parsed) {
-        const dt =
-          parsed.DateTimeOriginal ?? parsed.CreateDate ?? parsed.ModifyDate ?? null;
+        const dt = parsed.DateTimeOriginal ?? parsed.CreateDate ?? parsed.ModifyDate ?? null;
         if (dt instanceof Date && !isNaN(dt.getTime())) exifCapturedAt = dt.toISOString();
         const lat = typeof parsed.latitude === "number" ? parsed.latitude : null;
         const lon = typeof parsed.longitude === "number" ? parsed.longitude : null;
@@ -139,9 +138,7 @@ export const enrichEvidence = createServerFn({ method: "POST" })
     const windowStart = new Date(anchorDate.getTime() - 72 * 3600 * 1000)
       .toISOString()
       .slice(0, 10);
-    const windowEnd = new Date(anchorDate.getTime() + 72 * 3600 * 1000)
-      .toISOString()
-      .slice(0, 10);
+    const windowEnd = new Date(anchorDate.getTime() + 72 * 3600 * 1000).toISOString().slice(0, 10);
     const inc = await supabase
       .from("incidents")
       .select("id, date, time, description")
@@ -156,9 +153,7 @@ export const enrichEvidence = createServerFn({ method: "POST" })
     if (inc.data && inc.data.length > 0) {
       let best: { id: string; deltaH: number; date: string } | null = null;
       for (const i of inc.data) {
-        const iDate = new Date(
-          i.time ? `${i.date}T${i.time}` : `${i.date}T00:00:00`,
-        );
+        const iDate = new Date(i.time ? `${i.date}T${i.time}` : `${i.date}T00:00:00`);
         const deltaH = Math.abs(iDate.getTime() - anchorDate.getTime()) / 3600000;
         if (!best || deltaH < best.deltaH) {
           best = { id: i.id as string, deltaH, date: i.date as string };
@@ -185,11 +180,7 @@ export const enrichEvidence = createServerFn({ method: "POST" })
           }
         : {}),
     };
-    await supabase
-      .from("evidence")
-      .update(update)
-      .eq("id", row.id)
-      .eq("user_id", userId);
+    await supabase.from("evidence").update(update).eq("id", row.id).eq("user_id", userId);
 
     return {
       ok: true as const,
@@ -224,11 +215,9 @@ export const listSuggestedEvidence = createServerFn({ method: "GET" })
     const rows = res.data ?? [];
     if (rows.length === 0) return { items: [], incidents: {} };
     const incidentIds = Array.from(
-      new Set(
-        rows.map((r) => r.suggested_incident_id).filter((v): v is string => !!v),
-      ),
+      new Set(rows.map((r) => r.suggested_incident_id).filter((v): v is string => !!v)),
     );
-    let incidents: Record<string, { id: string; date: string; description: string | null }> = {};
+    const incidents: Record<string, { id: string; date: string; description: string | null }> = {};
     if (incidentIds.length > 0) {
       const incRes = await supabase
         .from("incidents")
@@ -265,8 +254,7 @@ export const confirmSuggestion = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .maybeSingle();
     if (cur.error || !cur.data) throw new Error("Evidence not found");
-    const targetIncident =
-      data.incident_id ?? (cur.data.suggested_incident_id as string | null);
+    const targetIncident = data.incident_id ?? (cur.data.suggested_incident_id as string | null);
     await supabase
       .from("evidence")
       .update({

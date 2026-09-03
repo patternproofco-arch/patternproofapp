@@ -10,7 +10,8 @@ interface Props {
 
 export function StripeEmbeddedCheckout({ priceId, customAmountCents, returnUrl }: Props) {
   const fetchClientSecret = async (): Promise<string> => {
-    const url = returnUrl || `${window.location.origin}/billing-return?session_id={CHECKOUT_SESSION_ID}`;
+    const url =
+      returnUrl || `${window.location.origin}/billing-return?session_id={CHECKOUT_SESSION_ID}`;
     const env = getStripeEnvironment();
     const result = customAmountCents
       ? await createPayWhatYouCanCheckout({

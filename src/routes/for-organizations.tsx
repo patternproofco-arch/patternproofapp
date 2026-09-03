@@ -81,8 +81,8 @@ function ForOrganizations() {
             marginBottom: 18,
           }}
         >
-          PatternProof is a free, private documentation tool you can hand a survivor at intake —
-          no cost to your organization, no data integration required on your end.
+          PatternProof is a free, private documentation tool you can hand a survivor at intake — no
+          cost to your organization, no data integration required on your end.
         </p>
         <h1
           style={{
@@ -201,7 +201,6 @@ function ForOrganizations() {
             Already referring survivors? Tell us how it&apos;s going →
           </Link>
           <Link
-
             to="/privacy"
             style={{
               fontFamily: MONO,

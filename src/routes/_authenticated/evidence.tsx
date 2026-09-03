@@ -652,7 +652,7 @@ function EvidencePage() {
                   >
                     {tab === "documentation"
                       ? "Your records — screenshots, notes, and message-thread exports. Preserved and searchable, but not yet independently verified. Items move to Evidence automatically when device metadata (EXIF) or an integrity hash is confirmed."
-                      : "Files with intact device metadata, verified integrity hashes, or official-record status. These carry more evidentiary weight in court because their origin and authenticity can be independently checked."}
+                      : "Files with intact device metadata, verified integrity hashes, or official-record status. These details may help a qualified professional assess origin and integrity; they do not establish authenticity or admissibility."}
                   </p>
                 </div>
                 {shown.length === 0 ? (

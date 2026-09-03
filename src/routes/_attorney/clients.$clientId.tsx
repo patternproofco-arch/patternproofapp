@@ -167,8 +167,7 @@ function ClientCaseView() {
       <div className="att-card" style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}>
         <h2 style={{ fontSize: 22, marginBottom: 6 }}>Subscription required</h2>
         <p style={{ color: "var(--att-text-2)", fontSize: 13, marginBottom: 16 }}>
-          Viewing a client's case requires an active attorney subscription, starting at
-          $297/month.
+          Viewing a client's case requires an active attorney subscription, starting at $297/month.
         </p>
         <Link to="/subscribe" className="att-btn-secondary" style={{ display: "inline-block" }}>
           Subscribe — $297/mo

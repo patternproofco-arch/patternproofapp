@@ -13,7 +13,9 @@ export function caseRefFor(clientUserId: string): string {
 }
 
 /** Callers must have an attorney/collaborator role. Mirrors getMyRole. */
-export async function resolveCallerRole(userId: string): Promise<"attorney" | "collaborator" | "survivor"> {
+export async function resolveCallerRole(
+  userId: string,
+): Promise<"attorney" | "collaborator" | "survivor"> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const [{ data: rolesData }, { count: collabCount }, { count: grantCount }] = await Promise.all([
     supabaseAdmin.from("user_roles").select("role").eq("user_id", userId),
@@ -47,8 +49,16 @@ export async function accessibleClientIds(userId: string): Promise<string[]> {
       .select("client_user_id")
       .eq("attorney_user_id", userId)
       .eq("status", "active"),
-    supabaseAdmin.from("case_collaborators").select("link_id").eq("collaborator_user_id", userId).eq("status", "active"),
-    supabaseAdmin.from("case_grants").select("client_link_id").eq("attorney_user_id", userId).is("revoked_at", null),
+    supabaseAdmin
+      .from("case_collaborators")
+      .select("link_id")
+      .eq("collaborator_user_id", userId)
+      .eq("status", "active"),
+    supabaseAdmin
+      .from("case_grants")
+      .select("client_link_id")
+      .eq("attorney_user_id", userId)
+      .is("revoked_at", null),
   ]);
   const ids = new Set<string>((owned ?? []).map((r) => r.client_user_id));
   const linkIds = [
@@ -66,7 +76,10 @@ export async function accessibleClientIds(userId: string): Promise<string[]> {
   return [...ids];
 }
 
-export async function findConflicts(userId: string, opposingPartyName: string): Promise<ConflictMatch[]> {
+export async function findConflicts(
+  userId: string,
+  opposingPartyName: string,
+): Promise<ConflictMatch[]> {
   const clientIds = await accessibleClientIds(userId);
   if (!clientIds.length) return [];
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -94,5 +107,7 @@ export async function findConflicts(userId: string, opposingPartyName: string): 
       matched_on: matchedOn,
     });
   }
-  return matches.sort((a, b) => (a.match_type === b.match_type ? 0 : a.match_type === "exact" ? -1 : 1));
+  return matches.sort((a, b) =>
+    a.match_type === b.match_type ? 0 : a.match_type === "exact" ? -1 : 1,
+  );
 }

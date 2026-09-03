@@ -7,7 +7,11 @@ interface FocusModeValue {
   clear: () => void;
 }
 
-const FocusModeContext = createContext<FocusModeValue>({ focusId: null, focus: () => {}, clear: () => {} });
+const FocusModeContext = createContext<FocusModeValue>({
+  focusId: null,
+  focus: () => {},
+  clear: () => {},
+});
 
 export function useFocusMode() {
   return useContext(FocusModeContext);
@@ -21,7 +25,13 @@ export function useFocusMode() {
  * bottom tab bar and any other persistent safety chrome live outside this
  * provider and are never dimmed, blurred or covered.
  */
-export function FocusModeProvider({ children, accentColor = "var(--pp-ink)" }: { children: ReactNode; accentColor?: string }) {
+export function FocusModeProvider({
+  children,
+  accentColor = "var(--pp-ink)",
+}: {
+  children: ReactNode;
+  accentColor?: string;
+}) {
   const [focusId, setFocusId] = useState<string | null>(null);
 
   const focus = useCallback((id: string) => setFocusId(id), []);
@@ -45,7 +55,14 @@ export function FocusModeProvider({ children, accentColor = "var(--pp-ink)" }: {
       {focusId ? (
         <div
           className="no-print"
-          style={{ position: "sticky", top: 8, zIndex: 5, display: "flex", justifyContent: "flex-end", padding: "0 20px" }}
+          style={{
+            position: "sticky",
+            top: 8,
+            zIndex: 5,
+            display: "flex",
+            justifyContent: "flex-end",
+            padding: "0 20px",
+          }}
         >
           <button
             type="button"
@@ -78,7 +95,13 @@ interface FocusRegionProps {
 }
 
 /** A card/section that comes forward when she works in it. */
-export function FocusRegion({ id, children, neverDim = false, style, className }: FocusRegionProps) {
+export function FocusRegion({
+  id,
+  children,
+  neverDim = false,
+  style,
+  className,
+}: FocusRegionProps) {
   const { focusId, focus } = useFocusMode();
   const dimmed = !neverDim && focusId !== null && focusId !== id;
 

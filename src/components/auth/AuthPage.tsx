@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Lock, Fingerprint } from "lucide-react";
+import { Lock } from "lucide-react";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -41,15 +41,8 @@ export function AuthPage({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [passkeyAvailable, setPasskeyAvailable] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const consentBlocked = mode === "signup" && !agreed;
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && typeof window.PublicKeyCredential !== "undefined") {
-      setPasskeyAvailable(true);
-    }
-  }, []);
 
   useEffect(() => {
     if (!loading && user) {
@@ -134,24 +127,6 @@ export function AuthPage({
     }
   };
 
-  const signInWithPasskey = async () => {
-    try {
-      const credential = await navigator.credentials.get({
-        publicKey: {
-          challenge: crypto.getRandomValues(new Uint8Array(32)),
-          rpId: window.location.hostname,
-          userVerification: "preferred",
-          timeout: 60000,
-        },
-      });
-      if (credential) {
-        toast("Use your saved password with biometrics in your browser's password manager.");
-      }
-    } catch {
-      setPasskeyAvailable(false);
-    }
-  };
-
   const toggleSearch = {
     ...(redirectTo ? { redirect: redirectTo } : {}),
     ...(refSlug ? { ref: refSlug } : {}),
@@ -219,18 +194,6 @@ export function AuthPage({
               </svg>
               Continue with Google
             </button>
-
-            {passkeyAvailable && (
-              <button
-                type="button"
-                onClick={signInWithPasskey}
-                className="input-pp w-full flex items-center justify-center gap-2"
-                style={{ background: "transparent", boxShadow: "var(--pp-shadow-sm)" }}
-              >
-                <Fingerprint size={18} />
-                Use a passkey
-              </button>
-            )}
           </div>
 
           <div

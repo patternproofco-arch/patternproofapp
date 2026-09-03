@@ -17,7 +17,8 @@ import { QuickExitButton } from "@/components/QuickExitButton";
 import { BrandMark } from "@/components/BrandMark";
 import { toast } from "sonner";
 import { US_STATES } from "@/lib/state-resources";
-import { TERMS_VERSION } from "@/routes/terms";
+import { recordLegalAcceptance } from "@/lib/legal-consent.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
@@ -34,6 +35,7 @@ function Onboarding() {
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreeLegalUse, setAgreeLegalUse] = useState(false);
+  const recordAcceptance = useServerFn(recordLegalAcceptance);
 
   const ready = agreePrivacy && agreeTerms && agreeLegalUse;
 
@@ -44,33 +46,27 @@ function Onboarding() {
     }
     setBusy(true);
     try {
+      await recordAcceptance({ data: { accepted: true, account_type: "survivor" } });
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: {
+          onboarding_complete: true,
+          state,
+          city: city.trim(),
+          agreed_privacy_at: new Date().toISOString(),
+          agreed_terms_at: new Date().toISOString(),
+          acknowledged_legal_use_at: new Date().toISOString(),
+        },
+      });
+      if (metadataError) throw metadataError;
       if (pin.length === 4) await setRealPin(pin);
       update({ state, city: city.trim(), onboarded: true });
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      await Promise.all([
-        supabase.auth.updateUser({
-          data: {
-            onboarding_complete: true,
-            state,
-            city: city.trim(),
-            agreed_privacy_at: new Date().toISOString(),
-            agreed_terms_at: new Date().toISOString(),
-            acknowledged_legal_use_at: new Date().toISOString(),
-          },
-        }),
-        // Queryable record of consent, separate from the auth metadata above —
-        // this is what lets a weekly report check whether a given signup ever
-        // accepted terms, which user_metadata can't be joined against.
-        user
-          ? supabase.from("user_terms_acceptance").insert({
-              user_id: user.id,
-              terms_version: TERMS_VERSION,
-            })
-          : Promise.resolve(),
-      ]);
       navigate({ to: "/dashboard", replace: true });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "We could not securely save your acceptance. Please try again.",
+      );
     } finally {
       setBusy(false);
     }

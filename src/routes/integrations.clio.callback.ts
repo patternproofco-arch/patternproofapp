@@ -9,7 +9,9 @@ import { createFileRoute } from "@tanstack/react-router";
  * expires within minutes.
  */
 function done(message: string, ok: boolean) {
-  const target = ok ? "/billing?clio=connected" : `/billing?clio=error&reason=${encodeURIComponent(message)}`;
+  const target = ok
+    ? "/billing?clio=connected"
+    : `/billing?clio=error&reason=${encodeURIComponent(message)}`;
   return new Response(null, { status: 302, headers: { Location: target } });
 }
 
@@ -44,7 +46,8 @@ export const Route = createFileRoute("/integrations/clio/callback")({
         }
 
         try {
-          const { exchangeCodeForTokens, fetchClioIdentity, storeClioTokens } = await import("@/lib/clio.server");
+          const { exchangeCodeForTokens, fetchClioIdentity, storeClioTokens } =
+            await import("@/lib/clio.server");
           const tokens = await exchangeCodeForTokens(code);
           if (!tokens.refresh_token) return done("Clio didn't return a refresh token.", false);
           // Only mark connected after an authenticated Clio API call succeeds.
@@ -53,7 +56,10 @@ export const Route = createFileRoute("/integrations/clio/callback")({
           return done("", true);
         } catch (e) {
           // Log the failure shape, never the code, token, or provider body.
-          console.error("[clio] callback failed:", e instanceof Error ? e.message : "unknown error");
+          console.error(
+            "[clio] callback failed:",
+            e instanceof Error ? e.message : "unknown error",
+          );
           return done("We couldn't finish connecting Clio.", false);
         }
       },

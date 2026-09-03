@@ -99,7 +99,12 @@ function OrgPortal() {
           Let's set up your organization.
         </h1>
         <p
-          style={{ color: "var(--muted-foreground)", fontSize: 14, maxWidth: 480, marginBottom: 20 }}
+          style={{
+            color: "var(--muted-foreground)",
+            fontSize: 14,
+            maxWidth: 480,
+            marginBottom: 20,
+          }}
         >
           Your partner account is ready, but it isn't linked to an organization yet — that's
           expected for a brand-new advocate account. Set up your organization to get your referral

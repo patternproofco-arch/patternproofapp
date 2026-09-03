@@ -69,7 +69,10 @@ export const getFrequencyObservations = createServerFn({ method: "POST" })
       "communications",
       "logged messages you flagged",
       "in the past 14 days",
-      (comms.data ?? []).map((r) => ({ id: r.id as string, label: dateLabel(r.date as string | null) })),
+      (comms.data ?? []).map((r) => ({
+        id: r.id as string,
+        label: dateLabel(r.date as string | null),
+      })),
     );
     if (commsObs) out.push(commsObs);
 
@@ -109,7 +112,10 @@ export const getFrequencyObservations = createServerFn({ method: "POST" })
       "court_dates",
       "court dates recorded",
       "this quarter",
-      (cd.data ?? []).map((r) => ({ id: r.id as string, label: dateLabel(r.hearing_at as string | null) })),
+      (cd.data ?? []).map((r) => ({
+        id: r.id as string,
+        label: dateLabel(r.hearing_at as string | null),
+      })),
     );
     if (cdObs) out.push(cdObs);
 
@@ -126,7 +132,10 @@ export const getFrequencyObservations = createServerFn({ method: "POST" })
       "evidence",
       "files added",
       "this month",
-      (ev.data ?? []).map((r) => ({ id: r.id as string, label: dateLabel(r.created_at as string) })),
+      (ev.data ?? []).map((r) => ({
+        id: r.id as string,
+        label: dateLabel(r.created_at as string),
+      })),
     );
     if (evObs) out.push(evObs);
 

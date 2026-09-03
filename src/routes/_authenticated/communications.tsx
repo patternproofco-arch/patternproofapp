@@ -30,7 +30,9 @@ function CommunicationsPage() {
     const [commsRes, incRes] = await Promise.all([
       supabase
         .from("communications")
-        .select("id,date,time,channel,direction,from_party,content,screenshot_url,harassment_flag,notes,linked_incident_id,created_at")
+        .select(
+          "id,date,time,channel,direction,from_party,content,screenshot_url,harassment_flag,notes,linked_incident_id,created_at",
+        )
         .eq("user_id", user.id)
         .order("date", { ascending: false }),
       supabase
@@ -44,14 +46,22 @@ function CommunicationsPage() {
     setList(rows);
     setIncidents((incRes.data as IncidentLite[] | null) ?? []);
     const urls: Record<string, string> = {};
-    await Promise.all(rows.filter((r) => r.screenshot_url).map(async (r) => {
-      const { data: s } = await supabase.storage.from("evidence-files").createSignedUrl(r.screenshot_url!, 3600);
-      if (s?.signedUrl) urls[r.id] = s.signedUrl;
-    }));
+    await Promise.all(
+      rows
+        .filter((r) => r.screenshot_url)
+        .map(async (r) => {
+          const { data: s } = await supabase.storage
+            .from("evidence-files")
+            .createSignedUrl(r.screenshot_url!, 3600);
+          if (s?.signedUrl) urls[r.id] = s.signedUrl;
+        }),
+    );
     setScreenshotUrls(urls);
   }, [user]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const remove = async (id: string, screenshotPath: string | null) => {
     if (!user) return;
@@ -72,7 +82,8 @@ function CommunicationsPage() {
     return list.filter((c) => {
       if (filter === "flagged" && !c.harassment_flag) return false;
       if (filter === "linked" && !c.linked_incident_id) return false;
-      if (filter !== "all" && filter !== "flagged" && filter !== "linked" && c.channel !== filter) return false;
+      if (filter !== "all" && filter !== "flagged" && filter !== "linked" && c.channel !== filter)
+        return false;
       if (!q) return true;
       return [c.content, c.from_party, c.notes].some((v) => v?.toLowerCase().includes(q));
     });
@@ -88,7 +99,8 @@ function CommunicationsPage() {
         Every message, <em>every call.</em>
       </h1>
       <p className="mt-3 max-w-2xl text-[15px]" style={{ color: "var(--muted-foreground)" }}>
-        Document hostile texts, missed calls, voicemails, and emails. Flag anything that feels like harassment — patterns matter.
+        Document hostile texts, missed calls, voicemails, and emails. Flag anything that feels like
+        harassment — patterns matter.
       </p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-5">
@@ -110,7 +122,12 @@ function CommunicationsPage() {
             <h2 className="font-serif text-[20px]">All communications · {filtered.length}</h2>
           </div>
           <div className="mb-3">
-            <CommFilters search={search} onSearch={setSearch} filter={filter} onFilter={setFilter} />
+            <CommFilters
+              search={search}
+              onSearch={setSearch}
+              filter={filter}
+              onFilter={setFilter}
+            />
           </div>
 
           {filtered.length === 0 ? (
@@ -130,7 +147,9 @@ function CommunicationsPage() {
                   key={c.id}
                   comm={c}
                   screenshotUrl={screenshotUrls[c.id]}
-                  incident={c.linked_incident_id ? incidentMap.get(c.linked_incident_id) : undefined}
+                  incident={
+                    c.linked_incident_id ? incidentMap.get(c.linked_incident_id) : undefined
+                  }
                   onRemove={() => remove(c.id, c.screenshot_url)}
                   onOpenIncident={() => navigate({ to: "/journal" })}
                 />

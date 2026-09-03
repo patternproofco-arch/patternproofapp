@@ -25,11 +25,13 @@ Rules:
 export const extractMemoryAsIncident = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      memory: z.string().min(1).max(4000),
-      relationshipStart: z.string().max(20).optional(),
-      relationshipEnd: z.string().max(20).optional(),
-    }).parse(input),
+    z
+      .object({
+        memory: z.string().min(1).max(4000),
+        relationshipStart: z.string().max(20).optional(),
+        relationshipEnd: z.string().max(20).optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
@@ -48,9 +50,13 @@ export const extractMemoryAsIncident = createServerFn({ method: "POST" })
       }),
     });
     if (!res.ok) return { ok: false as const, reason: `ai-${res.status}` };
-    const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const raw = json.choices?.[0]?.message?.content?.trim() ?? "";
-    const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+    const cleaned = raw
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/```\s*$/i, "")
+      .trim();
     try {
       const parsed = JSON.parse(cleaned);
       return { ok: true as const, extracted: parsed };

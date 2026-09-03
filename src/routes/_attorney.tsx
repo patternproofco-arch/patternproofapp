@@ -1,7 +1,17 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut, Lock, LayoutGrid, Users, CreditCard, ShieldCheck, MessageSquare, ScanSearch, UserCog } from "lucide-react";
+import {
+  LogOut,
+  Lock,
+  LayoutGrid,
+  Users,
+  CreditCard,
+  ShieldCheck,
+  MessageSquare,
+  ScanSearch,
+  UserCog,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,37 +49,44 @@ function AttorneyLayout() {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) { navigate({ to: "/lawyer-signup", replace: true }); return; }
+    if (!user) {
+      navigate({ to: "/lawyer-signup", replace: true });
+      return;
+    }
     let cancelled = false;
     setLoadError(null);
-    getRole().then(async (r) => {
-      if (cancelled) return;
-      if (r.role !== "attorney" && r.role !== "collaborator") {
-        navigate({ to: "/lawyer-signup", replace: true });
-        return;
-      }
-      setUserRole(r.role);
-      if (r.role === "collaborator") {
-        // Collaborators inherit the lead attorney's onboarding and subscription.
-        setOnboarded(true);
-      } else {
-        try {
-          const { profile } = await getProfile();
-          setOnboarded(profile?.onboarded === true);
-          setFirmName(profile?.firm_name ?? profile?.full_name ?? null);
-        } catch {
-          setOnboarded(false);
+    getRole()
+      .then(async (r) => {
+        if (cancelled) return;
+        if (r.role !== "attorney" && r.role !== "collaborator") {
+          navigate({ to: "/lawyer-signup", replace: true });
+          return;
         }
-      }
-      if (cancelled) return;
-      setChecking(false);
-    }).catch(() => {
-      if (cancelled) return;
-      // Never leave the portal stuck on "Opening portal…" — surface a retry.
-      setLoadError("We couldn't reach your account just now.");
-      setChecking(false);
-    });
-    return () => { cancelled = true; };
+        setUserRole(r.role);
+        if (r.role === "collaborator") {
+          // Collaborators inherit the lead attorney's onboarding and subscription.
+          setOnboarded(true);
+        } else {
+          try {
+            const { profile } = await getProfile();
+            setOnboarded(profile?.onboarded === true);
+            setFirmName(profile?.firm_name ?? profile?.full_name ?? null);
+          } catch {
+            setOnboarded(false);
+          }
+        }
+        if (cancelled) return;
+        setChecking(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Never leave the portal stuck on "Opening portal…" — surface a retry.
+        setLoadError("We couldn't reach your account just now.");
+        setChecking(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user, loading, getRole, getProfile, navigate, retryKey]);
 
   // Belt-and-suspenders for the "Opening portal…" gate below: getRole/
@@ -118,11 +135,25 @@ function AttorneyLayout() {
     if (!sub.isActive && !billingPaths) {
       navigate({ to: "/subscribe", replace: true });
     }
-  }, [loading, checking, sub.loading, sub.isActive, billingPaths, navigate, user, onboarded, userRole]);
+  }, [
+    loading,
+    checking,
+    sub.loading,
+    sub.isActive,
+    billingPaths,
+    navigate,
+    user,
+    onboarded,
+    userRole,
+  ]);
 
   if (loadError) {
     return (
-      <div className="att-root" data-persona="attorney" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div
+        className="att-root"
+        data-persona="attorney"
+        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
         <div style={{ textAlign: "center", display: "grid", gap: 12, maxWidth: 420, padding: 24 }}>
           <span className="att-eyebrow">Portal unavailable</span>
           <p style={{ margin: 0 }}>{loadError} Check your connection and try again.</p>
@@ -147,7 +178,11 @@ function AttorneyLayout() {
 
   if (loading || checking || sub.loading) {
     return (
-      <div className="att-root" data-persona="attorney" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div
+        className="att-root"
+        data-persona="attorney"
+        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
         <span className="att-eyebrow">Opening portal…</span>
       </div>
     );
@@ -167,22 +202,27 @@ function AttorneyLayout() {
           </FocusModeProvider>
         </main>
         <footer className="att-footer">
-        <span>PatternProof</span>
-        <span>·</span>
-        <span>attorney.pattern-proof.tech</span>
-        <span>·</span>
-        <span>Encrypted in transit · access logged</span>
-        <span>·</span>
-        <span>Session logged · {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
-        <span>·</span>
-        <span>Matter opens, downloads & exports recorded</span>
-        <span>·</span>
-        <span>
-          PatternProof organises the client&apos;s own records. It does not draw legal conclusions
-          and is not legal advice.
-        </span>
-        <span>·</span>
-          <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>Privacy Policy</a>
+          <span>PatternProof</span>
+          <span>·</span>
+          <span>attorney.pattern-proof.tech</span>
+          <span>·</span>
+          <span>Encrypted in transit · access logged</span>
+          <span>·</span>
+          <span>
+            Session logged ·{" "}
+            {new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+          </span>
+          <span>·</span>
+          <span>Matter opens, downloads & exports recorded</span>
+          <span>·</span>
+          <span>
+            PatternProof organises the client&apos;s own records. It does not draw legal conclusions
+            and is not legal advice.
+          </span>
+          <span>·</span>
+          <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>
+            Privacy Policy
+          </a>
         </footer>
       </div>
     </div>
@@ -254,10 +294,20 @@ function ClioStatusChip() {
         const connected = Boolean((status as { connected?: boolean } | null)?.connected);
         const available = Boolean((avail as { available?: boolean } | null)?.available);
         setTone(connected ? "on" : "off");
-        setLabel(connected ? "Clio · connected (beta)" : available ? "Clio · not connected (beta)" : "Clio · unavailable (beta)");
+        setLabel(
+          connected
+            ? "Clio · connected (beta)"
+            : available
+              ? "Clio · not connected (beta)"
+              : "Clio · unavailable (beta)",
+        );
       })
-      .catch(() => { if (!cancelled) setLabel("Clio · not connected (beta)"); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (!cancelled) setLabel("Clio · not connected (beta)");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [statusFn, availabilityFn]);
 
   return (
@@ -265,15 +315,23 @@ function ClioStatusChip() {
       to="/billing"
       hash="clio"
       style={{
-        display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10,
-        fontSize: 11, letterSpacing: "0.02em", color: "inherit", textDecoration: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        marginBottom: 10,
+        fontSize: 11,
+        letterSpacing: "0.02em",
+        color: "inherit",
+        textDecoration: "none",
       }}
       title="Clio Manage integration is an unverified beta"
     >
       <span
         aria-hidden
         style={{
-          width: 7, height: 7, borderRadius: 999,
+          width: 7,
+          height: 7,
+          borderRadius: 999,
           background: tone === "on" ? "var(--pp-confirmed)" : "rgba(255,255,255,0.45)",
           outline: tone === "on" ? "none" : "1px solid rgba(255,255,255,0.45)",
         }}
@@ -295,7 +353,10 @@ function AttorneyTopBar({ firmName }: { firmName: string | null }) {
         {caseId && <span className="att-mono">Matter {caseId}</span>}
       </div>
       <button
-        onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/lawyer-signup" }); }}
+        onClick={async () => {
+          await supabase.auth.signOut();
+          navigate({ to: "/lawyer-signup" });
+        }}
         className="att-btn-ghost"
         style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
       >
@@ -332,11 +393,13 @@ function LegalDisclaimerBar() {
       }}
     >
       <span style={{ maxWidth: 1280 }}>
-        <strong style={{ fontWeight: 600 }}>No legal conclusions.</strong>{" "}
-        PatternProof compiles and organises records supplied by the client. Summaries, pattern
-        groupings, gap lists and flagged inconsistencies are generated from that material and are{" "}
-        <strong style={{ fontWeight: 600 }}>not findings of fact, legal advice, or an opinion on
-        the merits</strong>. Verify every item against its source before relying on it.
+        <strong style={{ fontWeight: 600 }}>No legal conclusions.</strong> PatternProof compiles and
+        organises records supplied by the client. Summaries, pattern groupings, gap lists and
+        flagged inconsistencies are generated from that material and are{" "}
+        <strong style={{ fontWeight: 600 }}>
+          not findings of fact, legal advice, or an opinion on the merits
+        </strong>
+        . Verify every item against its source before relying on it.
       </span>
     </div>
   );
@@ -358,7 +421,10 @@ function SecurityBannerInner() {
         Matter opens, evidence downloads, and packet exports are recorded.
       </span>
       <button
-        onClick={() => { sessionStorage.setItem("att-security-dismissed", "1"); setDismissed(true); }}
+        onClick={() => {
+          sessionStorage.setItem("att-security-dismissed", "1");
+          setDismissed(true);
+        }}
         className="att-btn-ghost"
         style={{ padding: "2px 8px", fontSize: 11, color: "var(--att-navy)" }}
       >
@@ -385,7 +451,11 @@ function AttorneyBreadcrumb() {
     <div className="att-breadcrumb">
       {parts.map((p, i) => (
         <span key={i}>
-          {p.to && i < parts.length - 1 ? <Link to={p.to}>{p.label}</Link> : <span style={{ color: "var(--att-text-2)" }}>{p.label}</span>}
+          {p.to && i < parts.length - 1 ? (
+            <Link to={p.to}>{p.label}</Link>
+          ) : (
+            <span style={{ color: "var(--att-text-2)" }}>{p.label}</span>
+          )}
           {i < parts.length - 1 && <span className="att-breadcrumb-sep">/</span>}
         </span>
       ))}

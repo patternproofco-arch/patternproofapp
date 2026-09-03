@@ -47,7 +47,7 @@ export const listClioConsentedClients = createServerFn({ method: "GET" })
         return {
           link_id: l.id,
           client_label: `Client ${l.client_user_id.slice(0, 8)}`,
-          case_label: c ? (c.case_name?.trim() || c.other_party?.trim() || "Case") : "All cases",
+          case_label: c ? c.case_name?.trim() || c.other_party?.trim() || "Case" : "All cases",
         };
       }),
     };
@@ -59,7 +59,9 @@ export const listClioMatterLinks = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("clio_matter_links")
-      .select("id,attorney_client_link_id,clio_matter_id,clio_matter_display_number,clio_matter_description,linked_at")
+      .select(
+        "id,attorney_client_link_id,clio_matter_id,clio_matter_display_number,clio_matter_description,linked_at",
+      )
       .is("unlinked_at", null);
     if (error) return { links: [] };
     return { links: data ?? [] };
@@ -68,12 +70,14 @@ export const listClioMatterLinks = createServerFn({ method: "GET" })
 export const linkClioMatter = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      attorney_client_link_id: z.string().uuid(),
-      clio_matter_id: z.string().min(1).max(120),
-      clio_matter_display_number: z.string().max(200).nullable().optional(),
-      clio_matter_description: z.string().max(2000).nullable().optional(),
-    }).parse(input),
+    z
+      .object({
+        attorney_client_link_id: z.string().uuid(),
+        clio_matter_id: z.string().min(1).max(120),
+        clio_matter_display_number: z.string().max(200).nullable().optional(),
+        clio_matter_description: z.string().max(2000).nullable().optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("clio_matter_links").insert({
@@ -96,9 +100,7 @@ export const linkClioMatter = createServerFn({ method: "POST" })
 
 export const unlinkClioMatter = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ attorney_client_link_id: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input) => z.object({ attorney_client_link_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("clio_matter_links")

@@ -93,10 +93,30 @@ function CollaboratorInvitePage() {
     }
   };
 
-  if (!peeked) return <Frame><p>Opening invitation…</p></Frame>;
-  if (peeked.status === "not-found") return <Frame><Msg title="Invite not found" body="This link is invalid." /></Frame>;
-  if (peeked.status === "revoked") return <Frame><Msg title="Invite revoked" body="The owning attorney has cancelled this invite." /></Frame>;
-  if (peeked.status === "active") return <Frame><Msg title="Already accepted" body="This invite has already been used." /></Frame>;
+  if (!peeked)
+    return (
+      <Frame>
+        <p>Opening invitation…</p>
+      </Frame>
+    );
+  if (peeked.status === "not-found")
+    return (
+      <Frame>
+        <Msg title="Invite not found" body="This link is invalid." />
+      </Frame>
+    );
+  if (peeked.status === "revoked")
+    return (
+      <Frame>
+        <Msg title="Invite revoked" body="The owning attorney has cancelled this invite." />
+      </Frame>
+    );
+  if (peeked.status === "active")
+    return (
+      <Frame>
+        <Msg title="Already accepted" body="This invite has already been used." />
+      </Frame>
+    );
 
   const inv = peeked.invite!;
   const attorneyDisplay = inv.attorney_name
@@ -107,11 +127,15 @@ function CollaboratorInvitePage() {
     <Frame>
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div className="att-eyebrow">PatternProof · Case collaborator</div>
-        <h1 style={{ fontSize: 30, marginTop: 8, marginBottom: 6, fontFamily: "var(--font-serif)" }}>
+        <h1
+          style={{ fontSize: 30, marginTop: 8, marginBottom: 6, fontFamily: "var(--font-serif)" }}
+        >
           {attorneyDisplay} invited you to collaborate
         </h1>
         <p style={{ color: "var(--att-text-2)", fontSize: 13 }}>
-          Role on this case: <strong style={{ textTransform: "capitalize" }}>{inv.role}</strong>. Read-only case access plus secure messaging. Private attorney notes stay with the lead attorney.
+          Role on this case: <strong style={{ textTransform: "capitalize" }}>{inv.role}</strong>.
+          Read-only case access plus secure messaging. Private attorney notes stay with the lead
+          attorney.
         </p>
       </div>
 
@@ -119,7 +143,11 @@ function CollaboratorInvitePage() {
         <div className="att-card" style={{ textAlign: "center" }}>
           <ShieldCheck size={28} style={{ color: "var(--att-green)", margin: "0 auto 8px" }} />
           <p style={{ fontSize: 14, color: "var(--att-text-2)" }}>
-            {done ? "You're in. Opening your case list…" : busy ? "Granting case access…" : "Linking your account…"}
+            {done
+              ? "You're in. Opening your case list…"
+              : busy
+                ? "Granting case access…"
+                : "Linking your account…"}
           </p>
         </div>
       ) : (
@@ -128,33 +156,86 @@ function CollaboratorInvitePage() {
             {mode === "signup" ? "Create your collaborator account" : "Sign in to accept"}
           </h2>
           <p style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 16 }}>
-            Use your own login — distinct from the lead attorney. Case opens, downloads, and exports are recorded for provenance & integrity.
+            Use your own login — distinct from the lead attorney. Case opens, downloads, and exports
+            are recorded for provenance & integrity.
           </p>
           <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
             {mode === "signup" && (
               <div>
                 <label className="att-eyebrow">Full name</label>
-                <input className="att-input" required value={fullName} onChange={(e) => setFullName(e.target.value)} style={{ marginTop: 4 }} />
+                <input
+                  className="att-input"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  style={{ marginTop: 4 }}
+                />
               </div>
             )}
             <div>
               <label className="att-eyebrow">Work email</label>
-              <input className="att-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} style={{ marginTop: 4 }} />
+              <input
+                className="att-input"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{ marginTop: 4 }}
+              />
             </div>
             <div>
               <label className="att-eyebrow">Password</label>
-              <input className="att-input" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} style={{ marginTop: 4 }} />
+              <input
+                className="att-input"
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ marginTop: 4 }}
+              />
             </div>
-            <label style={{ display: "flex", gap: 8, fontSize: 12, color: "var(--att-text-2)", lineHeight: 1.5, alignItems: "flex-start", marginTop: 4 }}>
-              <input type="checkbox" checked={confidentialityOk} onChange={(e) => setConfidentialityOk(e.target.checked)} style={{ marginTop: 3 }} />
-              <span>I acknowledge this case file is confidential and will only be accessed for the purpose of supporting this representation.</span>
+            <label
+              style={{
+                display: "flex",
+                gap: 8,
+                fontSize: 12,
+                color: "var(--att-text-2)",
+                lineHeight: 1.5,
+                alignItems: "flex-start",
+                marginTop: 4,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={confidentialityOk}
+                onChange={(e) => setConfidentialityOk(e.target.checked)}
+                style={{ marginTop: 3 }}
+              />
+              <span>
+                I acknowledge this case file is confidential and will only be accessed for the
+                purpose of supporting this representation.
+              </span>
             </label>
-            <button className="att-btn-primary" disabled={busy || !confidentialityOk} style={{ width: "100%", marginTop: 4 }}>
+            <button
+              className="att-btn-primary"
+              disabled={busy || !confidentialityOk}
+              style={{ width: "100%", marginTop: 4 }}
+            >
               <Lock size={13} />
-              {busy ? "One moment…" : mode === "signup" ? "Create account & accept" : "Sign in & accept"}
+              {busy
+                ? "One moment…"
+                : mode === "signup"
+                  ? "Create account & accept"
+                  : "Sign in & accept"}
             </button>
           </form>
-          <button type="button" onClick={() => setMode(mode === "signup" ? "login" : "signup")} className="att-btn-ghost" style={{ width: "100%", marginTop: 12, fontSize: 12 }}>
+          <button
+            type="button"
+            onClick={() => setMode(mode === "signup" ? "login" : "signup")}
+            className="att-btn-ghost"
+            style={{ width: "100%", marginTop: 12, fontSize: 12 }}
+          >
             {mode === "signup" ? "I already have an account" : "Create a new account"}
           </button>
         </div>
@@ -169,7 +250,16 @@ function CollaboratorInvitePage() {
 
 function Frame({ children }: { children: React.ReactNode }) {
   return (
-    <div className="att-root" style={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+    <div
+      className="att-root"
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 20px",
+      }}
+    >
       <PublicQuickExit />
       <div style={{ width: "100%", maxWidth: 440 }}>{children}</div>
     </div>

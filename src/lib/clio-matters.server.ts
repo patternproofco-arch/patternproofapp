@@ -23,7 +23,9 @@ export async function listClioMatters(
 ): Promise<ClioMatter[]> {
   const token = await getValidClioAccessToken(userId);
   if (!token) {
-    throw new ClioNotConnectedError("Clio isn't connected yet. Connect your Clio account to browse matters.");
+    throw new ClioNotConnectedError(
+      "Clio isn't connected yet. Connect your Clio account to browse matters.",
+    );
   }
 
   const url = new URL(`${CLIO_API_BASE}/matters.json`);
@@ -35,10 +37,14 @@ export async function listClioMatters(
   const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${token}` } });
 
   if (res.status === 401) {
-    throw new ClioReauthError("Your Clio session has expired. Reconnect Clio to keep browsing matters.");
+    throw new ClioReauthError(
+      "Your Clio session has expired. Reconnect Clio to keep browsing matters.",
+    );
   }
   if (res.status === 429) {
-    throw new ClioRateLimitError("Clio is rate-limiting requests right now. Try again in a minute.");
+    throw new ClioRateLimitError(
+      "Clio is rate-limiting requests right now. Try again in a minute.",
+    );
   }
   if (res.status === 403) {
     throw new Error(
@@ -72,7 +78,9 @@ export async function listClioMatters(
   if (query) {
     const needle = query.toLowerCase();
     const filtered = matters.filter((m) =>
-      [m.display_number, m.description, m.client_name].some((v) => v?.toLowerCase().includes(needle)),
+      [m.display_number, m.description, m.client_name].some((v) =>
+        v?.toLowerCase().includes(needle),
+      ),
     );
     if (filtered.length) matters = filtered;
   }

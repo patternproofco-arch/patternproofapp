@@ -15,7 +15,12 @@ export interface ExifSummary {
   capturedAtText: string | null;
 }
 
-const EMPTY: ExifSummary = { hasMetadata: false, hasGps: false, capturedOn: null, capturedAtText: null };
+const EMPTY: ExifSummary = {
+  hasMetadata: false,
+  hasGps: false,
+  capturedOn: null,
+  capturedAtText: null,
+};
 
 const TAG_DATETIME_ORIGINAL = 0x9003;
 const TAG_DATETIME = 0x0132;
@@ -51,7 +56,10 @@ function parseApp1(view: DataView, start: number, length: number): ExifSummary {
   // "Exif\0\0"
   if (end - start < 10) return EMPTY;
   const header = String.fromCharCode(
-    view.getUint8(start), view.getUint8(start + 1), view.getUint8(start + 2), view.getUint8(start + 3),
+    view.getUint8(start),
+    view.getUint8(start + 1),
+    view.getUint8(start + 2),
+    view.getUint8(start + 3),
   );
   if (header !== "Exif") return EMPTY;
 
@@ -63,7 +71,12 @@ function parseApp1(view: DataView, start: number, length: number): ExifSummary {
   const u16 = (p: number) => view.getUint16(p, little);
   const u32 = (p: number) => view.getUint32(p, little);
 
-  const result: ExifSummary = { hasMetadata: true, hasGps: false, capturedOn: null, capturedAtText: null };
+  const result: ExifSummary = {
+    hasMetadata: true,
+    hasGps: false,
+    capturedOn: null,
+    capturedAtText: null,
+  };
 
   const readAscii = (valueOffset: number, count: number): string => {
     let s = "";
@@ -85,7 +98,11 @@ function parseApp1(view: DataView, start: number, length: number): ExifSummary {
       const valPtr = num * (type === 2 ? 1 : 4) > 4 ? tiff + u32(entry + 8) : entry + 8;
       if (tag === TAG_GPS_IFD) result.hasGps = true;
       if (tag === TAG_EXIF_IFD) walkIfd(tiff + u32(entry + 8), depth + 1);
-      if ((tag === TAG_DATETIME_ORIGINAL || tag === TAG_DATETIME) && type === 2 && !result.capturedOn) {
+      if (
+        (tag === TAG_DATETIME_ORIGINAL || tag === TAG_DATETIME) &&
+        type === 2 &&
+        !result.capturedOn
+      ) {
         const raw = readAscii(valPtr, num);
         const m = raw.match(/^(\d{4}):(\d{2}):(\d{2})/);
         if (m) {

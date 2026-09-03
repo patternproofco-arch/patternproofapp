@@ -31,9 +31,7 @@ export function ThreadConnector({
     <div
       aria-hidden="true"
       data-persona={persona}
-      className={[THREAD_CLASS[orientation], className]
-        .filter(Boolean)
-        .join(" ")}
+      className={[THREAD_CLASS[orientation], className].filter(Boolean).join(" ")}
       style={style}
     />
   );

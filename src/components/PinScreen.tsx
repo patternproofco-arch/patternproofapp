@@ -39,13 +39,18 @@ export function PinScreen() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6" style={{ background: "var(--background)" }}>
+    <div
+      className="flex min-h-screen items-center justify-center px-6"
+      style={{ background: "var(--background)" }}
+    >
       {/* Always reachable, even locked — same control as the rest of the app. */}
       <QuickExitButton />
       <div className="w-full max-w-sm">
         <h1 className="font-serif text-[28px] text-center">{settings.disguiseName}</h1>
         {locked ? (
-          <p className="mt-8 text-center text-[14px]" style={{ color: "var(--muted-foreground)" }}>{msg}</p>
+          <p className="mt-8 text-center text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+            {msg}
+          </p>
         ) : (
           <div className="mt-8 space-y-4">
             {hasBiometric && (
@@ -61,8 +66,12 @@ export function PinScreen() {
             {hasPin && (
               <form onSubmit={submit} className="space-y-3">
                 {hasBiometric && (
-                  <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>
-                    <span className="h-px flex-1" style={{ background: "var(--border)" }} /> or PIN <span className="h-px flex-1" style={{ background: "var(--border)" }} />
+                  <div
+                    className="flex items-center gap-3 text-[11px] uppercase tracking-[0.18em]"
+                    style={{ color: "var(--muted-foreground)" }}
+                  >
+                    <span className="h-px flex-1" style={{ background: "var(--border)" }} /> or PIN{" "}
+                    <span className="h-px flex-1" style={{ background: "var(--border)" }} />
                   </div>
                 )}
                 <input
@@ -76,10 +85,16 @@ export function PinScreen() {
                   placeholder="••••"
                   autoFocus={!hasBiometric}
                 />
-                <button type="submit" disabled={pin.length !== 4} className="btn-primary w-full">Enter</button>
+                <button type="submit" disabled={pin.length !== 4} className="btn-primary w-full">
+                  Enter
+                </button>
               </form>
             )}
-            {msg && <p className="text-center text-[13px]" style={{ color: "var(--muted-foreground)" }}>{msg}</p>}
+            {msg && (
+              <p className="text-center text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+                {msg}
+              </p>
+            )}
           </div>
         )}
       </div>

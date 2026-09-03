@@ -18,31 +18,31 @@
      exact blue, from BrandMark.tsx's MARK_COLORWAYS) instead of its own
      hardcoded value, so this portal can't drift from the central token
      again. */
-  --att-navy: var(--pp-accent-attorney, #16235C);
-  --att-navy-mid: #22314F;
-  --att-navy-deep: #0E1729;
-  --att-slate: #63708A;
-  --att-text: #1A1224;
-  --att-text-2: #4C596F;
-  --att-muted: #6E6579;
+  --att-navy: var(--pp-accent-attorney, #16235c);
+  --att-navy-mid: #22314f;
+  --att-navy-deep: #0e1729;
+  --att-slate: #63708a;
+  --att-text: #1a1224;
+  --att-text-2: #4c596f;
+  --att-muted: #6e6579;
 
   /* single accent — navy. No other accent colour on attorney screens. */
   --att-accent: var(--att-navy);
-  --att-accent-hover: #22314F;
-  --att-accent-soft: rgba(21,32,56,0.06);
-  --att-accent-border: rgba(21,32,56,0.24);
+  --att-accent-hover: #22314f;
+  --att-accent-soft: rgba(21, 32, 56, 0.06);
+  --att-accent-border: rgba(21, 32, 56, 0.24);
 
   /* status aliases — all resolve to navy/ink so nothing competes with the accent */
   --att-green: var(--att-navy);
-  --att-amber: #4C596F;
-  --att-red: #1A1224;
+  --att-amber: #4c596f;
+  --att-red: #1a1224;
   --att-blue: var(--att-navy);
   --att-pp-pink: var(--att-navy);
 
   background: var(--att-bg);
   color: var(--att-text);
   --pp-accent: var(--att-navy);
-  --pp-accent-fg: #FFFFFF;
+  --pp-accent-fg: #ffffff;
   font-family: "Public Sans", system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.45;

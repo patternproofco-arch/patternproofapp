@@ -8,7 +8,8 @@ export function normalizeName(s: string): string {
 
 export function editDistance(a: string, b: string): number {
   if (a === b) return 0;
-  const m = a.length, n = b.length;
+  const m = a.length,
+    n = b.length;
   if (!m) return n;
   if (!n) return m;
   const prev = new Array(n + 1).fill(0).map((_, i) => i);

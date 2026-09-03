@@ -13,11 +13,7 @@ export function phrase(count: number, eventLabel: string, timeframe: string): st
 }
 
 export type ObservationSource =
-  | "incidents"
-  | "communications"
-  | "thread_messages"
-  | "court_dates"
-  | "evidence";
+  "incidents" | "communications" | "thread_messages" | "court_dates" | "evidence";
 
 export interface ObservationSourceRow {
   id: string;

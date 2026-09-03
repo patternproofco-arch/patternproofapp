@@ -22,9 +22,18 @@ type AnyBlock = {
 function collectLines(nodes: AnyBlock[] | undefined | null, out: OcrLine[]): void {
   if (!nodes) return;
   for (const n of nodes) {
-    if (n.lines?.length) { collectLines(n.lines, out); continue; }
-    if (n.paragraphs?.length) { collectLines(n.paragraphs, out); continue; }
-    if (n.blocks?.length) { collectLines(n.blocks, out); continue; }
+    if (n.lines?.length) {
+      collectLines(n.lines, out);
+      continue;
+    }
+    if (n.paragraphs?.length) {
+      collectLines(n.paragraphs, out);
+      continue;
+    }
+    if (n.blocks?.length) {
+      collectLines(n.blocks, out);
+      continue;
+    }
     const text = (n.text ?? "").replace(/\s+/g, " ").trim();
     if (!text || !n.bbox) continue;
     out.push({
@@ -53,7 +62,10 @@ async function imageSize(file: File): Promise<{ width: number; height: number }>
   }
 }
 
-let workerPromise: Promise<{ recognize: (f: File) => Promise<AnyBlock> ; terminate: () => Promise<unknown> }> | null = null;
+let workerPromise: Promise<{
+  recognize: (f: File) => Promise<AnyBlock>;
+  terminate: () => Promise<unknown>;
+}> | null = null;
 
 async function getWorker() {
   if (!workerPromise) {
@@ -89,11 +101,16 @@ export async function recognizeImage(file: File): Promise<OcrPageResult> {
     data.text.split(/\n+/).forEach((t, i) => {
       const text = t.trim();
       if (!text) return;
-      lines.push({ text, x0: 0, x1: width, y0: i * 20 + height * 0.11, y1: i * 20 + 18 + height * 0.11, confidence: 0 });
+      lines.push({
+        text,
+        x0: 0,
+        x1: width,
+        y0: i * 20 + height * 0.11,
+        y1: i * 20 + 18 + height * 0.11,
+        confidence: 0,
+      });
     });
   }
-  const confidence = lines.length
-    ? lines.reduce((s, l) => s + l.confidence, 0) / lines.length
-    : 0;
+  const confidence = lines.length ? lines.reduce((s, l) => s + l.confidence, 0) / lines.length : 0;
   return { lines, width, height, confidence };
 }

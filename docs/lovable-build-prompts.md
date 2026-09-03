@@ -1,5 +1,7 @@
 # PatternProof — Lovable Build Prompts
+
 # Paste each prompt into Lovable one at a time, in order.
+
 # Each prompt references the design system doc (patternproof_design_system.md) — keep both open.
 
 ---
@@ -13,6 +15,7 @@ TECH STACK: React + Tailwind CSS + Supabase (auth + database). Mobile-first, sin
 FONTS: Import Nunito (weights 300,400,500,600,700,800) from Google Fonts. Set Nunito as the default font family globally.
 
 COLOR SYSTEM (set as CSS variables in :root):
+
 - Background: #F0F2F5 (pale cool gray)
 - Surface (cards): #F0F2F5 (same as bg — neumorphism)
 - Accent purple: #D4C5F0
@@ -27,6 +30,7 @@ COLOR SYSTEM (set as CSS variables in :root):
 - NO pure black (#000000) anywhere
 
 NEUMORPHIC SHADOWS (set as Tailwind extensions or CSS classes):
+
 - Raised: box-shadow: 8px 8px 16px #D1D9E6, -8px -8px 16px #FFFFFF
 - Inset: box-shadow: inset 8px 8px 16px #D1D9E6, inset -8px -8px 16px #FFFFFF
 - Small: box-shadow: 4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF
@@ -37,6 +41,7 @@ BORDER RADIUS: Cards 20px, small elements 16px, pill nav 24px, buttons 12px, cir
 BUILD THESE SCREENS:
 
 1. PIN LOCK SCREEN
+
 - Full screen, neumorphic background
 - Centered: small lock icon in neumorphic circle (60px)
 - "PatternProof" text below (18px, Nunito 600, #6A6A7A) — only visible when NOT in disguise mode
@@ -46,6 +51,7 @@ BUILD THESE SCREENS:
 - When in DISGUISE MODE: title shows "Daily Planner" instead of "PatternProof", lock icon becomes a calendar icon, accent colors shift to neutral gray (#C0C0C8)
 
 2. EXIT SAFELY BUTTON
+
 - Fixed position, top-left corner, ALWAYS visible on every screen
 - Neumorphic circle (40px) with a discrete door/exit icon (20px, #7A7A8A)
 - On click: INSTANTLY redirect to https://weather.com (window.location.replace, no transition, no animation)
@@ -54,8 +60,9 @@ BUILD THESE SCREENS:
 - NO confirmation dialog. NO delay. This is a safety feature.
 
 3. APP DISGUISE TOGGLE
+
 - In settings screen, a toggle "App Disguise Mode"
-- When ON: 
+- When ON:
   - Document title becomes "Daily Planner"
   - App header shows "Daily Planner" with calendar icon instead of "PatternProof"
   - All branding text swaps to "Daily Planner"
@@ -64,6 +71,7 @@ BUILD THESE SCREENS:
 - Store preference in localStorage
 
 4. BOTTOM NAVIGATION (5 tabs)
+
 - Floating neumorphic pill bar, 24px radius, 16px margin from edges
 - 5 icons evenly spaced: Home, Archive, Recurline, Case, Resources
 - Active tab: inset neumorphic shadow + 4px accent dot below (#D4C5F0)
@@ -72,6 +80,7 @@ BUILD THESE SCREENS:
 - Nav background: same #F0F2F5 (neumorphic)
 
 5. APP SHELL + ROUTING
+
 - React Router with 5 routes: /home, /archive, /recurline, /case, /resources
 - App.tsx wraps everything: PIN gate → App shell (with Exit Safely + Bottom Nav) → Routes
 - Exit Safely button renders at App level, above all routes
@@ -88,10 +97,12 @@ Build the Survivor Home screen for PatternProof. Mobile-first, Nunito font, neum
 LAYOUT (top to bottom):
 
 1. HEADER
+
 - Left: "Hello," in Nunito 400, #7A7A8A, 20px. Below it: "Gracie" in Nunito 700, #5A5A6A, 24px. (Pull name from Supabase auth user, fallback to "there")
 - Right: notification bell icon inside a neumorphic circle (36px), pastel purple (#D4C5F0) background, white bell icon (18px). Small red dot (8px) top-right of circle if unread notifications exist.
 
 2. 2x2 CARD GRID
+
 - Two columns, 16px gap, full width minus 16px padding each side
 - Each card: neumorphic raised (8px 8px 16px #D1D9E6, -8px -8px 16px #FFFFFF), 20px radius, min-height 120px, 16px internal padding
 - Each card has a pastel circle icon (48px) centered horizontally, with a label (14px, Nunito 600, #7A7A8A) below it (8px gap)
@@ -103,6 +114,7 @@ LAYOUT (top to bottom):
 - On press: switch to inset neumorphic shadow (active state)
 
 3. CONNECTING THREAD
+
 - A thin (2px) curved gradient line connecting the 2x2 grid cards down to the list items below
 - Gradient: #D4C5F0 (top) → #C5E8F0 (bottom)
 - Opacity: 0.6
@@ -110,10 +122,12 @@ LAYOUT (top to bottom):
 - Should curve gently, not rigid straight lines. Use SVG path or a div with border-radius curves.
 
 4. "RECENT" SECTION
+
 - Header row: "Recent" in Nunito 700, #6A6A7A, 18px on the left. "view all" in Nunito 400, #B8A9D9, 13px on the right (clickable, navigates to /archive)
 - Thread continues connecting down to this section
 
 5. RECENT ITEMS LIST
+
 - Two list item cards, full width minus 16px margins, 12px gap between them
 - Each card: neumorphic raised, 20px radius, 16px padding, flex row layout
 - Left: neumorphic small circle (40px) with icon (20px white)
@@ -123,6 +137,7 @@ LAYOUT (top to bottom):
 - On tap: navigate to the item detail
 
 6. SPACING
+
 - 32px top padding (below status bar)
 - 16px horizontal padding (screen edges)
 - 24px between header and card grid
@@ -142,10 +157,12 @@ Build the Archive screen for PatternProof. This is where survivors view all thei
 LAYOUT:
 
 1. HEADER
+
 - "Archive" in Nunito 700, #5A5A6A, 24px, left-aligned
 - Right: filter icon in neumorphic small circle (36px), #D4C5F0 background
 
 2. FILTER CHIPS
+
 - Horizontal scrollable row of pill-shaped chips
 - Chips: "All" (active — inset shadow, #D4C5F0 background), "Logs", "Evidence", "Notes", "Voice"
 - Inactive chips: neumorphic raised, #F0F2F5 surface, text in #7A7A8A
@@ -153,6 +170,7 @@ LAYOUT:
 - Chip radius: 12px, 8px padding vertical, 16px horizontal
 
 3. ENTRY LIST
+
 - Vertical list of neumorphic cards, full width minus 16px margins, 12px gap
 - Each card: neumorphic raised, 20px radius, 16px padding
 - Card layout (flex row):
@@ -163,15 +181,18 @@ LAYOUT:
 - On tap: navigate to entry detail view
 
 4. CONNECTING THREAD
+
 - Thread runs vertically along the left side connecting all list items
 - Gradient: #D4C5F0 → #C5E8F0, 2px, opacity 0.6, z-index 0
 
 5. FLOATING ADD BUTTON
+
 - Neumorphic circle (56px), #D4C5F0 background, white "+" icon (28px)
 - Fixed bottom-right, 16px from bottom (above nav bar), z-index 10
 - On tap: open new entry modal
 
 6. EMPTY STATE
+
 - If no entries: centered illustration (neumorphic circle with document icon), "No Marks yet" in Nunito 600, #7A7A8A, "Tap + to document your first entry" in Nunito 300, #A8A8B8
 
 DATA: Supabase "entries" table. Fields: id, user_id, title, type (log/evidence/note/voice), created_at, updated_at. Enable Row Level Security — users see only their own entries. Order by created_at desc. Filter by type if chip selected.
@@ -187,15 +208,17 @@ SAFETY RULE: This screen must NEVER label, name, or diagnose "patterns of abuse.
 LAYOUT:
 
 1. HEADER
+
 - Back arrow (left), "Recurline" centered (Nunito 700, #5A5A6A, 20px)
 
 2. PROGRESS SECTION
+
 - "Progress" header (Nunito 700, #6A6A7A, 18px)
 - Concentric ring chart:
   - 3 overlapping partial rings, centered
   - Ring thickness: 12px, gap between rings: 4px
   - Outer ring: #D4C5F0 (pastel purple)
-  - Middle ring: #C5E8F0 (pastel cyan)  
+  - Middle ring: #C5E8F0 (pastel cyan)
   - Inner ring: #C8D9F0 (lavender-blue)
   - Each ring is partially filled (arc length = percentage of total for that category)
   - Background track: same color as ring at 15% opacity (full circle)
@@ -203,6 +226,7 @@ LAYOUT:
   - Chart container: 200px x 200px, centered
 
 3. LEGEND (below chart)
+
 - 4 items in a 2x2 grid or vertical list
 - Each item: colored dot (8px circle) + label + percentage
 - "MESSAGES 42%" — purple dot (#D4C5F0), label in Nunito 400 uppercase 11px 0.5px letter-spacing #7A7A8A, value in Nunito 600 13px #5A5A6A
@@ -212,12 +236,14 @@ LAYOUT:
 - Labels are NEUTRAL category names only. No interpretation.
 
 4. TIME MANAGEMENT SECTION
+
 - "Time management" header (Nunito 700, #6A6A7A, 18px)
 - Tab pills: "Day" "Week" (active, underlined #D4C5F0) "Month" "Year"
   - 13px Nunito 400, inactive #A8A8B8, active #5A5A6A with 2px underline
   - 16px gap between tabs
 
 5. LINE GRAPH
+
 - Smooth curved line in #D4C5F0 (pastel purple)
 - X-axis labels: Sun, Mon, Tue, Wed, Thu, Fri, Sat (12px Nunito 300 #A8A8B8)
 - No visible y-axis or grid lines (or very faint horizontal line at 10% opacity)
@@ -227,6 +253,7 @@ LAYOUT:
   - Positioned above the highlighted point with a small triangle pointer
 
 6. CONNECTING THREAD
+
 - Thread runs from the ring chart down through the legend to the line graph
 - Gradient: #D4C5F0 → #C5E8F0, 2px, opacity 0.6
 
@@ -243,16 +270,19 @@ Build the Case Builder screen for PatternProof. This helps survivors compile the
 LAYOUT:
 
 1. HEADER
+
 - "Case" in Nunito 700, #5A5A6A, 24px
 - Right: export icon in neumorphic circle (36px), #C8D9F0 background
 
 2. CASE SUMMARY CARD
+
 - Neumorphic raised card, 20px radius, 16px padding
 - Case title (editable): "Custody Case — Burns" (18px Nunito 700 #5A5A6A)
 - Court date (if set): "Next hearing: Sep 15, 2026" (13px Nunito 300 #A8A8B8)
 - Progress bar: neumorphic inset track (6px height, full width, #F0F2F5 inset) with pastel purple fill (#D4C5F0) showing completion percentage
 
 3. EVIDENCE SECTIONS (vertically stacked, connected by thread)
+
 - Thread: #C8D9F0 → #D4C5F0 gradient, 2px, opacity 0.6, connecting all sections
 - Each section: neumorphic card with:
   - Section title (15px Nunito 600 #6A6A7A) + count badge (neumorphic small circle, 24px, accent color, white number)
@@ -264,6 +294,7 @@ LAYOUT:
   d. "Voice Notes" — purple-cyan accent (#D0DBF0) — transcribed audio
 
 4. COURT PACKET EXPORT
+
 - Neumorphic button (full width, 12px radius, 16px padding)
 - "Generate Court Packet (PDF)" in Nunito 600, white text
 - Button background: #D4C5F0
@@ -271,6 +302,7 @@ LAYOUT:
 - Loading state: button shows inset shadow + "Generating..." text
 
 5. SHARE WITH ATTORNEY
+
 - Below export button, a text link: "Share with attorney" (#B8A9D9, 13px Nunito 400)
 - On tap: modal to enter attorney email, sends a secure link
 
@@ -287,9 +319,11 @@ Build the Resources screen for PatternProof. Mobile-first, Nunito, neumorphic de
 LAYOUT:
 
 1. HEADER
+
 - "Resources" in Nunito 700, #5A5A6A, 24px
 
 2. RESOURCE CARDS (vertical list, connected by thread)
+
 - Thread: #D0DBF0 → #C5E8F0, 2px, opacity 0.6
 - Each card: neumorphic raised, 20px radius, 16px padding, 12px gap
 - Card layout: icon circle (40px, accent color) on left, title + subtitle on right
@@ -302,6 +336,7 @@ LAYOUT:
   f. "Emergency Resources" — cyan (#C5E8F0), phone icon, "24/7 hotlines"
 
 3. EMERGENCY BANNER (top of screen, above cards)
+
 - Neumorphic card, slightly different — inset shadow, #F0F2F5 surface
 - "If you're in immediate danger, call 911" in Nunito 600, #5A5A6A, centered
 - Below: "National DV Hotline: 1-800-799-7233" in Nunito 400, #B8A9D9
@@ -318,6 +353,7 @@ Build the Attorney Portal for PatternProof. This is a separate interface for att
 SWITCH FONT: Use Manrope (import from Google Fonts, weights 300,400,500,600,700,800). Set Manrope as font for the attorney portal.
 
 COLOR SYSTEM (attorney portal — blue tint throughout):
+
 - Background: #EDF0F5 (pale blue-gray)
 - Surface: #EDF0F5 (same as bg)
 - Shadow dark: #C5D1E0 (blue-tinted)
@@ -333,6 +369,7 @@ COLOR SYSTEM (attorney portal — blue tint throughout):
 - Text muted: #A8A8B8
 
 NEUMORPHIC SHADOWS (blue-tinted):
+
 - Raised: 8px 8px 16px #C5D1E0, -8px -8px 16px #FFFFFF
 - Inset: inset 8px 8px 16px #C5D1E0, inset -8px -8px 16px #FFFFFF
 - Small: 4px 4px 8px #C5D1E0, -4px -4px 8px #FFFFFF
@@ -340,10 +377,12 @@ NEUMORPHIC SHADOWS (blue-tinted):
 LAYOUT — ATTORNEY HOME:
 
 1. HEADER
+
 - Left: "Attorney Portal" in Manrope 700, #3A3A4A, 24px. Below: firm name (Manrope 400, #6A6A7A, 13px) — pulled from user profile
 - Right: settings gear in neumorphic circle (36px), #A8C4E0 background
 
 2. 2x2 CARD GRID (blue-tinted, connected by thread)
+
 - Thread: #A8C4E0 → #7B9FCC gradient, 2px, opacity 0.6
 - Cards: neumorphic raised (blue-tinted shadows), 20px radius, 16px padding
 - Card 1: "Cases" — blue circle (#A8C4E0), briefcase icon (24px white)
@@ -352,10 +391,12 @@ LAYOUT — ATTORNEY HOME:
 - Card 4: "Evidence" — deeper blue circle (#8BAFD0), folder icon (24px white)
 
 3. "ACTIVE MATTERS" SECTION
+
 - Header: "Active Matters" (Manrope 700, #5A5A6A, 18px) + "view all" (#7B9FCC, 13px Manrope 400)
 - Thread continues down
 
 4. MATTER LIST
+
 - Neumorphic cards (blue-tinted shadows), 20px radius, 16px padding, 12px gap
 - Each: blue circle icon (40px) + title (15px Manrope 600, #5A5A6A) + subtitle (12px Manrope 300, #A8A8B8)
 - Item 1: #A8C4E0, "Custody case — Burns" / "Updated 2 hours ago"
@@ -376,6 +417,7 @@ Build the DV Organization Portal for PatternProof. This is for DV advocacy organ
 FONT: Nunito (same as survivor — warm and approachable, since DV orgs serve survivors).
 
 COLOR SYSTEM (DV org — sage tint throughout):
+
 - Background: #EDF0EC (pale sage-gray)
 - Surface: #EDF0EC (same as bg)
 - Shadow dark: #C5D1C0 (sage-tinted)
@@ -388,6 +430,7 @@ COLOR SYSTEM (DV org — sage tint throughout):
 - Text: same as survivor (#5A5A6A primary, #6A6A7A secondary, #7A7A8A tertiary, #A8A8B8 muted)
 
 NEUMORPHIC SHADOWS (sage-tinted):
+
 - Raised: 8px 8px 16px #C5D1C0, -8px -8px 16px #FFFFFF
 - Inset: inset 8px 8px 16px #C5D1C0, inset -8px -8px 16px #FFFFFF
 - Small: 4px 4px 8px #C5D1C0, -4px -4px 8px #FFFFFF
@@ -395,10 +438,12 @@ NEUMORPHIC SHADOWS (sage-tinted):
 LAYOUT — DV ORG HOME:
 
 1. HEADER
+
 - Left: "DV Org Portal" or org name (Nunito 700, #5A5A6A, 24px). Below: "NJCEDV" (Nunito 400, #7A7A8A, 13px)
 - Right: settings icon in neumorphic circle (36px), #A8C4A8 background
 
 2. 2x2 CARD GRID (sage-tinted, connected by thread)
+
 - Thread: #A8C4A8 → #8BB8A0 gradient, 2px, opacity 0.6
 - Cards: neumorphic raised (sage-tinted shadows), 20px radius, 16px padding
 - Card 1: "Clients" — sage circle (#A8C4A8), users icon (24px white)
@@ -407,9 +452,11 @@ LAYOUT — DV ORG HOME:
 - Card 4: "Advocates" — deeper sage circle (#9BB890), heart icon (24px white)
 
 3. "RECENT ACTIVITY" SECTION
+
 - Header: "Recent Activity" (Nunito 700, #6A6A7A, 18px) + "view all" (#A8C4A8, 13px)
 
 4. ACTIVITY LIST
+
 - Neumorphic cards (sage-tinted), 20px radius, 16px padding, 12px gap
 - Each: sage circle icon (40px) + title (15px Nunito 600, #6A6A7A) + subtitle (12px Nunito 300, #A8A8B8)
 - Item 1: #A8C4A8, "New client intake — Sarah K." / "2 hours ago"

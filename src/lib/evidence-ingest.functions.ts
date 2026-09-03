@@ -76,11 +76,7 @@ function fileKind(mime: string): "image" | "audio" | "video" | "document" {
 }
 
 function classify(mime: string): PreservationStatus {
-  if (
-    mime.startsWith("image/") ||
-    mime === "application/pdf" ||
-    mime.startsWith("text/")
-  ) {
+  if (mime.startsWith("image/") || mime === "application/pdf" || mime.startsWith("text/")) {
     return "preserved";
   }
   if (mime.startsWith("audio/") || mime.startsWith("video/")) {
@@ -114,8 +110,8 @@ async function computeDHash(buf: Buffer): Promise<string | null> {
     let bits = "";
     for (let y = 0; y < 8; y++) {
       for (let x = 0; x < 8; x++) {
-        const left = (img.bitmap.data[(y * 9 + x) * 4] ?? 0);
-        const right = (img.bitmap.data[(y * 9 + x + 1) * 4] ?? 0);
+        const left = img.bitmap.data[(y * 9 + x) * 4] ?? 0;
+        const right = img.bitmap.data[(y * 9 + x + 1) * 4] ?? 0;
         bits += left < right ? "1" : "0";
       }
     }
@@ -135,7 +131,10 @@ function hammingHex(a: string, b: string): number {
   let d = 0;
   for (let i = 0; i < a.length; i++) {
     let x = parseInt(a[i]!, 16) ^ parseInt(b[i]!, 16);
-    while (x) { d += x & 1; x >>= 1; }
+    while (x) {
+      d += x & 1;
+      x >>= 1;
+    }
   }
   return d;
 }
@@ -235,8 +234,8 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
         const existing = dupRes.data ?? null;
 
         let familyId: string | null = existing?.family_id ?? null;
-        let canonicalId: string | null = existing?.id ?? null;
-        let canonicalTitle: string | null = existing?.title ?? null;
+        const canonicalId: string | null = existing?.id ?? null;
+        const canonicalTitle: string | null = existing?.title ?? null;
 
         if (existing && !familyId) {
           // Neither row has a family yet — create one anchored on the existing (earlier) row.
@@ -457,7 +456,8 @@ export const confirmNearDuplicate = createServerFn({ method: "POST" })
       .maybeSingle();
     if (other.error || !other.data) throw new Error("Similar evidence not found");
 
-    let familyId: string | null = (other.data.family_id as string | null) ?? (cur.data.family_id as string | null);
+    let familyId: string | null =
+      (other.data.family_id as string | null) ?? (cur.data.family_id as string | null);
     if (!familyId) {
       const fam = await supabase
         .from("evidence_families")
@@ -466,13 +466,18 @@ export const confirmNearDuplicate = createServerFn({ method: "POST" })
         .single();
       if (fam.error || !fam.data) throw new Error("Could not create family");
       familyId = fam.data.id as string;
-      await supabase.from("evidence").update({ family_id: familyId })
-        .eq("id", other.data.id).eq("user_id", userId);
+      await supabase
+        .from("evidence")
+        .update({ family_id: familyId })
+        .eq("id", other.data.id)
+        .eq("user_id", userId);
     }
 
-    await supabase.from("evidence")
+    await supabase
+      .from("evidence")
       .update({ family_id: familyId, near_duplicate_status: "confirmed" })
-      .eq("id", cur.data.id).eq("user_id", userId);
+      .eq("id", cur.data.id)
+      .eq("user_id", userId);
 
     return { ok: true, family_id: familyId };
   });
@@ -489,7 +494,8 @@ export const rejectNearDuplicate = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const up = await supabase.from("evidence")
+    const up = await supabase
+      .from("evidence")
       .update({ near_duplicate_status: "rejected" })
       .eq("id", data.evidence_id)
       .eq("user_id", userId);

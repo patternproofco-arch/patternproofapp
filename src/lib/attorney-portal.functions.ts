@@ -315,10 +315,8 @@ export const upsertAttorneyProfile = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await assertAttorney(context.userId);
     // firm_name is profile text only. Joining a firm requires a verified invitation.
-    await supabaseAdmin
-      .from("user_roles")
-      .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
     const { error } = await supabaseAdmin
       .from("attorney_profiles")
       .upsert({ user_id: context.userId, ...data, updated_at: new Date().toISOString() });
@@ -343,10 +341,8 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await assertAttorney(context.userId);
     // firm_name is profile text only. Joining a firm requires a verified invitation.
-    await supabaseAdmin
-      .from("user_roles")
-      .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
     const { error } = await supabaseAdmin.from("attorney_profiles").upsert({
       user_id: context.userId,
       full_name: data.full_name,
