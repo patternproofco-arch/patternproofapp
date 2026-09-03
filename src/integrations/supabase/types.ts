@@ -2165,6 +2165,45 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_evidence_links: {
+        Row: {
+          created_at: string
+          evidence_id: string
+          incident_id: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          evidence_id: string
+          incident_id: string
+          source?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          evidence_id?: string
+          incident_id?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_evidence_links_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_evidence_links_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incidents: {
         Row: {
           abuse_types: string[]
