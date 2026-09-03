@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.51",
-    "@ai-sdk/react": "^3.0.209",
+    "@ai-sdk/react": "^4.0.86",
     "@cloudflare/vite-plugin": "^1.25.5",
     "@hookform/resolvers": "^5.2.2",
     "@lovable.dev/cloud-auth-js": "^1.1.2",
