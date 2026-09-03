@@ -14,7 +14,7 @@
     "security:audit": "bun audit || npm audit"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^2.0.51",
+    "@ai-sdk/openai-compatible": "^3.0.39",
     "@ai-sdk/react": "^3.0.209",
     "@cloudflare/vite-plugin": "^1.25.5",
     "@hookform/resolvers": "^5.2.2",
