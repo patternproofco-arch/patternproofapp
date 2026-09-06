@@ -233,15 +233,14 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
           scope: z.literal(true),
           revoke: z.literal(true),
         }),
-        scope: z
-          .object({
-            include_all_incidents: z.boolean(),
-            include_all_evidence: z.boolean(),
-            include_patterns: z.boolean(),
-            scope_incidents: z.array(z.string().uuid()).max(2000).optional().default([]),
-            scope_evidence: z.array(z.string().uuid()).max(2000).optional().default([]),
-          })
-          .optional(),
+        // Explicit scope required — never default to whole-vault on omit.
+        scope: z.object({
+          include_all_incidents: z.boolean().default(false),
+          include_all_evidence: z.boolean().default(false),
+          include_patterns: z.boolean().default(false),
+          scope_incidents: z.array(z.string().uuid()).max(2000).optional().default([]),
+          scope_evidence: z.array(z.string().uuid()).max(2000).optional().default([]),
+        }),
       })
       .parse(input),
   )
@@ -267,13 +266,16 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       throw new Error("This invite was sent to a different email address.");
     }
 
-    const scope = data.scope ?? {
-      include_all_incidents: true,
-      include_all_evidence: true,
-      include_patterns: true,
-      scope_incidents: [] as string[],
-      scope_evidence: [] as string[],
-    };
+    const scope = data.scope;
+    const hasShare =
+      scope.include_all_incidents ||
+      scope.include_all_evidence ||
+      scope.include_patterns ||
+      (scope.scope_incidents ?? []).length > 0 ||
+      (scope.scope_evidence ?? []).length > 0;
+    if (!hasShare) {
+      throw new Error("Choose at least one thing to share before accepting.");
+    }
     if (!scope.include_all_incidents && (scope.scope_incidents ?? []).length) {
       const { data: ownedIncidents } = await supabaseAdmin
         .from("incidents")

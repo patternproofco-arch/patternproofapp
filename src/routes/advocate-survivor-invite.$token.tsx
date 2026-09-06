@@ -50,9 +50,10 @@ function AdvocateSurvivorInvitePage() {
   const [ackWho, setAckWho] = useState(false);
   const [ackScope, setAckScope] = useState(false);
   const [ackRevoke, setAckRevoke] = useState(false);
-  const [shareIncidents, setShareIncidents] = useState(true);
-  const [shareEvidence, setShareEvidence] = useState(true);
-  const [sharePatterns, setSharePatterns] = useState(true);
+  // Scope toggles start off — fail closed; Accept rejects empty scope server-side too.
+  const [shareIncidents, setShareIncidents] = useState(false);
+  const [shareEvidence, setShareEvidence] = useState(false);
+  const [sharePatterns, setSharePatterns] = useState(false);
 
   useEffect(() => {
     if (user && peeked?.status === "ok" && step === "auth") setStep("consent");
@@ -104,6 +105,10 @@ function AdvocateSurvivorInvitePage() {
       toast("Please confirm each checklist item before accepting.");
       return;
     }
+    if (!shareIncidents && !shareEvidence && !sharePatterns) {
+      toast("Choose at least one thing to share before accepting.");
+      return;
+    }
     setBusy(true);
     try {
       await accept({
@@ -120,8 +125,13 @@ function AdvocateSurvivorInvitePage() {
         },
       });
       setDone("accepted");
-      toast("Shared. Your advocate can now view what you chose.");
-      setTimeout(() => navigate({ to: "/dashboard", replace: true }), 1500);
+      const name =
+        peeked?.status === "ok" && peeked.invite
+          ? peeked.invite.advocate_name
+            ? `${peeked.invite.advocate_name}${peeked.invite.org_name ? ` · ${peeked.invite.org_name}` : ""}`
+            : peeked.invite.org_name || "your advocate"
+          : "your advocate";
+      toast(`Shared with ${name} · Revoke in Settings`);
     } catch (err) {
       toast(err instanceof Error ? err.message : "Couldn't accept the invite.");
     } finally {
@@ -215,8 +225,8 @@ function AdvocateSurvivorInvitePage() {
         {advocateDisplay} invited you to share records.
       </h1>
       <p style={{ color: "var(--pp-muted)", fontSize: 14, marginBottom: 18 }}>
-        Opening this link does <strong>not</strong> grant access. You stay in control: Accept only
-        after the checklist below, choose what to share, and revoke anytime. This is not
+        Opening this link does <strong>not</strong> grant access. You choose what to share: Accept only
+        after the checklist below, pick your scope, and revoke anytime. This is not
         attorney–client privilege.
       </p>
 
@@ -248,10 +258,21 @@ function AdvocateSurvivorInvitePage() {
             borderLeft: "3px solid var(--pp-safe, var(--pp-accent))",
             color: "var(--pp-ink)",
             fontSize: 14,
+            display: "grid",
+            gap: 10,
           }}
         >
-          <ShieldCheck size={16} style={{ verticalAlign: "-3px", marginRight: 6 }} />
-          Shared. Taking you to your dashboard…
+          <div>
+            <ShieldCheck size={16} style={{ verticalAlign: "-3px", marginRight: 6 }} />
+            Shared with {advocateDisplay} · Revoke in Settings
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/dashboard", replace: true })}
+            style={primaryBtn(false)}
+          >
+            Go to dashboard
+          </button>
         </div>
       ) : done === "declined" ? (
         <div
@@ -369,8 +390,8 @@ function AdvocateSurvivorInvitePage() {
           <button
             type="button"
             onClick={confirmAccept}
-            disabled={busy || !ackWho || !ackScope || !ackRevoke}
-            style={primaryBtn(busy || !ackWho || !ackScope || !ackRevoke)}
+            disabled={busy || !ackWho || !ackScope || !ackRevoke || (!shareIncidents && !shareEvidence && !sharePatterns)}
+            style={primaryBtn(busy || !ackWho || !ackScope || !ackRevoke || (!shareIncidents && !shareEvidence && !sharePatterns))}
           >
             <CheckCircle2 size={14} /> {busy ? "Sharing…" : "Accept & share"}
           </button>
@@ -392,7 +413,7 @@ function AdvocateSurvivorInvitePage() {
             Decline — grant no access
           </button>
           <div style={{ fontSize: 11, color: "var(--pp-muted)", display: "inline-flex", gap: 6 }}>
-            <Lock size={11} /> Authz is server-side grant status, not possession of this link.
+            <Lock size={11} /> Opening this link never shares by itself.
           </div>
         </div>
       )}

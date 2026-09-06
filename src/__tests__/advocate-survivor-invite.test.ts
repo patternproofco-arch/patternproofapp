@@ -36,13 +36,36 @@ describe("PR-B advocate to survivor invite", () => {
     expect(fns).toContain('status: "declined"');
   });
 
-  it("survivor UI starts checklist unchecked and exposes Decline", () => {
-    expect(route).toContain("useState(false)");
+  it("survivor UI starts checklist and scope toggles unchecked and exposes Decline", () => {
     expect(route).toContain("ackWho");
     expect(route).toContain("ackScope");
     expect(route).toContain("ackRevoke");
+    expect(route).toContain("const [shareIncidents, setShareIncidents] = useState(false)");
+    expect(route).toContain("const [shareEvidence, setShareEvidence] = useState(false)");
+    expect(route).toContain("const [sharePatterns, setSharePatterns] = useState(false)");
+    expect(route).not.toContain("useState(true)");
     expect(route).toContain("Decline — grant no access");
-    expect(route).toContain("Opening this link does");
+    expect(route).toContain("You choose what to share");
+    expect(route).toContain("Opening this link never shares by itself.");
+    expect(route).not.toContain("You stay in control");
+    expect(route).not.toContain("Authz is server-side");
+    expect(route).toContain("Shared with");
+    expect(route).toContain("Revoke in Settings");
+  });
+
+  it("Accept requires explicit scope and rejects omitted/empty whole-vault-by-omission", () => {
+    // scope must be a required object (not z.object(...).optional())
+    expect(fns).toMatch(/scope:\s*z\.object\(\{/);
+    expect(fns).not.toMatch(/scope:\s*z\.object\(\{[\s\S]*?\}\)\s*\.optional\(/);
+    expect(fns).toContain("include_all_incidents: z.boolean().default(false)");
+    expect(fns).toContain("include_all_evidence: z.boolean().default(false)");
+    expect(fns).toContain("include_patterns: z.boolean().default(false)");
+    // No fail-open default to whole vault
+    expect(fns).not.toContain("include_all_incidents: true");
+    expect(fns).not.toContain("include_all_evidence: true");
+    expect(fns).not.toContain("include_patterns: true");
+    expect(fns).toContain("Choose at least one thing to share before accepting.");
+    expect(fns).toContain("const scope = data.scope;");
   });
 
   it("advocate UI sends transactional email (not hand-link only)", () => {
