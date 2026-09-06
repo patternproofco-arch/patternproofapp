@@ -356,8 +356,45 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
       updated_at: new Date().toISOString(),
     });
     if (error) throw new Error(error.message);
-    return { ok: true };
+
+    // Founding-nine trial: the first nine attorneys who finish setup get 90
+    // days of full portal access. Internal test accounts are comped and don't
+    // take one of the nine spots.
+    const { data: profile } = await supabaseAdmin
+      .from("attorney_profiles")
+      .select("trial_ends_at")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    if (!profile?.trial_ends_at) {
+      const comped = data.email.trim().toLowerCase().endsWith("@patternproof.test");
+      let eligible = comped;
+      if (!comped) {
+        const { count } = await supabaseAdmin
+          .from("attorney_profiles")
+          .select("user_id", { count: "exact", head: true })
+          .not("trial_ends_at", "is", null)
+          .eq("trial_comped", false);
+        eligible = (count ?? 0) < 9;
+      }
+      if (eligible) {
+        const now = new Date();
+        const ends = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+        await supabaseAdmin
+          .from("attorney_profiles")
+          .update({
+            trial_started_at: now.toISOString(),
+            trial_ends_at: ends.toISOString(),
+            trial_comped: comped,
+          })
+          .eq("user_id", context.userId);
+        return { ok: true, trial_ends_at: ends.toISOString() };
+      }
+    }
+
+    return { ok: true, trial_ends_at: profile?.trial_ends_at ?? null };
   });
+
 
 export const getAttorneyProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
