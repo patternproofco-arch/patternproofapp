@@ -158,7 +158,7 @@ export function AuthPage({
           <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             {mode === "login"
               ? "Sign in to continue to your private PatternProof account."
-              : "Add photos, messages, voice notes, and written entries to one private timeline. You control what is shared and who can see it."}
+              : "Add photos, messages, voice notes, and written entries to one private timeline. You choose what to share and who can see it."}
           </p>
 
           <div className="space-y-3 mb-4">

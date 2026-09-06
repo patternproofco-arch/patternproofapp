@@ -4,7 +4,17 @@ import { useSettings } from "@/lib/settings-context";
 import { useDraggable } from "@/hooks/use-draggable";
 import { quickExit } from "@/lib/quick-exit";
 
-export function QuickExitButton() {
+type ExitPos = { right?: number; bottom?: number; left?: number; top?: number };
+
+export function QuickExitButton({
+  defaultPosition = { right: 16, top: 70 },
+  storageKey = "pp.exit.pos",
+}: {
+  /** Default dock when the user hasn't dragged the control yet. */
+  defaultPosition?: ExitPos;
+  /** Separate keys keep public vs signed-in docks from fighting each other. */
+  storageKey?: string;
+} = {}) {
   const { settings } = useSettings();
   const lastEsc = useRef(0);
   const {
@@ -12,7 +22,7 @@ export function QuickExitButton() {
     style: dragStyle,
     dragHandlers,
     wasDragged,
-  } = useDraggable("pp.exit.pos", { right: 16, top: 70 });
+  } = useDraggable(storageKey, defaultPosition);
 
   // Signs the user out for real, then redirects. See src/lib/quick-exit.ts.
   const exit = () => quickExit(settings.exitUrl);

@@ -73,7 +73,7 @@ function ConnectedApps() {
   };
 
   return (
-    <div className="card-pp mt-6">
+    <div id="connected-apps" className="card-pp mt-6 scroll-mt-24">
       <div className="flex items-center gap-2">
         <Plug size={18} style={{ color: "var(--accent)" }} />
         <h2 className="font-serif text-[19px]">Connected apps</h2>

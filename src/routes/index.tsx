@@ -118,7 +118,7 @@ function Index() {
         style={{
           maxWidth: 920,
           margin: "0 auto",
-          padding: "clamp(48px,8vw,88px) 24px 0",
+          padding: "clamp(64px,10vw,96px) 24px 0", /* clears fixed Exit safely on mobile */
           textAlign: "center",
         }}
       >
@@ -137,7 +137,7 @@ function Index() {
         >
           {attorneyMode
             ? "Source-linked · Chain of custody · Export-ready"
-            : "Encrypted in transit · Private by default · You control sharing"}
+            : "Encrypted in transit · Private by default · You choose what to share"}
         </p>
         {!attorneyMode && (
           <p
@@ -274,7 +274,7 @@ function Index() {
               </Link>
             </div>
             <p style={{ marginTop: 12, fontSize: 12.5, color: INK_3 }}>
-              Free for survivors · Private by default · You control sharing
+              Free for survivors · Private by default · You choose what to share
             </p>
           </>
         )}
@@ -333,6 +333,7 @@ function Index() {
                 tint="rgba(188, 214, 190, 0.22)"
                 icon={Users}
                 iconColor={INK}
+                labelColor={INK}
                 label="DV Organization"
                 body="Let survivors document once and share an organized record with approved staff when they choose."
                 to="/for-organizations"
@@ -544,7 +545,7 @@ function HowItWorks() {
     {
       n: 3,
       title: "Share only what you choose",
-      body: "Nothing leaves your account until you decide — with an attorney, an advocate, or a court, on your terms.",
+      body: "With an attorney, an advocate, or a court — only when you decide, on your terms.",
     },
   ];
 
@@ -832,6 +833,7 @@ function PathCard({
   accentBg,
   tint,
   iconColor = "#FFFFFF",
+  labelColor,
   icon: Icon,
   label,
   body,
@@ -847,6 +849,8 @@ function PathCard({
   /** Icon color against accentBg — defaults to white. The survivor
    * gradient is light pastel at both ends, so white would be illegible. */
   iconColor?: string;
+  /** Label color — defaults to `accent`. DV org uses dark ink on sage for WCAG-ish contrast. */
+  labelColor?: string;
   icon: ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
   body: string;
@@ -873,16 +877,32 @@ function PathCard({
       <div
         style={{
           position: "relative",
-          height: 48,
+          minHeight: 48,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          gap: 8,
+          padding: "10px 12px",
           background: accentBg ?? accent,
         }}
       >
         <span aria-hidden="true">
           <Icon color={iconColor} size={19} strokeWidth={1.6} />
         </span>
+        {labelColor ? (
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 10,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              fontWeight: 700,
+              color: labelColor,
+            }}
+          >
+            {label}
+          </span>
+        ) : null}
       </div>
 
       <div
@@ -896,21 +916,23 @@ function PathCard({
         }}
       >
         <div>
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 10,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              fontWeight: 700,
-              color: accent,
-            }}
-          >
-            {label}
-          </div>
+          {!labelColor ? (
+            <div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                fontWeight: 700,
+                color: accent,
+              }}
+            >
+              {label}
+            </div>
+          ) : null}
           <p
             style={{
-              margin: "6px 0 9px",
+              margin: labelColor ? "0 0 9px" : "6px 0 9px",
               fontFamily: "var(--font-serif)",
               fontWeight: 400,
               fontSize: 15,
