@@ -34,10 +34,21 @@ describe("survivor onboarding atomic finish", () => {
     const fnBody = legalConsent.slice(fnStart);
     const metaFailAt = fnBody.indexOf("if (metaError)");
     expect(metaFailAt).toBeGreaterThan(0);
-    const compensate = fnBody.slice(metaFailAt, metaFailAt + 700);
+    const compensate = fnBody.slice(metaFailAt, metaFailAt + 1200);
     expect(compensate).toContain('.from("user_terms_acceptance")');
     expect(compensate).toContain(".delete()");
+    expect(compensate).toContain("deleteError");
+    expect(compensate).toContain("deleteErrorMessage");
     expect(compensate).toContain("throw");
+    expect(compensate).toMatch(/roll back terms acceptance|failed to roll back/i);
+  });
+
+  it("merges existing user_metadata before admin updateUserById", () => {
+    const fnStart = legalConsent.indexOf("export const completeSurvivorOnboarding");
+    const fnBody = legalConsent.slice(fnStart);
+    expect(fnBody).toContain("getUserById");
+    expect(fnBody).toContain("...existingMeta");
+    expect(fnBody).toContain("user_metadata");
   });
 
   it("client finish path uses the atomic serverFn and not client updateUser", () => {

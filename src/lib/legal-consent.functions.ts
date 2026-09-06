@@ -53,6 +53,16 @@ export const completeSurvivorOnboarding = createServerFn({ method: "POST" })
     const city = data.city.trim();
     const state = data.state.trim();
 
+    // Load existing metadata first — admin updateUserById replaces the whole
+    // user_metadata object, so we must merge rather than wipe other keys.
+    const { data: existingUserData, error: getUserError } =
+      await supabaseAdmin.auth.admin.getUserById(userId);
+    if (getUserError) {
+      throw new Error(getUserError.message || "Could not load user for onboarding. Please try again.");
+    }
+    const existingMeta =
+      (existingUserData.user?.user_metadata as Record<string, unknown> | null | undefined) ?? {};
+
     const { data: inserted, error: insertError } = await supabaseAdmin
       .from("user_terms_acceptance")
       .insert({
@@ -75,6 +85,7 @@ export const completeSurvivorOnboarding = createServerFn({ method: "POST" })
 
     const { error: metaError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       user_metadata: {
+        ...existingMeta,
         onboarding_complete: true,
         state,
         city,
@@ -86,16 +97,28 @@ export const completeSurvivorOnboarding = createServerFn({ method: "POST" })
 
     if (metaError) {
       // Compensate: do not leave user_terms_acceptance without onboarding_complete.
+      // If delete fails, fail loudly — never report success while terms still stick.
+      let deleteErrorMessage: string | null = null;
       if (insertedId) {
-        await supabaseAdmin.from("user_terms_acceptance").delete().eq("id", insertedId);
+        const { error: deleteError } = await supabaseAdmin
+          .from("user_terms_acceptance")
+          .delete()
+          .eq("id", insertedId);
+        if (deleteError) deleteErrorMessage = deleteError.message;
       } else {
-        await supabaseAdmin
+        const { error: deleteError } = await supabaseAdmin
           .from("user_terms_acceptance")
           .delete()
           .eq("user_id", userId)
           .eq("terms_version", TERMS_VERSION)
           .eq("privacy_version", PRIVACY_VERSION)
           .eq("account_type", "survivor");
+        if (deleteError) deleteErrorMessage = deleteError.message;
+      }
+      if (deleteErrorMessage) {
+        throw new Error(
+          `Could not save onboarding status (${metaError.message || "metadata update failed"}), and failed to roll back terms acceptance (${deleteErrorMessage}). Please contact support.`,
+        );
       }
       throw new Error(metaError.message || "Could not save onboarding status. Please try again.");
     }
