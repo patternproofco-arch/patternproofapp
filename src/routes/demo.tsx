@@ -306,8 +306,21 @@ function DemoHeader() {
 
 function DemoBanner() {
   return (
-    <div style={{ maxWidth: 1080, margin: "16px auto 0", padding: "0 20px" }}>
+    <div
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 40,
+        maxWidth: 1080,
+        margin: "16px auto 0",
+        padding: "0 20px",
+        /* Leave room for fixed Easy Exit (top-right) so banner copy does not sit under it */
+        paddingRight: "max(20px, 132px)",
+        background: "var(--pp-ground)",
+      }}
+    >
       <div
+        role="status"
         style={{
           display: "flex",
           alignItems: "flex-start",
@@ -322,10 +335,10 @@ function DemoBanner() {
       >
         <Info size={16} style={{ flexShrink: 0, marginTop: 1 }} />
         <div>
-          <strong>Demo mode.</strong> Buttons like "Save", "Upload", or "Export" won't do anything —
-          this case is read-only sample data. To document a real case,{" "}
+          <strong>DEMO · Fictional · Read-only.</strong> Log, upload, and export are disabled here —
+          this case is sample data. To document a real case,{" "}
           <Link to="/signup" style={{ color: "var(--pp-accent)", fontWeight: 600 }}>
-            create an account
+            start documenting
           </Link>
           .
         </div>
@@ -344,44 +357,67 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
     { key: "packet", label: "Professional-review packet", icon: FileText },
   ];
   return (
-    <div
-      style={{
-        marginTop: 28,
-        display: "flex",
-        gap: 4,
-        overflowX: "auto",
-        background: "var(--pp-card)",
-        padding: 6,
-        borderRadius: 18,
-        boxShadow: "var(--pp-shadow-sm)",
-      }}
-    >
-      {tabs.map((t) => {
-        const Icon = t.icon;
-        const active = tab === t.key;
-        return (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "9px 14px",
-              borderRadius: 18,
-              fontSize: 13,
-              fontWeight: 600,
-              border: "none",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              background: active ? "var(--pp-accent)" : "transparent",
-              color: active ? "var(--pp-accent-fg)" : "var(--pp-muted)",
-            }}
-          >
-            <Icon size={14} /> {t.label}
-          </button>
-        );
-      })}
+    <div style={{ marginTop: 28 }}>
+      <div
+        role="tablist"
+        aria-label="Demo sections"
+        style={{
+          display: "flex",
+          gap: 4,
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "thin",
+          background: "var(--pp-card)",
+          padding: 6,
+          borderRadius: 18,
+          boxShadow: "var(--pp-shadow-sm)",
+          /* Soft edge hint that more tabs scroll horizontally on ~390px */
+          maskImage:
+            "linear-gradient(to right, #000 0%, #000 calc(100% - 28px), transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to right, #000 0%, #000 calc(100% - 28px), transparent 100%)",
+        }}
+      >
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(t.key)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "9px 14px",
+                borderRadius: 18,
+                fontSize: 13,
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+                background: active ? "var(--pp-accent)" : "transparent",
+                color: active ? "var(--pp-accent-fg)" : "var(--pp-muted)",
+              }}
+            >
+              <Icon size={14} /> {t.label}
+            </button>
+          );
+        })}
+      </div>
+      <p
+        style={{
+          margin: "8px 0 0",
+          fontSize: 11,
+          color: "var(--pp-muted)",
+          letterSpacing: "0.04em",
+        }}
+      >
+        Swipe tabs sideways if some are off-screen
+      </p>
     </div>
   );
 }
@@ -607,10 +643,14 @@ function Journal() {
           </p>
         </div>
         <button
-          onClick={() => toast.info("Demo mode — log an incident on your real account.")}
-          style={demoButton}
+          type="button"
+          disabled
+          aria-disabled="true"
+          title="Demo only — logging is disabled in this sample"
+          onClick={() => toast.info("Demo only — start documenting on a real account to log incidents.")}
+          style={demoButtonDisabled}
         >
-          + Log incident
+          + Log incident · Demo only
         </button>
       </div>
       {INCIDENTS.map((i) => (
@@ -728,8 +768,15 @@ function EvidenceLibrary() {
             Every file is linked to the incident it belongs to.
           </p>
         </div>
-        <button onClick={() => toast.info("Demo mode — uploads are disabled.")} style={demoButton}>
-          + Upload
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          title="Demo only — uploads are disabled in this sample"
+          onClick={() => toast.info("Demo only — uploads are disabled.")}
+          style={demoButtonDisabled}
+        >
+          + Upload · Demo only
         </button>
       </div>
       <div
@@ -800,12 +847,16 @@ function CourtPacket() {
           </p>
         </div>
         <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          title="Demo only — exports are disabled in this sample"
           onClick={() =>
-            toast.info("Demo mode — exports are disabled. Sign up to generate a real packet.")
+            toast.info("Demo only — exports are disabled. Start documenting to generate a real packet.")
           }
-          style={demoButton}
+          style={demoButtonDisabled}
         >
-          Export packet (PDF)
+          Export packet (PDF) · Demo only
         </button>
       </div>
       <Card>
@@ -928,4 +979,12 @@ const demoButton: React.CSSProperties = {
   fontSize: 13,
   fontWeight: 600,
   cursor: "pointer",
+};
+
+const demoButtonDisabled: React.CSSProperties = {
+  ...demoButton,
+  opacity: 0.72,
+  cursor: "not-allowed",
+  color: "var(--pp-muted)",
+  border: "1px dashed var(--pp-shadow-dark)",
 };

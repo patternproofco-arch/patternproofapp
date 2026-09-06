@@ -46,8 +46,8 @@ export const BASE_TIERS: Tier[] = [
       "Attorney sharing — send a secure link to your attorney, free",
       "Encrypted in transit; per-user access controls",
     ],
-    cta: "Start Documenting Free",
-    ctaTo: "/login",
+    cta: "Start documenting",
+    ctaTo: "/signup",
   },
   {
     key: "court_ready",
@@ -78,7 +78,7 @@ export const BASE_TIERS: Tier[] = [
       "Exportable case summary (ZIP) — imports into practice management systems",
       "Survivor vs. AI-suggested content clearly distinguished",
     ],
-    cta: "Start with Solo",
+    cta: "Request access",
     ctaTo: "/lawyer-signup",
   },
   // The Firm tier is inserted at runtime (see buildTiers below) so the
@@ -94,9 +94,9 @@ export const BASE_TIERS: Tier[] = [
       "Referral link so we can attribute outcomes back to your advocacy",
       "Priority support for your intake team",
       "Direct line to the PatternProof team",
-      "Self-serve sign-up — start in minutes",
+      "Invitation-only partner portal — request access to get started",
     ],
-    cta: "Partner with us",
+    cta: "Request access",
     ctaTo: "/org-signup",
   },
 ];
@@ -163,7 +163,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
           "Conflict-of-interest check across your own PatternProof caseload",
           "Priority client onboarding + practice-management-ready exports",
         ],
-        cta: "Start with Firm",
+        cta: "Request access",
         ctaTo: "/lawyer-signup",
         featured: true,
       }
@@ -188,7 +188,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
           "Charter program: personal setup, case import, and staff training",
           "$597/month rate locked for 12 months, then $897/month list",
         ],
-        cta: "Apply for the Charter program",
+        cta: "Request Charter access",
         ctaTo: "/lawyer-signup",
         featured: true,
       };

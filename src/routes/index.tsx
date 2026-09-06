@@ -137,7 +137,7 @@ function Index() {
         >
           {attorneyMode
             ? "Source-linked · Chain of custody · Export-ready"
-            : "Private · Secure · Export-ready"}
+            : "Encrypted in transit · Private by default · You control sharing"}
         </p>
         {!attorneyMode && (
           <p
@@ -711,6 +711,26 @@ function Faq({ q, a }: { q: string; a: string }) {
 function DashboardPreview() {
   return (
     <div className="card-pp" style={{ padding: 20 }}>
+      <div
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 12,
+          padding: "4px 10px",
+          borderRadius: 999,
+          background: "var(--pp-ground)",
+          boxShadow: "var(--pp-shadow-in-sm)",
+          fontFamily: "var(--font-mono)",
+          fontSize: 10.5,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: INK_3,
+          fontWeight: 700,
+        }}
+      >
+        Sample preview · Demo data
+      </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <p style={{ fontFamily: "var(--font-serif)", fontSize: 17, color: INK, margin: 0 }}>

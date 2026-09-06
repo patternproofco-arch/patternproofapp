@@ -285,7 +285,7 @@ function ForAttorneys() {
         </div>
         <div style={{ marginTop: 32 }}>
           <Link
-            to="/subscribe"
+            to="/lawyer-signup"
             style={{
               display: "inline-block",
               background: NAVY,
@@ -299,7 +299,7 @@ function ForAttorneys() {
               borderRadius: "var(--pp-r-pill)",
             }}
           >
-            Create your attorney account →
+            Request access →
           </Link>
           <div
             style={{
@@ -312,7 +312,8 @@ function ForAttorneys() {
               lineHeight: 1.6,
             }}
           >
-            Review the demo before choosing a plan.
+            Attorney portals are invitation-only. Request access and we&apos;ll send next steps —
+            usually a short verification, then a sign-in link.
           </div>
         </div>
       </section>
@@ -364,7 +365,7 @@ function TopBar() {
             How it works
           </Link>
           <Link
-            to="/subscribe"
+            to="/lawyer-signup"
             style={{
               fontFamily: MONO,
               fontSize: 11,
@@ -375,7 +376,7 @@ function TopBar() {
               textTransform: "uppercase",
             }}
           >
-            Attorney portal
+            Request access
           </Link>
         </div>
       </div>
