@@ -306,11 +306,12 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdvocateSurvivorInviteTokenRoute = AdvocateSurvivorInviteTokenRouteImport.update({
-  id: '/advocate-survivor-invite/$token',
-  path: '/advocate-survivor-invite/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const AdvocateSurvivorInviteTokenRoute =
+  AdvocateSurvivorInviteTokenRouteImport.update({
+    id: '/advocate-survivor-invite/$token',
+    path: '/advocate-survivor-invite/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdvocateInviteTokenRoute = AdvocateInviteTokenRouteImport.update({
   id: '/advocate-invite/$token',
   path: '/advocate-invite/$token',
@@ -738,8 +739,8 @@ export interface FileRoutesByFullPath {
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
-  '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
+  '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
@@ -839,8 +840,8 @@ export interface FileRoutesByTo {
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
-  '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
+  '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
@@ -946,8 +947,8 @@ export interface FileRoutesById {
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
-  '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
+  '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
@@ -1051,8 +1052,8 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/voice-notes'
     | '/accept-invite/$token'
-    | '/advocate-survivor-invite/$token'
     | '/advocate-invite/$token'
+    | '/advocate-survivor-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
     | '/collaborator-invite/$token'
@@ -1152,8 +1153,8 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/voice-notes'
     | '/accept-invite/$token'
-    | '/advocate-survivor-invite/$token'
     | '/advocate-invite/$token'
+    | '/advocate-survivor-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
     | '/collaborator-invite/$token'
@@ -1258,8 +1259,8 @@ export interface FileRouteTypes {
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
     | '/accept-invite/$token'
-    | '/advocate-survivor-invite/$token'
     | '/advocate-invite/$token'
+    | '/advocate-survivor-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
     | '/collaborator-invite/$token'
@@ -1322,8 +1323,8 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
-  AdvocateSurvivorInviteTokenRoute: typeof AdvocateSurvivorInviteTokenRoute
   AdvocateInviteTokenRoute: typeof AdvocateInviteTokenRoute
+  AdvocateSurvivorInviteTokenRoute: typeof AdvocateSurvivorInviteTokenRoute
   ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
@@ -2261,8 +2262,8 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,
-  AdvocateSurvivorInviteTokenRoute: AdvocateSurvivorInviteTokenRoute,
   AdvocateInviteTokenRoute: AdvocateInviteTokenRoute,
+  AdvocateSurvivorInviteTokenRoute: AdvocateSurvivorInviteTokenRoute,
   ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
