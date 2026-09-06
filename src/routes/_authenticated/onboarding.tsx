@@ -201,8 +201,8 @@ function Onboarding() {
             </li>
           </ul>
           <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            Nothing leaves your account until you choose to share it. You control who gets access,
-            and you can revoke it at any time.
+            Share only what you choose. You decide who gets access, and you can revoke it at any
+            time.
           </p>
         </StepCard>
 
