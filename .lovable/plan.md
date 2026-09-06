@@ -1,68 +1,37 @@
-# Evidence Intake Expansion — integration plan
+# Make attorney, advocate and DV-org onboarding actually create real accounts
 
-## What already exists (verified by reading the code/schema)
+## What's happening today (verified against the live data)
 
-- **Screenshot import**: `src/routes/_authenticated/import-messages.tsx` + `src/components/messages/*`, client-side OCR in `src/lib/ocr/run.ts` (Tesseract.js, browser-only) and `src/lib/ocr/parse.ts` (line grouping, bubble-side guess, timestamp parsing, fuzzy trigram dedupe with a short-text guard). Server side: `src/lib/message-import.functions.ts` with draft/`in_progress`/`complete` resume, append-only `thread_message_corrections`, `field_provenance`.
-- **Threads already flow through**: Timeline (toggle), Case Builder (`cases.attached_thread_ids`), Court Packet PDF, and the evidence ZIP export. No new export path is needed anywhere below.
-- **Evidence ingest** (`src/lib/evidence-ingest.functions.ts`): already computes `sha256` and a dHash `perceptual_hash`, and **already compares against all of the user's prior evidence** — cross-session duplicate detection exists at the data layer; it is the UI surfacing that is thin.
-- **Screen recordings**: `ScreenRecordingUpload.tsx` uploads video and calls a server AI transcription (`transcribeRecordedThread`) — that contradicts the client-side-OCR rule for this feature.
-- **Date certainty**: `incidents` has `date_precision` / `date_range_start|end` / `anchor_label`. **`evidence.date` is `NOT NULL` with no precision column** — this is the regression to restore.
-- **Voice transcription**: `transcribe-voice-note.functions.ts` exists and is reusable.
-- **Patterns**: `pattern-analysis.functions.ts` is an AI narrative analysis; the requested neutral counts are a separate, deterministic thing.
+- **Attorney** — the setup form *does* save the profile correctly. The account is then sent to pricing and blocked from the real client dashboard because there is no paid plan. The test attorney has the attorney role but no profile and no plan.
+- **DV organization** — the organization signup form saves nothing at all: it always answers "new partner accounts require a verified invitation." So no organization, no membership and no advocate profile is ever created, and the organization portal shows "you are not a verified member of a partner organization."
+- **Advocate** — an advocate profile is only ever created when an advocate accepts a survivor's invitation. There is no way for an advocate to fill in their own name and organization, so the portal header shows blank.
+- **Survivor** — this one already works end to end; the test survivor simply has not completed the welcome steps yet.
 
-## Schema changes (one migration, extends existing tables)
+## What I'll build
 
-- `evidence`: add `date_precision` (`exact` | `approximate` | `unknown`, default `exact`), `date_range_start`, `date_range_end`, `anchor_label`, and make `date` nullable; add `exif_choice` (`kept` | `stripped` | `none`), `voice_caption`, `voice_caption_audio_url`, `review_status` default stays as-is for "unreviewed" badging.
-- `message_threads`: add `frame_interval_sec` and reuse existing `capture_method='screen_recording'`, `import_status`, `processed_count` for resume.
-- `thread_source_documents`: add `kind` (`screenshot` | `video_frame`) and `frame_time_sec` so frames link back to their video timestamp.
-- New `intake_batches` (owner-RLS): `id`, `user_id`, `status`, `kind_counts` jsonb, `queued_files` jsonb (names/sizes/hashes for resume), `created_at/updated_at` — one row per mixed batch so uploads resume across sessions.
-- New `evidence_classification_suggestions` (owner-RLS): `evidence_id`, `suggested_kind`, `confidence`, `rationale`, `status` (`suggested`|`accepted`|`rejected`), `model`. AI output is never written onto `evidence` directly.
-- GRANTs to `authenticated` + `service_role`, RLS `auth.uid() = user_id` on all new tables, no anon.
+### 1. Organization signup creates a real organization
+The organization form will create, in one step: the organization record, the person's advocate role, their advocate profile, owner-level membership of the organization, and their first referral code. They land in a working organization portal immediately instead of an error.
 
-## 1. Screen-recording transcription via client-side OCR
+### 2. Advocate profile setup
+A short advocate setup page (name, organization, work email, confidentiality acknowledgement), mirroring the attorney one. Any advocate who signs in without a completed profile is sent there first, then on to their cases. Advocates who arrive by accepting a survivor invitation keep working exactly as they do now.
 
-- New `src/lib/ocr/frames.ts`: decode the video in-browser (`HTMLVideoElement` + `canvas`), sample every ~1.5s, skip frames whose downscaled pixel diff is below a scroll threshold, then feed each kept frame through the **existing** `recognizeImage` + `parse.ts` pipeline.
-- Frames are stored as `thread_source_documents` rows (`kind='video_frame'`), so every extracted message keeps a source thumbnail exactly like screenshots. The original video stays the primary artifact.
-- Same `mergeDuplicates` pass, same thread reconstruction, same Timeline / Case Builder / Court Packet / ZIP wiring. `ScreenRecordingUpload` is repointed at this local path; the old server AI call stays only as an explicitly consented, badged fallback.
+### 3. 90-day trial for the first 9 attorneys
+After finishing attorney setup, an attorney is granted a 90-day full-access trial — but only while fewer than 9 trials have been claimed. Attorney number 10 onward goes to pricing as today. The portal will treat an unexpired trial as active access, and show a clear "trial ends on <date>" line in the portal and on billing, with the pricing page reachable at any time.
 
-## 2. Burden-reduction fixes
+### 4. Test accounts that aren't blocked
+Once the above is in place, I'll set up the three QA accounts so each lands on its real dashboard:
+- `test-attorney@patternproof.test` — attorney profile + a comped trial that doesn't consume one of the 9 public slots → `/clients`
+- `test-dvorg@patternproof.test` — advocate profile, an organization and owner membership → `/org-portal`
+- `test-survivor@patternproof.test` — welcome steps marked complete → `/dashboard`
 
-- **One "Add evidence" entry point**: single dropzone/picker with `multiple`, `accept="image/*,video/*,audio/*,.pdf,..."`, plus a separate `capture="environment"` camera button for photographing paper documents. Type is auto-detected per file (MIME + extension) and routed: images/video-of-a-conversation → message import pipeline; everything else → `evidence-ingest`.
-- **Date certainty on every item**: a shared `DateCertaintyField` component (confirmed / approximate + optional anchor text / no date) used by evidence, batch intake, and threads, writing the new evidence columns. Nothing forces a date.
-- **EXIF choice**: parse EXIF in the browser before upload; if GPS or device timestamp is present, show a per-file choice — keep (strengthens timestamp/location) or strip (safer if shared). Stripping re-encodes the image client-side before upload. Never silent either way; the choice is recorded in `exif_choice` and audited.
-- **Universal resume**: `intake_batches` + IndexedDB-backed local file queue. Closing the tab mid-batch leaves a resume banner; already-uploaded files are not re-asked for.
-- **Offline queue**: the same IndexedDB queue drains automatically on `online`, with a visible "waiting for connection" state instead of a silent failure.
-- **Voice caption**: optional record-while-uploading control on any photo/video; audio goes to the existing `voice-notes` bucket and reuses the existing transcription function to fill the caption.
-- **Cross-session duplicates**: surface the existing `sha256` / `near_duplicate_of` results in the intake UI ("You added this file on 12 March") with keep-both / skip choices, and apply the same fuzzy check for re-imported screenshots.
-- **OCR fallback**: when confidence for an image or message is below threshold, show an inline "type what this says" field instead of a blank row; the typed value is recorded as a `corrected` field with full history.
-- **No correction wall**: low-confidence items save and appear in the Timeline immediately with an "unreviewed" badge and a "review when you're ready" affordance. Nothing blocks usage.
+I'll then sign in as each one in the preview and confirm what loads.
 
-## 3. Consent-scoped file organization suggestions
+## Technical notes
 
-- No library access. She picks specific files or a date range per import; a short consent panel states exactly what leaves the device for classification and that it can be skipped entirely.
-- Classification returns a content-type guess only — document / screenshot / photo of physical damage / injury photo / other — written to `evidence_classification_suggestions`, never to `evidence`.
-- Review UI: one tap per item (or accept-all per batch) to confirm or reject. Suggestions render in the app's existing AI-content styling (distinct surface + "AI suggestion — content type only" label) and always link to the file.
-- Copy and code names use "content-type organization" throughout. No scanning-for-abuse framing anywhere.
-
-## 4. Neutral frequency observations
-
-- New deterministic `src/lib/frequency-observations.functions.ts` — SQL counts over incidents, communications, thread messages, court dates, and evidence. Examples: "4 late pickups logged this month", "3rd cancelled visitation this quarter", each returning the exact source row IDs.
-- Off until opted in (settings toggle), rendered on the Patterns page and dashboard in the AI/observation styling, each row expanding to the underlying entries.
-- Hard rule enforced in code and copy: counts and dates only — no characterization, no "pattern of abuse", no clinical or legal language. A shared vocabulary constant keeps output phrasing to `{count} {event label} {timeframe}`.
-
-## Chronology
-
-All new sources normalize to the same timeline item shape already used by threads and evidence: exact dates sort by date, approximate dates sort by range midpoint with a visible "approximate" marker, unknown dates collect in an "undated" section rather than being guessed into place.
-
-## Build order
-
-1. Migration (schema above).
-2. Date-certainty field + evidence nullable-date wiring (restores the lost spec first).
-3. Mixed-batch intake: dropzone, camera capture, type routing, EXIF choice, duplicate surfacing.
-4. IndexedDB queue → universal resume + offline drain.
-5. Video frame extraction into the existing OCR/dedupe/thread pipeline.
-6. OCR fallback + unreviewed badging in Timeline.
-7. Voice caption.
-8. Consent-scoped classification suggestions.
-9. Neutral frequency observations, opt-in.
-10. Playwright pass across intake, resume, and timeline ordering.
+- `setMyOrg` in `src/lib/org-portal.functions.ts` is rewritten to provision `dv_organizations` + `org_members` (owner) + `user_roles` (advocate) + `advocate_profiles` + a `referral_links` code, all under the service-role client, idempotent by user.
+- New `completeAdvocateOnboarding` in `src/lib/advocate.functions.ts` and a `/_advocate/advocate-setup` route; `src/routes/_advocate.tsx` redirects when `advocate_profiles.onboarded` is not true.
+- Migration: add `trial_started_at` / `trial_ends_at` to `attorney_profiles` (plus a comped flag so QA accounts don't burn a public slot), with the existing GRANT/RLS pattern.
+- `completeAttorneyOnboarding` grants the trial inside a guarded count (`< 9` non-comped trials), mirroring how the charter-cohort cap is enforced today.
+- `isAttorneyEntitled` in `src/lib/payments.functions.ts` and `useSubscription` treat an unexpired trial as active; the `_attorney` paywall redirect respects it.
+- QA account rows are inserted as data, not schema.
+- No survivor-facing changes, no pricing copy changes beyond the trial notice in the attorney portal.
