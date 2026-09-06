@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { setMyOrg } from "@/lib/org-portal.functions";
+import { getMyOrgMembership, setMyOrg } from "@/lib/org-portal.functions";
 import { toast } from "sonner";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
@@ -27,6 +27,7 @@ function OrgSignup() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const createOrg = useServerFn(setMyOrg);
+  const readMembership = useServerFn(getMyOrgMembership);
 
   const [step, setStep] = useState<"auth" | "profile">("auth");
   const [email, setEmail] = useState("");
@@ -36,9 +37,24 @@ function OrgSignup() {
   const [contactRole, setContactRole] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // Signed in already? Send them straight through if their organization
+  // exists, otherwise let them finish setting it up here.
   useEffect(() => {
-    if (!loading && user && step === "auth") navigate({ to: "/org-portal", replace: true });
-  }, [user, loading, step, navigate]);
+    if (loading || !user || step !== "auth") return;
+    let cancelled = false;
+    readMembership()
+      .then((r) => {
+        if (cancelled) return;
+        if (r.hasOrg) navigate({ to: "/org-portal", replace: true });
+        else setStep("profile");
+      })
+      .catch(() => {
+        if (!cancelled) setStep("profile");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, loading, step, navigate, readMembership]);
 
   const auth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +83,7 @@ function OrgSignup() {
         },
       });
       toast("Your organization is set up.");
-      navigate({ to: "/org-portal" });
+      navigate({ to: "/org-portal", replace: true });
     } catch (err) {
       toast(err instanceof Error ? err.message : "Couldn't create your organization.");
     } finally {
