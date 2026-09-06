@@ -48,12 +48,12 @@ function ConnectedApps() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const load = async () => {
-    const { data, error } = await supabase.rpc("list_my_oauth_consents");
-    if (error) {
+    try {
+      const data = await listMyOauthConsents();
+      setRows((data ?? []) as ConsentRow[]);
+    } catch {
       setRows([]);
-      return;
     }
-    setRows((data ?? []) as ConsentRow[]);
   };
 
   useEffect(() => {
@@ -62,12 +62,15 @@ function ConnectedApps() {
 
   const revoke = async (id: string) => {
     setBusyId(id);
-    const { data, error } = await supabase.rpc("revoke_my_oauth_consent", { _consent_id: id });
-    setBusyId(null);
-    if (error || data !== true) {
+    try {
+      const res = await revokeMyOauthConsent({ data: { consentId: id } });
+      if (!res.revoked) throw new Error("not revoked");
+    } catch {
+      setBusyId(null);
       toast("We couldn't turn off that connection. Try again in a moment.");
       return;
     }
+    setBusyId(null);
     toast("Access revoked. That app can no longer reach your records.");
     void load();
   };
