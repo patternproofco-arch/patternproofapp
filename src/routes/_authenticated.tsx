@@ -87,27 +87,44 @@ function Gate() {
       .catch(() => undefined);
   }, [loading, user, ensureRole, navigate]);
 
-  // Seed local onboarded flag from server-side user metadata so returning
-  // users on a new device / private browser / cleared storage don't get
-  // pushed back through onboarding.
+  // Server user_metadata.onboarding_complete is the source of truth.
+  // Local settings.onboarded is only a cache (localStorage) and must never
+  // let a fresh signup skip /onboarding — e.g. another account previously
+  // finished setup on this browser.
+  const onboardingComplete = !!(
+    user &&
+    ((user.user_metadata ?? {}) as { onboarding_complete?: boolean }).onboarding_complete
+  );
+
   useEffect(() => {
-    if (loading || !user || settings.onboarded) return;
+    if (loading || !user) return;
     const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; state?: string };
     if (meta.onboarding_complete) {
-      update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
+      if (!settings.onboarded) {
+        update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
+      }
+    } else if (settings.onboarded) {
+      // Stale local flag (shared device / prior account) — clear it.
+      update({ onboarded: false });
     }
   }, [loading, user, settings.onboarded, update]);
 
   useEffect(() => {
-    if (!loading && user && !settings.onboarded && pathname !== "/onboarding") {
-      const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean };
-      if (!meta.onboarding_complete) {
-        navigate({ to: "/onboarding", replace: true });
-      }
+    if (!loading && user && !onboardingComplete && pathname !== "/onboarding") {
+      navigate({ to: "/onboarding", replace: true });
     }
-  }, [loading, user, settings.onboarded, pathname, navigate]);
+  }, [loading, user, onboardingComplete, pathname, navigate]);
 
   if (loading || !user || !pinLockReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="label-eyebrow">Opening your space…</div>
+      </div>
+    );
+  }
+
+  // Fail closed: never render survivor app chrome until onboarding is done.
+  if (!onboardingComplete && pathname !== "/onboarding") {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="label-eyebrow">Opening your space…</div>

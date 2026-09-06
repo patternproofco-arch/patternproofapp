@@ -3,6 +3,78 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/legal-versions";
 
+
+/**
+ * TEMPORARY Verifier prove-it hook helpers — remove after Verifier PASS on
+ * compensate-delete. Env-gated only (never query/body). Off by default.
+ */
+function isOnboardingForceMetaFailEnabled(): boolean {
+  return (
+    process.env.ONBOARDING_FORCE_META_FAIL === "1" ||
+    process.env.PATTERNPROOF_FORCE_ONBOARDING_META_FAIL === "1"
+  );
+}
+
+/** Guardian CLEAR: refuse the force-fail hook on live/public production. */
+function onboardingForceMetaFailBlockReason(): string | null {
+  const paymentsToken = process.env.VITE_PAYMENTS_CLIENT_TOKEN ?? "";
+  if (paymentsToken.startsWith("pk_live_")) {
+    return "Stripe live mode (pk_live_)";
+  }
+  const stripeEnv = (process.env.VITE_STRIPE_ENV || process.env.STRIPE_ENV || "").toLowerCase();
+  if (stripeEnv === "live") {
+    return "Stripe env=live";
+  }
+
+  const siteCandidates = [process.env.SITE_URL, process.env.PUBLIC_SITE_URL].filter(
+    (v): v is string => typeof v === "string" && v.length > 0,
+  );
+  for (const raw of siteCandidates) {
+    try {
+      const host = new URL(raw).hostname.toLowerCase();
+      if (
+        host === "pattern-proof.tech" ||
+        host === "www.pattern-proof.tech" ||
+        host === "attorney.pattern-proof.tech"
+      ) {
+        return `public production host (${host})`;
+      }
+    } catch {
+      /* ignore malformed */
+    }
+  }
+
+  if ((process.env.PATTERNPROOF_ENV || "").toLowerCase() === "production") {
+    return "PATTERNPROOF_ENV=production";
+  }
+
+  // Workers often set NODE_ENV=production; allow only when SITE_URL clearly
+  // points at a non-prod preview/staging host. Otherwise refuse.
+  if (process.env.NODE_ENV === "production") {
+    const explicitNonProd = siteCandidates.some((raw) => {
+      try {
+        const host = new URL(raw).hostname.toLowerCase();
+        return (
+          host === "localhost" ||
+          host.endsWith(".localhost") ||
+          host.endsWith(".workers.dev") ||
+          host.endsWith(".lovable.app") ||
+          host.endsWith(".lovable.dev") ||
+          host.includes("preview") ||
+          host.includes("staging")
+        );
+      } catch {
+        return false;
+      }
+    });
+    if (!explicitNonProd) {
+      return "NODE_ENV=production without a non-production SITE_URL";
+    }
+  }
+
+  return null;
+}
+
 export const recordLegalAcceptance = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -48,10 +120,25 @@ export const completeSurvivorOnboarding = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Auth-bound: only the signed-in caller (context.userId). Never accepts a
+    // target user id from the client.
     const userId = context.userId;
     const acceptedAt = new Date().toISOString();
     const city = data.city.trim();
     const state = data.state.trim();
+
+    // TEMPORARY Verifier prove-it (remove after Verifier PASS on compensate-delete).
+    // Env-only, OFF by default — never a query/body flag.
+    const forceMetaFail = isOnboardingForceMetaFailEnabled();
+    if (forceMetaFail) {
+      const blocked = onboardingForceMetaFailBlockReason();
+      if (blocked) {
+        // Hard-deny on production / Stripe live / public prod host BEFORE any write.
+        throw new Error(
+          `ONBOARDING_FORCE_META_FAIL refused before any write (${blocked}). Unset the env var on this deployment.`,
+        );
+      }
+    }
 
     // Load existing metadata first — admin updateUserById replaces the whole
     // user_metadata object, so we must merge rather than wipe other keys.
@@ -63,6 +150,8 @@ export const completeSurvivorOnboarding = createServerFn({ method: "POST" })
     const existingMeta =
       (existingUserData.user?.user_metadata as Record<string, unknown> | null | undefined) ?? {};
 
+    // Real terms insert first (even when force-failing) so compensate-delete
+    // exercises the same path as a genuine metadata failure.
     const { data: inserted, error: insertError } = await supabaseAdmin
       .from("user_terms_acceptance")
       .insert({
@@ -83,17 +172,28 @@ export const completeSurvivorOnboarding = createServerFn({ method: "POST" })
       insertedId = inserted?.id ?? null;
     }
 
-    const { error: metaError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-      user_metadata: {
-        ...existingMeta,
-        onboarding_complete: true,
-        state,
-        city,
-        agreed_privacy_at: acceptedAt,
-        agreed_terms_at: acceptedAt,
-        acknowledged_legal_use_at: acceptedAt,
-      },
-    });
+    let metaError: { message: string } | null = null;
+    if (forceMetaFail) {
+      // Skip real metadata write so we do not leave onboarding_complete=true
+      // while compensate-delete removes terms.
+      metaError = {
+        message:
+          "Forced onboarding metadata failure (ONBOARDING_FORCE_META_FAIL=1). Compensate-delete should run.",
+      };
+    } else {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        user_metadata: {
+          ...existingMeta,
+          onboarding_complete: true,
+          state,
+          city,
+          agreed_privacy_at: acceptedAt,
+          agreed_terms_at: acceptedAt,
+          acknowledged_legal_use_at: acceptedAt,
+        },
+      });
+      metaError = error;
+    }
 
     if (metaError) {
       // Compensate: do not leave user_terms_acceptance without onboarding_complete.
