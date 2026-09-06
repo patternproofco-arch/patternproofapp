@@ -38,6 +38,9 @@ function Gate() {
   const roleChecked = useRef(false);
   const readAppLock = useServerFn(getPinLockState);
   const [serverLockOn, setServerLockOn] = useState<boolean | null>(null);
+  // null = role not resolved yet. Fail-closed survivor onboarding must wait
+  // until we know this is a survivor — professionals keep their own portals.
+  const [isSurvivor, setIsSurvivor] = useState<boolean | null>(null);
 
   // The server remembers whether a lock is turned on, so clearing site data
   // can't quietly remove it.
@@ -76,6 +79,7 @@ function Gate() {
     roleChecked.current = true;
     ensureRole()
       .then((r) => {
+        setIsSurvivor(!!r.is_survivor);
         if (!r.is_survivor && r.roles.includes("attorney")) {
           navigate({ to: "/clients", replace: true });
           return;
@@ -84,30 +88,55 @@ function Gate() {
           navigate({ to: r.is_org_partner ? "/org-portal" : "/advocate-cases", replace: true });
         }
       })
-      .catch(() => undefined);
+      .catch(() => {
+        // Role lookup failed — treat as survivor so incomplete survivors still
+        // cannot skip /onboarding. Professionals retry via their own layouts.
+        setIsSurvivor(true);
+      });
   }, [loading, user, ensureRole, navigate]);
 
-  // Seed local onboarded flag from server-side user metadata so returning
-  // users on a new device / private browser / cleared storage don't get
-  // pushed back through onboarding.
+  // Server user_metadata.onboarding_complete is the source of truth for
+  // *survivors*. Local settings.onboarded is only a cache (localStorage) and
+  // must never let a fresh signup skip /onboarding — e.g. another account
+  // previously finished setup on this browser.
+  // Professionals (attorney / advocate / org) are not subject to this gate;
+  // they keep their own legal/accept paths in _attorney / _advocate / org-portal.
+  const onboardingComplete = !!(
+    user &&
+    ((user.user_metadata ?? {}) as { onboarding_complete?: boolean }).onboarding_complete
+  );
+  const survivorNeedsOnboarding = isSurvivor === true && !onboardingComplete;
+
   useEffect(() => {
-    if (loading || !user || settings.onboarded) return;
+    if (loading || !user || isSurvivor !== true) return;
     const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; state?: string };
     if (meta.onboarding_complete) {
-      update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
+      if (!settings.onboarded) {
+        update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
+      }
+    } else if (settings.onboarded) {
+      // Stale local flag (shared device / prior account) — clear it.
+      update({ onboarded: false });
     }
-  }, [loading, user, settings.onboarded, update]);
+  }, [loading, user, isSurvivor, settings.onboarded, update]);
 
   useEffect(() => {
-    if (!loading && user && !settings.onboarded && pathname !== "/onboarding") {
-      const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean };
-      if (!meta.onboarding_complete) {
-        navigate({ to: "/onboarding", replace: true });
-      }
+    if (!loading && user && survivorNeedsOnboarding && pathname !== "/onboarding") {
+      navigate({ to: "/onboarding", replace: true });
     }
-  }, [loading, user, settings.onboarded, pathname, navigate]);
+  }, [loading, user, survivorNeedsOnboarding, pathname, navigate]);
 
-  if (loading || !user || !pinLockReady) {
+  if (loading || !user || !pinLockReady || isSurvivor === null) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="label-eyebrow">Opening your space…</div>
+      </div>
+    );
+  }
+
+  // Fail closed for survivors only: never render survivor app chrome until
+  // onboarding is done. Non-survivors are not blocked here.
+  if (survivorNeedsOnboarding && pathname !== "/onboarding") {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="label-eyebrow">Opening your space…</div>
