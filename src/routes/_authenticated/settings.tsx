@@ -18,6 +18,7 @@ import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
+import { listMyOauthConsents, revokeMyOauthConsent } from "@/lib/oauth-consents.functions";
 import { generateExportZip } from "@/lib/export-zip.functions";
 import { Download } from "lucide-react";
 
