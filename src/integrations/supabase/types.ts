@@ -3667,20 +3667,8 @@ export type Database = {
         Args: { p_email: string; p_token_hash: string; p_user_id: string }
         Returns: string
       }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
-      }
-      firm_peer_user_ids: { Args: never; Returns: string[] }
-      is_firm_owner: { Args: { _firm_id: string }; Returns: boolean }
-      is_org_owner: { Args: { _org_id: string }; Returns: boolean }
-      list_my_oauth_consents: {
-        Args: never
+      admin_list_oauth_consents: {
+        Args: { p_user_id: string }
         Returns: {
           client_id: string
           client_name: string
@@ -3690,6 +3678,21 @@ export type Database = {
           scopes: string
         }[]
       }
+      admin_revoke_oauth_consent: {
+        Args: { _consent_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      delete_email: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      email_queue_dispatch: { Args: never; Returns: undefined }
+      enqueue_email: {
+        Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
+      is_firm_owner: { Args: { _firm_id: string }; Returns: boolean }
+      is_org_owner: { Args: { _org_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -3699,9 +3702,6 @@ export type Database = {
         }
         Returns: number
       }
-      my_firm_id: { Args: never; Returns: string }
-      my_org_id: { Args: never; Returns: string }
-      org_peer_user_ids: { Args: never; Returns: string[] }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -3721,10 +3721,6 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
-      }
-      revoke_my_oauth_consent: {
-        Args: { _consent_id: string }
-        Returns: boolean
       }
     }
     Enums: {
