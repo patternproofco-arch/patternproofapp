@@ -101,13 +101,23 @@ describe("survivor onboarding gate", () => {
   it("fail-closes on server onboarding_complete, not local settings.onboarded alone", () => {
     expect(authenticatedLayout).toContain("onboarding_complete");
     expect(authenticatedLayout).toContain("onboardingComplete");
+    expect(authenticatedLayout).toContain("survivorNeedsOnboarding");
     // Redirect must not require !settings.onboarded (that skipped fresh signups
     // when localStorage still had onboarded=true from a prior account).
-    expect(authenticatedLayout).toMatch(/!onboardingComplete && pathname !== "\/onboarding"/);
+    expect(authenticatedLayout).toMatch(/survivorNeedsOnboarding && pathname !== "\/onboarding"/);
     expect(authenticatedLayout).not.toMatch(
       /!settings\.onboarded && pathname !== "\/onboarding"/,
     );
-    // Must not render app shell while incomplete.
-    expect(authenticatedLayout).toMatch(/Fail closed:[\s\S]*!onboardingComplete/);
+    // Must not render app shell while incomplete survivors are gated.
+    expect(authenticatedLayout).toMatch(/Fail closed for survivors only:[\s\S]*survivorNeedsOnboarding/);
+  });
+
+  it("scopes fail-closed gate to survivors via ensureSurvivorRole", () => {
+    expect(authenticatedLayout).toContain("ensureSurvivorRole");
+    expect(authenticatedLayout).toContain("setIsSurvivor");
+    expect(authenticatedLayout).toContain("is_survivor");
+    expect(authenticatedLayout).toMatch(/isSurvivor === true && !onboardingComplete/);
+    // Professionals are explicitly not subject to this gate.
+    expect(authenticatedLayout).toMatch(/Professionals \(attorney \/ advocate \/ org\)/);
   });
 });
