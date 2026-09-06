@@ -17,7 +17,7 @@ import { QuickExitButton } from "@/components/QuickExitButton";
 import { BrandMark } from "@/components/BrandMark";
 import { toast } from "sonner";
 import { US_STATES } from "@/lib/state-resources";
-import { recordLegalAcceptance } from "@/lib/legal-consent.functions";
+import { completeSurvivorOnboarding } from "@/lib/legal-consent.functions";
 import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -35,7 +35,7 @@ function Onboarding() {
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreeLegalUse, setAgreeLegalUse] = useState(false);
-  const recordAcceptance = useServerFn(recordLegalAcceptance);
+  const completeOnboarding = useServerFn(completeSurvivorOnboarding);
 
   const ready = agreePrivacy && agreeTerms && agreeLegalUse;
 
@@ -46,26 +46,34 @@ function Onboarding() {
     }
     setBusy(true);
     try {
-      await recordAcceptance({ data: { accepted: true, account_type: "survivor" } });
-      const { error: metadataError } = await supabase.auth.updateUser({
-        data: {
-          onboarding_complete: true,
-          state,
-          city: city.trim(),
-          agreed_privacy_at: new Date().toISOString(),
-          agreed_terms_at: new Date().toISOString(),
-          acknowledged_legal_use_at: new Date().toISOString(),
-        },
+      // Fail closed before any server write if the browser session is gone —
+      // avoids calling the serverFn without a bearer token.
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("Your session expired. Please sign in again to finish setup.");
+      }
+
+      await completeOnboarding({
+        data: { accepted: true, state, city: city.trim() },
       });
-      if (metadataError) throw metadataError;
+
+      // Refresh so local user_metadata picks up onboarding_complete from the
+      // admin write (client updateUser is no longer used for this path).
+      await supabase.auth.refreshSession().catch(() => undefined);
+
       if (pin.length === 4) await setRealPin(pin);
       update({ state, city: city.trim(), onboarded: true });
       navigate({ to: "/dashboard", replace: true });
     } catch (error) {
-      toast.error(
+      const message =
         error instanceof Error
           ? error.message
-          : "We could not securely save your acceptance. Please try again.",
+          : "We could not securely save your acceptance. Please try again.";
+      const needsReauth = /session|unauthorized|sign in again/i.test(message);
+      toast.error(
+        needsReauth
+          ? "Your session expired. Please sign in again to finish setup."
+          : message,
       );
     } finally {
       setBusy(false);
