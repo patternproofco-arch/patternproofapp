@@ -48,6 +48,7 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AdvocateSurvivorInviteTokenRouteImport } from './routes/advocate-survivor-invite.$token'
 import { Route as AdvocateInviteTokenRouteImport } from './routes/advocate-invite.$token'
 import { Route as AcceptInviteTokenRouteImport } from './routes/accept-invite.$token'
 import { Route as AuthenticatedVoiceNotesRouteImport } from './routes/_authenticated/voice-notes'
@@ -303,6 +304,11 @@ const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdvocateSurvivorInviteTokenRoute = AdvocateSurvivorInviteTokenRouteImport.update({
+  id: '/advocate-survivor-invite/$token',
+  path: '/advocate-survivor-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdvocateInviteTokenRoute = AdvocateInviteTokenRouteImport.update({
@@ -732,6 +738,7 @@ export interface FileRoutesByFullPath {
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
@@ -832,6 +839,7 @@ export interface FileRoutesByTo {
   '/timeline': typeof AuthenticatedTimelineRoute
   '/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
@@ -938,6 +946,7 @@ export interface FileRoutesById {
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/voice-notes': typeof AuthenticatedVoiceNotesRoute
   '/accept-invite/$token': typeof AcceptInviteTokenRoute
+  '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/advocate-invite/$token': typeof AdvocateInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
@@ -1042,6 +1051,7 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/voice-notes'
     | '/accept-invite/$token'
+    | '/advocate-survivor-invite/$token'
     | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
@@ -1142,6 +1152,7 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/voice-notes'
     | '/accept-invite/$token'
+    | '/advocate-survivor-invite/$token'
     | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
@@ -1247,6 +1258,7 @@ export interface FileRouteTypes {
     | '/_authenticated/timeline'
     | '/_authenticated/voice-notes'
     | '/accept-invite/$token'
+    | '/advocate-survivor-invite/$token'
     | '/advocate-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
@@ -1310,6 +1322,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
+  AdvocateSurvivorInviteTokenRoute: typeof AdvocateSurvivorInviteTokenRoute
   AdvocateInviteTokenRoute: typeof AdvocateInviteTokenRoute
   ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
@@ -1602,6 +1615,13 @@ declare module '@tanstack/react-router' {
       path: '/api/chat'
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/advocate-survivor-invite/$token': {
+      id: '/advocate-survivor-invite/$token'
+      path: '/advocate-survivor-invite/$token'
+      fullPath: '/advocate-survivor-invite/$token'
+      preLoaderRoute: typeof AdvocateSurvivorInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/advocate-invite/$token': {
@@ -2241,6 +2261,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AcceptInviteTokenRoute: AcceptInviteTokenRoute,
+  AdvocateSurvivorInviteTokenRoute: AdvocateSurvivorInviteTokenRoute,
   AdvocateInviteTokenRoute: AdvocateInviteTokenRoute,
   ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,

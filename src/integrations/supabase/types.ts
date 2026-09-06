@@ -30,6 +30,7 @@ export type Database = {
           scope_evidence: string[]
           scope_incidents: string[]
           status: string
+          survivor_invite_id: string | null
         }
         Insert: {
           advocate_user_id: string
@@ -46,6 +47,7 @@ export type Database = {
           scope_evidence?: string[]
           scope_incidents?: string[]
           status?: string
+          survivor_invite_id?: string | null
         }
         Update: {
           advocate_user_id?: string
@@ -62,6 +64,7 @@ export type Database = {
           scope_evidence?: string[]
           scope_incidents?: string[]
           status?: string
+          survivor_invite_id?: string | null
         }
         Relationships: [
           {
@@ -69,6 +72,13 @@ export type Database = {
             columns: ["invitation_id"]
             isOneToOne: false
             referencedRelation: "advocate_invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advocate_client_links_survivor_invite_id_fkey"
+            columns: ["survivor_invite_id"]
+            isOneToOne: false
+            referencedRelation: "advocate_survivor_invites"
             referencedColumns: ["id"]
           },
         ]
@@ -830,6 +840,55 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+
+      advocate_survivor_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          advocate_user_id: string
+          created_at: string
+          declined_at: string | null
+          expires_at: string
+          id: string
+          invite_token: string
+          personal_note: string | null
+          status: string
+          survivor_email: string
+          survivor_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_user_id: string
+          created_at?: string
+          declined_at?: string | null
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          personal_note?: string | null
+          status?: string
+          survivor_email: string
+          survivor_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_user_id?: string
+          created_at?: string
+          declined_at?: string | null
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          personal_note?: string | null
+          status?: string
+          survivor_email?: string
+          survivor_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       attorney_survivor_invites: {
         Row: {
