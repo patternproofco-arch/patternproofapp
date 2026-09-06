@@ -185,7 +185,49 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
         // this address, and its content is rebuilt from the owning record so a
         // caller cannot inject arbitrary text into a branded email.
         if (!template.to) {
-          if (templateName === "attorney-invitation") {
+          if (templateName === "advocate-survivor-invitation") {
+            const normalizedRecipient = (recipientEmail || "").trim().toLowerCase();
+            const { data: invitation } = await supabase
+              .from("advocate_survivor_invites")
+              .select(
+                "id, survivor_email, survivor_name, personal_note, invite_token, expires_at, status, advocate_user_id",
+              )
+              .eq("advocate_user_id", user.id)
+              .eq("survivor_email", normalizedRecipient)
+              .eq("status", "pending")
+              .gt("expires_at", new Date().toISOString())
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (!invitation) {
+              await logAttempt("recipient_not_authorized");
+              return Response.json(
+                { error: "Recipient does not match a pending invitation you created." },
+                { status: 403 },
+              );
+            }
+
+            const { data: prof } = await supabase
+              .from("advocate_profiles")
+              .select("full_name,org_name")
+              .eq("user_id", user.id)
+              .maybeSingle();
+
+            const origin = new URL(request.url).origin;
+            const expiresLabel = invitation.expires_at
+              ? `${Math.max(1, Math.round((new Date(invitation.expires_at).getTime() - Date.now()) / 86400000))} days`
+              : "30 days";
+
+            templateData = {
+              advocateName: prof?.full_name ?? undefined,
+              orgName: prof?.org_name ?? undefined,
+              survivorName: invitation.survivor_name ?? undefined,
+              personalNote: invitation.personal_note ?? undefined,
+              acceptUrl: `${origin}/advocate-survivor-invite/${invitation.invite_token}`,
+              expiresLabel,
+            };
+          } else if (templateName === "attorney-invitation") {
             // Invitations store attorney_email lowercased; normalize before matching
             // so a legitimate caller typing mixed case is not rejected.
             const normalizedRecipient = (recipientEmail || "").trim().toLowerCase();

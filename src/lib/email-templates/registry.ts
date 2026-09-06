@@ -18,12 +18,14 @@ export interface TemplateEntry {
  *   // then add to TEMPLATES: 'welcome': welcomeTemplate
  */
 import { template as attorneyInvitationTemplate } from "./attorney-invitation";
+import { template as advocateSurvivorInvitationTemplate } from "./advocate-survivor-invitation";
 import { template as supportRequestTemplate } from "./support-request";
 import { template as referralSignupNotificationTemplate } from "./referral-signup-notification";
 import { template as teamInvitationTemplate } from "./team-invitation.config";
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   "attorney-invitation": attorneyInvitationTemplate,
+  "advocate-survivor-invitation": advocateSurvivorInvitationTemplate,
   "support-request": supportRequestTemplate,
   "referral-signup-notification": referralSignupNotificationTemplate,
   "team-invitation": teamInvitationTemplate,
