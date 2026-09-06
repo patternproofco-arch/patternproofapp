@@ -331,7 +331,7 @@ export const getMyAdvocateRole = createServerFn({ method: "GET" })
       .maybeSingle();
     const { data: profile } = await supabaseAdmin
       .from("advocate_profiles")
-      .select("full_name,org_name,email")
+      .select("full_name,org_name,email,onboarded")
       .eq("user_id", context.userId)
       .maybeSingle();
     return { isAdvocate: !!role, profile: profile ?? null };
@@ -567,4 +567,48 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
         ...grant,
       },
     };
+  });
+
+/**
+ * Advocate profile setup.
+ *
+ * Advocates who arrive by accepting a survivor's invitation already have a
+ * profile written for them. This covers everyone else — an advocate who signs
+ * in first and needs to say who they are before their cases open.
+ */
+export const completeAdvocateOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        full_name: z.string().trim().min(1).max(120),
+        org_name: z.string().trim().max(200).optional().nullable(),
+        email: z.string().email().max(255),
+        confidentiality_accepted: z.literal(true),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: role } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "advocate")
+      .maybeSingle();
+    if (!role) throw new Error("This area is for advocates.");
+
+    const { error } = await supabaseAdmin.from("advocate_profiles").upsert(
+      {
+        user_id: context.userId,
+        full_name: data.full_name,
+        org_name: data.org_name?.trim() || null,
+        email: data.email.trim().toLowerCase(),
+        onboarded: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
   });

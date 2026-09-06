@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { LogOut } from "lucide-react";
@@ -23,11 +23,13 @@ function AdvocateLayout() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const roleFn = useServerFn(getMyAdvocateRole);
+  const pathname = useRouterState({ select: (st) => st.location.pathname });
   const [checking, setChecking] = useState(true);
   const [profile, setProfile] = useState<{
     full_name: string;
     org_name: string | null;
     email: string;
+    onboarded?: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -43,10 +45,16 @@ function AdvocateLayout() {
           return;
         }
         setProfile(r.profile);
+        // No profile yet (advocate signed in before any invite) — collect
+        // their name and organization first.
+        if (!r.profile?.onboarded && pathname !== "/advocate-setup") {
+          navigate({ to: "/advocate-setup", replace: true });
+          return;
+        }
         setChecking(false);
       })
       .catch(() => navigate({ to: "/", replace: true }));
-  }, [user, loading, roleFn, navigate]);
+  }, [user, loading, roleFn, navigate, pathname]);
 
   if (loading || checking) {
     return (

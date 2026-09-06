@@ -92,6 +92,7 @@ import { Route as AttorneyCaseloadRouteImport } from './routes/_attorney/caseloa
 import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/billing-return'
 import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
 import { Route as AttorneyAttorneyFeedbackRouteImport } from './routes/_attorney/attorney-feedback'
+import { Route as AdvocateAdvocateSetupRouteImport } from './routes/_advocate/advocate-setup'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
@@ -540,6 +541,11 @@ const AttorneyAttorneyFeedbackRoute =
     path: '/attorney-feedback',
     getParentRoute: () => AttorneyRoute,
   } as any)
+const AdvocateAdvocateSetupRoute = AdvocateAdvocateSetupRouteImport.update({
+  id: '/advocate-setup',
+  path: '/advocate-setup',
+  getParentRoute: () => AdvocateRoute,
+} as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
   Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
     id: '/.well-known/oauth-protected-resource',
@@ -682,6 +688,7 @@ export interface FileRoutesByFullPath {
   '/unsubscribe': typeof UnsubscribeRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/advocate-setup': typeof AdvocateAdvocateSetupRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
@@ -783,6 +790,7 @@ export interface FileRoutesByTo {
   '/unsubscribe': typeof UnsubscribeRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/advocate-setup': typeof AdvocateAdvocateSetupRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/billing': typeof AttorneyBillingRoute
   '/billing-return': typeof AttorneyBillingReturnRoute
@@ -886,6 +894,7 @@ export interface FileRoutesById {
   '/unsubscribe': typeof UnsubscribeRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/_advocate/advocate-setup': typeof AdvocateAdvocateSetupRoute
   '/_attorney/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/_attorney/billing': typeof AttorneyBillingRoute
   '/_attorney/billing-return': typeof AttorneyBillingReturnRoute
@@ -989,6 +998,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/advocate-setup'
     | '/attorney-feedback'
     | '/billing'
     | '/billing-return'
@@ -1090,6 +1100,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/advocate-setup'
     | '/attorney-feedback'
     | '/billing'
     | '/billing-return'
@@ -1192,6 +1203,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/_advocate/advocate-setup'
     | '/_attorney/attorney-feedback'
     | '/_attorney/billing'
     | '/_attorney/billing-return'
@@ -1900,6 +1912,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyAttorneyFeedbackRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_advocate/advocate-setup': {
+      id: '/_advocate/advocate-setup'
+      path: '/advocate-setup'
+      fullPath: '/advocate-setup'
+      preLoaderRoute: typeof AdvocateAdvocateSetupRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -2037,11 +2056,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdvocateRouteChildren {
+  AdvocateAdvocateSetupRoute: typeof AdvocateAdvocateSetupRoute
   AdvocateAdvocateCasesClientIdRoute: typeof AdvocateAdvocateCasesClientIdRoute
   AdvocateAdvocateCasesIndexRoute: typeof AdvocateAdvocateCasesIndexRoute
 }
 
 const AdvocateRouteChildren: AdvocateRouteChildren = {
+  AdvocateAdvocateSetupRoute: AdvocateAdvocateSetupRoute,
   AdvocateAdvocateCasesClientIdRoute: AdvocateAdvocateCasesClientIdRoute,
   AdvocateAdvocateCasesIndexRoute: AdvocateAdvocateCasesIndexRoute,
 }

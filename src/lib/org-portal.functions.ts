@@ -462,7 +462,27 @@ function slugify(v: string): string {
     .slice(0, 40);
 }
 
-/** New organizations are provisioned only through the verified invitation flow. */
+/** Does this account already belong to a partner organization? */
+export const getMyOrgMembership = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("org_members")
+      .select("org_id,role")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    return { hasOrg: !!data, role: data?.role ?? null };
+  });
+
+/**
+ * Self-serve provisioning for a DV partner organization.
+ *
+ * Creates everything the partner portal needs in one step: the organization,
+ * the advocate role, the advocate profile, owner membership, and a first
+ * referral code. Idempotent — running it again for an account that already
+ * belongs to an organization just returns that organization.
+ */
 export const setMyOrg = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -475,9 +495,63 @@ export const setMyOrg = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async () => {
-    throw new Error("New partner accounts require a verified organization invitation.");
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const userId = context.userId;
+    const email = data.email.trim().toLowerCase();
+
+    const { data: existingMember } = await supabaseAdmin
+      .from("org_members")
+      .select("org_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existingMember) return { ok: true as const, org_id: existingMember.org_id };
+
+    const { data: org, error: orgError } = await supabaseAdmin
+      .from("dv_organizations")
+      .insert({ name: data.org_name, created_by: userId })
+      .select("id")
+      .single();
+    if (orgError || !org) throw new Error(orgError?.message ?? "Couldn't create your organization.");
+
+    await supabaseAdmin
+      .from("user_roles")
+      .upsert({ user_id: userId, role: "advocate" }, { onConflict: "user_id,role" });
+
+    const { error: profileError } = await supabaseAdmin.from("advocate_profiles").upsert(
+      {
+        user_id: userId,
+        full_name: data.contact_name,
+        org_name: data.org_name,
+        org_id: org.id,
+        email,
+        onboarded: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    );
+    if (profileError) throw new Error(profileError.message);
+
+    const { error: memberError } = await supabaseAdmin
+      .from("org_members")
+      .upsert({ org_id: org.id, user_id: userId, role: "owner" }, { onConflict: "org_id,user_id" });
+    if (memberError) throw new Error(memberError.message);
+
+    // First referral code — the org portal is built around these.
+    const base = slugify(data.org_name) || "partner";
+    const code = `${base}-${randomBytes(3).toString("hex")}`.slice(0, 48);
+    await supabaseAdmin.from("referral_links").insert({
+      code,
+      org_name: data.org_name,
+      org_user_id: userId,
+      org_id: org.id,
+      is_active: true,
+      ...(data.contact_role ? { notes: `Contact role: ${data.contact_role}` } : {}),
+    });
+
+    return { ok: true as const, org_id: org.id };
   });
+
 
 /**
  * Referred signups that never recorded Terms of Service acceptance, past a
