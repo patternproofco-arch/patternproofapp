@@ -150,17 +150,17 @@ function HowItWorks() {
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             {aud === "survivor" && (
-              <PrimaryLink to="/signin" accent={INK} label="Start documenting →" />
+              <PrimaryLink to="/signup" accent={INK} label="Start documenting →" />
             )}
             {aud === "attorney" && (
               <>
-                <PrimaryLink to="/lawyer-signup" accent={NAVY} label="Attorney sign-up →" />
+                <PrimaryLink to="/lawyer-signup" accent={NAVY} label="Request access →" />
                 <GhostLink to="/for-attorneys" label="Attorney overview" />
               </>
             )}
             {aud === "org" && (
               <>
-                <PrimaryLink to="/org-signup" accent={SAGE} label="Partner with us →" />
+                <PrimaryLink to="/org-signup" accent={SAGE} label="Request access →" />
                 <GhostLink to="/for-organizations" label="Organization overview" />
               </>
             )}
@@ -365,7 +365,7 @@ function PrimaryLink({ to, accent, label }: { to: string; accent: string; label:
   return (
     <Link
       to={to}
-      search={to === "/signin" ? {} : undefined}
+      search={to === "/signup" || to === "/signin" ? {} : undefined}
       style={{
         display: "inline-block",
         background: accent,

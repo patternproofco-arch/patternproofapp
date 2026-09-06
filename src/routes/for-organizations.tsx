@@ -126,8 +126,22 @@ function ForOrganizations() {
             borderRadius: "var(--pp-r-pill)",
           }}
         >
-          Create Your Organization Account →
+          Request access →
         </Link>
+        <p
+          style={{
+            marginTop: 12,
+            fontFamily: MONO,
+            fontSize: 11,
+            color: MUTED,
+            letterSpacing: "0.06em",
+            maxWidth: 560,
+            lineHeight: 1.6,
+          }}
+        >
+          Partner portals are invitation-only. Request access and we&apos;ll follow up with
+          verification and a sign-in link.
+        </p>
       </section>
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 24px 80px" }}>
@@ -184,7 +198,7 @@ function ForOrganizations() {
               textUnderlineOffset: 4,
             }}
           >
-            Create an organization account →
+            Request access →
           </Link>
           <Link
             to="/org-feedback"

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
@@ -11,10 +11,11 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
 export const Route = createFileRoute("/org-signup")({
   head: () => ({
     meta: [
-      { title: "Partner organization sign-up — PatternProof" },
+      { title: "Partner organization access — PatternProof" },
       {
         name: "description",
-        content: "Create your DV organization's free partner account on PatternProof.",
+        content:
+          "Request access to the PatternProof partner portal for DV organizations, or sign in if you already have an invitation.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -88,10 +89,31 @@ function OrgSignup() {
 
         {step === "auth" ? (
           <div className="card-pp">
-            <h2 className="font-serif text-[20px]">Partner sign in</h2>
+            <h2 className="font-serif text-[20px]">Request access or sign in</h2>
             <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              New partner accounts are invitation only while organization verification is completed.
+              Partner portals are invitation-only while we verify organizations. If you already have
+              an invite, sign in below. If not, request access and we&apos;ll follow up.
             </p>
+            <Link
+              to="/support"
+              className="btn-primary mt-4 flex w-full items-center justify-center"
+              style={{ textDecoration: "none" }}
+            >
+              Request access
+            </Link>
+            <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              Use the support form (category: Login/access) with your organization name — or email{" "}
+              <a href="mailto:pattern@pattern-proof.tech" style={{ color: "var(--accent)" }}>
+                pattern@pattern-proof.tech
+              </a>
+              .
+            </p>
+            <div
+              className="my-4 text-center text-[11px] font-semibold uppercase tracking-widest"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              Already invited?
+            </div>
             <form onSubmit={auth} className="mt-4 space-y-3">
               <input
                 className="input-pp"
