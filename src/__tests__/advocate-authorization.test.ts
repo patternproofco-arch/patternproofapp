@@ -431,3 +431,26 @@ describe("org owner/admin oversight — metadata only", () => {
     expect(owner.open_clients).toBe(0);
   });
 });
+
+describe("caseOutsideGrant — wrong case is blocked", () => {
+  it("rejects a case id the grant does not cover and accepts the one it does", async () => {
+    const { caseOutsideGrant } = await import("@/lib/advocate-packet.server");
+    const admin = fakeAdmin(world([link({ case_id: CASE })]));
+    const g = (await resolveAdvocateGrant(admin, {
+      advocateUserId: ADVOCATE,
+      clientUserId: SURVIVOR,
+    }))!;
+    expect(caseOutsideGrant(g, OTHER_CASE)).toBe(true);
+    expect(caseOutsideGrant(g, CASE)).toBe(false);
+  });
+
+  it("rejects any case id when the grant is not case-scoped", async () => {
+    const admin = fakeAdmin(world([link({ case_id: null })]));
+    const g = (await resolveAdvocateGrant(admin, {
+      advocateUserId: ADVOCATE,
+      clientUserId: SURVIVOR,
+    }))!;
+    expect(caseOutsideGrant(g, CASE)).toBe(true);
+    expect(caseOutsideGrant(g, null)).toBe(false);
+  });
+});

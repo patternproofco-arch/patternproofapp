@@ -189,9 +189,8 @@ export const exportAdvocateCasePackage = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { resolveAdvocateGrant, grantIsEmpty, loadScopedContent, buildAdvocateZip } = await import(
-      "@/lib/advocate-packet.server"
-    );
+    const { resolveAdvocateGrant, grantIsEmpty, loadScopedContent, buildAdvocateZip, caseOutsideGrant } =
+      await import("@/lib/advocate-packet.server");
 
     const grant = await resolveAdvocateGrant(supabaseAdmin, {
       advocateUserId: context.userId,
@@ -212,7 +211,7 @@ export const exportAdvocateCasePackage = createServerFn({ method: "POST" })
     }
 
     // A case id supplied by the caller must match the grant's own case scope.
-    if (data.case_id && grant.case_id !== data.case_id) {
+    if (caseOutsideGrant(grant, data.case_id)) {
       await audit(supabaseAdmin, {
         p_user_id: data.client_user_id,
         p_event_type: "export.denied",

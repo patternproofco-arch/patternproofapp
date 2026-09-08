@@ -438,3 +438,12 @@ export async function buildAdvocateZip(
 
   return await zip.generateAsync({ type: "uint8array" });
 }
+
+/**
+ * A case id supplied by a caller must match the grant's own case scope.
+ * Any mismatch — including "no case on the grant" — fails closed.
+ */
+export function caseOutsideGrant(g: ResolvedGrant, requestedCaseId?: string | null) {
+  if (!requestedCaseId) return false;
+  return g.case_id !== requestedCaseId;
+}
