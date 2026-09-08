@@ -90,7 +90,7 @@ export const listMyAdvocateAccess = createServerFn({ method: "GET" })
     const { data: links } = await supabaseAdmin
       .from("advocate_client_links")
       .select(
-        "id,advocate_user_id,invitation_id,created_at,status,revoked_at,include_all_incidents,include_all_evidence,include_patterns,case_id",
+        "id,advocate_user_id,invitation_id,created_at,status,revoked_at,include_all_incidents,include_all_evidence,include_patterns,case_id,org_admin_visibility",
       )
       .eq("client_user_id", context.userId)
       .order("created_at", { ascending: false });
