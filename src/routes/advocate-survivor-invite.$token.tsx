@@ -134,10 +134,25 @@ function AdvocateSurvivorInvitePage() {
           : "your advocate";
       toast(`Shared with ${name} · Revoke in Settings`);
     } catch (err) {
-      toast(err instanceof Error ? err.message : "Couldn't accept the invite.");
+      const message = err instanceof Error ? err.message : "Couldn't accept the invite.";
+      if (/onboarding/i.test(message)) {
+        setNeedsWelcome(true);
+        toast("One short welcome step first — then come back and accept.");
+      } else {
+        toast(message);
+      }
     } finally {
       setBusy(false);
     }
+  };
+
+  const goFinishWelcome = () => {
+    try {
+      sessionStorage.setItem("pp_return_to", `/advocate-survivor-invite/${token}`);
+    } catch {
+      /* sessionStorage unavailable — the survivor can reopen the invite link */
+    }
+    navigate({ to: "/onboarding" });
   };
 
   const confirmDecline = async () => {
@@ -349,10 +364,31 @@ function AdvocateSurvivorInvitePage() {
               Accept only if you agree
             </h2>
             <p style={{ fontSize: 13, color: "var(--pp-muted)", marginTop: 6 }}>
-              All boxes start unchecked. Finish onboarding first if you haven&apos;t — Accept will
-              fail closed until then.
+              All boxes start unchecked. Nothing is shared until you accept.
             </p>
           </div>
+
+          {needsWelcome ? (
+            <div
+              style={{
+                padding: 14,
+                borderRadius: "var(--pp-r-lg)",
+                boxShadow: "var(--pp-shadow-in-sm)",
+                background: "var(--pp-ground)",
+                display: "grid",
+                gap: 8,
+              }}
+            >
+              <p style={{ fontSize: 13, margin: 0 }}>
+                There&apos;s one short welcome step to finish on your account first. We&apos;ll bring
+                you right back here afterwards.
+              </p>
+              <button type="button" className="btn-primary" onClick={goFinishWelcome}>
+                Finish the welcome step
+              </button>
+            </div>
+          ) : null}
+
 
           <ChecklistItem
             checked={ackWho}
