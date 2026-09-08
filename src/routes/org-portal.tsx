@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { OrgTeamSettings } from "@/components/team/OrgTeamSettings";
+import { OrgOversight } from "@/components/org/OrgOversight";
 import { ThreadGroup } from "@/components/ThreadConnector";
 import {
   getMyOrgPartnerStats,
@@ -234,6 +235,7 @@ function OrgPortal() {
       </Section>
 
       <OrgTeamSettings />
+      <OrgOversight />
     </Shell>
   );
 }
