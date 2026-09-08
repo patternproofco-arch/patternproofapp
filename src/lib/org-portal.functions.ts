@@ -774,3 +774,109 @@ export const getReferralConsentGaps = createServerFn({ method: "GET" })
       return { grace_period_hours: CONSENT_GRACE_HOURS, gaps };
     },
   );
+
+/* ---------- public partner access request ---------- */
+
+/**
+ * Public request form for organizations that want a partner portal.
+ *
+ * Unauthenticated by design (the requester has no account yet), so it is
+ * written defensively: strict validation, one open request per work email,
+ * a short cooldown between submissions, and always `status: "pending"` —
+ * nothing here can approve itself or create any access.
+ */
+export const REQUEST_COOLDOWN_MINUTES = 10;
+
+export const submitOrgAccessRequest = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        org_name: z.string().trim().min(2).max(200),
+        website: z.string().trim().max(300).optional().nullable(),
+        contact_name: z.string().trim().min(2).max(120),
+        email: z.string().trim().email().max(255),
+        contact_role: z.string().trim().min(2).max(120),
+        phone: z.string().trim().max(40).optional().nullable(),
+        service_area: z.string().trim().min(2).max(160),
+        org_type: z.string().trim().min(2).max(120),
+        message: z.string().trim().min(10).max(2000),
+        survivors_per_month: z.number().int().min(0).max(100000).optional().nullable(),
+        contact_consent: z.literal(true),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const email = data.email.toLowerCase();
+
+    const { data: existing } = await supabaseAdmin
+      .from("org_access_requests")
+      .select("id,status,created_at")
+      .eq("email", email)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing?.status === "approved") {
+      return {
+        ok: true as const,
+        state: "already_approved" as const,
+        message: "This email is already verified — sign in on the partner page to finish setup.",
+      };
+    }
+    if (existing?.status === "pending") {
+      const age = Date.now() - new Date(existing.created_at as string).getTime();
+      if (age < REQUEST_COOLDOWN_MINUTES * 60_000) {
+        return {
+          ok: true as const,
+          state: "pending" as const,
+          message: "We already have your request. Someone will be in touch by email.",
+        };
+      }
+      const { error: upErr } = await supabaseAdmin
+        .from("org_access_requests")
+        .update({
+          org_name: data.org_name,
+          website: data.website || null,
+          contact_name: data.contact_name,
+          contact_role: data.contact_role,
+          phone: data.phone || null,
+          service_area: data.service_area,
+          org_type: data.org_type,
+          message: data.message,
+          survivors_per_month: data.survivors_per_month ?? null,
+          contact_consent: true,
+          status: "pending",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+      if (upErr) throw new Error("We couldn't send that just now. Try again in a moment.");
+      return {
+        ok: true as const,
+        state: "pending" as const,
+        message: "Thanks — your request is updated and waiting for review.",
+      };
+    }
+
+    const { error } = await supabaseAdmin.from("org_access_requests").insert({
+      org_name: data.org_name,
+      website: data.website || null,
+      contact_name: data.contact_name,
+      email,
+      contact_role: data.contact_role,
+      phone: data.phone || null,
+      service_area: data.service_area,
+      org_type: data.org_type,
+      message: data.message,
+      survivors_per_month: data.survivors_per_month ?? null,
+      contact_consent: true,
+      status: "pending",
+    });
+    if (error) throw new Error("We couldn't send that just now. Try again in a moment.");
+
+    return {
+      ok: true as const,
+      state: "pending" as const,
+      message: "Thanks — your request is with us. We review each organization by hand.",
+    };
+  });
