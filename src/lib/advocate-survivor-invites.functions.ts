@@ -257,26 +257,9 @@ export const declineAdvocateSurvivorInvite = createServerFn({ method: "POST" })
 
 export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z
-      .object({
-        token: z.string().min(8).max(128),
-        acknowledgements: z.object({
-          who: z.literal(true),
-          scope: z.literal(true),
-          revoke: z.literal(true),
-        }),
-        // Explicit scope required — never default to whole-vault on omit.
-        scope: z.object({
-          include_all_incidents: z.boolean().default(false),
-          include_all_evidence: z.boolean().default(false),
-          include_patterns: z.boolean().default(false),
-          scope_incidents: z.array(z.string().uuid()).max(2000).optional().default([]),
-          scope_evidence: z.array(z.string().uuid()).max(2000).optional().default([]),
-        }),
-      })
-      .parse(input),
-  )
+  // Acknowledgements are z.literal(true) and scope is a required z.object({…})
+  // whose share flags default to false — see advocate-survivor-invites.server.
+  .inputValidator((input) => acceptInviteSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { email, user } = await verifiedAccountEmail(context.userId);
     // Fail closed: vault access unlocks only after onboarding is complete.
