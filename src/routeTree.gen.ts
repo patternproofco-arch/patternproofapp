@@ -24,6 +24,7 @@ import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PartnerAccessRouteImport } from './routes/partner-access'
 import { Route as OrgSignupRouteImport } from './routes/org-signup'
 import { Route as OrgPortalRouteImport } from './routes/org-portal'
 import { Route as OrgFeedbackRouteImport } from './routes/org-feedback'
@@ -189,6 +190,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerAccessRoute = PartnerAccessRouteImport.update({
+  id: '/partner-access',
+  path: '/partner-access',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrgSignupRoute = OrgSignupRouteImport.update({
@@ -692,6 +698,7 @@ export interface FileRoutesByFullPath {
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
   '/org-signup': typeof OrgSignupRoute
+  '/partner-access': typeof PartnerAccessRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
@@ -797,6 +804,7 @@ export interface FileRoutesByTo {
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
   '/org-signup': typeof OrgSignupRoute
+  '/partner-access': typeof PartnerAccessRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
@@ -904,6 +912,7 @@ export interface FileRoutesById {
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
   '/org-signup': typeof OrgSignupRoute
+  '/partner-access': typeof PartnerAccessRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
@@ -1011,6 +1020,7 @@ export interface FileRouteTypes {
     | '/org-feedback'
     | '/org-portal'
     | '/org-signup'
+    | '/partner-access'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
@@ -1116,6 +1126,7 @@ export interface FileRouteTypes {
     | '/org-feedback'
     | '/org-portal'
     | '/org-signup'
+    | '/partner-access'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
@@ -1222,6 +1233,7 @@ export interface FileRouteTypes {
     | '/org-feedback'
     | '/org-portal'
     | '/org-signup'
+    | '/partner-access'
     | '/pricing'
     | '/privacy'
     | '/professional-access'
@@ -1331,6 +1343,7 @@ export interface RootRouteChildren {
   OrgFeedbackRoute: typeof OrgFeedbackRoute
   OrgPortalRoute: typeof OrgPortalRoute
   OrgSignupRoute: typeof OrgSignupRoute
+  PartnerAccessRoute: typeof PartnerAccessRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
@@ -1474,6 +1487,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner-access': {
+      id: '/partner-access'
+      path: '/partner-access'
+      fullPath: '/partner-access'
+      preLoaderRoute: typeof PartnerAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/org-signup': {
@@ -2286,6 +2306,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrgFeedbackRoute: OrgFeedbackRoute,
   OrgPortalRoute: OrgPortalRoute,
   OrgSignupRoute: OrgSignupRoute,
+  PartnerAccessRoute: PartnerAccessRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProfessionalAccessRoute: ProfessionalAccessRoute,
