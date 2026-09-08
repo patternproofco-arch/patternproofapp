@@ -243,12 +243,7 @@ export const declineAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       .select("id,survivor_email,status,expires_at")
       .eq("invite_token", data.token)
       .maybeSingle();
-    if (!inv) throw new Error("Invite not found");
-    if (inv.status !== "pending") throw new Error("Invite no longer valid");
-    if (inv.expires_at && new Date(inv.expires_at) < new Date()) throw new Error("Invite expired");
-    if (email !== String(inv.survivor_email).toLowerCase()) {
-      throw new Error("This invite was sent to a different email address.");
-    }
+    assertInviteUsable(inv as InviteRow | null, email);
 
     const { error } = await supabaseAdmin
       .from("advocate_survivor_invites")
