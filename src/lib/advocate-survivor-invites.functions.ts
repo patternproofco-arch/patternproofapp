@@ -303,19 +303,7 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       }
     }
 
-    const linkPayload = {
-      advocate_user_id: inv.advocate_user_id as string,
-      client_user_id: context.userId,
-      survivor_invite_id: inv.id as string,
-      include_all_incidents: scope.include_all_incidents,
-      include_all_evidence: scope.include_all_evidence,
-      include_patterns: scope.include_patterns,
-      scope_incidents: scope.include_all_incidents ? [] : (scope.scope_incidents ?? []),
-      scope_evidence: scope.include_all_evidence ? [] : (scope.scope_evidence ?? []),
-      expires_at: inv.expires_at ?? null,
-      status: "active",
-      revoked_at: null as string | null,
-    };
+    const linkPayload = buildGrantPayload(inv, context.userId, scope);
 
     const { data: existing } = await supabaseAdmin
       .from("advocate_client_links")
