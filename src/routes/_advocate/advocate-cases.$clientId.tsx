@@ -28,6 +28,23 @@ function AdvocateCaseView() {
   const [data, setData] = useState<CaseData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("timeline");
+  const [exporting, setExporting] = useState(false);
+  const exportFn = useServerFn(exportAdvocateCasePackage);
+
+  const runExport = async () => {
+    setExporting(true);
+    try {
+      const pkg = await exportFn({ data: { client_user_id: clientId } });
+      downloadBase64(pkg);
+      toast("Case package downloaded.");
+    } catch (e) {
+      toast(
+        e instanceof Error ? e.message : "We couldn't build that package. Try again in a moment.",
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
 
   useEffect(() => {
     getCase({ data: { clientId } })
@@ -77,10 +94,11 @@ function AdvocateCaseView() {
           </p>
         </div>
         <button
-          onClick={() => exportPacket(data, label)}
+          onClick={runExport}
+          disabled={exporting}
           className="btn-pp inline-flex items-center gap-2"
         >
-          <Download size={14} /> Export packet
+          <Download size={14} /> {exporting ? "Preparing…" : "Download case package"}
         </button>
       </div>
 
