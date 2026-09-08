@@ -15,8 +15,9 @@ describe("partner organizations stay invitation-only", () => {
     expect(orgFns).toContain('.eq("status", "approved")');
   });
 
-  it("approval is consumed after provisioning", () => {
-    expect(orgFns).toContain('status: "provisioned"');
+  it("uses only the statuses the database trigger allows", () => {
+    expect(orgFns).not.toContain('"provisioned"');
+    expect(orgFns).toContain('z.enum(["approved", "denied", "pending"])');
   });
 
   it("signup shows a pending state instead of bouncing back to the portal", () => {

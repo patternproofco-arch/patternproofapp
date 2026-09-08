@@ -144,7 +144,7 @@ function OrgRequestsAdmin() {
             <div style={{ display: "flex", gap: 8 }}>
               <button
                 className="btn-primary"
-                disabled={busy || r.status === "approved" || r.status === "provisioned"}
+                disabled={busy || r.status === "approved"}
                 onClick={() => decide(r.id, "approved")}
               >
                 Approve

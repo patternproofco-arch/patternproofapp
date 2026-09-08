@@ -616,11 +616,14 @@ export const setMyOrg = createServerFn({ method: "POST" })
       ...(data.contact_role ? { notes: `Contact role: ${data.contact_role}` } : {}),
     });
 
-    // Consume the approval so a single verification can't provision twice.
+    // Record that the approval has been used. The status vocabulary is
+    // constrained to pending/approved/denied by a database trigger, so the
+    // marker lives in the message field; re-provisioning is already blocked by
+    // the org_members check above.
     if (request?.id) {
       await supabaseAdmin
         .from("org_access_requests")
-        .update({ status: "provisioned", updated_at: new Date().toISOString() })
+        .update({ reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
         .eq("id", request.id);
     }
 
