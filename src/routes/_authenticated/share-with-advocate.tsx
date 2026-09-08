@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
-import { Copy, Plus, Trash2, HeartHandshake } from "lucide-react";
+import { Copy, Plus, Trash2, HeartHandshake, Download, Eye } from "lucide-react";
 import { toast } from "sonner";
 import {
   createAdvocateInvitation,
@@ -9,6 +9,12 @@ import {
   revokeAdvocateInvitation,
   revokeAdvocateLink,
 } from "@/lib/advocate.functions";
+import {
+  downloadMyAdvocatePacket,
+  previewAdvocateScope,
+  setAdvocateOrgVisibility,
+} from "@/lib/advocate-packet.functions";
+import { downloadBase64 } from "@/lib/download-base64";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +33,14 @@ function ShareWithAdvocate() {
   const createFn = useServerFn(createAdvocateInvitation);
   const revokeInvFn = useServerFn(revokeAdvocateInvitation);
   const revokeLinkFn = useServerFn(revokeAdvocateLink);
+  const packetFn = useServerFn(downloadMyAdvocatePacket);
+  const previewFn = useServerFn(previewAdvocateScope);
+  const orgVisibilityFn = useServerFn(setAdvocateOrgVisibility);
+  const [busyLink, setBusyLink] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{
+    id: string;
+    data: Awaited<ReturnType<typeof previewAdvocateScope>>;
+  } | null>(null);
 
   const [data, setData] = useState<Listing | null>(null);
   const [open, setOpen] = useState(false);
@@ -117,6 +131,11 @@ function ShareWithAdvocate() {
         If someone at a domestic violence organization is helping you, you can give them a read-only
         view of what you've documented. They can't change or delete anything, and you can withdraw
         access whenever you want.
+      </p>
+      <p style={{ fontSize: 12.5, lineHeight: 1.6, color: "var(--muted-foreground)", maxWidth: 640, marginTop: 8 }}>
+        Advocates and organization staff are not necessarily lawyers, and their confidentiality
+        obligations vary. Anything downloaded stays on their computer — withdrawing access stops
+        future access but can't reach copies already saved.
       </p>
 
       {justCreated && (
@@ -362,6 +381,118 @@ function ShareWithAdvocate() {
                     </button>
                   )}
                 </div>
+
+                {!revoked && (
+                  <div
+                    style={{
+                      marginTop: 12,
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                    }}
+                  >
+                    <button
+                      className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                      disabled={busyLink === l.id}
+                      onClick={async () => {
+                        setBusyLink(l.id);
+                        try {
+                          downloadBase64(await packetFn({ data: { link_id: l.id } }));
+                          toast("Packet downloaded.");
+                        } catch (e) {
+                          toast(
+                            e instanceof Error
+                              ? e.message
+                              : "We couldn't build that packet. Try again in a moment.",
+                          );
+                        } finally {
+                          setBusyLink(null);
+                        }
+                      }}
+                    >
+                      <Download size={13} />{" "}
+                      {busyLink === l.id ? "Preparing…" : "Download advocate packet"}
+                    </button>
+                    <button
+                      className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                      onClick={async () => {
+                        try {
+                          const data = await previewFn({ data: { link_id: l.id } });
+                          setPreview({ id: l.id, data });
+                        } catch (e) {
+                          toast(e instanceof Error ? e.message : "We couldn't open that preview.");
+                        }
+                      }}
+                    >
+                      <Eye size={13} /> Preview what they can see
+                    </button>
+                    <label style={{ fontSize: 12, display: "inline-flex", gap: 6 }}>
+                      <input
+                        type="checkbox"
+                        defaultChecked={!!l.org_admin_visibility}
+                        onChange={async (e) => {
+                          try {
+                            await orgVisibilityFn({
+                              data: { link_id: l.id, enabled: e.target.checked },
+                            });
+                            toast(
+                              e.target.checked
+                                ? "Their organization can now see your case label."
+                                : "Organization visibility turned off.",
+                            );
+                            load();
+                          } catch {
+                            toast("We couldn't change that just now.");
+                          }
+                        }}
+                      />
+                      Let their organization see this case label
+                    </label>
+                  </div>
+                )}
+
+                {preview?.id === l.id && (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      padding: 12,
+                      borderRadius: 12,
+                      background: "var(--input)",
+                      fontSize: 12.5,
+                    }}
+                  >
+                    {preview.data.active ? (
+                      <>
+                        <div style={{ fontWeight: 700 }}>
+                          They can currently open {preview.data.incidents.length} journal{" "}
+                          {preview.data.incidents.length === 1 ? "entry" : "entries"} and{" "}
+                          {preview.data.evidence.length} evidence{" "}
+                          {preview.data.evidence.length === 1 ? "item" : "items"}.
+                        </div>
+                        <ul style={{ marginTop: 6, paddingLeft: 16 }}>
+                          {preview.data.evidence.slice(0, 8).map((e) => (
+                            <li key={e.id}>
+                              {e.date ?? "Undated"} — {e.title}
+                            </li>
+                          ))}
+                        </ul>
+                        <p style={{ marginTop: 6, color: "var(--muted-foreground)" }}>
+                          This list comes from the same check the advocate's own view uses.
+                        </p>
+                      </>
+                    ) : (
+                      <span>Nothing is open to them on this link right now.</span>
+                    )}
+                    <button
+                      className="btn-ghost text-[12px]"
+                      style={{ marginTop: 6 }}
+                      onClick={() => setPreview(null)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
