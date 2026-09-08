@@ -238,12 +238,13 @@ export const declineAdvocateSurvivorInvite = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { email } = await verifiedAccountEmail(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: inv } = await supabaseAdmin
+    const { data: found } = await supabaseAdmin
       .from("advocate_survivor_invites")
       .select("id,survivor_email,status,expires_at")
       .eq("invite_token", data.token)
       .maybeSingle();
-    assertInviteUsable(inv as InviteRow | null, email);
+    const inv = found as InviteRow | null;
+    assertInviteUsable(inv, email);
 
     const { error } = await supabaseAdmin
       .from("advocate_survivor_invites")
