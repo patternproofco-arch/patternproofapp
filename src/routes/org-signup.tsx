@@ -27,9 +27,9 @@ function OrgSignup() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const createOrg = useServerFn(setMyOrg);
-  const readMembership = useServerFn(getMyOrgMembership);
+  const readSetupState = useServerFn(getMyOrgSetupState);
 
-  const [step, setStep] = useState<"auth" | "profile">("auth");
+  const [step, setStep] = useState<"auth" | "profile" | "pending">("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -38,23 +38,35 @@ function OrgSignup() {
   const [busy, setBusy] = useState(false);
 
   // Signed in already? Send them straight through if their organization
-  // exists, otherwise let them finish setting it up here.
+  // exists, let a verified partner finish setup, and tell everyone else
+  // plainly that verification is still pending (never bounce them back).
   useEffect(() => {
     if (loading || !user || step !== "auth") return;
     let cancelled = false;
-    readMembership()
+    readSetupState()
       .then((r) => {
         if (cancelled) return;
-        if (r.hasOrg) navigate({ to: "/org-portal", replace: true });
-        else setStep("profile");
+        if (r.hasOrg) {
+          navigate({ to: "/org-portal", replace: true });
+          return;
+        }
+        if (!r.approved) {
+          setStep("pending");
+          return;
+        }
+        if (r.suggested_org_name) setOrgName(r.suggested_org_name);
+        if (r.suggested_contact_name) setContactName(r.suggested_contact_name);
+        if (r.suggested_contact_role) setContactRole(r.suggested_contact_role);
+        setStep("profile");
       })
       .catch(() => {
-        if (!cancelled) setStep("profile");
+        if (!cancelled) setStep("pending");
       });
     return () => {
       cancelled = true;
     };
-  }, [user, loading, step, navigate, readMembership]);
+  }, [user, loading, step, navigate, readSetupState]);
+
 
   const auth = async (e: React.FormEvent) => {
     e.preventDefault();
