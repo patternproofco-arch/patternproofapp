@@ -36,7 +36,50 @@ function onboardingComplete(user: { user_metadata?: Record<string, unknown> | nu
     ?.onboarding_complete === true;
 }
 
-/* ---------- advocate → survivor invites ---------- */
+async function sendAdvocateSurvivorInviteEmail(input: {
+  advocateUserId: string;
+  survivorEmail: string;
+  survivorName?: string | null;
+  personalNote?: string | null;
+  token: string;
+  inviteId: string;
+  expiresDays: number;
+  resend?: boolean;
+}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const origin =
+    process.env.PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://pattern-proof.tech";
+  const { data: prof } = await supabaseAdmin
+    .from("advocate_profiles")
+    .select("full_name,org_name")
+    .eq("user_id", input.advocateUserId)
+    .maybeSingle();
+  const { deliverTransactionalEmail } = await import("@/lib/email/deliver-transactional.server");
+  const delivery = await deliverTransactionalEmail({
+    templateName: "advocate-survivor-invitation",
+    recipientEmail: input.survivorEmail,
+    idempotencyKey: input.resend
+      ? `advocate-survivor-invitation-resend-${input.inviteId}-${Date.now()}`
+      : `advocate-survivor-invitation-${input.inviteId}`,
+    templateData: {
+      advocateName: prof?.full_name ?? undefined,
+      orgName: prof?.org_name ?? undefined,
+      survivorName: input.survivorName ?? undefined,
+      personalNote: input.personalNote ?? undefined,
+      acceptUrl: `${origin}/advocate-survivor-invite/${input.token}`,
+      expiresLabel: `${input.expiresDays} days`,
+    },
+  });
+  await supabaseAdmin
+    .from("advocate_survivor_invites")
+    .update({
+      email_status: delivery.sent ? "sent" : "failed",
+      email_last_attempt_at: new Date().toISOString(),
+      email_last_error: delivery.sent ? null : (delivery.error ?? "Delivery could not be confirmed."),
+    })
+    .eq("id", input.inviteId);
+  return delivery;
+}
 
 export const createAdvocateSurvivorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -65,7 +108,16 @@ export const createAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       .select("id,invite_token,expires_at,survivor_email,status,created_at")
       .single();
     if (error) throw new Error(error.message);
-    return { invite: row };
+    const delivery = await sendAdvocateSurvivorInviteEmail({
+      advocateUserId: context.userId,
+      survivorEmail: row.survivor_email,
+      survivorName: data.survivor_name,
+      personalNote: data.personal_note,
+      token: row.invite_token,
+      inviteId: row.id,
+      expiresDays: data.expires_days,
+    });
+    return { invite: row, email_sent: delivery.sent, email_error: delivery.error ?? null };
   });
 
 export const listAdvocateSurvivorInvites = createServerFn({ method: "GET" })
@@ -112,7 +164,6 @@ export const revokeAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       .eq("advocate_user_id", context.userId);
     if (error) throw new Error(error.message);
 
-    // If already accepted, also revoke the active grant so revoke is fail-closed.
     if (inv.accepted_by) {
       await supabaseAdmin
         .from("advocate_client_links")
@@ -157,17 +208,23 @@ export const resendAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .eq("advocate_user_id", context.userId)
       .in("status", ["pending", "revoked", "declined"])
-      .select("id,invite_token,expires_at,survivor_email,status")
+      .select("id,invite_token,expires_at,survivor_email,status,survivor_name,personal_note")
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Invite not found or already accepted.");
-    return { invite: row };
+    const delivery = await sendAdvocateSurvivorInviteEmail({
+      advocateUserId: context.userId,
+      survivorEmail: row.survivor_email,
+      survivorName: row.survivor_name,
+      personalNote: row.personal_note,
+      token: row.invite_token,
+      inviteId: row.id,
+      expiresDays: data.expires_days,
+      resend: true,
+    });
+    return { invite: row, email_sent: delivery.sent, email_error: delivery.error ?? null };
   });
 
-/**
- * Truthful delivery state. The UI records the actual outcome of the email send
- * here — a database row alone never counts as "sent".
- */
 export const recordAdvocateInviteEmailResult = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -193,8 +250,6 @@ export const recordAdvocateInviteEmailResult = createServerFn({ method: "POST" }
     if (error) throw new Error(error.message);
     return { ok: true as const, email_status: data.sent ? "sent" : "failed" };
   });
-
-/* ---------- survivor side: peek + accept + decline ---------- */
 
 export const peekAdvocateSurvivorInvite = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ token: z.string().min(8).max(128) }).parse(input))
@@ -257,12 +312,9 @@ export const declineAdvocateSurvivorInvite = createServerFn({ method: "POST" })
 
 export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  // Acknowledgements are z.literal(true) and scope is a required z.object({…})
-  // whose share flags default to false — see advocate-survivor-invites.server.
   .inputValidator((input) => acceptInviteSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { email, user } = await verifiedAccountEmail(context.userId);
-    // Fail closed: vault access unlocks only after onboarding is complete.
     if (!onboardingComplete(user)) {
       throw new Error(
         "Finish PatternProof onboarding before sharing vault access with an advocate.",
