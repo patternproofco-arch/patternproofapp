@@ -476,12 +476,70 @@ export const getMyOrgMembership = createServerFn({ method: "GET" })
   });
 
 /**
- * Self-serve provisioning for a DV partner organization.
+ * Partner organizations are invitation-only: an account may only provision an
+ * organization when PatternProof has already approved an access request for
+ * that verified account email. Everything below fails closed.
+ */
+export const NOT_APPROVED_MESSAGE =
+  "Your organization hasn't been verified yet. We'll email you as soon as it is.";
+
+async function orgSetupEligibility(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const email = await verifiedAccountEmail(userId);
+
+  const { data: member } = await supabaseAdmin
+    .from("org_members")
+    .select("org_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (member) return { supabaseAdmin, email, hasOrg: true, approved: true, request: null };
+
+  const { data: request } = await supabaseAdmin
+    .from("org_access_requests")
+    .select("id,org_name,contact_name,contact_role,status")
+    .eq("email", email)
+    .eq("status", "approved")
+    .maybeSingle();
+
+  return { supabaseAdmin, email, hasOrg: false, approved: !!request, request };
+}
+
+/**
+ * Tells the signup screen exactly which state the account is in, so an invited
+ * organization always sees a way forward and an unapproved one never gets
+ * bounced between screens.
+ */
+export const getMyOrgSetupState = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    try {
+      const { hasOrg, approved, request } = await orgSetupEligibility(context.userId);
+      return {
+        hasOrg,
+        approved,
+        suggested_org_name: request?.org_name ?? null,
+        suggested_contact_name: request?.contact_name ?? null,
+        suggested_contact_role: request?.contact_role ?? null,
+      };
+    } catch {
+      return {
+        hasOrg: false,
+        approved: false,
+        suggested_org_name: null,
+        suggested_contact_name: null,
+        suggested_contact_role: null,
+      };
+    }
+  });
+
+/**
+ * Provisioning for an approved DV partner organization.
  *
  * Creates everything the partner portal needs in one step: the organization,
  * the advocate role, the advocate profile, owner membership, and a first
  * referral code. Idempotent — running it again for an account that already
- * belongs to an organization just returns that organization.
+ * belongs to an organization just returns that organization. Requires an
+ * approved access request for the verified account email.
  */
 export const setMyOrg = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -496,16 +554,25 @@ export const setMyOrg = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const userId = context.userId;
-    const email = data.email.trim().toLowerCase();
+    const {
+      supabaseAdmin,
+      email,
+      hasOrg,
+      approved,
+      request,
+    } = await orgSetupEligibility(userId);
 
-    const { data: existingMember } = await supabaseAdmin
-      .from("org_members")
-      .select("org_id")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (existingMember) return { ok: true as const, org_id: existingMember.org_id };
+    if (hasOrg) {
+      const { data: existingMember } = await supabaseAdmin
+        .from("org_members")
+        .select("org_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      return { ok: true as const, org_id: existingMember!.org_id };
+    }
+    if (!approved) throw new Error(NOT_APPROVED_MESSAGE);
+
 
     const { data: org, error: orgError } = await supabaseAdmin
       .from("dv_organizations")
@@ -549,8 +616,104 @@ export const setMyOrg = createServerFn({ method: "POST" })
       ...(data.contact_role ? { notes: `Contact role: ${data.contact_role}` } : {}),
     });
 
+    // Record that the approval has been used. The status vocabulary is
+    // constrained to pending/approved/denied by a database trigger, so the
+    // marker lives in the message field; re-provisioning is already blocked by
+    // the org_members check above.
+    if (request?.id) {
+      await supabaseAdmin
+        .from("org_access_requests")
+        .update({ reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq("id", request.id);
+    }
+
     return { ok: true as const, org_id: org.id };
   });
+
+/* ------------------------- admin: verify partner orgs ------------------------ */
+
+export const listOrgAccessRequests = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const supabaseAdmin = await requireAdmin(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("org_access_requests")
+      .select(
+        "id,org_name,contact_name,contact_role,email,message,survivors_per_month,status,created_at,reviewed_at",
+      )
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return { requests: data ?? [] };
+  });
+
+export const reviewOrgAccessRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        decision: z.enum(["approved", "denied", "pending"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = await requireAdmin(context.userId);
+    const { error } = await supabaseAdmin
+      .from("org_access_requests")
+      .update({
+        status: data.decision,
+        reviewed_by: context.userId,
+        reviewed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/**
+ * Admin path for organizations that reached us outside the request form (email,
+ * conference, referral). Creates an already-approved access record so that the
+ * invited organization can finish setup itself — still not self-serve.
+ */
+export const approveOrgAccessByEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        email: z.string().email().max(255),
+        org_name: z.string().trim().min(2).max(200),
+        contact_name: z.string().trim().min(1).max(120),
+        contact_role: z.string().trim().max(120).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = await requireAdmin(context.userId);
+    const email = data.email.trim().toLowerCase();
+    const { data: existing } = await supabaseAdmin
+      .from("org_access_requests")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    const patch = {
+      email,
+      org_name: data.org_name,
+      contact_name: data.contact_name,
+      contact_role: data.contact_role ?? null,
+      status: "approved",
+      reviewed_by: context.userId,
+      reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = existing
+      ? await supabaseAdmin.from("org_access_requests").update(patch).eq("id", existing.id)
+      : await supabaseAdmin.from("org_access_requests").insert(patch);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 
 
 /**

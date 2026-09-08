@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { getMyOrgMembership, setMyOrg } from "@/lib/org-portal.functions";
+import { getMyOrgSetupState, setMyOrg } from "@/lib/org-portal.functions";
 import { toast } from "sonner";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
@@ -27,9 +27,9 @@ function OrgSignup() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const createOrg = useServerFn(setMyOrg);
-  const readMembership = useServerFn(getMyOrgMembership);
+  const readSetupState = useServerFn(getMyOrgSetupState);
 
-  const [step, setStep] = useState<"auth" | "profile">("auth");
+  const [step, setStep] = useState<"auth" | "profile" | "pending">("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -38,23 +38,35 @@ function OrgSignup() {
   const [busy, setBusy] = useState(false);
 
   // Signed in already? Send them straight through if their organization
-  // exists, otherwise let them finish setting it up here.
+  // exists, let a verified partner finish setup, and tell everyone else
+  // plainly that verification is still pending (never bounce them back).
   useEffect(() => {
     if (loading || !user || step !== "auth") return;
     let cancelled = false;
-    readMembership()
+    readSetupState()
       .then((r) => {
         if (cancelled) return;
-        if (r.hasOrg) navigate({ to: "/org-portal", replace: true });
-        else setStep("profile");
+        if (r.hasOrg) {
+          navigate({ to: "/org-portal", replace: true });
+          return;
+        }
+        if (!r.approved) {
+          setStep("pending");
+          return;
+        }
+        if (r.suggested_org_name) setOrgName(r.suggested_org_name);
+        if (r.suggested_contact_name) setContactName(r.suggested_contact_name);
+        if (r.suggested_contact_role) setContactRole(r.suggested_contact_role);
+        setStep("profile");
       })
       .catch(() => {
-        if (!cancelled) setStep("profile");
+        if (!cancelled) setStep("pending");
       });
     return () => {
       cancelled = true;
     };
-  }, [user, loading, step, navigate, readMembership]);
+  }, [user, loading, step, navigate, readSetupState]);
+
 
   const auth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,8 +165,28 @@ function OrgSignup() {
               </button>
             </form>
           </div>
+        ) : step === "pending" ? (
+          <div className="card-pp">
+            <h2 className="font-serif text-[20px]">We&apos;re verifying your organization</h2>
+            <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              You&apos;re signed in, and your account is ready. Partner dashboards open once we
+              confirm your organization — we&apos;ll email you at{" "}
+              <strong>{user?.email ?? "your work address"}</strong> as soon as that&apos;s done.
+            </p>
+            <Link
+              to="/support"
+              className="btn-primary mt-4 flex w-full items-center justify-center"
+              style={{ textDecoration: "none" }}
+            >
+              Ask about my verification
+            </Link>
+            <p className="mt-3 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              Already verified today? Refresh this page to continue setup.
+            </p>
+          </div>
         ) : (
           <div className="card-pp">
+
             <h2 className="font-serif text-[20px]">Tell us about your organization</h2>
             <form onSubmit={saveOrg} className="mt-4 space-y-3">
               <input
