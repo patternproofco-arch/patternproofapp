@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { fakeAdmin, type Tables } from "./helpers/fake-supabase";
 import {
   buildAdvocateZip,
+  caseOutsideGrant,
   grantIsEmpty,
   loadScopedContent,
   resolveAdvocateGrant,
@@ -434,7 +435,6 @@ describe("org owner/admin oversight — metadata only", () => {
 
 describe("caseOutsideGrant — wrong case is blocked", () => {
   it("rejects a case id the grant does not cover and accepts the one it does", async () => {
-    const { caseOutsideGrant } = await import("@/lib/advocate-packet.server");
     const admin = fakeAdmin(world([link({ case_id: CASE })]));
     const g = (await resolveAdvocateGrant(admin, {
       advocateUserId: ADVOCATE,
