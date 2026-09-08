@@ -9,20 +9,22 @@ describe("partner organizations stay invitation-only", () => {
   it("setMyOrg refuses accounts without an approved access request", () => {
     expect(orgFns).toContain("if (!approved) throw new Error(NOT_APPROVED_MESSAGE);");
   });
-
   it("eligibility is keyed to a verified account email", () => {
     expect(orgFns).toContain("const email = await verifiedAccountEmail(userId);");
     expect(orgFns).toContain('.eq("status", "approved")');
   });
-
   it("uses only the statuses the database trigger allows", () => {
     expect(orgFns).not.toContain('"provisioned"');
     expect(orgFns).toContain('z.enum(["approved", "denied", "pending"])');
   });
-
   it("signup shows a pending state instead of bouncing back to the portal", () => {
     expect(orgSignup).toContain('setStep("pending")');
     expect(orgSignup).toContain("We&apos;re verifying your organization");
+  });
+  it("approval emails the organization and still requires org-signup", () => {
+    expect(orgFns).toContain("emailOrgAccessDecision");
+    expect(orgFns).toContain('templateName: "org-access-decision"');
+    expect(orgFns).toContain("/org-signup");
   });
 });
 
@@ -31,7 +33,6 @@ describe("advocate → survivor invite requires survivor onboarding first", () =
     expect(invitePage).toContain("onboarding_complete?: boolean");
     expect(invitePage).toContain("setNeedsWelcome(!onboardingDone)");
   });
-
   it("hides the Accept & share control until onboarding is finished", () => {
     const gateIndex = invitePage.indexOf("{needsWelcome ? (");
     const acceptIndex = invitePage.indexOf("Accept & share");
