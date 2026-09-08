@@ -616,8 +616,101 @@ export const setMyOrg = createServerFn({ method: "POST" })
       ...(data.contact_role ? { notes: `Contact role: ${data.contact_role}` } : {}),
     });
 
+    // Consume the approval so a single verification can't provision twice.
+    if (request?.id) {
+      await supabaseAdmin
+        .from("org_access_requests")
+        .update({ status: "provisioned", updated_at: new Date().toISOString() })
+        .eq("id", request.id);
+    }
+
     return { ok: true as const, org_id: org.id };
   });
+
+/* ------------------------- admin: verify partner orgs ------------------------ */
+
+export const listOrgAccessRequests = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const supabaseAdmin = await requireAdmin(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("org_access_requests")
+      .select(
+        "id,org_name,contact_name,contact_role,email,message,survivors_per_month,status,created_at,reviewed_at",
+      )
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return { requests: data ?? [] };
+  });
+
+export const reviewOrgAccessRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        decision: z.enum(["approved", "denied", "pending"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = await requireAdmin(context.userId);
+    const { error } = await supabaseAdmin
+      .from("org_access_requests")
+      .update({
+        status: data.decision,
+        reviewed_by: context.userId,
+        reviewed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/**
+ * Admin path for organizations that reached us outside the request form (email,
+ * conference, referral). Creates an already-approved access record so that the
+ * invited organization can finish setup itself — still not self-serve.
+ */
+export const approveOrgAccessByEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        email: z.string().email().max(255),
+        org_name: z.string().trim().min(2).max(200),
+        contact_name: z.string().trim().min(1).max(120),
+        contact_role: z.string().trim().max(120).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = await requireAdmin(context.userId);
+    const email = data.email.trim().toLowerCase();
+    const { data: existing } = await supabaseAdmin
+      .from("org_access_requests")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    const patch = {
+      email,
+      org_name: data.org_name,
+      contact_name: data.contact_name,
+      contact_role: data.contact_role ?? null,
+      status: "approved",
+      reviewed_by: context.userId,
+      reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = existing
+      ? await supabaseAdmin.from("org_access_requests").update(patch).eq("id", existing.id)
+      : await supabaseAdmin.from("org_access_requests").insert(patch);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 
 
 /**
