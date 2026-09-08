@@ -60,3 +60,41 @@ export const listPendingAdvocateInvitesForMe = createServerFn({ method: "GET" })
       })),
     };
   });
+
+export const listPendingAttorneyInvitesForMe = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: auth } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    const email = auth.user?.email?.trim().toLowerCase();
+    if (!email || !auth.user?.email_confirmed_at) {
+      throw new Error("A verified account email is required to see pending invites.");
+    }
+    const { data, error } = await supabaseAdmin
+      .from("attorney_survivor_invites")
+      .select("id,invite_token,status,expires_at,personal_note,attorney_user_id,created_at")
+      .eq("survivor_email", email)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    const now = Date.now();
+    const pending = (data ?? []).filter((i) => !i.expires_at || new Date(i.expires_at).getTime() > now);
+    const attorneyIds = [...new Set(pending.map((i) => i.attorney_user_id))];
+    const { data: profs } = attorneyIds.length
+      ? await supabaseAdmin
+          .from("attorney_profiles")
+          .select("user_id,full_name,firm_name")
+          .in("user_id", attorneyIds)
+      : { data: [] as Array<{ user_id: string; full_name: string | null; firm_name: string | null }> };
+    const byId = new Map((profs ?? []).map((p) => [p.user_id, p]));
+    return {
+      invites: pending.map((i) => ({
+        id: i.id,
+        token: i.invite_token,
+        expires_at: i.expires_at,
+        personal_note: i.personal_note,
+        attorney_name: byId.get(i.attorney_user_id)?.full_name ?? null,
+        firm_name: byId.get(i.attorney_user_id)?.firm_name ?? null,
+      })),
+    };
+  });
