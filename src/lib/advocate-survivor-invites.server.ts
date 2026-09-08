@@ -41,7 +41,8 @@ export const acceptScopeSchema = z.object({
 export const acceptInviteSchema = z.object({
   token: z.string().min(8).max(128),
   acknowledgements: acknowledgementsSchema,
-  scope: acceptScopeSchema,
+  // Required, explicit, all-false-by-default scope object.
+  scope: z.object({ ...acceptScopeSchema.shape }),
 });
 
 export function inviteIsExpired(invite: Pick<InviteRow, "expires_at">, now = new Date()) {
