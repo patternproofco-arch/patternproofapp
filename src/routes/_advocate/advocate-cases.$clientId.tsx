@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Download } from "lucide-react";
 import { getAdvocateCase } from "@/lib/advocate.functions";
+import { exportAdvocateCasePackage } from "@/lib/advocate-packet.functions";
+import { downloadBase64 } from "@/lib/download-base64";
 import { ACCESS_DISCLAIMER } from "@/components/AccessDisclaimer";
 
 export const Route = createFileRoute("/_advocate/advocate-cases/$clientId")({
@@ -258,51 +260,4 @@ function AccessTab({ data }: { data: CaseData }) {
       </p>
     </div>
   );
-}
-
-function exportPacket(data: CaseData, label: string) {
-  try {
-    const lines: string[] = [];
-    lines.push(`PROFESSIONAL-REVIEW PACKET — ${label}`);
-    lines.push(`Exported ${new Date().toLocaleString()}`);
-    lines.push("");
-    lines.push(ACCESS_DISCLAIMER);
-    lines.push("");
-    if (data.case) {
-      lines.push("CASE SUMMARY");
-      if (data.case.other_party) lines.push(`Other party: ${data.case.other_party}`);
-      if (data.case.relationship_type) lines.push(`Relationship: ${data.case.relationship_type}`);
-      if (data.case.jurisdiction) lines.push(`Jurisdiction: ${data.case.jurisdiction}`);
-      if (data.case.pattern_summary) {
-        lines.push("");
-        lines.push(data.case.pattern_summary);
-      }
-      lines.push("");
-    }
-    lines.push(`TIMELINE (${data.incidents.length})`);
-    for (const i of data.incidents) {
-      lines.push("");
-      lines.push(`${i.date}${i.time ? ` ${i.time}` : ""}${i.location ? ` — ${i.location}` : ""}`);
-      lines.push(i.description ?? "");
-      if ((i.abuse_types ?? []).length) lines.push(`Tagged: ${(i.abuse_types ?? []).join(", ")}`);
-    }
-    lines.push("");
-    lines.push(`EVIDENCE LIST (${data.evidence.length})`);
-    for (const e of data.evidence) {
-      lines.push(
-        `- ${e.title}${e.date ? ` (${e.date})` : ""}${e.file_type ? ` [${e.file_type}]` : ""}`,
-      );
-    }
-    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `professional-review-packet-${new Date().toISOString().slice(0, 10)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  } catch {
-    toast("We couldn't build that export. Try again in a moment.");
-  }
 }
