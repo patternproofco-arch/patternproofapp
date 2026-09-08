@@ -1,6 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import {
+  acceptInviteSchema,
+  assertInviteUsable,
+  assertScopeChosen,
+  buildGrantPayload,
+  type InviteRow,
+} from "@/lib/advocate-survivor-invites.server";
 
 async function requireAdvocate(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
