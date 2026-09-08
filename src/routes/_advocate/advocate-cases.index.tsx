@@ -152,6 +152,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
           personalNote: note.trim() || undefined,
         },
       });
+      await recordEmail({ data: { id: r.invite.id, sent } }).catch(() => undefined);
       if (sent) {
         toast("Invite email sent. The survivor must explicitly Accept before you get access.");
       } else {
