@@ -48,9 +48,10 @@ function ShareWithAdvocate() {
   const [name, setName] = useState("");
   const [org, setOrg] = useState("");
   const [note, setNote] = useState("");
-  const [incIncidents, setIncIncidents] = useState(true);
-  const [incEvidence, setIncEvidence] = useState(true);
-  const [incPatterns, setIncPatterns] = useState(true);
+  // Scope starts off. Nothing is shared until you turn it on here.
+  const [incIncidents, setIncIncidents] = useState(false);
+  const [incEvidence, setIncEvidence] = useState(false);
+  const [incPatterns, setIncPatterns] = useState(false);
   const [days, setDays] = useState(30);
   const [caseId, setCaseId] = useState("");
   const [cases, setCases] = useState<
