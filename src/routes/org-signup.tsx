@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { getMyOrgMembership, setMyOrg } from "@/lib/org-portal.functions";
+import { getMyOrgSetupState, setMyOrg } from "@/lib/org-portal.functions";
 import { toast } from "sonner";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
