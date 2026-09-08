@@ -139,8 +139,23 @@ function OrgRequestsAdmin() {
               {r.contact_name}
               {r.contact_role ? ` · ${r.contact_role}` : ""} · {r.email}
             </div>
+            <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+              {[
+                r.org_type,
+                r.service_area,
+                r.website,
+                r.phone,
+                r.survivors_per_month ? `${r.survivors_per_month}/month` : null,
+                r.contact_consent ? "consented to contact" : "no contact consent",
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </div>
             {r.message ? <div style={{ fontSize: 13 }}>{r.message}</div> : null}
-            <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Status: {r.status}</div>
+            <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+              Status: {r.status}
+              {r.reviewed_at ? ` · reviewed ${new Date(r.reviewed_at).toLocaleString()}` : ""}
+            </div>
             <div style={{ display: "flex", gap: 8 }}>
               <button
                 className="btn-primary"

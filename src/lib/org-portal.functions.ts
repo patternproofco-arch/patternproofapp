@@ -669,6 +669,19 @@ export const reviewOrgAccessRequest = createServerFn({ method: "POST" })
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
+    try {
+      await supabaseAdmin.rpc("record_audit_event", {
+        p_user_id: context.userId,
+        p_event_type: `org_access_request.${data.decision}`,
+        p_subject_kind: "org_access_request",
+        p_subject_id: data.id,
+        p_actor_kind: "admin",
+        p_actor_id: context.userId,
+        p_meta: { decision: data.decision },
+      });
+    } catch (e) {
+      console.error("[audit] org access review", e);
+    }
     return { ok: true as const };
   });
 
