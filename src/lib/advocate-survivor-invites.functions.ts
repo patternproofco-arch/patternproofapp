@@ -68,7 +68,7 @@ export const listAdvocateSurvivorInvites = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("advocate_survivor_invites")
       .select(
-        "id,survivor_email,survivor_name,personal_note,invite_token,status,expires_at,accepted_at,declined_at,created_at",
+        "id,survivor_email,survivor_name,personal_note,invite_token,status,expires_at,accepted_at,declined_at,created_at,email_status,email_last_attempt_at,email_last_error",
       )
       .eq("advocate_user_id", context.userId)
       .order("created_at", { ascending: false });
@@ -155,6 +155,36 @@ export const resendAdvocateSurvivorInvite = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Invite not found or already accepted.");
     return { invite: row };
+  });
+
+/**
+ * Truthful delivery state. The UI records the actual outcome of the email send
+ * here — a database row alone never counts as "sent".
+ */
+export const recordAdvocateInviteEmailResult = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        sent: z.boolean(),
+        error: z.string().trim().max(300).optional().nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = await requireAdvocate(context.userId);
+    const { error } = await supabaseAdmin
+      .from("advocate_survivor_invites")
+      .update({
+        email_status: data.sent ? "sent" : "failed",
+        email_last_attempt_at: new Date().toISOString(),
+        email_last_error: data.sent ? null : (data.error ?? "Delivery could not be confirmed."),
+      })
+      .eq("id", data.id)
+      .eq("advocate_user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true as const, email_status: data.sent ? "sent" : "failed" };
   });
 
 /* ---------- survivor side: peek + accept + decline ---------- */
