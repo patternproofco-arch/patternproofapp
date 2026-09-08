@@ -270,28 +270,16 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: inv } = await supabaseAdmin
+    const { data: found } = await supabaseAdmin
       .from("advocate_survivor_invites")
       .select("*")
       .eq("invite_token", data.token)
       .maybeSingle();
-    if (!inv) throw new Error("Invite not found");
-    if (inv.status !== "pending") throw new Error("Invite no longer valid");
-    if (inv.expires_at && new Date(inv.expires_at) < new Date()) throw new Error("Invite expired");
-    if (email !== String(inv.survivor_email).toLowerCase()) {
-      throw new Error("This invite was sent to a different email address.");
-    }
+    const inv = found as (InviteRow & Record<string, unknown>) | null;
+    assertInviteUsable(inv, email);
 
     const scope = data.scope;
-    const hasShare =
-      scope.include_all_incidents ||
-      scope.include_all_evidence ||
-      scope.include_patterns ||
-      (scope.scope_incidents ?? []).length > 0 ||
-      (scope.scope_evidence ?? []).length > 0;
-    if (!hasShare) {
-      throw new Error("Choose at least one thing to share before accepting.");
-    }
+    assertScopeChosen(scope);
     if (!scope.include_all_incidents && (scope.scope_incidents ?? []).length) {
       const { data: ownedIncidents } = await supabaseAdmin
         .from("incidents")
