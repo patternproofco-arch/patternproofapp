@@ -647,6 +647,40 @@ export const listOrgAccessRequests = createServerFn({ method: "GET" })
     return { requests: data ?? [] };
   });
 
+/**
+ * Tells an organization the outcome of its partner access request. Approval
+ * only creates provisioning eligibility — the org must still finish
+ * /org-signup with this same verified email, and it never grants survivor
+ * data. Delivery failures are logged, never swallowed as success.
+ */
+async function emailOrgAccessDecision(input: {
+  email: string;
+  orgName?: string | null;
+  contactName?: string | null;
+  decision: "approved" | "denied";
+  requestId: string;
+}) {
+  try {
+    const { deliverTransactionalEmail } = await import("@/lib/email/deliver-transactional.server");
+    const result = await deliverTransactionalEmail({
+      templateName: "org-access-decision",
+      recipientEmail: input.email,
+      templateData: {
+        contactName: input.contactName ?? undefined,
+        orgName: input.orgName ?? undefined,
+        decision: input.decision,
+        setupUrl: "https://pattern-proof.tech/org-signup",
+      },
+      idempotencyKey: `org-access-${input.decision}-${input.requestId}`,
+    });
+    if (!result.sent) console.error("[email] org access decision not sent:", result.error);
+    return result;
+  } catch (error) {
+    console.error("[email] org access decision failed", error);
+    return { sent: false, error: error instanceof Error ? error.message : "Send failed." };
+  }
+}
+
 export const reviewOrgAccessRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -682,7 +716,25 @@ export const reviewOrgAccessRequest = createServerFn({ method: "POST" })
     } catch (e) {
       console.error("[audit] org access review", e);
     }
-    return { ok: true as const };
+
+    let emailed: { sent: boolean; error?: string } = { sent: false, error: "No email for pending." };
+    if (data.decision !== "pending") {
+      const { data: req } = await supabaseAdmin
+        .from("org_access_requests")
+        .select("email,org_name,contact_name")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (req?.email) {
+        emailed = await emailOrgAccessDecision({
+          email: req.email as string,
+          orgName: req.org_name as string | null,
+          contactName: req.contact_name as string | null,
+          decision: data.decision,
+          requestId: data.id,
+        });
+      }
+    }
+    return { ok: true as const, emailed };
   });
 
 /**
@@ -720,11 +772,23 @@ export const approveOrgAccessByEmail = createServerFn({ method: "POST" })
       reviewed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    const { error } = existing
-      ? await supabaseAdmin.from("org_access_requests").update(patch).eq("id", existing.id)
-      : await supabaseAdmin.from("org_access_requests").insert(patch);
+    const { data: saved, error } = existing
+      ? await supabaseAdmin
+          .from("org_access_requests")
+          .update(patch)
+          .eq("id", existing.id)
+          .select("id")
+          .single()
+      : await supabaseAdmin.from("org_access_requests").insert(patch).select("id").single();
     if (error) throw new Error(error.message);
-    return { ok: true as const };
+    const emailed = await emailOrgAccessDecision({
+      email,
+      orgName: data.org_name,
+      contactName: data.contact_name,
+      decision: "approved",
+      requestId: (saved?.id as string) ?? email,
+    });
+    return { ok: true as const, emailed };
   });
 
 
