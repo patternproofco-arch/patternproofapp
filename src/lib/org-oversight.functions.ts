@@ -70,48 +70,21 @@ export const getOrgOversight = createServerFn({ method: "GET" })
         : Promise.resolve({ data: [] }),
     ]);
 
-    // Case labels are fetched only for links the survivor opted in on.
-    const visibleCaseIds = Array.from(
-      new Set(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((links ?? []) as any[])
-          .filter((l) => l.org_admin_visibility && l.case_id)
-          .map((l) => l.case_id as string),
-      ),
-    );
-    const { data: cases } = visibleCaseIds.length
-      ? await supabaseAdmin.from("cases").select("id,case_name").in("id", visibleCaseIds)
-      : { data: [] as Array<{ id: string; case_name: string | null }> };
-    const caseNames = new Map((cases ?? []).map((c) => [c.id, c.case_name]));
-    const nameMap = new Map((profiles ?? []).map((p) => [p.user_id, p.full_name]));
+    const { buildOversightAdvocates, visibleCaseIds } = await import("@/lib/org-oversight.server");
 
-    const advocates = (members ?? []).map((m, mi) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mine = ((links ?? []) as any[]).filter((l) => l.advocate_user_id === m.user_id);
-      const active = mine.filter((l) => l.status === "active");
-      const lastActivity = mine
-        .map((l) => l.created_at as string)
-        .sort()
-        .at(-1);
-      return {
-        user_id: m.user_id,
-        full_name: nameMap.get(m.user_id) ?? null,
-        role: m.role,
-        joined_at: m.joined_at ?? null,
-        last_activity_at: lastActivity ?? null,
-        open_clients: active.length,
-        closed_clients: mine.length - active.length,
-        clients: mine.map((l, i) => ({
-          link_id: l.id as string,
-          label: l.org_admin_visibility
-            ? (caseNames.get(l.case_id) ?? `Client ${mi + 1}-${i + 1}`)
-            : `Client ${mi + 1}-${i + 1}`,
-          identified: !!l.org_admin_visibility,
-          status: l.status as string,
-          granted_at: l.created_at as string,
-          expires_at: (l.expires_at as string | null) ?? null,
-        })),
-      };
+    // Case labels are fetched only for links the survivor opted in on.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const linkRows = ((links ?? []) as any[]) as import("@/lib/org-oversight.server").OversightLink[];
+    const caseIds = visibleCaseIds(linkRows);
+    const { data: cases } = caseIds.length
+      ? await supabaseAdmin.from("cases").select("id,case_name").in("id", caseIds)
+      : { data: [] as Array<{ id: string; case_name: string | null }> };
+
+    const advocates = buildOversightAdvocates({
+      members: (members ?? []) as import("@/lib/org-oversight.server").OversightMember[],
+      links: linkRows,
+      names: new Map((profiles ?? []).map((p) => [p.user_id, p.full_name])),
+      caseNames: new Map((cases ?? []).map((c) => [c.id, c.case_name])),
     });
 
     try {
