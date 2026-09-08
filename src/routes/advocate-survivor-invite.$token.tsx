@@ -60,6 +60,16 @@ function AdvocateSurvivorInvitePage() {
     if (user && peeked?.status === "ok" && step === "auth") setStep("consent");
   }, [user, peeked, step]);
 
+  // Required survivor onboarding/consent must happen before any sharing choice
+  // is offered. Fail closed: treat unknown metadata as "not finished".
+  const onboardingDone =
+    (user?.user_metadata as { onboarding_complete?: boolean } | undefined)?.onboarding_complete ===
+    true;
+  useEffect(() => {
+    if (user) setNeedsWelcome(!onboardingDone);
+  }, [user, onboardingDone]);
+
+
   useEffect(() => {
     peek({ data: { token } })
       .then(setPeeked)
@@ -380,58 +390,61 @@ function AdvocateSurvivorInvitePage() {
               }}
             >
               <p style={{ fontSize: 13, margin: 0 }}>
-                There&apos;s one short welcome step to finish on your account first. We&apos;ll bring
-                you right back here afterwards.
+                There&apos;s one short welcome step to finish on your account first — it covers the
+                terms and your privacy choices. We&apos;ll bring you right back here afterwards, and
+                nothing is shared until you accept.
               </p>
               <button type="button" className="btn-primary" onClick={goFinishWelcome}>
                 Finish the welcome step
               </button>
             </div>
-          ) : null}
+          ) : (
+            <>
+              <ChecklistItem
+                checked={ackWho}
+                onChange={setAckWho}
+                label={`I understand ${advocateDisplay} will be able to view the records I choose to share (read-only).`}
+              />
+              <ChecklistItem
+                checked={ackScope}
+                onChange={setAckScope}
+                label="I choose the scope below (incidents, evidence, pattern analysis). They only see what I enable."
+              />
+              <ChecklistItem
+                checked={ackRevoke}
+                onChange={setAckRevoke}
+                label="I understand I can revoke later. Revoking ends new access; it does not undo past downloads made while access was active."
+              />
 
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: "var(--pp-r-lg)",
+                  boxShadow: "var(--pp-shadow-in-sm)",
+                  background: "var(--pp-ground)",
+                  display: "grid",
+                  gap: 8,
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.06, textTransform: "uppercase", color: "var(--pp-muted)" }}>
+                  Scope
+                </div>
+                <Toggle checked={shareIncidents} onChange={setShareIncidents} label="Share incidents" />
+                <Toggle checked={shareEvidence} onChange={setShareEvidence} label="Share evidence metadata" />
+                <Toggle checked={sharePatterns} onChange={setSharePatterns} label="Share pattern analysis" />
+              </div>
 
-          <ChecklistItem
-            checked={ackWho}
-            onChange={setAckWho}
-            label={`I understand ${advocateDisplay} will be able to view the records I choose to share (read-only).`}
-          />
-          <ChecklistItem
-            checked={ackScope}
-            onChange={setAckScope}
-            label="I choose the scope below (incidents, evidence, pattern analysis). They only see what I enable."
-          />
-          <ChecklistItem
-            checked={ackRevoke}
-            onChange={setAckRevoke}
-            label="I understand I can revoke later. Revoking ends new access; it does not undo past downloads made while access was active."
-          />
+              <button
+                type="button"
+                onClick={confirmAccept}
+                disabled={busy || !ackWho || !ackScope || !ackRevoke || (!shareIncidents && !shareEvidence && !sharePatterns)}
+                style={primaryBtn(busy || !ackWho || !ackScope || !ackRevoke || (!shareIncidents && !shareEvidence && !sharePatterns))}
+              >
+                <CheckCircle2 size={14} /> {busy ? "Sharing…" : "Accept & share"}
+              </button>
+            </>
+          )}
 
-          <div
-            style={{
-              padding: 14,
-              borderRadius: "var(--pp-r-lg)",
-              boxShadow: "var(--pp-shadow-in-sm)",
-              background: "var(--pp-ground)",
-              display: "grid",
-              gap: 8,
-            }}
-          >
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.06, textTransform: "uppercase", color: "var(--pp-muted)" }}>
-              Scope
-            </div>
-            <Toggle checked={shareIncidents} onChange={setShareIncidents} label="Share incidents" />
-            <Toggle checked={shareEvidence} onChange={setShareEvidence} label="Share evidence metadata" />
-            <Toggle checked={sharePatterns} onChange={setSharePatterns} label="Share pattern analysis" />
-          </div>
-
-          <button
-            type="button"
-            onClick={confirmAccept}
-            disabled={busy || !ackWho || !ackScope || !ackRevoke || (!shareIncidents && !shareEvidence && !sharePatterns)}
-            style={primaryBtn(busy || !ackWho || !ackScope || !ackRevoke || (!shareIncidents && !shareEvidence && !sharePatterns))}
-          >
-            <CheckCircle2 size={14} /> {busy ? "Sharing…" : "Accept & share"}
-          </button>
           <button
             type="button"
             onClick={confirmDecline}
