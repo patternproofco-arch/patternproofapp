@@ -844,7 +844,8 @@ export const submitOrgAccessRequest = createServerFn({ method: "POST" })
           service_area: data.service_area,
           org_type: data.org_type,
           message: data.message,
-          survivors_per_month: data.survivors_per_month ?? null,
+          survivors_per_month:
+            data.survivors_per_month == null ? null : String(data.survivors_per_month),
           contact_consent: true,
           status: "pending",
           updated_at: new Date().toISOString(),
@@ -868,7 +869,8 @@ export const submitOrgAccessRequest = createServerFn({ method: "POST" })
       service_area: data.service_area,
       org_type: data.org_type,
       message: data.message,
-      survivors_per_month: data.survivors_per_month ?? null,
+      survivors_per_month:
+        data.survivors_per_month == null ? null : String(data.survivors_per_month),
       contact_consent: true,
       status: "pending",
     });
