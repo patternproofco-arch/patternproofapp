@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VersionDotjsonRouteImport } from './routes/version[.]json'
+import { Route as VersionRouteImport } from './routes/version'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TriageRouteImport } from './routes/triage'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -120,6 +121,11 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 const VersionDotjsonRoute = VersionDotjsonRouteImport.update({
   id: '/version.json',
   path: '/version.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VersionRoute = VersionRouteImport.update({
+  id: '/version',
+  path: '/version',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
@@ -713,6 +719,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/version': typeof VersionRoute
   '/version.json': typeof VersionDotjsonRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -819,6 +826,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/version': typeof VersionRoute
   '/version.json': typeof VersionDotjsonRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -927,6 +935,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/version': typeof VersionRoute
   '/version.json': typeof VersionDotjsonRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -1035,6 +1044,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/triage'
     | '/unsubscribe'
+    | '/version'
     | '/version.json'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -1141,6 +1151,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/triage'
     | '/unsubscribe'
+    | '/version'
     | '/version.json'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -1248,6 +1259,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/triage'
     | '/unsubscribe'
+    | '/version'
     | '/version.json'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -1358,6 +1370,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TriageRoute: typeof TriageRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  VersionRoute: typeof VersionRoute
   VersionDotjsonRoute: typeof VersionDotjsonRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -1389,6 +1402,13 @@ declare module '@tanstack/react-router' {
       path: '/version.json'
       fullPath: '/version.json'
       preLoaderRoute: typeof VersionDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/version': {
+      id: '/version'
+      path: '/version'
+      fullPath: '/version'
+      preLoaderRoute: typeof VersionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/unsubscribe': {
@@ -2321,6 +2341,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TriageRoute: TriageRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  VersionRoute: VersionRoute,
   VersionDotjsonRoute: VersionDotjsonRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:

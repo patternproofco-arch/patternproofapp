@@ -6,6 +6,9 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import path from "node:path";
 import { execSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { loadEnv } from "vite";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
@@ -19,7 +22,7 @@ Object.assign(process.env, serverEnv);
 // @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
 // Build/version marker: resolved from the build environment's git metadata so
 // /version.json can prove which commit is deployed. Never hardcoded.
-function resolveCommitSha(): string {
+function resolveCommitSha(): { sha: string; source: string } {
   const fromEnv =
     process.env.LOVABLE_COMMIT_SHA ||
     process.env.CF_PAGES_COMMIT_SHA ||
@@ -27,18 +30,52 @@ function resolveCommitSha(): string {
     process.env.GITHUB_SHA ||
     process.env.VERCEL_GIT_COMMIT_SHA ||
     process.env.COMMIT_SHA;
-  if (fromEnv && fromEnv.trim()) return fromEnv.trim();
+  if (fromEnv && fromEnv.trim()) return { sha: fromEnv.trim(), source: "build-env" };
   try {
-    return execSync("git rev-parse HEAD", { stdio: ["ignore", "pipe", "ignore"] })
-      .toString()
-      .trim();
+    return {
+      sha: execSync("git rev-parse HEAD", { stdio: ["ignore", "pipe", "ignore"] })
+        .toString()
+        .trim(),
+      source: "git",
+    };
   } catch {
-    return "unknown";
+    // Deploy machines often ship the working tree without a git binary.
   }
+  // Read .git directly — works when the git CLI is unavailable.
+  try {
+    const head = readFileSync(resolve(process.cwd(), ".git/HEAD"), "utf8").trim();
+    if (/^[0-9a-f]{40}$/.test(head)) return { sha: head, source: "git-head" };
+    const ref = head.replace(/^ref:\s*/, "");
+    const refPath = resolve(process.cwd(), ".git", ref);
+    if (existsSync(refPath))
+      return { sha: readFileSync(refPath, "utf8").trim(), source: "git-ref" };
+    const packed = readFileSync(resolve(process.cwd(), ".git/packed-refs"), "utf8");
+    const line = packed.split("\n").find((l) => l.endsWith(` ${ref}`));
+    if (line) return { sha: line.split(" ")[0]!.trim(), source: "git-packed-ref" };
+  } catch {
+    // Fall through to the checked-in stamp.
+  }
+  // Last resort: a stamp file committed with the source.
+  try {
+    const stamp = readFileSync(resolve(process.cwd(), "public/COMMIT"), "utf8").trim();
+    if (stamp) return { sha: stamp, source: "stamp-file (may lag one commit)" };
+  } catch {
+    // No stamp available.
+  }
+  return { sha: "unknown", source: "unavailable" };
 }
 
-const COMMIT_SHA = resolveCommitSha();
+/**
+ * Always-unique marker for a build, so two deploys can be told apart even when
+ * no git metadata reached the build machine.
+ */
+function buildId(sha: string, time: string): string {
+  return createHash("sha256").update(`${sha}|${time}`).digest("hex").slice(0, 12);
+}
+
+const { sha: COMMIT_SHA, source: COMMIT_SOURCE } = resolveCommitSha();
 const BUILD_TIME = new Date().toISOString();
+const BUILD_ID = buildId(COMMIT_SHA, BUILD_TIME);
 
 export default defineConfig({
   tanstackStart: {
@@ -48,6 +85,8 @@ export default defineConfig({
     define: {
       __GIT_COMMIT_SHA__: JSON.stringify(COMMIT_SHA),
       __BUILD_TIME__: JSON.stringify(BUILD_TIME),
+      __BUILD_ID__: JSON.stringify(BUILD_ID),
+      __COMMIT_SOURCE__: JSON.stringify(COMMIT_SOURCE),
       // Publishable (anon) backend config — safe to ship to the browser.
       // Inlined here so the deployed client bundle always has it, even when
       // the build environment provides no .env files.
