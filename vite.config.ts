@@ -33,12 +33,42 @@ function resolveCommitSha(): string {
       .toString()
       .trim();
   } catch {
-    return "unknown";
+    // Deploy machines often ship the working tree without a git binary.
   }
+  // Read .git directly — works when the git CLI is unavailable.
+  try {
+    const head = readFileSync(resolve(process.cwd(), ".git/HEAD"), "utf8").trim();
+    if (/^[0-9a-f]{40}$/.test(head)) return head;
+    const ref = head.replace(/^ref:\s*/, "");
+    const refPath = resolve(process.cwd(), ".git", ref);
+    if (existsSync(refPath)) return readFileSync(refPath, "utf8").trim();
+    const packed = readFileSync(resolve(process.cwd(), ".git/packed-refs"), "utf8");
+    const line = packed.split("\n").find((l) => l.endsWith(` ${ref}`));
+    if (line) return line.split(" ")[0]!.trim();
+  } catch {
+    // Fall through to the checked-in stamp.
+  }
+  // Last resort: a stamp file committed with the source.
+  try {
+    const stamp = readFileSync(resolve(process.cwd(), "public/COMMIT"), "utf8").trim();
+    if (stamp) return stamp;
+  } catch {
+    // No stamp available.
+  }
+  return "unknown";
+}
+
+/**
+ * Always-unique marker for a build, so two deploys can be told apart even when
+ * no git metadata reached the build machine.
+ */
+function buildId(sha: string, time: string): string {
+  return createHash("sha256").update(`${sha}|${time}`).digest("hex").slice(0, 12);
 }
 
 const COMMIT_SHA = resolveCommitSha();
 const BUILD_TIME = new Date().toISOString();
+const BUILD_ID = buildId(COMMIT_SHA, BUILD_TIME);
 
 export default defineConfig({
   tanstackStart: {
@@ -48,6 +78,7 @@ export default defineConfig({
     define: {
       __GIT_COMMIT_SHA__: JSON.stringify(COMMIT_SHA),
       __BUILD_TIME__: JSON.stringify(BUILD_TIME),
+      __BUILD_ID__: JSON.stringify(BUILD_ID),
       // Publishable (anon) backend config — safe to ship to the browser.
       // Inlined here so the deployed client bundle always has it, even when
       // the build environment provides no .env files.
