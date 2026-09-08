@@ -86,6 +86,7 @@ import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAttorneyTimeLogRouteImport } from './routes/_authenticated/attorney-time-log'
 import { Route as AuthenticatedAttorneyBillingRouteImport } from './routes/_authenticated/attorney-billing'
 import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
+import { Route as AuthenticatedAccessRouteImport } from './routes/_authenticated/access'
 import { Route as AttorneyTrustRouteImport } from './routes/_attorney/trust'
 import { Route as AttorneyTeamRouteImport } from './routes/_attorney/team'
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
@@ -516,6 +517,11 @@ const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
   path: '/agent',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAccessRoute = AuthenticatedAccessRouteImport.update({
+  id: '/access',
+  path: '/access',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AttorneyTrustRoute = AttorneyTrustRouteImport.update({
   id: '/trust',
   path: '/trust',
@@ -734,6 +740,7 @@ export interface FileRoutesByFullPath {
   '/subscribe': typeof AttorneySubscribeRoute
   '/team': typeof AttorneyTeamRoute
   '/trust': typeof AttorneyTrustRoute
+  '/access': typeof AuthenticatedAccessRoute
   '/agent': typeof AuthenticatedAgentRouteWithChildren
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
   '/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
@@ -840,6 +847,7 @@ export interface FileRoutesByTo {
   '/subscribe': typeof AttorneySubscribeRoute
   '/team': typeof AttorneyTeamRoute
   '/trust': typeof AttorneyTrustRoute
+  '/access': typeof AuthenticatedAccessRoute
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
   '/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
   '/calendar': typeof AuthenticatedCalendarRoute
@@ -950,6 +958,7 @@ export interface FileRoutesById {
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
   '/_attorney/team': typeof AttorneyTeamRoute
   '/_attorney/trust': typeof AttorneyTrustRoute
+  '/_authenticated/access': typeof AuthenticatedAccessRoute
   '/_authenticated/agent': typeof AuthenticatedAgentRouteWithChildren
   '/_authenticated/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
   '/_authenticated/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
@@ -1059,6 +1068,7 @@ export interface FileRouteTypes {
     | '/subscribe'
     | '/team'
     | '/trust'
+    | '/access'
     | '/agent'
     | '/attorney-billing'
     | '/attorney-time-log'
@@ -1165,6 +1175,7 @@ export interface FileRouteTypes {
     | '/subscribe'
     | '/team'
     | '/trust'
+    | '/access'
     | '/attorney-billing'
     | '/attorney-time-log'
     | '/calendar'
@@ -1274,6 +1285,7 @@ export interface FileRouteTypes {
     | '/_attorney/subscribe'
     | '/_attorney/team'
     | '/_attorney/trust'
+    | '/_authenticated/access'
     | '/_authenticated/agent'
     | '/_authenticated/attorney-billing'
     | '/_authenticated/attorney-time-log'
@@ -1936,6 +1948,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/access': {
+      id: '/_authenticated/access'
+      path: '/access'
+      fullPath: '/access'
+      preLoaderRoute: typeof AuthenticatedAccessRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_attorney/trust': {
       id: '/_attorney/trust'
       path: '/trust'
@@ -2230,6 +2249,7 @@ const AuthenticatedAgentRouteWithChildren =
   AuthenticatedAgentRoute._addFileChildren(AuthenticatedAgentRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAccessRoute: typeof AuthenticatedAccessRoute
   AuthenticatedAgentRoute: typeof AuthenticatedAgentRouteWithChildren
   AuthenticatedAttorneyBillingRoute: typeof AuthenticatedAttorneyBillingRoute
   AuthenticatedAttorneyTimeLogRoute: typeof AuthenticatedAttorneyTimeLogRoute
@@ -2266,6 +2286,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAccessRoute: AuthenticatedAccessRoute,
   AuthenticatedAgentRoute: AuthenticatedAgentRouteWithChildren,
   AuthenticatedAttorneyBillingRoute: AuthenticatedAttorneyBillingRoute,
   AuthenticatedAttorneyTimeLogRoute: AuthenticatedAttorneyTimeLogRoute,

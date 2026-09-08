@@ -1,6 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import {
+  acceptInviteSchema,
+  assertInviteUsable,
+  assertScopeChosen,
+  buildGrantPayload,
+  type InviteRow,
+} from "@/lib/advocate-survivor-invites.server";
 
 async function requireAdvocate(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -231,17 +238,13 @@ export const declineAdvocateSurvivorInvite = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { email } = await verifiedAccountEmail(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: inv } = await supabaseAdmin
+    const { data: found } = await supabaseAdmin
       .from("advocate_survivor_invites")
       .select("id,survivor_email,status,expires_at")
       .eq("invite_token", data.token)
       .maybeSingle();
-    if (!inv) throw new Error("Invite not found");
-    if (inv.status !== "pending") throw new Error("Invite no longer valid");
-    if (inv.expires_at && new Date(inv.expires_at) < new Date()) throw new Error("Invite expired");
-    if (email !== String(inv.survivor_email).toLowerCase()) {
-      throw new Error("This invite was sent to a different email address.");
-    }
+    const inv = found as InviteRow | null;
+    assertInviteUsable(inv, email);
 
     const { error } = await supabaseAdmin
       .from("advocate_survivor_invites")
@@ -254,26 +257,9 @@ export const declineAdvocateSurvivorInvite = createServerFn({ method: "POST" })
 
 export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z
-      .object({
-        token: z.string().min(8).max(128),
-        acknowledgements: z.object({
-          who: z.literal(true),
-          scope: z.literal(true),
-          revoke: z.literal(true),
-        }),
-        // Explicit scope required — never default to whole-vault on omit.
-        scope: z.object({
-          include_all_incidents: z.boolean().default(false),
-          include_all_evidence: z.boolean().default(false),
-          include_patterns: z.boolean().default(false),
-          scope_incidents: z.array(z.string().uuid()).max(2000).optional().default([]),
-          scope_evidence: z.array(z.string().uuid()).max(2000).optional().default([]),
-        }),
-      })
-      .parse(input),
-  )
+  // Acknowledgements are z.literal(true) and scope is a required z.object({…})
+  // whose share flags default to false — see advocate-survivor-invites.server.
+  .inputValidator((input) => acceptInviteSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { email, user } = await verifiedAccountEmail(context.userId);
     // Fail closed: vault access unlocks only after onboarding is complete.
@@ -284,28 +270,16 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: inv } = await supabaseAdmin
+    const { data: found } = await supabaseAdmin
       .from("advocate_survivor_invites")
       .select("*")
       .eq("invite_token", data.token)
       .maybeSingle();
-    if (!inv) throw new Error("Invite not found");
-    if (inv.status !== "pending") throw new Error("Invite no longer valid");
-    if (inv.expires_at && new Date(inv.expires_at) < new Date()) throw new Error("Invite expired");
-    if (email !== String(inv.survivor_email).toLowerCase()) {
-      throw new Error("This invite was sent to a different email address.");
-    }
+    const inv = found as (InviteRow & Record<string, unknown>) | null;
+    assertInviteUsable(inv, email);
 
     const scope = data.scope;
-    const hasShare =
-      scope.include_all_incidents ||
-      scope.include_all_evidence ||
-      scope.include_patterns ||
-      (scope.scope_incidents ?? []).length > 0 ||
-      (scope.scope_evidence ?? []).length > 0;
-    if (!hasShare) {
-      throw new Error("Choose at least one thing to share before accepting.");
-    }
+    assertScopeChosen(scope);
     if (!scope.include_all_incidents && (scope.scope_incidents ?? []).length) {
       const { data: ownedIncidents } = await supabaseAdmin
         .from("incidents")
@@ -329,19 +303,7 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       }
     }
 
-    const linkPayload = {
-      advocate_user_id: inv.advocate_user_id as string,
-      client_user_id: context.userId,
-      survivor_invite_id: inv.id as string,
-      include_all_incidents: scope.include_all_incidents,
-      include_all_evidence: scope.include_all_evidence,
-      include_patterns: scope.include_patterns,
-      scope_incidents: scope.include_all_incidents ? [] : (scope.scope_incidents ?? []),
-      scope_evidence: scope.include_all_evidence ? [] : (scope.scope_evidence ?? []),
-      expires_at: inv.expires_at ?? null,
-      status: "active",
-      revoked_at: null as string | null,
-    };
+    const linkPayload = buildGrantPayload(inv, context.userId, scope);
 
     const { data: existing } = await supabaseAdmin
       .from("advocate_client_links")

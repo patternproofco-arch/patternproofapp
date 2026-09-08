@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
-const fns = readFileSync("src/lib/advocate-survivor-invites.functions.ts", "utf8");
+// The invite rules live across the server-function file and its pure rule
+// module; both are part of the same enforcement path.
+const fns =
+  readFileSync("src/lib/advocate-survivor-invites.functions.ts", "utf8") +
+  readFileSync("src/lib/advocate-survivor-invites.server.ts", "utf8");
 const route = readFileSync("src/routes/advocate-survivor-invite.$token.tsx", "utf8");
 const template = readFileSync("src/lib/email-templates/advocate-survivor-invitation.tsx", "utf8");
 const registry = readFileSync("src/lib/email-templates/registry.ts", "utf8");
