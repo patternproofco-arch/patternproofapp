@@ -2,10 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { listPendingAdvocateInvitesForMe } from "@/lib/advocate-survivor-invites.functions";
 import { listMyAdvocateAccess, revokeAdvocateLink } from "@/lib/advocate.functions";
 import { previewAdvocateScope, downloadMyAdvocatePacket } from "@/lib/advocate-packet.functions";
-import { listMyAccessAudit } from "@/lib/survivor-access.functions";
+import { listMyAccessAudit, listPendingAdvocateInvitesForMe } from "@/lib/survivor-access.functions";
 import { downloadBase64 } from "@/lib/download-base64";
 
 export const Route = createFileRoute("/_authenticated/access")({
