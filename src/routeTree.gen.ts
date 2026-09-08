@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VersionDotjsonRouteImport } from './routes/version[.]json'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TriageRouteImport } from './routes/triage'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -103,6 +104,7 @@ import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/em
 import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integrations.clio.deauthorize'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
+import { Route as AuthenticatedAdminOrgRequestsRouteImport } from './routes/_authenticated/admin.org-requests'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as AdvocateAdvocateCasesClientIdRouteImport } from './routes/_advocate/advocate-cases.$clientId'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -114,6 +116,11 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
+const VersionDotjsonRoute = VersionDotjsonRouteImport.update({
+  id: '/version.json',
+  path: '/version.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
   path: '/unsubscribe',
@@ -604,6 +611,12 @@ const AuthenticatedAgentThreadIdRoute =
     path: '/$threadId',
     getParentRoute: () => AuthenticatedAgentRoute,
   } as any)
+const AuthenticatedAdminOrgRequestsRoute =
+  AuthenticatedAdminOrgRequestsRouteImport.update({
+    id: '/admin/org-requests',
+    path: '/admin/org-requests',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
   id: '/$clientId',
   path: '/$clientId',
@@ -693,6 +706,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/version.json': typeof VersionDotjsonRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/advocate-setup': typeof AdvocateAdvocateSetupRoute
@@ -750,6 +764,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
@@ -796,6 +811,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/version.json': typeof VersionDotjsonRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/advocate-setup': typeof AdvocateAdvocateSetupRoute
@@ -851,6 +867,7 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
@@ -901,6 +918,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/triage': typeof TriageRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/version.json': typeof VersionDotjsonRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_advocate/advocate-setup': typeof AdvocateAdvocateSetupRoute
@@ -958,6 +976,7 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_advocate/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/_authenticated/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
@@ -1006,6 +1025,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/triage'
     | '/unsubscribe'
+    | '/version.json'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/advocate-setup'
@@ -1063,6 +1083,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
     | '/clients/$clientId'
+    | '/admin/org-requests'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
@@ -1109,6 +1130,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/triage'
     | '/unsubscribe'
+    | '/version.json'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/advocate-setup'
@@ -1164,6 +1186,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
     | '/clients/$clientId'
+    | '/admin/org-requests'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
@@ -1213,6 +1236,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/triage'
     | '/unsubscribe'
+    | '/version.json'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_advocate/advocate-setup'
@@ -1270,6 +1294,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_advocate/advocate-cases/$clientId'
     | '/_attorney/clients/$clientId'
+    | '/_authenticated/admin/org-requests'
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
@@ -1320,6 +1345,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TriageRoute: typeof TriageRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  VersionDotjsonRoute: typeof VersionDotjsonRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AcceptInviteTokenRoute: typeof AcceptInviteTokenRoute
@@ -1345,6 +1371,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/version.json': {
+      id: '/version.json'
+      path: '/version.json'
+      fullPath: '/version.json'
+      preLoaderRoute: typeof VersionDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/unsubscribe': {
       id: '/unsubscribe'
       path: '/unsubscribe'
@@ -2003,6 +2036,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentThreadIdRouteImport
       parentRoute: typeof AuthenticatedAgentRoute
     }
+    '/_authenticated/admin/org-requests': {
+      id: '/_authenticated/admin/org-requests'
+      path: '/admin/org-requests'
+      fullPath: '/admin/org-requests'
+      preLoaderRoute: typeof AuthenticatedAdminOrgRequestsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_attorney/clients/$clientId': {
       id: '/_attorney/clients/$clientId'
       path: '/$clientId'
@@ -2182,6 +2222,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedShareWithAttorneyRoute: typeof AuthenticatedShareWithAttorneyRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
+  AuthenticatedAdminOrgRequestsRoute: typeof AuthenticatedAdminOrgRequestsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -2217,6 +2258,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedShareWithAttorneyRoute: AuthenticatedShareWithAttorneyRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
+  AuthenticatedAdminOrgRequestsRoute: AuthenticatedAdminOrgRequestsRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -2258,6 +2300,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TriageRoute: TriageRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  VersionDotjsonRoute: VersionDotjsonRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
