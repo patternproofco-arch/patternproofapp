@@ -362,7 +362,12 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
                     )}
                   </div>
                   <div style={{ fontSize: 11, color: t.muted, marginTop: 4 }}>
-                    Sent {new Date(inv.created_at).toLocaleDateString()}
+                    Created {new Date(inv.created_at).toLocaleDateString()} ·{" "}
+                    {inv.email_status === "sent"
+                      ? `email sent${inv.email_last_attempt_at ? ` ${new Date(inv.email_last_attempt_at).toLocaleDateString()}` : ""}`
+                      : inv.email_status === "failed"
+                        ? "email didn't go out — share the link instead"
+                        : "email not sent yet"}
                     {inv.accepted_at && (
                       <> · accepted {new Date(inv.accepted_at).toLocaleDateString()}</>
                     )}
