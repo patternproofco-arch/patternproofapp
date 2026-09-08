@@ -127,6 +127,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
   const create = useServerFn(createAdvocateSurvivorInvite);
   const revoke = useServerFn(revokeAdvocateSurvivorInvite);
   const resend = useServerFn(resendAdvocateSurvivorInvite);
+  const recordEmail = useServerFn(recordAdvocateInviteEmailResult);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -406,6 +407,9 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
                             idempotencyKey: `advocate-survivor-invitation-resend-${r.invite.id}-${Date.now()}`,
                             templateData: { acceptUrl, expiresLabel: "30 days" },
                           });
+                          await recordEmail({ data: { id: r.invite.id, sent } }).catch(
+                            () => undefined,
+                          );
                           toast(
                             sent
                               ? "Invite email resent for 30 more days."
