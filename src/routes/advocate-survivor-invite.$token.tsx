@@ -45,6 +45,7 @@ function AdvocateSurvivorInvitePage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<"accepted" | "declined" | null>(null);
   const [step, setStep] = useState<"auth" | "consent">("auth");
+  const [needsWelcome, setNeedsWelcome] = useState(false);
 
   // Checklist must start unchecked — fail closed until survivor opts in.
   const [ackWho, setAckWho] = useState(false);

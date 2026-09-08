@@ -63,6 +63,19 @@ function Onboarding() {
 
       if (pin.length === 4) await setRealPin(pin);
       update({ state, city: city.trim(), onboarded: true });
+
+      // If they arrived from an invite link, take them back to finish it.
+      let returnTo: string | null = null;
+      try {
+        returnTo = sessionStorage.getItem("pp_return_to");
+        sessionStorage.removeItem("pp_return_to");
+      } catch {
+        returnTo = null;
+      }
+      if (returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")) {
+        window.location.replace(returnTo);
+        return;
+      }
       navigate({ to: "/dashboard", replace: true });
     } catch (error) {
       const message =
