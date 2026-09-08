@@ -26,6 +26,8 @@ export type Database = {
           include_all_incidents: boolean
           include_patterns: boolean
           invitation_id: string | null
+          org_admin_visibility: boolean
+          org_visibility_updated_at: string | null
           revoked_at: string | null
           scope_evidence: string[]
           scope_incidents: string[]
@@ -43,6 +45,8 @@ export type Database = {
           include_all_incidents?: boolean
           include_patterns?: boolean
           invitation_id?: string | null
+          org_admin_visibility?: boolean
+          org_visibility_updated_at?: string | null
           revoked_at?: string | null
           scope_evidence?: string[]
           scope_incidents?: string[]
@@ -60,6 +64,8 @@ export type Database = {
           include_all_incidents?: boolean
           include_patterns?: boolean
           invitation_id?: string | null
+          org_admin_visibility?: boolean
+          org_visibility_updated_at?: string | null
           revoked_at?: string | null
           scope_evidence?: string[]
           scope_incidents?: string[]
@@ -200,6 +206,9 @@ export type Database = {
           advocate_user_id: string
           created_at: string
           declined_at: string | null
+          email_last_attempt_at: string | null
+          email_last_error: string | null
+          email_status: string
           expires_at: string
           id: string
           invite_token: string
@@ -215,6 +224,9 @@ export type Database = {
           advocate_user_id: string
           created_at?: string
           declined_at?: string | null
+          email_last_attempt_at?: string | null
+          email_last_error?: string | null
+          email_status?: string
           expires_at?: string
           id?: string
           invite_token?: string
@@ -230,6 +242,9 @@ export type Database = {
           advocate_user_id?: string
           created_at?: string
           declined_at?: string | null
+          email_last_attempt_at?: string | null
+          email_last_error?: string | null
+          email_status?: string
           expires_at?: string
           id?: string
           invite_token?: string
@@ -2672,6 +2687,7 @@ export type Database = {
       }
       org_access_requests: {
         Row: {
+          contact_consent: boolean
           contact_name: string
           contact_role: string | null
           created_at: string
@@ -2679,13 +2695,18 @@ export type Database = {
           id: string
           message: string | null
           org_name: string
+          org_type: string | null
+          phone: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          service_area: string | null
           status: string
           survivors_per_month: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
+          contact_consent?: boolean
           contact_name: string
           contact_role?: string | null
           created_at?: string
@@ -2693,13 +2714,18 @@ export type Database = {
           id?: string
           message?: string | null
           org_name: string
+          org_type?: string | null
+          phone?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          service_area?: string | null
           status?: string
           survivors_per_month?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
+          contact_consent?: boolean
           contact_name?: string
           contact_role?: string | null
           created_at?: string
@@ -2707,11 +2733,15 @@ export type Database = {
           id?: string
           message?: string | null
           org_name?: string
+          org_type?: string | null
+          phone?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          service_area?: string | null
           status?: string
           survivors_per_month?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
