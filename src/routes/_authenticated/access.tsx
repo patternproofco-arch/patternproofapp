@@ -4,7 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { listMyAdvocateAccess, revokeAdvocateLink } from "@/lib/advocate.functions";
 import { previewAdvocateScope, downloadMyAdvocatePacket } from "@/lib/advocate-packet.functions";
-import { listMyAccessAudit, listPendingAdvocateInvitesForMe } from "@/lib/survivor-access.functions";
+import {
+  listMyAccessAudit,
+  listPendingAdvocateInvitesForMe,
+  listPendingAttorneyInvitesForMe,
+} from "@/lib/survivor-access.functions";
 import { downloadBase64 } from "@/lib/download-base64";
 
 export const Route = createFileRoute("/_authenticated/access")({
@@ -40,20 +44,23 @@ function labelEvent(type: string) {
 
 function AccessPage() {
   const pendingFn = useServerFn(listPendingAdvocateInvitesForMe);
+  const pendingAttFn = useServerFn(listPendingAttorneyInvitesForMe);
   const listFn = useServerFn(listMyAdvocateAccess);
   const revokeFn = useServerFn(revokeAdvocateLink);
   const previewFn = useServerFn(previewAdvocateScope);
   const packetFn = useServerFn(downloadMyAdvocatePacket);
   const auditFn = useServerFn(listMyAccessAudit);
   const [pending, setPending] = useState<Awaited<ReturnType<typeof listPendingAdvocateInvitesForMe>>["invites"]>([]);
+  const [pendingAtt, setPendingAtt] = useState<Awaited<ReturnType<typeof listPendingAttorneyInvitesForMe>>["invites"]>([]);
   const [grants, setGrants] = useState<Awaited<ReturnType<typeof listMyAdvocateAccess>> | null>(null);
   const [audit, setAudit] = useState<Awaited<ReturnType<typeof listMyAccessAudit>>["events"]>([]);
   const [preview, setPreview] = useState<string | null>(null);
   const load = useCallback(() => {
     pendingFn().then((r) => setPending(r.invites)).catch(() => setPending([]));
+    pendingAttFn().then((r) => setPendingAtt(r.invites)).catch(() => setPendingAtt([]));
     listFn().then(setGrants).catch(() => setGrants(null));
     auditFn().then((r) => setAudit(r.events)).catch(() => setAudit([]));
-  }, [pendingFn, listFn, auditFn]);
+  }, [pendingFn, pendingAttFn, listFn, auditFn]);
   useEffect(load, [load]);
   const activeLinks = (grants?.links ?? []).filter((link) => link.status === "active");
   return (
@@ -66,18 +73,29 @@ function AccessPage() {
       </div>
       <section className="card-pp" style={{ display: "grid", gap: 10 }}>
         <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, margin: 0 }}>Pending invites</h2>
-        {pending.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>No pending advocate invites on this email.</p>
+        {pending.length === 0 && pendingAtt.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>No pending professional invites on this email.</p>
         ) : (
-          pending.map((i) => (
-            <div key={i.id} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-              <div>
-                <div style={{ fontWeight: 600 }}>{i.advocate_name || "An advocate"}{i.org_name ? ` · ${i.org_name}` : ""}</div>
-                <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Expires {i.expires_at ? new Date(i.expires_at).toLocaleDateString() : "soon"}</div>
+          <>
+            {pending.map((i) => (
+              <div key={i.id} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>{i.advocate_name || "An advocate"}{i.org_name ? ` · ${i.org_name}` : ""}</div>
+                  <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Expires {i.expires_at ? new Date(i.expires_at).toLocaleDateString() : "soon"}</div>
+                </div>
+                <Link to="/advocate-survivor-invite/$token" params={{ token: i.token }}>Review</Link>
               </div>
-              <Link to="/advocate-survivor-invite/$token" params={{ token: i.token }}>Review</Link>
-            </div>
-          ))
+            ))}
+            {pendingAtt.map((i) => (
+              <div key={i.id} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>{i.attorney_name || "An attorney"}{i.firm_name ? ` · ${i.firm_name}` : ""}</div>
+                  <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Expires {i.expires_at ? new Date(i.expires_at).toLocaleDateString() : "soon"}</div>
+                </div>
+                <Link to="/survivor-invite/$token" params={{ token: i.token }}>Review</Link>
+              </div>
+            ))}
+          </>
         )}
       </section>
       <section className="card-pp" style={{ display: "grid", gap: 10 }}>
