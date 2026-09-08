@@ -1,25 +1,21 @@
 # PatternProof
 
-> Private documentation app for survivors of domestic abuse and high-conflict custody cases. Helps log incidents, organize evidence, and generate source-linked evidence exports for professional review.
+> PatternProof (pattern-proof.tech) is a private documentation timeline for domestic violence and coercive control. Survivors keep photos, messages, voice notes, and written entries in one source-linked chronology. It does not diagnose abuse, give legal advice, or predict outcomes. It is not the creator/DMCA product at patternproof.app.
 
-PatternProof is a private journal and case-building tool. Data is encrypted in transit (TLS) and scoped per user by row-level security. It is not end-to-end (zero-knowledge) encrypted. At-rest encryption is provided by the infrastructure host and has not been independently verified by us. Most pages live behind authentication.
+Survivor accounts are free (no trial, no credit card). Attorney plans start at $297/month. DV organizations can refer survivors at no cost.
 
-## Pages
+## Primary pages
 
-- [Home](/): What PatternProof is and who it's for.
-- [How it works](/how-it-works): The documentation workflow, step by step.
-- [Pricing](/pricing): Free for survivors; attorney and firm plans.
-- [For attorneys](/for-attorneys): What family-law practices get.
-- [For organizations](/for-organizations): Referral partnership for DV organizations.
-- [Sample case](/sample-case): Read-only fictional case preview.
-- [Resources](/resources): National and state-by-state DV resources.
-- [Self-help guide](/self-help-guide): Plain-language guidance on hearings and filings.
-- [Safety](/safety): Safety features, including Quick Exit and PIN lock.
-- [Evidence integrity](/evidence-integrity): How records and files are handled.
-- [AI transparency](/ai-transparency): What the AI does and does not do.
-- [Privacy](/privacy): Privacy policy and sub-processors.
-- [Terms](/terms): Terms of service.
+- [Home](https://pattern-proof.tech/): Role doors for survivors, attorneys, and organizations
+- [For attorneys](https://pattern-proof.tech/for-attorneys): Source-linked chronology instead of screenshot folders. From $297/mo
+- [For organizations](https://pattern-proof.tech/for-organizations): Free referrals; survivor-controlled sharing
+- [Pricing](https://pattern-proof.tech/pricing): Survivor $0, attorney from $297/mo, org referral $0
+- [How it works](https://pattern-proof.tech/how-it-works): Write it down, keep it sourced, share only what you choose
+- [Privacy](https://pattern-proof.tech/privacy): Private by default; survivor chooses what is shared
+- [Safety](https://pattern-proof.tech/safety): Exit safely on every page
 
-## Optional
+## What PatternProof is not
 
-- [Attorney access](/attorney): Read-only shared bundles open only with a private token link issued by a user.
+- Not legal advice
+- Not a diagnosis of abuse
+- Not a copyright fingerprint / DMCA proof tool
