@@ -9,6 +9,7 @@ import {
   listAdvocateSurvivorInvites,
   revokeAdvocateSurvivorInvite,
   resendAdvocateSurvivorInvite,
+  recordAdvocateInviteEmailResult,
 } from "@/lib/advocate-survivor-invites.functions";
 import { sendTransactionalEmail } from "@/lib/email/send";
 import { PortalStatHero } from "@/components/shared/PortalStatHero";
