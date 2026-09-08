@@ -165,8 +165,28 @@ function OrgSignup() {
               </button>
             </form>
           </div>
+        ) : step === "pending" ? (
+          <div className="card-pp">
+            <h2 className="font-serif text-[20px]">We&apos;re verifying your organization</h2>
+            <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              You&apos;re signed in, and your account is ready. Partner dashboards open once we
+              confirm your organization — we&apos;ll email you at{" "}
+              <strong>{user?.email ?? "your work address"}</strong> as soon as that&apos;s done.
+            </p>
+            <Link
+              to="/support"
+              className="btn-primary mt-4 flex w-full items-center justify-center"
+              style={{ textDecoration: "none" }}
+            >
+              Ask about my verification
+            </Link>
+            <p className="mt-3 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              Already verified today? Refresh this page to continue setup.
+            </p>
+          </div>
         ) : (
           <div className="card-pp">
+
             <h2 className="font-serif text-[20px]">Tell us about your organization</h2>
             <form onSubmit={saveOrg} className="mt-4 space-y-3">
               <input
