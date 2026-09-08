@@ -123,14 +123,14 @@ function OrgSignup() {
               an invite, sign in below. If not, request access and we&apos;ll follow up.
             </p>
             <Link
-              to="/support"
+              to="/partner-access"
               className="btn-primary mt-4 flex w-full items-center justify-center"
               style={{ textDecoration: "none" }}
             >
               Request access
             </Link>
             <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-              Use the support form (category: Login/access) with your organization name — or email{" "}
+              Tell us about your organization on the request form — or email{" "}
               <a href="mailto:pattern@pattern-proof.tech" style={{ color: "var(--accent)" }}>
                 pattern@pattern-proof.tech
               </a>

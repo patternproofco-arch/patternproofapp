@@ -639,7 +639,7 @@ export const listOrgAccessRequests = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("org_access_requests")
       .select(
-        "id,org_name,contact_name,contact_role,email,message,survivors_per_month,status,created_at,reviewed_at",
+        "id,org_name,website,contact_name,contact_role,email,phone,service_area,org_type,message,survivors_per_month,contact_consent,status,created_at,reviewed_at,reviewed_by",
       )
       .order("created_at", { ascending: false })
       .limit(200);
