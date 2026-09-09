@@ -22,6 +22,11 @@ import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
 import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
+import {
+  extractEvidenceDocument,
+  verifyExtractedText,
+} from "@/lib/document-extract.functions";
+
 import { FocusRegion } from "@/components/survivor/focus-mode";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { BatchDropzone } from "@/components/evidence/BatchDropzone";
@@ -49,6 +54,13 @@ interface EvidenceRow {
   review_status?: string | null;
   transcript?: string | null;
   transcript_status?: string | null;
+  extracted_text?: string | null;
+  extraction_status?: string | null;
+  extraction_method?: string | null;
+  extraction_pages?: number | null;
+  extraction_verified_at?: string | null;
+  mime?: string | null;
+
 }
 // review_status: "suggested" rows are held back from exports/attorney views
 // until the survivor confirms the match on /evidence-review.
@@ -89,6 +101,22 @@ type ExtractedDraft = {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+/** Files whose words we can read out and show back for review. */
+function isReadableDocument(mime: string | null | undefined, filename?: string | null): boolean {
+  const m = (mime ?? "").toLowerCase();
+  const n = (filename ?? "").toLowerCase();
+  return (
+    m === "application/pdf" ||
+    m === DOCX_MIME ||
+    m.startsWith("text/") ||
+    m === "application/json" ||
+    /\.(pdf|docx|txt|csv|md)$/.test(n)
+  );
+}
+
+
 function KindIcon({ kind, size = 22 }: { kind: string; size?: number }) {
   const c = { color: "var(--foreground)" };
   if (kind === "image") return <ImageIcon size={size} style={c} />;
@@ -103,6 +131,9 @@ function EvidencePage() {
   const ingestFn = useServerFn(ingestEvidenceBatch);
   const transcribeFn = useServerFn(transcribeEvidence);
   const proposeTimelineFn = useServerFn(proposeTimelineFromEvidence);
+  const extractDocFn = useServerFn(extractEvidenceDocument);
+  const verifyTextFn = useServerFn(verifyExtractedText);
+
   const [items, setItems] = useState<EvidenceRow[]>([]);
   const [incidents, setIncidents] = useState<IncOption[]>([]);
   const [pending, setPending] = useState<File | null>(null);
@@ -130,7 +161,7 @@ function EvidencePage() {
       supabase
         .from("evidence")
         .select(
-          "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status",
+          "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status,mime,extracted_text,extraction_status,extraction_method,extraction_pages,extraction_verified_at",
         )
         .eq("user_id", user.id)
         .is("deleted_at", null)
@@ -285,10 +316,33 @@ function EvidencePage() {
         });
     }
 
+    // PDFs, Word files and plain-text files: read the words out of the file so
+    // they can be searched and reviewed. A scan with no text layer is read back
+    // by machine and clearly marked as unverified until confirmed.
+    if (isReadableDocument(fileMime, pending?.name ?? null)) {
+      toast("Saved. Reading the text out of this document…");
+      void extractDocFn({ data: { evidence_id: newRow.id } })
+        .then(async (r) => {
+          toast(
+            r.ok
+              ? "Text ready to review below."
+              : r.status === "unsupported"
+                ? "Saved. This format's text can't be read automatically yet."
+                : "Saved. We couldn't read the text this time — you can retry below.",
+          );
+          await load();
+        })
+        .catch(() => {
+          toast("The file is safe, but reading its text failed. You can retry below.");
+          return load();
+        });
+    }
+
     // Auto-run AI extraction for images / PDFs that aren't linked yet
     if (wasImageOrPdf && !newRow.linked_incident_id) {
       void runReview(newRow, fileMime);
     }
+
   };
 
   const runReview = useCallback(
@@ -732,6 +786,43 @@ function EvidencePage() {
                                     : "Not transcribed yet."}
                             </div>
                           )}
+                          {isReadableDocument(it.mime, it.title) && (
+                            <div
+                              className="mt-2 rounded-2xl p-3 text-[12px]"
+                              style={{ background: "var(--input)", color: "var(--foreground)" }}
+                            >
+                              <div className="label-eyebrow mb-1">
+                                Text from this document
+                                {it.extraction_pages ? ` · ${it.extraction_pages} pages` : ""}
+                              </div>
+                              {it.extraction_status === "ready" && it.extracted_text ? (
+                                <>
+                                  <p className="whitespace-pre-wrap">
+                                    {it.extracted_text.slice(0, 1200)}
+                                    {it.extracted_text.length > 1200 ? "…" : ""}
+                                  </p>
+                                  <p className="mt-2 opacity-80">
+                                    {it.extraction_verified_at
+                                      ? "You confirmed this text matches the document."
+                                      : it.extraction_method === "read-aloud"
+                                        ? "Read by machine from a scan — please check it against the original."
+                                        : "Read from the file — please check it against the original."}
+                                  </p>
+                                </>
+                              ) : it.extraction_status === "needs_ocr" ? (
+                                "This looks like a scan. We couldn't read its text yet."
+                              ) : it.extraction_status === "empty" ? (
+                                "This file has no readable text in it."
+                              ) : it.extraction_status === "unsupported" ? (
+                                "This format's text can't be read automatically yet."
+                              ) : it.extraction_status === "failed" ? (
+                                "Reading the text didn't work. Your original file is still safe."
+                              ) : (
+                                "Not read yet."
+                              )}
+                            </div>
+                          )}
+
                           {linked && (
                             <div className="mt-2 text-[12px]" style={{ color: "var(--accent)" }}>
                               Linked: {linked.date}
