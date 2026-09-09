@@ -92,7 +92,8 @@ and does not save. No repair needed.
 | Record deletion | No delete control was exercised |
 | EXIF date extraction and GPS quarantine | The QA image had no EXIF payload; needs a real camera photo |
 | Audio/video transcription and draft review | Needs a real recording and a Lovable AI Gateway call |
-| Mobile viewport pass | Not run |
+| Mobile | Automated coverage uses Playwright WebKit/iPhone and Chromium/Android **emulation** only — viewport, user agent, screen size, touch. Critical workflows stay **MANUAL QA REQUIRED** until run on a physical iPhone in Safari and a physical Android in Chrome: camera and file pickers, HEIC, keyboard behaviour, uploads, audio/video selection, safe areas, PWA install |
+| Deployed-build smoke test | Local Playwright with a local webServer proves development behaviour only. It does not prove the deployed environment, auth configuration, storage policies, environment variables, redirects, or production database behaviour. A controlled smoke test against the deployed build — fictional QA accounts and fictional evidence only, never real survivor information — must run after local checks pass and cover signup/login, upload, processing, sharing, revocation, signed downloads, exports, and cross-account isolation |
 | Cross-account isolation retest | Last proven on production in an earlier run, not re-proven here |
 
 ## Known limitations (working as designed, stated plainly)
