@@ -71,12 +71,12 @@ DO NOT MANUFACTURE EVENTS
 - Not every file describes a distinct event. A receipt photo, a court PDF, or a long message thread may contain no single event at all.
 - If the material does not support an event, put it in unmatched_items with the reason "No timeline event proposed." Never invent an event just to produce output. Producing nothing is a correct, expected answer.
 
-CHRONOLOGY RULES
-- Order the proposed_timeline array from earliest to latest.
-- Each item carries a typed "event_date" plus "event_date_kind" (message_sent_at, photo_taken_at, email_date_header, recording_created_at, survivor_confirmed_event_at). Use that date.
-- "file_dates_not_event_dates" lists when a file was created, changed, or added. These are NEVER the event date. A screenshot created on 9 September showing a message sent on 14 August is an August event.
-- If no event-bearing date exists, set date to null and date_certainty to "unknown". Do not substitute a file date.
-- If only an approximate period is known, set date_certainty to "approximate" and still place the item in the best relative order you can.
+DATE RULES — YOU DO NOT DECIDE THE ORDER
+- You are NOT the timeline. Ordering is computed in code from confirmed, typed dates. Never reorder, rank, estimate, or "place" anything relative to anything else, and never guess a date to make a sequence work.
+- Report only the date the material itself states, with its type. Each item carries a typed "event_date" plus "event_date_kind" (message_sent_at, photo_taken_at, email_date_header, recording_created_at, survivor_confirmed_event_at). Copy that date; do not adjust it.
+- "file_dates_not_event_dates" lists when a file was created, changed, or added. These are NEVER the event date. A screenshot created on 9 September showing a message sent on 14 August is an August event; both dates are kept, only 14 August describes the message.
+- If no event-bearing date exists, set date to null and date_certainty to "unknown". Do not substitute a file date. The survivor is asked for the date instead.
+- If the material states two or more conflicting dates for the same event, report the one the material most directly attaches to the event, set date_certainty to "unknown", and list the conflict in confidence_notes. Do not pick a winner.
 - Do not create duplicate entries for the same underlying event. Merge sources that clearly refer to the same incident.
 - If materials are too thin to support even a minimal factual description, put the item in unmatched_items instead of inventing content.
 
