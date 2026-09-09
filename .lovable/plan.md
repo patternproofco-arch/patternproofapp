@@ -1,92 +1,91 @@
-# Where the app stands, and what to build next
+# Gate 1: Portal certification and repair pass
 
-## Honest readiness answer
+New feature work is paused. Nothing new gets built until the Survivor, Attorney, and DV Organization portals are proven to work end to end — tested, repaired, retested, and documented.
 
-**Survivor portal** — usable. Sign up, record marks, upload evidence, timeline, packet all work.
+The one rule everything is judged against:
 
-**Advocate portal** — usable. Invites, survivor-controlled scope, revoke, and packet export work.
-
-**Attorney portal** — built, but a new attorney is stopped at setup by the paid-subscription gate, so it cannot be tested or piloted today.
-
-**What a survivor can upload today**: photos, screenshots, PDFs, text and Word files, audio recordings, and video. Dates are read from photo metadata and from timestamps visible inside screenshots, recordings are transcribed, and the app can draft timeline entries for you to confirm.
-
-**What is missing**: message threads can only come in as screenshots or screen recordings. There is no way to upload a CSV, a phone text export, or saved emails.
-
-**On "detect abuse"**: the app will lay out what is already in your records — what recurs, how often, on which dates, around which events — cleanly and in order. It will not label a record as abuse or diagnose anyone. That stays your call, your advocate's, and the court's, and it is what keeps the packet credible.
+**The app extracts and proposes. You confirm. Ordering is calculated, never guessed. Recurrence is counted from confirmed records only. Every result traces back to the original file.**
 
 ---
 
-## What to build
+## Phase 1 — Interaction inventory
 
-### 1. Message threads from real files (uploads first)
+Produce `docs/portal-certification-inventory.md`: every page, button, link, form, toggle, upload, download, export, invite, filter, empty state and error state in all three portals, found by reading the code rather than by clicking around. Each one becomes a checklist line with an owner portal and a pass/fail slot.
 
-Add a file-based import path alongside screenshots, all parsed in the browser so message content never passes through an AI service:
+## Phase 2 — One evidence pipeline, proven per format
 
-- **CSV / spreadsheet exports** — column mapping step (date, time, sender, direction, text) with a live preview of the first rows before anything is saved.
-- **Phone text exports** — plain-text and XML backup formats from common backup apps.
-- **Email exports** — `.eml` files and email PDFs, keeping the original headers (from, to, sent date) as the authoritative timestamp.
+Every file type travels the same path, and "it uploaded" never counts as a pass:
 
-Every imported message keeps: the original file it came from, its row or position in that file, the timestamp exactly as written in the source, and a note when the source gave no timezone. Nothing is rewritten or "cleaned".
+```text
+upload  →  original preserved  →  extract (parse / OCR / transcribe)
+  →  dates and source identified  →  proposal created  →  YOU REVIEW
+  →  confirm / correct / reject / save for later
+  →  confirmed entry joins the chronology  →  timeline reorders
+  →  recurrence counts update  →  every result links back to the file
+```
 
-### 1b. The easy ways in (the unobvious part)
+Format-specific first steps only:
 
-Typing or screenshotting a thread is the hardest possible route. Four paths that take almost no effort:
+- **Message exports** (CSV, XLSX, TXT, XML, WhatsApp, phone backups, platform archives) — parsed by code, not by AI. Each message keeps its exact text, sender, direction, timestamp as written, normalized timestamp, timezone status, thread, source file, row position, and parser version. Original wording is never rewritten.
+- **Email** (EML, MBOX, email PDFs) — From, To, Cc, Subject, Date, Received headers, Message-ID, body, attachments all kept. Conflicting header dates are flagged, never silently resolved.
+- **Screenshots and photos** (JPG, PNG, HEIC where supported) — OCR plus metadata plus any timestamp visible in the image. The image is never replaced by its text, message order within one screenshot is kept, and low-confidence reads are marked uncertain.
+- **Documents** (PDF, scanned PDF, DOC, DOCX, TXT) — text extracted with page or section location retained so any statement points back to its page. Dates found inside are proposals only.
+- **Audio and video** (MP3, M4A, WAV, MP4, MOV) — transcribed, with duration, in-recording timestamps where available, and speaker labels only where reliable. The transcript sits beside the recording, never in place of it, and is correctable.
 
-- **Drop in the platform's own download.** Facebook, Instagram, WhatsApp, Google and Apple all let you request "a copy of your information" — one archive containing entire conversations with real timestamps. The app accepts those archives whole: drop the file in, it finds the conversations inside, you pick which ones to keep. This is the single highest-value path — one download replaces hundreds of screenshots, and the timestamps come from the platform rather than a photo of a screen. The app will walk you through requesting the download from each service, with a saved reminder for the day it's ready.
-- **Share straight from the messaging app.** Add the app to your phone's share sheet, so from Messages, WhatsApp, or Mail you tap Share and pick PATTERNPROOF. Screenshots, exported chats, and forwarded emails land in an inbox in the app instead of your camera roll.
-- **A private forwarding address.** Each survivor gets a private address; forward or BCC an email to it and it arrives as a dated record with its original headers intact. No app, no login, works from any device.
-- **Print a thread to PDF.** Both phones can print a conversation to a PDF, which the app reads directly.
+**One event, many files.** An incident can carry messages, a screenshot, a recording, a photo and a PDF at once. Files are grouped only when you say they belong together.
 
-Everything lands in one **Inbox** — nothing is filed automatically. You review, then keep or discard.
+**Duplicates** are surfaced as "possible duplicate" using file fingerprint, message ID, text + timestamp + sender, or image similarity. Nothing is ever auto-deleted.
 
-### 1c. Photos and videos, with less picking
+## Phase 3 — Dates, timeline, recurrence
 
-- **Bulk select** from the phone's photo picker, including whole date ranges, with the app reading each file's own date so the ordering is right without you typing anything.
-- **Connect a cloud library** — Google Photos and Google Drive (Drive import already exists) — and pull in a chosen date range rather than hunting file by file.
-- **Recordings are transcribed** and screenshots are read for on-screen text and timestamps, so they become searchable and datable.
-- **Relevance suggestions, not decisions.** After an import the app surfaces a shortlist: files whose date sits near something already in your record, whose readable text mentions a name or place you've used, or that repeat an earlier image. Each suggestion says plainly why it surfaced, and nothing joins your record until you say yes. Everything else stays in the Inbox — private, never deleted, never auto-filed.
+- Ordering is computed from structured dates in priority order: source message timestamp, reliable file metadata, timestamp visible in the source, email or file headers, your confirmed date, your approximate date. No model ever decides order.
+- Every date shows where it came from.
+- Missing timezone is recorded as unknown, never inferred.
+- No date at all goes to **Needs a date**. Conflicting dates go to **Date conflict**, showing every candidate side by side for you to settle.
+- Recurrence counts use confirmed records only — never pending proposals, never rejected ones. Every figure is clickable through to the exact records behind it.
+- No severity, diagnosis, risk score, credibility score, case-strength or outcome language anywhere.
 
-### 2. Metadata integrity, made visible
+## Phase 4 — Portal certification
 
-- The original uploaded file is never modified; a fingerprint is taken on arrival and shown on the record.
-- Each date carries where it came from: photo metadata, timestamp inside the image, email header, file row, or your own entry.
-- Where the app is uncertain (no timezone, relative wording like "yesterday", conflicting timestamps), it says so on the record instead of guessing a date.
-- A one-page integrity summary is included with exports: file name, fingerprint, size, when it was preserved, and the source of each date.
+Fictional accounts only: Survivor A, Survivor B, Attorney A, Attorney B, Advocate A, Organization A.
 
-### 3. Accurate chronological timeline
+- **Survivor** — signup, verification, login/logout, password reset, session expiry, onboarding (including back, skip, refresh, resume), dashboard states, records create/edit/delete/link, every upload format and its failure modes, timeline, recurrence, packets and exports, and all sharing controls.
+- **Attorney** — a brand-new attorney must complete setup on the intended trial path without hitting the payment wall. Then invitation acceptance, client list, scope widening and narrowing, and revocation.
+- **DV Organization** — treated as its own role, tested separately from advocate access. Organization administrators must not reach survivor evidence unless the survivor's authorization explicitly allows it.
 
-- Merge marks, evidence, imported messages, and transcribed recordings into one ordered timeline, sorted by source timestamp with a clear marker for anything undated or approximate.
-- Undated items sit in a "needs a date" tray rather than being silently placed.
-- Conflicting timestamps for the same event surface a calm prompt asking which one is right.
-- Drafted timeline entries always require your confirmation before joining the record.
+**Cross-account isolation** is mandatory and release-blocking: every role pair is attacked via changed URL IDs, direct data requests, stale and revoked invites, download and export URLs, cached routes, and the back button. Reducing scope must cut off previously visible records everywhere, not just in the interface.
 
-### 4. Recurrence view (factual only)
+## Phase 5 — Everything else clickable
 
-Strengthen what the patterns page shows, without interpretation:
-- Counts by category, by month, by weekday, and by hour.
-- Gaps and streaks in the record.
-- Overlap with dates you mark as significant (exchanges, hearings, holidays).
-- Every figure links back to the exact records behind it.
+Dead links, blank pages, silent button failures, double-submit duplicates, disabled-state behaviour, keyboard activation, and mobile tap targets. Forms tested for required fields, bad input, long input, cancel, double submit, network failure, and server-side validation.
 
-No severity, no diagnosis, no "this is abuse", no predictions.
+Mobile is treated as the primary surface: iPhone Safari, Android Chrome, and desktop widths, checking navigation, modals, file and camera pickers, sticky bars, keyboard overlap, safe areas, and horizontal overflow.
 
-### 5. Attorney portal access
+Error handling: network failure, slow connections, expired sessions, revoked shares, missing records. Failures stay calm and specific and never expose technical internals.
 
-Give the attorney portal a trial path so setup completes without payment, so all three portals can actually be walked end to end.
+## Phase 6 — Security
+
+RLS policies, table grants, storage policies, signed URLs, download and export authorization, invite tokens, service-role usage, public routes, and logs. Every authorization decision must hold on the server. Nothing is loosened to make a test pass.
+
+## Phase 7 — Permanent regression suite
+
+Every flow proven here gains an automated test, and every bug found gains a regression test, so future work cannot quietly break a working portal.
+
+## Phase 8 — Report
+
+`docs/portal-certification-report.md` with PASS / FAIL / MANUAL QA REQUIRED per portal and per format, and separate verdicts for preservation, OCR, audio transcription, video transcription, proposals, human approval, chronological ordering, date conflicts, timeline integration, recurrence, and source traceability.
+
+Each FAIL records route, steps to reproduce, root cause, fix applied, and retest result. Anything untestable from here is marked MANUAL QA REQUIRED with exact human steps — never marked green.
+
+The report ends with one verdict: **SAFE FOR CONTROLLED PILOT** or **NOT SAFE FOR PILOT**. It cannot be "safe" while anything involving authorization, cross-account access, consent, revocation, evidence privacy, export scope, data loss, uploads, invites, critical navigation, or crashes is unresolved.
 
 ---
 
 ## Technical notes
 
-- Parsers live client-side (`src/lib/imports/*`): CSV via a small typed parser, `.eml` via header parsing, XML/text backups via format detection. Server functions only receive normalized rows plus provenance.
-- Extend `message_threads` / `messages` with `source_type` values for `csv`, `eml`, `xml`, a `source_row_index`, `source_timestamp_raw`, and `timezone_known`. Migration includes GRANTs and owner-scoped RLS.
-- Reuse `ingestEvidenceBatch` for hashing and preservation of the uploaded source file; imported messages reference that evidence row.
-- Platform archives: client-side ZIP read (no server upload of the whole archive), format detectors for Meta `messages/inbox/*/message_1.json`, WhatsApp `_chat.txt`, Google Takeout `Takeout/**`, Apple Messages CSV/text; conversation picker before any write.
-- Share target: PWA `share_target` entry in `public/manifest.webmanifest` posting to `src/routes/api/share-target.ts`, writing into a new `inbox_items` table (owner-scoped RLS + GRANTs).
-- Forwarding address: per-user token address handled through the existing transactional-email infrastructure with an inbound route under `src/routes/api/public/`, sender verification against the user's known addresses, and rate limiting.
-- Google Photos/Drive: extend `drive-import.functions.ts` with a date-range picker; tokens stored server-side, scopes read-only.
-- Relevance shortlist is deterministic first (date proximity, name/place term match from the survivor's own records, perceptual-hash repeat via existing dHash), with model-read text used only for extraction — never for judging significance.
-- Timeline merge and conflict detection extend existing `contradictions.functions.ts` and `propose-timeline.functions.ts` rather than adding a parallel path.
-- Recurrence math moves into a deterministic server helper (extending `frequency-observations.server.ts`) with unit tests — counts are computed in code, not by a model.
-- Attorney trial: extend the existing entitlement check in `payments.functions.ts` with a time-boxed trial state; no pricing copy changes.
-- Checks before finishing: typecheck, production build, Vitest suite, security and RLS scan.
+- Testing runs headless Playwright against the local dev server with fictional accounts; production data is not touched.
+- Gaps that surface as missing pipeline stages (a format that uploads but never extracts, a proposal with no review surface) are repaired inside the existing architecture — `evidence-ingest.functions.ts`, `propose-timeline.functions.ts`, `contradictions.functions.ts`, `frequency-observations.server.ts`, `message-import.functions.ts` — not rebuilt.
+- Deterministic parsers live client-side under `src/lib/imports/*`; only normalized rows plus provenance reach the server.
+- Provenance columns (`date_source`, `timezone_known`, `source_row_index`, `source_timestamp_raw`, `parser_version`) are added by migration with grants and owner-scoped RLS.
+- Every proposal keeps the original AI value alongside any correction; corrections never overwrite extracted content, and extracted content never overwrites the original file.
+- Regression tests extend the existing Vitest suite; final gate is typecheck, production build, full suite, security scan, and RLS checks.
