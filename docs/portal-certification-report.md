@@ -244,3 +244,78 @@ of the source:
 ### Verdict
 
 **NOT SAFE FOR PILOT** — blockers 1-9 above.
+
+## Pass — exports built and opened (this pass)
+
+### What changed
+
+- `src/lib/court-packet.server.ts` (new) holds the real packet builder,
+  extracted from the download endpoint and parameterised by the database
+  client. `court-packet.functions.ts` is now a thin wrapper that supplies the
+  account's own client, and it refuses an empty selection with a plain message
+  instead of handing back a blank download. This closes the previously
+  reported "empty professional-review packet": a case with nothing attached
+  now says so rather than downloading a near-empty file.
+- `src/lib/export-zip.server.ts` (new) holds the survivor archive builder, same
+  extraction. `export-zip.functions.ts` keeps only the upload and the one-hour
+  signed link.
+- `src/__tests__/court-packet-export.test.ts` (new, 6 tests) builds a real PDF
+  and re-opens it with pdf-lib.
+- `src/__tests__/survivor-export-zip.test.ts` (new, 6 tests) builds a real ZIP
+  and re-opens it with JSZip.
+
+### Evidence — professional-review packet (PDF)
+
+- Output starts with `%PDF-`, is >1 KB and loads as a 6+ page document.
+- Counts match the account's own selection exactly: attached entries only.
+  A deleted entry, an unattached entry and another account's entry are all
+  excluded.
+- No query touches `proposed_incidents` or `evidence_incident_drafts`, so
+  unconfirmed AI suggestions cannot enter a packet.
+- Every read carries an `eq:user_id` filter; building another account's case
+  throws "Case not found".
+- An empty selection returns zero exhibits and the endpoint refuses it.
+
+### Evidence — survivor archive (ZIP)
+
+- Real ZIP opens and contains `manifest.json`, `narrative.md`,
+  `incidents.csv`, `evidence.csv`, `provenance-and-integrity.md`, `verify.sh`
+  and the evidence file itself.
+- The SHA-256 recorded in `manifest.json` matches a re-hash of the bytes
+  actually stored in the archive; `hash_of_hashes` is present.
+- Case-scoped export contains only the attached entry — the unattached,
+  deleted and other-account entries are absent from `incidents.csv`.
+- Evidence marked `suggested` is excluded, and quarantined GPS coordinates do
+  not appear in the CSV.
+- Requesting another account's case returns `case-not-found`.
+
+### Checks run
+
+- `bunx tsgo --noEmit` — clean.
+- `bunx vitest run` — 243 passed, 26 files.
+- `bun run build` — succeeds; no server-only builder strings in `dist/client`.
+- `bun run test:e2e` — 24 passed, 0 failed, 12 skipped (portal specs remain
+  credential-gated).
+
+### Blockers cleared this pass
+
+- Export contents (blocker 3): both the packet PDF and the survivor archive
+  are now generated and inspected programmatically, and the empty-packet
+  report is resolved.
+
+### Still unproven — release blockers
+
+1. Attorney portal end to end on the trial path against a real account.
+2. Advocate and DV organization portals end to end against real accounts.
+   (Rule-level proof exists: a user holding no link — including an org
+   owner/admin — resolves no grant, and org oversight reads no content.)
+3. Record and account deletion not exercised end to end against fictional data.
+4. Real EXIF, audio and video processing with real media and a live AI call.
+5. Signed download/export URL behaviour after scope reduction or revocation.
+6. Deployed-build smoke test. No deployment was made in this pass.
+7. Physical iPhone Safari and physical Android Chrome QA — MANUAL QA REQUIRED.
+8. The dead `/sample-case` link stands.
+
+### Verdict
+
+**NOT SAFE FOR PILOT** — blockers 1-8 above.
