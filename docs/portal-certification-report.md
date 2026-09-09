@@ -18,6 +18,29 @@ and repaired. The attorney and DV-organization portals were not certified end
 to end in this pass, so the app cannot yet be declared safe for a controlled
 pilot.
 
+## Gate 1 rules now enforced in code
+
+- **Preserve first.** The original file is uploaded once, unchanged, into
+  protected storage and fingerprinted before anything is parsed. Parsed
+  records reference the preserved original; the original is never discarded.
+- **Typed timestamps.** Every date carries a semantic kind
+  (`message_sent_at`, `photo_taken_at`, `screenshot_created_at`,
+  `email_date_header`, `recording_created_at`, `survivor_confirmed_event_at`,
+  `file_created_at`, `file_modified_at`, `ingested_at`). Chronology uses only
+  event-bearing kinds. A file's creation or upload time can never silently
+  become the event date — a screenshot created 9 September showing a message
+  sent 14 August is an August event. `src/lib/timestamps.ts`.
+- **No manufactured events.** Upload → Preserve → Extract → human-reviewable
+  extraction → candidate event *if supported* → confirm/correct/reject →
+  timeline. When the evidence supports no event, the app says
+  "No timeline event proposed." rather than inventing one.
+- **Events are not files.** Recurrence counts distinct confirmed events, with
+  duplicate ids collapsed. Message and evidence-file counts are shown only
+  under their own explicit labels. Twelve screenshots on one event read as one
+  event.
+
+Regression coverage: `src/__tests__/gate1-contracts.test.ts` (10 tests).
+
 ## Defects found and repaired
 
 ### 1. Accepting an AI-drafted timeline entry could never succeed (blocker)
