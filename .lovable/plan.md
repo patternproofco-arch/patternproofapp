@@ -28,6 +28,24 @@ Add a file-based import path alongside screenshots, all parsed in the browser so
 
 Every imported message keeps: the original file it came from, its row or position in that file, the timestamp exactly as written in the source, and a note when the source gave no timezone. Nothing is rewritten or "cleaned".
 
+### 1b. The easy ways in (the unobvious part)
+
+Typing or screenshotting a thread is the hardest possible route. Four paths that take almost no effort:
+
+- **Drop in the platform's own download.** Facebook, Instagram, WhatsApp, Google and Apple all let you request "a copy of your information" — one archive containing entire conversations with real timestamps. The app accepts those archives whole: drop the file in, it finds the conversations inside, you pick which ones to keep. This is the single highest-value path — one download replaces hundreds of screenshots, and the timestamps come from the platform rather than a photo of a screen. The app will walk you through requesting the download from each service, with a saved reminder for the day it's ready.
+- **Share straight from the messaging app.** Add the app to your phone's share sheet, so from Messages, WhatsApp, or Mail you tap Share and pick PATTERNPROOF. Screenshots, exported chats, and forwarded emails land in an inbox in the app instead of your camera roll.
+- **A private forwarding address.** Each survivor gets a private address; forward or BCC an email to it and it arrives as a dated record with its original headers intact. No app, no login, works from any device.
+- **Print a thread to PDF.** Both phones can print a conversation to a PDF, which the app reads directly.
+
+Everything lands in one **Inbox** — nothing is filed automatically. You review, then keep or discard.
+
+### 1c. Photos and videos, with less picking
+
+- **Bulk select** from the phone's photo picker, including whole date ranges, with the app reading each file's own date so the ordering is right without you typing anything.
+- **Connect a cloud library** — Google Photos and Google Drive (Drive import already exists) — and pull in a chosen date range rather than hunting file by file.
+- **Recordings are transcribed** and screenshots are read for on-screen text and timestamps, so they become searchable and datable.
+- **Relevance suggestions, not decisions.** After an import the app surfaces a shortlist: files whose date sits near something already in your record, whose readable text mentions a name or place you've used, or that repeat an earlier image. Each suggestion says plainly why it surfaced, and nothing joins your record until you say yes. Everything else stays in the Inbox — private, never deleted, never auto-filed.
+
 ### 2. Metadata integrity, made visible
 
 - The original uploaded file is never modified; a fingerprint is taken on arrival and shown on the record.
