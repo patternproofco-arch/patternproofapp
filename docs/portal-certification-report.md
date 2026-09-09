@@ -319,3 +319,64 @@ of the source:
 ### Verdict
 
 **NOT SAFE FOR PILOT** — blockers 1-8 above.
+
+## Live account pass — 2026-09-09 (attorney trial path)
+
+Environment: local preview against the shared Lovable Cloud backend. All
+accounts and records fictional (`@patternproof-qa.test`). Nothing deployed.
+
+### Certified — PASS (live, evidence-backed)
+
+| Step | Evidence |
+| --- | --- |
+| Survivor signup → consent → onboarding → dashboard | Fresh fictional account reached `/dashboard`; no console errors |
+| Archive record saved | `201 POST /rest/v1/incidents`; record persists after reload |
+| Evidence upload (JPEG) | `200` storage upload + signed-URL read; item listed on `/evidence` |
+| Case builder → professional-review packet | Packet renders the case overview, the incident (2026-08-14) and the evidence index — the previously reported empty packet is not reproducible |
+| Attorney invite created by survivor | Pending secure link shown; `attorney-invitation` email enqueued |
+| Attorney signup → invite acceptance | Acceptance created an `active` `attorney_client_links` row bound to the invited email |
+| Attorney trial entitlement | After `/setup`, the attorney reached `/caseload` and `/clients` with no paywall bounce |
+| Scoped matter view | Client file shows only the shared record and evidence (1 incident / 1 evidence item) |
+| Attorney packet download | Signed ZIP fetched, `200`, 5312 bytes; contains `incidents.csv`, `evidence.csv`, the evidence JPEG, `00_cover.md`, `03_timeline.md` with the correct 2026-08 event, and `manifest.json` with a SHA-256 per file |
+| Revocation | Survivor revoke set the link to `revoked`; attorney packet call returns `{ok:false,"no-active-link"}` and `getClientCase` throws `No active access` |
+| Cross-account isolation | Attorney A requesting Survivor B (no link) → `No active access` / `no-active-link` |
+
+### Defect found and repaired
+
+After the client revoked access, the attorney matter page sat on
+"Loading matter file…" forever. Server-side data was correctly denied, so this
+was presentation only, but it read as a broken page. `clients.$clientId.tsx`
+now tracks the failed load and shows "Access to this matter has ended" with a
+route back to the matter list.
+
+### Residual behaviour, stated plainly
+
+A signed export URL issued *before* revocation stays valid for the remainder of
+its one-hour lifetime. This matches the disclosure shown to both parties
+("material already exported remains in the attorney's possession"), but it is
+not instant invalidation and should be described that way.
+
+### Checks run
+
+- `bunx tsgo --noEmit` — clean.
+- `bunx vitest run` — 243 passed, 26 files.
+- `bun run build` — succeeds.
+- `bun run test:e2e` — 24 passed, 0 failed, 12 skipped (credential-gated).
+
+### Still unproven — release blockers
+
+1. Advocate and DV organization portals end to end against live accounts
+   (rule-level proof only).
+2. Record and account deletion not exercised end to end.
+3. Real EXIF, audio and video processing with real media and a live AI call.
+4. Deployed-build smoke test — no deployment made.
+5. Physical iPhone Safari / Android Chrome QA.
+6. Attorney matter dashboard still labels survivor-entered ratings as
+   "AVG SEVERITY", "Escalation arc" and "Urgent risk flags" — wording to review
+   against the no-interpretation rule.
+7. The dead `/sample-case` link stands.
+
+### Verdict
+
+**NOT SAFE FOR PILOT** — blockers 1-7 above. The attorney trial path itself is
+now certified.
