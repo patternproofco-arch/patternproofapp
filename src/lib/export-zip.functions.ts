@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { OWN_EXPORT_TTL_SECONDS } from "@/lib/professional-links.server";
 
 /**
  * Builds a comprehensive ZIP export of the account holder's case file:
@@ -13,7 +14,7 @@ import { z } from "zod";
  *
  * The archive itself is assembled in export-zip.server.ts so it can be built
  * and opened in tests. Here we only upload it to the private `exports` bucket
- * and hand back a link that expires in one hour.
+ * and hand back a short-lived link.
  */
 export const generateExportZip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -44,7 +45,7 @@ export const generateExportZip = createServerFn({ method: "POST" })
     });
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
 
-    const signed = await supabase.storage.from("exports").createSignedUrl(objectPath, 60 * 60 * 1);
+    const signed = await supabase.storage.from("exports").createSignedUrl(objectPath, OWN_EXPORT_TTL_SECONDS);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" };
 
     return {

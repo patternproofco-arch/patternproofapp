@@ -170,12 +170,25 @@ export const revokeAdvocateLink = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: link } = await supabaseAdmin
+      .from("advocate_client_links")
+      .select("advocate_user_id")
+      .eq("id", data.id)
+      .eq("client_user_id", context.userId)
+      .maybeSingle();
     const { error } = await supabaseAdmin
       .from("advocate_client_links")
       .update({ status: "revoked", revoked_at: new Date().toISOString() })
       .eq("id", data.id)
       .eq("client_user_id", context.userId);
     if (error) throw new Error(error.message);
+    if (link?.advocate_user_id) {
+      const { purgeProfessionalExports } = await import("@/lib/professional-links.server");
+      await purgeProfessionalExports(supabaseAdmin, {
+        professionalUserId: link.advocate_user_id,
+        clientUserId: context.userId,
+      });
+    }
     return { ok: true };
   });
 

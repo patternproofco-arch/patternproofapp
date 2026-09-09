@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { PROFESSIONAL_LINK_TTL_SECONDS } from "@/lib/professional-links.server";
 
 interface SharedBundle {
   status: "ok" | "not-found" | "revoked" | "expired" | "rate-limited";
@@ -199,7 +200,7 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
       evRows.map(async (e) => {
         const { data: signed } = await supabaseAdmin.storage
           .from("evidence-files")
-          .createSignedUrl(e.file_url, 3600);
+          .createSignedUrl(e.file_url, PROFESSIONAL_LINK_TTL_SECONDS);
         return {
           id: e.id,
           title: e.title,

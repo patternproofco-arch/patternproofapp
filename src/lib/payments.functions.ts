@@ -4,6 +4,7 @@ import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib
 import JSZip from "jszip";
 import { createHash } from "crypto";
 import { z } from "zod";
+import { PROFESSIONAL_LINK_TTL_SECONDS } from "@/lib/professional-links.server";
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 type PortalResult = { url: string } | { error: string };
@@ -872,7 +873,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
     const signed = await supabaseAdmin.storage
       .from("exports")
-      .createSignedUrl(objectPath, 60 * 60 * 1);
+      .createSignedUrl(objectPath, PROFESSIONAL_LINK_TTL_SECONDS);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
     return {
       ok: true as const,
@@ -1186,7 +1187,7 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
     const signed = await supabaseAdmin.storage
       .from("exports")
-      .createSignedUrl(objectPath, 60 * 60 * 1);
+      .createSignedUrl(objectPath, PROFESSIONAL_LINK_TTL_SECONDS);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
     return {
       ok: true as const,
