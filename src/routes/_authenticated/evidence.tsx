@@ -871,6 +871,45 @@ function EvidencePage() {
                                   <Sparkles size={13} /> Retry transcript
                                 </button>
                               )}
+                            {isReadableDocument(it.mime, it.title) &&
+                              it.extraction_status !== "ready" && (
+                                <button
+                                  onClick={() => {
+                                    void extractDocFn({ data: { evidence_id: it.id } })
+                                      .then(() => {
+                                        toast("Text ready to review.");
+                                        return load();
+                                      })
+                                      .catch(() => {
+                                        toast(
+                                          "We couldn't read this document. Try again in a moment.",
+                                        );
+                                        return load();
+                                      });
+                                  }}
+                                  className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                                >
+                                  <Sparkles size={13} /> Read text
+                                </button>
+                              )}
+                            {it.extraction_status === "ready" && !it.extraction_verified_at && (
+                              <button
+                                onClick={() => {
+                                  void verifyTextFn({ data: { evidence_id: it.id } })
+                                    .then(() => {
+                                      toast("Saved. Marked as checked by you.");
+                                      return load();
+                                    })
+                                    .catch(() => {
+                                      toast("We couldn't save that. Try again in a moment.");
+                                    });
+                                }}
+                                className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                              >
+                                <Check size={13} /> Text matches
+                              </button>
+                            )}
+
                             <button
                               onClick={() => remove(it)}
                               className="btn-ghost inline-flex items-center gap-1 text-[12px]"
