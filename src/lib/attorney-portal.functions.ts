@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { isAttorneyEntitled } from "@/lib/payments.functions";
+import * as access from "@/lib/attorney-access.server";
 
 /* ------------------------- shared helpers ------------------------- */
 
