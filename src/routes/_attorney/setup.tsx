@@ -40,7 +40,8 @@ function OnboardingPage() {
       .then((r) => {
         const p = r.profile;
         if (p?.onboarded) {
-          navigate({ to: "/subscribe", replace: true });
+          // Already set up — let the portal gate decide trial vs pricing.
+          navigate({ to: "/caseload", replace: true });
           return;
         }
         if (p) {
