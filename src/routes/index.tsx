@@ -26,22 +26,22 @@ export const Route = createFileRoute("/")({
     typeof search.ref === "string" ? { ref: search.ref } : {},
   head: () => ({
     meta: [
-      { title: "PatternProof — Organize evidence into one clear timeline" },
+      { title: "Private Evidence Timeline for Survivors | PatternProof" },
       {
         name: "description",
         content:
-          "Organize photos, messages, voice notes, and written entries into one private, source-linked timeline you control.",
+          "PatternProof is private evidence documentation software for survivors, attorneys, and domestic violence organizations. Organize photos, messages, voice notes, and written entries into one source-linked timeline.",
       },
-      { property: "og:title", content: "PatternProof — The truth is in the pattern." },
+      { property: "og:title", content: "Private Evidence Timeline for Survivors | PatternProof" },
       {
         property: "og:description",
-        content: "Pattern infrastructure for DV, custody, and coercive control documentation.",
+        content: "Private, survivor-controlled documentation for domestic violence, coercive control, and high-conflict custody records.",
       },
       { property: "og:url", content: "https://pattern-proof.tech/" },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "https://pattern-proof.tech/og-home.png" },
-      { name: "twitter:title", content: "PatternProof — The truth is in the pattern." },
-      { name: "twitter:description", content: "Turn scattered evidence into structured patterns." },
+      { name: "twitter:title", content: "Private Evidence Timeline for Survivors | PatternProof" },
+      { name: "twitter:description", content: "Organize domestic violence and custody documentation into a private, source-linked timeline you control." },
       { name: "twitter:image", content: "https://pattern-proof.tech/og-home.png" },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/" }],
@@ -53,8 +53,14 @@ export const Route = createFileRoute("/")({
           "@type": "Product",
           name: "PatternProof",
           description:
-            "Pattern infrastructure for survivors, attorneys, and DV organizations. Turn scattered incidents, evidence, and timelines into organized patterns.",
+          "Private evidence documentation software for survivors, attorneys, and domestic violence organizations. Organize scattered incidents, photos, messages, voice notes, and timelines into a source-linked chronology.",
           brand: { "@type": "Brand", name: "PatternProof" },
+          category: "Evidence documentation software",
+          audience: [
+            { "@type": "Audience", audienceType: "Domestic violence survivors" },
+            { "@type": "Audience", audienceType: "Family law attorneys" },
+            { "@type": "Audience", audienceType: "Domestic violence organizations" },
+          ],
           url: "https://pattern-proof.tech/",
           offers: [
             {

@@ -169,26 +169,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PatternProof — Private documentation for your case" },
+      { title: "Private Evidence Documentation Software | PatternProof" },
       {
         name: "description",
         content:
-          "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+          "PatternProof is private evidence documentation software for domestic violence survivors, family law attorneys, and DV organizations. Organize records with source-linked timelines and survivor-controlled sharing.",
       },
       { property: "og:site_name", content: "PatternProof" },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "PatternProof — Private documentation for your case" },
+      { property: "og:title", content: "Private Evidence Documentation Software | PatternProof" },
       {
         property: "og:description",
         content:
-          "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+          "Private evidence documentation software for domestic violence survivors, family law attorneys, and DV organizations. Organize records with source-linked timelines and survivor-controlled sharing.",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "PatternProof — Private documentation for your case" },
+      { name: "twitter:title", content: "Private Evidence Documentation Software | PatternProof" },
       {
         name: "twitter:description",
         content:
-          "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+          "Private evidence documentation software for domestic violence survivors, family law attorneys, and DV organizations. Organize records with source-linked timelines and survivor-controlled sharing.",
       },
       { name: "twitter:site", content: "@PatternProof" },
       { name: "apple-mobile-web-app-title", content: "Notes" },
@@ -260,18 +260,20 @@ gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`,
             {
               "@type": "Organization",
               "@id": "https://pattern-proof.tech/#organization",
-              name: "PatternProof",
+              name: "G Burns Company LLC",
+              legalName: "G Burns Company LLC",
+              brand: { "@type": "Brand", name: "PatternProof" },
               url: "https://pattern-proof.tech/",
               description:
-                "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+                "The company behind PatternProof, a private evidence documentation product for domestic violence survivors, family law attorneys, and DV organizations.",
             },
             {
               "@type": "WebSite",
               "@id": "https://pattern-proof.tech/#website",
-              name: "PatternProof",
+              name: "PatternProof Private Evidence Documentation",
               url: "https://pattern-proof.tech/",
               description:
-                "Private documentation for your case, encrypted in transit and protected with per-user access controls. Visible only to you and anyone you choose to share it with.",
+                "Private evidence documentation software for domestic violence survivors, family law attorneys, and DV organizations. Organize records into a source-linked timeline and share only what you choose.",
               publisher: { "@id": "https://pattern-proof.tech/#organization" },
             },
           ],

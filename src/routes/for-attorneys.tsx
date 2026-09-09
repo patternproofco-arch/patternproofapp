@@ -24,24 +24,24 @@ const MONO = "var(--font-mono)";
 export const Route = createFileRoute("/for-attorneys")({
   head: () => ({
     meta: [
-      { title: "PatternProof — For attorneys" },
+      { title: "Family Law Evidence Intake Software for Attorneys | PatternProof" },
       {
         name: "description",
         content:
-          "Stop rebuilding what your client already lived. PatternProof hands you a structured, source-linked chronology on day one — so hearing prep goes to strategy, not sorting screenshots.",
+          "PatternProof helps family-law and domestic-violence attorneys review client-provided evidence in a dated, source-linked chronology instead of sorting screenshots, messages, and files by hand.",
       },
-      { property: "og:title", content: "PatternProof for attorneys" },
+      { property: "og:title", content: "Family Law Evidence Intake Software for Attorneys | PatternProof" },
       {
         property: "og:description",
         content:
-          "A structured, source-linked chronology on day one — not a shoebox of screenshots.",
+          "Organize client-provided domestic-violence and custody records into a dated, source-linked chronology for professional review.",
       },
       { property: "og:url", content: "https://pattern-proof.tech/for-attorneys" },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "PatternProof for attorneys" },
+      { name: "twitter:title", content: "Family Law Evidence Intake Software for Attorneys | PatternProof" },
       {
         name: "twitter:description",
-        content: "A structured, source-linked chronology on day one.",
+        content: "Review client-provided domestic-violence and custody records in a dated, source-linked chronology.",
       },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/for-attorneys" }],

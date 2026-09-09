@@ -20,24 +20,24 @@ const MONO = "var(--font-mono)";
 export const Route = createFileRoute("/for-organizations")({
   head: () => ({
     meta: [
-      { title: "PatternProof — For DV organizations" },
+      { title: "Domestic Violence Referral Tool for Advocates | PatternProof" },
       {
         name: "description",
         content:
-          "A free, private documentation tool you can hand every survivor at intake. No cost to your org, no data integration required from your systems — just a cleaner referral to counsel.",
+          "A free, private domestic-violence documentation tool for advocates and survivor-service organizations. Refer survivors to an organized evidence timeline they control and can share with counsel when ready.",
       },
-      { property: "og:title", content: "PatternProof — Partner referrals for DV organizations" },
+      { property: "og:title", content: "Domestic Violence Referral Tool for Advocates | PatternProof" },
       {
         property: "og:description",
         content:
-          "Free survivor tool your advocates can hand out at intake. Cleaner referrals, no cost, no org data integration required.",
+          "Give survivors a private documentation tool at intake, then support survivor-controlled sharing with attorneys and approved staff.",
       },
       { property: "og:url", content: "https://pattern-proof.tech/for-organizations" },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "PatternProof for DV organizations" },
+      { name: "twitter:title", content: "Domestic Violence Referral Tool for Advocates | PatternProof" },
       {
         name: "twitter:description",
-        content: "Free survivor tool your advocates can hand out at intake.",
+        content: "A private documentation referral tool for domestic-violence advocates and survivor-service organizations.",
       },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/for-organizations" }],

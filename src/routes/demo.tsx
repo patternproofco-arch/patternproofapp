@@ -20,24 +20,24 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
 export const Route = createFileRoute("/demo")({
   head: () => ({
     meta: [
-      { title: "Interactive Demo — PatternProof" },
+      { title: "Family Law Evidence Timeline Demo | PatternProof" },
       {
         name: "description",
         content:
-          "Explore PatternProof with a sample survivor case. No signup required — click through the journal, timeline, pattern analysis, and professional-review packet.",
+          "See a sample domestic-violence and custody evidence timeline organized for professional review. Explore entries, source links, dates, and an attorney-ready packet with no signup.",
       },
-      { property: "og:title", content: "Interactive Demo — PatternProof" },
+      { property: "og:title", content: "Family Law Evidence Timeline Demo | PatternProof" },
       {
         property: "og:description",
         content:
-          "See how survivors document incidents and generate professional-review evidence. Sample case, no signup.",
+          "Explore a sample domestic-violence and custody evidence timeline with source links and professional-review organization. No signup.",
       },
       { property: "og:url", content: "https://pattern-proof.tech/demo" },
-      { name: "twitter:title", content: "Interactive Demo — PatternProof" },
+      { name: "twitter:title", content: "Family Law Evidence Timeline Demo | PatternProof" },
       {
         name: "twitter:description",
         content:
-          "See how survivors document incidents and generate professional-review evidence. Sample case, no signup.",
+          "Explore a sample domestic-violence and custody evidence timeline with source links and professional-review organization. No signup.",
       },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/demo" }],

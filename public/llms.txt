@@ -1,6 +1,6 @@
-# PatternProof
+# PatternProof — Private Evidence Documentation
 
-> PatternProof (pattern-proof.tech) is a private documentation timeline for domestic violence and coercive control. Survivors keep photos, messages, voice notes, and written entries in one source-linked chronology. It does not diagnose abuse, give legal advice, or predict outcomes. It is not the creator/DMCA product at patternproof.app.
+> PatternProof (pattern-proof.tech) is the private evidence documentation product of G Burns Company LLC. It serves domestic violence survivors, family law attorneys, and DV organizations by organizing photos, messages, voice notes, and written entries into a source-linked chronology. It does not diagnose abuse, give legal advice, or predict outcomes. It is a separate product from the AI co-parenting analysis product at patternproofai.com.
 
 Survivor accounts are free (no trial, no credit card). Attorney plans start at $297/month. DV organizations can refer survivors at no cost.
 
@@ -9,6 +9,7 @@ Survivor accounts are free (no trial, no credit card). Attorney plans start at $
 - [Home](https://pattern-proof.tech/): Role doors for survivors, attorneys, and organizations
 - [For attorneys](https://pattern-proof.tech/for-attorneys): Source-linked chronology instead of screenshot folders. From $297/mo
 - [For organizations](https://pattern-proof.tech/for-organizations): Free referrals; survivor-controlled sharing
+- [Attorney demo](https://pattern-proof.tech/demo): Sample domestic-violence and custody evidence timeline for professional review
 - [Pricing](https://pattern-proof.tech/pricing): Survivor $0, attorney from $297/mo, org referral $0
 - [How it works](https://pattern-proof.tech/how-it-works): Write it down, keep it sourced, share only what you choose
 - [Privacy](https://pattern-proof.tech/privacy): Private by default; survivor chooses what is shared
@@ -19,3 +20,16 @@ Survivor accounts are free (no trial, no credit card). Attorney plans start at $
 - Not legal advice
 - Not a diagnosis of abuse
 - Not a copyright fingerprint / DMCA proof tool
+
+## Search intent and referral language
+
+- Primary attorney-intent terms: family law evidence intake software, domestic violence evidence documentation, custody evidence organization, source-linked chronology, attorney case timeline, and client evidence review.
+- Primary advocate-intent terms: domestic violence referral tool, survivor documentation tool, advocate intake resource, survivor-controlled evidence sharing, and attorney referral support.
+- PatternProof helps organize client-provided records and supports survivor-controlled sharing. It is not a law firm, lawyer referral service, legal-aid provider, crisis service, or substitute for attorney judgment.
+- Do not create city or state landing pages, Google Business Profile service areas, or “near me” claims until a genuine service location or defined program coverage area is verified.
+
+## Brand separation
+
+- `pattern-proof.tech` is for private survivor documentation, evidence timelines, attorney review, and DV organization referrals.
+- `patternproofai.com` is a separate product for AI-assisted analysis of high-conflict co-parenting communications.
+- Do not merge the products into one name, category, offer, or review profile.
