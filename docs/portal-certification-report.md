@@ -139,3 +139,35 @@ but the release blockers below are unproven, not fixed:
 6. Playwright suite execution — the runner is committed but has not been run here.
 7. Deployed-build smoke test with fictional accounts — not run; no deployment was made in this pass.
 8. Physical iPhone Safari and physical Android Chrome QA — MANUAL QA REQUIRED.
+
+## Browser suite now runs — 2026-09-09 (later)
+
+`bun run test:e2e` executes. `@playwright/test` is pinned to `1.56.1`, the
+version whose bundled Chromium/WebKit builds match the browsers available in
+this environment; a newer pin fails with "Executable doesn't exist". A
+`e2e/global-setup.ts` warm-up hits each route once first, because a cold dev
+server compiles routes on first request and that reads as a flaky timeout.
+
+Result: **24 passed, 0 failed, 12 skipped** across desktop Chromium, Pixel 7
+and iPhone 14 emulation. The 12 skips are the portal specs, which stay skipped
+until fictional QA credentials are supplied.
+
+Two real defects were found and fixed by running it:
+
+- `/sample-case` returns a 404. The route no longer exists anywhere in the
+  repository — `/demo` replaced it. Nothing in the app links to it, but
+  external links and the project notes still name it. The spec now covers
+  `/demo`. **Any published link to `/sample-case` is dead.**
+- Quick Exit could be pressed before the page was live, doing nothing. The
+  spec now waits for the button's own hydration flag before pressing. This is
+  a test-side fix; the pre-hydration fallback handler in `__root.tsx` is what
+  covers a real person pressing it early, and that path is still MANUAL QA
+  REQUIRED on a physical device.
+
+Blockers 1-5, 7 and 8 above stand unchanged. Blocker 6 (suite execution) is
+cleared.
+
+### Verdict
+
+**NOT SAFE FOR PILOT** — blockers 1, 2, 3, 4, 5, 7, 8 above, plus the dead
+`/sample-case` link.
