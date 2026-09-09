@@ -1751,6 +1751,8 @@ export type Database = {
           deleted_at: string | null
           derivative_kind: string | null
           description: string | null
+          event_at: string | null
+          event_timestamp_kind: string | null
           exif_captured_at: string | null
           exif_choice: string
           family_id: string | null
@@ -1805,6 +1807,8 @@ export type Database = {
           deleted_at?: string | null
           derivative_kind?: string | null
           description?: string | null
+          event_at?: string | null
+          event_timestamp_kind?: string | null
           exif_captured_at?: string | null
           exif_choice?: string
           family_id?: string | null
@@ -1859,6 +1863,8 @@ export type Database = {
           deleted_at?: string | null
           derivative_kind?: string | null
           description?: string | null
+          event_at?: string | null
+          event_timestamp_kind?: string | null
           exif_captured_at?: string | null
           exif_choice?: string
           family_id?: string | null
@@ -2927,6 +2933,7 @@ export type Database = {
           id: string
           model: string | null
           sort_key: string | null
+          sort_key_kind: string | null
           source_evidence_ids: string[]
           source_summary: string | null
           status: string
@@ -2943,6 +2950,7 @@ export type Database = {
           id?: string
           model?: string | null
           sort_key?: string | null
+          sort_key_kind?: string | null
           source_evidence_ids?: string[]
           source_summary?: string | null
           status?: string
@@ -2959,6 +2967,7 @@ export type Database = {
           id?: string
           model?: string | null
           sort_key?: string | null
+          sort_key_kind?: string | null
           source_evidence_ids?: string[]
           source_summary?: string | null
           status?: string

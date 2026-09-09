@@ -15,6 +15,22 @@ export function phrase(count: number, eventLabel: string, timeframe: string): st
 export type ObservationSource =
   "incidents" | "communications" | "thread_messages" | "court_dates" | "evidence";
 
+/**
+ * What is being counted. Recurrence of what happened is ONLY ever "event".
+ * Supporting material is counted separately and always labelled as such, so a
+ * single confirmed event backed by 12 screenshots and 40 messages can never
+ * read as 52 events.
+ */
+export type ObservationUnit = "event" | "message" | "file";
+
+export const UNIT_BY_SOURCE: Record<ObservationSource, ObservationUnit> = {
+  incidents: "event",
+  communications: "message",
+  thread_messages: "message",
+  court_dates: "event",
+  evidence: "file",
+};
+
 export interface ObservationSourceRow {
   id: string;
   /** A bare date string. Never a characterization. */
@@ -28,6 +44,7 @@ export interface FrequencyObservation {
   timeframe: string;
   text: string;
   source: ObservationSource;
+  unit: ObservationUnit;
   href: string;
   rows: ObservationSourceRow[];
 }
@@ -81,15 +98,33 @@ export function buildObservation(
   timeframe: string,
   rows: ObservationSourceRow[],
 ): FrequencyObservation | null {
-  if (rows.length < MIN_COUNT) return null;
+  // One row per THING COUNTED. Callers must pass one row per confirmed event
+  // when the unit is "event"; duplicates by id are collapsed here so that
+  // several files attached to one event can never inflate the count.
+  const seen = new Set<string>();
+  const unique = rows.filter((r) => {
+    if (seen.has(r.id)) return false;
+    seen.add(r.id);
+    return true;
+  });
+  if (unique.length < MIN_COUNT) return null;
+  const unit = UNIT_BY_SOURCE[source];
+  // Supporting material is always named out loud, never left to read as events.
+  const label =
+    unit === "message" && !/message/i.test(eventLabel)
+      ? `${eventLabel} (messages)`
+      : unit === "file" && !/file/i.test(eventLabel)
+        ? `${eventLabel} (evidence files)`
+        : eventLabel;
   return {
     id,
-    count: rows.length,
-    eventLabel,
+    count: unique.length,
+    eventLabel: label,
     timeframe,
-    text: phrase(rows.length, eventLabel, timeframe),
+    text: phrase(unique.length, label, timeframe),
     source,
+    unit,
     href: HREF[source],
-    rows,
+    rows: unique,
   };
 }

@@ -66,6 +66,6 @@ describe("recurrence stays a count, never a conclusion", () => {
 
   it("suppresses single occurrences instead of narrating them", () => {
     expect(observations).toContain("MIN_COUNT = 2");
-    expect(observations).toContain("if (rows.length < MIN_COUNT) return null;");
+    expect(observations).toContain("if (unique.length < MIN_COUNT) return null;");
   });
 });
