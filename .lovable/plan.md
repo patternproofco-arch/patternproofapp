@@ -81,6 +81,11 @@ Give the attorney portal a trial path so setup completes without payment, so all
 - Parsers live client-side (`src/lib/imports/*`): CSV via a small typed parser, `.eml` via header parsing, XML/text backups via format detection. Server functions only receive normalized rows plus provenance.
 - Extend `message_threads` / `messages` with `source_type` values for `csv`, `eml`, `xml`, a `source_row_index`, `source_timestamp_raw`, and `timezone_known`. Migration includes GRANTs and owner-scoped RLS.
 - Reuse `ingestEvidenceBatch` for hashing and preservation of the uploaded source file; imported messages reference that evidence row.
+- Platform archives: client-side ZIP read (no server upload of the whole archive), format detectors for Meta `messages/inbox/*/message_1.json`, WhatsApp `_chat.txt`, Google Takeout `Takeout/**`, Apple Messages CSV/text; conversation picker before any write.
+- Share target: PWA `share_target` entry in `public/manifest.webmanifest` posting to `src/routes/api/share-target.ts`, writing into a new `inbox_items` table (owner-scoped RLS + GRANTs).
+- Forwarding address: per-user token address handled through the existing transactional-email infrastructure with an inbound route under `src/routes/api/public/`, sender verification against the user's known addresses, and rate limiting.
+- Google Photos/Drive: extend `drive-import.functions.ts` with a date-range picker; tokens stored server-side, scopes read-only.
+- Relevance shortlist is deterministic first (date proximity, name/place term match from the survivor's own records, perceptual-hash repeat via existing dHash), with model-read text used only for extraction — never for judging significance.
 - Timeline merge and conflict detection extend existing `contradictions.functions.ts` and `propose-timeline.functions.ts` rather than adding a parallel path.
 - Recurrence math moves into a deterministic server helper (extending `frequency-observations.server.ts`) with unit tests — counts are computed in code, not by a model.
 - Attorney trial: extend the existing entitlement check in `payments.functions.ts` with a time-boxed trial state; no pricing copy changes.
