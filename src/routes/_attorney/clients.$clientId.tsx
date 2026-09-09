@@ -183,6 +183,19 @@ function ClientCaseView() {
       </div>
     );
   }
+  if (accessEnded)
+    return (
+      <div className="att-card" style={{ maxWidth: 560, margin: "40px auto", textAlign: "center" }}>
+        <h2 style={{ fontSize: 20, marginBottom: 6 }}>Access to this matter has ended</h2>
+        <p style={{ color: "var(--att-text-2)", fontSize: 13, marginBottom: 16 }}>
+          The client has revoked or expired your access, so live case data is no longer available.
+          Material you exported earlier remains subject to your own retention obligations.
+        </p>
+        <Link to="/clients" className="att-btn-secondary" style={{ display: "inline-block" }}>
+          Back to matters
+        </Link>
+      </div>
+    );
   if (!data) return <div className="att-card">Loading matter file…</div>;
 
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
