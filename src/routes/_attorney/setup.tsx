@@ -40,7 +40,8 @@ function OnboardingPage() {
       .then((r) => {
         const p = r.profile;
         if (p?.onboarded) {
-          navigate({ to: "/subscribe", replace: true });
+          // Already set up — let the portal gate decide trial vs pricing.
+          navigate({ to: "/caseload", replace: true });
           return;
         }
         if (p) {
@@ -67,7 +68,7 @@ function OnboardingPage() {
     }
     setSaving(true);
     try {
-      await complete({
+      const res = await complete({
         data: {
           full_name: fullName.trim(),
           email: email.trim(),
@@ -78,8 +79,15 @@ function OnboardingPage() {
           confidentiality_accepted: true,
         },
       });
-      toast("Profile saved. Choose your plan next.");
-      navigate({ to: "/subscribe", replace: true });
+      // A granted trial is real access, not a paywall detour. Only send people
+      // to pricing when there is no trial to walk into.
+      if (res?.trial_ends_at && new Date(res.trial_ends_at).getTime() > Date.now()) {
+        toast("Setup complete. Your trial is open.");
+        navigate({ to: "/caseload", replace: true });
+      } else {
+        toast("Profile saved. Choose your plan next.");
+        navigate({ to: "/subscribe", replace: true });
+      }
     } catch (err) {
       toast(err instanceof Error ? err.message : "Couldn't save profile.");
     } finally {

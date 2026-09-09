@@ -142,3 +142,22 @@ export function resolveEventTimestamp(
 export function chronologySortKey(resolved: ResolvedEventTimestamp): string | null {
   return resolved.resolved?.value ?? null;
 }
+
+/**
+ * Where a record belongs in review. Nothing is ever guessed: a record with no
+ * event-bearing date needs one from the person, and two event-bearing dates
+ * that fall on different days are a conflict for the person to settle.
+ */
+export type DateReviewBucket = "dated" | "needs_date" | "date_conflict";
+
+const DAY = (iso: string) => iso.slice(0, 10);
+
+export function dateReviewBucket(resolved: ResolvedEventTimestamp): DateReviewBucket {
+  if (!resolved.resolved) return "needs_date";
+  // A date the person confirmed themselves settles the question.
+  if (resolved.resolved.kind === "survivor_confirmed_event_at") return "dated";
+  const days = new Set(
+    resolved.candidates.filter((c) => isEventBearing(c.kind)).map((c) => DAY(c.value)),
+  );
+  return days.size > 1 ? "date_conflict" : "dated";
+}

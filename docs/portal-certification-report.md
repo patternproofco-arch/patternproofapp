@@ -110,3 +110,32 @@ and does not save. No repair needed.
 On a wide desktop viewport the `/patterns` "Ready to see what your patterns
 reveal" hint runs underneath the floating Quick Exit button. Text only; no
 control is blocked.
+
+## Gate 1 implementation pass — 2026-09-09
+
+Changes made in this pass, with the check that proves each one:
+
+| Change | Proof |
+| --- | --- |
+| The model no longer has any authority over chronological ordering. The timeline prompt's "best relative order you can" instruction is gone and replaced by "YOU DO NOT DECIDE THE ORDER"; the model reports only the date the material itself states, with its type. | `src/__tests__/gate1-date-review.test.ts` asserts the old instruction is absent and the new rule present |
+| Conflicting dates are surfaced, never resolved by guesswork. `dateReviewBucket()` returns `dated`, `needs_date` or `date_conflict`; a person's own confirmed date settles a conflict; file dates never create one. | 4 unit tests in `gate1-date-review.test.ts` |
+| Attorney setup no longer dead-ends at pricing. Completing setup with an active founding-nine trial lands in the caseload; only accounts with no trial are sent to pricing. No blanket paywall bypass — entitlement is still explicit. | `src/routes/_attorney/setup.tsx`; end-to-end attorney run is still MANUAL QA REQUIRED |
+| Upload copy now matches what the app actually does: CSV and TXT chat backups are read into messages, PDF/Excel/RSMF/ZIP are kept intact but not read, Word documents are kept but their text is not read into drafts. | `src/routes/_authenticated/evidence.tsx`, `src/components/evidence/BatchDropzone.tsx` |
+| A permanent Playwright suite lives in the repository (`playwright.config.ts`, `e2e/*.e2e.ts`) instead of throwaway scripts. Public-surface specs need no accounts; portal and isolation specs skip unless fictional QA credentials are supplied via `E2E_*` environment variables. Desktop, Pixel 7 and iPhone 14 projects are emulation only. | `bun run test:e2e` (requires `@playwright/test`, which is not yet installed in this environment — **MANUAL QA REQUIRED**) |
+
+Checks run at the end of this pass: `bunx tsgo --noEmit` clean, `bunx vitest run`
+23 files / 215 tests passed, `bun run build` succeeded.
+
+### Verdict
+
+**NOT SAFE FOR PILOT.** Code compiles and the automated regression suite passes,
+but the release blockers below are unproven, not fixed:
+
+1. Attorney portal end to end on the trial path — not exercised against a real account.
+2. DV organization and advocate portals end to end — not exercised in this pass.
+3. Export contents (professional-review packet, advocate ZIP) — never opened and inspected.
+4. Record and account deletion — not exercised.
+5. Real EXIF, audio transcription and video transcription — need real media and a live AI call.
+6. Playwright suite execution — the runner is committed but has not been run here.
+7. Deployed-build smoke test with fictional accounts — not run; no deployment was made in this pass.
+8. Physical iPhone Safari and physical Android Chrome QA — MANUAL QA REQUIRED.
