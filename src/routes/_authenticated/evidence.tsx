@@ -499,8 +499,9 @@ function EvidencePage() {
             More options: backup exports, screen recording, or call logs
           </div>
           <div style={{ fontSize: 13, color: "var(--pp-muted)", marginTop: 2, lineHeight: 1.5 }}>
-            For hundreds of messages, a phone backup (PDF, CSV/Excel, TXT, RSMF, ZIP), a screen
-            recording, or a call-log import — with guidance on which option fits your situation.
+            For hundreds of messages: a CSV or TXT backup is read into individual messages you can
+            review. PDF, Excel, RSMF and ZIP backups are kept safely as you sent them, but their
+            contents aren't read yet. Screen recordings and call logs work too.
           </div>
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-accent)" }}>Open →</span>
