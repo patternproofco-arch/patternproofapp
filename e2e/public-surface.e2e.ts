@@ -35,7 +35,7 @@ test("signing in is required for the survivor dashboard", async ({ page }) => {
   await page.waitForURL(/\/(auth|signin)/, { timeout: 20_000 });
 });
 
-for (const path of ["/pricing", "/for-attorneys", "/for-organizations", "/sample-case"]) {
+for (const path of ["/pricing", "/for-attorneys", "/for-organizations", "/demo"]) {
   test(`marketing route ${path} renders`, async ({ page }) => {
     const res = await page.goto(path, { waitUntil: "domcontentloaded" });
     expect(res?.status()).toBeLessThan(400);
