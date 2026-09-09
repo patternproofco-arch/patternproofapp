@@ -170,6 +170,11 @@ export const enrichEvidence = createServerFn({ method: "POST" })
     const update = {
       exif_captured_at: exifCapturedAt,
       in_image_timestamp_text: inImageTimestampText,
+      // Store the event date WITH its meaning. A photo's capture time is a
+      // photo_taken_at, never a bare "date" that later reads as the event.
+      ...(exifCapturedAt
+        ? { event_at: exifCapturedAt, event_timestamp_kind: "photo_taken_at" }
+        : {}),
       gps_lat: gpsLat,
       gps_lon: gpsLon,
       ...(suggestedId

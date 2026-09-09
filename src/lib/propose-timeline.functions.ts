@@ -1,6 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  isTimestampKind,
+  resolveEventTimestamp,
+  timestampKindLabel,
+  NO_EVENT_DATE_NOTE,
+} from "@/lib/timestamps";
 
 /**
  * Multi-source timeline synthesizer.
@@ -61,9 +67,15 @@ Schema:
 CLOSED SET FOR abuse_types (use sparingly, only when clearly supported by the material):
 ["physical","emotional","financial","coercive","custody","surveillance","location_tracking","account_control","smart_home","impersonation","digital_intimidation","other"]
 
+DO NOT MANUFACTURE EVENTS
+- Not every file describes a distinct event. A receipt photo, a court PDF, or a long message thread may contain no single event at all.
+- If the material does not support an event, put it in unmatched_items with the reason "No timeline event proposed." Never invent an event just to produce output. Producing nothing is a correct, expected answer.
+
 CHRONOLOGY RULES
 - Order the proposed_timeline array from earliest to latest.
-- Prefer EXIF / file metadata / explicit dates in text over upload time.
+- Each item carries a typed "event_date" plus "event_date_kind" (message_sent_at, photo_taken_at, email_date_header, recording_created_at, survivor_confirmed_event_at). Use that date.
+- "file_dates_not_event_dates" lists when a file was created, changed, or added. These are NEVER the event date. A screenshot created on 9 September showing a message sent on 14 August is an August event.
+- If no event-bearing date exists, set date to null and date_certainty to "unknown". Do not substitute a file date.
 - If only an approximate period is known, set date_certainty to "approximate" and still place the item in the best relative order you can.
 - Do not create duplicate entries for the same underlying event. Merge sources that clearly refer to the same incident.
 - If materials are too thin to support even a minimal factual description, put the item in unmatched_items instead of inventing content.
@@ -86,6 +98,12 @@ FINAL CHECK BEFORE OUTPUT
 - Is the language free of legal conclusions and diagnoses?
 - Would a survivor be able to accept this as-is or easily edit it?
 `;
+
+/**
+ * The honest outcome when evidence does not support an event. Shown as-is; the
+ * pipeline must never manufacture an entry simply to complete itself.
+ */
+export const NO_EVENT_PROPOSED = "No timeline event proposed.";
 
 const DraftIncidentSchema = z.object({
   date: z.string().nullable().optional(),
@@ -129,7 +147,7 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
     let evidenceQuery = supabase
       .from("evidence")
       .select(
-        "id, title, file_type, mime, description, date, exif_captured_at, in_image_timestamp_text, transcript, transcript_status, ingested_at, created_at, linked_incident_id, original_filename",
+        "id, title, file_type, mime, description, date, event_at, event_timestamp_kind, exif_captured_at, in_image_timestamp_text, transcript, transcript_status, ingested_at, created_at, linked_incident_id, original_filename",
       )
       .eq("user_id", userId)
       .is("deleted_at", null)
@@ -165,6 +183,10 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
       kind: string;
       title: string;
       date_hint: string | null;
+      /** What that date actually means. Null when no event date is available. */
+      date_hint_kind: string | null;
+      /** File-level dates, labelled. Never usable as the event date. */
+      file_timestamps: Array<{ kind: string; value: string }>;
       text: string;
     }> = [];
 
@@ -175,12 +197,26 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
         // happened in a recording. Wait for a real transcript.
         continue;
       }
-      const dateHint =
-        row.exif_captured_at ??
-        row.in_image_timestamp_text ??
-        row.date ??
-        row.ingested_at ??
-        row.created_at;
+      // Typed timestamps only. A file's creation/ingest time never becomes the
+      // event date — it is passed as clearly-labelled context instead.
+      const eventResolution = resolveEventTimestamp([
+        row.event_at && isTimestampKind(row.event_timestamp_kind)
+          ? { kind: row.event_timestamp_kind, value: row.event_at }
+          : null,
+        row.date ? { kind: "survivor_confirmed_event_at" as const, value: row.date } : null,
+        row.in_image_timestamp_text
+          ? { kind: "message_sent_at" as const, value: row.in_image_timestamp_text }
+          : null,
+        row.exif_captured_at
+          ? { kind: "photo_taken_at" as const, value: row.exif_captured_at }
+          : null,
+      ]);
+      const dateHint = eventResolution.resolved?.value ?? null;
+      const dateHintKind = eventResolution.resolved?.kind ?? null;
+      const fileTimestamps = [
+        row.ingested_at ? { kind: "ingested_at", value: row.ingested_at } : null,
+        row.created_at ? { kind: "file_created_at", value: row.created_at } : null,
+      ].filter((t): t is { kind: string; value: string } => t !== null);
       let text = row.description ?? row.title ?? "";
       if (row.transcript && row.transcript_status === "ready") {
         text = [text, "--- Transcript ---", row.transcript].filter(Boolean).join("\n");
@@ -196,6 +232,8 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
               : (row.file_type ?? "file"),
         title: row.title ?? row.original_filename ?? "Untitled",
         date_hint: dateHint,
+        date_hint_kind: dateHintKind,
+        file_timestamps: fileTimestamps,
         text: text.slice(0, 6000),
       });
     }
@@ -215,7 +253,14 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
           evidence_id: t.id,
           kind: "message_thread",
           title: t.source_filename ?? "Message thread",
-          date_hint: t.captured_at ?? t.created_at,
+          // A thread's capture time is when it was screenshotted/exported, not
+          // when the messages were sent. It is never the event date.
+          date_hint: null,
+          date_hint_kind: null,
+          file_timestamps: [
+            t.captured_at ? { kind: "screenshot_created_at", value: t.captured_at } : null,
+            t.created_at ? { kind: "ingested_at", value: t.created_at } : null,
+          ].filter((x): x is { kind: string; value: string } => x !== null),
           text: (
             t.attorney_summary ??
             t.summary ??
@@ -238,7 +283,11 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
           evidence_id: n.id,
           kind: "voice_note",
           title: n.title ?? "Voice note",
-          date_hint: n.date ?? n.created_at,
+          date_hint: n.date ?? null,
+          date_hint_kind: n.date ? "survivor_confirmed_event_at" : null,
+          file_timestamps: n.created_at
+            ? [{ kind: "recording_created_at", value: n.created_at }]
+            : [],
           text: (n.transcription_status === "ready" ? n.transcript : null) ?? n.title ?? "",
         });
       }
@@ -259,7 +308,9 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
       evidence_id: m.evidence_id,
       kind: m.kind,
       title: m.title,
-      date_hint: m.date_hint,
+      event_date: m.date_hint,
+      event_date_kind: m.date_hint_kind,
+      file_dates_not_event_dates: m.file_timestamps,
       content: m.text.slice(0, 4000),
     }));
 
@@ -316,15 +367,25 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
     }
 
     const batchId = crypto.randomUUID();
+    // Which typed date each source contributed, so a draft can say what its
+    // ordering is based on instead of implying a file date is the event date.
+    const kindByEvidenceId = new Map<string, string | null>(
+      materials.map((m) => [m.evidence_id, m.date_hint_kind]),
+    );
     const rowsToInsert = (parsed.proposed_timeline ?? [])
       .filter((p) => p.draft_incident?.description)
       .map((p) => {
         const draft = DraftIncidentSchema.safeParse(p.draft_incident);
         if (!draft.success) return null;
+        const sourceKind =
+          (p.source_evidence_ids ?? [])
+            .map((id) => kindByEvidenceId.get(id) ?? null)
+            .find((k) => k !== null) ?? null;
         return {
           user_id: userId,
           batch_id: batchId,
           sort_key: p.sort_key ?? draft.data.date ?? null,
+          sort_key_kind: sourceKind,
           date_certainty:
             p.date_certainty === "confirmed" ||
             p.date_certainty === "approximate" ||
@@ -334,7 +395,12 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
           draft: draft.data,
           source_evidence_ids: p.source_evidence_ids ?? [],
           source_summary: p.source_summary ?? null,
-          confidence_notes: p.confidence_notes ?? [],
+          confidence_notes: [
+            ...(p.confidence_notes ?? []),
+            ...(sourceKind
+              ? [`Placed in order by ${timestampKindLabel(sourceKind as never)}.`]
+              : [NO_EVENT_DATE_NOTE]),
+          ],
           status: "pending",
           model: "google/gemini-2.5-pro",
         };
@@ -342,12 +408,17 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
       .filter((row): row is NonNullable<typeof row> => row !== null);
 
     if (rowsToInsert.length === 0) {
+      // Producing nothing is a correct answer. Some materials simply do not
+      // describe a distinct event, and we never invent one to fill the gap.
       return {
         ok: true as const,
         proposed_timeline: [],
-        unmatched_items: parsed.unmatched_items ?? [],
+        unmatched_items: (parsed.unmatched_items ?? []).map((u) => ({
+          evidence_id: u.evidence_id,
+          reason: u.reason?.trim() || NO_EVENT_PROPOSED,
+        })),
         generated_at: new Date().toISOString(),
-        message: "No draft entries could be formed from the current materials.",
+        message: NO_EVENT_PROPOSED,
       };
     }
 
