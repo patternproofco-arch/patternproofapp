@@ -133,6 +133,7 @@ function ClientCaseView() {
   const [depoLoading, setDepoLoading] = useState(false);
   const [notes, setNotes] = useState<NoteRow[]>([]);
   const [ent, setEnt] = useState<{ entitled: boolean; reason: string } | null>(null);
+  const [accessEnded, setAccessEnded] = useState(false);
 
   useEffect(() => {
     entFn({ data: { clientId } })
@@ -142,9 +143,16 @@ function ClientCaseView() {
 
   useEffect(() => {
     if (!ent?.entitled) return;
+    setAccessEnded(false);
     fetcher({ data: { clientId } })
-      .then(setData)
-      .catch(() => toast("Couldn't load case."));
+      .then((d) => {
+        setData(d);
+        setAccessEnded(false);
+      })
+      .catch(() => {
+        setData(null);
+        setAccessEnded(true);
+      });
     notesFn({ data: { clientId } })
       .then((r) => setNotes(r.notes))
       .catch(() => {});
