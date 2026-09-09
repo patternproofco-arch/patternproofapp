@@ -380,3 +380,45 @@ not instant invalidation and should be described that way.
 
 **NOT SAFE FOR PILOT** — blockers 1-7 above. The attorney trial path itself is
 now certified.
+
+---
+
+## Release pass — old download links, dead sample link (2026-09-10)
+
+**Changed**
+
+1. Links handed to a professional are now signed for 60 seconds
+   (`PROFESSIONAL_LINK_TTL_SECONDS`, `src/lib/professional-links.server.ts`),
+   replacing the 30-minute and one-hour links in
+   `attorney-portal.functions.ts`, `attorney-public.functions.ts` and
+   `payments.functions.ts`. Every link is minted at click time, after the
+   access check.
+2. Withdrawing an attorney or advocate link now deletes the packets and case
+   packages that professional generated about that survivor
+   (`purgeProfessionalExports`, called from `revokeLink` and
+   `revokeAdvocateLink`). Deleting the object invalidates every link ever
+   issued for it, so a previously downloaded-but-unopened link stops working
+   at revocation instead of an hour later. Storage failure never blocks the
+   revocation itself.
+3. A survivor's own export link is 5 minutes (`OWN_EXPORT_TTL_SECONDS`).
+4. `/sample-case` no longer 404s: it redirects (307) to `/demo`.
+
+**Honest limit.** A storage signing token cannot be cancelled individually.
+Original evidence files are not deleted on revocation — they belong to the
+survivor — so the residual window for an evidence link issued in the final
+seconds before revocation is up to 60 seconds, not zero. Packet/export files
+are deleted, so those close immediately.
+
+**Checks run:** `bunx tsgo --noEmit` clean; `bunx vitest run` 255 passed
+(28 files, incl. new `professional-link-revocation.test.ts`);
+`bun run build` succeeded; `bun run test:e2e` 24 passed / 12 skipped
+(credential-gated). A cold-start flake in the dashboard sign-in redirect test
+was fixed with a route warm-up rather than a blanket timeout increase.
+
+**Still open (unchanged verdict):** live advocate and DV-organization
+walkthroughs with fictional accounts, the account-deletion procedure exercised
+end to end, real-media AI proof, deployed smoke tests, physical iPhone/Android
+QA, and the attorney-portal wording review (`AVG SEVERITY`, `Escalation arc`,
+`Urgent risk flags`, `Evidence strength`).
+
+**Verdict: NOT SAFE FOR PILOT.**
