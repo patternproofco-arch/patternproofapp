@@ -37,8 +37,11 @@ test("version marker identifies the running build", async ({ request }) => {
 });
 
 test("signing in is required for the survivor dashboard", async ({ page }) => {
+  // The sign-in check runs in the browser, so on a cold dev server the first
+  // visit waits on compilation. Warm the route first, then assert.
+  await page.request.get("/dashboard");
   await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-  await page.waitForURL(/\/(auth|signin)/, { timeout: 20_000 });
+  await page.waitForURL(/\/(auth|signin)/, { timeout: 45_000 });
 });
 
 for (const path of ["/pricing", "/for-attorneys", "/for-organizations", "/demo"]) {
