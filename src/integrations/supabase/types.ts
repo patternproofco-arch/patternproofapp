@@ -1755,6 +1755,13 @@ export type Database = {
           event_timestamp_kind: string | null
           exif_captured_at: string | null
           exif_choice: string
+          extracted_at: string | null
+          extracted_text: string | null
+          extraction_method: string | null
+          extraction_pages: number | null
+          extraction_status: string
+          extraction_verified_at: string | null
+          extraction_verified_by: string | null
           family_id: string | null
           file_type: string
           file_url: string
@@ -1811,6 +1818,13 @@ export type Database = {
           event_timestamp_kind?: string | null
           exif_captured_at?: string | null
           exif_choice?: string
+          extracted_at?: string | null
+          extracted_text?: string | null
+          extraction_method?: string | null
+          extraction_pages?: number | null
+          extraction_status?: string
+          extraction_verified_at?: string | null
+          extraction_verified_by?: string | null
           family_id?: string | null
           file_type: string
           file_url: string
@@ -1867,6 +1881,13 @@ export type Database = {
           event_timestamp_kind?: string | null
           exif_captured_at?: string | null
           exif_choice?: string
+          extracted_at?: string | null
+          extracted_text?: string | null
+          extraction_method?: string | null
+          extraction_pages?: number | null
+          extraction_status?: string
+          extraction_verified_at?: string | null
+          extraction_verified_by?: string | null
           family_id?: string | null
           file_type?: string
           file_url?: string
