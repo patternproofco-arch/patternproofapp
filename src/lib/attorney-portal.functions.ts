@@ -18,250 +18,51 @@ async function assertEntitled(attorneyId: string, clientId: string) {
   if (!ent.entitled) throw new Error("An active attorney subscription is required.");
 }
 
-async function assertAttorney(userId: string) {
+/**
+ * The access rules themselves live in attorney-access.server.ts so they can be
+ * run in tests against an in-memory database. These wrappers only supply the
+ * real admin client.
+ */
+async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("role", "attorney")
-    .maybeSingle();
-  if (!data) throw new Error("Attorney role required");
+  return supabaseAdmin;
+}
+
+async function assertAttorney(userId: string) {
+  return access.assertAttorney(await admin(), userId);
 }
 
 async function assertSameFirm(attorneyA: string, attorneyB: string) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
-    .from("firm_members")
-    .select("user_id,firm_id")
-    .in("user_id", [attorneyA, attorneyB]);
-  if (error) throw new Error(error.message);
-  const a = (data ?? []).find((m) => m.user_id === attorneyA)?.firm_id;
-  const b = (data ?? []).find((m) => m.user_id === attorneyB)?.firm_id;
-  if (!a || !b || a !== b) throw new Error("No verified firm membership for this case grant");
+  return access.assertSameFirm(await admin(), attorneyA, attorneyB);
 }
 
-/**
- * A case_grant is only valid while both attorneys are current members of the
- * same firm. The grant row is intentionally not treated as a durable identity
- * boundary: leaving or being removed from a firm immediately makes it inert,
- * even before the cleanup RPC marks it revoked.
- */
 async function verifiedFirmGrantLinkIds(
   granteeUserId: string,
   grants: Array<{ client_link_id: string }>,
 ): Promise<Set<string>> {
-  if (!grants.length) return new Set();
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: grantee } = await supabaseAdmin
-    .from("firm_members")
-    .select("firm_id")
-    .eq("user_id", granteeUserId)
-    .maybeSingle();
-  if (!grantee) return new Set();
-
-  const linkIds = Array.from(new Set(grants.map((g) => g.client_link_id)));
-  const { data: links, error: linksError } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id,attorney_user_id,status")
-    .in("id", linkIds)
-    .eq("status", "active");
-  if (linksError) throw new Error(linksError.message);
-  const ownerIds = Array.from(new Set((links ?? []).map((l) => l.attorney_user_id)));
-  if (!ownerIds.length) return new Set();
-  const { data: owners, error: ownersError } = await supabaseAdmin
-    .from("firm_members")
-    .select("user_id,firm_id")
-    .in("user_id", ownerIds)
-    .eq("firm_id", grantee.firm_id);
-  if (ownersError) throw new Error(ownersError.message);
-  const currentOwners = new Set((owners ?? []).map((m) => m.user_id));
-  return new Set(
-    (links ?? []).filter((l) => currentOwners.has(l.attorney_user_id)).map((l) => l.id),
-  );
+  return access.verifiedFirmGrantLinkIds(await admin(), granteeUserId, grants);
 }
 
-/** True once a grant's expiry has passed. Expired access is treated the same as revoked. */
-function isExpired(expiresAt: string | null | undefined): boolean {
-  return !!expiresAt && new Date(expiresAt).getTime() < Date.now();
-}
+const isExpired = access.isExpired;
+const LINK_COLUMNS = access.LINK_COLUMNS;
 
-const LINK_COLUMNS =
-  "id,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,scope_incidents,scope_evidence,case_id,expires_at";
-
-async function assertLink(attorneyId: string, clientId: string) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select(LINK_COLUMNS)
-    .eq("attorney_user_id", attorneyId)
-    .eq("client_user_id", clientId)
-    .maybeSingle();
-  if (!data || data.status !== "active" || isExpired(data.expires_at)) {
-    throw new Error("No active access");
-  }
-  await applyCaseScope(data, clientId);
-  return data;
-}
-
-/**
- * If the link is scoped to a specific case (`case_id`), fold that case's
- * highlighted incident / attached evidence / legal-document IDs into the
- * link's scope fields so downstream query builders (which already understand
- * scope_incidents / scope_evidence + include_all_*) transparently return
- * only per-case data. Legacy links with a null case_id keep their previous
- * "everything the survivor shared" behavior.
- */
 async function applyCaseScope(
-  link: {
-    case_id?: string | null;
-    include_all_incidents: boolean;
-    include_all_evidence: boolean;
-    scope_incidents: string[] | null;
-    scope_evidence: string[] | null;
-    scope_legal_documents?: string[];
-    scope_threads?: string[];
-  },
+  link: Parameters<typeof access.applyCaseScope>[1],
   clientUserId: string,
 ): Promise<void> {
-  if (!link.case_id) return;
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: c } = await supabaseAdmin
-    .from("cases")
-    .select("highlighted_incident_ids,attached_evidence_ids,legal_document_ids,attached_thread_ids")
-    .eq("id", link.case_id)
-    .eq("user_id", clientUserId)
-    .maybeSingle();
-  const inc = (c?.highlighted_incident_ids ?? []) as string[];
-  const ev = (c?.attached_evidence_ids ?? []) as string[];
-  link.include_all_incidents = false;
-  link.include_all_evidence = false;
-  link.scope_incidents = inc;
-  link.scope_evidence = ev;
-  link.scope_legal_documents = (c?.legal_document_ids ?? []) as string[];
-  link.scope_threads = (c?.attached_thread_ids ?? []) as string[];
+  return access.applyCaseScope(await admin(), link, clientUserId);
 }
 
-/**
- * Allow either the owning attorney OR an active case collaborator to access a
- * client case file. Read-only data + messaging only; private attorney notes
- * remain owner-only because their server fns scope by attorney_user_id.
- */
-async function assertCaseAccess(
-  userId: string,
-  clientId: string,
-): Promise<{
-  link: {
-    id: string;
-    attorney_user_id?: string;
-    status: string;
-    include_all_incidents: boolean;
-    include_all_evidence: boolean;
-    include_patterns: boolean;
-    include_voice_notes: boolean;
-    include_communications: boolean;
-    include_legal_documents: boolean;
-    scope_incidents: string[] | null;
-    scope_evidence: string[] | null;
-    scope_legal_documents?: string[];
-    scope_threads?: string[];
-    case_id?: string | null;
-    expires_at?: string | null;
-  };
-  role: "owner" | "collaborator";
-  collabRole?: "paralegal" | "associate" | "attorney";
-}> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: owner } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select(LINK_COLUMNS)
-    .eq("attorney_user_id", userId)
-    .eq("client_user_id", clientId)
-    .maybeSingle();
-  if (owner && owner.status === "active" && !isExpired(owner.expires_at)) {
-    await applyCaseScope(owner, clientId);
-    return { link: owner, role: "owner" };
-  }
-
-  const { data: collabRows } = await supabaseAdmin
-    .from("case_collaborators")
-    .select("role,link_id")
-    .eq("collaborator_user_id", userId)
-    .eq("status", "active");
-
-  // Firm-level case grants: owner granted this attorney access to a specific link.
-  const { data: grantRows } = await supabaseAdmin
-    .from("case_grants")
-    .select("client_link_id")
-    .eq("attorney_user_id", userId)
-    .is("revoked_at", null);
-
-  const candidateLinkIds = [
-    ...(collabRows ?? []).map((r) => r.link_id),
-    ...(grantRows ?? []).map((r) => r.client_link_id),
-  ];
-  if (!candidateLinkIds.length) throw new Error("No active access");
-
-  const { data: link } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select(`${LINK_COLUMNS},attorney_user_id,client_user_id`)
-    .in("id", candidateLinkIds)
-    .eq("client_user_id", clientId)
-    .eq("status", "active")
-    .maybeSingle();
-  if (!link || isExpired(link.expires_at)) throw new Error("No active access");
-  await applyCaseScope(link, clientId);
-  const collabRole = (collabRows ?? []).find((c) => c.link_id === link.id)?.role as
-    "paralegal" | "associate" | "attorney" | undefined;
-  if (!collabRole && (grantRows ?? []).some((g) => g.client_link_id === link.id)) {
-    await assertSameFirm(userId, link.attorney_user_id);
-  }
-  return { link, role: "collaborator", collabRole };
+async function assertLink(attorneyId: string, clientId: string) {
+  return access.assertLink(await admin(), attorneyId, clientId);
 }
 
-/**
- * Same idea but keyed by link_id (used by message + doc-request fns). Allows
- * the owning attorney, the survivor, or an active collaborator.
- */
-async function assertLinkParticipant(
-  linkId: string,
-  userId: string,
-): Promise<{
-  link: { id: string; attorney_user_id: string; client_user_id: string; status: string };
-  role: "owner" | "survivor" | "collaborator";
-}> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: link } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id,attorney_user_id,client_user_id,status,expires_at")
-    .eq("id", linkId)
-    .maybeSingle();
-  if (!link || link.status !== "active") throw new Error("No active link");
-  if (link.client_user_id === userId) return { link, role: "survivor" };
-  // Expiry only gates the attorney side — the survivor can always reach her
-  // own thread even after a grant window she set has lapsed.
-  if (isExpired(link.expires_at)) throw new Error("No active link");
-  if (link.attorney_user_id === userId) return { link, role: "owner" };
-  const { data: collab } = await supabaseAdmin
-    .from("case_collaborators")
-    .select("id")
-    .eq("link_id", linkId)
-    .eq("collaborator_user_id", userId)
-    .eq("status", "active")
-    .maybeSingle();
-  if (collab) return { link, role: "collaborator" };
-  const { data: grant } = await supabaseAdmin
-    .from("case_grants")
-    .select("id")
-    .eq("client_link_id", linkId)
-    .eq("attorney_user_id", userId)
-    .is("revoked_at", null)
-    .maybeSingle();
-  if (grant) {
-    await assertSameFirm(userId, link.attorney_user_id);
-    return { link, role: "collaborator" };
-  }
-  throw new Error("Not a participant");
+async function assertCaseAccess(userId: string, clientId: string) {
+  return access.assertCaseAccess(await admin(), userId, clientId);
+}
+
+async function assertLinkParticipant(linkId: string, userId: string) {
+  return access.assertLinkParticipant(await admin(), linkId, userId);
 }
 
 /* ------------------------- role + profile ------------------------- */
