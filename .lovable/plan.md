@@ -28,6 +28,24 @@ Add a file-based import path alongside screenshots, all parsed in the browser so
 
 Every imported message keeps: the original file it came from, its row or position in that file, the timestamp exactly as written in the source, and a note when the source gave no timezone. Nothing is rewritten or "cleaned".
 
+### 1b. The easy ways in (the unobvious part)
+
+Typing or screenshotting a thread is the hardest possible route. Four paths that take almost no effort:
+
+- **Drop in the platform's own download.** Facebook, Instagram, WhatsApp, Google and Apple all let you request "a copy of your information" — one archive containing entire conversations with real timestamps. The app accepts those archives whole: drop the file in, it finds the conversations inside, you pick which ones to keep. This is the single highest-value path — one download replaces hundreds of screenshots, and the timestamps come from the platform rather than a photo of a screen. The app will walk you through requesting the download from each service, with a saved reminder for the day it's ready.
+- **Share straight from the messaging app.** Add the app to your phone's share sheet, so from Messages, WhatsApp, or Mail you tap Share and pick PATTERNPROOF. Screenshots, exported chats, and forwarded emails land in an inbox in the app instead of your camera roll.
+- **A private forwarding address.** Each survivor gets a private address; forward or BCC an email to it and it arrives as a dated record with its original headers intact. No app, no login, works from any device.
+- **Print a thread to PDF.** Both phones can print a conversation to a PDF, which the app reads directly.
+
+Everything lands in one **Inbox** — nothing is filed automatically. You review, then keep or discard.
+
+### 1c. Photos and videos, with less picking
+
+- **Bulk select** from the phone's photo picker, including whole date ranges, with the app reading each file's own date so the ordering is right without you typing anything.
+- **Connect a cloud library** — Google Photos and Google Drive (Drive import already exists) — and pull in a chosen date range rather than hunting file by file.
+- **Recordings are transcribed** and screenshots are read for on-screen text and timestamps, so they become searchable and datable.
+- **Relevance suggestions, not decisions.** After an import the app surfaces a shortlist: files whose date sits near something already in your record, whose readable text mentions a name or place you've used, or that repeat an earlier image. Each suggestion says plainly why it surfaced, and nothing joins your record until you say yes. Everything else stays in the Inbox — private, never deleted, never auto-filed.
+
 ### 2. Metadata integrity, made visible
 
 - The original uploaded file is never modified; a fingerprint is taken on arrival and shown on the record.
@@ -63,6 +81,11 @@ Give the attorney portal a trial path so setup completes without payment, so all
 - Parsers live client-side (`src/lib/imports/*`): CSV via a small typed parser, `.eml` via header parsing, XML/text backups via format detection. Server functions only receive normalized rows plus provenance.
 - Extend `message_threads` / `messages` with `source_type` values for `csv`, `eml`, `xml`, a `source_row_index`, `source_timestamp_raw`, and `timezone_known`. Migration includes GRANTs and owner-scoped RLS.
 - Reuse `ingestEvidenceBatch` for hashing and preservation of the uploaded source file; imported messages reference that evidence row.
+- Platform archives: client-side ZIP read (no server upload of the whole archive), format detectors for Meta `messages/inbox/*/message_1.json`, WhatsApp `_chat.txt`, Google Takeout `Takeout/**`, Apple Messages CSV/text; conversation picker before any write.
+- Share target: PWA `share_target` entry in `public/manifest.webmanifest` posting to `src/routes/api/share-target.ts`, writing into a new `inbox_items` table (owner-scoped RLS + GRANTs).
+- Forwarding address: per-user token address handled through the existing transactional-email infrastructure with an inbound route under `src/routes/api/public/`, sender verification against the user's known addresses, and rate limiting.
+- Google Photos/Drive: extend `drive-import.functions.ts` with a date-range picker; tokens stored server-side, scopes read-only.
+- Relevance shortlist is deterministic first (date proximity, name/place term match from the survivor's own records, perceptual-hash repeat via existing dHash), with model-read text used only for extraction — never for judging significance.
 - Timeline merge and conflict detection extend existing `contradictions.functions.ts` and `propose-timeline.functions.ts` rather than adding a parallel path.
 - Recurrence math moves into a deterministic server helper (extending `frequency-observations.server.ts`) with unit tests — counts are computed in code, not by a model.
 - Attorney trial: extend the existing entitlement check in `payments.functions.ts` with a time-boxed trial state; no pricing copy changes.
