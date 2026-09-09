@@ -171,3 +171,76 @@ cleared.
 
 **NOT SAFE FOR PILOT** — blockers 1, 2, 3, 4, 5, 7, 8 above, plus the dead
 `/sample-case` link.
+
+## Authorization pass — 2026-09-09 (professional access)
+
+### What changed
+
+The attorney access rules were private helpers inside
+`src/lib/attorney-portal.functions.ts`. That meant the only way to check them
+was to read them. They now live in `src/lib/attorney-access.server.ts` and take
+the database client as an argument, so the *real* rules run in tests against an
+in-memory database. The portal file keeps identical wrappers; no rule was
+loosened, and the browser bundle was checked to confirm the module does not ship
+to the client (`grep` of `dist/client` for a server-only error string: 0 hits).
+
+`docs/account-deletion-procedure.md` is new: a six-step, verifiable internal
+deletion procedure with the current owning-column inventory, storage buckets,
+a revocation-first ordering, and a mandatory verification step. It matches what
+the app actually advertises (deletion by request, not self-service).
+
+### Proven this pass — `src/__tests__/attorney-authorization.test.ts` (16 tests)
+
+Fictional accounts only. Each item below is an executed assertion, not a reading
+of the source:
+
+- PASS — an active link resolves, and a case-scoped link is confined to that
+  case's own records; ids from any other case are rejected.
+- PASS — revoking the link denies access.
+- PASS — an elapsed sharing window denies access.
+- PASS — an attorney cannot reach a survivor who never shared with them.
+- PASS — widening scope exposes the newly attached record; narrowing scope
+  removes it; scope is re-read on every check, so a stale copy cannot be
+  replayed.
+- PASS — a current firm colleague inherits the same case confinement.
+- PASS — the grant goes inert when either attorney leaves the firm, and when the
+  survivor revokes the underlying link.
+- PASS — an attorney with no grant and no collaboration is refused.
+- PASS — the survivor can still reach her own message thread after the window
+  lapses; the attorney cannot.
+- PASS — a stranger who guesses a link id is refused; a revoked link refuses
+  everyone.
+- PASS — the attorney role check accepts an attorney and refuses a survivor.
+
+### Checks run
+
+- `bunx tsgo --noEmit` — clean.
+- `bunx vitest run` — 231 passed, 24 files. One stale source-string test in
+  `multiseat-security.test.ts` was repointed at the extracted module.
+- `bun run build` — succeeds.
+- `bun run test:e2e` — 24 passed, 0 failed, 12 skipped (portal specs still
+  credential-gated).
+
+### Still unproven — release blockers
+
+1. Attorney portal end to end on the trial path against a real account
+   (signup, onboarding, caseload, accepting an invite, notes, downloads).
+   The authorization rules behind it are now tested; the journey is not.
+2. Advocate and DV organization portals end to end against real accounts.
+3. Export contents — the professional-review packet and advocate ZIP have not
+   been generated and opened in this pass. The advocate ZIP has one existing
+   content test; the professional-review packet has none, and the previously
+   reported empty packet is neither reproduced nor cleared.
+4. Record and account deletion — the procedure is written and verifiable, but
+   it has not been exercised end to end against fictional data.
+5. Real EXIF, audio transcription and video transcription with real media and a
+   live AI call.
+6. Previously issued signed download/export URLs after scope reduction or
+   revocation — the database rules are proven, the URL expiry behaviour is not.
+7. Deployed-build smoke test with fictional accounts. No deployment was made.
+8. Physical iPhone Safari and physical Android Chrome QA — MANUAL QA REQUIRED.
+9. The dead `/sample-case` link stands.
+
+### Verdict
+
+**NOT SAFE FOR PILOT** — blockers 1-9 above.

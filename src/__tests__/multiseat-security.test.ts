@@ -21,10 +21,17 @@ const foundationMigration = readFileSync(
   "utf8",
 );
 
+const attorneyAccess = readFileSync(
+  new URL("../lib/attorney-access.server.ts", import.meta.url),
+  "utf8",
+);
+
 describe("multi-seat authorization regressions", () => {
   it("revalidates firm grants against current membership before list reads", () => {
+    // Behaviour is proven in attorney-authorization.test.ts; this only guards
+    // against the revalidation call sites being dropped from the portal.
     expect(attorneyPortal.match(/verifiedFirmGrantLinkIds/g)?.length).toBeGreaterThanOrEqual(3);
-    expect(attorneyPortal).toContain('.from("firm_members")');
+    expect(attorneyAccess).toContain('.from("firm_members")');
   });
 
   it("keeps private case notes on the owner-only link assertion", () => {
