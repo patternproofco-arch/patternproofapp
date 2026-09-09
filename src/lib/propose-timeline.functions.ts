@@ -418,11 +418,12 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
       throw new Error("A description is required to accept this entry.");
     }
 
+    // Must match the incidents_date_precision_check constraint exactly.
     const datePrecision =
       proposal.date_certainty === "confirmed"
         ? "exact"
         : proposal.date_certainty === "approximate"
-          ? "approximate"
+          ? "approximate_month"
           : "unknown";
 
     const { data: incident, error: incError } = await supabase
@@ -437,7 +438,12 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
         witnesses: finalDraft.witnesses ?? null,
         emotional_impact: finalDraft.emotional_impact ?? null,
         date_precision: datePrecision,
-        source: "ai_proposed",
+        // The database only recognises 'survivor' | 'ai_extracted'. This entry
+        // was drafted from evidence by AI and then explicitly confirmed by the
+        // survivor, so it is recorded as AI-derived with a human confirmation
+        // stamp — which is what recurrence counting requires.
+        source: "ai_extracted",
+        confirmed_at: new Date().toISOString(),
       })
       .select("id")
       .single();
