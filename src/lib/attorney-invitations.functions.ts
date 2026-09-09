@@ -173,12 +173,26 @@ export const revokeLink = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: link } = await supabaseAdmin
+      .from("attorney_client_links")
+      .select("attorney_user_id")
+      .eq("id", data.id)
+      .eq("client_user_id", context.userId)
+      .maybeSingle();
     const { error } = await supabaseAdmin
       .from("attorney_client_links")
       .update({ status: "revoked", revoked_at: new Date().toISOString() })
       .eq("id", data.id)
       .eq("client_user_id", context.userId);
     if (error) throw new Error(error.message);
+    // Close any packet already sitting in storage, so old download links die now.
+    if (link?.attorney_user_id) {
+      const { purgeProfessionalExports } = await import("@/lib/professional-links.server");
+      await purgeProfessionalExports(supabaseAdmin, {
+        professionalUserId: link.attorney_user_id,
+        clientUserId: context.userId,
+      });
+    }
     return { ok: true };
   });
 

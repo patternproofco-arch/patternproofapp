@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { PROFESSIONAL_LINK_TTL_SECONDS } from "@/lib/professional-links.server";
 import { isAttorneyEntitled } from "@/lib/payments.functions";
 import * as access from "@/lib/attorney-access.server";
 
@@ -1495,7 +1496,7 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
       return { url: ev.file_url, file_type: ev.file_type, title: ev.title };
     const { data: signed } = await supabaseAdmin.storage
       .from("evidence-files")
-      .createSignedUrl(ev.file_url, 60 * 30);
+      .createSignedUrl(ev.file_url, PROFESSIONAL_LINK_TTL_SECONDS);
     return { url: signed?.signedUrl ?? null, file_type: ev.file_type, title: ev.title };
   });
 
