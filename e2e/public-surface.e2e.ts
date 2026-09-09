@@ -18,8 +18,14 @@ test("Quick Exit leaves the site", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   const exit = page.getByRole("button", { name: /quick exit/i }).first();
   await expect(exit).toBeVisible();
+  // Wait until the button is actually live before pressing it.
+  await page.waitForFunction(
+    () => (window as unknown as { __ppQuickExitHydrated?: boolean }).__ppQuickExitHydrated === true,
+    undefined,
+    { timeout: 30_000 },
+  );
   await exit.click();
-  await page.waitForURL(/weather\.com/, { timeout: 20_000 });
+  await page.waitForURL(/weather\.com/, { timeout: 45_000 });
 });
 
 test("version marker identifies the running build", async ({ request }) => {
