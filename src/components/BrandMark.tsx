@@ -5,7 +5,7 @@ export const PAPER = "#FAF8F4";
 export const DISPLAY = "var(--font-serif)";
 export const UI = "var(--font-sans)";
 
-export type MarkVariant = "survivor" | "attorney" | "advocate" | "neutral";
+export type MarkVariant = "survivor" | "attorney" | "advocate" | "neutral" | "ink";
 
 /**
  * ONE canonical mark geometry — a folded "P" ribbon — defined once and
@@ -32,6 +32,7 @@ export const MARK_COLORWAYS: Record<Exclude<MarkVariant, "neutral">, MarkColorwa
   survivor: { kind: "gradient", gradientFrom: "#E5A1E4", gradientTo: "#A1BDF3" },
   attorney: { kind: "solid", solid: "var(--pp-accent-attorney)" },
   advocate: { kind: "solid", solid: "var(--pp-accent-org)" },
+  ink: { kind: "solid", solid: "var(--ink)" },
 };
 
 export function markColorway(variant: MarkVariant = "neutral"): MarkColorway {
