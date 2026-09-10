@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import folioLockCss from "../folio-lock.css?url";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
 import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
@@ -16,19 +17,6 @@ import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadin
 import { GlobalHeader } from "@/components/GlobalHeader";
 import { GlobalFooter } from "@/components/GlobalFooter";
 
-/**
- * Quick Exit, reimplemented in plain JS and inlined so it works from first
- * paint — before React has hydrated and QuickExitButton's own onClick has
- * attached. Streamed SSR puts the button in the DOM immediately; this script
- * runs in <head>, ahead of that markup, and listens via delegation on
- * `document` so it doesn't need the button to exist yet at attach time.
- *
- * Deliberately backs off the instant real hydration completes
- * (QuickExitButton sets window.__ppQuickExitHydrated = true on mount) so it
- * never double-fires against React's own handler, and so drag-to-move keeps
- * working normally once React is driving. Mirrors src/lib/quick-exit.ts —
- * keep the two in sync if that file's exit sequence changes.
- */
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "";
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
 const quickExitFallbackScript = `(function () {
@@ -106,6 +94,21 @@ const quickExitFallbackScript = `(function () {
     }
   }, true);
 })();`;
+
+const FOLIO_PATHS = new Set([
+  "/",
+  "/how-it-works",
+  "/for-attorneys",
+  "/for-organizations",
+  "/pricing",
+  "/safety",
+  "/privacy",
+  "/signup",
+  "/signin",
+  "/login",
+  "/demo",
+  "/family-law-workload",
+]);
 
 function NotFoundComponent() {
   return (
@@ -210,6 +213,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      {
+        rel: "stylesheet",
+        href: folioLockCss,
+      },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -249,9 +256,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function gtag(){dataLayer.push(arguments);}
 window.gtag = gtag;
 gtag('js', new Date());
-// send_page_view is off — GA4's default auto-pageview captures the raw
-// URL (query string and all). GoogleAnalyticsRouteTracker sends every
-// pageview itself, including the first, with tokens/query stripped first.
 gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`,
       },
       {
@@ -303,6 +307,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function FolioPageFrame({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const path = router.state.location.pathname;
+  const folio = FOLIO_PATHS.has(path);
+  return <div className={folio ? "folio-page" : undefined}>{children}</div>;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -313,7 +324,9 @@ function RootComponent() {
         <div className="pp-global-layout">
           <GlobalHeader />
           <div className="pp-global-page">
-            <Outlet />
+            <FolioPageFrame>
+              <Outlet />
+            </FolioPageFrame>
           </div>
           <GlobalFooter />
         </div>
