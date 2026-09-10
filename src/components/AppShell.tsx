@@ -46,7 +46,7 @@ export function AppShell() {
       <AmbientBackground />
 
       {/* Minimal logo strip (no chrome bar) — sits in normal flow */}
-      <header className="pp-shell-header no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 pt-3 md:px-10 md:pt-3">
+      <header className="pp-shell-header pp-app-chrome no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 pt-3 md:px-10 md:pt-3">
         <span aria-hidden style={{ width: 1 }} />
         <BrandMark size={30} />
         <UtilityBar />

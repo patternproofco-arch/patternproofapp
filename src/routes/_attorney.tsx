@@ -347,7 +347,7 @@ function AttorneyTopBar({ firmName }: { firmName: string | null }) {
   const clientId = useClientIdFromPath();
   const caseId = clientId ? `PP-${clientId.slice(0, 4).toUpperCase()}` : null;
   return (
-    <div className="att-topbar">
+    <div className="att-topbar pp-app-chrome">
       <div className="att-topbar-firm">
         <span>{firmName ?? "Your firm"}</span>
         {caseId && <span className="att-mono">Matter {caseId}</span>}
