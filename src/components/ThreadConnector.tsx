@@ -1,49 +1,31 @@
+import { WavyThread } from "@/components/WavyThread";
+
 export type ThreadPersona = "survivor" | "attorney" | "org" | "shared";
 
 interface ThreadConnectorProps {
-  /** Which locked persona accent the thread reads. Defaults to the
-   *  surrounding [data-persona] context, falling back to `shared`. */
   persona?: ThreadPersona;
-  /** `vertical` connects stacked nodes; `horizontal` runs behind a card grid. */
   orientation?: "vertical" | "horizontal" | "vertical-behind";
   className?: string;
   style?: React.CSSProperties;
 }
 
-/**
- * The single wavy "connecting thread" motif. Colors come only from the
- * locked --pp-accent-* tokens via --pp-thread-grad in src/styles.css.
- * Always decorative: aria-hidden and behind cards.
- */
-const THREAD_CLASS = {
-  vertical: "pp-thread-line",
-  horizontal: "pp-thread-line-h",
-  "vertical-behind": "pp-thread-line-v",
-} as const;
-
 export function ThreadConnector({
-  persona,
   orientation = "vertical",
   className,
-  style,
 }: ThreadConnectorProps) {
   return (
-    <div
-      aria-hidden="true"
-      data-persona={persona}
-      className={[THREAD_CLASS[orientation], className].filter(Boolean).join(" ")}
-      style={style}
+    <WavyThread
+      className={className}
+      orientation={orientation === "horizontal" ? "horizontal" : "vertical"}
     />
   );
 }
 
-/** Wraps a group of cards so a horizontal thread can sit behind them. */
 export function ThreadGroup({
-  persona,
-  orientation = "horizontal",
   className,
   style,
   children,
+  orientation = "horizontal",
 }: {
   persona?: ThreadPersona;
   orientation?: "horizontal" | "vertical-behind";
@@ -52,9 +34,9 @@ export function ThreadGroup({
   children: React.ReactNode;
 }) {
   return (
-    <div className={["pp-thread-group", className].filter(Boolean).join(" ")} style={style}>
-      <ThreadConnector persona={persona} orientation={orientation} />
-      {children}
+    <div className={["pp-thread-group", className].filter(Boolean).join(" ")} style={{ position: "relative", ...style }}>
+      <ThreadConnector orientation={orientation === "vertical-behind" ? "vertical" : "horizontal"} />
+      <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
     </div>
   );
 }
