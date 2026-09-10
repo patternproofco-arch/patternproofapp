@@ -1,4 +1,4 @@
-/* Load AFTER src/styles.css. One paper/ink system for the whole site. */
+/* One paper/ink system. Load AFTER src/styles.css. */
 
 html:root {
   --paper: #f4f1ea;
@@ -17,6 +17,8 @@ html:root {
 .pp-global-page,
 .folio-page,
 .pp-public-shell,
+.pp-app-shell,
+.att-root,
 body.pp-app {
   background: var(--paper) !important;
   color: var(--ink);
@@ -52,10 +54,10 @@ body.pp-app {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 48px;
-  width: 1.5px;
-  background: var(--stitch);
+  left: 24px;
+  width: 48px;
   pointer-events: none;
+  background: none;
 }
 
 .folio-plate,
@@ -64,6 +66,7 @@ body.pp-app {
 .folio-page .att-card,
 .pp-public-shell section {
   position: relative;
+  z-index: 1;
   background: var(--paper-deep) !important;
   border: 1px solid var(--rule) !important;
   border-radius: 3px !important;
@@ -71,20 +74,10 @@ body.pp-app {
   padding: 20px 22px;
 }
 
-.folio-plate::before {
-  content: "";
-  position: absolute;
-  left: -25px;
-  top: 24px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--stitch);
-}
-
 .folio-kicker,
 .folio-page .label-eyebrow,
-.folio-page .eyebrow {
+.folio-page .eyebrow,
+.folio-page .att-eyebrow {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 11px;
   letter-spacing: 0.16em;
@@ -92,15 +85,10 @@ body.pp-app {
   color: var(--ink-muted);
 }
 
-.folio-page .landing-hero,
-.folio-page section,
-.pp-public-shell {
-  text-align: left !important;
-}
-
 .folio-page .btn-primary,
 .folio-page .pp-btn-primary,
-.folio-page .pp-btn.pp-btn-primary {
+.folio-page .pp-btn.pp-btn-primary,
+.folio-page .att-btn-primary {
   background: var(--ink) !important;
   color: var(--paper) !important;
   border-radius: 3px !important;
@@ -117,9 +105,17 @@ body.pp-app {
   box-shadow: none !important;
 }
 
-.folio-page .portal-path-grid,
-.folio-page [class*="grid"] {
-  gap: 14px;
+/* Kill leftover lavender thread / ambient / pills */
+.pp-thread-line,
+.pp-thread-line-h,
+.pp-thread-line-v {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+[class*="Ambient"],
+.pp-ambient {
+  display: none !important;
 }
 
 .folio-page a {
@@ -129,12 +125,6 @@ body.pp-app {
 @media (max-width: 700px) {
   .folio-shell,
   .pp-public-rail {
-    padding: 20px 16px 72px 36px;
-  }
-  .folio-stitch {
-    left: 16px;
-  }
-  .folio-plate::before {
-    left: -21px;
+    padding: 20px 16px 72px 48px;
   }
 }
