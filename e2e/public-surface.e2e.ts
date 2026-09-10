@@ -16,7 +16,7 @@ test("homepage loads with its heading and no console errors", async ({ page }) =
 
 test("Quick Exit leaves the site", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  const exit = page.getByRole("button", { name: /quick exit/i }).first();
+  const exit = page.getByRole("button", { name: /(quick exit|exit safely)/i }).first();
   await expect(exit).toBeVisible();
   // Wait until the button is actually live before pressing it.
   await page.waitForFunction(
