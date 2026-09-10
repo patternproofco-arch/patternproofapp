@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { WavyThread } from "@/components/WavyThread";
 
 export function TrustPage({
   title,
@@ -12,11 +13,13 @@ export function TrustPage({
 }) {
   return (
     <div className="folio-shell pp-public-shell">
-      <div className="folio-stitch" aria-hidden="true" />
+      <WavyThread />
       <p className="folio-kicker">Record</p>
       <h1 style={{ margin: "10px 0 12px", maxWidth: 640 }}>{title}</h1>
       {subtitle ? <p style={{ margin: "0 0 28px", maxWidth: 640 }}>{subtitle}</p> : null}
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>{children}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, position: "relative", zIndex: 1 }}>
+        {children}
+      </div>
       <p style={{ marginTop: 40, fontSize: 13 }}>
         This page describes controls that are implemented in PatternProof today. Related:{" "}
         <Link to="/privacy">Privacy</Link> · <Link to="/safety">Safety</Link> ·{" "}
@@ -39,15 +42,7 @@ export function Section({ title, children }: { title: string; children: ReactNod
 
 export function Callout({ children }: { children: ReactNode }) {
   return (
-    <div
-      style={{
-        margin: "12px 0",
-        padding: "12px 14px",
-        borderLeft: "2px solid var(--stitch)",
-        color: "var(--ink)",
-        fontSize: 14,
-      }}
-    >
+    <div style={{ margin: "12px 0", padding: "12px 14px", borderLeft: "2px solid var(--stitch)", color: "var(--ink)", fontSize: 14 }}>
       {children}
     </div>
   );
