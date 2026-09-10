@@ -43,6 +43,9 @@ export const createAdvocateInvitation = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    if (!data.include_all_incidents && !data.include_all_evidence && !data.include_patterns) {
+      throw new Error("Choose at least one thing to share before sending this invite.");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let scopedCaseId: string | null = null;
     if (data.case_id) {

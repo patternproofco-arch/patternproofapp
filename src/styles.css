@@ -359,15 +359,18 @@
   white-space: nowrap;
 }
 
-/* Retire route-local global chrome without touching content-level headers. */
-.pp-global-page > div > header,
-.pp-global-page > div > footer,
-.pp-global-page .pp-legal-nav,
-.pp-global-page .pp-shell-header,
-.pp-global-page .pp-portal-header,
-.pp-global-page .att-topbar,
-.pp-global-page .att-footer,
-.pp-global-page [data-quick-exit]:not(.pp-global-exit) {
+/* Retire route-local global chrome on public pages only. Signed-in portals keep
+   their own toolbars (sign out, search, settings, required disclaimers). */
+.pp-global-page:not(:has(.pp-app-chrome)) > div > header:not(.pp-app-chrome),
+.pp-global-page:not(:has(.pp-app-chrome)) > div > footer,
+.pp-global-page:not(:has(.pp-app-chrome)) .pp-legal-nav,
+.pp-global-page:not(:has(.pp-app-chrome)) [data-quick-exit]:not(.pp-global-exit) {
+  display: none !important;
+}
+
+/* When a portal renders its own toolbar, the marketing chrome steps aside. */
+.pp-global-layout:has(.pp-app-chrome) > .pp-global-header,
+.pp-global-layout:has(.pp-app-chrome) > .pp-global-footer {
   display: none !important;
 }
 

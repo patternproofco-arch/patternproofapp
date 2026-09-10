@@ -80,7 +80,7 @@ function AdvocateLayout() {
       style={{ minHeight: "100vh", background: "var(--pp-ground)", color: "var(--foreground)" }}
     >
       <header
-        className="pp-portal-header"
+        className="pp-portal-header pp-app-chrome"
         style={{
           display: "flex",
           alignItems: "center",

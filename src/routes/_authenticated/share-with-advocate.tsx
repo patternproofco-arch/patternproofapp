@@ -84,6 +84,10 @@ function ShareWithAdvocate() {
       toast("Add the advocate's email first.");
       return;
     }
+    if (!incIncidents && !incEvidence && !incPatterns) {
+      toast("Choose at least one thing to share before sending this invite.");
+      return;
+    }
     setBusy(true);
     try {
       const { invitation } = await createFn({
