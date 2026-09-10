@@ -1,7 +1,7 @@
 {
-  "name": "PatternProof — Private Evidence Timeline",
-  "short_name": "PatternProof",
-  "description": "Private evidence documentation for survivors, attorneys, and domestic violence organizations.",
+  "name": "Notes",
+  "short_name": "Notes",
+  "description": "A simple place for your notes.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
@@ -29,9 +29,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Document an event",
-      "short_name": "Document",
-      "description": "Start a private evidence record right away",
+      "name": "New note",
+      "short_name": "New note",
+      "description": "Start a new note",
       "url": "/live-recording?auto=1",
       "icons": [
         {
