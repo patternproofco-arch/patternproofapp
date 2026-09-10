@@ -1,4 +1,4 @@
-/* Load AFTER src/styles.css. Restores ink-and-paper on marketing only. */
+/* Load AFTER src/styles.css. One paper/ink system for the whole site. */
 
 html:root {
   --paper: #f4f1ea;
@@ -13,25 +13,35 @@ html:root {
   --rule: #d4cfc4;
 }
 
-.folio-page {
+.pp-global-layout,
+.pp-global-page,
+.folio-page,
+.pp-public-shell,
+body.pp-app {
   background: var(--paper) !important;
   color: var(--ink);
 }
 
 .folio-page h1,
 .folio-page h2,
-.folio-page h3 {
+.folio-page h3,
+.pp-public-shell h1,
+.pp-public-shell h2,
+.pp-public-shell h3 {
   font-family: "Newsreader", Georgia, serif;
   font-weight: 400;
   color: var(--ink);
 }
 
 .folio-page p,
-.folio-page li {
+.folio-page li,
+.pp-public-shell p,
+.pp-public-shell li {
   color: var(--ink-muted);
 }
 
-.folio-shell {
+.folio-shell,
+.pp-public-rail {
   position: relative;
   max-width: 1080px;
   margin: 0 auto;
@@ -48,12 +58,16 @@ html:root {
   pointer-events: none;
 }
 
-.folio-plate {
+.folio-plate,
+.folio-page .pp-card,
+.folio-page .card-pp,
+.folio-page .att-card,
+.pp-public-shell section {
   position: relative;
-  background: var(--paper-deep);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  box-shadow: none;
+  background: var(--paper-deep) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
   padding: 20px 22px;
 }
 
@@ -68,7 +82,9 @@ html:root {
   background: var(--stitch);
 }
 
-.folio-kicker {
+.folio-kicker,
+.folio-page .label-eyebrow,
+.folio-page .eyebrow {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 11px;
   letter-spacing: 0.16em;
@@ -76,14 +92,15 @@ html:root {
   color: var(--ink-muted);
 }
 
-.folio-page .landing-hero {
+.folio-page .landing-hero,
+.folio-page section,
+.pp-public-shell {
   text-align: left !important;
-  max-width: 640px !important;
-  margin-left: 0 !important;
 }
 
 .folio-page .btn-primary,
-.folio-page .pp-btn-primary {
+.folio-page .pp-btn-primary,
+.folio-page .pp-btn.pp-btn-primary {
   background: var(--ink) !important;
   color: var(--paper) !important;
   border-radius: 3px !important;
@@ -100,22 +117,18 @@ html:root {
   box-shadow: none !important;
 }
 
-.folio-page .card-pp,
-.folio-page .pp-card {
-  background: var(--paper-deep);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  box-shadow: none;
+.folio-page .portal-path-grid,
+.folio-page [class*="grid"] {
+  gap: 14px;
 }
 
-.folio-page .portal-path-grid {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 14px !important;
+.folio-page a {
+  color: var(--indigo);
 }
 
 @media (max-width: 700px) {
-  .folio-shell {
+  .folio-shell,
+  .pp-public-rail {
     padding: 20px 16px 72px 36px;
   }
   .folio-stitch {

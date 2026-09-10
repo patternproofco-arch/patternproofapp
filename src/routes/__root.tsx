@@ -95,39 +95,17 @@ const quickExitFallbackScript = `(function () {
   }, true);
 })();`;
 
-const FOLIO_PATHS = new Set([
-  "/",
-  "/how-it-works",
-  "/for-attorneys",
-  "/for-organizations",
-  "/pricing",
-  "/safety",
-  "/privacy",
-  "/signup",
-  "/signin",
-  "/login",
-  "/demo",
-  "/family-law-workload",
-]);
-
 function NotFoundComponent() {
   return (
-    <div
-      data-persona="survivor"
-      className="flex min-h-screen items-center justify-center bg-background px-4"
-    >
-      <div className="pp-card max-w-md text-center">
-        <p className="label-eyebrow">PatternProof</p>
-        <h1 className="mt-3 font-display text-7xl text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div className="mt-6">
-          <Link to="/" className="pp-btn pp-btn-primary">
-            Go home
-          </Link>
-        </div>
+    <div className="folio-shell">
+      <div className="folio-stitch" aria-hidden="true" />
+      <p className="folio-kicker">PatternProof</p>
+      <h1 style={{ marginTop: 12 }}>Page not found</h1>
+      <p>The page you're looking for doesn't exist or has been moved.</p>
+      <div style={{ marginTop: 24 }}>
+        <Link to="/" className="btn-primary">
+          Go home
+        </Link>
       </div>
     </div>
   );
@@ -138,32 +116,24 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
 
   return (
-    <div
-      data-persona="survivor"
-      className="flex min-h-screen items-center justify-center bg-background px-4"
-    >
-      <div className="pp-card max-w-md text-center">
-        <p className="label-eyebrow">PatternProof</p>
-        <h1 className="mt-3 text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="pp-btn pp-btn-primary"
-          >
-            Try again
-          </button>
-          <a href="/" className="pp-btn pp-btn-secondary">
-            Go home
-          </a>
-        </div>
+    <div className="folio-shell">
+      <div className="folio-stitch" aria-hidden="true" />
+      <p className="folio-kicker">PatternProof</p>
+      <h1 style={{ marginTop: 12 }}>This page didn't load</h1>
+      <p>Something went wrong on our end. You can try refreshing or head back home.</p>
+      <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
+        <button
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
+          className="btn-primary"
+        >
+          Try again
+        </button>
+        <a href="/" className="btn-ghost">
+          Go home
+        </a>
       </div>
     </div>
   );
@@ -209,48 +179,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      {
-        rel: "stylesheet",
-        href: folioLockCss,
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: folioLockCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;1,500&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap",
       },
-      {
-        rel: "manifest",
-        href: "/manifest.webmanifest",
-      },
-      {
-        rel: "icon",
-        type: "image/svg+xml",
-        href: "/favicon.svg",
-      },
-      {
-        rel: "icon",
-        type: "image/png",
-        href: "/icons/icon-192.png",
-        sizes: "192x192",
-      },
-      {
-        rel: "apple-touch-icon",
-        href: "/icons/icon-192.png",
-      },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", type: "image/png", href: "/icons/icon-192.png", sizes: "192x192" },
+      { rel: "apple-touch-icon", href: "/icons/icon-192.png" },
     ],
     scripts: [
-      {
-        children: quickExitFallbackScript,
-      },
-      {
-        async: true,
-        src: `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`,
-      },
+      { children: quickExitFallbackScript },
+      { async: true, src: `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}` },
       {
         children: `window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
@@ -278,8 +222,6 @@ gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`,
               "@id": "https://pattern-proof.tech/#website",
               name: "PatternProof Private Evidence Documentation",
               url: "https://pattern-proof.tech/",
-              description:
-                "Private evidence documentation software for domestic violence survivors, family law attorneys, and DV organizations. Organize records into a source-linked timeline and share only what you choose.",
               publisher: { "@id": "https://pattern-proof.tech/#organization" },
             },
           ],
@@ -299,19 +241,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="pp-app">
+      <body className="pp-app folio-page">
         {children}
         <Scripts />
       </body>
     </html>
   );
-}
-
-function FolioPageFrame({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const path = router.state.location.pathname;
-  const folio = FOLIO_PATHS.has(path);
-  return <div className={folio ? "folio-page" : undefined}>{children}</div>;
 }
 
 function RootComponent() {
@@ -321,12 +256,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <GoogleAnalyticsRouteTracker />
-        <div className="pp-global-layout">
+        <div className="pp-global-layout folio-page">
           <GlobalHeader />
-          <div className="pp-global-page">
-            <FolioPageFrame>
-              <Outlet />
-            </FolioPageFrame>
+          <div className="pp-global-page folio-page">
+            <Outlet />
           </div>
           <GlobalFooter />
         </div>
@@ -335,12 +268,12 @@ function RootComponent() {
           position="top-center"
           toastOptions={{
             style: {
-              background: "var(--pp-ground)",
-              color: "var(--pp-ink)",
-              border: "none",
-              borderRadius: "var(--pp-r-lg, 20px)",
-              fontFamily: "var(--font-sans)",
-              boxShadow: "var(--pp-shadow-up)",
+              background: "var(--paper)",
+              color: "var(--ink)",
+              border: "1px solid var(--rule)",
+              borderRadius: "3px",
+              fontFamily: "Source Sans 3, system-ui, sans-serif",
+              boxShadow: "none",
             },
           }}
         />
