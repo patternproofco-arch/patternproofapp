@@ -113,6 +113,9 @@
     "vitest": "^4.1.10"
   },
   "overrides": {
+    "@ai-sdk/provider-utils": "^4.0.33",
+    "esbuild": "^0.28.1",
+    "sharp": "^0.35.4",
     "ws": "^8.21.0",
     "undici": "^8.5.0",
     "js-yaml": "^5.1.0",

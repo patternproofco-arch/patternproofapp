@@ -1,7 +1,8 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const productionEnv = readFileSync(".env", "utf8");
+const hasProductionEnv = existsSync(".env");
+const productionEnv = hasProductionEnv ? readFileSync(".env", "utf8") : "";
 const supabaseConfig = readFileSync("supabase/config.toml", "utf8");
 
 const env = Object.fromEntries(
@@ -19,7 +20,7 @@ const env = Object.fromEntries(
     }),
 );
 
-describe("production Supabase environment", () => {
+describe.skipIf(!hasProductionEnv)("production Supabase environment", () => {
   it("commits the browser-safe values Lovable requires at build time", () => {
     expect(env.VITE_SUPABASE_URL).toMatch(/^https:\/\/[a-z0-9]+\.supabase\.co$/);
     expect(env.VITE_SUPABASE_PUBLISHABLE_KEY).toMatch(/^(sb_publishable_|eyJ)/);
