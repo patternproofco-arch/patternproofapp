@@ -61,6 +61,16 @@
 }
 
 :root {
+  --paper: #f4f1ea;
+  --paper-deep: #ebe6dc;
+  --ink: #1a1916;
+  --ink-muted: #5c574f;
+  --stitch: #2a2622;
+  --indigo: #3d4a6b;
+  --oxblood: #6e2e32;
+  --exit: #6e7a63;
+  --exit-wash: #e7ebdf;
+  --rule: #d4cfc4;
   --purple: #16235c; /* deep navy blue (attorney) — ACTIVE, feeds --pp-accent-attorney */
 
   --lav: #7eb6ff;
@@ -208,6 +218,184 @@
   --pp-shadow-in-sm:
     inset 4px 4px 8px var(--pp-shadow-dark), inset -4px -4px 8px var(--pp-shadow-lite);
   --pp-shadow-glow: none;
+}
+
+/* Global site chrome — intentionally isolated from page content. */
+.pp-global-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pp-global-page {
+  min-height: 0;
+  flex: 1;
+}
+
+.pp-global-header {
+  position: relative;
+  z-index: 10000;
+  height: 56px;
+  flex: 0 0 56px;
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) auto minmax(190px, 1fr);
+  align-items: center;
+  gap: 24px;
+  padding: 0 24px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  font-family: "Source Sans 3", system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.pp-global-brand,
+.pp-global-nav,
+.pp-global-actions {
+  display: flex;
+  align-items: center;
+}
+
+.pp-global-brand {
+  justify-self: start;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.pp-global-nav {
+  justify-self: center;
+  gap: 24px;
+}
+
+.pp-global-nav a,
+.pp-global-signin {
+  color: var(--ink-muted);
+  font-family: "Source Sans 3", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+
+.pp-global-nav a:hover,
+.pp-global-signin:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pp-global-actions {
+  justify-self: end;
+  gap: 16px;
+}
+
+.pp-global-exit {
+  height: 32px;
+  border: 0;
+  border-radius: 3px;
+  padding: 0 10px;
+  background: var(--exit-wash);
+  box-shadow: none;
+  color: var(--exit);
+  font-family: "Source Sans 3", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.pp-global-exit:hover {
+  background: var(--exit-wash);
+  color: var(--exit);
+  box-shadow: none;
+}
+
+.pp-global-exit svg {
+  width: 14px;
+  height: 14px;
+}
+
+.pp-global-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 72px;
+  padding: 18px 24px;
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
+  color: var(--ink-muted);
+  font-family: "Source Sans 3", system-ui, sans-serif;
+  font-size: 13px;
+}
+
+.pp-global-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+.pp-global-footer a {
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+
+.pp-global-footer a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pp-global-footer p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Retire route-local global chrome without touching content-level headers. */
+.pp-global-page > div > header,
+.pp-global-page > div > footer,
+.pp-global-page .pp-legal-nav,
+.pp-global-page .pp-shell-header,
+.pp-global-page .pp-portal-header,
+.pp-global-page .att-topbar,
+.pp-global-page .att-footer,
+.pp-global-page [data-quick-exit]:not(.pp-global-exit) {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .pp-global-header {
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .pp-global-nav {
+    display: none;
+  }
+
+  .pp-global-actions {
+    gap: 10px;
+  }
+
+  .pp-global-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 16px;
+  }
+
+  .pp-global-footer p {
+    white-space: normal;
+  }
 }
 
 /* Persona grounds stay soft; accents LOCKED */

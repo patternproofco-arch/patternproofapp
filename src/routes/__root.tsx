@@ -13,6 +13,8 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
 import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
 import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
+import { GlobalHeader } from "@/components/GlobalHeader";
+import { GlobalFooter } from "@/components/GlobalFooter";
 
 /**
  * Quick Exit, reimplemented in plain JS and inlined so it works from first
@@ -212,7 +214,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Public+Sans:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;1,500&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap",
       },
       {
         rel: "manifest",
@@ -308,7 +310,13 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <GoogleAnalyticsRouteTracker />
-        <Outlet />
+        <div className="pp-global-layout">
+          <GlobalHeader />
+          <div className="pp-global-page">
+            <Outlet />
+          </div>
+          <GlobalFooter />
+        </div>
         <ProfessionalReadinessKitCapture />
         <Toaster
           position="top-center"
