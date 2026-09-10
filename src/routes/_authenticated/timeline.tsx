@@ -345,15 +345,18 @@ function TimelinePage() {
                   <button
                     key={t.value}
                     onClick={() => toggleType(t.value)}
-                    className="rounded-2xl px-3 py-1 text-[11px] font-semibold"
+                    aria-pressed={on}
+                    className="px-3 py-1 text-[11px] font-semibold"
                     style={{
-                      background: on ? t.color : "transparent",
-                      color: on ? "#fff" : "var(--foreground)",
-                      border: `1.5px solid ${t.color}`,
+                      background: on ? "var(--ink)" : "transparent",
+                      color: on ? "var(--paper)" : "var(--ink)",
+                      border: "1px solid var(--rule)",
+                      borderRadius: 3,
                     }}
                   >
                     {t.label}
                   </button>
+
                 );
               })}
             </div>

@@ -58,7 +58,7 @@ export function QuickExitButton({
       aria-label="Quick exit"
       title="Quick exit — signs you out and leaves. Drag to move, double-press Esc to exit"
       data-quick-exit="true"
-      className="no-print fixed z-[9999] inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold"
+      className="no-print fixed z-[9999] inline-flex items-center gap-1.5 rounded-[3px] px-3 py-1.5 text-[12px] font-bold"
       style={{
         background: "#B7D8B0" /* pastel green */,
         color: "#1F3A1B",
