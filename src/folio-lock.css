@@ -1,4 +1,4 @@
-/* Load AFTER src/styles.css. Restores ink-and-paper on marketing only. */
+/* Load AFTER src/styles.css. Paper & Ink for marketing AND signed-in shells. */
 
 html:root {
   --paper: #f4f1ea;
@@ -11,24 +11,57 @@ html:root {
   --exit: #6e7a63;
   --exit-wash: #e7ebdf;
   --rule: #d4cfc4;
+  --pp-paper: var(--paper);
+  --pp-ground: var(--paper);
+  --pp-card: var(--paper-deep);
+  --pp-ink: var(--ink);
+  --pp-muted: var(--ink-muted);
+  --pp-shadow-up: none;
+  --pp-shadow-sm: none;
+  --pp-shadow-xs: none;
+  --pp-shadow-lg: none;
+  --pp-r-sm: 3px;
+  --pp-r-md: 3px;
+  --pp-r-lg: 3px;
+  --pp-r-xl: 3px;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --muted-foreground: var(--ink-muted);
 }
 
-.folio-page {
+[data-persona="survivor"],
+[data-persona="attorney"],
+[data-persona="org"],
+[data-persona="shared"] {
+  --pp-ground: var(--paper);
+  --pp-card: var(--paper-deep);
+  --background: var(--paper);
+  --pp-shadow-sm: none;
+  --pp-shadow-up: none;
+  --pp-shadow-xs: none;
+}
+
+body.pp-app,
+.folio-page,
+.pp-app-shell,
+.att-root,
+.pp-portal-shell,
+.pp-global-layout,
+.pp-global-page {
   background: var(--paper) !important;
   color: var(--ink);
 }
 
 .folio-page h1,
 .folio-page h2,
-.folio-page h3 {
+.folio-page h3,
+.pp-app-shell h1,
+.pp-app-shell h2,
+.att-root h1,
+.pp-portal-shell h1 {
   font-family: "Newsreader", Georgia, serif;
   font-weight: 400;
   color: var(--ink);
-}
-
-.folio-page p,
-.folio-page li {
-  color: var(--ink-muted);
 }
 
 .folio-shell {
@@ -83,7 +116,10 @@ html:root {
 }
 
 .folio-page .btn-primary,
-.folio-page .pp-btn-primary {
+.folio-page .pp-btn-primary,
+.pp-app-shell .btn-primary,
+.att-root .att-btn-primary,
+.pp-portal-shell .btn-primary {
   background: var(--ink) !important;
   color: var(--paper) !important;
   border-radius: 3px !important;
@@ -101,17 +137,53 @@ html:root {
 }
 
 .folio-page .card-pp,
-.folio-page .pp-card {
-  background: var(--paper-deep);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  box-shadow: none;
+.folio-page .pp-card,
+.pp-app-shell .card-pp,
+.pp-app-shell .pp-card,
+.att-root .card-pp,
+.pp-portal-shell .card-pp,
+.pp-portal-shell .pp-card {
+  background: var(--paper-deep) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
 }
 
-.folio-page .portal-path-grid {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 14px !important;
+.att-root {
+  --att-bg: var(--paper);
+  --att-surface: var(--paper-deep);
+  --att-surface-2: var(--paper);
+}
+
+.att-root,
+.att-root.att-cockpit,
+.att-content,
+.att-sidebar {
+  background: var(--paper) !important;
+  box-shadow: none !important;
+}
+
+.att-sidebar {
+  background: var(--paper-deep) !important;
+  border-right: 1px solid var(--rule) !important;
+}
+
+.att-table tbody tr {
+  background: var(--paper-deep) !important;
+  box-shadow: none !important;
+}
+
+.att-table tbody td:first-child,
+.att-table tbody td:last-child {
+  border-radius: 3px !important;
+}
+
+.pp-app-shell .pp-shell-header,
+.pp-portal-header,
+.att-topbar {
+  background: var(--paper) !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid var(--rule);
 }
 
 @media (max-width: 700px) {
