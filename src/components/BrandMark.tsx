@@ -29,14 +29,15 @@ export interface MarkColorway {
 }
 
 export const MARK_COLORWAYS: Record<Exclude<MarkVariant, "neutral">, MarkColorway> = {
-  survivor: { kind: "gradient", gradientFrom: "#E5A1E4", gradientTo: "#A1BDF3" },
+  // Locked system: the mark is flat ink everywhere; no gradients, no lavender.
+  survivor: { kind: "solid", solid: "var(--ink)" },
   attorney: { kind: "solid", solid: "var(--pp-accent-attorney)" },
   advocate: { kind: "solid", solid: "var(--pp-accent-org)" },
   ink: { kind: "solid", solid: "var(--ink)" },
 };
 
 export function markColorway(variant: MarkVariant = "neutral"): MarkColorway {
-  return MARK_COLORWAYS[variant === "neutral" ? "survivor" : variant];
+  return MARK_COLORWAYS[variant === "neutral" ? "ink" : variant];
 }
 
 interface BrandMarkProps {

@@ -23,6 +23,8 @@ import {
 } from "@/lib/evidence-ingest.functions";
 import { enrichEvidence } from "@/lib/evidence-enrichment.functions";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
+import { extractEvidenceDocument } from "@/lib/document-extract.functions";
+import { isReadableDocument } from "@/lib/readable-documents";
 import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
 import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 import { readExif, stripExif, type ExifSummary } from "@/lib/exif";
@@ -145,6 +147,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const rejectNear = useServerFn(rejectNearDuplicate);
   const enrich = useServerFn(enrichEvidence);
   const transcribe = useServerFn(transcribeEvidence);
+  const extractDoc = useServerFn(extractEvidenceDocument);
   const proposeTimeline = useServerFn(proposeTimelineFromEvidence);
   const openBatch = useServerFn(openIntakeBatch);
   const updateBatch = useServerFn(updateIntakeBatch);
@@ -415,6 +418,14 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
               await transcribe({ data: { evidence_id: it.evidence_id! } });
             } catch {
               /* transcript_status stays 'failed' server-side */
+            }
+          } else if (isReadableDocument(mime, it.original_filename)) {
+            // PDFs, Word files and plain text get read the same way here as
+            // they do when a file is added one at a time.
+            try {
+              await extractDoc({ data: { evidence_id: it.evidence_id! } });
+            } catch {
+              /* extraction_status stays 'failed' server-side */
             }
           }
         }),

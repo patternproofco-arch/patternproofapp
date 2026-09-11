@@ -26,6 +26,7 @@ import {
   extractEvidenceDocument,
   verifyExtractedText,
 } from "@/lib/document-extract.functions";
+import { isReadableDocument } from "@/lib/readable-documents";
 
 import { FocusRegion } from "@/components/survivor/focus-mode";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -101,20 +102,8 @@ type ExtractedDraft = {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-
-/** Files whose words we can read out and show back for review. */
-function isReadableDocument(mime: string | null | undefined, filename?: string | null): boolean {
-  const m = (mime ?? "").toLowerCase();
-  const n = (filename ?? "").toLowerCase();
-  return (
-    m === "application/pdf" ||
-    m === DOCX_MIME ||
-    m.startsWith("text/") ||
-    m === "application/json" ||
-    /\.(pdf|docx|txt|csv|md)$/.test(n)
-  );
-}
+// Files whose words we can read out and show back for review — shared with the
+// batch uploader so both paths handle exactly the same formats.
 
 
 function KindIcon({ kind, size = 22 }: { kind: string; size?: number }) {
@@ -323,13 +312,31 @@ function EvidencePage() {
       toast("Saved. Reading the text out of this document…");
       void extractDocFn({ data: { evidence_id: newRow.id } })
         .then(async (r) => {
-          toast(
-            r.ok
-              ? "Text ready to review below."
-              : r.status === "unsupported"
-                ? "Saved. This format's text can't be read automatically yet."
-                : "Saved. We couldn't read the text this time — you can retry below.",
-          );
+          let note = r.ok
+            ? "Text ready to review below."
+            : r.status === "unsupported"
+              ? "Saved. This format's text can't be read automatically yet."
+              : "Saved. We couldn't read the text this time — you can retry below.";
+          if (r.ok) {
+            // Same review-only path the media files take: the words we read can
+            // suggest a timeline draft, and nothing is added until she accepts.
+            try {
+              const proposal = await proposeTimelineFn({
+                data: {
+                  evidence_ids: [newRow.id],
+                  include_threads: false,
+                  include_voice_notes: false,
+                  max_items: 1,
+                },
+              });
+              if (proposal.ok && proposal.proposed_timeline?.length) {
+                note = "Text ready to review, and a timeline draft is waiting for you.";
+              }
+            } catch {
+              /* the text is saved; drafts can be retried from the timeline */
+            }
+          }
+          toast(note);
           await load();
         })
         .catch(() => {
