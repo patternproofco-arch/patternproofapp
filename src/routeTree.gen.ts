@@ -50,6 +50,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdvocateSurvivorInviteTokenRouteImport } from './routes/advocate-survivor-invite.$token'
@@ -320,6 +321,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
 const CollaboratorInviteTokenRoute = CollaboratorInviteTokenRouteImport.update({
   id: '/collaborator-invite/$token',
   path: '/collaborator-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AttorneyTokenRoute = AttorneyTokenRouteImport.update({
@@ -785,6 +791,7 @@ export interface FileRoutesByFullPath {
   '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
@@ -892,6 +899,7 @@ export interface FileRoutesByTo {
   '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
@@ -1005,6 +1013,7 @@ export interface FileRoutesById {
   '/advocate-survivor-invite/$token': typeof AdvocateSurvivorInviteTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/attorney/$token': typeof AttorneyTokenRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
@@ -1116,6 +1125,7 @@ export interface FileRouteTypes {
     | '/advocate-survivor-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
+    | '/auth/callback'
     | '/collaborator-invite/$token'
     | '/email/unsubscribe'
     | '/survivor-invite/$token'
@@ -1223,6 +1233,7 @@ export interface FileRouteTypes {
     | '/advocate-survivor-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
+    | '/auth/callback'
     | '/collaborator-invite/$token'
     | '/email/unsubscribe'
     | '/survivor-invite/$token'
@@ -1335,6 +1346,7 @@ export interface FileRouteTypes {
     | '/advocate-survivor-invite/$token'
     | '/api/chat'
     | '/attorney/$token'
+    | '/auth/callback'
     | '/collaborator-invite/$token'
     | '/email/unsubscribe'
     | '/survivor-invite/$token'
@@ -1404,6 +1416,7 @@ export interface RootRouteChildren {
   AdvocateSurvivorInviteTokenRoute: typeof AdvocateSurvivorInviteTokenRoute
   ApiChatRoute: typeof ApiChatRoute
   AttorneyTokenRoute: typeof AttorneyTokenRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
@@ -1707,6 +1720,13 @@ declare module '@tanstack/react-router' {
       path: '/collaborator-invite/$token'
       fullPath: '/collaborator-invite/$token'
       preLoaderRoute: typeof CollaboratorInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attorney/$token': {
@@ -2393,6 +2413,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdvocateSurvivorInviteTokenRoute: AdvocateSurvivorInviteTokenRoute,
   ApiChatRoute: ApiChatRoute,
   AttorneyTokenRoute: AttorneyTokenRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
