@@ -8,20 +8,12 @@ import { submitOrgAccessRequest } from "@/lib/org-portal.functions";
 export const Route = createFileRoute("/partner-access")({
   head: () => ({
     meta: [
-      { title: "Request partner access — PatternProof" },
+      { title: "Organization signup — PatternProof" },
       {
         name: "description",
         content:
-          "Domestic violence organizations can request access to the PatternProof partner portal. Every organization is reviewed by hand.",
+          "Domestic violence organizations can create a PatternProof account. Survivors keep the file.",
       },
-      { property: "og:title", content: "Request partner access — PatternProof" },
-      {
-        property: "og:description",
-        content:
-          "Domestic violence organizations can request access to the PatternProof partner portal.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PartnerAccess,
@@ -77,30 +69,24 @@ function PartnerAccess() {
   };
 
   return (
-    <div data-pp-paper="" className="pp-public-shell min-h-screen px-4 py-10">
+    <div data-pp-paper="" className="pp-public-shell folio-page min-h-screen px-4 py-10">
       <PublicQuickExit />
       <div className="mx-auto w-full max-w-[640px]">
         <div className="mb-6 flex flex-col items-center text-center">
           <BrandMark size={72} variant="advocate" />
-          <h1 className="font-serif text-[28px] font-bold mt-3">Request partner access</h1>
+          <h1 className="font-serif text-[28px] font-bold mt-3">Create an organization account</h1>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            Partner portals are invitation-only. Tell us about your organization and we&apos;ll
-            follow up by email — a person reads every request.
+            Tell us about your organization. Print the intake QR at /intake. Survivors keep the
+            file. A person reads every form.
           </p>
         </div>
 
         {done ? (
           <div className="card-pp text-center">
-            <h2 className="font-serif text-[20px]">Request received</h2>
-            <p className="mt-2 text-[13.5px]" style={{ color: "var(--muted-foreground)" }}>
-              {done}
-            </p>
-            <p className="mt-3 text-[12.5px]" style={{ color: "var(--muted-foreground)" }}>
-              Nothing is approved automatically, and this request gives no access to anyone&apos;s
-              records.
-            </p>
-            <Link to="/for-organizations" className="btn-primary mt-5 inline-flex">
-              Back to partner overview
+            <h2 className="font-serif text-[20px]">Received</h2>
+            <p className="mt-2 text-[13.5px]">{done}</p>
+            <Link to="/org-signup" className="btn-primary mt-5 inline-flex">
+              Or create an account now
             </Link>
           </div>
         ) : (
@@ -111,12 +97,7 @@ function PartnerAccess() {
             <Field label="Work email" name="email" type="email" required />
             <Field label="Your role or title" name="contact_role" required />
             <Field label="Phone (optional)" name="phone" />
-            <Field
-              label="Service area (state or region)"
-              name="service_area"
-              required
-              placeholder="e.g. New Jersey"
-            />
+            <Field label="Service area (state or region)" name="service_area" required placeholder="e.g. New Jersey" />
             <label className="block text-[12.5px] font-semibold">
               Organization type
               <select name="org_type" required className="input-pp mt-1" defaultValue="">
@@ -130,38 +111,18 @@ function PartnerAccess() {
                 ))}
               </select>
             </label>
-            <Field
-              label="Survivors you support in a typical month (optional)"
-              name="survivors_per_month"
-              type="number"
-            />
+            <Field label="Survivors you support in a typical month (optional)" name="survivors_per_month" type="number" />
             <label className="block text-[12.5px] font-semibold">
               How would your team use PatternProof?
-              <textarea
-                name="message"
-                required
-                minLength={10}
-                maxLength={2000}
-                rows={4}
-                className="input-pp mt-1"
-                placeholder="A sentence or two is plenty."
-              />
+              <textarea name="message" required minLength={10} maxLength={2000} rows={4} className="input-pp mt-1" />
             </label>
             <label className="flex items-start gap-2 text-[12.5px]">
               <input type="checkbox" required className="mt-[3px]" name="contact_consent" />
-              <span>
-                It&apos;s okay to contact me at this work email about this request. Advocates and
-                organization staff are not necessarily lawyers, and confidentiality obligations vary
-                by role and state.
-              </span>
+              <span>It is okay to contact me at this work email about this form.</span>
             </label>
-            {error && (
-              <p className="text-[12.5px]" style={{ color: "var(--accent)" }}>
-                {error}
-              </p>
-            )}
+            {error && <p className="text-[12.5px]">{error}</p>}
             <button type="submit" className="btn-primary w-full" disabled={saving}>
-              {saving ? "Sending…" : "Send request"}
+              {saving ? "Sending…" : "Send"}
             </button>
           </form>
         )}
@@ -186,13 +147,7 @@ function Field({
   return (
     <label className="block text-[12.5px] font-semibold">
       {label}
-      <input
-        className="input-pp mt-1"
-        name={name}
-        type={type}
-        required={required}
-        placeholder={placeholder}
-      />
+      <input className="input-pp mt-1" name={name} type={type} required={required} placeholder={placeholder} />
     </label>
   );
 }
