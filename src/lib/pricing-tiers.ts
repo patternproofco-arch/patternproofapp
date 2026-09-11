@@ -16,6 +16,10 @@ export const CHARTER_COHORT_CAP = 10;
 /** Hard maximum members per firm — must match FIRM_SEAT_MAX in firm-grants.functions.ts. */
 export const FIRM_SEAT_MAX = 5;
 
+/** Active-matter caps — must match SOLO_MATTER_CAP / MATTER_CAP_PER_SEAT in matter-cap.ts. */
+export const SOLO_MATTER_CAP = 10;
+export const FIRM_MATTER_CAP = 10 * FIRM_SEAT_MAX;
+
 export type Tier = {
   key: string;
   name: string;
@@ -72,7 +76,7 @@ export const BASE_TIERS: Tier[] = [
     sub: "/month · Solo",
     quote: "For solo practitioners taking DV and custody cases one at a time.",
     features: [
-      "Single attorney account",
+      `Single attorney account — up to ${SOLO_MATTER_CAP} active matters`,
       "Structured chronological timeline",
       "Source-linked supporting records",
       "Exportable case summary (ZIP) — imports into practice management systems",
@@ -117,7 +121,7 @@ export const ATTORNEY_PORTAL_TIER_BULLETS: {
   firm: string[];
 } = {
   solo: [
-    "Single attorney account",
+    `Single attorney account — up to ${SOLO_MATTER_CAP} active matters`,
     "Structured chronological timeline + pattern analysis",
     "Exportable case summary (ZIP) — imports into practice management systems",
     "Private attorney notes per incident",
@@ -126,7 +130,7 @@ export const ATTORNEY_PORTAL_TIER_BULLETS: {
   firm_charter: [
     `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
     "Everything in Solo Attorney",
-    "No matter limit enforced today",
+    `Up to ${FIRM_MATTER_CAP} active matters (10 per seat)`,
     "Multi-attorney collaboration and shared case notes",
     "Caseload and capacity view across the firm",
     "Conflict check across your own caseload",
@@ -136,7 +140,7 @@ export const ATTORNEY_PORTAL_TIER_BULLETS: {
   firm: [
     `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
     "Everything in Solo Attorney",
-    "No matter limit enforced today",
+    `Up to ${FIRM_MATTER_CAP} active matters (10 per seat)`,
     "Multi-attorney collaboration and shared case notes",
     "Caseload and capacity view across the firm",
     "Conflict check across your own caseload",
@@ -157,7 +161,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         features: [
           `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
           "Everything in Solo Attorney",
-          "No matter limit enforced today",
+          `Up to ${FIRM_MATTER_CAP} active matters (10 per seat)`,
           "Multi-attorney collaboration and shared case notes",
           "Caseload and capacity view across the firm",
           "Conflict-of-interest check across your own PatternProof caseload",
@@ -181,7 +185,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         features: [
           `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
           "Everything in Solo Attorney",
-          "No matter limit enforced today",
+          `Up to ${FIRM_MATTER_CAP} active matters (10 per seat)`,
           "Multi-attorney collaboration and shared case notes",
           "Caseload and capacity view across the firm",
           "Conflict-of-interest check across your own PatternProof caseload",

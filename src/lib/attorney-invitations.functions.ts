@@ -222,6 +222,9 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       { onConflict: "user_id,role" },
     );
 
+    const { assertMatterCapacity } = await import("@/lib/matter-cap");
+    await assertMatterCapacity(supabaseAdmin, context.userId);
+
     // Create link
     const { data: link, error: linkErr } = await supabaseAdmin
       .from("attorney_client_links")

@@ -33,3 +33,18 @@ This update records policy only. It does not implement beta entitlements, change
 Pricing display source: `src/lib/pricing-tiers.ts`. Payment lookup implementation: `src/lib/payments.functions.ts`.
 
 Planning source: [PatternProof Execution Plan](https://app.notion.com/p/3cc8ac0db7da81be9974d4d787ca1302).
+
+## Addendum — September 11, 2026: matter caps enforced
+
+The August 30 decision above records that matter limits were not approved.
+On September 11, 2026, the founder explicitly directed superseding that and
+enforcing active-matter caps rather than leaving them unmetered indefinitely:
+10 active matters for Solo, and a shared firm pool of 10 per seat (up to
+`FIRM_SEAT_MAX`, currently 5, i.e. up to 50 for a fully-seated firm).
+Enforced in `src/lib/matter-cap.ts`, checked at the two points a new active
+`attorney_client_links` row is created (`acceptInvitation` in
+`attorney-invitations.functions.ts` and `acceptSurvivorInvite` in
+`attorney-survivor-invites.functions.ts`). Pricing copy in
+`src/lib/pricing-tiers.ts` updated to state these numbers instead of "not
+metered today." This addendum, not the August 30 section above, is the
+current policy on matter caps.

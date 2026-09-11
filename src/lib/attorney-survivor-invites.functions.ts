@@ -283,6 +283,9 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
         throw new Error("One or more selected evidence files couldn't be shared.");
       }
     }
+    const { assertMatterCapacity } = await import("@/lib/matter-cap");
+    await assertMatterCapacity(supabaseAdmin, inv.attorney_user_id);
+
     const linkPayload = {
       attorney_user_id: inv.attorney_user_id,
       client_user_id: context.userId,
