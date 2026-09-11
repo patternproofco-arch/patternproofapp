@@ -16,6 +16,7 @@ export function isReadableDocument(
     m === DOCX_MIME_TYPE ||
     m.startsWith("text/") ||
     m === "application/json" ||
-    /\.(pdf|docx|txt|csv|md|json)$/.test(n)
+    m.startsWith("image/") ||
+    /\.(pdf|docx|txt|csv|md|json|jpe?g|png|heic|heif|webp|gif)$/.test(n)
   );
 }

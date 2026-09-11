@@ -84,8 +84,10 @@ export const transcribeEvidence = createServerFn({ method: "POST" })
         row.original_filename ?? (mime.startsWith("video/") ? "clip.mp4" : "clip.wav"),
       );
       form.append("model", "openai/gpt-4o-transcribe");
-      // Request verbose JSON so we get segment timestamps.
-      form.append("response_format", "verbose_json");
+      // This model only accepts `json` or `text`. Asking for verbose_json made
+      // every transcription fail with a 400, so recordings were preserved but
+      // never read back. Segment timestamps are simply not offered here.
+      form.append("response_format", "json");
 
       const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
         method: "POST",

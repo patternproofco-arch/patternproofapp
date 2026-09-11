@@ -1843,3 +1843,16 @@ textarea.input-pp {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
 }
+
+/* Locked system: nothing in the survivor space is a pill or a bubble.
+   Radius is capped at 3px everywhere, including utility classes. */
+.pp-app-shell[data-persona="survivor"] *,
+.pp-app-shell[data-persona="survivor"] *::before,
+.pp-app-shell[data-persona="survivor"] *::after {
+  border-radius: 3px !important;
+}
+.pp-app-shell[data-persona="survivor"] .rounded-2xl,
+.pp-app-shell[data-persona="survivor"] .rounded-xl,
+.pp-app-shell[data-persona="survivor"] .rounded-full {
+  border-radius: 3px !important;
+}
