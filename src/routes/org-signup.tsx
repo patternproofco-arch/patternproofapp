@@ -104,7 +104,7 @@ function OrgSignup() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-5 py-10">
+    <div data-pp-paper="" className="flex min-h-screen items-center justify-center px-5 py-10">
       <PublicQuickExit />
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">

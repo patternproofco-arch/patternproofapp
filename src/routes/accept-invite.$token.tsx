@@ -257,6 +257,7 @@ function Frame({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="att-root"
+      data-pp-paper=""
       style={{
         display: "flex",
         minHeight: "100vh",

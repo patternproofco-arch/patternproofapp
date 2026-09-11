@@ -77,7 +77,7 @@ function PartnerAccess() {
   };
 
   return (
-    <div className="pp-public-shell min-h-screen px-4 py-10">
+    <div data-pp-paper="" className="pp-public-shell min-h-screen px-4 py-10">
       <PublicQuickExit />
       <div className="mx-auto w-full max-w-[640px]">
         <div className="mb-6 flex flex-col items-center text-center">

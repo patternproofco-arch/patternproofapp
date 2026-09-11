@@ -97,15 +97,16 @@
   --pp-unknown: #5a5a6a;
   --pp-urgent: #8a5a2e;
 
-  /* Persona accents — LOCKED to brand persona palette */
-  --pp-accent-attorney: var(--purple); /* deep navy blue */
-  --pp-accent-org: var(--pp-sage); /* light pastel sage */
-  --pp-accent-survivor: var(--pp-iridescent-violet); /* iridescent */
-  --pp-accent-shared: var(--pp-iridescent-teal);
-  --pp-accent-survivor-gradient: linear-gradient(135deg, #c9b7ef, #afa9de, #a9e0cf);
+  /* Persona accents — LOCKED to the Paper & Ink palette: indigo and
+     oxblood only. No violet, sage or gradient accents anywhere. */
+  --pp-accent-attorney: var(--indigo);
+  --pp-accent-org: var(--oxblood);
+  --pp-accent-survivor: var(--indigo);
+  --pp-accent-shared: var(--indigo);
+  --pp-accent-survivor-gradient: var(--indigo);
 
-  --pp-accent: var(--pp-accent-survivor);
-  --pp-accent-fg: #ffffff;
+  --pp-accent: var(--indigo);
+  --pp-accent-fg: var(--paper);
 
   /* ---- Surfaces map to soft neumorphic ground ---- */
   --background: var(--pp-paper);
@@ -1699,4 +1700,146 @@ textarea.input-pp {
   color: var(--paper) !important;
   border-radius: 3px !important;
   box-shadow: none !important;
+}
+
+/* ============================================================
+   Paper & Ink — professional portals (attorney, advocate, org)
+   and the entry/token pages. Same locked system as the survivor
+   screens; only the accent differs (indigo for attorney work,
+   oxblood for organisation work). Retokenises in place.
+   ============================================================ */
+.att-root[data-persona="attorney"],
+.pp-portal-shell[data-persona="org"],
+.pp-portal-shell[data-persona="advocate"],
+[data-pp-paper] {
+  --pp-ground: var(--paper);
+  --pp-ground-hi: var(--paper-deep);
+  --pp-card: var(--paper);
+  --pp-paper: var(--paper);
+  --background: var(--paper);
+  --pp-ink: var(--ink);
+  --foreground: var(--ink);
+  --pp-muted: var(--ink-muted);
+  --muted-foreground: var(--ink-muted);
+  --pp-hairline: var(--rule);
+  --line: var(--rule);
+  --border: var(--rule);
+  --pp-accent: var(--indigo);
+  --pp-accent-fg: var(--paper);
+  --pp-link: var(--indigo);
+  --primary: var(--indigo);
+  --accent: var(--indigo);
+  --input: var(--paper-deep);
+  --card: var(--paper);
+  --pp-r-lg: 3px;
+  --pp-r-md: 3px;
+  --pp-r-sm: 3px;
+  --pp-r-pill: 3px;
+  --pp-shadow-up: none;
+  --pp-shadow-sm: none;
+  --pp-shadow-xs: none;
+  --pp-shadow-lg: none;
+  --pp-shadow-in: none;
+  --pp-shadow-in-sm: none;
+  --radius: 3px;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-display: "Newsreader", Georgia, serif;
+  --font-sans: "Source Sans 3", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Source Sans 3", system-ui, sans-serif;
+}
+
+/* Organisation work reads in oxblood; attorney work stays indigo. */
+.pp-portal-shell[data-persona="org"] {
+  --pp-accent: var(--oxblood);
+  --pp-link: var(--oxblood);
+  --primary: var(--oxblood);
+  --accent: var(--oxblood);
+}
+
+.att-root[data-persona="attorney"] h1,
+.att-root[data-persona="attorney"] h2,
+.att-root[data-persona="attorney"] h3,
+.pp-portal-shell[data-persona="org"] h1,
+.pp-portal-shell[data-persona="org"] h2,
+.pp-portal-shell[data-persona="org"] h3,
+[data-pp-paper] h1,
+[data-pp-paper] h2,
+[data-pp-paper] h3 {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+.att-root[data-persona="attorney"] .att-card,
+.att-root[data-persona="attorney"] .card-pp,
+.att-root[data-persona="attorney"] .pp-card,
+.pp-portal-shell[data-persona="org"] .card-pp,
+.pp-portal-shell[data-persona="org"] .pp-card,
+[data-pp-paper] .card-pp,
+[data-pp-paper] .pp-card {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  box-shadow: none;
+}
+
+.att-root[data-persona="attorney"] .btn-pp,
+.att-root[data-persona="attorney"] .att-btn-primary,
+.att-root[data-persona="attorney"] .pp-btn-primary,
+.pp-portal-shell[data-persona="org"] .btn-pp,
+.pp-portal-shell[data-persona="org"] .pp-btn-primary,
+[data-pp-paper] .btn-pp,
+[data-pp-paper] .pp-btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: none;
+  font-weight: 600;
+}
+
+.att-root[data-persona="attorney"] .btn-ghost,
+.att-root[data-persona="attorney"] .pp-btn,
+.pp-portal-shell[data-persona="org"] .btn-ghost,
+.pp-portal-shell[data-persona="org"] .pp-btn,
+[data-pp-paper] .btn-ghost,
+[data-pp-paper] .pp-btn {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: none;
+  font-weight: 600;
+}
+
+.att-root[data-persona="attorney"] input,
+.att-root[data-persona="attorney"] select,
+.att-root[data-persona="attorney"] textarea,
+.pp-portal-shell[data-persona="org"] input,
+.pp-portal-shell[data-persona="org"] select,
+.pp-portal-shell[data-persona="org"] textarea,
+[data-pp-paper] input,
+[data-pp-paper] select,
+[data-pp-paper] textarea {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  box-shadow: none;
+  color: var(--ink);
+}
+
+.att-root[data-persona="attorney"] time,
+.att-root[data-persona="attorney"] code,
+.att-root[data-persona="attorney"] .att-mono,
+.pp-portal-shell[data-persona="org"] time,
+.pp-portal-shell[data-persona="org"] code,
+[data-pp-paper] time,
+[data-pp-paper] code,
+[data-pp-paper] .pp-mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
 }

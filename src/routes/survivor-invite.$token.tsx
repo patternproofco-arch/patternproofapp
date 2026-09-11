@@ -721,9 +721,10 @@ const inputStyle: React.CSSProperties = {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div
+      data-pp-paper=""
       style={{
         minHeight: "100vh",
-        background: "var(--pp-paper, #FAF8F4)",
+        background: "var(--paper)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

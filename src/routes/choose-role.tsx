@@ -63,7 +63,7 @@ function RoleLink({
 
 function ChooseRole() {
   return (
-    <div style={{ background: GROUND, color: INK, minHeight: "100vh", fontFamily: SANS }}>
+    <div data-pp-paper="" style={{ background: GROUND, color: INK, minHeight: "100vh", fontFamily: SANS }}>
       <PublicQuickExit />
       <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
         <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 24px" }}>
