@@ -886,7 +886,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
       </div>
 
       <div className="att-card">
-        <SectionTitle icon={<AlertTriangle size={16} />}>Escalation arc</SectionTitle>
+        <SectionTitle icon={<AlertTriangle size={16} />}>Documentation over time</SectionTitle>
         <div
           style={{
             display: "grid",
@@ -897,11 +897,11 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
         >
           <Metric label="Incidents" v={data.incidents.length} />
           <Metric label="Last 30 days" v={data.last_30_days} />
-          <Metric label="Avg severity" v={data.avg_severity.toFixed(1)} />
-          <Metric label="High-severity flags" v={high} />
+          <Metric label="Avg client rating" v={data.avg_severity.toFixed(1)} />
+          <Metric label="Higher-rated flags" v={high} />
         </div>
         {data.flags.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No escalation flags recorded.</p>
+          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No client flags recorded.</p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
             {data.flags.slice(0, 8).map((f) => (
@@ -918,7 +918,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
                   borderRadius: 16,
                 }}
               >
-                <span>{f.details ?? f.flag_type ?? "Escalation flagged"}</span>
+                <span>{f.details ?? f.flag_type ?? "Client flag"}</span>
                 <span className="att-mono" style={{ color: "var(--att-text-2)" }}>
                   sev {f.severity_tier ?? "?"}
                 </span>
@@ -3338,30 +3338,18 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
   ).length;
   const linked = data.evidence.filter((e) => e.linked_incident_id).length;
 
-  const strengthPct = totalEv === 0 ? 0 : Math.round(((useful * 2 + linked) / (totalEv * 3)) * 100);
-  const strengthLabel =
-    strengthPct >= 70
-      ? "Strong"
-      : strengthPct >= 40
-        ? "Building"
-        : totalEv === 0
-          ? "No evidence yet"
-          : "Thin";
-  const strengthColor =
-    strengthPct >= 70
-      ? "var(--att-navy)"
-      : strengthPct >= 40
-        ? "var(--att-muted)"
-        : "var(--att-navy)";
+  const linkPct = totalEv === 0 ? 0 : Math.round((linked / totalEv) * 100);
 
   const reviewPct = totalEv === 0 ? 0 : Math.round((reviewed / totalEv) * 100);
-  const highRisk = data.flags.filter((f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3).length;
+  const higherRatedFlags = data.flags.filter(
+    (f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3,
+  ).length;
 
   const moves: { label: string; why: string }[] = [];
-  if (highRisk > 0)
+  if (higherRatedFlags > 0)
     moves.push({
-      label: `${highRisk} high-severity flag${highRisk === 1 ? "" : "s"} on record`,
-      why: "Review before next filing.",
+      label: `${higherRatedFlags} higher-rated client flag${higherRatedFlags === 1 ? "" : "s"} on record`,
+      why: "Review the source and client-entered context.",
     });
   if (data.gaps.some((g) => g.severity === "high"))
     moves.push({
@@ -3395,25 +3383,25 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
       }}
     >
       <div className="att-card">
-        <SectionTitle icon={<Gauge size={14} />}>Evidence strength</SectionTitle>
+        <SectionTitle icon={<Gauge size={14} />}>Incident link coverage</SectionTitle>
         <div
           style={{
             fontSize: 28,
             fontFamily: "var(--font-sans)",
-            color: strengthColor,
+            color: "var(--att-navy)",
           }}
         >
-          {strengthPct}%
+          {linkPct}%
         </div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 8 }}>
-          {strengthLabel} · {linked}/{totalEv || 0} linked to incidents
+          {linked}/{totalEv || 0} evidence items linked to incidents
         </div>
         <div style={{ height: 6, background: "var(--att-border)", borderRadius: 999 }}>
           <div
             style={{
-              width: `${strengthPct}%`,
+              width: `${linkPct}%`,
               height: "100%",
-              background: strengthColor,
+              background: "var(--att-navy)",
               borderRadius: 999,
             }}
           />
@@ -3443,20 +3431,20 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
       </div>
 
       <div className="att-card">
-        <SectionTitle icon={<Shield size={14} />}>Urgent risk flags</SectionTitle>
+        <SectionTitle icon={<Shield size={14} />}>Client-entered flags</SectionTitle>
         <div
           style={{
             fontSize: 28,
             fontFamily: "var(--font-sans)",
-            color: highRisk > 0 ? "var(--att-navy)" : "var(--att-text)",
+            color: higherRatedFlags > 0 ? "var(--att-navy)" : "var(--att-text)",
           }}
         >
-          {highRisk}
+          {higherRatedFlags}
         </div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
-          {highRisk === 0
-            ? "No high-severity flags active"
-            : `High-severity escalation${highRisk === 1 ? "" : "s"} on record`}
+          {higherRatedFlags === 0
+            ? "No higher-rated client flags active"
+            : `${higherRatedFlags} flag${higherRatedFlags === 1 ? "" : "s"} rated 3 or above by the client`}
         </div>
       </div>
 
