@@ -103,6 +103,7 @@ import { Route as AdvocateAdvocateSetupRouteImport } from './routes/_advocate/ad
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
+import { Route as AttorneyMattersIndexRouteImport } from './routes/_attorney/matters.index'
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
 import { Route as AdvocateAdvocateCasesIndexRouteImport } from './routes/_advocate/advocate-cases.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -607,6 +608,11 @@ const AuthenticatedAgentIndexRoute = AuthenticatedAgentIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAgentRoute,
 } as any)
+const AttorneyMattersIndexRoute = AttorneyMattersIndexRouteImport.update({
+  id: '/matters/',
+  path: '/matters/',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AttorneyClientsIndexRoute = AttorneyClientsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -806,6 +812,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/clients/': typeof AttorneyClientsIndexRoute
+  '/matters/': typeof AttorneyMattersIndexRoute
   '/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -914,6 +921,7 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/advocate-cases': typeof AdvocateAdvocateCasesIndexRoute
   '/clients': typeof AttorneyClientsIndexRoute
+  '/matters': typeof AttorneyMattersIndexRoute
   '/agent': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1028,6 +1036,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_advocate/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
+  '/_attorney/matters/': typeof AttorneyMattersIndexRoute
   '/_authenticated/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1140,6 +1149,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/advocate-cases/'
     | '/clients/'
+    | '/matters/'
     | '/agent/'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -1248,6 +1258,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/advocate-cases'
     | '/clients'
+    | '/matters'
     | '/agent'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -1361,6 +1372,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/_advocate/advocate-cases/'
     | '/_attorney/clients/'
+    | '/_attorney/matters/'
     | '/_authenticated/agent/'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -2093,6 +2105,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentIndexRouteImport
       parentRoute: typeof AuthenticatedAgentRoute
     }
+    '/_attorney/matters/': {
+      id: '/_attorney/matters/'
+      path: '/matters'
+      fullPath: '/matters/'
+      preLoaderRoute: typeof AttorneyMattersIndexRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/_attorney/clients/': {
       id: '/_attorney/clients/'
       path: '/'
@@ -2256,6 +2275,7 @@ interface AttorneyRouteChildren {
   AttorneySubscribeRoute: typeof AttorneySubscribeRoute
   AttorneyTeamRoute: typeof AttorneyTeamRoute
   AttorneyTrustRoute: typeof AttorneyTrustRoute
+  AttorneyMattersIndexRoute: typeof AttorneyMattersIndexRoute
 }
 
 const AttorneyRouteChildren: AttorneyRouteChildren = {
@@ -2269,6 +2289,7 @@ const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneySubscribeRoute: AttorneySubscribeRoute,
   AttorneyTeamRoute: AttorneyTeamRoute,
   AttorneyTrustRoute: AttorneyTrustRoute,
+  AttorneyMattersIndexRoute: AttorneyMattersIndexRoute,
 }
 
 const AttorneyRouteWithChildren = AttorneyRoute._addFileChildren(
