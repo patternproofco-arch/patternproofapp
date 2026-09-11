@@ -85,3 +85,11 @@ describe("photos and screenshots", () => {
     expect(isReadableDocument("image/heic", "IMG_0042.HEIC")).toBe(true);
   });
 });
+
+describe("recording transcription request", () => {
+  it("asks the gateway for a response format the transcription model accepts", async () => {
+    const src = await Bun.file("src/lib/transcribe-evidence.functions.ts").text();
+    expect(src).toContain('form.append("response_format", "json")');
+    expect(src).not.toContain("verbose_json");
+  });
+});
