@@ -363,6 +363,8 @@
    their own toolbars (sign out, search, settings, required disclaimers). */
 .pp-global-page:not(:has(.pp-app-chrome)) > div > header:not(.pp-app-chrome),
 .pp-global-page:not(:has(.pp-app-chrome)) > div > footer,
+.pp-global-page:not(:has(.pp-app-chrome)) > div > div > header:not(.pp-app-chrome),
+.pp-global-page:not(:has(.pp-app-chrome)) > div > div > footer,
 .pp-global-page:not(:has(.pp-app-chrome)) .pp-legal-nav,
 .pp-global-page:not(:has(.pp-app-chrome)) [data-quick-exit]:not(.pp-global-exit) {
   display: none !important;
