@@ -5,3 +5,5 @@
 - [x] Answer: is the DV org portal complete? (reported — flow is survivor→advocate, no invite emails, org portal is aggregate-only)
 - [ ] Optional follow-ups if wanted: advocate invite email delivery; org-level client visibility for org owners; real PDF export in advocate case view
 - [ ] Publish to push og-home.png + metadata to live URL
+- [x] Database security constraints locked in: keep no-policy tables service-role-only, no generic user_id policies, no RPC revocation without proof of no callers, no index drops
+- [x] Verified read-only: the two owner-check helpers have no app callers and are already service-role-only; no destructive change needed
