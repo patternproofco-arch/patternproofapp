@@ -137,13 +137,13 @@ export const updateMatter = createServerFn({ method: "POST" })
     await assertOwnedMatter(context.userId, data.id);
     if (data.client_link_id) await assertOwnedLink(context.userId, data.client_link_id);
     const { id, ...rest } = data;
-    const patch: Record<string, unknown> = {};
+    const patch: Record<string, string | null> = {};
     for (const [k, v] of Object.entries(rest)) {
-      if (v !== undefined) patch[k] = v === "" ? null : v;
+      if (v !== undefined) patch[k] = v === "" ? null : (v as string | null);
     }
     const { data: matter, error } = await supabaseAdmin
       .from("matters")
-      .update(patch)
+      .update(patch as never)
       .eq("id", id)
       .eq("attorney_user_id", context.userId)
       .select("*")
