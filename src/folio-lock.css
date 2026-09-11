@@ -1,0 +1,351 @@
+/* Load AFTER src/styles.css. Slate, thread, gloss. */
+
+html:root {
+  --paper: #e7edf2;
+  --paper-deep: #f4f7f9;
+  --ink: #12151a;
+  --ink-muted: #6a7380;
+  --stitch: #0c0d0f;
+  --thread: #0c0d0f;
+  --verdigris: #6e9e96;
+  --verdigris-deep: #3e6b65;
+  --indigo: #3d4a6b;
+  --oxblood: #6e2e32;
+  --exit: #3e6b65;
+  --exit-wash: #dce8e5;
+  --rule: rgba(18, 21, 26, 0.18);
+  --pp-paper: var(--paper);
+  --pp-ground: var(--paper);
+  --pp-card: var(--paper-deep);
+  --pp-ink: var(--ink);
+  --pp-muted: var(--ink-muted);
+  --pp-shadow-up: none;
+  --pp-shadow-sm: none;
+  --pp-shadow-xs: none;
+  --pp-shadow-lg: none;
+  --pp-r-sm: 0;
+  --pp-r-md: 0;
+  --pp-r-lg: 0;
+  --pp-r-xl: 0;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --muted-foreground: var(--ink-muted);
+}
+
+[data-persona="survivor"],
+[data-persona="attorney"],
+[data-persona="org"],
+[data-persona="shared"] {
+  --pp-ground: var(--paper);
+  --pp-card: var(--paper-deep);
+  --background: var(--paper);
+  --pp-shadow-sm: none;
+  --pp-shadow-up: none;
+  --pp-shadow-xs: none;
+}
+
+body.pp-app,
+.folio-page,
+.pp-app-shell,
+.att-root,
+.pp-portal-shell,
+.pp-global-layout,
+.pp-global-page {
+  background: var(--paper) !important;
+  color: var(--ink);
+}
+
+.folio-page h1,
+.folio-page h2,
+.folio-page h3,
+.pp-app-shell h1,
+.pp-app-shell h2,
+.att-root h1,
+.pp-portal-shell h1 {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+}
+
+.folio-shell {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 24px 96px 72px;
+}
+
+.folio-stitch {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 48px;
+  width: 1px;
+  background: var(--thread);
+  pointer-events: none;
+}
+
+.folio-plate {
+  position: relative;
+  background: var(--paper-deep);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 20px 22px;
+}
+
+.folio-plate::before {
+  content: "";
+  position: absolute;
+  left: -25px;
+  top: 24px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.25px solid var(--thread);
+  box-sizing: border-box;
+}
+
+.folio-kicker {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.folio-page .landing-hero {
+  text-align: left !important;
+  max-width: 640px !important;
+  margin-left: 0 !important;
+}
+
+.folio-page .btn-primary,
+.folio-page .pp-btn-primary,
+.pp-app-shell .btn-primary,
+.att-root .att-btn-primary,
+.pp-portal-shell .btn-primary {
+  background: var(--ink) !important;
+  color: var(--paper) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+
+.folio-page .btn-ghost,
+.folio-page .pp-btn-secondary {
+  background: transparent !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--ink) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.folio-page .card-pp,
+.folio-page .pp-card,
+.pp-app-shell .card-pp,
+.pp-app-shell .pp-card,
+.att-root .card-pp,
+.pp-portal-shell .card-pp,
+.pp-portal-shell .pp-card {
+  background: var(--paper-deep) !important;
+  border: 1px solid var(--ink) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.pp-global-header,
+.pp-global-footer {
+  background: var(--paper) !important;
+  border-color: var(--rule) !important;
+}
+
+.pp-global-exit {
+  background: var(--exit-wash) !important;
+  color: var(--exit) !important;
+  border-radius: 0 !important;
+}
+
+.bound-sheet {
+  position: relative;
+  background: var(--paper-deep);
+  border: 1px solid var(--ink);
+  padding: 22px 22px 28px;
+}
+.bound-sheet::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--rule);
+  pointer-events: none;
+}
+.bound-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 16px;
+}
+.bound-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+.bound-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+  max-width: 46ch;
+}
+.bound-toggles { display: flex; gap: 8px; }
+.bound-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
+}
+.bound-spine {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0 4px 28px;
+  position: relative;
+  z-index: 1;
+}
+.bound-thread {
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  bottom: 8px;
+  width: 12px;
+  height: calc(100% - 16px);
+  pointer-events: none;
+}
+.bound-leaf { position: relative; margin-bottom: 18px; }
+.bound-hole {
+  position: absolute;
+  left: -28px;
+  top: 18px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--paper-deep);
+  border: 1.25px solid var(--thread);
+  box-sizing: border-box;
+}
+.bound-entry { background: transparent; padding: 2px 0 4px; }
+.bound-title {
+  margin: 6px 0 4px;
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: -0.015em;
+}
+.bound-happened { margin: 0; font-size: 15px; color: var(--ink); }
+.bound-gloss {
+  margin: 8px 0 0;
+  padding-left: 1.1em;
+  font-family: "Newsreader", Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--verdigris-deep);
+}
+.bound-meta { margin: 8px 0 0; font-size: 12px; color: var(--ink-muted); }
+.bound-catch {
+  text-align: right;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--verdigris-deep);
+  margin: 8px 0 0;
+  position: relative;
+  z-index: 1;
+}
+.bound-catch u { text-decoration-color: var(--thread); text-underline-offset: 3px; }
+
+.gloss-block .line {
+  font-family: "Newsreader", Georgia, serif;
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  border-bottom: 1px solid var(--ink);
+  padding: 0 0 6px;
+  margin: 0;
+}
+.gloss-block .between {
+  font-family: "Newsreader", Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--verdigris-deep);
+  padding: 6px 0 16px 1.25em;
+  margin: 0;
+}
+
+.docket {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  border: 1px solid var(--ink);
+  background: var(--paper-deep);
+}
+.docket + .docket { border-top: 0; }
+.docket-tab {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 0;
+}
+.docket-body { padding: 20px 22px 22px; }
+
+.att-root {
+  --att-bg: var(--paper);
+  --att-surface: var(--paper-deep);
+  --att-surface-2: var(--paper);
+}
+.att-root,
+.att-root.att-cockpit,
+.att-content,
+.att-sidebar {
+  background: var(--paper) !important;
+  box-shadow: none !important;
+}
+.att-sidebar {
+  background: var(--paper-deep) !important;
+  border-right: 1px solid var(--rule) !important;
+}
+.att-table tbody tr {
+  background: var(--paper-deep) !important;
+  box-shadow: none !important;
+}
+.att-table tbody td:first-child,
+.att-table tbody td:last-child { border-radius: 0 !important; }
+.pp-app-shell .pp-shell-header,
+.pp-portal-header,
+.att-topbar {
+  background: var(--paper) !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid var(--rule);
+}
+
+@media (max-width: 700px) {
+  .folio-shell { padding: 20px 16px 72px 36px; }
+  .folio-stitch { left: 16px; }
+  .folio-plate::before { left: -21px; }
+}
