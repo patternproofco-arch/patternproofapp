@@ -1700,3 +1700,148 @@ textarea.input-pp {
   border-radius: 3px !important;
   box-shadow: none !important;
 }
+
+/* ============================================================
+   Paper & Ink — advocate / DV-organization portal. Previously
+   unstyled: it fell through to the generic pastel-sage neumorphic
+   ground with no identity of its own. This gives it the same
+   folio language as the survivor portal (this portal reads a
+   survivor's own record, so it should feel like the same book,
+   not a different app) with its own ink accent so it never reads
+   as the survivor or attorney persona. Retokenises the shell in
+   place; no page markup or copy depends on it.
+   ============================================================ */
+.pp-portal-shell[data-persona="org"] {
+  --org-accent: #3d5a42; /* deep forest ink — distinct from --exit (Quick Exit reserved) */
+  --pp-ground: var(--paper);
+  --pp-ground-hi: var(--paper-deep);
+  --pp-card: var(--paper);
+  --pp-paper: var(--paper);
+  --background: var(--paper);
+  --pp-ink: var(--ink);
+  --foreground: var(--ink);
+  --pp-muted: var(--ink-muted);
+  --muted-foreground: var(--ink-muted);
+  --pp-hairline: var(--rule);
+  --line: var(--rule);
+  --pp-accent: var(--org-accent);
+  --pp-accent-org: var(--org-accent);
+  --pp-accent-fg: var(--paper);
+  --pp-link: var(--org-accent);
+  --primary: var(--org-accent);
+  --accent: var(--org-accent);
+  --pp-confirmed: var(--org-accent);
+  --pp-approximate: var(--ink-muted);
+  --pp-unknown: var(--ink-muted);
+  --pp-urgent: var(--oxblood);
+  --input: var(--paper-deep);
+  --pp-r-lg: 3px;
+  --pp-r-md: 3px;
+  --pp-r-sm: 3px;
+  --pp-r-pill: 3px;
+  --pp-shadow-up: none;
+  --pp-shadow-sm: none;
+  --pp-shadow-xs: none;
+  --pp-shadow-lg: none;
+  --pp-shadow-in: none;
+  --pp-shadow-in-sm: none;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-display: "Newsreader", Georgia, serif;
+  --font-sans: "Source Sans 3", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Source Sans 3", system-ui, sans-serif;
+}
+
+.pp-portal-shell[data-persona="org"] .pp-portal-header {
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  box-shadow: none;
+}
+
+.pp-portal-shell[data-persona="org"] .pp-portal-main {
+  max-width: 1000px;
+}
+
+.pp-portal-shell[data-persona="org"] h1,
+.pp-portal-shell[data-persona="org"] h2,
+.pp-portal-shell[data-persona="org"] h3 {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+.pp-portal-shell[data-persona="org"] h1 em,
+.pp-portal-shell[data-persona="org"] h2 em {
+  font-style: italic;
+  font-weight: 500;
+}
+
+.pp-portal-shell[data-persona="org"] .card-pp,
+.pp-portal-shell[data-persona="org"] .pp-card,
+.pp-portal-shell[data-persona="org"] section {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  box-shadow: none;
+}
+
+.pp-portal-shell[data-persona="org"] .btn-pp,
+.pp-portal-shell[data-persona="org"] .btn-primary,
+.pp-portal-shell[data-persona="org"] .pp-btn-primary {
+  background: var(--org-accent);
+  color: var(--paper);
+  border: 1px solid var(--org-accent);
+  border-radius: 3px;
+  box-shadow: none;
+  font-weight: 600;
+}
+.pp-portal-shell[data-persona="org"] .btn-ghost,
+.pp-portal-shell[data-persona="org"] .pp-btn,
+.pp-portal-shell[data-persona="org"] .pp-btn-secondary {
+  background: transparent;
+  color: var(--org-accent);
+  border: 1px solid var(--org-accent);
+  border-radius: 3px;
+  box-shadow: none;
+  font-weight: 600;
+}
+.pp-portal-shell[data-persona="org"] .btn-ghost:hover,
+.pp-portal-shell[data-persona="org"] .pp-btn:hover:not(:disabled) {
+  background: var(--paper-deep);
+  box-shadow: none;
+}
+
+.pp-portal-shell[data-persona="org"] .input-pp,
+.pp-portal-shell[data-persona="org"] input,
+.pp-portal-shell[data-persona="org"] select,
+.pp-portal-shell[data-persona="org"] textarea {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  box-shadow: none;
+  color: var(--ink);
+}
+
+.pp-portal-shell[data-persona="org"] time,
+.pp-portal-shell[data-persona="org"] code,
+.pp-portal-shell[data-persona="org"] .pp-mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.pp-portal-shell[data-persona="org"] .pp-stat-hero {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--org-accent);
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+.pp-portal-shell[data-persona="org"] .pp-stat-hero > div > div,
+.pp-portal-shell[data-persona="org"] .pp-stat-hero [style*="rgba(255,255,255"] {
+  background: var(--paper-deep) !important;
+  border-radius: 3px !important;
+  color: var(--ink) !important;
+}
