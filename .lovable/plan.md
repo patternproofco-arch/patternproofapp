@@ -1,51 +1,39 @@
-# Restyle the app screens, then prove the flows
+# Supabase security work: constrained verification and safe changes
 
-Four asks in one message. One of them I can't do honestly, so I'm saying that up front and covering it a different way.
+## Locked constraints
 
-## What I can't do
+- Keep the eight identified no-policy tables service-role-only.
+- Do not add generic `user_id` policies to those tables.
+- Do not revoke either RPC until its complete usage path is confirmed.
+- Do not drop, replace, or modify any index.
+- Pause before any destructive database operation and report the exact proposed statement, impact, and rollback path.
 
-I have no physical iPhone. I cannot "walk a real iPhone photo and audio upload" on a device. I can drive a simulated iOS Safari browser (real touch events, Safari user agent, Safari's audio/photo quirks in code), fix what that finds, and label the rest as still needing a human with a phone. I will not claim mobile is ready.
+## Next safe step: read-only RPC usage audit
 
-## 1. Restyle the app screens to the locked system
+1. Trace both RPC names across screens, client hooks, server functions, API routes, tests, generated database types, and migrations.
+2. Inspect database-side dependencies, grants, and policy/function references that may call them indirectly.
+3. Classify each RPC as actively used, indirectly required, or unreferenced.
+4. Report the evidence before proposing any permission change. An absent direct screen call alone will not justify revocation.
 
-Same tokens, fonts, stitch, and rules already applied to the header and footer — now applied to the four screens you named, content included:
+## Service-role-only table verification
 
-- Survivor dashboard
-- Timeline
-- Evidence
-- Case details
+- Verify the eight tables have RLS enabled and no browser-facing policies.
+- Verify `anon` and `authenticated` cannot perform table operations, while service-role access remains available only to trusted server paths.
+- Treat a no-policy linter notice as intentional for these tables; do not “fix” it by adding broad policies.
+- If any table still has browser-role grants, propose a least-privilege grant correction separately without changing its service-role-only design.
 
-Per screen: paper background, left-aligned content on the 48px binding stitch, Newsreader headings, Source Sans 3 body, IBM Plex Mono for dates/IDs, ink tab primary buttons, outlined secondary, 3px radius, no shadows. Date certainty keeps its stitch state: solid exact, dashed approximate, gap-and-tick unknown. No purple, no pills, no completion percentages.
+## Non-destructive validation
 
-Copy stays as it is. This is styling only.
+- Re-run the database linter and security scan.
+- Compare live grants, policies, function privileges, and dependencies with the intended model.
+- Run affected authorization tests and application checks if a later migration is approved.
 
-## 2. Safari and mobile behaviour pass
+## Change gate
 
-Run the four screens plus photo and audio capture in a simulated iOS Safari and fix what is genuinely broken there:
+No database migration will be applied from this plan until the read-only audit identifies a necessary change. Before any destructive or access-reducing statement, present:
 
-- Photo upload from the camera roll: HEIC files, EXIF orientation, large files
-- Audio capture: Safari records mp4, not webm — confirm the upload name and type match the bytes, or the transcript comes back empty
-- Touch targets, safe-area insets, and the stitch layout at 393px wide
-
-## 3. Walk the pilot case
-
-On the live site, with clearly fictional accounts: upload a photo and an audio file, confirm the extracted text and the transcript are visible and reviewable rather than blank, build the packet, then revoke and confirm the old link stops working.
-
-## 4. Advocate and organization portals
-
-With separate fictional accounts — Advocate A, Organization A admin, Survivor A, Survivor B — prove:
-
-- Survivor grants, advocate sees only the granted scope
-- Organization membership alone never shows survivor evidence
-- Narrowing and revoking scope closes access immediately, including previously issued download links
-- Survivor B's records never appear to anyone unauthorised
-
-Anything that fails gets fixed and gets a permanent test.
-
-## Order
-
-Restyle first (visible to you immediately), then Safari fixes, then the two live walkthroughs.
-
-## Note on live testing
-
-Test accounts write to the same backend as the live site. They will be clearly named as fictional and removed afterwards.
+- the exact object and SQL operation;
+- confirmed application and database dependencies;
+- expected user-facing impact;
+- rollback SQL;
+- the validation steps that will prove the change safe.
