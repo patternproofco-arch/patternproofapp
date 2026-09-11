@@ -27,6 +27,7 @@ interface Ctx {
 }
 
 const RecCtx = createContext<Ctx | null>(null);
+const LIMIT_SEC = 60;
 
 export function RecordingProvider({ children }: { children: ReactNode }) {
   const [isRecording, setIsRecording] = useState(false);
@@ -58,38 +59,6 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
       setIsRecording(true);
       setElapsed(0);
       timer.current = window.setInterval(() => setElapsed((e) => e + 1), 1000);
-
-      const SR =
-        (
-          window as unknown as {
-            SpeechRecognition?: new () => unknown;
-            webkitSpeechRecognition?: new () => unknown;
-          }
-        ).SpeechRecognition ??
-        (window as unknown as { webkitSpeechRecognition?: new () => unknown })
-          .webkitSpeechRecognition;
-      if (SR) {
-        try {
-          const r = new SR() as {
-            continuous: boolean;
-            interimResults: boolean;
-            onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
-            start: () => void;
-            stop: () => void;
-          };
-          r.continuous = true;
-          r.interimResults = true;
-          r.onresult = (e) => {
-            let t = "";
-            for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript + " ";
-            transcript.current = t.trim();
-          };
-          r.start();
-          sr.current = r;
-        } catch {
-          /* ignore */
-        }
-      }
       return true;
     } catch {
       return false;
@@ -138,6 +107,12 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
       }
     });
   }, [elapsed]);
+
+  useEffect(() => {
+    if (isRecording && elapsed >= LIMIT_SEC) {
+      void stop();
+    }
+  }, [isRecording, elapsed, stop]);
 
   const consumePending = useCallback(() => {
     const p = pending;
