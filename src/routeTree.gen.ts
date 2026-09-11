@@ -48,6 +48,7 @@ import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as AdvocateRouteImport } from './routes/_advocate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
+import { Route as MatterInviteTokenRouteImport } from './routes/matter-invite.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
@@ -100,9 +101,11 @@ import { Route as AttorneyBillingReturnRouteImport } from './routes/_attorney/bi
 import { Route as AttorneyBillingRouteImport } from './routes/_attorney/billing'
 import { Route as AttorneyAttorneyFeedbackRouteImport } from './routes/_attorney/attorney-feedback'
 import { Route as AdvocateAdvocateSetupRouteImport } from './routes/_advocate/advocate-setup'
+import { Route as AdvocateAdvocateMattersRouteImport } from './routes/_advocate/advocate-matters'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
+import { Route as AttorneyMattersIndexRouteImport } from './routes/_attorney/matters.index'
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
 import { Route as AdvocateAdvocateCasesIndexRouteImport } from './routes/_advocate/advocate-cases.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -110,6 +113,7 @@ import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integr
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AuthenticatedAdminOrgRequestsRouteImport } from './routes/_authenticated/admin.org-requests'
+import { Route as AttorneyMattersMatterIdRouteImport } from './routes/_attorney/matters.$matterId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as AdvocateAdvocateCasesClientIdRouteImport } from './routes/_advocate/advocate-cases.$clientId'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -311,6 +315,11 @@ const IndexRoute = IndexRouteImport.update({
 const SurvivorInviteTokenRoute = SurvivorInviteTokenRouteImport.update({
   id: '/survivor-invite/$token',
   path: '/survivor-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatterInviteTokenRoute = MatterInviteTokenRouteImport.update({
+  id: '/matter-invite/$token',
+  path: '/matter-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
@@ -590,6 +599,11 @@ const AdvocateAdvocateSetupRoute = AdvocateAdvocateSetupRouteImport.update({
   path: '/advocate-setup',
   getParentRoute: () => AdvocateRoute,
 } as any)
+const AdvocateAdvocateMattersRoute = AdvocateAdvocateMattersRouteImport.update({
+  id: '/advocate-matters',
+  path: '/advocate-matters',
+  getParentRoute: () => AdvocateRoute,
+} as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
   Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
     id: '/.well-known/oauth-protected-resource',
@@ -606,6 +620,11 @@ const AuthenticatedAgentIndexRoute = AuthenticatedAgentIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAgentRoute,
+} as any)
+const AttorneyMattersIndexRoute = AttorneyMattersIndexRouteImport.update({
+  id: '/matters/',
+  path: '/matters/',
+  getParentRoute: () => AttorneyRoute,
 } as any)
 const AttorneyClientsIndexRoute = AttorneyClientsIndexRouteImport.update({
   id: '/',
@@ -647,6 +666,11 @@ const AuthenticatedAdminOrgRequestsRoute =
     path: '/admin/org-requests',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AttorneyMattersMatterIdRoute = AttorneyMattersMatterIdRouteImport.update({
+  id: '/matters/$matterId',
+  path: '/matters/$matterId',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AttorneyClientsClientIdRoute = AttorneyClientsClientIdRouteImport.update({
   id: '/$clientId',
   path: '/$clientId',
@@ -742,6 +766,7 @@ export interface FileRoutesByFullPath {
   '/version.json': typeof VersionDotjsonRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/advocate-matters': typeof AdvocateAdvocateMattersRoute
   '/advocate-setup': typeof AdvocateAdvocateSetupRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/billing': typeof AttorneyBillingRoute
@@ -794,11 +819,13 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -806,6 +833,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/clients/': typeof AttorneyClientsIndexRoute
+  '/matters/': typeof AttorneyMattersIndexRoute
   '/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -852,6 +880,7 @@ export interface FileRoutesByTo {
   '/version.json': typeof VersionDotjsonRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/advocate-matters': typeof AdvocateAdvocateMattersRoute
   '/advocate-setup': typeof AdvocateAdvocateSetupRoute
   '/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/billing': typeof AttorneyBillingRoute
@@ -902,11 +931,13 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -914,6 +945,7 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/advocate-cases': typeof AdvocateAdvocateCasesIndexRoute
   '/clients': typeof AttorneyClientsIndexRoute
+  '/matters': typeof AttorneyMattersIndexRoute
   '/agent': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -964,6 +996,7 @@ export interface FileRoutesById {
   '/version.json': typeof VersionDotjsonRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/_advocate/advocate-matters': typeof AdvocateAdvocateMattersRoute
   '/_advocate/advocate-setup': typeof AdvocateAdvocateSetupRoute
   '/_attorney/attorney-feedback': typeof AttorneyAttorneyFeedbackRoute
   '/_attorney/billing': typeof AttorneyBillingRoute
@@ -1016,11 +1049,13 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_advocate/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
+  '/_attorney/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/_authenticated/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
@@ -1028,6 +1063,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_advocate/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
+  '/_attorney/matters/': typeof AttorneyMattersIndexRoute
   '/_authenticated/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1076,6 +1112,7 @@ export interface FileRouteTypes {
     | '/version.json'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/advocate-matters'
     | '/advocate-setup'
     | '/attorney-feedback'
     | '/billing'
@@ -1128,11 +1165,13 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/collaborator-invite/$token'
     | '/email/unsubscribe'
+    | '/matter-invite/$token'
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
     | '/clients/$clientId'
+    | '/matters/$matterId'
     | '/admin/org-requests'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1140,6 +1179,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/advocate-cases/'
     | '/clients/'
+    | '/matters/'
     | '/agent/'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -1186,6 +1226,7 @@ export interface FileRouteTypes {
     | '/version.json'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/advocate-matters'
     | '/advocate-setup'
     | '/attorney-feedback'
     | '/billing'
@@ -1236,11 +1277,13 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/collaborator-invite/$token'
     | '/email/unsubscribe'
+    | '/matter-invite/$token'
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
     | '/clients/$clientId'
+    | '/matters/$matterId'
     | '/admin/org-requests'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1248,6 +1291,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/advocate-cases'
     | '/clients'
+    | '/matters'
     | '/agent'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -1297,6 +1341,7 @@ export interface FileRouteTypes {
     | '/version.json'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/_advocate/advocate-matters'
     | '/_advocate/advocate-setup'
     | '/_attorney/attorney-feedback'
     | '/_attorney/billing'
@@ -1349,11 +1394,13 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/collaborator-invite/$token'
     | '/email/unsubscribe'
+    | '/matter-invite/$token'
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_advocate/advocate-cases/$clientId'
     | '/_attorney/clients/$clientId'
+    | '/_attorney/matters/$matterId'
     | '/_authenticated/admin/org-requests'
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
@@ -1361,6 +1408,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/_advocate/advocate-cases/'
     | '/_attorney/clients/'
+    | '/_attorney/matters/'
     | '/_authenticated/agent/'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -1419,6 +1467,7 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  MatterInviteTokenRoute: typeof MatterInviteTokenRoute
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -1706,6 +1755,13 @@ declare module '@tanstack/react-router' {
       path: '/survivor-invite/$token'
       fullPath: '/survivor-invite/$token'
       preLoaderRoute: typeof SurvivorInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/matter-invite/$token': {
+      id: '/matter-invite/$token'
+      path: '/matter-invite/$token'
+      fullPath: '/matter-invite/$token'
+      preLoaderRoute: typeof MatterInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
@@ -2072,6 +2128,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdvocateAdvocateSetupRouteImport
       parentRoute: typeof AdvocateRoute
     }
+    '/_advocate/advocate-matters': {
+      id: '/_advocate/advocate-matters'
+      path: '/advocate-matters'
+      fullPath: '/advocate-matters'
+      preLoaderRoute: typeof AdvocateAdvocateMattersRouteImport
+      parentRoute: typeof AdvocateRoute
+    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -2092,6 +2155,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/agent/'
       preLoaderRoute: typeof AuthenticatedAgentIndexRouteImport
       parentRoute: typeof AuthenticatedAgentRoute
+    }
+    '/_attorney/matters/': {
+      id: '/_attorney/matters/'
+      path: '/matters'
+      fullPath: '/matters/'
+      preLoaderRoute: typeof AttorneyMattersIndexRouteImport
+      parentRoute: typeof AttorneyRoute
     }
     '/_attorney/clients/': {
       id: '/_attorney/clients/'
@@ -2141,6 +2211,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/org-requests'
       preLoaderRoute: typeof AuthenticatedAdminOrgRequestsRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_attorney/matters/$matterId': {
+      id: '/_attorney/matters/$matterId'
+      path: '/matters/$matterId'
+      fullPath: '/matters/$matterId'
+      preLoaderRoute: typeof AttorneyMattersMatterIdRouteImport
+      parentRoute: typeof AttorneyRoute
     }
     '/_attorney/clients/$clientId': {
       id: '/_attorney/clients/$clientId'
@@ -2216,12 +2293,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdvocateRouteChildren {
+  AdvocateAdvocateMattersRoute: typeof AdvocateAdvocateMattersRoute
   AdvocateAdvocateSetupRoute: typeof AdvocateAdvocateSetupRoute
   AdvocateAdvocateCasesClientIdRoute: typeof AdvocateAdvocateCasesClientIdRoute
   AdvocateAdvocateCasesIndexRoute: typeof AdvocateAdvocateCasesIndexRoute
 }
 
 const AdvocateRouteChildren: AdvocateRouteChildren = {
+  AdvocateAdvocateMattersRoute: AdvocateAdvocateMattersRoute,
   AdvocateAdvocateSetupRoute: AdvocateAdvocateSetupRoute,
   AdvocateAdvocateCasesClientIdRoute: AdvocateAdvocateCasesClientIdRoute,
   AdvocateAdvocateCasesIndexRoute: AdvocateAdvocateCasesIndexRoute,
@@ -2256,6 +2335,8 @@ interface AttorneyRouteChildren {
   AttorneySubscribeRoute: typeof AttorneySubscribeRoute
   AttorneyTeamRoute: typeof AttorneyTeamRoute
   AttorneyTrustRoute: typeof AttorneyTrustRoute
+  AttorneyMattersMatterIdRoute: typeof AttorneyMattersMatterIdRoute
+  AttorneyMattersIndexRoute: typeof AttorneyMattersIndexRoute
 }
 
 const AttorneyRouteChildren: AttorneyRouteChildren = {
@@ -2269,6 +2350,8 @@ const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneySubscribeRoute: AttorneySubscribeRoute,
   AttorneyTeamRoute: AttorneyTeamRoute,
   AttorneyTrustRoute: AttorneyTrustRoute,
+  AttorneyMattersMatterIdRoute: AttorneyMattersMatterIdRoute,
+  AttorneyMattersIndexRoute: AttorneyMattersIndexRoute,
 }
 
 const AttorneyRouteWithChildren = AttorneyRoute._addFileChildren(
@@ -2416,6 +2499,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  MatterInviteTokenRoute: MatterInviteTokenRoute,
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,

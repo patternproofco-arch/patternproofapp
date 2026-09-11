@@ -11,6 +11,7 @@ import {
   MessageSquare,
   ScanSearch,
   UserCog,
+  FolderOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -238,7 +239,8 @@ function useClientIdFromPath(): string | null {
 /* ---------- persistent left sidebar ---------- */
 const NAV_ITEMS = [
   { to: "/caseload", label: "Dashboard", icon: LayoutGrid },
-  { to: "/clients", label: "Matters", icon: Users },
+  { to: "/matters", label: "Matters", icon: FolderOpen },
+  { to: "/clients", label: "Shared files", icon: Users },
   { to: "/conflict-check", label: "Conflict check", icon: ScanSearch },
   { to: "/billing", label: "Billing", icon: CreditCard },
   { to: "/team", label: "Team", icon: UserCog },
@@ -250,6 +252,7 @@ function AttorneySidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isActive = (to: string) => {
     if (to === "/clients") return pathname.startsWith("/clients");
+    if (to === "/matters") return pathname.startsWith("/matters");
     return pathname === to;
   };
   return (

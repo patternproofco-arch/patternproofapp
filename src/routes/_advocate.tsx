@@ -98,6 +98,9 @@ function AdvocateLayout() {
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Advocate access</span>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Link to="/advocate-matters" style={{ fontSize: 12, color: "inherit" }}>
+            Matters
+          </Link>
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
             {profile?.org_name ?? profile?.full_name ?? ""}
           </span>

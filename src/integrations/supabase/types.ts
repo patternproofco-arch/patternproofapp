@@ -2553,6 +2553,160 @@ export type Database = {
         }
         Relationships: []
       }
+      matter_advocate_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          advocate_email: string
+          advocate_name: string | null
+          attorney_user_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          matter_id: string
+          status: string
+          token_hash: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_email: string
+          advocate_name?: string | null
+          attorney_user_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          matter_id: string
+          status?: string
+          token_hash: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_email?: string
+          advocate_name?: string | null
+          attorney_user_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          matter_id?: string
+          status?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matter_advocate_invitations_matter_id_fkey"
+            columns: ["matter_id"]
+            isOneToOne: false
+            referencedRelation: "matters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matter_advocates: {
+        Row: {
+          advocate_email: string | null
+          advocate_name: string | null
+          advocate_user_id: string
+          created_at: string
+          granted_by: string
+          id: string
+          matter_id: string
+          revoked_at: string | null
+        }
+        Insert: {
+          advocate_email?: string | null
+          advocate_name?: string | null
+          advocate_user_id: string
+          created_at?: string
+          granted_by: string
+          id?: string
+          matter_id: string
+          revoked_at?: string | null
+        }
+        Update: {
+          advocate_email?: string | null
+          advocate_name?: string | null
+          advocate_user_id?: string
+          created_at?: string
+          granted_by?: string
+          id?: string
+          matter_id?: string
+          revoked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matter_advocates_matter_id_fkey"
+            columns: ["matter_id"]
+            isOneToOne: false
+            referencedRelation: "matters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matters: {
+        Row: {
+          attorney_user_id: string
+          case_type: string | null
+          client_link_id: string | null
+          court: string | null
+          created_at: string
+          firm_id: string | null
+          id: string
+          jurisdiction: string | null
+          matter_name: string
+          matter_number: string | null
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attorney_user_id: string
+          case_type?: string | null
+          client_link_id?: string | null
+          court?: string | null
+          created_at?: string
+          firm_id?: string | null
+          id?: string
+          jurisdiction?: string | null
+          matter_name: string
+          matter_number?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          case_type?: string | null
+          client_link_id?: string | null
+          court?: string | null
+          created_at?: string
+          firm_id?: string | null
+          id?: string
+          jurisdiction?: string | null
+          matter_name?: string
+          matter_number?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matters_client_link_id_fkey"
+            columns: ["client_link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matters_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "firms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_threads: {
         Row: {
           attorney_summary: string | null
