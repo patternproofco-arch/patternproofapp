@@ -110,12 +110,18 @@ export function AuthPage({
       return;
     }
     try {
-      const returnTo =
-        redirectTo && redirectTo.startsWith("/")
-          ? window.location.origin + redirectTo
-          : window.location.origin;
+      // Google sends people back to a public page that stores the session and
+      // then forwards them on. Sending them straight to a signed-in page means
+      // arriving before the session exists, which reads as "nothing happened".
+      if (redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")) {
+        try {
+          sessionStorage.setItem("pp_oauth_return", redirectTo);
+        } catch {
+          /* storage unavailable — the callback falls back to the role home */
+        }
+      }
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: returnTo,
+        redirect_uri: window.location.origin + "/auth/callback",
       });
       if (result.error) {
         const msg = result.error instanceof Error ? result.error.message : "Try again in a moment.";
