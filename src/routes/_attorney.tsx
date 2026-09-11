@@ -252,6 +252,7 @@ function AttorneySidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isActive = (to: string) => {
     if (to === "/clients") return pathname.startsWith("/clients");
+    if (to === "/matters") return pathname.startsWith("/matters");
     return pathname === to;
   };
   return (
