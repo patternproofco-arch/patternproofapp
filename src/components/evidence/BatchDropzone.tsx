@@ -539,8 +539,8 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
           Images, PDFs, audio, video, documents — mix them freely. Up to {MAX_FILES} at once,{" "}
           {humanSize(UPLOAD_LIMITS.document)} per photo or document and{" "}
-          {humanSize(UPLOAD_LIMITS.video)} per video. Word documents are kept exactly as you sent
-          them; their text isn't read into drafts yet.
+          {humanSize(UPLOAD_LIMITS.video)} per video. Text in PDFs, Word files, photos and
+          screenshots is read out for you to check before it is used anywhere.
         </div>
         <input
           ref={inputRef}

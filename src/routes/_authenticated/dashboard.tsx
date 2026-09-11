@@ -1,14 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Plus, Mic, Paperclip, BookOpen, Waves, CalendarClock, ShieldCheck } from "lucide-react";
+import { Plus, Paperclip, BookOpen, Waves, CalendarClock, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard.functions";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { RecentActivityFeed, type ActivityItem } from "@/components/RecentActivityFeed";
-import { PortalStatHero } from "@/components/shared/PortalStatHero";
-import { QuickActionGrid, type QuickAction } from "@/components/shared/QuickActionGrid";
+import { type QuickAction } from "@/components/shared/QuickActionGrid";
 import { portalTheme } from "@/components/shared/portal-theme";
 import { ThreadPreview, type ThreadItem } from "@/components/shared/ThreadPreview";
 import { FocusRegion } from "@/components/survivor/focus-mode";
@@ -121,43 +120,58 @@ function Dashboard() {
     stats.evidence_count === 0 &&
     stats.unconfirmed_ai_count === 0;
 
-  const entryCount = stats
-    ? stats.incident_count + stats.evidence_count + stats.voice_note_count
-    : 0;
+  const figures: Array<{ n: number; label: string }> = [
+    { n: stats?.incident_count ?? 0, label: "records" },
+    { n: stats?.evidence_count ?? 0, label: "files" },
+    { n: stats?.voice_note_count ?? 0, label: "voice notes" },
+  ];
 
   return (
-    <div style={{ display: "grid", gap: 24 }}>
+    <div style={{ display: "grid", gap: 28 }}>
       <FocusRegion id="hero">
-        <PortalStatHero
-          variant="survivor"
-          eyebrow="Home"
-          heading={
-            isFirstTime ? (
-              <>
-                Whenever you're ready, <em>start here.</em>
-              </>
-            ) : (
-              <>
-                Add a Mark, <em>then rest.</em>
-              </>
-            )
-          }
-          value={entryCount}
-          label={entryCount === 1 ? "entry saved" : "entries saved"}
-          message="One thing at a time. Everything you save stays private to you."
+        <div className="label-eyebrow">Home</div>
+        <h1 className="mt-2 max-w-[640px] font-serif text-[34px] leading-tight">
+          {isFirstTime ? (
+            <>
+              Whenever you're ready, <em>start here.</em>
+            </>
+          ) : (
+            <>
+              Add a Mark, <em>then rest.</em>
+            </>
+          )}
+        </h1>
+        <p className="mt-3 max-w-[640px] text-[14px]" style={{ color: t.muted }}>
+          One thing at a time. Everything you save stays private to you.
+        </p>
+
+        <div
+          className="mt-5 flex flex-wrap items-baseline gap-x-8 gap-y-2"
+          style={{ borderTop: "1px solid var(--rule)", borderBottom: "1px solid var(--rule)", padding: "10px 0" }}
         >
+          {figures.map((f) => (
+            <span key={f.label} className="flex items-baseline gap-2">
+              <span
+                className="pp-mono"
+                style={{ fontSize: 18, color: "var(--ink)", fontVariantNumeric: "tabular-nums" }}
+              >
+                {f.n}
+              </span>
+              <span style={{ fontSize: 12.5, color: t.muted }}>{f.label}</span>
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center gap-5">
           <Link
             to="/journal"
+            className="btn-pp"
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              padding: "10px 16px",
-              borderRadius: 999,
-              background: "var(--pp-card)",
-              color: t.accent,
+              padding: "10px 18px",
               fontSize: 13.5,
-              fontWeight: 600,
               textDecoration: "none",
             }}
           >
@@ -165,27 +179,29 @@ function Dashboard() {
           </Link>
           <Link
             to="/voice-notes"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 16px",
-              borderRadius: 999,
-              border: "1px solid rgba(255,255,255,0.45)",
-              color: "#FFFFFF",
-              fontSize: 13.5,
-              fontWeight: 600,
-              textDecoration: "none",
-            }}
+            style={{ fontSize: 13.5, color: "var(--ink)", textDecoration: "underline" }}
           >
-            <Mic size={15} /> Say it out loud
+            Say it out loud
           </Link>
-        </PortalStatHero>
+        </div>
       </FocusRegion>
 
       {/* Holds the Safety link — never dimmed. */}
       <FocusRegion id="quick-actions" neverDim>
-        <QuickActionGrid variant="survivor" actions={QUICK_ACTIONS} />
+        <nav
+          className="flex flex-wrap gap-x-6 gap-y-2"
+          style={{ borderTop: "1px solid var(--rule)", paddingTop: 12 }}
+        >
+          {QUICK_ACTIONS.map((a) => (
+            <Link
+              key={a.label}
+              to={a.to}
+              style={{ fontSize: 13, color: "var(--ink)", textDecoration: "none" }}
+            >
+              {a.label}
+            </Link>
+          ))}
+        </nav>
       </FocusRegion>
 
       {thread && thread.length > 0 && (
@@ -236,10 +252,7 @@ function Dashboard() {
               >
                 Recently
               </h2>
-              <Link
-                to="/journal"
-                style={{ fontSize: 12.5, color: t.accent, textDecoration: "none" }}
-              >
+              <Link to="/journal" style={{ fontSize: 12.5, color: "var(--ink)" }}>
                 Open your Archive →
               </Link>
             </div>

@@ -130,5 +130,12 @@ export async function extractDocumentText(
     return extractPdf(bytes);
   }
 
+  // Photos and screenshots carry no text layer. Report them the same way as a
+  // scanned page so the caller runs the machine reading pass and the survivor
+  // sees the result beside the original for correction.
+  if (type.startsWith("image/") || /\.(jpe?g|png|heic|heif|webp|gif)$/.test(lowerName)) {
+    return { text: "", method: "none", status: "needs_ocr", pages: 1 };
+  }
+
   return { text: "", method: "none", status: "unsupported", pages: null };
 }

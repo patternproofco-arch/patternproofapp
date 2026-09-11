@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
+import { ABUSE_TYPES, typeLabel } from "@/lib/abuse-types";
 import { formatIncidentDate } from "@/lib/dates";
 import { FileText } from "lucide-react";
 import { MessageSquare } from "lucide-react";
@@ -85,7 +85,7 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
   return (
     <section
       className="mt-6"
-      style={{ background: "var(--pp-paper)", padding: 20, boxShadow: "var(--pp-shadow-sm)" }}
+      style={{ background: "var(--paper)", padding: 20, border: "1px solid var(--rule)", borderRadius: 3 }}
     >
       <div className="flex items-baseline gap-3">
         <span className="exhibit-tag">CORROBORATION</span>
@@ -401,7 +401,7 @@ function TimelinePage() {
       <FocusRegion id="timeline-entries" className="relative mt-8 pl-8">
         <div
           className="absolute left-2 top-0 bottom-0"
-          style={{ width: 2, background: "var(--accent)" }}
+          style={{ width: 1.5, background: "var(--stitch)" }}
         />
         {filtered.length === 0 ? (
           <div className="card-pp">
@@ -418,13 +418,13 @@ function TimelinePage() {
                 return (
                   <div key={`l-${l.id}`} className="relative">
                     <span
-                      className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4"
-                      style={{ background: color, boxShadow: "var(--pp-shadow-sm)" }}
+                      className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center"
+                      style={{ background: "var(--paper)", border: "1px solid var(--stitch)", borderRadius: 2 }}
                     >
                       <FileText size={10} color="var(--pp-ink)" />
                     </span>
-                    <div className="card-pp" style={{ borderLeft: `3px solid ${color}` }}>
-                      <div className="font-serif italic text-[16px]">
+                    <div className="card-pp" data-certainty="exact">
+                      <div className="mono-meta">
                         {new Date(row.date).toLocaleDateString(undefined, {
                           month: "long",
                           day: "numeric",
@@ -433,8 +433,8 @@ function TimelinePage() {
                       </div>
                       <div className="mt-1">
                         <span
-                          className="rounded-2xl px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ background: color, color: "var(--pp-ink)" }}
+                          className="px-2 py-0.5 text-[10px] font-semibold"
+                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink-muted)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
                         >
                           {LEGAL_LABEL[l.document_type] ?? "Document"}
                         </span>
@@ -465,13 +465,13 @@ function TimelinePage() {
                 return (
                   <div key={`m-${d.key}`} className="relative">
                     <span
-                      className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center rounded-sm ring-4"
-                      style={{ background: "#C7E9E3", boxShadow: "var(--pp-shadow-sm)" }}
+                      className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center"
+                      style={{ background: "var(--paper)", border: "1px solid var(--stitch)", borderRadius: 2 }}
                     >
                       <MessageSquare size={10} color="var(--pp-ink)" />
                     </span>
-                    <div className="card-pp" style={{ borderLeft: "3px solid #C7E9E3" }}>
-                      <div className="font-serif italic text-[16px]">
+                    <div className="card-pp" data-certainty="exact">
+                      <div className="mono-meta">
                         {new Date(row.date + "T00:00:00").toLocaleDateString(undefined, {
                           month: "long",
                           day: "numeric",
@@ -480,8 +480,8 @@ function TimelinePage() {
                       </div>
                       <div className="mt-1">
                         <span
-                          className="rounded-2xl px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ background: "#C7E9E3", color: "var(--pp-ink)" }}
+                          className="px-2 py-0.5 text-[10px] font-semibold"
+                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink-muted)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
                         >
                           IMPORTED MESSAGES
                         </span>
@@ -514,19 +514,24 @@ function TimelinePage() {
                 ? items.find((x) => x.id === i.anchor_incident_id)
                 : null;
               const open = expanded[i.id];
-              const primary = i.abuse_types[0] ?? "other";
               const long = i.description.length > 160;
               return (
                 <div key={`i-${i.id}`} className="relative">
                   <span
-                    className="absolute -left-[26px] top-3 h-3.5 w-3.5 rounded-full ring-4"
-                    style={{ background: typeColor(primary), boxShadow: "var(--pp-shadow-sm)" }}
+                    className="absolute -left-[26px] top-3 h-2.5 w-2.5"
+                    style={{ background: "var(--stitch)" }}
                   />
                   <div
                     className="card-pp"
-                    style={{ borderLeft: `3px solid ${typeColor(primary)}` }}
+                    data-certainty={
+                      i.date_precision === "approximate"
+                        ? "approximate"
+                        : i.date_precision && i.date_precision !== "exact"
+                          ? "unknown"
+                          : "exact"
+                    }
                   >
-                    <div className="font-serif italic text-[16px]">
+                    <div className="mono-meta">
                       {formatIncidentDate({
                         ...i,
                         anchor_incident: anchor
@@ -538,8 +543,8 @@ function TimelinePage() {
                       {i.abuse_types.map((t) => (
                         <span
                           key={t}
-                          className="rounded-2xl px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ background: typeColor(t), color: "var(--pp-ink)" }}
+                          className="px-2 py-0.5 text-[10px] font-semibold"
+                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink-muted)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
                         >
                           {typeLabel(t)}
                         </span>
@@ -568,11 +573,12 @@ function TimelinePage() {
                             href={e.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="block overflow-hidden rounded-2xl"
+                            className="block overflow-hidden"
                             style={{
                               width: 88,
-                              background: "var(--input)",
-                              boxShadow: "var(--pp-shadow-sm)",
+                              background: "var(--paper-deep)",
+                              border: "1px solid var(--rule)",
+                              borderRadius: 3,
                             }}
                           >
                             {e.file_type === "image" && e.url ? (

@@ -499,10 +499,10 @@ function EvidencePage() {
 
       <Link
         to="/import-messages"
-        className="mt-5 flex items-start gap-3 rounded-2xl p-4"
+        className="mt-5 flex items-start gap-3 p-4"
         style={{
           background: "var(--pp-card)",
-          boxShadow: "var(--pp-shadow-sm)",
+          
           color: "var(--foreground)",
           textDecoration: "none",
         }}
@@ -511,7 +511,7 @@ function EvidencePage() {
           style={{
             width: 38,
             height: 38,
-            borderRadius: 18,
+            borderRadius: 3,
             display: "grid",
             placeItems: "center",
             flexShrink: 0,
@@ -534,10 +534,10 @@ function EvidencePage() {
 
       <Link
         to="/message-threads"
-        className="mt-3 flex items-start gap-3 rounded-2xl p-4"
+        className="mt-3 flex items-start gap-3 p-4"
         style={{
           background: "var(--pp-card)",
-          boxShadow: "var(--pp-shadow-sm)",
+          
           color: "var(--foreground)",
           textDecoration: "none",
         }}
@@ -546,7 +546,7 @@ function EvidencePage() {
           style={{
             width: 38,
             height: 38,
-            borderRadius: 18,
+            borderRadius: 3,
             background: "transparent",
             display: "grid",
             placeItems: "center",
@@ -561,7 +561,7 @@ function EvidencePage() {
           </div>
           <div style={{ fontSize: 13, color: "var(--pp-muted)", marginTop: 2, lineHeight: 1.5 }}>
             For hundreds of messages: a CSV or TXT backup is read into individual messages you can
-            review. PDF, Excel, RSMF and ZIP backups are kept safely as you sent them, but their
+            review. Excel, RSMF and ZIP backups are kept safely as you sent them, but their
             contents aren't read yet. Screen recordings and call logs work too.
           </div>
         </div>
@@ -574,8 +574,8 @@ function EvidencePage() {
       <FocusRegion id="evidence-add">
         <form onSubmit={submit} className="card-pp mt-6 space-y-4">
           <label
-            className="block cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center"
-            style={{ borderColor: "var(--border)" }}
+            className="block cursor-pointer p-8 text-center"
+            style={{ border: "1px solid var(--rule)", borderRadius: 3, background: "var(--paper-deep)" }}
           >
             <Upload
               size={26}
@@ -599,10 +599,11 @@ function EvidencePage() {
           </label>
           {sizeError && (
             <div
-              className="rounded-2xl px-3 py-2 text-[13px]"
+              className="px-3 py-2 text-[13px]"
               style={{
-                background: "var(--tint-purple)",
-                boxShadow: "var(--pp-shadow-sm)",
+                background: "var(--paper-deep)",
+                border: "1px solid var(--rule)",
+                borderRadius: 3,
                 color: "var(--foreground)",
                 lineHeight: 1.5,
               }}
@@ -678,15 +679,12 @@ function EvidencePage() {
                     <button
                       type="button"
                       onClick={() => setTab("documentation")}
-                      className="rounded-2xl px-4 py-1.5 text-[13px] font-semibold"
+                      className="px-4 py-1.5 text-[13px] font-semibold"
                       style={{
-                        background:
-                          tab === "documentation" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
-                        color: tab === "documentation" ? "var(--pp-paper)" : "var(--foreground)",
-                        border:
-                          tab === "documentation"
-                            ? "1px solid var(--foreground)"
-                            : "1px solid rgba(0,0,0,0.10)",
+                        background: tab === "documentation" ? "var(--ink)" : "transparent",
+                        color: tab === "documentation" ? "var(--paper)" : "var(--ink)",
+                        border: "1px solid var(--rule)",
+                        borderRadius: 3,
                       }}
                     >
                       Documentation · {docItems.length}
@@ -694,15 +692,12 @@ function EvidencePage() {
                     <button
                       type="button"
                       onClick={() => setTab("evidence")}
-                      className="rounded-2xl px-4 py-1.5 text-[13px] font-semibold"
+                      className="px-4 py-1.5 text-[13px] font-semibold"
                       style={{
-                        background:
-                          tab === "evidence" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
-                        color: tab === "evidence" ? "var(--pp-paper)" : "var(--foreground)",
-                        border:
-                          tab === "evidence"
-                            ? "1px solid var(--foreground)"
-                            : "1px solid rgba(0,0,0,0.10)",
+                        background: tab === "evidence" ? "var(--ink)" : "transparent",
+                        color: tab === "evidence" ? "var(--paper)" : "var(--ink)",
+                        border: "1px solid var(--rule)",
+                        borderRadius: 3,
                       }}
                     >
                       Evidence · {evItems.length}
@@ -726,7 +721,7 @@ function EvidencePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-3">
                     {shown.map((it) => {
                       const url = previewUrls[it.id];
                       const linked = incidents.find((i) => i.id === it.linked_incident_id);
@@ -738,14 +733,22 @@ function EvidencePage() {
                               <div className="font-serif text-[15px] leading-tight">{it.title}</div>
                             </div>
                           </div>
-                          <div className="label-eyebrow mt-2">
-                            {new Date(it.date).toLocaleDateString()}
+                          <div className="mono-meta mono-meta--muted mt-2">
+                            {new Date(it.date).toLocaleDateString()} · {it.file_type} ·{" "}
+                            {it.transcript_status === "ready"
+                              ? "transcript ready"
+                              : it.extraction_status === "ready"
+                                ? "text read"
+                                : it.transcript_status === "pending" ||
+                                    it.extraction_status === "pending"
+                                  ? "being read"
+                                  : "nothing read yet"}
                           </div>
                           {it.review_status === "suggested" && (
                             <div
-                              className="mt-2 rounded-2xl p-2 text-[12px]"
+                              className="mt-2 p-2 text-[12px]"
                               style={{
-                                background: "rgba(231,208,163,0.4)",
+                                background: "var(--paper-deep)",
                                 color: "var(--pp-urgent)",
                               }}
                             >
@@ -760,7 +763,7 @@ function EvidencePage() {
                             <img
                               src={url}
                               alt={it.title}
-                              className="mt-3 max-h-48 w-full rounded-2xl object-cover"
+                              className="mt-3 max-h-48 w-full object-cover"
                             />
                           )}
                           {it.file_type === "audio" && url && (
@@ -770,7 +773,7 @@ function EvidencePage() {
                             <video
                               controls
                               src={url}
-                              className="mt-3 max-h-48 w-full rounded-2xl"
+                              className="mt-3 max-h-48 w-full"
                             />
                           )}
                           {it.description && (
@@ -780,7 +783,7 @@ function EvidencePage() {
                           )}
                           {(it.file_type === "audio" || it.file_type === "video") && (
                             <div
-                              className="mt-2 rounded-2xl p-3 text-[12px]"
+                              className="mt-2 p-3 text-[12px]"
                               style={{ background: "var(--input)", color: "var(--foreground)" }}
                             >
                               <div className="label-eyebrow mb-1">Transcript</div>
@@ -795,7 +798,7 @@ function EvidencePage() {
                           )}
                           {isReadableDocument(it.mime, it.title) && (
                             <div
-                              className="mt-2 rounded-2xl p-3 text-[12px]"
+                              className="mt-2 p-3 text-[12px]"
                               style={{ background: "var(--input)", color: "var(--foreground)" }}
                             >
                               <div className="label-eyebrow mb-1">
@@ -977,7 +980,7 @@ function EvidencePage() {
 
             {!reviewBusy && reviewError && (
               <div
-                className="my-4 rounded-2xl bg-white/40 p-4 text-[13px]"
+                className="my-4 p-4 text-[13px]"
                 style={{ color: "var(--pp-ink)" }}
               >
                 {reviewError}
@@ -1042,13 +1045,12 @@ function EvidencePage() {
                               else set.add(t);
                               setDraft({ ...draft, abuse_types: Array.from(set) });
                             }}
-                            className="rounded-2xl px-3 py-1 text-[12px] font-semibold"
+                            className="px-3 py-1 text-[12px] font-semibold"
                             style={{
-                              background: active ? opt.color : "var(--pp-card)",
-                              color: active ? "#FFFFFF" : "var(--pp-ink)",
-                              border: active
-                                ? `1px solid ${opt.color}`
-                                : "1px solid rgba(0,0,0,0.10)",
+                              background: active ? "var(--ink)" : "transparent",
+                              color: active ? "var(--paper)" : "var(--ink)",
+                              border: "1px solid var(--rule)",
+                              borderRadius: 3,
                             }}
                           >
                             {opt.label}

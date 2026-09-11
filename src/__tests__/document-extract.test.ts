@@ -72,3 +72,16 @@ describe("document text extraction", () => {
     expect(r.method).toBe("none");
   });
 });
+
+describe("photos and screenshots", () => {
+  it("routes an image to the reading pass instead of calling it unsupported", async () => {
+    const r = await extractDocumentText(new Uint8Array([0xff, 0xd8, 0xff]), "image/jpeg", "shot.jpg");
+    expect(r.status).toBe("needs_ocr");
+  });
+
+  it("treats an image as readable so both upload paths run extraction", async () => {
+    const { isReadableDocument } = await import("@/lib/readable-documents");
+    expect(isReadableDocument("image/png", "screenshot.png")).toBe(true);
+    expect(isReadableDocument("image/heic", "IMG_0042.HEIC")).toBe(true);
+  });
+});
