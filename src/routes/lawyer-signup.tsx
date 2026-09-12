@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
@@ -11,12 +11,8 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
 export const Route = createFileRoute("/lawyer-signup")({
   head: () => ({
     meta: [
-      { title: "Attorney access — PatternProof" },
-      {
-        name: "description",
-        content:
-          "Request access to the PatternProof attorney portal, or sign in if you already have an invitation.",
-      },
+      { title: "Create your attorney account — PatternProof" },
+      { name: "description", content: "Litigation intelligence portal for family-law attorneys handling DV and coercive control cases." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -28,6 +24,7 @@ function LawyerSignup() {
   const navigate = useNavigate();
   const upsert = useServerFn(upsertAttorneyProfile);
 
+  const [mode, setMode] = useState<"login" | "signup">("signup");
   const [step, setStep] = useState<"auth" | "profile">("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,8 +42,17 @@ function LawyerSignup() {
     e.preventDefault();
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin + "/lawyer-signup" },
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
     } catch (err) {
       toast(err instanceof Error ? err.message : "Try again in a moment.");
     } finally {
@@ -78,7 +84,7 @@ function LawyerSignup() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-5 py-10">
+    <main className="flex min-h-screen items-center justify-center px-5 py-10">
       <PublicQuickExit />
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
@@ -91,85 +97,33 @@ function LawyerSignup() {
 
         {step === "auth" ? (
           <div className="card-pp">
-            <h2 className="font-serif text-[20px]">Request access or sign in</h2>
-            <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Attorney portals are invitation-only while we verify identity. If you already have an
-              invite, sign in below. If not, request access and we&apos;ll send next steps.
-            </p>
-            <Link
-              to="/support"
-              className="btn-primary mt-4 flex w-full items-center justify-center"
-              style={{ textDecoration: "none" }}
-            >
-              Request access
-            </Link>
-            <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-              Use the support form (category: Login/access) with your firm name and jurisdiction —
-              or email{" "}
-              <a href="mailto:pattern@pattern-proof.tech" style={{ color: "var(--accent)" }}>
-                pattern@pattern-proof.tech
-              </a>
-              .
-            </p>
-            <div
-              className="my-4 text-center text-[11px] font-semibold uppercase tracking-widest"
-              style={{ color: "var(--muted-foreground)" }}
-            >
-              Already invited?
-            </div>
+            <h2 className="font-serif text-[20px]">
+              {mode === "signup" ? "Create your attorney account" : "Sign in"}
+            </h2>
             <form onSubmit={auth} className="mt-4 space-y-3">
-              <input
-                className="input-pp"
-                type="email"
-                required
-                placeholder="Work email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <input
-                className="input-pp"
-                type="password"
-                required
-                minLength={8}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <label htmlFor="attorney-email" className="sr-only">Work email</label>
+              <input id="attorney-email" name="email" autoComplete="email" className="input-pp" type="email" required placeholder="Work email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <label htmlFor="attorney-password" className="sr-only">Password</label>
+              <input id="attorney-password" name="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} className="input-pp" type="password" required minLength={8} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
               <button className="btn-primary w-full" disabled={busy}>
-                {busy ? "One moment…" : "Sign in"}
+                {busy ? "One moment…" : mode === "signup" ? "Create account" : "Sign in"}
               </button>
             </form>
+            <button type="button" onClick={() => setMode(mode === "signup" ? "login" : "signup")} className="mt-4 w-full text-center text-[13px]" style={{ color: "var(--accent)" }}>
+              {mode === "signup" ? "I already have an account" : "Create a new account"}
+            </button>
           </div>
         ) : (
           <div className="card-pp">
             <h2 className="font-serif text-[20px]">Tell clients who they're working with</h2>
             <form onSubmit={saveProfile} className="mt-4 space-y-3">
-              <input
-                className="input-pp"
-                required
-                placeholder="Full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-              <input
-                className="input-pp"
-                placeholder="Firm name (optional)"
-                value={firm}
-                onChange={(e) => setFirm(e.target.value)}
-              />
+              <label htmlFor="attorney-name" className="sr-only">Full name</label>
+              <input id="attorney-name" name="fullName" autoComplete="name" className="input-pp" required placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+              <label htmlFor="firm-name" className="sr-only">Firm name (optional)</label>
+              <input id="firm-name" name="firmName" autoComplete="organization" className="input-pp" placeholder="Firm name (optional)" value={firm} onChange={(e) => setFirm(e.target.value)} />
               <div className="grid grid-cols-2 gap-3">
-                <input
-                  className="input-pp"
-                  placeholder="Bar #"
-                  value={bar}
-                  onChange={(e) => setBar(e.target.value)}
-                />
-                <input
-                  className="input-pp"
-                  placeholder="Jurisdiction"
-                  value={jur}
-                  onChange={(e) => setJur(e.target.value)}
-                />
+                <div><label htmlFor="bar-number" className="sr-only">Bar number</label><input id="bar-number" name="barNumber" className="input-pp" placeholder="Bar #" value={bar} onChange={(e) => setBar(e.target.value)} /></div>
+                <div><label htmlFor="jurisdiction" className="sr-only">Jurisdiction</label><input id="jurisdiction" name="jurisdiction" className="input-pp" placeholder="Jurisdiction" value={jur} onChange={(e) => setJur(e.target.value)} /></div>
               </div>
               <button className="btn-primary w-full" disabled={busy}>
                 {busy ? "Saving…" : "Enter portal"}
@@ -178,6 +132,6 @@ function LawyerSignup() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

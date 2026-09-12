@@ -1,21 +1,20 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { getMyOrgSetupState, setMyOrg } from "@/lib/org-portal.functions";
+import { setMyOrg } from "@/lib/org-portal.functions";
 import { toast } from "sonner";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/org-signup")({
   head: () => ({
     meta: [
-      { title: "Partner organization access — PatternProof" },
+      { title: "Partner organization sign-up — PatternProof" },
       {
         name: "description",
-        content:
-          "Request access to the PatternProof partner portal for DV organizations, or sign in if you already have an invitation.",
+        content: "Create your DV organization's free partner account on PatternProof.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -27,9 +26,9 @@ function OrgSignup() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const createOrg = useServerFn(setMyOrg);
-  const readSetupState = useServerFn(getMyOrgSetupState);
 
-  const [step, setStep] = useState<"auth" | "profile" | "pending">("auth");
+  const [mode, setMode] = useState<"login" | "signup">("signup");
+  const [step, setStep] = useState<"auth" | "profile">("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -37,43 +36,25 @@ function OrgSignup() {
   const [contactRole, setContactRole] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Signed in already? Send them straight through if their organization
-  // exists, let a verified partner finish setup, and tell everyone else
-  // plainly that verification is still pending (never bounce them back).
   useEffect(() => {
-    if (loading || !user || step !== "auth") return;
-    let cancelled = false;
-    readSetupState()
-      .then((r) => {
-        if (cancelled) return;
-        if (r.hasOrg) {
-          navigate({ to: "/org-portal", replace: true });
-          return;
-        }
-        if (!r.approved) {
-          setStep("pending");
-          return;
-        }
-        if (r.suggested_org_name) setOrgName(r.suggested_org_name);
-        if (r.suggested_contact_name) setContactName(r.suggested_contact_name);
-        if (r.suggested_contact_role) setContactRole(r.suggested_contact_role);
-        setStep("profile");
-      })
-      .catch(() => {
-        if (!cancelled) setStep("pending");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user, loading, step, navigate, readSetupState]);
-
+    if (!loading && user && step === "auth") setStep("profile");
+  }, [user, loading, step]);
 
   const auth = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin + "/org-signup" },
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
     } catch (err) {
       toast(err instanceof Error ? err.message : "Try again in a moment.");
     } finally {
@@ -95,7 +76,7 @@ function OrgSignup() {
         },
       });
       toast("Your organization is set up.");
-      navigate({ to: "/org-portal", replace: true });
+      navigate({ to: "/org-portal" });
     } catch (err) {
       toast(err instanceof Error ? err.message : "Couldn't create your organization.");
     } finally {
@@ -104,7 +85,7 @@ function OrgSignup() {
   };
 
   return (
-    <div data-pp-paper="" className="flex min-h-screen items-center justify-center px-5 py-10">
+    <main className="flex min-h-screen items-center justify-center px-5 py-10">
       <PublicQuickExit />
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
@@ -117,33 +98,15 @@ function OrgSignup() {
 
         {step === "auth" ? (
           <div className="card-pp">
-            <h2 className="font-serif text-[20px]">Request access or sign in</h2>
-            <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Partner portals are invitation-only while we verify organizations. If you already have
-              an invite, sign in below. If not, request access and we&apos;ll follow up.
-            </p>
-            <Link
-              to="/partner-access"
-              className="btn-primary mt-4 flex w-full items-center justify-center"
-              style={{ textDecoration: "none" }}
-            >
-              Request access
-            </Link>
-            <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-              Tell us about your organization on the request form — or email{" "}
-              <a href="mailto:pattern@pattern-proof.tech" style={{ color: "var(--accent)" }}>
-                pattern@pattern-proof.tech
-              </a>
-              .
-            </p>
-            <div
-              className="my-4 text-center text-[11px] font-semibold uppercase tracking-widest"
-              style={{ color: "var(--muted-foreground)" }}
-            >
-              Already invited?
-            </div>
+            <h2 className="font-serif text-[20px]">
+              {mode === "signup" ? "Create your organization account" : "Sign in"}
+            </h2>
             <form onSubmit={auth} className="mt-4 space-y-3">
+              <label htmlFor="org-email" className="sr-only">Work email</label>
               <input
+                id="org-email"
+                name="email"
+                autoComplete="email"
                 className="input-pp"
                 type="email"
                 required
@@ -151,7 +114,11 @@ function OrgSignup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
+              <label htmlFor="org-password" className="sr-only">Password</label>
               <input
+                id="org-password"
+                name="password"
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
                 className="input-pp"
                 type="password"
                 required
@@ -161,35 +128,50 @@ function OrgSignup() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button className="btn-primary w-full" disabled={busy}>
-                {busy ? "One moment…" : "Sign in"}
+                {busy ? "One moment…" : mode === "signup" ? "Create account" : "Sign in"}
               </button>
+              {mode === "signup" && (
+                <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  By creating an account you agree to the{" "}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--accent)", textDecoration: "underline" }}
+                  >
+                    Terms of Service
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--accent)", textDecoration: "underline" }}
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
+              )}
             </form>
-          </div>
-        ) : step === "pending" ? (
-          <div className="card-pp">
-            <h2 className="font-serif text-[20px]">We&apos;re verifying your organization</h2>
-            <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              You&apos;re signed in, and your account is ready. Partner dashboards open once we
-              confirm your organization — we&apos;ll email you at{" "}
-              <strong>{user?.email ?? "your work address"}</strong> as soon as that&apos;s done.
-            </p>
-            <Link
-              to="/support"
-              className="btn-primary mt-4 flex w-full items-center justify-center"
-              style={{ textDecoration: "none" }}
+            <button
+              type="button"
+              onClick={() => setMode(mode === "signup" ? "login" : "signup")}
+              className="mt-4 w-full text-center text-[13px]"
+              style={{ color: "var(--accent)" }}
             >
-              Ask about my verification
-            </Link>
-            <p className="mt-3 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-              Already verified today? Refresh this page to continue setup.
-            </p>
+              {mode === "signup" ? "I already have an account" : "Create a new account"}
+            </button>
           </div>
         ) : (
           <div className="card-pp">
-
             <h2 className="font-serif text-[20px]">Tell us about your organization</h2>
             <form onSubmit={saveOrg} className="mt-4 space-y-3">
+              <label htmlFor="organization-name" className="sr-only">Organization name</label>
               <input
+                id="organization-name"
+                name="organizationName"
+                autoComplete="organization"
                 className="input-pp"
                 required
                 minLength={2}
@@ -197,14 +179,21 @@ function OrgSignup() {
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
               />
+              <label htmlFor="contact-name" className="sr-only">Your name</label>
               <input
+                id="contact-name"
+                name="contactName"
+                autoComplete="name"
                 className="input-pp"
                 required
                 placeholder="Your name"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
               />
+              <label htmlFor="contact-role" className="sr-only">Your role (optional)</label>
               <input
+                id="contact-role"
+                name="contactRole"
                 className="input-pp"
                 placeholder="Your role (optional)"
                 value={contactRole}
@@ -217,6 +206,6 @@ function OrgSignup() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

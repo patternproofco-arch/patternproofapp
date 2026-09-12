@@ -160,7 +160,7 @@ function ResourcesPage() {
       <QuickExitButton />
       {user ? <BottomTabBar /> : null}
 
-      <div style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(40px,8vw,88px) 24px 140px" }}>
+      <main style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(40px,8vw,88px) 24px 140px" }}>
         {user ? <HubTabs tabs={RESOURCE_TABS} /> : null}
         <Link
           to="/"
@@ -203,13 +203,7 @@ function ResourcesPage() {
           Real people, on the other end of a phone.
         </h1>
         <p
-          style={{
-            marginTop: 16,
-            fontSize: 16,
-            lineHeight: 1.6,
-            color: "var(--pp-muted)",
-            maxWidth: 580,
-          }}
+          style={{ marginTop: 16, fontSize: 16, lineHeight: 1.6, color: "var(--pp-muted)", maxWidth: 580 }}
         >
           Free and confidential. Call from a device the other person can't check when you can.
         </p>
@@ -275,7 +269,12 @@ function ResourcesPage() {
                 Pick a state to see its coalition. Nothing is saved unless you set it in your own
                 settings.
               </p>
+              <label htmlFor="state-resource-picker" style={{ display: "block", marginTop: 12, fontSize: 13, color: MUTED }}>
+                State
+              </label>
               <select
+                id="state-resource-picker"
+                name="state"
                 value={picked}
                 onChange={(e) => setPicked(e.target.value)}
                 style={{
@@ -332,7 +331,7 @@ function ResourcesPage() {
             PatternProof is not a crisis service and not a law firm.
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
