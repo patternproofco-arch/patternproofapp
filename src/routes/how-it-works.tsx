@@ -58,6 +58,7 @@ function HowItWorks() {
       <PublicQuickExit />
       <TopBar />
 
+      <main>
       <section
         style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(56px,9vw,96px) 24px 24px" }}
       >
@@ -108,27 +109,33 @@ function HowItWorks() {
             label="I'm a survivor"
             active={aud === "survivor"}
             accent={INK}
+            id="audience-tab-survivor"
+            controls="audience-panel-survivor"
             onClick={() => setAud("survivor")}
           />
           <Picker
             label="I'm an attorney"
             active={aud === "attorney"}
             accent={NAVY}
+            id="audience-tab-attorney"
+            controls="audience-panel-attorney"
             onClick={() => setAud("attorney")}
           />
           <Picker
             label="I'm with a DV organization"
             active={aud === "org"}
             accent={SAGE}
+            id="audience-tab-org"
+            controls="audience-panel-org"
             onClick={() => setAud("org")}
           />
         </div>
       </section>
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "24px 24px 32px" }}>
-        {aud === "survivor" && <SurvivorFlow accent={accent} />}
-        {aud === "attorney" && <AttorneyFlow accent={accent} />}
-        {aud === "org" && <OrgFlow accent={accent} />}
+        {aud === "survivor" && <div id="audience-panel-survivor" role="tabpanel" aria-labelledby="audience-tab-survivor"><SurvivorFlow accent={accent} /></div>}
+        {aud === "attorney" && <div id="audience-panel-attorney" role="tabpanel" aria-labelledby="audience-tab-attorney"><AttorneyFlow accent={accent} /></div>}
+        {aud === "org" && <div id="audience-panel-org" role="tabpanel" aria-labelledby="audience-tab-org"><OrgFlow accent={accent} /></div>}
       </section>
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "16px 24px 88px" }}>
@@ -154,19 +161,20 @@ function HowItWorks() {
             )}
             {aud === "attorney" && (
               <>
-                <PrimaryLink to="/lawyer-signup" accent={NAVY} label="Request access →" />
+                <PrimaryLink to="/lawyer-signup" accent={NAVY} label="Attorney sign-up →" />
                 <GhostLink to="/for-attorneys" label="Attorney overview" />
               </>
             )}
             {aud === "org" && (
               <>
-                <PrimaryLink to="/org-signup" accent={SAGE} label="Request access →" />
+                <PrimaryLink to="/org-signup" accent={SAGE} label="Partner with us →" />
                 <GhostLink to="/for-organizations" label="Organization overview" />
               </>
             )}
           </div>
         </div>
       </section>
+      </main>
 
       <Foot />
     </div>
@@ -177,17 +185,25 @@ function Picker({
   label,
   active,
   accent,
+  id,
+  controls,
   onClick,
 }: {
   label: string;
   active: boolean;
   accent: string;
+  id: string;
+  controls: string;
   onClick: () => void;
 }) {
   return (
     <button
+      id={id}
       role="tab"
+      type="button"
       aria-selected={active}
+      aria-controls={controls}
+      tabIndex={active ? 0 : -1}
       onClick={onClick}
       style={{
         background: active ? "var(--pp-card)" : "transparent",
@@ -365,7 +381,7 @@ function PrimaryLink({ to, accent, label }: { to: string; accent: string; label:
   return (
     <Link
       to={to}
-      search={to === "/signup" || to === "/signin" ? {} : undefined}
+      search={undefined}
       style={{
         display: "inline-block",
         background: accent,

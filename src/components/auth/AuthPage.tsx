@@ -110,18 +110,12 @@ export function AuthPage({
       return;
     }
     try {
-      // Google sends people back to a public page that stores the session and
-      // then forwards them on. Sending them straight to a signed-in page means
-      // arriving before the session exists, which reads as "nothing happened".
-      if (redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")) {
-        try {
-          sessionStorage.setItem("pp_oauth_return", redirectTo);
-        } catch {
-          /* storage unavailable — the callback falls back to the role home */
-        }
-      }
+      const returnTo =
+        redirectTo && redirectTo.startsWith("/")
+          ? window.location.origin + redirectTo
+          : window.location.origin;
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/auth/callback",
+        redirect_uri: returnTo,
       });
       if (result.error) {
         const msg = result.error instanceof Error ? result.error.message : "Try again in a moment.";
@@ -139,10 +133,9 @@ export function AuthPage({
   };
 
   return (
-    <div
+    <main
       className="flex min-h-screen items-center justify-center px-5 py-10"
       data-portal="survivor"
-      data-pp-paper=""
     >
       <PublicQuickExit />
       <div className="w-full max-w-md">
@@ -165,7 +158,7 @@ export function AuthPage({
           <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             {mode === "login"
               ? "Sign in to continue to your private PatternProof account."
-              : "Add photos, messages, voice notes, and written entries to one private timeline. You choose what to share and who can see it."}
+              : "Add photos, messages, voice notes, and written entries to one private timeline. You control what is shared and who can see it."}
           </p>
 
           <div className="space-y-3 mb-4">
@@ -201,6 +194,7 @@ export function AuthPage({
               </svg>
               Continue with Google
             </button>
+
           </div>
 
           <div
@@ -213,7 +207,10 @@ export function AuthPage({
           </div>
 
           <form onSubmit={submit} className="space-y-3">
+            <label htmlFor="account-email" className="sr-only">Email address</label>
             <input
+              id="account-email"
+              name="email"
               type="email"
               required
               autoComplete="email"
@@ -222,7 +219,10 @@ export function AuthPage({
               onChange={(e) => setEmail(e.target.value)}
               className="input-pp"
             />
+            <label htmlFor="account-password" className="sr-only">Password</label>
             <input
+              id="account-password"
+              name="password"
               type="password"
               required
               minLength={8}
@@ -266,10 +266,25 @@ export function AuthPage({
                 </span>
               </label>
             )}
+            {mode === "signup" && (
+              <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                Use at least 8 characters.
+              </p>
+            )}
             <button type="submit" disabled={busy || consentBlocked} className="btn-primary w-full">
               {busy ? "One moment…" : mode === "login" ? "Sign in" : "Create my account"}
             </button>
           </form>
+          {mode === "login" && (
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/recovery" })}
+              className="mt-4 w-full text-center text-[13px]"
+              style={{ color: "var(--accent)" }}
+            >
+              Forgot your password?
+            </button>
+          )}
           <button
             type="button"
             onClick={() =>
@@ -291,6 +306,6 @@ export function AuthPage({
           <Lock size={12} /> PRIVATE BY DEFAULT · ENCRYPTED IN TRANSIT
         </div>
       </div>
-    </div>
+    </main>
   );
 }
