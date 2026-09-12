@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import folioLockCss from "../folio-lock.css?url";
@@ -317,6 +318,28 @@ function FolioPageFrame({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Register service worker for PWA functionality
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((err) => {
+        console.error("Service Worker registration failed:", err);
+      });
+    }
+
+    // Handle PWA install prompt
+    let deferredPrompt: BeforeInstallPromptEvent | null = null;
+
+    window.addEventListener("beforeinstallprompt", (e: any) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    // Listen for app installed event
+    window.addEventListener("appinstalled", () => {
+      console.log("PWA installed successfully");
+    });
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -347,4 +370,16 @@ function RootComponent() {
       </AuthProvider>
     </QueryClientProvider>
   );
+}
+
+// TypeScript type for beforeinstallprompt
+declare global {
+  interface WindowEventMap {
+    beforeinstallprompt: BeforeInstallPromptEvent;
+  }
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
