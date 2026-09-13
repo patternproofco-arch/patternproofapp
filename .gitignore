@@ -36,5 +36,8 @@ dist-ssr
 .env.*
 !.env.example
 
+# Local MCP server config — may contain service-role keys, never commit
+.mcp.json
+
 test-results/
 playwright-report/
