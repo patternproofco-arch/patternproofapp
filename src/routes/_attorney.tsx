@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, getAttorneyProfile } from "@/lib/attorney-portal.functions";
 import { getClioAvailability, getClioStatus } from "@/lib/clio.functions";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useMfaGate } from "@/hooks/use-mfa-gate";
 import attorneyCss from "@/styles/attorney.css?url";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
@@ -47,6 +48,7 @@ function AttorneyLayout() {
   const [firmName, setFirmName] = useState<string | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sub = useSubscription();
+  const mfaChecking = useMfaGate(!loading && !!user);
 
   useEffect(() => {
     if (loading) return;
@@ -97,12 +99,12 @@ function AttorneyLayout() {
   // resolves or rejects — takes too long, surface the same retry instead of
   // spinning forever.
   useEffect(() => {
-    if (!(loading || checking || sub.loading)) return;
+    if (!(loading || checking || sub.loading || mfaChecking)) return;
     const timer = setTimeout(() => {
       setLoadError((prev) => prev ?? "This is taking longer than it should.");
     }, 15000);
     return () => clearTimeout(timer);
-  }, [loading, checking, sub.loading]);
+  }, [loading, checking, sub.loading, mfaChecking]);
 
   // Hard paywall: any non-billing route requires an active subscription.
   // /subscribe, /billing-return, and /setup are reachable without one.
@@ -128,7 +130,7 @@ function AttorneyLayout() {
   }, [loading, checking, onboarded, onSetup, navigate, user]);
 
   useEffect(() => {
-    if (loading || checking || sub.loading) return;
+    if (loading || checking || sub.loading || mfaChecking) return;
     if (!user) return;
     if (onboarded === false) return; // onboarding takes priority over paywall
     // Collaborators bypass the paywall — the lead attorney pays for the seat.
@@ -140,6 +142,7 @@ function AttorneyLayout() {
     loading,
     checking,
     sub.loading,
+    mfaChecking,
     sub.isActive,
     billingPaths,
     navigate,
@@ -177,7 +180,7 @@ function AttorneyLayout() {
     );
   }
 
-  if (loading || checking || sub.loading) {
+  if (loading || checking || sub.loading || mfaChecking) {
     return (
       <div
         className="att-root"
