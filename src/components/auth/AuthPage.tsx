@@ -42,6 +42,7 @@ export function AuthPage({
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const consentBlocked = mode === "signup" && !agreed;
 
   useEffect(() => {
