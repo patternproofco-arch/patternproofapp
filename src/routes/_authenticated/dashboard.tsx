@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Plus, Paperclip, BookOpen, Waves, CalendarClock, ShieldCheck } from "lucide-react";
+import { Plus, Paperclip, BookOpen, Waves, CalendarClock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard.functions";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { RecentActivityFeed, type ActivityItem } from "@/components/RecentActivityFeed";
+import { SafetyResourcesLink } from "@/components/SafetyResourcesLink";
 import { type QuickAction } from "@/components/shared/QuickActionGrid";
 import { portalTheme } from "@/components/shared/portal-theme";
 import { ThreadPreview, type ThreadItem } from "@/components/shared/ThreadPreview";
@@ -23,13 +24,21 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
+/**
+ * "Safety" used to live here as a Link to the public /safety marketing
+ * page — a route outside _authenticated, so tapping it dropped her out of
+ * the app entirely: disguise title gone (that route's own <title> wins,
+ * no SettingsProvider to restore it), no bottom tab bar, and "Back to
+ * home" pointing at the public landing page, not /dashboard. Replaced
+ * with SafetyResourcesLink below, the same inline-expand-in-place
+ * component patterns.tsx already uses — it never navigates anywhere.
+ */
 const QUICK_ACTIONS: QuickAction[] = [
   { label: "Log a Mark", icon: Plus, to: "/journal" },
   { label: "Evidence", icon: Paperclip, to: "/evidence" },
   { label: "Archive", icon: BookOpen, to: "/journal" },
   { label: "Recurline", icon: Waves, to: "/patterns" },
   { label: "Timeline", icon: CalendarClock, to: "/timeline" },
-  { label: "Safety", icon: ShieldCheck, to: "/safety" },
 ];
 
 function Dashboard() {
@@ -118,7 +127,8 @@ function Dashboard() {
     !!stats &&
     stats.incident_count === 0 &&
     stats.evidence_count === 0 &&
-    stats.unconfirmed_ai_count === 0;
+    stats.unconfirmed_ai_count === 0 &&
+    stats.voice_note_count === 0;
 
   const figures: Array<{ n: number; label: string }> = [
     { n: stats?.incident_count ?? 0, label: "records" },
@@ -186,7 +196,7 @@ function Dashboard() {
         </div>
       </FocusRegion>
 
-      {/* Holds the Safety link — never dimmed. */}
+      {/* Holds the Safety resources — never dimmed. */}
       <FocusRegion id="quick-actions" neverDim>
         <nav
           className="flex flex-wrap gap-x-6 gap-y-2"
@@ -202,6 +212,7 @@ function Dashboard() {
             </Link>
           ))}
         </nav>
+        <SafetyResourcesLink />
       </FocusRegion>
 
       {thread && thread.length > 0 && (
