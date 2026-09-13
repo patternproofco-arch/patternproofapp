@@ -1042,3 +1042,41 @@ export const submitOrgAccessRequest = createServerFn({ method: "POST" })
       message: "Thanks — your request is with us. We review each organization by hand.",
     };
   });
+
+export const submitOrgVerification = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context, data }: { data: Record<string, unknown> }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const userId = context.userId;
+
+    const { data: membership } = await supabaseAdmin
+      .from("org_members")
+      .select("org_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!membership) {
+      throw new Error("You're not part of an organization.");
+    }
+
+    const { error } = await supabaseAdmin
+      .from("verification_requests")
+      .upsert(
+        {
+          org_id: membership.org_id,
+          submitted_by: userId,
+          form_data: data || {},
+          status: "pending",
+        },
+        { onConflict: "org_id" }
+      );
+
+    if (error) {
+      throw new Error("We couldn't submit your verification. Try again in a moment.");
+    }
+
+    return {
+      ok: true as const,
+      message: "Thanks for submitting your verification. We'll review it and get back to you.",
+    };
+  });
