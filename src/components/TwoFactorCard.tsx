@@ -9,9 +9,11 @@ type Factor = { id: string; status: string; friendly_name?: string };
 export function TwoFactorCard({
   className = "card-pp mt-6",
   headingClassName = "font-serif text-[19px]",
+  required = false,
 }: {
   className?: string;
   headingClassName?: string;
+  required?: boolean;
 }) {
   const [loading, setLoading] = useState(true);
   const [factors, setFactors] = useState<Factor[]>([]);
@@ -103,6 +105,7 @@ export function TwoFactorCard({
 
   const disable = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (required) return;
     const factor = verified[0];
     if (!factor) return;
     const trimmed = disableCode.replace(/\s/g, "");
@@ -137,9 +140,9 @@ export function TwoFactorCard({
         <h2 className={headingClassName}>Two-factor authentication</h2>
       </div>
       <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-        After your password, PatternProof asks for a 6-digit code from an authenticator app (Authy,
-        Google Authenticator, 1Password, iCloud Keychain). We don't use text messages — a shared or
-        stolen phone number shouldn't be able to open this account.
+        {required
+          ? "An authenticator app is required before this account can open shared case files, downloads, or exports. PatternProof does not send codes by text."
+          : "After your password, PatternProof asks for a 6-digit code from an authenticator app (Authy, Google Authenticator, 1Password, iCloud Keychain). We don't use text messages — a shared or stolen phone number shouldn't be able to open this account."}
       </p>
 
       {loading ? (
@@ -187,32 +190,43 @@ export function TwoFactorCard({
           </form>
         </div>
       ) : verified.length > 0 ? (
-        <form onSubmit={disable} className="mt-4 space-y-3">
+        <div className="mt-4 space-y-3">
           <div
             className="flex items-center gap-2 rounded-2xl px-3 py-2.5 text-[13px]"
             style={{ background: "var(--input)" }}
           >
             <Shield size={14} style={{ color: "var(--safe)" }} />
-            On — a code is required at sign-in.
+            {required
+              ? "On — required to open case files."
+              : "On — a code is required at sign-in."}
           </div>
-          <input
-            className="input-pp text-center tracking-[0.4em]"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={6}
-            placeholder="Code to turn off"
-            value={disableCode}
-            onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-          />
-          {error ? (
+          {!required ? (
+            <form onSubmit={disable} className="space-y-3">
+              <input
+                className="input-pp text-center tracking-[0.4em]"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                placeholder="Code to turn off"
+                value={disableCode}
+                onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              />
+              {error ? (
+                <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  {error}
+                </p>
+              ) : null}
+              <button type="submit" disabled={busy} className="btn-ghost">
+                {busy ? "One moment…" : "Turn off two-factor"}
+              </button>
+            </form>
+          ) : (
             <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-              {error}
+              Contact PatternProof support if this device is lost. Turning this off from here would
+              leave shared files on a password-only login.
             </p>
-          ) : null}
-          <button type="submit" disabled={busy} className="btn-ghost">
-            {busy ? "One moment…" : "Turn off two-factor"}
-          </button>
-        </form>
+          )}
+        </div>
       ) : (
         <div className="mt-4">
           {error ? (
