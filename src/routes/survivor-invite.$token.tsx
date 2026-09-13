@@ -6,6 +6,7 @@ import { ShieldCheck, Lock, Heart, CheckCircle2, FileText, Paperclip } from "luc
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useRestoreDisguiseTitle } from "@/hooks/use-restore-disguise-title";
 import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import {
@@ -28,6 +29,7 @@ type Peek = Awaited<ReturnType<typeof peekSurvivorInvite>>;
 function SurvivorInvitePage() {
   const { token } = useParams({ from: "/survivor-invite/$token" });
   const { user, loading } = useAuth();
+  useRestoreDisguiseTitle(!!user);
   const navigate = useNavigate();
   const peek = useServerFn(peekSurvivorInvite);
   const accept = useServerFn(acceptSurvivorInvite);

@@ -5,6 +5,7 @@ import { ShieldCheck, Lock, CheckCircle2, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useRestoreDisguiseTitle } from "@/hooks/use-restore-disguise-title";
 import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import {
@@ -33,6 +34,7 @@ type Peek = Awaited<ReturnType<typeof peekAdvocateSurvivorInvite>>;
 function AdvocateSurvivorInvitePage() {
   const { token } = useParams({ from: "/advocate-survivor-invite/$token" });
   const { user, loading } = useAuth();
+  useRestoreDisguiseTitle(!!user);
   const navigate = useNavigate();
   const peek = useServerFn(peekAdvocateSurvivorInvite);
   const accept = useServerFn(acceptAdvocateSurvivorInvite);
