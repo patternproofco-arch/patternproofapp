@@ -64,6 +64,7 @@ export function AuthPage({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     setBusy(true);
     try {
       if (mode === "signup") {
