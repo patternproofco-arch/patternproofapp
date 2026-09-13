@@ -8,6 +8,7 @@ import { getMyAdvocateRole } from "@/lib/advocate.functions";
 import { AccessDisclaimerBar } from "@/components/AccessDisclaimer";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
+import { useMfaGate } from "@/hooks/use-mfa-gate";
 
 export const Route = createFileRoute("/_advocate")({
   head: () => ({
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/_advocate")({
 function AdvocateLayout() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const mfaChecking = useMfaGate(!loading && !!user);
   const roleFn = useServerFn(getMyAdvocateRole);
   const pathname = useRouterState({ select: (st) => st.location.pathname });
   const [checking, setChecking] = useState(true);
@@ -45,8 +47,6 @@ function AdvocateLayout() {
           return;
         }
         setProfile(r.profile);
-        // No profile yet (advocate signed in before any invite) — collect
-        // their name and organization first.
         if (!r.profile?.onboarded && pathname !== "/advocate-setup") {
           navigate({ to: "/advocate-setup", replace: true });
           return;
@@ -56,7 +56,7 @@ function AdvocateLayout() {
       .catch(() => navigate({ to: "/", replace: true }));
   }, [user, loading, roleFn, navigate, pathname]);
 
-  if (loading || checking) {
+  if (loading || checking || mfaChecking) {
     return (
       <div
         className="pp-portal-shell"
