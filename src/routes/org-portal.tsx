@@ -1,42 +1,25 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useEffect, useState } from "react";
-import { Copy, LogOut, Power } from "lucide-react";
-import { toast } from "sonner";
-import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/integrations/supabase/client";
-import { BrandMark } from "@/components/BrandMark";
-import { PublicQuickExit } from "@/components/PublicQuickExit";
-import { OrgTeamSettings } from "@/components/team/OrgTeamSettings";
-import { OrgOversight } from "@/components/org/OrgOversight";
-import { ThreadGroup } from "@/components/ThreadConnector";
-import {
-  getMyOrgPartnerStats,
-  setReferralCodeActive,
-  NO_ORG_MEMBERSHIP_MESSAGE,
-  type OrgPartnerStats,
-} from "@/lib/org-portal.functions";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/org-portal")({
   head: () => ({
     meta: [
       { title: "Partner dashboard — PatternProof" },
-      {
-        name: "description",
-        content: "Referral totals for PatternProof DV organization partners.",
-      },
-      { property: "og:title", content: "Partner dashboard — PatternProof" },
-      {
-        property: "og:description",
-        content: "Referral totals for PatternProof DV organization partners.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  component: OrgPortal,
+  component: OrgPortalRedirect,
 });
+
+function OrgPortalRedirect() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate({ to: "/partner-home", replace: true });
+  }, [navigate]);
+
+  return null;
+}
 
 function OrgPortal() {
   const { user, loading } = useAuth();

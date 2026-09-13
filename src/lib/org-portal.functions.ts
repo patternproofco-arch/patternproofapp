@@ -630,6 +630,89 @@ export const setMyOrg = createServerFn({ method: "POST" })
     return { ok: true as const, org_id: org.id };
   });
 
+/**
+ * Self-serve org creation (no approval required).
+ * Used by the public org-signup flow to allow organizations to
+ * self-provision without waiting for PatternProof verification.
+ *
+ * Creates: dv_organizations + user_roles.advocate + advocate_profiles +
+ * org_members (owner) + first referral_links row.
+ */
+export const createOrgSelfServe = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        org_name: z.string().trim().min(2).max(200),
+        contact_name: z.string().trim().min(1).max(120),
+        contact_role: z.string().trim().max(120).optional(),
+        email: z.string().email().max(255),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const userId = context.userId;
+
+    // Check if already has org membership
+    const { data: existingMember } = await supabaseAdmin
+      .from("org_members")
+      .select("org_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existingMember) {
+      return { ok: true as const, org_id: existingMember.org_id };
+    }
+
+    // Create organization
+    const { data: org, error: orgError } = await supabaseAdmin
+      .from("dv_organizations")
+      .insert({ name: data.org_name, created_by: userId })
+      .select("id")
+      .single();
+    if (orgError || !org) throw new Error(orgError?.message ?? "Couldn't create your organization.");
+
+    // Add advocate role
+    await supabaseAdmin
+      .from("user_roles")
+      .upsert({ user_id: userId, role: "advocate" }, { onConflict: "user_id,role" });
+
+    // Create advocate profile
+    const { error: profileError } = await supabaseAdmin.from("advocate_profiles").upsert(
+      {
+        user_id: userId,
+        full_name: data.contact_name,
+        org_name: data.org_name,
+        org_id: org.id,
+        email: data.email,
+        onboarded: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    );
+    if (profileError) throw new Error(profileError.message);
+
+    // Add as org owner
+    const { error: memberError } = await supabaseAdmin
+      .from("org_members")
+      .upsert({ org_id: org.id, user_id: userId, role: "owner" }, { onConflict: "org_id,user_id" });
+    if (memberError) throw new Error(memberError.message);
+
+    // Create first referral code
+    const base = slugify(data.org_name) || "partner";
+    const code = `${base}-${randomBytes(3).toString("hex")}`.slice(0, 48);
+    await supabaseAdmin.from("referral_links").insert({
+      code,
+      org_name: data.org_name,
+      org_user_id: userId,
+      org_id: org.id,
+      is_active: true,
+      ...(data.contact_role ? { notes: `Contact role: ${data.contact_role}` } : {}),
+    });
+
+    return { ok: true as const, org_id: org.id };
+  });
+
 /* ------------------------- admin: verify partner orgs ------------------------ */
 
 export const listOrgAccessRequests = createServerFn({ method: "GET" })

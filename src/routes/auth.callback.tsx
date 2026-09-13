@@ -96,12 +96,17 @@ function AuthCallback() {
     }
     const role = await fetchRole().catch(() => ({
       role: "survivor" as const,
+      is_org_member: false,
       is_org_partner: false,
     }));
     if (role.role === "attorney") navigate({ to: "/clients", replace: true });
     else if (role.role === "advocate")
       navigate({
-        to: "is_org_partner" in role && role.is_org_partner ? "/org-portal" : "/advocate-cases",
+        to: "is_org_member" in role && role.is_org_member
+          ? "/partner-home"
+          : "is_org_partner" in role && role.is_org_partner
+            ? "/org-portal"
+            : "/advocate-cases",
         replace: true,
       });
     else navigate({ to: "/dashboard", replace: true });
@@ -188,11 +193,16 @@ function AuthCallback() {
         }
         const role = await fetchRole().catch(() => ({
           role: "survivor" as const,
+          is_org_member: false,
           is_org_partner: false,
         }));
         if (role.role === "attorney") go("/clients");
         else if (role.role === "advocate")
-          go("is_org_partner" in role && role.is_org_partner ? "/org-portal" : "/advocate-cases");
+          go("is_org_member" in role && role.is_org_member
+            ? "/partner-home"
+            : "is_org_partner" in role && role.is_org_partner
+              ? "/org-portal"
+              : "/advocate-cases");
         else go("/dashboard");
       } else {
         // No tokens on the URL: the wrapper may already have stored the session.
@@ -211,11 +221,16 @@ function AuthCallback() {
         }
         const role = await fetchRole().catch(() => ({
           role: "survivor" as const,
+          is_org_member: false,
           is_org_partner: false,
         }));
         if (role.role === "attorney") go("/clients");
         else if (role.role === "advocate")
-          go("is_org_partner" in role && role.is_org_partner ? "/org-portal" : "/advocate-cases");
+          go("is_org_member" in role && role.is_org_member
+            ? "/partner-home"
+            : "is_org_partner" in role && role.is_org_partner
+              ? "/org-portal"
+              : "/advocate-cases");
         else go("/dashboard");
       }
     };

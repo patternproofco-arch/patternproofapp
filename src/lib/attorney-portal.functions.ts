@@ -73,7 +73,7 @@ export const getMyRole = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [{ data: rolesData }, { count: collabCount }, { count: grantCount }] = await Promise.all([
+    const [{ data: rolesData }, { count: collabCount }, { count: grantCount }, { data: memberData }] = await Promise.all([
       supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId),
       supabaseAdmin
         .from("case_collaborators")
@@ -85,22 +85,29 @@ export const getMyRole = createServerFn({ method: "GET" })
         .select("id", { count: "exact", head: true })
         .eq("attorney_user_id", context.userId)
         .is("revoked_at", null),
+      supabaseAdmin
+        .from("org_members")
+        .select("org_id")
+        .eq("user_id", context.userId)
+        .maybeSingle(),
     ]);
     const roles = (rolesData ?? []).map((r) => r.role as string);
     const hasCollaborations = (collabCount ?? 0) > 0 || (grantCount ?? 0) > 0;
     let is_org_partner = false;
+    let is_org_member = false;
     if (roles.includes("advocate")) {
       const { count } = await supabaseAdmin
         .from("referral_links")
         .select("code", { count: "exact", head: true })
         .eq("org_user_id", context.userId);
       is_org_partner = (count ?? 0) > 0;
+      is_org_member = !!memberData;
     }
     let role: "attorney" | "collaborator" | "advocate" | "survivor" = "survivor";
     if (roles.includes("attorney")) role = "attorney";
     else if (roles.includes("advocate") && !roles.includes("survivor")) role = "advocate";
     else if (hasCollaborations) role = "collaborator";
-    return { role, roles, hasCollaborations, is_org_partner };
+    return { role, roles, hasCollaborations, is_org_partner, is_org_member };
   });
 
 export const upsertAttorneyProfile = createServerFn({ method: "POST" })
