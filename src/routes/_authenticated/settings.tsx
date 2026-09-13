@@ -253,7 +253,7 @@ function SettingsPage() {
   };
 
   return (
-    <div>
+    <div className="pp-card-thread">
       <div className="label-eyebrow">Settings</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Your safety, <em>your terms.</em>
