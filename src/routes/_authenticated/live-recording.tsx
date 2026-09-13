@@ -157,9 +157,21 @@ function LiveRecording() {
           style={{ background: "var(--tint-purple)", boxShadow: "var(--pp-shadow-sm)" }}
         >
           <p className="text-[13px] leading-relaxed">
-            Recording-consent laws vary by state. In NJ you can record any conversation you're part
-            of; other states may require consent. PatternProof can't give legal advice — if you're
-            unsure, ask an attorney. Your safety comes first.
+            {settings.state === "NJ" ? (
+              <>
+                Recording-consent laws vary by state. New Jersey is a one-party-consent state, so
+                you can generally record a conversation you're part of. Other states — including
+                some that require every party's consent — may treat this differently.{" "}
+              </>
+            ) : (
+              <>
+                Recording-consent laws vary by state, and some states require every party's
+                consent before you can legally record a conversation.{" "}
+              </>
+            )}
+            PatternProof can't give legal advice — if you're unsure what your state allows, ask an
+            attorney or your local domestic violence hotline before recording. Your safety comes
+            first.
           </p>
           <button
             onClick={() => setWarned(true)}
