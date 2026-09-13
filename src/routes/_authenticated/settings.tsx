@@ -126,6 +126,9 @@ const DISGUISES = [
   { name: "Garden Journal", url: "https://gardeners.com" },
 ];
 
+const DELETION_MAILTO =
+  "mailto:privacy@patternproof.tech?subject=Data%20deletion%20request&body=Please%20delete%20my%20PatternProof%20account%20and%20associated%20records.%0A%0AAccount%20email%3A%20%0AReason%20(optional)%3A%20";
+
 function SettingsPage() {
   const { user } = useAuth();
   const { settings, update } = useSettings();
@@ -365,7 +368,11 @@ function SettingsPage() {
           <Trash2 size={18} style={{ color: "var(--primary)" }} />
           <h2 className="font-serif text-[19px]">Request account deletion</h2>
         </div>
-        <a href="mailto:gracieburns200@gmail.com?subject=Data%20Deletion%20Request" className="btn-primary mt-4 inline-block">
+        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          Requests go to privacy@patternproof.tech, a monitored address — not a personal inbox.
+          You will get a confirmation when the request is received. Automatic deletion is not live yet.
+        </p>
+        <a href={DELETION_MAILTO} className="btn-primary mt-4 inline-block">
           Request account deletion
         </a>
       </div>
