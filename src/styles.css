@@ -8,12 +8,19 @@
    paired light/dark shadows, no hard borders.
 
    Active persona accents are LOCKED — do not change:
-     attorney → --purple (deep navy)
-     org      → --pp-sage (light pastel sage)
-     survivor → --pp-iridescent-violet
-     shared   → --pp-iridescent-teal
-   The old --oxblood / --oxblood-deep / --purple-mid / --red-bright
-   legacy variables have been deleted; use the --pp-accent-* tokens.
+     attorney → --pp-accent-attorney (= --indigo)
+     org      → --pp-accent-org (= --oxblood)
+     survivor → --pp-accent-survivor (= --indigo)
+     shared   → --pp-accent-shared (= --indigo)
+   This replaces a prior four-hue plan (navy / pastel sage / iridescent
+   violet / iridescent teal per persona) that this comment used to
+   describe — that plan was superseded by the indigo/oxblood-only system
+   below and never matched what actually shipped; --pp-iridescent-* and
+   --pp-sage tokens still exist as raw color values but are not wired to
+   any persona accent. --oxblood-deep, --purple-mid, and --red-bright
+   were the legacy variables actually deleted; --oxblood itself is very
+   much alive — it's what --pp-accent-org resolves to. Use the
+   --pp-accent-* tokens, not persona colors, directly.
    ============================================================ */
 
 @theme inline {
@@ -144,32 +151,13 @@
   --secondary-foreground: var(--pp-ink);
   --muted: rgba(90, 90, 106, 0.06);
 
-  --pastel-teal: var(--pp-accent-shared);
-  --pastel-purple: var(--pp-accent-survivor);
-  --pastel-blue: var(--pp-approximate);
-  --pastel-mint: var(--pp-accent-org);
-  --pastel-lilac: var(--pp-accent-survivor);
-  --pastel-pink: var(--pp-accent-survivor);
-  --pastel-yellow: var(--pp-urgent);
-  --pastel-sage: var(--pp-accent-org);
   --tint-teal: transparent;
   --tint-purple: transparent;
   --tint-blue: transparent;
-  --tint-mint: transparent;
-  --tint-lilac: transparent;
-  --tint-pink: transparent;
-  --tint-gold: transparent;
-  --tint-sage: transparent;
   --linen: var(--pp-paper);
 
-  --accent-butter: var(--pp-urgent);
-  --accent-butter-ink: var(--pp-ink);
   --accent-powder: var(--pp-accent-shared);
   --accent-powder-ink: var(--pp-ink);
-  --accent-blush: var(--pp-accent-survivor);
-  --accent-blush-ink: var(--pp-ink);
-  --accent-sage-soft: var(--pp-accent-org);
-  --accent-sage-soft-ink: var(--pp-ink);
 
   --pp-bg: var(--pp-paper);
   --pp-fg: var(--pp-ink);
@@ -177,19 +165,6 @@
   --pp-border: transparent;
   --pp-border-strong: rgba(90, 90, 106, 0.18);
   --pp-muted-fg: var(--pp-muted);
-  --pp-teal: var(--pp-accent-shared);
-  --pp-navy: var(--pp-accent-attorney);
-  --pp-navy-deep: #0e1729;
-  --pp-navy-ink: #f4f6fb;
-  --pp-blue: var(--pp-approximate);
-  --pp-purple: var(--pp-accent-survivor);
-  --pp-thread: var(--pp-accent-survivor);
-  --pp-mint: var(--pp-accent-org);
-  --pp-clay: var(--pp-urgent);
-  --pp-sblue: var(--pp-approximate);
-  --pp-lilac: var(--pp-accent-survivor);
-  --pp-pink: var(--pp-accent-survivor);
-  --pp-gold: var(--pp-urgent);
   --pp-success: var(--pp-confirmed);
   --pp-warning: var(--pp-urgent);
   --pp-danger: var(--pp-urgent);
