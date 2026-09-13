@@ -12,13 +12,14 @@ function AttorneyTwoFactorPage() {
         <div className="att-eyebrow">Settings · Sign-in</div>
         <h1 className="att-page-title">Two-factor authentication</h1>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 8, lineHeight: 1.6 }}>
-          Require an authenticator app after your password. PatternProof does not send codes by text.{" "}
+          Shared case files stay closed until an authenticator app is on this account. PatternProof
+          does not send codes by text.{" "}
           <Link to="/trust" style={{ color: "var(--att-blue)" }}>
             Back to trust settings
           </Link>
         </p>
       </div>
-      <TwoFactorCard className="att-card" headingClassName="att-page-title" />
+      <TwoFactorCard className="att-card" headingClassName="att-page-title" required />
     </div>
   );
 }
