@@ -14,6 +14,26 @@ export async function verifiedTotpFactorId(): Promise<string | null> {
   return verified?.id ?? null;
 }
 
+export async function hasVerifiedTotp(): Promise<boolean> {
+  return (await verifiedTotpFactorId()) !== null;
+}
+
+/**
+ * Attorney routes that must stay reachable at AAL1 so someone can pay,
+ * finish setup, and enroll an authenticator. Everything else in the
+ * attorney portal requires a verified TOTP factor + AAL2.
+ */
+export function attorneyPathExemptFromRequiredMfa(pathname: string): boolean {
+  return (
+    pathname === "/subscribe" ||
+    pathname === "/billing-return" ||
+    pathname === "/setup" ||
+    pathname === "/billing" ||
+    pathname === "/trust" ||
+    pathname === "/two-factor"
+  );
+}
+
 /** Unverified enrollments pile up if someone starts setup and leaves. */
 export async function dropUnverifiedTotpFactors(): Promise<void> {
   const { data } = await supabase.auth.mfa.listFactors();

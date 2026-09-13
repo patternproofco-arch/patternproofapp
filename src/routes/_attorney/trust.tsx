@@ -37,7 +37,7 @@ function SettingsPage() {
 
       <ChangePasswordCard className="att-card" headingClassName="att-page-title" />
 
-      <TwoFactorCard className="att-card" headingClassName="att-page-title" />
+      <TwoFactorCard className="att-card" headingClassName="att-page-title" required />
 
       <div
         className="att-card"

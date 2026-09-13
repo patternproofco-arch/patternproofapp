@@ -23,6 +23,7 @@ import attorneyCss from "@/styles/attorney.css?url";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
+import { attorneyPathExemptFromRequiredMfa } from "@/lib/mfa";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -48,7 +49,11 @@ function AttorneyLayout() {
   const [firmName, setFirmName] = useState<string | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sub = useSubscription();
-  const mfaChecking = useMfaGate(!loading && !!user);
+  const mfaExempt = attorneyPathExemptFromRequiredMfa(pathname);
+  const mfaChecking = useMfaGate(!loading && !!user && !mfaExempt, {
+    requireEnrollment: true,
+    enrollTo: "/trust",
+  });
 
   useEffect(() => {
     if (loading) return;
@@ -103,20 +108,21 @@ function AttorneyLayout() {
     pathname === "/billing-return" ||
     pathname === "/setup" ||
     pathname === "/billing" ||
-    pathname === "/trust";
+    pathname === "/trust" ||
+    pathname === "/two-factor";
   const onSetup = pathname === "/setup";
 
   useEffect(() => {
     if (loading || checking || mfaChecking) return;
     if (!user) return;
-    if (onboarded === false && !onSetup) {
+    if (onboarded === false && !onSetup && pathname !== "/trust" && pathname !== "/two-factor") {
       toast("Finish setting up your account to continue", {
         id: "attorney-onboarding-redirect",
         description: "We've brought you to setup — it only takes a moment.",
       });
       navigate({ to: "/setup", replace: true });
     }
-  }, [loading, checking, mfaChecking, onboarded, onSetup, navigate, user]);
+  }, [loading, checking, mfaChecking, onboarded, onSetup, navigate, user, pathname]);
 
   useEffect(() => {
     if (loading || checking || sub.loading || mfaChecking) return;
