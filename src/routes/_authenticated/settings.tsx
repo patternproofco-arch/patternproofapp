@@ -32,15 +32,15 @@ export const Route = createFileRoute("/_authenticated/settings")({
 });
 
 /**
- * FLAGGED, NOT CHANGED: this was (and still is) a personal @gmail.com
- * address rather than a monitored org alias — deletion requests for a DV
- * survivor app going to one person's personal inbox undercuts "your safety,
- * your terms" on the same page that states it. Left as-is rather than
- * guessed at, since swapping it for an address that isn't actually
- * monitored would be worse than what's here. Confirm the real destination,
- * then this is the only line that needs to change.
+ * Was a personal @gmail.com address — deletion requests for a DV survivor
+ * app going to one person's personal inbox undercuts "your safety, your
+ * terms" on the same page that states it. Switched to the app's real,
+ * already-monitored support inbox: the same address used on /support,
+ * lawyer-signup.tsx, org-signup.tsx, and as the literal `to` of the
+ * support-request email template (email-templates/support-request.tsx) —
+ * not a guess, an address this codebase already treats as live.
  */
-const DELETION_REQUEST_EMAIL = "gracieburns200@gmail.com";
+const DELETION_REQUEST_EMAIL = "pattern@pattern-proof.tech";
 
 interface AuditRow {
   id: string;
