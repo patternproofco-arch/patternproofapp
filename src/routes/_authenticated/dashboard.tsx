@@ -215,6 +215,28 @@ function Dashboard() {
         <SafetyResourcesLink />
       </FocusRegion>
 
+      {!!stats?.unreviewed_severity_indicator_count && (
+        <FocusRegion id="severity-review">
+          <Link
+            to="/patterns"
+            className="flex items-center justify-between gap-3 rounded-2xl px-4 py-3"
+            style={{
+              background: "var(--input)",
+              boxShadow: "var(--pp-shadow-sm)",
+              textDecoration: "none",
+              color: "var(--ink)",
+            }}
+          >
+            <span style={{ fontSize: 13.5 }}>
+              {stats.unreviewed_severity_indicator_count} item
+              {stats.unreviewed_severity_indicator_count === 1 ? "" : "s"} in your Recurline{" "}
+              {stats.unreviewed_severity_indicator_count === 1 ? "needs" : "need"} your review
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Review →</span>
+          </Link>
+        </FocusRegion>
+      )}
+
       {thread && thread.length > 0 && (
         <FocusRegion id="thread">
           <div
