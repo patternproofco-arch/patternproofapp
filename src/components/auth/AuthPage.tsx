@@ -42,6 +42,7 @@ export function AuthPage({
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const consentBlocked = mode === "signup" && !agreed;
 
   useEffect(() => {
@@ -63,6 +64,7 @@ export function AuthPage({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -98,7 +100,12 @@ export function AuthPage({
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Something didn't work. Try again in a moment.";
-      toast("We couldn't sign you in. " + msg);
+      const friendly =
+        mode === "login"
+          ? "We couldn't sign you in. " + msg
+          : "We couldn't create your account. " + msg;
+      setAuthError(friendly);
+      toast(friendly);
     } finally {
       setBusy(false);
     }

@@ -33,6 +33,7 @@ import { Route as OrgFeedbackRouteImport } from './routes/org-feedback'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
+import { Route as IntakeRouteImport } from './routes/intake'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
 import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
@@ -41,6 +42,7 @@ import { Route as EvidenceIntegrityRouteImport } from './routes/evidence-integri
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as ChooseRoleRouteImport } from './routes/choose-role'
+import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as AttorneysRouteImport } from './routes/attorneys'
 import { Route as AiTransparencyRouteImport } from './routes/ai-transparency'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -48,6 +50,7 @@ import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as AdvocateRouteImport } from './routes/_advocate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
+import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as MatterInviteTokenRouteImport } from './routes/matter-invite.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
@@ -245,6 +248,11 @@ const LawyerSignupRoute = LawyerSignupRouteImport.update({
   path: '/lawyer-signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IntakeRoute = IntakeRouteImport.update({
+  id: '/intake',
+  path: '/intake',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
@@ -285,6 +293,11 @@ const ChooseRoleRoute = ChooseRoleRouteImport.update({
   path: '/choose-role',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CaptureRoute = CaptureRouteImport.update({
+  id: '/capture',
+  path: '/capture',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AttorneysRoute = AttorneysRouteImport.update({
   id: '/attorneys',
   path: '/attorneys',
@@ -315,6 +328,11 @@ const IndexRoute = IndexRouteImport.update({
 const SurvivorInviteTokenRoute = SurvivorInviteTokenRouteImport.update({
   id: '/survivor-invite/$token',
   path: '/survivor-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewTokenRoute = ReviewTokenRouteImport.update({
+  id: '/review/$token',
+  path: '/review/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MatterInviteTokenRoute = MatterInviteTokenRouteImport.update({
@@ -732,6 +750,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-transparency': typeof AiTransparencyRoute
   '/attorneys': typeof AttorneysRoute
+  '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
   '/connect': typeof ConnectRoute
   '/demo': typeof DemoRoute
@@ -740,6 +759,7 @@ export interface FileRoutesByFullPath {
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/intake': typeof IntakeRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
@@ -820,6 +840,7 @@ export interface FileRoutesByFullPath {
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
+  '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -846,6 +867,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-transparency': typeof AiTransparencyRoute
   '/attorneys': typeof AttorneysRoute
+  '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
   '/connect': typeof ConnectRoute
   '/demo': typeof DemoRoute
@@ -854,6 +876,7 @@ export interface FileRoutesByTo {
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/intake': typeof IntakeRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
@@ -932,6 +955,7 @@ export interface FileRoutesByTo {
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
+  '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -962,6 +986,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/ai-transparency': typeof AiTransparencyRoute
   '/attorneys': typeof AttorneysRoute
+  '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
   '/connect': typeof ConnectRoute
   '/demo': typeof DemoRoute
@@ -970,6 +995,7 @@ export interface FileRoutesById {
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/intake': typeof IntakeRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
@@ -1050,6 +1076,7 @@ export interface FileRoutesById {
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
+  '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -1078,6 +1105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-transparency'
     | '/attorneys'
+    | '/capture'
     | '/choose-role'
     | '/connect'
     | '/demo'
@@ -1086,6 +1114,7 @@ export interface FileRouteTypes {
     | '/for-attorneys'
     | '/for-organizations'
     | '/how-it-works'
+    | '/intake'
     | '/lawyer-signup'
     | '/login'
     | '/mcp'
@@ -1166,6 +1195,7 @@ export interface FileRouteTypes {
     | '/collaborator-invite/$token'
     | '/email/unsubscribe'
     | '/matter-invite/$token'
+    | '/review/$token'
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1192,6 +1222,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-transparency'
     | '/attorneys'
+    | '/capture'
     | '/choose-role'
     | '/connect'
     | '/demo'
@@ -1200,6 +1231,7 @@ export interface FileRouteTypes {
     | '/for-attorneys'
     | '/for-organizations'
     | '/how-it-works'
+    | '/intake'
     | '/lawyer-signup'
     | '/login'
     | '/mcp'
@@ -1278,6 +1310,7 @@ export interface FileRouteTypes {
     | '/collaborator-invite/$token'
     | '/email/unsubscribe'
     | '/matter-invite/$token'
+    | '/review/$token'
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1307,6 +1340,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/ai-transparency'
     | '/attorneys'
+    | '/capture'
     | '/choose-role'
     | '/connect'
     | '/demo'
@@ -1315,6 +1349,7 @@ export interface FileRouteTypes {
     | '/for-attorneys'
     | '/for-organizations'
     | '/how-it-works'
+    | '/intake'
     | '/lawyer-signup'
     | '/login'
     | '/mcp'
@@ -1395,6 +1430,7 @@ export interface FileRouteTypes {
     | '/collaborator-invite/$token'
     | '/email/unsubscribe'
     | '/matter-invite/$token'
+    | '/review/$token'
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1425,6 +1461,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AiTransparencyRoute: typeof AiTransparencyRoute
   AttorneysRoute: typeof AttorneysRoute
+  CaptureRoute: typeof CaptureRoute
   ChooseRoleRoute: typeof ChooseRoleRoute
   ConnectRoute: typeof ConnectRoute
   DemoRoute: typeof DemoRoute
@@ -1433,6 +1470,7 @@ export interface RootRouteChildren {
   ForAttorneysRoute: typeof ForAttorneysRoute
   ForOrganizationsRoute: typeof ForOrganizationsRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  IntakeRoute: typeof IntakeRoute
   LawyerSignupRoute: typeof LawyerSignupRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
@@ -1468,6 +1506,7 @@ export interface RootRouteChildren {
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   MatterInviteTokenRoute: typeof MatterInviteTokenRoute
+  ReviewTokenRoute: typeof ReviewTokenRoute
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -1652,6 +1691,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LawyerSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/intake': {
+      id: '/intake'
+      path: '/intake'
+      fullPath: '/intake'
+      preLoaderRoute: typeof IntakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/how-it-works': {
       id: '/how-it-works'
       path: '/how-it-works'
@@ -1708,6 +1754,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChooseRoleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/capture': {
+      id: '/capture'
+      path: '/capture'
+      fullPath: '/capture'
+      preLoaderRoute: typeof CaptureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/attorneys': {
       id: '/attorneys'
       path: '/attorneys'
@@ -1755,6 +1808,13 @@ declare module '@tanstack/react-router' {
       path: '/survivor-invite/$token'
       fullPath: '/survivor-invite/$token'
       preLoaderRoute: typeof SurvivorInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review/$token': {
+      id: '/review/$token'
+      path: '/review/$token'
+      fullPath: '/review/$token'
+      preLoaderRoute: typeof ReviewTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/matter-invite/$token': {
@@ -2456,6 +2516,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AiTransparencyRoute: AiTransparencyRoute,
   AttorneysRoute: AttorneysRoute,
+  CaptureRoute: CaptureRoute,
   ChooseRoleRoute: ChooseRoleRoute,
   ConnectRoute: ConnectRoute,
   DemoRoute: DemoRoute,
@@ -2464,6 +2525,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForAttorneysRoute: ForAttorneysRoute,
   ForOrganizationsRoute: ForOrganizationsRoute,
   HowItWorksRoute: HowItWorksRoute,
+  IntakeRoute: IntakeRoute,
   LawyerSignupRoute: LawyerSignupRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
@@ -2500,6 +2562,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   MatterInviteTokenRoute: MatterInviteTokenRoute,
+  ReviewTokenRoute: ReviewTokenRoute,
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
