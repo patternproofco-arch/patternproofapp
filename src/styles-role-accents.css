@@ -1,0 +1,67 @@
+/* Role accents + connecting thread.
+   Loaded from AppShell / attorney / advocate layouts so persona tokens
+   actually paint buttons, links, and the stitch between cards. */
+
+[data-persona="attorney"] {
+  --pp-accent-attorney: var(--purple);
+  --pp-accent: var(--purple);
+  --pp-thread-accent: var(--purple);
+  --primary: var(--purple);
+  --accent: var(--purple);
+}
+
+[data-persona="org"] {
+  --pp-accent-org: var(--pp-sage);
+  --pp-accent: var(--pp-sage);
+  --pp-thread-accent: var(--pp-sage);
+  --primary: var(--pp-sage);
+  --accent: var(--pp-sage);
+}
+
+[data-persona="survivor"] {
+  --pp-accent-survivor: var(--pp-iridescent-violet);
+  --pp-accent: var(--pp-iridescent-violet);
+  --pp-thread-accent: var(--pp-iridescent-violet);
+  --primary: var(--pp-iridescent-violet);
+  --accent: var(--pp-iridescent-violet);
+}
+
+[data-persona="shared"] {
+  --pp-accent-shared: var(--pp-iridescent-teal);
+  --pp-accent: var(--pp-iridescent-teal);
+  --pp-thread-accent: var(--pp-iridescent-teal);
+  --primary: var(--pp-iridescent-teal);
+  --accent: var(--pp-iridescent-teal);
+}
+
+.pp-card-thread {
+  position: relative;
+  padding-left: 22px;
+}
+.pp-card-thread::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 99px;
+  background: var(--pp-thread-grad, var(--pp-thread-accent, var(--pp-accent)));
+  opacity: 0.85;
+  pointer-events: none;
+}
+.pp-card-thread > .card-pp {
+  position: relative;
+}
+.pp-card-thread > .card-pp::before {
+  content: "";
+  position: absolute;
+  left: -19px;
+  top: 22px;
+  width: 11px;
+  height: 11px;
+  border-radius: 99px;
+  background: var(--pp-thread-accent, var(--pp-accent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pp-thread-accent, var(--pp-accent)) 22%, white);
+  z-index: 1;
+}
