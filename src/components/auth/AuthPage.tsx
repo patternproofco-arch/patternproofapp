@@ -239,6 +239,23 @@ export function AuthPage({
               onChange={(e) => setPassword(e.target.value)}
               className="input-pp"
             />
+            {authError && (
+              <p className="mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                {authError}
+              </p>
+            )}
+            {mode === "login" && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/forgot-password" })}
+                  className="text-[12px]"
+                  style={{ color: "var(--accent)" }}
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            )}
             {mode === "signup" && (
               <label
                 className="flex items-start gap-2 text-[13px]"
