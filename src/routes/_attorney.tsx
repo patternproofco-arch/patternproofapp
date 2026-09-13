@@ -22,6 +22,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
+import { useMfaGate } from "@/hooks/use-mfa-gate";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -47,6 +48,7 @@ function AttorneyLayout() {
   const [firmName, setFirmName] = useState<string | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sub = useSubscription();
+  const mfaChecking = useMfaGate(!loading && !!user);
 
   useEffect(() => {
     if (loading) return;
@@ -65,7 +67,6 @@ function AttorneyLayout() {
         }
         setUserRole(r.role);
         if (r.role === "collaborator") {
-          // Collaborators inherit the lead attorney's onboarding and subscription.
           setOnboarded(true);
         } else {
           try {
@@ -81,7 +82,6 @@ function AttorneyLayout() {
       })
       .catch(() => {
         if (cancelled) return;
-        // Never leave the portal stuck on "Opening portal…" — surface a retry.
         setLoadError("We couldn't reach your account just now.");
         setChecking(false);
       });
@@ -90,22 +90,14 @@ function AttorneyLayout() {
     };
   }, [user, loading, getRole, getProfile, navigate, retryKey]);
 
-  // Belt-and-suspenders for the "Opening portal…" gate below: getRole/
-  // getProfile already surface a retry on failure via loadError, but
-  // sub.loading (a separate fetch — subscription status) has no such
-  // guard. If anything in the gate — including a network stall that never
-  // resolves or rejects — takes too long, surface the same retry instead of
-  // spinning forever.
   useEffect(() => {
-    if (!(loading || checking || sub.loading)) return;
+    if (!(loading || checking || sub.loading || mfaChecking)) return;
     const timer = setTimeout(() => {
       setLoadError((prev) => prev ?? "This is taking longer than it should.");
     }, 15000);
     return () => clearTimeout(timer);
-  }, [loading, checking, sub.loading]);
+  }, [loading, checking, sub.loading, mfaChecking]);
 
-  // Hard paywall: any non-billing route requires an active subscription.
-  // /subscribe, /billing-return, and /setup are reachable without one.
   const billingPaths =
     pathname === "/subscribe" ||
     pathname === "/billing-return" ||
@@ -114,9 +106,8 @@ function AttorneyLayout() {
     pathname === "/trust";
   const onSetup = pathname === "/setup";
 
-  // Force onboarding before anything else if attorney hasn't completed it.
   useEffect(() => {
-    if (loading || checking) return;
+    if (loading || checking || mfaChecking) return;
     if (!user) return;
     if (onboarded === false && !onSetup) {
       toast("Finish setting up your account to continue", {
@@ -125,13 +116,12 @@ function AttorneyLayout() {
       });
       navigate({ to: "/setup", replace: true });
     }
-  }, [loading, checking, onboarded, onSetup, navigate, user]);
+  }, [loading, checking, mfaChecking, onboarded, onSetup, navigate, user]);
 
   useEffect(() => {
-    if (loading || checking || sub.loading) return;
+    if (loading || checking || sub.loading || mfaChecking) return;
     if (!user) return;
-    if (onboarded === false) return; // onboarding takes priority over paywall
-    // Collaborators bypass the paywall — the lead attorney pays for the seat.
+    if (onboarded === false) return;
     if (userRole === "collaborator") return;
     if (!sub.isActive && !billingPaths) {
       navigate({ to: "/subscribe", replace: true });
@@ -139,6 +129,7 @@ function AttorneyLayout() {
   }, [
     loading,
     checking,
+    mfaChecking,
     sub.loading,
     sub.isActive,
     billingPaths,
@@ -177,7 +168,7 @@ function AttorneyLayout() {
     );
   }
 
-  if (loading || checking || sub.loading) {
+  if (loading || checking || sub.loading || mfaChecking) {
     return (
       <div
         className="att-root"
@@ -217,7 +208,7 @@ function AttorneyLayout() {
           <span>Matter opens, downloads & exports recorded</span>
           <span>·</span>
           <span>
-            PatternProof organises the client&apos;s own records. It does not draw legal conclusions
+            PatternProof organises the client's own records. It does not draw legal conclusions
             and is not legal advice.
           </span>
           <span>·</span>
@@ -236,7 +227,6 @@ function useClientIdFromPath(): string | null {
   return m?.[1] ?? null;
 }
 
-/* ---------- persistent left sidebar ---------- */
 const NAV_ITEMS = [
   { to: "/caseload", label: "Dashboard", icon: LayoutGrid },
   { to: "/matters", label: "Matters", icon: FolderOpen },
@@ -279,10 +269,6 @@ function AttorneySidebar() {
   );
 }
 
-/**
- * Explicit, honest integration status. Clio is unverified beta and may be
- * unavailable — say so plainly rather than showing a silently dead control.
- */
 function ClioStatusChip() {
   const statusFn = useServerFn(getClioStatus);
   const availabilityFn = useServerFn(getClioAvailability);
@@ -344,7 +330,6 @@ function ClioStatusChip() {
   );
 }
 
-/* ---------- minimal top bar ---------- */
 function AttorneyTopBar({ firmName }: { firmName: string | null }) {
   const navigate = useNavigate();
   const clientId = useClientIdFromPath();
@@ -369,15 +354,10 @@ function AttorneyTopBar({ firmName }: { firmName: string | null }) {
   );
 }
 
-/* ---------- security banner ---------- */
 function SecurityBanner() {
   return <SecurityBannerInner />;
 }
 
-/**
- * Permanent, non-dismissible. Attorneys must never be able to hide the fact
- * that this tool organises a client's own records rather than assessing them.
- */
 function LegalDisclaimerBar() {
   return (
     <div
@@ -437,7 +417,6 @@ function SecurityBannerInner() {
   );
 }
 
-/* ---------- breadcrumb ---------- */
 function AttorneyBreadcrumb() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const clientId = useClientIdFromPath();

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Activity, Lock, Mail, Shield, ShieldCheck, Users } from "lucide-react";
 import { getTrustPanel } from "@/lib/attorney-trust.functions";
 import { ChangePasswordCard } from "@/components/ChangePasswordCard";
+import { TwoFactorCard } from "@/components/TwoFactorCard";
 
 export const Route = createFileRoute("/_attorney/trust")({
   component: SettingsPage,
@@ -35,6 +36,8 @@ function SettingsPage() {
       </div>
 
       <ChangePasswordCard className="att-card" headingClassName="att-page-title" />
+
+      <TwoFactorCard className="att-card" headingClassName="att-page-title" />
 
       <div
         className="att-card"
