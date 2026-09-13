@@ -26,8 +26,8 @@ export const Route = createFileRoute("/org-signup")({
 function OrgSignup() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const createOrg = useServerFn(setMyOrg);
-  const readSetupState = useServerFn(getMyOrgSetupState);
+  const createOrg = useServerFn(createOrgSelfServe);
+  const readSetupState = useServerFn(getMyOrgMembership);
 
   const [step, setStep] = useState<"auth" | "profile">("auth");
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signup");
@@ -135,6 +135,14 @@ function OrgSignup() {
                 ? "Start with your work email and password. Then tell us about your organization."
                 : "Already have an account? Sign in below."}
             </p>
+
+            {authMode === "signup" && (
+              <div className="mt-4 p-3 rounded text-[12px]" style={{ background: "var(--muted)" }}>
+                <p style={{ color: "var(--muted-foreground)" }}>
+                  <strong>Join with an invite code?</strong> Opening soon. For now, create a new account below.
+                </p>
+              </div>
+            )}
 
             <form onSubmit={authMode === "signup" ? handleSignUp : handleSignIn} className="mt-4 space-y-3">
               <input
