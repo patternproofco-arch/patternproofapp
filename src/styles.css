@@ -220,6 +220,44 @@
   --pp-shadow-glow: none;
 }
 
+/* ---- Personal "Dim" appearance (Settings → Appearance) --------------
+   Survivor-chosen, independent of the disguise name/exit URL and of the
+   LOCKED persona accents above — indigo/oxblood stay exactly as defined,
+   only the paper/ink surface and neumorphic shadow pair flip for a lower-
+   glow screen. Framed to her as a safety option, not just a preference:
+   less light thrown if she's checking the app somewhere she doesn't want
+   to be noticed doing it. */
+[data-pp-theme="dim"] {
+  --paper: #201e1a;
+  --paper-deep: #171512;
+  --ink: #f2ede3;
+  --ink-muted: #b8b0a1;
+  --rule: #3a352c;
+  --pp-ground: #201e1a;
+  --pp-ground-hi: #262420;
+  --pp-shadow-dark: #141310;
+  --pp-shadow-lite: #2c2a25;
+}
+
+/* ---- Text scale (Settings → Appearance) ------------------------------
+   Multiplies root font size; every rem/em-based measurement in the app
+   follows without further changes. */
+[data-pp-text-scale="115"] {
+  font-size: 115%;
+}
+[data-pp-text-scale="130"] {
+  font-size: 130%;
+}
+
+/* ---- Explicit reduce-motion override ---------------------------------
+   `prefers-reduced-motion` above already disables animation for anyone
+   whose OS says so. This covers someone using a shared/borrowed device
+   whose OS setting doesn't reflect what they want inside this one app. */
+[data-pp-reduce-motion="true"] * {
+  animation: none !important;
+  transition: none !important;
+}
+
 /* Global site chrome — intentionally isolated from page content. */
 .pp-global-layout {
   min-height: 100vh;

@@ -10,21 +10,37 @@ import {
   Mic,
   Trash2,
   Plug,
+  Palette,
+  BellOff,
+  Monitor,
+  StickyNote,
 } from "lucide-react";
 import { MessageCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useSettings } from "@/lib/settings-context";
+import { useSettings, type PpNotificationContent } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
 import { listMyOauthConsents, revokeMyOauthConsent } from "@/lib/oauth-consents.functions";
 import { generateExportZip } from "@/lib/export-zip.functions";
+import { getAttorneyNotesForMe } from "@/lib/survivor-attorney-notes.functions";
 import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
 });
+
+/**
+ * FLAGGED, NOT CHANGED: this was (and still is) a personal @gmail.com
+ * address rather than a monitored org alias — deletion requests for a DV
+ * survivor app going to one person's personal inbox undercuts "your safety,
+ * your terms" on the same page that states it. Left as-is rather than
+ * guessed at, since swapping it for an address that isn't actually
+ * monitored would be worse than what's here. Confirm the real destination,
+ * then this is the only line that needs to change.
+ */
+const DELETION_REQUEST_EMAIL = "gracieburns200@gmail.com";
 
 interface AuditRow {
   id: string;
@@ -147,17 +163,25 @@ function SettingsPage() {
   const [audit, setAudit] = useState<AuditRow[]>([]);
   const exportFn = useServerFn(generateExportZip);
   const [exporting, setExporting] = useState(false);
+  const [exportScope, setExportScope] = useState<
+    "full" | "evidence" | "timeline" | "communications"
+  >("full");
   const [exportResult, setExportResult] = useState<{
     url: string;
     filename: string;
     bytes: number;
   } | null>(null);
+  const attorneyNotesFn = useServerFn(getAttorneyNotesForMe);
+  const [attorneyNotes, setAttorneyNotes] = useState<
+    Array<{ linkId: string; note: string; sharedSince: string }> | null
+  >(null);
+  const [signingOutOthers, setSigningOutOthers] = useState(false);
 
   const runExport = async () => {
     setExporting(true);
     setExportResult(null);
     try {
-      const r = await exportFn({ data: {} });
+      const r = await exportFn({ data: { scope: exportScope } });
       if (r.ok) {
         setExportResult({ url: r.url, filename: r.filename, bytes: r.bytes });
         toast("Export ready.");
@@ -166,6 +190,20 @@ function SettingsPage() {
       }
     } finally {
       setExporting(false);
+    }
+  };
+
+  const signOutOtherDevices = async () => {
+    setSigningOutOthers(true);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "others" });
+      toast(
+        error
+          ? "Couldn't sign out other devices. Try again in a moment."
+          : "Signed out everywhere except this device.",
+      );
+    } finally {
+      setSigningOutOthers(false);
     }
   };
 
@@ -179,6 +217,18 @@ function SettingsPage() {
         .order("timestamp_utc", { ascending: false })
         .limit(50);
       setAudit((data as AuditRow[] | null) ?? []);
+    })();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const r = await attorneyNotesFn();
+        setAttorneyNotes(r.notes);
+      } catch {
+        setAttorneyNotes([]);
+      }
     })();
   }, [user]);
 
@@ -210,6 +260,113 @@ function SettingsPage() {
       </h1>
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
+        <div className="card-pp">
+          <div className="flex items-center gap-2">
+            <Palette size={18} style={{ color: "var(--accent)" }} />
+            <h2 className="font-serif text-[19px]">Appearance</h2>
+          </div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            How the real app looks once you're in it — separate from the disguise name below,
+            which only changes the tab and sidebar.
+          </p>
+          <div className="mt-4">
+            <div className="label-eyebrow">Theme</div>
+            <div className="mt-2 flex gap-2">
+              {(["light", "dim"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => update({ theme: t })}
+                  className="flex-1 rounded-2xl px-3 py-2 text-[13px] font-semibold capitalize"
+                  style={{
+                    background: settings.theme === t ? "var(--primary)" : "var(--input)",
+                    color: settings.theme === t ? "var(--primary-foreground)" : "var(--foreground)",
+                  }}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+            {settings.theme === "dim" && (
+              <p className="mt-2 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                Less light off the screen — useful if you're checking the app somewhere you don't
+                want to be noticed doing it.
+              </p>
+            )}
+          </div>
+          <div className="mt-5">
+            <div className="label-eyebrow">Text size</div>
+            <div className="mt-2 flex gap-2">
+              {([100, 115, 130] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => update({ textScale: s })}
+                  className="flex-1 rounded-2xl px-3 py-2 text-[13px] font-semibold"
+                  style={{
+                    background: settings.textScale === s ? "var(--primary)" : "var(--input)",
+                    color:
+                      settings.textScale === s ? "var(--primary-foreground)" : "var(--foreground)",
+                  }}
+                >
+                  {s}%
+                </button>
+              ))}
+            </div>
+          </div>
+          <label
+            className="mt-5 flex items-center justify-between rounded-2xl px-3 py-2.5"
+            style={{ background: "var(--input)" }}
+          >
+            <span className="text-[14px]">
+              Reduce motion{" "}
+              <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                (your device setting is already honored — this is only for this app)
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={settings.reduceMotion}
+              onChange={(e) => update({ reduceMotion: e.target.checked })}
+            />
+          </label>
+        </div>
+
+        <div className="card-pp">
+          <div className="flex items-center gap-2">
+            <BellOff size={18} style={{ color: "var(--primary)" }} />
+            <h2 className="font-serif text-[19px]">In-app notifications</h2>
+          </div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            There's no lock-screen notification in PatternProof — nothing reaches your phone while
+            it's locked. This only controls what shows in the banner at the top of the app while
+            it's open, which matters most if someone might glance at your screen while you're
+            using it under a disguise name.
+          </p>
+          <div className="mt-4 flex gap-2">
+            {(
+              [
+                ["full", "Full detail"],
+                ["generic", "Generic only"],
+                ["off", "Off"],
+              ] as [PpNotificationContent, string][]
+            ).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => update({ notificationContent: val })}
+                className="flex-1 rounded-2xl px-2 py-2 text-[12px] font-semibold"
+                style={{
+                  background: settings.notificationContent === val ? "var(--primary)" : "var(--input)",
+                  color:
+                    settings.notificationContent === val
+                      ? "var(--primary-foreground)"
+                      : "var(--foreground)",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="card-pp md:col-span-2">
           <div className="flex items-center gap-2">
             <Mic size={18} style={{ color: "var(--primary)" }} />
@@ -406,6 +563,26 @@ function SettingsPage() {
             against someone with deeper technical access to this device.
           </p>
         </div>
+
+        <div className="card-pp md:col-span-2">
+          <div className="flex items-center gap-2">
+            <Monitor size={18} style={{ color: "var(--accent)" }} />
+            <h2 className="font-serif text-[19px]">Signed-in devices</h2>
+          </div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            If you ever signed in on a computer or phone you don't control anymore, you can end
+            that session from here — you don't need access to that device to do it. This doesn't
+            list individual devices by name; it signs every session out except the one you're
+            using right now.
+          </p>
+          <button
+            onClick={signOutOtherDevices}
+            disabled={signingOutOthers}
+            className="btn-ghost mt-4"
+          >
+            {signingOutOthers ? "Signing out other devices…" : "Sign out of every other device"}
+          </button>
+        </div>
       </div>
 
       <div className="card-pp mt-6">
@@ -472,6 +649,28 @@ function SettingsPage() {
         </Link>
       </div>
 
+      {attorneyNotes && attorneyNotes.length > 0 && (
+        <div className="card-pp mt-6">
+          <div className="flex items-center gap-2">
+            <StickyNote size={18} style={{ color: "var(--accent)" }} />
+            <h2 className="font-serif text-[19px]">Notes from your attorney</h2>
+          </div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            Read-only — your attorney writes these on their side of an active case link.
+          </p>
+          <div className="mt-4 space-y-3">
+            {attorneyNotes.map((n) => (
+              <div key={n.linkId} className="rounded-2xl p-3" style={{ background: "var(--input)" }}>
+                <p className="whitespace-pre-wrap text-[13px]">{n.note}</p>
+                <p className="mt-2 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                  Shared since {new Date(n.sharedSince).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="card-pp mt-6">
         <div className="flex items-center gap-2">
           <Download size={18} style={{ color: "var(--accent)" }} />
@@ -482,12 +681,37 @@ function SettingsPage() {
           transcript, your Recurline, and a chronological narrative. SHA-256 hashes are included for
           integrity. Useful for attorney handoff or a personal backup.
         </p>
+        <div className="mt-4">
+          <div className="label-eyebrow">What's included</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(
+              [
+                ["full", "Full case"],
+                ["evidence", "Evidence only"],
+                ["timeline", "Timeline only"],
+                ["communications", "Communications only"],
+              ] as [typeof exportScope, string][]
+            ).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => setExportScope(val)}
+                className="rounded-2xl px-3 py-2 text-[12px] font-semibold"
+                style={{
+                  background: exportScope === val ? "var(--primary)" : "var(--input)",
+                  color: exportScope === val ? "var(--primary-foreground)" : "var(--foreground)",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
         <button
           onClick={runExport}
           disabled={exporting}
           className="btn-primary mt-4 inline-flex items-center gap-2"
         >
-          <Download size={14} /> {exporting ? "Building export…" : "Export everything (.zip)"}
+          <Download size={14} /> {exporting ? "Building export…" : "Build export (.zip)"}
         </button>
         {exportResult && (
           <div className="mt-4 rounded-2xl p-3" style={{ background: "var(--input)" }}>
@@ -503,6 +727,17 @@ function SettingsPage() {
             </a>
           </div>
         )}
+        <div
+          className="mt-5 rounded-2xl p-3 text-[12px]"
+          style={{ background: "var(--input)", color: "var(--muted-foreground)" }}
+        >
+          Not built yet, so not offered as a toggle here rather than shown broken: automatic
+          blurring of faces or addresses inside photos before export, and automatic deletion of
+          old evidence. Both need dedicated work — the first because a missed face or address in
+          a legal evidence app is a real safety incident, not a UI bug; the second because
+          deleting DV evidence automatically needs a retention policy decided before it's built,
+          not after.
+        </div>
       </div>
 
       <div className="card-pp mt-6">
@@ -516,7 +751,7 @@ function SettingsPage() {
           records first.
         </p>
         <a
-          href="mailto:gracieburns200@gmail.com?subject=Data%20Deletion%20Request"
+          href={`mailto:${DELETION_REQUEST_EMAIL}?subject=Data%20Deletion%20Request`}
           className="btn-primary mt-4 inline-block"
         >
           Request account deletion

@@ -2,11 +2,18 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useSettings } from "@/lib/settings-context";
 
 type Notif = { id: string; title: string; body: string | null; kind: string };
 
+/** Generic enough to mean nothing if glimpsed under the app's disguise name,
+ *  specific enough that opening the app tells her what changed. */
+const GENERIC_TITLE = "There's an update";
+const GENERIC_BODY = "Open Activity log for details.";
+
 export function NotificationBanner() {
   const { user } = useAuth();
+  const { settings } = useSettings();
   const [items, setItems] = useState<Notif[]>([]);
 
   useEffect(() => {
@@ -47,7 +54,8 @@ export function NotificationBanner() {
     await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", id);
   };
 
-  if (items.length === 0) return null;
+  if (items.length === 0 || settings.notificationContent === "off") return null;
+  const generic = settings.notificationContent === "generic";
 
   return (
     <div className="no-print mx-auto mt-4 w-full max-w-6xl space-y-2 px-5 md:px-10">
@@ -62,8 +70,13 @@ export function NotificationBanner() {
           }}
         >
           <div className="flex-1">
-            <div className="font-serif text-[15px] font-semibold">{n.title}</div>
-            {n.body && <div className="mt-1 text-[13px] leading-relaxed opacity-85">{n.body}</div>}
+            <div className="font-serif text-[15px] font-semibold">
+              {generic ? GENERIC_TITLE : n.title}
+            </div>
+            {!generic && n.body && (
+              <div className="mt-1 text-[13px] leading-relaxed opacity-85">{n.body}</div>
+            )}
+            {generic && <div className="mt-1 text-[13px] leading-relaxed opacity-85">{GENERIC_BODY}</div>}
           </div>
           <button
             onClick={() => dismiss(n.id)}

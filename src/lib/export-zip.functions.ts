@@ -23,6 +23,7 @@ export const generateExportZip = createServerFn({ method: "POST" })
       .object({
         case_id: z.string().uuid().optional().nullable(),
         include_message_threads: z.boolean().optional(),
+        scope: z.enum(["full", "evidence", "timeline", "communications"]).optional(),
       })
       .partial()
       .parse(input ?? {}),
@@ -35,6 +36,7 @@ export const generateExportZip = createServerFn({ method: "POST" })
       userId,
       caseId: data?.case_id ?? null,
       includeThreads: data?.include_message_threads !== false,
+      scope: data?.scope ?? "full",
     });
     if (!built.ok) return built;
 
