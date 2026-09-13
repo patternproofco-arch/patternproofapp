@@ -10,6 +10,8 @@ import {
   Mic,
   Trash2,
   Plug,
+  FileText,
+  BellOff,
 } from "lucide-react";
 import { MessageCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -20,6 +22,10 @@ import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
 import { listMyOauthConsents, revokeMyOauthConsent } from "@/lib/oauth-consents.functions";
 import { generateExportZip } from "@/lib/export-zip.functions";
+import {
+  listMyAttorneyCaseNotes,
+  type AttorneyNoteRow,
+} from "@/lib/survivor-attorney-notes.functions";
 import { Download } from "lucide-react";
 import { ChangePasswordCard } from "@/components/ChangePasswordCard";
 
@@ -111,6 +117,53 @@ function ConnectedApps() {
               <button onClick={() => revoke(r.id)} disabled={busyId === r.id} className="btn-primary">
                 {busyId === r.id ? "One moment…" : "Revoke access"}
               </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NotesFromAttorney() {
+  const loadNotes = useServerFn(listMyAttorneyCaseNotes);
+  const [rows, setRows] = useState<AttorneyNoteRow[] | null>(null);
+
+  useEffect(() => {
+    void loadNotes()
+      .then((data) => setRows(data ?? []))
+      .catch(() => setRows([]));
+  }, [loadNotes]);
+
+  return (
+    <div className="card-pp mt-6">
+      <div className="flex items-center gap-2">
+        <FileText size={18} style={{ color: "var(--accent)" }} />
+        <h2 className="font-serif text-[19px]">Notes from your attorney</h2>
+      </div>
+      <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+        Read-only. These are notes your attorney already saved on the case you shared.
+        Nothing here is a legal opinion from PatternProof.
+      </p>
+      {rows === null ? (
+        <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          Checking…
+        </p>
+      ) : rows.length === 0 ? (
+        <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          No notes to show. If you have not shared a case yet, this stays empty.
+        </p>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {rows.map((r) => (
+            <div key={r.linkId} className="rounded-2xl p-3" style={{ background: "var(--input)" }}>
+              <div className="text-[13px] font-semibold">{r.attorneyName}</div>
+              {r.updatedAt ? (
+                <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                  Updated {new Date(r.updatedAt).toLocaleString()}
+                </div>
+              ) : null}
+              <p className="mt-2 whitespace-pre-wrap text-[14px]">{r.note}</p>
             </div>
           ))}
         </div>
@@ -329,6 +382,27 @@ function SettingsPage() {
       </div>
 
       <ConnectedApps />
+
+      <NotesFromAttorney />
+
+      <div className="card-pp mt-6">
+        <div className="flex items-center gap-2">
+          <BellOff size={18} style={{ color: "var(--muted-foreground)" }} />
+          <h2 className="font-serif text-[19px]">Tell me when it's viewed</h2>
+        </div>
+        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          Case opens, evidence downloads, and packet exports are already recorded on the server.
+          A notification you can see without opening the app is not available yet — settings today
+          live only on this device. This control is not turned on so it cannot look like it works.
+        </p>
+        <label
+          className="mt-4 flex items-center justify-between rounded-2xl px-3 py-2.5"
+          style={{ background: "var(--input)", opacity: 0.65 }}
+        >
+          <span className="text-[14px]">Notify me when attorney opens the case</span>
+          <input type="checkbox" checked={false} disabled aria-disabled="true" />
+        </label>
+      </div>
 
       <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--primary)" }}>
         <div className="flex items-center gap-2">
