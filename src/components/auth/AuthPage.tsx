@@ -100,7 +100,12 @@ export function AuthPage({
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Something didn't work. Try again in a moment.";
-      toast("We couldn't sign you in. " + msg);
+      const friendly =
+        mode === "login"
+          ? "We couldn't sign you in. " + msg
+          : "We couldn't create your account. " + msg;
+      setAuthError(friendly);
+      toast(friendly);
     } finally {
       setBusy(false);
     }
