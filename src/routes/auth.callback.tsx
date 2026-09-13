@@ -4,16 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureSurvivorRole } from "@/lib/roles.functions";
 import { getMyRole } from "@/lib/attorney-portal.functions";
 import { useServerFn } from "@tanstack/react-start";
-
-// -----------------------------------------------------------------------------
-// Where Google (and the other managed providers) send people back to.
-//
-// In a full-page sign-in the browser leaves the app entirely, so the tokens
-// arrive on this URL and nothing has stored them yet. Without this page the
-// person lands back on a signed-out screen and it looks like the button did
-// nothing. This route is public on purpose: the session does not exist yet
-// when it loads.
-// -----------------------------------------------------------------------------
+import { markPasswordRecovery, urlLooksLikeRecovery } from "@/lib/password-recovery";
 
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
@@ -33,16 +24,16 @@ export const Route = createFileRoute("/auth/callback")({
 
 const RETURN_KEY = "pp_oauth_return";
 
-/** Tokens can arrive in the query string or the hash, depending on the flow. */
 function readTokens(): {
   access_token?: string;
   refresh_token?: string;
   error?: string;
   type?: string;
+  code?: string;
 } {
   const out: Record<string, string> = {};
   const take = (params: URLSearchParams) => {
-    for (const k of ["access_token", "refresh_token", "error", "error_description", "type"]) {
+    for (const k of ["access_token", "refresh_token", "error", "error_description", "type", "code"]) {
       const v = params.get(k);
       if (v && !out[k]) out[k] = v;
     }
@@ -54,7 +45,19 @@ function readTokens(): {
     refresh_token: out.refresh_token,
     error: out.error_description ?? out.error,
     type: out.type,
+    code: out.code,
   };
+}
+
+function forwardToResetPassword() {
+  markPasswordRecovery();
+  const search = window.location.search;
+  const hash = window.location.hash;
+  const joiner = search ? "&" : "?";
+  const nextSearch = search.includes("reason=recovery")
+    ? search
+    : `${search}${joiner}reason=recovery`;
+  window.location.replace(`/reset-password${nextSearch}${hash}`);
 }
 
 function safeReturnPath(): string | null {
@@ -63,9 +66,23 @@ function safeReturnPath(): string | null {
     sessionStorage.removeItem(RETURN_KEY);
     if (raw && raw.startsWith("/") && !raw.startsWith("//")) return raw;
   } catch {
-    /* storage unavailable — fall back to the role home */
+    /* storage unavailable */
   }
   return null;
+}
+
+function roleHome(role: {
+  role: string;
+  is_org_member?: boolean;
+  is_org_partner?: boolean;
+}): string {
+  if (role.role === "attorney") return "/clients";
+  if (role.role === "advocate") {
+    if (role.is_org_member) return "/partner-home";
+    if (role.is_org_partner) return "/org-portal";
+    return "/advocate-cases";
+  }
+  return "/dashboard";
 }
 
 function AuthCallback() {
@@ -99,17 +116,7 @@ function AuthCallback() {
       is_org_member: false,
       is_org_partner: false,
     }));
-    if (role.role === "attorney") navigate({ to: "/clients", replace: true });
-    else if (role.role === "advocate")
-      navigate({
-        to: "is_org_member" in role && role.is_org_member
-          ? "/partner-home"
-          : "is_org_partner" in role && role.is_org_partner
-            ? "/org-portal"
-            : "/advocate-cases",
-        replace: true,
-      });
-    else navigate({ to: "/dashboard", replace: true });
+    navigate({ to: roleHome(role), replace: true });
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -153,7 +160,12 @@ function AuthCallback() {
     };
 
     const finish = async () => {
-      const { access_token, refresh_token, error, type } = readTokens();
+      const { access_token, refresh_token, error, type, code } = readTokens();
+
+      if (type === "recovery" || urlLooksLikeRecovery()) {
+        forwardToResetPassword();
+        return;
+      }
 
       if (error) {
         setMessage("We couldn't finish signing you in. Please try again.");
@@ -196,16 +208,17 @@ function AuthCallback() {
           is_org_member: false,
           is_org_partner: false,
         }));
-        if (role.role === "attorney") go("/clients");
-        else if (role.role === "advocate")
-          go("is_org_member" in role && role.is_org_member
-            ? "/partner-home"
-            : "is_org_partner" in role && role.is_org_partner
-              ? "/org-portal"
-              : "/advocate-cases");
-        else go("/dashboard");
+        go(roleHome(role));
       } else {
-        // No tokens on the URL: the wrapper may already have stored the session.
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) {
+            setMessage("We couldn't finish signing you in. Please try again.");
+            setTimeout(() => go("/signin"), 2500);
+            return;
+          }
+        }
+
         const { data } = await supabase.auth.getSession();
         if (!data.session) {
           go("/signin");
@@ -224,14 +237,7 @@ function AuthCallback() {
           is_org_member: false,
           is_org_partner: false,
         }));
-        if (role.role === "attorney") go("/clients");
-        else if (role.role === "advocate")
-          go("is_org_member" in role && role.is_org_member
-            ? "/partner-home"
-            : "is_org_partner" in role && role.is_org_partner
-              ? "/org-portal"
-              : "/advocate-cases");
-        else go("/dashboard");
+        go(roleHome(role));
       }
     };
 

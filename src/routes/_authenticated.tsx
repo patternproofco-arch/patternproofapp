@@ -11,6 +11,7 @@ import { PinScreen } from "@/components/PinScreen";
 import { LockRecoveryScreen } from "@/components/LockRecoveryScreen";
 import { getPinLockState } from "@/lib/pin-lock.functions";
 import { RecordingProvider } from "@/lib/recording-context";
+import { useMfaGate } from "@/hooks/use-mfa-gate";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -41,6 +42,7 @@ function Gate() {
   // null = role not resolved yet. Fail-closed survivor onboarding must wait
   // until we know this is a survivor — professionals keep their own portals.
   const [isSurvivor, setIsSurvivor] = useState<boolean | null>(null);
+  const mfaChecking = useMfaGate(!loading && !!user);
 
   // The server remembers whether a lock is turned on, so clearing site data
   // can't quietly remove it.
@@ -126,7 +128,7 @@ function Gate() {
     }
   }, [loading, user, survivorNeedsOnboarding, pathname, navigate]);
 
-  if (loading || !user || !pinLockReady || isSurvivor === null) {
+  if (loading || !user || !pinLockReady || isSurvivor === null || mfaChecking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="label-eyebrow">Opening your space…</div>
