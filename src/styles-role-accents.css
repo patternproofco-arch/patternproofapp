@@ -1,12 +1,24 @@
-/* Role accents + connecting thread.
-   Loaded from AppShell / attorney / advocate layouts so persona tokens
-   actually paint buttons, links, and the stitch between cards. */
+/* Role accents + one iridescent wavy thread. */
 
 :root,
 [data-persona] {
-  /* Thin S-wave, one stroke. Replaces the 7px mask in styles.css. */
-  --pp-thread-mask-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='56' viewBox='0 0 28 56' fill='none'%3E%3Cpath d='M14 0 C24 10 24 18 14 28 C4 38 4 46 14 56' stroke='black' stroke-width='1.75' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
-  --pp-thread-mask-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='28' viewBox='0 0 56 28' fill='none'%3E%3Cpath d='M0 14 C10 4 18 4 28 14 C38 24 46 24 56 14' stroke='black' stroke-width='1.75' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+  --pp-thread-iridescent: linear-gradient(
+    180deg,
+    var(--pp-iridescent-violet) 0%,
+    var(--pp-iridescent-teal) 38%,
+    var(--pp-iridescent-pink) 72%,
+    var(--pp-iridescent-violet) 100%
+  );
+  --pp-thread-iridescent-h: linear-gradient(
+    90deg,
+    var(--pp-iridescent-violet) 0%,
+    var(--pp-iridescent-teal) 38%,
+    var(--pp-iridescent-pink) 72%,
+    var(--pp-iridescent-violet) 100%
+  );
+  /* One S-curve stretched the full height — not a tiled repeat. */
+  --pp-thread-mask-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='200' viewBox='0 0 32 200' fill='none' preserveAspectRatio='none'%3E%3Cpath d='M16 0 C28 28 4 56 16 84 C28 112 4 140 16 168 C22 184 16 192 16 200' stroke='black' stroke-width='1.6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+  --pp-thread-mask-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='32' viewBox='0 0 200 32' fill='none' preserveAspectRatio='none'%3E%3Cpath d='M0 16 C28 4 56 28 84 16 C112 4 140 28 168 16 C184 10 192 16 200 16' stroke='black' stroke-width='1.6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
 }
 
 [data-persona="attorney"] {
@@ -48,19 +60,19 @@
 .pp-card-thread::before {
   content: "";
   position: absolute;
-  left: 10px;
-  top: 28px;
-  bottom: 28px;
-  width: 28px;
+  left: 8px;
+  top: 24px;
+  bottom: 24px;
+  width: 32px;
   pointer-events: none;
-  background: var(--pp-thread-grad, var(--pp-thread-accent, var(--pp-accent)));
+  background: var(--pp-thread-iridescent);
   -webkit-mask-image: var(--pp-thread-mask-v);
   mask-image: var(--pp-thread-mask-v);
-  -webkit-mask-repeat: repeat-y;
-  mask-repeat: repeat-y;
-  -webkit-mask-size: 28px 56px;
-  mask-size: 28px 56px;
-  opacity: 0.9;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 32px 100%;
+  mask-size: 32px 100%;
+  opacity: 0.95;
 }
 .pp-card-thread > .card-pp {
   position: relative;
@@ -74,16 +86,18 @@
   height: 18px;
   border-radius: 99px;
   background: #fff;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--pp-thread-accent, var(--pp-accent)) 35%, white);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--pp-iridescent-violet) 40%, white);
   z-index: 1;
 }
 
-/* Existing .pp-thread rows: keep the wave, thin it. */
 .pp-thread-row:not(:last-child)::after {
-  width: 28px;
+  width: 32px;
   left: 14px;
+  background: var(--pp-thread-iridescent);
   -webkit-mask-image: var(--pp-thread-mask-v);
   mask-image: var(--pp-thread-mask-v);
-  -webkit-mask-size: 28px 56px;
-  mask-size: 28px 56px;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 32px 100%;
+  mask-size: 32px 100%;
 }
