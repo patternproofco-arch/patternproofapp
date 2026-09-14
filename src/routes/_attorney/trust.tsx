@@ -1,14 +1,222 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Activity, Lock, Mail, Shield, ShieldCheck, Users } from "lucide-react";
+import { toast } from "sonner";
+import { Activity, Lock, Mail, Monitor, Shield, ShieldCheck, User, Users } from "lucide-react";
 import { getTrustPanel } from "@/lib/attorney-trust.functions";
+import { getAttorneyProfile, upsertAttorneyProfile } from "@/lib/attorney-portal.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_attorney/trust")({
   component: SettingsPage,
 });
 
 type Panel = Awaited<ReturnType<typeof getTrustPanel>>;
+
+const SETTINGS_SECTIONS = [
+  { id: "profile", label: "Profile" },
+  { id: "trust-activity", label: "Trust & activity" },
+  { id: "security", label: "Security" },
+];
+
+function SettingsNav() {
+  return (
+    <nav
+      aria-label="Settings sections"
+      className="no-print"
+      style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 4 }}
+    >
+      {SETTINGS_SECTIONS.map((s) => (
+        <a
+          key={s.id}
+          href={`#${s.id}`}
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            padding: "6px 12px",
+            borderRadius: 999,
+            background: "var(--att-surface-2)",
+            color: "var(--att-text)",
+            textDecoration: "none",
+          }}
+        >
+          {s.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function ProfileSection() {
+  const getProfile = useServerFn(getAttorneyProfile);
+  const save = useServerFn(upsertAttorneyProfile);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [firmName, setFirmName] = useState("");
+  const [barNumber, setBarNumber] = useState("");
+  const [jurisdiction, setJurisdiction] = useState("");
+
+  useEffect(() => {
+    getProfile()
+      .then((r) => {
+        const p = r.profile;
+        if (!p) return;
+        setFullName(p.full_name ?? "");
+        setEmail(p.email ?? "");
+        setFirmName(p.firm_name ?? "");
+        setBarNumber(p.bar_number ?? "");
+        setJurisdiction(p.jurisdiction ?? "");
+      })
+      .finally(() => setLoading(false));
+  }, [getProfile]);
+
+  const onSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await save({
+        data: {
+          full_name: fullName.trim(),
+          email: email.trim(),
+          firm_name: firmName.trim() || null,
+          bar_number: barNumber.trim() || null,
+          jurisdiction: jurisdiction.trim() || null,
+        },
+      });
+      toast.success("Profile updated.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't save your profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div id="profile" className="att-card" style={{ scrollMarginTop: 24 }}>
+      <SectionTitle icon={<User size={16} />}>Profile</SectionTitle>
+      <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 14 }}>
+        This was only editable once, during setup. Survivors only ever see your name and firm.
+      </p>
+      {loading ? (
+        <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>Loading…</p>
+      ) : (
+        <form onSubmit={onSave} style={{ display: "grid", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <ProfileField label="Full name">
+              <input
+                className="att-input"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                maxLength={120}
+                required
+              />
+            </ProfileField>
+            <ProfileField label="Email">
+              <input
+                className="att-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                maxLength={255}
+                required
+              />
+            </ProfileField>
+            <ProfileField label="Firm / organization">
+              <input
+                className="att-input"
+                value={firmName}
+                onChange={(e) => setFirmName(e.target.value)}
+                maxLength={200}
+                placeholder="Optional"
+              />
+            </ProfileField>
+            <ProfileField label="Bar number">
+              <input
+                className="att-input"
+                value={barNumber}
+                onChange={(e) => setBarNumber(e.target.value)}
+                maxLength={60}
+                placeholder="Optional"
+              />
+            </ProfileField>
+            <ProfileField label="Jurisdiction">
+              <input
+                className="att-input"
+                value={jurisdiction}
+                onChange={(e) => setJurisdiction(e.target.value)}
+                maxLength={120}
+                placeholder="e.g. NJ, NY, Family Court"
+              />
+            </ProfileField>
+          </div>
+          <div>
+            <button type="submit" disabled={saving} className="att-btn-primary">
+              {saving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function ProfileField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label style={{ display: "grid", gap: 6 }}>
+      <span
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: 0.08,
+          textTransform: "uppercase",
+          color: "var(--att-slate)",
+        }}
+      >
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function SecuritySection() {
+  const [signingOut, setSigningOut] = useState(false);
+
+  const signOutOtherDevices = async () => {
+    setSigningOut(true);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "others" });
+      toast[error ? "error" : "success"](
+        error
+          ? "Couldn't sign out other devices. Try again in a moment."
+          : "Signed out everywhere except this device.",
+      );
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
+  return (
+    <div id="security" className="att-card" style={{ scrollMarginTop: 24 }}>
+      <SectionTitle icon={<Monitor size={16} />}>Security</SectionTitle>
+      <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 12 }}>
+        If you ever signed in on a computer or phone you don't control anymore, end that session
+        from here — you don't need access to that device to do it. This signs out every session
+        except the one you're using right now.
+      </p>
+      <button
+        onClick={signOutOtherDevices}
+        disabled={signingOut}
+        className="att-btn-secondary"
+        type="button"
+      >
+        {signingOut ? "Signing out other devices…" : "Sign out of every other device"}
+      </button>
+    </div>
+  );
+}
 
 function SettingsPage() {
   const fetcher = useServerFn(getTrustPanel);
@@ -20,7 +228,7 @@ function SettingsPage() {
       .catch(() => setData({ links: [], invites: [], audit: [] }));
   }, [fetcher]);
 
-  if (!data) return <div className="att-card">Loading trust panel…</div>;
+  if (!data) return <div className="att-card">Loading…</div>;
 
   const activeLinks = data.links.filter((l) => l.status === "active");
   const revokedLinks = data.links.filter((l) => l.status !== "active");
@@ -29,8 +237,18 @@ function SettingsPage() {
   return (
     <div style={{ display: "grid", gap: 20, maxWidth: 1080, margin: "0 auto" }}>
       <div>
-        <div className="att-eyebrow">Settings · Trust</div>
-        <h1 className="att-page-title">Security &amp; provenance & integrity</h1>
+        <div className="att-eyebrow">Attorney Portal</div>
+        <h1 className="att-page-title">Settings</h1>
+      </div>
+
+      <SettingsNav />
+
+      <ProfileSection />
+
+      <div id="trust-activity" style={{ scrollMarginTop: 24 }}>
+        <div className="att-eyebrow" style={{ marginBottom: 8 }}>
+          Trust &amp; activity
+        </div>
       </div>
 
       <div
@@ -192,6 +410,8 @@ function SettingsPage() {
           URLs, exported ZIPs, or screenshots outside privileged channels. All access is logged.
         </div>
       </div>
+
+      <SecuritySection />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyAdvocateRole } from "@/lib/advocate.functions";
@@ -100,6 +100,18 @@ function AdvocateLayout() {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Link to="/advocate-matters" style={{ fontSize: 12, color: "inherit" }}>
             Matters
+          </Link>
+          <Link
+            to="/advocate-setup"
+            style={{
+              fontSize: 12,
+              color: "inherit",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <Settings size={13} /> Settings
           </Link>
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
             {profile?.org_name ?? profile?.full_name ?? ""}

@@ -148,6 +148,45 @@ const DISGUISES = [
   { name: "Garden Journal", url: "https://gardeners.com" },
 ];
 
+const SETTINGS_SECTIONS = [
+  { id: "personal", label: "Personal" },
+  { id: "safety", label: "Safety & security" },
+  { id: "sharing", label: "Export & sharing" },
+  { id: "account", label: "Account" },
+];
+
+function SettingsSectionNav() {
+  return (
+    <nav
+      aria-label="Settings sections"
+      className="no-print mt-6 flex flex-wrap gap-2"
+    >
+      {SETTINGS_SECTIONS.map((s) => (
+        <a
+          key={s.id}
+          href={`#${s.id}`}
+          className="rounded-2xl px-3 py-1.5 text-[12px] font-semibold"
+          style={{ background: "var(--input)", color: "var(--foreground)" }}
+        >
+          {s.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
+  return (
+    <h2
+      id={id}
+      className="mt-10 scroll-mt-20 font-serif text-[22px] first:mt-0"
+      style={{ borderBottom: "1px solid var(--rule)", paddingBottom: 10 }}
+    >
+      {children}
+    </h2>
+  );
+}
+
 function SettingsPage() {
   const { user } = useAuth();
   const { settings, update } = useSettings();
@@ -258,8 +297,14 @@ function SettingsPage() {
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Your safety, <em>your terms.</em>
       </h1>
+      <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+        Grouped into four sections — jump to any of them, or just scroll.
+      </p>
 
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
+      <SettingsSectionNav />
+
+      <SectionHeading id="personal">Personal</SectionHeading>
+      <div className="mt-5 grid gap-5 md:grid-cols-2">
         <div className="card-pp">
           <div className="flex items-center gap-2">
             <Palette size={18} style={{ color: "var(--accent)" }} />
@@ -328,43 +373,6 @@ function SettingsPage() {
               onChange={(e) => update({ reduceMotion: e.target.checked })}
             />
           </label>
-        </div>
-
-        <div className="card-pp">
-          <div className="flex items-center gap-2">
-            <BellOff size={18} style={{ color: "var(--primary)" }} />
-            <h2 className="font-serif text-[19px]">In-app notifications</h2>
-          </div>
-          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            There's no lock-screen notification in PatternProof — nothing reaches your phone while
-            it's locked. This only controls what shows in the banner at the top of the app while
-            it's open, which matters most if someone might glance at your screen while you're
-            using it under a disguise name.
-          </p>
-          <div className="mt-4 flex gap-2">
-            {(
-              [
-                ["full", "Full detail"],
-                ["generic", "Generic only"],
-                ["off", "Off"],
-              ] as [PpNotificationContent, string][]
-            ).map(([val, label]) => (
-              <button
-                key={val}
-                onClick={() => update({ notificationContent: val })}
-                className="flex-1 rounded-2xl px-2 py-2 text-[12px] font-semibold"
-                style={{
-                  background: settings.notificationContent === val ? "var(--primary)" : "var(--input)",
-                  color:
-                    settings.notificationContent === val
-                      ? "var(--primary-foreground)"
-                      : "var(--foreground)",
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="card-pp md:col-span-2">
@@ -472,6 +480,46 @@ function SettingsPage() {
                 <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
                   exits to {new URL(d.url).hostname}
                 </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <SectionHeading id="safety">Safety &amp; security</SectionHeading>
+      <div className="mt-5 grid gap-5 md:grid-cols-2">
+        <div className="card-pp">
+          <div className="flex items-center gap-2">
+            <BellOff size={18} style={{ color: "var(--primary)" }} />
+            <h2 className="font-serif text-[19px]">In-app notifications</h2>
+          </div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            There's no lock-screen notification in PatternProof — nothing reaches your phone while
+            it's locked. This only controls what shows in the banner at the top of the app while
+            it's open, which matters most if someone might glance at your screen while you're
+            using it under a disguise name.
+          </p>
+          <div className="mt-4 flex gap-2">
+            {(
+              [
+                ["full", "Full detail"],
+                ["generic", "Generic only"],
+                ["off", "Off"],
+              ] as [PpNotificationContent, string][]
+            ).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => update({ notificationContent: val })}
+                className="flex-1 rounded-2xl px-2 py-2 text-[12px] font-semibold"
+                style={{
+                  background: settings.notificationContent === val ? "var(--primary)" : "var(--input)",
+                  color:
+                    settings.notificationContent === val
+                      ? "var(--primary-foreground)"
+                      : "var(--foreground)",
+                }}
+              >
+                {label}
               </button>
             ))}
           </div>
@@ -622,32 +670,9 @@ function SettingsPage() {
         )}
       </div>
 
+      <SectionHeading id="sharing">Export &amp; sharing</SectionHeading>
+
       <ConnectedApps />
-
-      <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--primary)" }}>
-        <div className="flex items-center gap-2">
-          <AlertTriangle size={18} style={{ color: "var(--primary)" }} />
-          <h2 className="font-serif text-[19px]">A note on safety</h2>
-        </div>
-        <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>
-          If you're in immediate danger, call 911 or the National Domestic Violence Hotline at
-          1-800-799-7233. You're not alone in this.
-        </p>
-      </div>
-
-      <div className="card-pp mt-6">
-        <div className="flex items-center gap-2">
-          <MessageCircle size={18} style={{ color: "var(--accent)" }} />
-          <h2 className="font-serif text-[19px]">Share your experience</h2>
-        </div>
-        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          Six short questions. Honest answers help us make PatternProof safer and easier for the
-          people who come next.
-        </p>
-        <Link to="/feedback" className="btn-primary mt-4 inline-block">
-          Share feedback
-        </Link>
-      </div>
 
       {attorneyNotes && attorneyNotes.length > 0 && (
         <div className="card-pp mt-6">
@@ -738,6 +763,33 @@ function SettingsPage() {
           deleting DV evidence automatically needs a retention policy decided before it's built,
           not after.
         </div>
+      </div>
+
+      <SectionHeading id="account">Account</SectionHeading>
+
+      <div className="card-pp mt-5" style={{ borderLeft: "3px solid var(--primary)" }}>
+        <div className="flex items-center gap-2">
+          <AlertTriangle size={18} style={{ color: "var(--primary)" }} />
+          <h2 className="font-serif text-[19px]">A note on safety</h2>
+        </div>
+        <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>
+          If you're in immediate danger, call 911 or the National Domestic Violence Hotline at
+          1-800-799-7233. You're not alone in this.
+        </p>
+      </div>
+
+      <div className="card-pp mt-6">
+        <div className="flex items-center gap-2">
+          <MessageCircle size={18} style={{ color: "var(--accent)" }} />
+          <h2 className="font-serif text-[19px]">Share your experience</h2>
+        </div>
+        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          Six short questions. Honest answers help us make PatternProof safer and easier for the
+          people who come next.
+        </p>
+        <Link to="/feedback" className="btn-primary mt-4 inline-block">
+          Share feedback
+        </Link>
       </div>
 
       <div className="card-pp mt-6">
