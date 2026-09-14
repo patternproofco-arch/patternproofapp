@@ -9,6 +9,7 @@ import { AccessDisclaimerBar } from "@/components/AccessDisclaimer";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
+import "@/styles-role-accents.css";
 
 export const Route = createFileRoute("/_advocate")({
   head: () => ({
@@ -47,8 +48,6 @@ function AdvocateLayout() {
           return;
         }
         setProfile(r.profile);
-        // No profile yet (advocate signed in before any invite) — collect
-        // their name and organization first.
         if (!r.profile?.onboarded && pathname !== "/advocate-setup") {
           navigate({ to: "/advocate-setup", replace: true });
           return;
@@ -63,9 +62,10 @@ function AdvocateLayout() {
       <div
         className="pp-portal-shell"
         data-persona="org"
+        data-pp-paper=""
         style={{
           minHeight: "100vh",
-          background: "var(--pp-ground)",
+          background: "var(--paper)",
           display: "grid",
           placeItems: "center",
         }}
@@ -77,9 +77,10 @@ function AdvocateLayout() {
 
   return (
     <div
-      className="pp-portal-shell"
+      className="pp-portal-shell folio-page"
       data-persona="org"
-      style={{ minHeight: "100vh", background: "var(--pp-ground)", color: "var(--foreground)" }}
+      data-pp-paper=""
+      style={{ minHeight: "100vh", background: "var(--paper)", color: "var(--ink)" }}
     >
       <header
         className="pp-portal-header pp-app-chrome"
