@@ -335,3 +335,171 @@ export const getEvidenceGps = createServerFn({ method: "GET" })
       lon: res.data.gps_lon as number,
     };
   });
+
+// -----------------------------------------------------------------------------
+// Visual note — a short, neutral, AI-written description of what a photo (or
+// one representative video frame) actually shows. Every image gets one
+// automatically; nothing else in the app reads image pixels, so without this
+// a photo carries no searchable content and never surfaces in a timeline
+// draft. Video has no server-side decoder available, so the browser captures
+// a single frame and sends it as `frame_data_uri`; audio has nothing to see
+// and is always skipped. Always unverified until the survivor confirms it —
+// same pattern as transcripts and extracted document text.
+// -----------------------------------------------------------------------------
+
+const VISUAL_NOTE_PROMPT = `You are writing a short, neutral, factual note describing what appears in this image, for a survivor's evidence record in a domestic-abuse documentation app.
+
+Rules:
+- Describe only what is visibly shown: objects, visible injuries, damage, setting, or text.
+- Never diagnose, speculate about cause, assign blame, or draw legal conclusions.
+- Never invent details that are not visible.
+- If this is a screenshot of a text conversation or document, describe what it shows and quote a short relevant phrase if useful.
+- 1-4 sentences, plain language.
+- If nothing meaningful can be determined (blurry, dark, irrelevant), say so honestly instead of guessing.
+
+Output the note text only. No preamble, no markdown, no JSON.`;
+
+async function callVisionNote(dataUri: string, key: string): Promise<string | null> {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-pro",
+      messages: [
+        { role: "system", content: VISUAL_NOTE_PROMPT },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe what this image shows." },
+            { type: "image_url", image_url: { url: dataUri } },
+          ],
+        },
+      ],
+      max_tokens: 400,
+    }),
+  });
+  if (!res.ok) return null;
+  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  return json.choices?.[0]?.message?.content?.trim() || null;
+}
+
+export const describeEvidenceVisual = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        evidence_id: z.string().uuid(),
+        // Only used for video — a single frame captured client-side, since
+        // there is no video decoder available on the server.
+        frame_data_uri: z.string().max(12_000_000).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) return { ok: false as const, status: "skipped" as const };
+
+    const rowRes = await supabase
+      .from("evidence")
+      .select("id, file_url, mime, is_sealed, ai_permission")
+      .eq("id", data.evidence_id)
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (rowRes.error || !rowRes.data) throw new Error("Evidence not found");
+    const row = rowRes.data as {
+      id: string;
+      file_url: string;
+      mime: string | null;
+      is_sealed: boolean | null;
+      ai_permission: string | null;
+    };
+    if (row.is_sealed || row.ai_permission === "none" || row.ai_permission === "denied") {
+      await supabase
+        .from("evidence")
+        .update({ ai_visual_note_status: "skipped" })
+        .eq("id", row.id)
+        .eq("user_id", userId);
+      return { ok: false as const, status: "skipped" as const };
+    }
+
+    const mime = row.mime ?? "";
+    let dataUri: string | null = null;
+    if (mime.startsWith("image/")) {
+      const dl = await supabase.storage.from("evidence-files").download(row.file_url);
+      if (dl.data) {
+        const buf = Buffer.from(await dl.data.arrayBuffer());
+        if (buf.length <= 8 * 1024 * 1024) {
+          dataUri = `data:${mime};base64,${buf.toString("base64")}`;
+        }
+      }
+    } else if (mime.startsWith("video/") && data.frame_data_uri) {
+      dataUri = data.frame_data_uri;
+    }
+
+    if (!dataUri) {
+      await supabase
+        .from("evidence")
+        .update({ ai_visual_note_status: "skipped" })
+        .eq("id", row.id)
+        .eq("user_id", userId);
+      return { ok: false as const, status: "skipped" as const };
+    }
+
+    await supabase
+      .from("evidence")
+      .update({ ai_visual_note_status: "pending" })
+      .eq("id", row.id)
+      .eq("user_id", userId);
+
+    const note = await callVisionNote(dataUri, key).catch(() => null);
+    if (!note) {
+      await supabase
+        .from("evidence")
+        .update({ ai_visual_note_status: "failed" })
+        .eq("id", row.id)
+        .eq("user_id", userId);
+      return { ok: false as const, status: "failed" as const };
+    }
+
+    await supabase
+      .from("evidence")
+      .update({
+        ai_visual_note: note,
+        ai_visual_note_status: "ready",
+        ai_visual_note_verified_at: null,
+        ai_visual_note_verified_by: null,
+      })
+      .eq("id", row.id)
+      .eq("user_id", userId);
+
+    return { ok: true as const, status: "ready" as const, note };
+  });
+
+/** The survivor confirms the AI note matches what the file actually shows, optionally correcting it first. */
+export const verifyVisualNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        evidence_id: z.string().uuid(),
+        corrected_text: z.string().max(4000).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const corrected = typeof data.corrected_text === "string";
+    const res = await supabase
+      .from("evidence")
+      .update({
+        ai_visual_note_verified_at: new Date().toISOString(),
+        ai_visual_note_verified_by: userId,
+        ...(corrected ? { ai_visual_note: data.corrected_text } : {}),
+      })
+      .eq("id", data.evidence_id)
+      .eq("user_id", userId);
+    if (res.error) throw new Error("We couldn't save that. Try again in a moment.");
+    return { ok: true as const };
+  });

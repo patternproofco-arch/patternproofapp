@@ -26,7 +26,9 @@ import {
   extractEvidenceDocument,
   verifyExtractedText,
 } from "@/lib/document-extract.functions";
+import { describeEvidenceVisual, verifyVisualNote } from "@/lib/evidence-enrichment.functions";
 import { isReadableDocument } from "@/lib/readable-documents";
+import { captureVideoFrame } from "@/lib/video-frame";
 
 import { FocusRegion } from "@/components/survivor/focus-mode";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -61,7 +63,9 @@ interface EvidenceRow {
   extraction_pages?: number | null;
   extraction_verified_at?: string | null;
   mime?: string | null;
-
+  ai_visual_note?: string | null;
+  ai_visual_note_status?: string | null;
+  ai_visual_note_verified_at?: string | null;
 }
 // review_status: "suggested" rows are held back from exports/attorney views
 // until the survivor confirms the match on /evidence-review.
@@ -122,6 +126,8 @@ function EvidencePage() {
   const proposeTimelineFn = useServerFn(proposeTimelineFromEvidence);
   const extractDocFn = useServerFn(extractEvidenceDocument);
   const verifyTextFn = useServerFn(verifyExtractedText);
+  const describeVisualFn = useServerFn(describeEvidenceVisual);
+  const verifyVisualFn = useServerFn(verifyVisualNote);
 
   const [items, setItems] = useState<EvidenceRow[]>([]);
   const [incidents, setIncidents] = useState<IncOption[]>([]);
@@ -150,7 +156,7 @@ function EvidencePage() {
       supabase
         .from("evidence")
         .select(
-          "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status,mime,extracted_text,extraction_status,extraction_method,extraction_pages,extraction_verified_at",
+          "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status,mime,extracted_text,extraction_status,extraction_method,extraction_pages,extraction_verified_at,ai_visual_note,ai_visual_note_status,ai_visual_note_verified_at",
         )
         .eq("user_id", user.id)
         .is("deleted_at", null)
@@ -266,9 +272,12 @@ function EvidencePage() {
     }
 
     // Reset form + reload
-    const wasImageOrPdf = pending.type.startsWith("image/") || pending.type === "application/pdf";
+    const wasImage = pending.type.startsWith("image/");
+    const wasImageOrPdf = wasImage || pending.type === "application/pdf";
     const wasAudioOrVideo = pending.type.startsWith("audio/") || pending.type.startsWith("video/");
+    const wasVideo = pending.type.startsWith("video/");
     const fileMime = pending.type;
+    const uploadedFile = pending;
     setPending(null);
     setTitle("");
     setDate(today());
@@ -284,6 +293,19 @@ function EvidencePage() {
       toast("Saved. Generating a searchable transcript…");
       void transcribeFn({ data: { evidence_id: newRow.id } })
         .then(async () => {
+          // A silent or wordless video still deserves a note. Capture one
+          // frame client-side (the server can't decode video) and describe
+          // it, so muted footage or property damage doesn't go unread.
+          if (wasVideo) {
+            try {
+              const frame = await captureVideoFrame(uploadedFile);
+              if (frame) {
+                await describeVisualFn({ data: { evidence_id: newRow.id, frame_data_uri: frame } });
+              }
+            } catch {
+              /* visual note is additive; transcript alone still counts */
+            }
+          }
           const proposal = await proposeTimelineFn({
             data: {
               evidence_ids: [newRow.id],
@@ -303,6 +325,15 @@ function EvidencePage() {
           toast("The file is safe, but transcription failed. You can retry below.");
           return load();
         });
+    }
+
+    // Photos get their own AI-written visual note automatically, same as a
+    // transcript for audio/video — describing what the image shows, not just
+    // when it was taken. Runs alongside the incident-review modal below.
+    if (wasImage) {
+      void describeVisualFn({ data: { evidence_id: newRow.id } })
+        .then(() => load())
+        .catch(() => undefined);
     }
 
     // PDFs, Word files and plain-text files: read the words out of the file so
@@ -796,6 +827,32 @@ function EvidencePage() {
                                     : "Not transcribed yet."}
                             </div>
                           )}
+                          {(it.file_type === "image" || it.file_type === "video") && (
+                            <div
+                              className="mt-2 p-3 text-[12px]"
+                              style={{ background: "var(--input)", color: "var(--foreground)" }}
+                            >
+                              <div className="label-eyebrow mb-1">AI note — what this shows</div>
+                              {it.ai_visual_note_status === "ready" && it.ai_visual_note ? (
+                                <>
+                                  <p>{it.ai_visual_note}</p>
+                                  <p className="mt-2 opacity-80">
+                                    {it.ai_visual_note_verified_at
+                                      ? "You confirmed this note matches the file."
+                                      : "AI-generated — please check it against the original."}
+                                  </p>
+                                </>
+                              ) : it.ai_visual_note_status === "pending" ? (
+                                "Reading it now…"
+                              ) : it.ai_visual_note_status === "failed" ? (
+                                "Couldn't generate a note this time. Your original file is still safe."
+                              ) : it.ai_visual_note_status === "skipped" ? (
+                                "Not analyzed automatically for this file."
+                              ) : (
+                                "Not analyzed yet."
+                              )}
+                            </div>
+                          )}
                           {isReadableDocument(it.mime, it.title) && (
                             <div
                               className="mt-2 p-3 text-[12px]"
@@ -881,6 +938,57 @@ function EvidencePage() {
                                   <Sparkles size={13} /> Retry transcript
                                 </button>
                               )}
+                            {it.file_type === "image" &&
+                              it.ai_visual_note_status !== "pending" &&
+                              it.ai_visual_note_status !== "ready" && (
+                                <button
+                                  onClick={() => {
+                                    void describeVisualFn({ data: { evidence_id: it.id } })
+                                      .then(() => {
+                                        toast("Note ready.");
+                                        return load();
+                                      })
+                                      .catch(() => {
+                                        toast("Couldn't generate a note. Try again in a moment.");
+                                        return load();
+                                      });
+                                  }}
+                                  className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                                >
+                                  <Sparkles size={13} /> Describe photo
+                                </button>
+                              )}
+                            {it.file_type === "video" &&
+                              it.ai_visual_note_status !== "pending" &&
+                              it.ai_visual_note_status !== "ready" &&
+                              url && (
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const res = await fetch(url);
+                                      const blob = await res.blob();
+                                      const file = new File([blob], it.title || "video", {
+                                        type: it.mime || "video/mp4",
+                                      });
+                                      const frame = await captureVideoFrame(file);
+                                      if (!frame) {
+                                        toast("Couldn't read a frame from this video.");
+                                        return;
+                                      }
+                                      await describeVisualFn({
+                                        data: { evidence_id: it.id, frame_data_uri: frame },
+                                      });
+                                      toast("Note ready.");
+                                      await load();
+                                    } catch {
+                                      toast("Couldn't generate a note. Try again in a moment.");
+                                    }
+                                  }}
+                                  className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                                >
+                                  <Sparkles size={13} /> Describe frame
+                                </button>
+                              )}
                             {isReadableDocument(it.mime, it.title) &&
                               it.extraction_status !== "ready" && (
                                 <button
@@ -917,6 +1025,23 @@ function EvidencePage() {
                                 className="btn-ghost inline-flex items-center gap-1 text-[12px]"
                               >
                                 <Check size={13} /> Text matches
+                              </button>
+                            )}
+                            {it.ai_visual_note_status === "ready" && !it.ai_visual_note_verified_at && (
+                              <button
+                                onClick={() => {
+                                  void verifyVisualFn({ data: { evidence_id: it.id } })
+                                    .then(() => {
+                                      toast("Saved. Marked as checked by you.");
+                                      return load();
+                                    })
+                                    .catch(() => {
+                                      toast("We couldn't save that. Try again in a moment.");
+                                    });
+                                }}
+                                className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                              >
+                                <Check size={13} /> Note matches
                               </button>
                             )}
 

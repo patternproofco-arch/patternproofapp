@@ -1740,6 +1740,10 @@ export type Database = {
       evidence: {
         Row: {
           ai_permission: string
+          ai_visual_note: string | null
+          ai_visual_note_status: string
+          ai_visual_note_verified_at: string | null
+          ai_visual_note_verified_by: string | null
           anchor_label: string | null
           bytes: number | null
           conversation_context: string
@@ -1803,6 +1807,10 @@ export type Database = {
         }
         Insert: {
           ai_permission?: string
+          ai_visual_note?: string | null
+          ai_visual_note_status?: string
+          ai_visual_note_verified_at?: string | null
+          ai_visual_note_verified_by?: string | null
           anchor_label?: string | null
           bytes?: number | null
           conversation_context?: string
@@ -1866,6 +1874,10 @@ export type Database = {
         }
         Update: {
           ai_permission?: string
+          ai_visual_note?: string | null
+          ai_visual_note_status?: string
+          ai_visual_note_verified_at?: string | null
+          ai_visual_note_verified_by?: string | null
           anchor_label?: string | null
           bytes?: number | null
           conversation_context?: string

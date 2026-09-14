@@ -21,13 +21,14 @@ import {
   type PreservationReceipt,
   type PreservationReceiptItem,
 } from "@/lib/evidence-ingest.functions";
-import { enrichEvidence } from "@/lib/evidence-enrichment.functions";
+import { enrichEvidence, describeEvidenceVisual } from "@/lib/evidence-enrichment.functions";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
 import { extractEvidenceDocument } from "@/lib/document-extract.functions";
 import { isReadableDocument } from "@/lib/readable-documents";
 import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
 import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 import { readExif, stripExif, type ExifSummary } from "@/lib/exif";
+import { captureVideoFrame } from "@/lib/video-frame";
 import { FileIntakeRow, type ExifChoice } from "./FileIntakeRow";
 import {
   DateCertaintyField,
@@ -148,6 +149,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const enrich = useServerFn(enrichEvidence);
   const transcribe = useServerFn(transcribeEvidence);
   const extractDoc = useServerFn(extractEvidenceDocument);
+  const describeVisual = useServerFn(describeEvidenceVisual);
   const proposeTimeline = useServerFn(proposeTimelineFromEvidence);
   const openBatch = useServerFn(openIntakeBatch);
   const updateBatch = useServerFn(updateIntakeBatch);
@@ -398,9 +400,13 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       onDone?.();
 
       // Background: extract EXIF/GPS (quarantined), propose incident matches,
-      // and transcribe any audio/video. Never blocks; failures leave the
-      // preserved file untouched.
+      // transcribe any audio/video, and write an AI visual note for photos
+      // and video frames. Never blocks; failures leave the preserved file
+      // untouched.
       const preserved = result.items.filter((it) => it.evidence_id);
+      const fileByStorageKey = new Map(
+        updates.filter((u) => u.storageKey).map((u) => [u.storageKey as string, u.file]),
+      );
       let suggested = 0;
       await Promise.all(
         preserved.map(async (it) => {
@@ -413,11 +419,34 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
             /* leave preserved but un-enriched */
           }
           const mime = it.mime ?? "";
-          if (mime.startsWith("audio/") || mime.startsWith("video/")) {
+          if (mime.startsWith("image/")) {
+            try {
+              await describeVisual({ data: { evidence_id: it.evidence_id! } });
+            } catch {
+              /* ai_visual_note_status stays 'failed' server-side */
+            }
+          } else if (mime.startsWith("audio/") || mime.startsWith("video/")) {
             try {
               await transcribe({ data: { evidence_id: it.evidence_id! } });
             } catch {
               /* transcript_status stays 'failed' server-side */
+            }
+            if (mime.startsWith("video/")) {
+              // A silent or wordless video still deserves a note — capture
+              // one frame client-side (the server can't decode video) and
+              // describe it, so property damage or muted footage doesn't
+              // fall through with nothing.
+              try {
+                const sourceFile = fileByStorageKey.get(it.storage_key);
+                const frame = sourceFile ? await captureVideoFrame(sourceFile) : null;
+                if (frame) {
+                  await describeVisual({
+                    data: { evidence_id: it.evidence_id!, frame_data_uri: frame },
+                  });
+                }
+              } catch {
+                /* visual note is additive; transcript alone still counts */
+              }
             }
           } else if (isReadableDocument(mime, it.original_filename)) {
             // PDFs, Word files and plain text get read the same way here as

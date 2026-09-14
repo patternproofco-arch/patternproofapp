@@ -147,7 +147,7 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
     let evidenceQuery = supabase
       .from("evidence")
       .select(
-        "id, title, file_type, mime, description, date, event_at, event_timestamp_kind, exif_captured_at, in_image_timestamp_text, transcript, transcript_status, ingested_at, created_at, linked_incident_id, original_filename",
+        "id, title, file_type, mime, description, date, event_at, event_timestamp_kind, exif_captured_at, in_image_timestamp_text, transcript, transcript_status, ai_visual_note, ai_visual_note_status, ingested_at, created_at, linked_incident_id, original_filename",
       )
       .eq("user_id", userId)
       .is("deleted_at", null)
@@ -191,10 +191,19 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
     }> = [];
 
     for (const row of availableEvidenceRows) {
+      const isImage = row.mime?.startsWith("image/") ?? false;
       const isRecordedMedia = row.mime?.startsWith("video/") || row.mime?.startsWith("audio/");
-      if (isRecordedMedia && (!row.transcript || row.transcript_status !== "ready")) {
-        // A filename or user title is not enough evidence to draft what
-        // happened in a recording. Wait for a real transcript.
+      const hasTranscript =
+        row.transcript_status === "ready" && !!row.transcript && row.transcript.trim().length > 0;
+      const transcriptCameBackSilent =
+        row.transcript_status === "ready" && (!row.transcript || !row.transcript.trim());
+      const hasVisualNote =
+        row.ai_visual_note_status === "ready" &&
+        !!row.ai_visual_note &&
+        row.ai_visual_note.trim().length > 0;
+      if (isRecordedMedia && !hasTranscript && !hasVisualNote) {
+        // Nothing to work with yet — no speech and no frame description.
+        // Wait for either transcription or the visual note to finish.
         continue;
       }
       // Typed timestamps only. A file's creation/ingest time never becomes the
@@ -217,9 +226,23 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
         row.ingested_at ? { kind: "ingested_at", value: row.ingested_at } : null,
         row.created_at ? { kind: "file_created_at", value: row.created_at } : null,
       ].filter((t): t is { kind: string; value: string } => t !== null);
-      let text = row.description ?? row.title ?? "";
-      if (row.transcript && row.transcript_status === "ready") {
+
+      // A photo's own content — the AI-written visual note — is the primary
+      // text for an image. The survivor's own description (if any) still
+      // wins over a filename.
+      let text =
+        isImage && hasVisualNote
+          ? (row.ai_visual_note as string)
+          : (row.description ?? row.title ?? "");
+      if (hasTranscript) {
         text = [text, "--- Transcript ---", row.transcript].filter(Boolean).join("\n");
+      } else if (transcriptCameBackSilent) {
+        text = [text, "[No speech detected in this recording.]"].filter(Boolean).join("\n");
+      }
+      if (isRecordedMedia && hasVisualNote) {
+        text = [text, "--- Video frame description ---", row.ai_visual_note]
+          .filter(Boolean)
+          .join("\n");
       }
       materials.push({
         evidence_id: row.id,
