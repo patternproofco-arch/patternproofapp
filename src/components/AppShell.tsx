@@ -35,11 +35,12 @@ export function AppShell() {
       className="pp-app-shell folio-page min-h-screen w-full"
       data-density="survivor"
       data-persona="survivor"
+      data-pp-paper=""
       style={{ background: "var(--paper)" }}
     >
       <AmbientBackground />
 
-      <header className="pp-shell-header pp-app-chrome no-print app-surface mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 pt-3 md:px-10 md:pt-3">
+      <header className="pp-shell-header pp-app-chrome no-print app-surface mx-auto flex w-full max-w-[430px] items-center justify-between gap-3 px-4 pt-3">
         <span aria-hidden style={{ width: 1 }} />
         <BrandMark size={30} variant="ink" />
         <UtilityBar />
@@ -49,9 +50,9 @@ export function AppShell() {
 
       <FocusModeProvider>
         <main
-          className="pp-app-main app-surface print-page mx-auto w-full max-w-6xl px-5 md:px-10"
+          className="pp-app-main app-surface print-page mx-auto w-full max-w-[430px] px-4"
           style={{
-            paddingTop: 24,
+            paddingTop: 20,
             paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 108px)",
           }}
         >

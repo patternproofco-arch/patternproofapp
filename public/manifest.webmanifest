@@ -1,17 +1,18 @@
 {
-  "name": "PatternProof — Evidence Documentation for Survivors",
-  "short_name": "PatternProof",
-  "description": "Private evidence documentation software. Organize your records with an AI-powered timeline and share securely with your attorney.",
-  "start_url": "/",
+  "id": "/signin",
+  "name": "Notes",
+  "short_name": "Notes",
+  "description": "Private notes on this device.",
+  "start_url": "/signin",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#FAF8F4",
-  "theme_color": "#7A1F3D",
+  "background_color": "#f4f1ea",
+  "theme_color": "#f4f1ea",
   "categories": ["productivity", "utilities"],
   "icons": [
     {
-      "src": "/icons/icon.svg",
+      "src": "/icons/note.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
@@ -37,30 +38,22 @@
   ],
   "shortcuts": [
     {
-      "name": "Capture Evidence",
-      "short_name": "Capture",
-      "description": "Take a photo or record audio",
-      "url": "/survivor/capture",
-      "icons": [
-        {
-          "src": "/icons/icon.svg",
-          "sizes": "any",
-          "type": "image/svg+xml"
-        }
-      ]
+      "name": "Add a note",
+      "short_name": "Add",
+      "url": "/journal",
+      "icons": [{ "src": "/icons/note.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
-      "name": "View Timeline",
+      "name": "Timeline",
       "short_name": "Timeline",
-      "description": "See all your evidence organized",
-      "url": "/survivor/timeline",
-      "icons": [
-        {
-          "src": "/icons/icon.svg",
-          "sizes": "any",
-          "type": "image/svg+xml"
-        }
-      ]
+      "url": "/timeline",
+      "icons": [{ "src": "/icons/note.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Files",
+      "short_name": "Files",
+      "url": "/evidence",
+      "icons": [{ "src": "/icons/note.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ]
 }
