@@ -23,6 +23,7 @@ import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
 import { Route as SampleCaseRouteImport } from './routes/sample-case'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfessionalAccessRouteImport } from './routes/professional-access'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
@@ -30,11 +31,13 @@ import { Route as PartnerAccessRouteImport } from './routes/partner-access'
 import { Route as OrgSignupRouteImport } from './routes/org-signup'
 import { Route as OrgPortalRouteImport } from './routes/org-portal'
 import { Route as OrgFeedbackRouteImport } from './routes/org-feedback'
+import { Route as MfaRouteImport } from './routes/mfa'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
 import { Route as IntakeRouteImport } from './routes/intake'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
 import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
 import { Route as FamilyLawWorkloadRouteImport } from './routes/family-law-workload'
@@ -65,8 +68,10 @@ import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedShareWithAttorneyRouteImport } from './routes/_authenticated/share-with-attorney'
 import { Route as AuthenticatedShareWithAdvocateRouteImport } from './routes/_authenticated/share-with-advocate'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
+import { Route as AuthenticatedPasswordRouteImport } from './routes/_authenticated/password'
 import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedMessageThreadsRouteImport } from './routes/_authenticated/message-threads'
@@ -93,6 +98,7 @@ import { Route as AuthenticatedAttorneyTimeLogRouteImport } from './routes/_auth
 import { Route as AuthenticatedAttorneyBillingRouteImport } from './routes/_authenticated/attorney-billing'
 import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AuthenticatedAccessRouteImport } from './routes/_authenticated/access'
+import { Route as AttorneyTwoFactorRouteImport } from './routes/_attorney/two-factor'
 import { Route as AttorneyTrustRouteImport } from './routes/_attorney/trust'
 import { Route as AttorneyTeamRouteImport } from './routes/_attorney/team'
 import { Route as AttorneySubscribeRouteImport } from './routes/_attorney/subscribe'
@@ -115,6 +121,7 @@ import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/em
 import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integrations.clio.deauthorize'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
+import { Route as AuthenticatedAdminPasswordResetRouteImport } from './routes/_authenticated/admin.password-reset'
 import { Route as AuthenticatedAdminOrgRequestsRouteImport } from './routes/_authenticated/admin.org-requests'
 import { Route as AttorneyMattersMatterIdRouteImport } from './routes/_attorney/matters.$matterId'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
@@ -198,6 +205,11 @@ const ResourcesRoute = ResourcesRouteImport.update({
   path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfessionalAccessRoute = ProfessionalAccessRouteImport.update({
   id: '/professional-access',
   path: '/professional-access',
@@ -233,6 +245,11 @@ const OrgFeedbackRoute = OrgFeedbackRouteImport.update({
   path: '/org-feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MfaRoute = MfaRouteImport.update({
+  id: '/mfa',
+  path: '/mfa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
@@ -256,6 +273,11 @@ const IntakeRoute = IntakeRouteImport.update({
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForOrganizationsRoute = ForOrganizationsRouteImport.update({
@@ -408,6 +430,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -416,6 +443,11 @@ const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
 const AuthenticatedPatternsRoute = AuthenticatedPatternsRouteImport.update({
   id: '/patterns',
   path: '/patterns',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPasswordRoute = AuthenticatedPasswordRouteImport.update({
+  id: '/password',
+  path: '/password',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOpraHelperRoute = AuthenticatedOpraHelperRouteImport.update({
@@ -561,6 +593,11 @@ const AuthenticatedAccessRoute = AuthenticatedAccessRouteImport.update({
   path: '/access',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AttorneyTwoFactorRoute = AttorneyTwoFactorRouteImport.update({
+  id: '/two-factor',
+  path: '/two-factor',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AttorneyTrustRoute = AttorneyTrustRouteImport.update({
   id: '/trust',
   path: '/trust',
@@ -678,6 +715,12 @@ const AuthenticatedAgentThreadIdRoute =
     path: '/$threadId',
     getParentRoute: () => AuthenticatedAgentRoute,
   } as any)
+const AuthenticatedAdminPasswordResetRoute =
+  AuthenticatedAdminPasswordResetRouteImport.update({
+    id: '/admin/password-reset',
+    path: '/admin/password-reset',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminOrgRequestsRoute =
   AuthenticatedAdminOrgRequestsRouteImport.update({
     id: '/admin/org-requests',
@@ -758,11 +801,13 @@ export interface FileRoutesByFullPath {
   '/family-law-workload': typeof FamilyLawWorkloadRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/intake': typeof IntakeRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/mfa': typeof MfaRoute
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
   '/org-signup': typeof OrgSignupRoute
@@ -770,6 +815,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
@@ -798,6 +844,7 @@ export interface FileRoutesByFullPath {
   '/subscribe': typeof AttorneySubscribeRoute
   '/team': typeof AttorneyTeamRoute
   '/trust': typeof AttorneyTrustRoute
+  '/two-factor': typeof AttorneyTwoFactorRoute
   '/access': typeof AuthenticatedAccessRoute
   '/agent': typeof AuthenticatedAgentRouteWithChildren
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
@@ -824,8 +871,10 @@ export interface FileRoutesByFullPath {
   '/message-threads': typeof AuthenticatedMessageThreadsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
+  '/password': typeof AuthenticatedPasswordRoute
   '/patterns': typeof AuthenticatedPatternsRoute
   '/search': typeof AuthenticatedSearchRoute
+  '/security': typeof AuthenticatedSecurityRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
   '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
@@ -848,6 +897,7 @@ export interface FileRoutesByFullPath {
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
+  '/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
@@ -875,11 +925,13 @@ export interface FileRoutesByTo {
   '/family-law-workload': typeof FamilyLawWorkloadRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/intake': typeof IntakeRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/mfa': typeof MfaRoute
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
   '/org-signup': typeof OrgSignupRoute
@@ -887,6 +939,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
@@ -914,6 +967,7 @@ export interface FileRoutesByTo {
   '/subscribe': typeof AttorneySubscribeRoute
   '/team': typeof AttorneyTeamRoute
   '/trust': typeof AttorneyTrustRoute
+  '/two-factor': typeof AttorneyTwoFactorRoute
   '/access': typeof AuthenticatedAccessRoute
   '/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
   '/attorney-time-log': typeof AuthenticatedAttorneyTimeLogRoute
@@ -939,8 +993,10 @@ export interface FileRoutesByTo {
   '/message-threads': typeof AuthenticatedMessageThreadsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
+  '/password': typeof AuthenticatedPasswordRoute
   '/patterns': typeof AuthenticatedPatternsRoute
   '/search': typeof AuthenticatedSearchRoute
+  '/security': typeof AuthenticatedSecurityRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
   '/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
@@ -963,6 +1019,7 @@ export interface FileRoutesByTo {
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
+  '/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
@@ -994,11 +1051,13 @@ export interface FileRoutesById {
   '/family-law-workload': typeof FamilyLawWorkloadRoute
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/intake': typeof IntakeRoute
   '/lawyer-signup': typeof LawyerSignupRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/mfa': typeof MfaRoute
   '/org-feedback': typeof OrgFeedbackRoute
   '/org-portal': typeof OrgPortalRoute
   '/org-signup': typeof OrgSignupRoute
@@ -1006,6 +1065,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
@@ -1034,6 +1094,7 @@ export interface FileRoutesById {
   '/_attorney/subscribe': typeof AttorneySubscribeRoute
   '/_attorney/team': typeof AttorneyTeamRoute
   '/_attorney/trust': typeof AttorneyTrustRoute
+  '/_attorney/two-factor': typeof AttorneyTwoFactorRoute
   '/_authenticated/access': typeof AuthenticatedAccessRoute
   '/_authenticated/agent': typeof AuthenticatedAgentRouteWithChildren
   '/_authenticated/attorney-billing': typeof AuthenticatedAttorneyBillingRoute
@@ -1060,8 +1121,10 @@ export interface FileRoutesById {
   '/_authenticated/message-threads': typeof AuthenticatedMessageThreadsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
+  '/_authenticated/password': typeof AuthenticatedPasswordRoute
   '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
+  '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/share-with-advocate': typeof AuthenticatedShareWithAdvocateRoute
   '/_authenticated/share-with-attorney': typeof AuthenticatedShareWithAttorneyRoute
@@ -1084,6 +1147,7 @@ export interface FileRoutesById {
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_attorney/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/_authenticated/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
+  '/_authenticated/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
@@ -1113,11 +1177,13 @@ export interface FileRouteTypes {
     | '/family-law-workload'
     | '/for-attorneys'
     | '/for-organizations'
+    | '/forgot-password'
     | '/how-it-works'
     | '/intake'
     | '/lawyer-signup'
     | '/login'
     | '/mcp'
+    | '/mfa'
     | '/org-feedback'
     | '/org-portal'
     | '/org-signup'
@@ -1125,6 +1191,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/professional-access'
+    | '/reset-password'
     | '/resources'
     | '/safety'
     | '/sample-case'
@@ -1153,6 +1220,7 @@ export interface FileRouteTypes {
     | '/subscribe'
     | '/team'
     | '/trust'
+    | '/two-factor'
     | '/access'
     | '/agent'
     | '/attorney-billing'
@@ -1179,8 +1247,10 @@ export interface FileRouteTypes {
     | '/message-threads'
     | '/onboarding'
     | '/opra-helper'
+    | '/password'
     | '/patterns'
     | '/search'
+    | '/security'
     | '/settings'
     | '/share-with-advocate'
     | '/share-with-attorney'
@@ -1203,6 +1273,7 @@ export interface FileRouteTypes {
     | '/clients/$clientId'
     | '/matters/$matterId'
     | '/admin/org-requests'
+    | '/admin/password-reset'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
@@ -1230,11 +1301,13 @@ export interface FileRouteTypes {
     | '/family-law-workload'
     | '/for-attorneys'
     | '/for-organizations'
+    | '/forgot-password'
     | '/how-it-works'
     | '/intake'
     | '/lawyer-signup'
     | '/login'
     | '/mcp'
+    | '/mfa'
     | '/org-feedback'
     | '/org-portal'
     | '/org-signup'
@@ -1242,6 +1315,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/professional-access'
+    | '/reset-password'
     | '/resources'
     | '/safety'
     | '/sample-case'
@@ -1269,6 +1343,7 @@ export interface FileRouteTypes {
     | '/subscribe'
     | '/team'
     | '/trust'
+    | '/two-factor'
     | '/access'
     | '/attorney-billing'
     | '/attorney-time-log'
@@ -1294,8 +1369,10 @@ export interface FileRouteTypes {
     | '/message-threads'
     | '/onboarding'
     | '/opra-helper'
+    | '/password'
     | '/patterns'
     | '/search'
+    | '/security'
     | '/settings'
     | '/share-with-advocate'
     | '/share-with-attorney'
@@ -1318,6 +1395,7 @@ export interface FileRouteTypes {
     | '/clients/$clientId'
     | '/matters/$matterId'
     | '/admin/org-requests'
+    | '/admin/password-reset'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
@@ -1348,11 +1426,13 @@ export interface FileRouteTypes {
     | '/family-law-workload'
     | '/for-attorneys'
     | '/for-organizations'
+    | '/forgot-password'
     | '/how-it-works'
     | '/intake'
     | '/lawyer-signup'
     | '/login'
     | '/mcp'
+    | '/mfa'
     | '/org-feedback'
     | '/org-portal'
     | '/org-signup'
@@ -1360,6 +1440,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/professional-access'
+    | '/reset-password'
     | '/resources'
     | '/safety'
     | '/sample-case'
@@ -1388,6 +1469,7 @@ export interface FileRouteTypes {
     | '/_attorney/subscribe'
     | '/_attorney/team'
     | '/_attorney/trust'
+    | '/_attorney/two-factor'
     | '/_authenticated/access'
     | '/_authenticated/agent'
     | '/_authenticated/attorney-billing'
@@ -1414,8 +1496,10 @@ export interface FileRouteTypes {
     | '/_authenticated/message-threads'
     | '/_authenticated/onboarding'
     | '/_authenticated/opra-helper'
+    | '/_authenticated/password'
     | '/_authenticated/patterns'
     | '/_authenticated/search'
+    | '/_authenticated/security'
     | '/_authenticated/settings'
     | '/_authenticated/share-with-advocate'
     | '/_authenticated/share-with-attorney'
@@ -1438,6 +1522,7 @@ export interface FileRouteTypes {
     | '/_attorney/clients/$clientId'
     | '/_attorney/matters/$matterId'
     | '/_authenticated/admin/org-requests'
+    | '/_authenticated/admin/password-reset'
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
@@ -1469,11 +1554,13 @@ export interface RootRouteChildren {
   FamilyLawWorkloadRoute: typeof FamilyLawWorkloadRoute
   ForAttorneysRoute: typeof ForAttorneysRoute
   ForOrganizationsRoute: typeof ForOrganizationsRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   HowItWorksRoute: typeof HowItWorksRoute
   IntakeRoute: typeof IntakeRoute
   LawyerSignupRoute: typeof LawyerSignupRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
+  MfaRoute: typeof MfaRoute
   OrgFeedbackRoute: typeof OrgFeedbackRoute
   OrgPortalRoute: typeof OrgPortalRoute
   OrgSignupRoute: typeof OrgSignupRoute
@@ -1481,6 +1568,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
   SafetyRoute: typeof SafetyRoute
   SampleCaseRoute: typeof SampleCaseRoute
@@ -1621,6 +1709,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/professional-access': {
       id: '/professional-access'
       path: '/professional-access'
@@ -1670,6 +1765,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrgFeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mfa': {
+      id: '/mfa'
+      path: '/mfa'
+      fullPath: '/mfa'
+      preLoaderRoute: typeof MfaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
@@ -1703,6 +1805,13 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/for-organizations': {
@@ -1915,6 +2024,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/security': {
+      id: '/_authenticated/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof AuthenticatedSecurityRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/search': {
       id: '/_authenticated/search'
       path: '/search'
@@ -1927,6 +2043,13 @@ declare module '@tanstack/react-router' {
       path: '/patterns'
       fullPath: '/patterns'
       preLoaderRoute: typeof AuthenticatedPatternsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/password': {
+      id: '/_authenticated/password'
+      path: '/password'
+      fullPath: '/password'
+      preLoaderRoute: typeof AuthenticatedPasswordRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/opra-helper': {
@@ -2111,6 +2234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccessRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_attorney/two-factor': {
+      id: '/_attorney/two-factor'
+      path: '/two-factor'
+      fullPath: '/two-factor'
+      preLoaderRoute: typeof AttorneyTwoFactorRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/_attorney/trust': {
       id: '/_attorney/trust'
       path: '/trust'
@@ -2265,6 +2395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentThreadIdRouteImport
       parentRoute: typeof AuthenticatedAgentRoute
     }
+    '/_authenticated/admin/password-reset': {
+      id: '/_authenticated/admin/password-reset'
+      path: '/admin/password-reset'
+      fullPath: '/admin/password-reset'
+      preLoaderRoute: typeof AuthenticatedAdminPasswordResetRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/org-requests': {
       id: '/_authenticated/admin/org-requests'
       path: '/admin/org-requests'
@@ -2395,6 +2532,7 @@ interface AttorneyRouteChildren {
   AttorneySubscribeRoute: typeof AttorneySubscribeRoute
   AttorneyTeamRoute: typeof AttorneyTeamRoute
   AttorneyTrustRoute: typeof AttorneyTrustRoute
+  AttorneyTwoFactorRoute: typeof AttorneyTwoFactorRoute
   AttorneyMattersMatterIdRoute: typeof AttorneyMattersMatterIdRoute
   AttorneyMattersIndexRoute: typeof AttorneyMattersIndexRoute
 }
@@ -2410,6 +2548,7 @@ const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneySubscribeRoute: AttorneySubscribeRoute,
   AttorneyTeamRoute: AttorneyTeamRoute,
   AttorneyTrustRoute: AttorneyTrustRoute,
+  AttorneyTwoFactorRoute: AttorneyTwoFactorRoute,
   AttorneyMattersMatterIdRoute: AttorneyMattersMatterIdRoute,
   AttorneyMattersIndexRoute: AttorneyMattersIndexRoute,
 }
@@ -2458,14 +2597,17 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMessageThreadsRoute: typeof AuthenticatedMessageThreadsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
+  AuthenticatedPasswordRoute: typeof AuthenticatedPasswordRoute
   AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
+  AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShareWithAdvocateRoute: typeof AuthenticatedShareWithAdvocateRoute
   AuthenticatedShareWithAttorneyRoute: typeof AuthenticatedShareWithAttorneyRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
   AuthenticatedAdminOrgRequestsRoute: typeof AuthenticatedAdminOrgRequestsRoute
+  AuthenticatedAdminPasswordResetRoute: typeof AuthenticatedAdminPasswordResetRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -2495,14 +2637,17 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMessageThreadsRoute: AuthenticatedMessageThreadsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
+  AuthenticatedPasswordRoute: AuthenticatedPasswordRoute,
   AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
+  AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShareWithAdvocateRoute: AuthenticatedShareWithAdvocateRoute,
   AuthenticatedShareWithAttorneyRoute: AuthenticatedShareWithAttorneyRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
   AuthenticatedAdminOrgRequestsRoute: AuthenticatedAdminOrgRequestsRoute,
+  AuthenticatedAdminPasswordResetRoute: AuthenticatedAdminPasswordResetRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -2524,11 +2669,13 @@ const rootRouteChildren: RootRouteChildren = {
   FamilyLawWorkloadRoute: FamilyLawWorkloadRoute,
   ForAttorneysRoute: ForAttorneysRoute,
   ForOrganizationsRoute: ForOrganizationsRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   HowItWorksRoute: HowItWorksRoute,
   IntakeRoute: IntakeRoute,
   LawyerSignupRoute: LawyerSignupRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
+  MfaRoute: MfaRoute,
   OrgFeedbackRoute: OrgFeedbackRoute,
   OrgPortalRoute: OrgPortalRoute,
   OrgSignupRoute: OrgSignupRoute,
@@ -2536,6 +2683,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProfessionalAccessRoute: ProfessionalAccessRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,
   SafetyRoute: SafetyRoute,
   SampleCaseRoute: SampleCaseRoute,
