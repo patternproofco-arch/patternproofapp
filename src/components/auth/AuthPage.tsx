@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Lock } from "lucide-react";
+import { useEffect, useId, useState } from "react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -10,9 +10,88 @@ import { recordOrgReferral } from "@/lib/payments.functions";
 import { ensureSurvivorRole } from "@/lib/roles.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { BrandMark } from "@/components/BrandMark";
+import { MARK_PATH, MARK_VIEWBOX } from "@/components/BrandMark";
 
 type Mode = "login" | "signup";
+
+/**
+ * The one gradient rendering of the mark, reserved for this pre-login
+ * moment. BrandMark's shared colorways stay flat/locked for every other
+ * call site in the app (see BrandMark.tsx) — this reuses its exported
+ * geometry directly rather than adding a gradient option there, so nothing
+ * else in the app can pick it up by accident.
+ */
+function AuthMark({ size = 84 }: { size?: number }) {
+  const gradientId = useId();
+  return (
+    <span
+      style={{
+        width: size,
+        height: size,
+        borderRadius: Math.round(size * 0.32),
+        background: "var(--paper)",
+        boxShadow: "0 1px 2px rgba(26,25,22,0.05), 0 18px 34px -16px rgba(139,127,214,0.45)",
+        display: "inline-grid",
+        placeItems: "center",
+        flexShrink: 0,
+      }}
+    >
+      <svg
+        viewBox={MARK_VIEWBOX}
+        width={Math.round(size * 0.6)}
+        height={Math.round(size * 0.6)}
+        role="img"
+        aria-label="PatternProof"
+        style={{ display: "block" }}
+      >
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="var(--pp-iridescent-pink)" />
+            <stop offset="55%" stopColor="var(--pp-iridescent-violet)" />
+            <stop offset="100%" stopColor="var(--pp-iridescent-teal)" />
+          </linearGradient>
+        </defs>
+        <path d={MARK_PATH} fill={`url(#${gradientId})`} fillRule="evenodd" />
+      </svg>
+    </span>
+  );
+}
+
+function PasswordField({
+  value,
+  onChange,
+  autoComplete,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  autoComplete: string;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="pp-auth-field input-pp flex items-center gap-2" style={{ paddingRight: 8 }}>
+      <input
+        type={visible ? "text" : "password"}
+        required
+        minLength={8}
+        autoComplete={autoComplete}
+        placeholder="Password"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="min-w-0 flex-1 border-0 bg-transparent p-0 outline-none"
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? "Hide password" : "Show password"}
+        aria-pressed={visible}
+        className="flex-shrink-0"
+        style={{ color: "var(--muted-foreground)", padding: 4 }}
+      >
+        {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+      </button>
+    </div>
+  );
+}
 
 /**
  * Shared guts of /signin and /signup — one component, two routes, so the
@@ -146,41 +225,41 @@ export function AuthPage({
   };
 
   return (
-    <div
-      className="flex min-h-screen items-center justify-center px-5 py-10"
-      data-portal="survivor"
-      data-pp-paper=""
-    >
+    <div className="pp-auth-shell flex min-h-screen items-center justify-center px-5 py-12">
+      <div className="pp-auth-wave" />
       <PublicQuickExit />
-      <div className="w-full max-w-md">
-        <div className="mb-6 flex flex-col items-center text-center">
-          <BrandMark size={76} />
-          <p
-            className="font-nunito mt-3 text-[15px]"
-            style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+      <div className="relative w-full max-w-md" style={{ zIndex: 1 }}>
+        <div className="mb-8 flex flex-col items-center text-center">
+          <AuthMark size={84} />
+          <div
+            className="mt-5 text-[11px] font-semibold"
+            style={{ color: "var(--pp-iridescent-violet)", letterSpacing: "0.22em" }}
           >
+            PATTERNPROOF
+          </div>
+          <h1 className="mt-3 max-w-sm font-serif text-[30px] leading-[1.15]">
+            {mode === "login" ? (
+              "Welcome back."
+            ) : (
+              <>
+                You're not just signing up. <em>You're being trusted with this.</em>
+              </>
+            )}
+          </h1>
+          <p className="mt-3 max-w-sm text-[14px]" style={{ color: "var(--muted-foreground)" }}>
             {mode === "login"
-              ? "Your private PatternProof account."
-              : "Create your free private account."}
+              ? "Sign in to your private PatternProof account."
+              : "A private, evidence-grade record — built for the people who take your case seriously."}
           </p>
         </div>
 
-        <div className="card-pp">
-          <h1 className="font-serif text-[22px]">
-            {mode === "login" ? "Welcome back." : "Start organizing your documentation."}
-          </h1>
-          <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            {mode === "login"
-              ? "Sign in to continue to your private PatternProof account."
-              : "Add photos, messages, voice notes, and written entries to one private timeline. You choose what to share and who can see it."}
-          </p>
-
-          <div className="space-y-3 mb-4">
+        <div className="pp-auth-card px-7 py-8 sm:px-9">
+          <div className="space-y-3">
             <button
               type="button"
               onClick={signInWithGoogle}
               disabled={consentBlocked}
-              className="input-pp w-full flex items-center justify-center gap-2"
+              className="pp-auth-google input-pp flex w-full items-center justify-center gap-2"
               style={{
                 background: "#fff",
                 color: "#2A1A10",
@@ -210,14 +289,7 @@ export function AuthPage({
             </button>
           </div>
 
-          <div
-            className="my-4 flex items-center gap-3 text-[11px]"
-            style={{ color: "var(--muted-foreground)", letterSpacing: 1.5 }}
-          >
-            <div className="flex-1 h-px" style={{ background: "var(--border, #B57E60)" }} />
-            OR
-            <div className="flex-1 h-px" style={{ background: "var(--border, #B57E60)" }} />
-          </div>
+          <div className="pp-auth-divider my-6">or</div>
 
           <form onSubmit={submit} className="space-y-3">
             <input
@@ -227,17 +299,12 @@ export function AuthPage({
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input-pp"
+              className="pp-auth-field input-pp"
             />
-            <input
-              type="password"
-              required
-              minLength={8}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              placeholder="Password"
+            <PasswordField
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-pp"
+              onChange={setPassword}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
             {authError && (
               <p className="mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
@@ -250,7 +317,7 @@ export function AuthPage({
                   type="button"
                   onClick={() => navigate({ to: "/forgot-password" })}
                   className="text-[12px]"
-                  style={{ color: "var(--accent)" }}
+                  style={{ color: "var(--pp-iridescent-violet)", fontWeight: 600 }}
                 >
                   Forgot your password?
                 </button>
@@ -273,7 +340,7 @@ export function AuthPage({
                     href="/terms"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: "var(--accent)", textDecoration: "underline" }}
+                    style={{ color: "var(--pp-iridescent-violet)", textDecoration: "underline" }}
                   >
                     Terms of Service
                   </a>{" "}
@@ -282,7 +349,7 @@ export function AuthPage({
                     href="/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: "var(--accent)", textDecoration: "underline" }}
+                    style={{ color: "var(--pp-iridescent-violet)", textDecoration: "underline" }}
                   >
                     Privacy Policy
                   </a>
@@ -290,7 +357,11 @@ export function AuthPage({
                 </span>
               </label>
             )}
-            <button type="submit" disabled={busy || consentBlocked} className="btn-primary w-full">
+            <button
+              type="submit"
+              disabled={busy || consentBlocked}
+              className="pp-auth-submit w-full rounded-2xl py-3 text-[14.5px] font-semibold text-white"
+            >
               {busy ? "One moment…" : mode === "login" ? "Sign in" : "Create my account"}
             </button>
           </form>
@@ -299,18 +370,30 @@ export function AuthPage({
             onClick={() =>
               navigate({ to: mode === "login" ? "/signup" : "/signin", search: toggleSearch })
             }
-            className="mt-4 w-full text-center text-[13px]"
-            style={{ color: "var(--accent)" }}
+            className="mt-5 w-full text-center text-[13px]"
+            style={{ color: "var(--muted-foreground)" }}
           >
-            {mode === "login"
-              ? "New here? Create an account."
-              : "Already have an account? Sign in."}
+            {mode === "login" ? (
+              <>
+                New here?{" "}
+                <span style={{ color: "var(--pp-iridescent-violet)", fontWeight: 600 }}>
+                  Create an account.
+                </span>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <span style={{ color: "var(--pp-iridescent-violet)", fontWeight: 600 }}>
+                  Sign in.
+                </span>
+              </>
+            )}
           </button>
         </div>
 
         <div
-          className="mt-5 flex items-center justify-center gap-2 text-[11px]"
-          style={{ color: "var(--muted-foreground)", letterSpacing: "2px", fontWeight: 600 }}
+          className="mt-6 flex items-center justify-center gap-2 text-[11px]"
+          style={{ color: "var(--muted-foreground)", letterSpacing: "1.5px", fontWeight: 600 }}
         >
           <Lock size={12} /> PRIVATE BY DEFAULT · ENCRYPTED IN TRANSIT
         </div>
