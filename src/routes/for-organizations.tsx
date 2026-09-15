@@ -126,7 +126,7 @@ function ForOrganizations() {
             borderRadius: "var(--pp-r-pill)",
           }}
         >
-          Request access →
+          Request prelaunch access →
         </Link>
         <p
           style={{
