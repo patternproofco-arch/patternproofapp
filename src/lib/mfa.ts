@@ -26,6 +26,39 @@ export async function hasVerifiedTotp(): Promise<boolean> {
   return (await verifiedTotpFactorId()) !== null;
 }
 
+export type MfaGateDecision = "allow" | "challenge" | "enroll" | "deny";
+
+/**
+ * Decides what a protected route may show. When `requireEnrollment` is true
+ * (attorney and collaborator case files), an indeterminate result — a failed
+ * assurance-level lookup or a failed factor lookup — resolves to "deny" so the
+ * portal is never rendered on an unknown MFA state.
+ */
+export async function resolveMfaGate(options: {
+  requireEnrollment?: boolean;
+}): Promise<MfaGateDecision> {
+  const required = options.requireEnrollment === true;
+  const onError: MfaGateDecision = required ? "deny" : "allow";
+  try {
+    if (isTestAccountEmail(await currentEmail())) return "allow";
+
+    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error || !data) return onError;
+    if (data.currentLevel === "aal1" && data.nextLevel === "aal2") return "challenge";
+
+    if (required) {
+      const { data: factors, error: factorError } = await supabase.auth.mfa.listFactors();
+      if (factorError || !factors) return "deny";
+      const verified = (factors.totp ?? []).some((f) => f.status === "verified");
+      if (!verified) return "enroll";
+    }
+    return "allow";
+  } catch {
+    return onError;
+  }
+}
+
+
 /**
  * Attorney routes that must stay reachable at AAL1 so someone can pay,
  * finish setup, and enroll an authenticator. Everything else in the
