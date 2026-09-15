@@ -1,4 +1,4 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
+// @lovable.dev/vite-tanstack-config already includes the following â do NOT add them manually
 // or the app will break with duplicate plugins:
 //   - tanstackStart, viteReact, tailwindcss, tsConfigPaths, cloudflare (build-only),
 //     componentTagger (dev-only), VITE_* env injection, @ path alias, React/TanStack dedupe,
@@ -19,7 +19,7 @@ const serverEnv = loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), 
 Object.assign(process.env, serverEnv);
 
 // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-// @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
+// @cloudflare/vite-plugin builds from this â wrangler.jsonc main alone is insufficient.
 // Build/version marker: resolved from the build environment's git metadata so
 // /version.json can prove which commit is deployed. Never hardcoded.
 function resolveCommitSha(): { sha: string; source: string } {
@@ -41,7 +41,7 @@ function resolveCommitSha(): { sha: string; source: string } {
   } catch {
     // Deploy machines often ship the working tree without a git binary.
   }
-  // Read .git directly — works when the git CLI is unavailable.
+  // Read .git directly â works when the git CLI is unavailable.
   try {
     const head = readFileSync(resolve(process.cwd(), ".git/HEAD"), "utf8").trim();
     if (/^[0-9a-f]{40}$/.test(head)) return { sha: head, source: "git-head" };
@@ -54,13 +54,6 @@ function resolveCommitSha(): { sha: string; source: string } {
     if (line) return { sha: line.split(" ")[0]!.trim(), source: "git-packed-ref" };
   } catch {
     // Fall through to the checked-in stamp.
-  }
-  // Last resort: a stamp file committed with the source.
-  try {
-    const stamp = readFileSync(resolve(process.cwd(), "public/COMMIT"), "utf8").trim();
-    if (stamp) return { sha: stamp, source: "stamp-file (may lag one commit)" };
-  } catch {
-    // No stamp available.
   }
   return { sha: "unknown", source: "unavailable" };
 }
@@ -87,7 +80,7 @@ export default defineConfig({
       __BUILD_TIME__: JSON.stringify(BUILD_TIME),
       __BUILD_ID__: JSON.stringify(BUILD_ID),
       __COMMIT_SOURCE__: JSON.stringify(COMMIT_SOURCE),
-      // Publishable (anon) backend config — safe to ship to the browser.
+      // Publishable (anon) backend config â safe to ship to the browser.
       // Inlined here so the deployed client bundle always has it, even when
       // the build environment provides no .env files.
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(

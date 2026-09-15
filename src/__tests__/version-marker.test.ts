@@ -38,12 +38,13 @@ describe("/version.json build marker", () => {
 });
 
 describe("build-time commit resolution", () => {
-  it("tries build env vars, the git CLI, raw .git files, then a committed stamp", () => {
+  it("uses only exact build metadata and never a committed stamp", () => {
     expect(viteConfig).toContain("LOVABLE_COMMIT_SHA");
     expect(viteConfig).toContain("git rev-parse HEAD");
     expect(viteConfig).toContain(".git/HEAD");
     expect(viteConfig).toContain(".git/packed-refs");
-    expect(viteConfig).toContain("public/COMMIT");
+    expect(viteConfig).not.toContain("public/COMMIT");
+    expect(viteConfig).toContain('sha: "unknown", source: "unavailable"');
   });
 
   it("never hardcodes a commit sha in the endpoint or page", () => {

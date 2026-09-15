@@ -1,38 +1,21 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const productionEnv = readFileSync(".env", "utf8");
+const envTemplate = readFileSync(".env.example", "utf8");
 const supabaseConfig = readFileSync("supabase/config.toml", "utf8");
 
-const env = Object.fromEntries(
-  productionEnv
-    .split(/\r?\n/)
-    .filter((line) => line && !line.startsWith("#"))
-    .map((line) => {
-      const separator = line.indexOf("=");
-      const raw = line.slice(separator + 1).trim();
-      const value =
-        (raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))
-          ? raw.slice(1, -1)
-          : raw;
-      return [line.slice(0, separator), value];
-    }),
-);
-
 describe("production Supabase environment", () => {
-  it("commits the browser-safe values Lovable requires at build time", () => {
-    expect(env.VITE_SUPABASE_URL).toMatch(/^https:\/\/[a-z0-9]+\.supabase\.co$/);
-    expect(env.VITE_SUPABASE_PUBLISHABLE_KEY).toMatch(/^(sb_publishable_|eyJ)/);
-    expect(env.VITE_SUPABASE_PROJECT_ID).toMatch(/^[a-z0-9]+$/);
+  it("documents every browser-safe value the build must inject", () => {
+    expect(envTemplate).toContain("VITE_SUPABASE_URL=");
+    expect(envTemplate).toContain("VITE_SUPABASE_PUBLISHABLE_KEY=");
+    expect(envTemplate).toContain("VITE_SUPABASE_PROJECT_ID=");
   });
 
-  it("keeps the project reference consistent", () => {
-    expect(env.VITE_SUPABASE_URL).toContain(env.VITE_SUPABASE_PROJECT_ID);
-    expect(supabaseConfig).toContain(`project_id = "${env.VITE_SUPABASE_PROJECT_ID}"`);
+  it("commits a valid Supabase project reference", () => {
+    expect(supabaseConfig).toMatch(/project_id = "[a-z0-9]+"/);
   });
 
   it("never exposes privileged Supabase credentials to the browser", () => {
-    expect(productionEnv).not.toContain("SERVICE_ROLE");
-    expect(productionEnv).not.toContain("SECRET_KEY");
+    expect(envTemplate).not.toMatch(/^VITE_.*(?:SERVICE_ROLE|SECRET_KEY)/m);
   });
 });

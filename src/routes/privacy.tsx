@@ -52,7 +52,7 @@ function PrivacyPage() {
 
         <Prose>
           <p>
-            PatternProof, operated by G Burns Company LLC ("PatternProof," "we," "us," or "our"), is
+            PatternProof, operated by G. BURNS COMPANY LLC ("PatternProof," "we," "us," or "our"), is
             committed to protecting the privacy and safety of our users. This Privacy Policy
             explains how we collect, use, store, and protect your information when you use our
             platform and associated services (collectively, the "Services").

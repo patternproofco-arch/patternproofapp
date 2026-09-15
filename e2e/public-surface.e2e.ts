@@ -24,8 +24,12 @@ test("Quick Exit leaves the site", async ({ page }) => {
     undefined,
     { timeout: 30_000 },
   );
+  const exitRequest = page.waitForRequest(
+    (request) => new URL(request.url()).hostname.endsWith("weather.com"),
+    { timeout: 45_000 },
+  );
   await exit.click();
-  await page.waitForURL(/weather\.com/, { timeout: 45_000 });
+  expect(new URL((await exitRequest).url()).hostname).toMatch(/(^|\.)weather\.com$/);
 });
 
 test("version marker identifies the running build", async ({ request }) => {

@@ -1,14 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { isTestAccountEmail } from "@/lib/test-accounts";
-
-async function currentEmail(): Promise<string | null> {
-  const { data } = await supabase.auth.getUser();
-  return data.user?.email ?? null;
-}
-
 /** True when the person has a verified authenticator but this session is still AAL1. */
 export async function sessionNeedsMfa(): Promise<boolean> {
-  if (isTestAccountEmail(await currentEmail())) return false;
   const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (error || !data) return false;
   return data.currentLevel === "aal1" && data.nextLevel === "aal2";
@@ -22,9 +14,39 @@ export async function verifiedTotpFactorId(): Promise<string | null> {
 }
 
 export async function hasVerifiedTotp(): Promise<boolean> {
-  if (isTestAccountEmail(await currentEmail())) return true;
   return (await verifiedTotpFactorId()) !== null;
 }
+
+export type MfaGateDecision = "allow" | "challenge" | "enroll" | "deny";
+
+/**
+ * Decides what a protected route may show. When `requireEnrollment` is true
+ * (attorney and collaborator case files), an indeterminate result — a failed
+ * assurance-level lookup or a failed factor lookup — resolves to "deny" so the
+ * portal is never rendered on an unknown MFA state.
+ */
+export async function resolveMfaGate(options: {
+  requireEnrollment?: boolean;
+}): Promise<MfaGateDecision> {
+  const required = options.requireEnrollment === true;
+  const onError: MfaGateDecision = required ? "deny" : "allow";
+  try {
+    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error || !data) return onError;
+    if (data.currentLevel === "aal1" && data.nextLevel === "aal2") return "challenge";
+
+    if (required) {
+      const { data: factors, error: factorError } = await supabase.auth.mfa.listFactors();
+      if (factorError || !factors) return "deny";
+      const verified = (factors.totp ?? []).some((f) => f.status === "verified");
+      if (!verified) return "enroll";
+    }
+    return "allow";
+  } catch {
+    return onError;
+  }
+}
+
 
 /**
  * Attorney routes that must stay reachable at AAL1 so someone can pay,
@@ -45,6 +67,8 @@ export function attorneyPathExemptFromRequiredMfa(pathname: string): boolean {
 /** Unverified enrollments pile up if someone starts setup and leaves. */
 export async function dropUnverifiedTotpFactors(): Promise<void> {
   const { data } = await supabase.auth.mfa.listFactors();
-  const pending = (data?.totp ?? []).filter((f) => f.status === "unverified");
+  const pending = (data?.totp ?? []).filter(
+    (f) => (f as { status?: string }).status === "unverified",
+  );
   await Promise.all(pending.map((f) => supabase.auth.mfa.unenroll({ factorId: f.id })));
 }

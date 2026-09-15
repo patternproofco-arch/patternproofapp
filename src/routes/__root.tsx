@@ -267,8 +267,8 @@ gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`,
             {
               "@type": "Organization",
               "@id": "https://pattern-proof.tech/#organization",
-              name: "G Burns Company LLC",
-              legalName: "G Burns Company LLC",
+              name: "G. BURNS COMPANY LLC",
+              legalName: "G. BURNS COMPANY LLC",
               brand: { "@type": "Brand", name: "PatternProof" },
               url: "https://pattern-proof.tech/",
               description:
