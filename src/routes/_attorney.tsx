@@ -50,10 +50,14 @@ function AttorneyLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const sub = useSubscription();
   const mfaExempt = attorneyPathExemptFromRequiredMfa(pathname);
-  const mfaChecking = useMfaGate(!loading && !!user && !mfaExempt, {
+  // Attorney and collaborator case files fail closed: an indeterminate
+  // two-step state denies the portal rather than rendering it.
+  const mfaGate = useMfaGate(!loading && !!user && !mfaExempt, {
     requireEnrollment: true,
     enrollTo: "/trust",
   });
+  const mfaChecking = mfaGate.checking;
+  const mfaDenied = mfaGate.denied;
 
   useEffect(() => {
     if (loading) return;
