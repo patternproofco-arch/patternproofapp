@@ -60,9 +60,9 @@ function ForAttorneys() {
         <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED }}>{startsAt}</div>
       </section>
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
-        <Link to="/lawyer-signup" style={{ display: "inline-block", background: NAVY, color: "#F4F6FB", padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none", borderRadius: "var(--pp-r-pill)" }}>Create an attorney account →</Link>
+        <a href="mailto:grace@gburnscompany.com?subject=PatternProof%20attorney%20access%20request" style={{ display: "inline-block", background: NAVY, color: "#F4F6FB", padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none", borderRadius: "var(--pp-r-pill)" }}>Request a prelaunch invitation →</a>
         <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, maxWidth: 640, lineHeight: 1.6 }}>
-          Create an attorney account to review shared cases. A paid seat unlocks notes and caseload — opening one client share does not require a subscription.
+          Attorney access is invitation only during prelaunch while identity, access, export, and revocation testing is completed.
         </div>
       </section>
     </div>
@@ -74,7 +74,7 @@ function TopBar() {
     <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
       <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 24px", display: "flex", justifyContent: "space-between" }}>
         <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em", color: INK, textDecoration: "none", textTransform: "uppercase" }}>← PatternProof</Link>
-        <Link to="/lawyer-signup" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textTransform: "uppercase" }}>Create account</Link>
+        <a href="mailto:grace@gburnscompany.com?subject=PatternProof%20attorney%20access%20request" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textTransform: "uppercase" }}>Request invitation</a>
       </div>
     </header>
   );
