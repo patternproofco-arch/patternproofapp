@@ -27,7 +27,7 @@ function AdvocateLayout() {
   const roleFn = useServerFn(getMyAdvocateRole);
   const pathname = useRouterState({ select: (st) => st.location.pathname });
   const [checking, setChecking] = useState(true);
-  const mfaChecking = useMfaGate(!loading && !!user);
+  const mfaChecking = useMfaGate(!loading && !!user).checking;
   const [profile, setProfile] = useState<{
     full_name: string;
     org_name: string | null;

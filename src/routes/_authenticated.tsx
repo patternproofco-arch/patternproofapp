@@ -42,7 +42,7 @@ function Gate() {
   // null = role not resolved yet. Fail-closed survivor onboarding must wait
   // until we know this is a survivor — professionals keep their own portals.
   const [isSurvivor, setIsSurvivor] = useState<boolean | null>(null);
-  const mfaChecking = useMfaGate(!loading && !!user);
+  const mfaChecking = useMfaGate(!loading && !!user).checking;
 
   // The server remembers whether a lock is turned on, so clearing site data
   // can't quietly remove it.
