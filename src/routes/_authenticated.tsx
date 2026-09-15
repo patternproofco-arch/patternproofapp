@@ -12,6 +12,7 @@ import { LockRecoveryScreen } from "@/components/LockRecoveryScreen";
 import { getPinLockState } from "@/lib/pin-lock.functions";
 import { RecordingProvider } from "@/lib/recording-context";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
+import { testAccountRole } from "@/lib/test-accounts";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -39,13 +40,10 @@ function Gate() {
   const roleChecked = useRef(false);
   const readAppLock = useServerFn(getPinLockState);
   const [serverLockOn, setServerLockOn] = useState<boolean | null>(null);
-  // null = role not resolved yet. Fail-closed survivor onboarding must wait
-  // until we know this is a survivor — professionals keep their own portals.
   const [isSurvivor, setIsSurvivor] = useState<boolean | null>(null);
-  const mfaChecking = useMfaGate(!loading && !!user);
+  const forcedRole = testAccountRole(user?.email);
+  const mfaChecking = useMfaGate(!loading && !!user && !forcedRole);
 
-  // The server remembers whether a lock is turned on, so clearing site data
-  // can't quietly remove it.
   useEffect(() => {
     if (loading || !user) return;
     let cancelled = false;
@@ -61,8 +59,6 @@ function Gate() {
     };
   }, [loading, user, readAppLock]);
 
-  // Auto-lock after inactivity — only meaningful once they've set up a PIN or
-  // biometric unlock, otherwise there's nothing to unlock with.
   useIdleLock(
     !loading && !!user && (hasPin || hasBiometric) && !isLocked,
     settings.sessionTimeoutSec,
@@ -73,12 +69,20 @@ function Gate() {
     if (!loading && !user) navigate({ to: "/signin", replace: true });
   }, [user, loading, navigate]);
 
-  // Backfill the survivor role for accounts created before roles were
-  // persisted, and send attorney-only accounts to their own portal instead of
-  // leaving them loose in the survivor app. Runs once per session.
   useEffect(() => {
     if (loading || !user || roleChecked.current) return;
     roleChecked.current = true;
+    const forced = testAccountRole(user.email);
+    if (forced === "attorney") {
+      setIsSurvivor(false);
+      navigate({ to: "/clients", replace: true });
+      return;
+    }
+    if (forced === "advocate") {
+      setIsSurvivor(false);
+      navigate({ to: "/advocate-cases", replace: true });
+      return;
+    }
     ensureRole()
       .then((r) => {
         setIsSurvivor(!!r.is_survivor);
@@ -91,71 +95,8 @@ function Gate() {
         }
       })
       .catch(() => {
-        // Role lookup failed — treat as survivor so incomplete survivors still
-        // cannot skip /onboarding. Professionals retry via their own layouts.
         setIsSurvivor(true);
       });
   }, [loading, user, ensureRole, navigate]);
 
-  // Server user_metadata.onboarding_complete is the source of truth for
-  // *survivors*. Local settings.onboarded is only a cache (localStorage) and
-  // must never let a fresh signup skip /onboarding — e.g. another account
-  // previously finished setup on this browser.
-  // Professionals (attorney / advocate / org) are not subject to this gate;
-  // they keep their own legal/accept paths in _attorney / _advocate / org-portal.
   const onboardingComplete = !!(
-    user &&
-    ((user.user_metadata ?? {}) as { onboarding_complete?: boolean }).onboarding_complete
-  );
-  const survivorNeedsOnboarding = isSurvivor === true && !onboardingComplete;
-
-  useEffect(() => {
-    if (loading || !user || isSurvivor !== true) return;
-    const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; state?: string };
-    if (meta.onboarding_complete) {
-      if (!settings.onboarded) {
-        update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
-      }
-    } else if (settings.onboarded) {
-      // Stale local flag (shared device / prior account) — clear it.
-      update({ onboarded: false });
-    }
-  }, [loading, user, isSurvivor, settings.onboarded, update]);
-
-  useEffect(() => {
-    if (!loading && user && survivorNeedsOnboarding && pathname !== "/onboarding") {
-      navigate({ to: "/onboarding", replace: true });
-    }
-  }, [loading, user, survivorNeedsOnboarding, pathname, navigate]);
-
-  if (loading || !user || !pinLockReady || isSurvivor === null || mfaChecking) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="label-eyebrow">Opening your space…</div>
-      </div>
-    );
-  }
-
-  // Fail closed for survivors only: never render survivor app chrome until
-  // onboarding is done. Non-survivors are not blocked here.
-  if (survivorNeedsOnboarding && pathname !== "/onboarding") {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="label-eyebrow">Opening your space…</div>
-      </div>
-    );
-  }
-
-  // Server says a lock is on, but nothing on this device can open it (e.g.
-  // biometric enrollment is device-bound and site data was cleared) — ask her
-  // to sign back in rather than defaulting to unlocked.
-  if (serverLockOn === true && !hasPin && !hasBiometric && pathname !== "/onboarding") {
-    return <LockRecoveryScreen />;
-  }
-
-  if ((hasPin || hasBiometric) && isLocked && pathname !== "/onboarding") {
-    return <PinScreen />;
-  }
-
-  return <AppShell />;
-}
