@@ -1,14 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { isTestAccountEmail } from "@/lib/test-accounts";
-
-async function currentEmail(): Promise<string | null> {
-  const { data } = await supabase.auth.getUser();
-  return data.user?.email ?? null;
-}
-
 /** True when the person has a verified authenticator but this session is still AAL1. */
 export async function sessionNeedsMfa(): Promise<boolean> {
-  if (isTestAccountEmail(await currentEmail())) return false;
   const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (error || !data) return false;
   return data.currentLevel === "aal1" && data.nextLevel === "aal2";
@@ -22,7 +14,6 @@ export async function verifiedTotpFactorId(): Promise<string | null> {
 }
 
 export async function hasVerifiedTotp(): Promise<boolean> {
-  if (isTestAccountEmail(await currentEmail())) return true;
   return (await verifiedTotpFactorId()) !== null;
 }
 
@@ -40,8 +31,6 @@ export async function resolveMfaGate(options: {
   const required = options.requireEnrollment === true;
   const onError: MfaGateDecision = required ? "deny" : "allow";
   try {
-    if (isTestAccountEmail(await currentEmail())) return "allow";
-
     const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (error || !data) return onError;
     if (data.currentLevel === "aal1" && data.nextLevel === "aal2") return "challenge";
