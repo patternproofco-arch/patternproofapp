@@ -44,6 +44,6 @@ export const listMyAttorneyCaseNotes = createServerFn({ method: "GET" })
       linkId: r.id,
       attorneyName: names.get(r.attorney_user_id) ?? "Your attorney",
       note: (r.attorney_case_notes ?? "").trim(),
-      updatedAt: r.updated_at,
+      updatedAt: r.created_at,
     }));
   });
