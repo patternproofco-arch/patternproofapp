@@ -108,3 +108,32 @@ describe("f. attorney and collaborator routes use the fail-closed gate", () => {
     expect(attorney).toContain("attorneyPathExemptFromRequiredMfa(pathname)");
   });
 });
+
+
+describe("production test identities have no authorization bypass", () => {
+  const formerTestEmails = [
+    "attorneyppme@yahoo.com",
+    "advocateppme@gmail.com",
+    "survivorppme@gmail.com",
+    "savinggrace.homereset@gmail.com",
+  ];
+
+  it.each(formerTestEmails)("%s receives the normal required MFA challenge", async (email) => {
+    getUser.mockResolvedValue({ data: { user: { email } } });
+    getAal.mockResolvedValue({ data: { currentLevel: "aal1", nextLevel: "aal2" }, error: null });
+    expect(await resolveMfaGate(REQUIRED)).toBe("challenge");
+  });
+
+  it("contains no production test-account helper or imports", () => {
+    const productionFiles = [
+      "src/lib/mfa.ts",
+      "src/hooks/useSubscription.ts",
+      "src/routes/_authenticated.tsx",
+      "src/routes/_advocate.tsx",
+      "src/routes/_attorney.tsx",
+    ].map((file) => readFileSync(file, "utf8")).join("\n");
+    expect(productionFiles).not.toContain("test-accounts");
+    expect(productionFiles).not.toContain("isTestAccountEmail");
+    expect(productionFiles).not.toContain("testAccountRole");
+  });
+});
