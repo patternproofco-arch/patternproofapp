@@ -117,7 +117,7 @@ function AttorneyLayout() {
   const onSetup = pathname === "/setup";
 
   useEffect(() => {
-    if (loading || checking || mfaChecking) return;
+    if (loading || checking || mfaChecking || mfaDenied) return;
     if (!user) return;
     if (onboarded === false && !onSetup && pathname !== "/trust" && pathname !== "/two-factor") {
       toast("Finish setting up your account to continue", {
@@ -129,7 +129,7 @@ function AttorneyLayout() {
   }, [loading, checking, mfaChecking, onboarded, onSetup, navigate, user, pathname]);
 
   useEffect(() => {
-    if (loading || checking || sub.loading || mfaChecking) return;
+    if (loading || checking || sub.loading || mfaChecking || mfaDenied) return;
     if (!user) return;
     if (onboarded === false) return;
     if (userRole === "collaborator") return;
@@ -148,6 +148,38 @@ function AttorneyLayout() {
     onboarded,
     userRole,
   ]);
+
+  if (mfaDenied) {
+    return (
+      <div
+        className="att-root"
+        data-persona="attorney"
+        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <div style={{ textAlign: "center", display: "grid", gap: 12, maxWidth: 440, padding: 24 }}>
+          <span className="att-eyebrow">Second step not confirmed</span>
+          <p style={{ margin: 0 }}>
+            We couldn&apos;t confirm the second sign-in step on this account, so case files stay
+            closed for now. Try again in a moment, or sign out and sign back in.
+          </p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+            <button type="button" className="att-btn att-btn-primary" onClick={mfaGate.retry}>
+              Try again
+            </button>
+            <button
+              type="button"
+              className="att-btn"
+              onClick={() => {
+                void supabase.auth.signOut().then(() => navigate({ to: "/signin", replace: true }));
+              }}
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loadError) {
     return (
