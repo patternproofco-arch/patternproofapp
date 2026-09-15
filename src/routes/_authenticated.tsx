@@ -100,3 +100,52 @@ function Gate() {
   }, [loading, user, ensureRole, navigate]);
 
   const onboardingComplete = !!(
+    user &&
+    ((user.user_metadata ?? {}) as { onboarding_complete?: boolean }).onboarding_complete
+  );
+  const survivorNeedsOnboarding = isSurvivor === true && !onboardingComplete;
+
+  useEffect(() => {
+    if (loading || !user || isSurvivor !== true) return;
+    const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; state?: string };
+    if (meta.onboarding_complete) {
+      if (!settings.onboarded) {
+        update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
+      }
+    } else if (settings.onboarded) {
+      update({ onboarded: false });
+    }
+  }, [loading, user, isSurvivor, settings.onboarded, update]);
+
+  useEffect(() => {
+    if (!loading && user && survivorNeedsOnboarding && pathname !== "/onboarding") {
+      navigate({ to: "/onboarding", replace: true });
+    }
+  }, [loading, user, survivorNeedsOnboarding, pathname, navigate]);
+
+  if (loading || !user || !pinLockReady || isSurvivor === null || mfaChecking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="label-eyebrow">Opening your space…</div>
+      </div>
+    );
+  }
+
+  if (survivorNeedsOnboarding && pathname !== "/onboarding") {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="label-eyebrow">Opening your space…</div>
+      </div>
+    );
+  }
+
+  if (serverLockOn === true && !hasPin && !hasBiometric && pathname !== "/onboarding") {
+    return <LockRecoveryScreen />;
+  }
+
+  if ((hasPin || hasBiometric) && isLocked && pathname !== "/onboarding") {
+    return <PinScreen />;
+  }
+
+  return <AppShell />;
+}
