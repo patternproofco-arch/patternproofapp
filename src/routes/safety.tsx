@@ -72,8 +72,8 @@ function SafetyPage() {
       </Section>
       <Section title="Account recovery">
         <p>
-          Use a recovery method the other person does not control — a private email address, an
-          authenticator app, or a passkey. Do not rely on SMS recovery to a phone number they may
+          Use a recovery method the other person does not control — a private email address or an
+          authenticator app. Do not rely on SMS recovery to a phone number they may
           access.
         </p>
       </Section>
