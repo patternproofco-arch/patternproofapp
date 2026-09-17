@@ -67,6 +67,8 @@ function Gate() {
     if (!loading && !user) navigate({ to: "/signin", replace: true });
   }, [user, loading, navigate]);
 
+  // Professionals (attorney / advocate / org) are routed to their own portals
+  // and are never subject to the survivor onboarding gate below.
   useEffect(() => {
     if (loading || !user || roleChecked.current) return;
     roleChecked.current = true;
