@@ -117,7 +117,9 @@
     "undici": "^8.5.0",
     "js-yaml": "^5.1.0",
     "seroval": "^1.5.6",
-    "seroval-plugins": "^1.5.6"
+    "seroval-plugins": "^1.5.6",
+    "sharp": "0.35.4",
+    "esbuild": "0.28.1"
   },
   "resolutions": {
     "ws": "^8.21.0",
