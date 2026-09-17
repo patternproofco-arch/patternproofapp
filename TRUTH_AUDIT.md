@@ -19,6 +19,7 @@ No claim in this document is marked production-tested unless a command in
 ## 1. Clio — NOT verified, all user-facing claims downgraded
 
 What the code actually contains (code-verified):
+
 - `src/lib/clio.server.ts` — full OAuth authorize-URL builder, authorization-code and
   refresh-token exchange against `app.clio.com`, `who_am_i` identity fetch, token refresh
   with persistence to `clio_connections`.
@@ -32,14 +33,15 @@ What the code actually contains (code-verified):
 **Resolution of the previously recorded production discrepancy:** project knowledge described
 `integrations.clio.callback` as a placeholder React component and flagged the live 302 to
 `/billing` as unexplained. That was a stale note. The route is `integrations.clio.callback.ts`,
-a server route whose only responses *are* 302s to `/billing` with a `reason` query param. Live
+a server route whose only responses _are_ 302s to `/billing` with a `reason` query param. Live
 behavior matches the repository. No out-of-repo edge config is involved. **Discrepancy closed.**
 
 **What is still NOT proven:**
+
 - Clio app approval status. Unknown from this repo.
 - Whether `CLIO_CLIENT_ID` is accepted by Clio. A runtime probe of
   `GET https://app.clio.com/oauth/authorize?client_id=…` returned `302 → /session/new`
-  (Clio's login page). Clio redirects unauthenticated callers to login *before* validating
+  (Clio's login page). Clio redirects unauthenticated callers to login _before_ validating
   the client, so this is **inconclusive** — it proves neither a valid nor an invalid client.
 - Token exchange, `who_am_i`, matter list, and matter linking have **never** been executed
   against a live Clio account. No end-to-end test is possible from here without real Clio
@@ -61,15 +63,15 @@ Clio-specific or Clio-certified export.
 
 ## 2. Firm features — priced claims not enforced anywhere
 
-| Claim (as priced) | Traced to | Verdict | Action |
-| --- | --- | --- | --- |
-| "Up to 15 attorney seats" / "3–15 seats" | no seat counter, no seat table, no check in `payments.functions.ts`, `firm-grants.functions.ts`, or any middleware | **unsupported** | Replaced everywhere with "Shared firm workspace — invite colleagues to a case (seats not metered today)" |
-| "Unlimited active client matters" | no matter cap logic anywhere | technically true only because nothing is enforced | Replaced with "No matter limit enforced today" |
-| Solo "Up to 10 active client matters" | no enforcement | **unsupported limit** | Replaced with "Single attorney account (seats and matter counts are not metered today)" |
-| "Multi-attorney collaboration and shared case notes" | `firms` table + `attorney_profiles.firm_id` + `case_grants` (`firm-grants.functions.ts` create/join firm, list colleagues, grant/revoke case access) + `attorney_client_links.attorney_case_notes` read/write in `attorney-portal.functions.ts` | **code-verified** | Kept |
-| "A caseload view across the firm" | `case_grants` surfaces cases colleagues share with you; there is no unconditional firm-wide view | overstated | FAQ rewritten to "a caseload view of the cases shared with you" |
-| "Firm-wide document requests" | `attorney_document_requests` is scoped by `link_id` per client | **unsupported** | Changed to "Per-client document requests" |
-| "Firm-wide conflict-of-interest detection" (first pass) | `conflict-check.server.ts` filters on `attorney_user_id` | **unsupported** | Already narrowed to "across your own PatternProof caseload" |
+| Claim (as priced)                                       | Traced to                                                                                                                                                                                                                                       | Verdict                                           | Action                                                                                                   |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| "Up to 15 attorney seats" / "3–15 seats"                | no seat counter, no seat table, no check in `payments.functions.ts`, `firm-grants.functions.ts`, or any middleware                                                                                                                              | **unsupported**                                   | Replaced everywhere with "Shared firm workspace — invite colleagues to a case (seats not metered today)" |
+| "Unlimited active client matters"                       | no matter cap logic anywhere                                                                                                                                                                                                                    | technically true only because nothing is enforced | Replaced with "No matter limit enforced today"                                                           |
+| Solo "Up to 10 active client matters"                   | no enforcement                                                                                                                                                                                                                                  | **unsupported limit**                             | Replaced with "Single attorney account (seats and matter counts are not metered today)"                  |
+| "Multi-attorney collaboration and shared case notes"    | `firms` table + `attorney_profiles.firm_id` + `case_grants` (`firm-grants.functions.ts` create/join firm, list colleagues, grant/revoke case access) + `attorney_client_links.attorney_case_notes` read/write in `attorney-portal.functions.ts` | **code-verified**                                 | Kept                                                                                                     |
+| "A caseload view across the firm"                       | `case_grants` surfaces cases colleagues share with you; there is no unconditional firm-wide view                                                                                                                                                | overstated                                        | FAQ rewritten to "a caseload view of the cases shared with you"                                          |
+| "Firm-wide document requests"                           | `attorney_document_requests` is scoped by `link_id` per client                                                                                                                                                                                  | **unsupported**                                   | Changed to "Per-client document requests"                                                                |
+| "Firm-wide conflict-of-interest detection" (first pass) | `conflict-check.server.ts` filters on `attorney_user_id`                                                                                                                                                                                        | **unsupported**                                   | Already narrowed to "across your own PatternProof caseload"                                              |
 
 The pricing FAQ now states plainly that seat and matter counts are commercial expectations,
 not technical caps.
@@ -145,7 +147,7 @@ bullet, two FAQ answers), `how-it-works.tsx`, and `_authenticated/court-ready.ts
 - Demo severity labels → entry counts. The demo's "Export (.docx)" button was changed to
   "Export packet (PDF)": the demo shows a survivor record, and survivor-side exports emit PDF
   and a ZIP of CSV/MD/JSON, not .docx. **Correction to the first pass:** a real .docx export
-  *does* exist, but only on the attorney side — `_attorney/clients.$clientId.tsx` builds a
+  _does_ exist, but only on the attorney side — `_attorney/clients.$clientId.tsx` builds a
   Professional-Review Packet with the `docx` library (`Packer.toBlob`). Attorney-facing copy may
   accurately mention .docx; survivor-facing copy may not.
 - AI neutrality constraints in `pattern-analysis.functions.ts`, `ai-chat.functions.ts`,
@@ -224,6 +226,7 @@ Commands run: `bun run build` (exit 0), `bunx tsgo --noEmit` (exit 0, clean),
 `bunx vitest run` (exit 0, 4 tests / 2 files).
 
 Fixed this pass:
+
 - **Access logging was claimed but not implemented on the attorney side.**
   `audit_events` only ever contained `evidence.preserved` /
   `evidence.duplicate_detected` rows. Added `record_audit_event` calls for
@@ -239,6 +242,7 @@ Fixed this pass:
 - Repaired the attorney sidebar `isActive` regression from the Clio removal.
 
 Verified, unchanged:
+
 - Every `public` table has RLS enabled. Only `clio_oauth_states`,
   `email_relay_attempts`, `share_link_access_log` have zero policies — these are
   service-role-only internal tables, which is intended.
@@ -246,6 +250,7 @@ Verified, unchanged:
   `conversation-recordings`, `exports`, `message-exports`) are private.
 
 Tests added (`src/__tests__/`):
+
 - `pattern-export.test.ts` — unreviewed and rejected AI claims never reach an
   export; survivor edits win over AI wording.
 - `claim-language.test.ts` — source-wide guard against "end-to-end encrypted",

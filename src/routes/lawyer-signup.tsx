@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
@@ -11,8 +11,12 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
 export const Route = createFileRoute("/lawyer-signup")({
   head: () => ({
     meta: [
-      { title: "Attorney sign-in — PatternProof" },
-      { name: "description", content: "Litigation intelligence portal for family-law attorneys handling DV and coercive control cases." },
+      { title: "Attorney access — PatternProof" },
+      {
+        name: "description",
+        content:
+          "Open one client share free, request a short walkthrough, or sign in if you already have an invitation.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -24,7 +28,6 @@ function LawyerSignup() {
   const navigate = useNavigate();
   const upsert = useServerFn(upsertAttorneyProfile);
 
-  const [mode, setMode] = useState<"login" | "signup">("signup");
   const [step, setStep] = useState<"auth" | "profile">("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,17 +45,8 @@ function LawyerSignup() {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin + "/lawyer-signup" },
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
     } catch (err) {
       toast(err instanceof Error ? err.message : "Try again in a moment.");
     } finally {
@@ -97,29 +91,84 @@ function LawyerSignup() {
 
         {step === "auth" ? (
           <div className="card-pp">
-            <h2 className="font-serif text-[20px]">
-              {mode === "signup" ? "Create your attorney account" : "Sign in"}
-            </h2>
+            <h2 className="font-serif text-[20px]">Open one share, or sign in</h2>
+            <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              Opening one client share does not require a subscription. A paid seat unlocks notes and
+              caseload. Paid workspaces are set up with the founder after that first share.
+            </p>
+            <a
+              href="mailto:pattern@pattern-proof.tech?subject=Open%20one%20client%20share%20free"
+              className="btn-primary mt-4 flex w-full items-center justify-center"
+              style={{ textDecoration: "none" }}
+            >
+              Open one client share free
+            </a>
+            <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              Or request a 15-minute walkthrough at{" "}
+              <a href="mailto:pattern@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough" style={{ color: "var(--accent)" }}>
+                pattern@pattern-proof.tech
+              </a>
+              . Please send no case files or client information.
+            </p>
+            <div
+              className="my-4 text-center text-[11px] font-semibold uppercase tracking-widest"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              Already invited?
+            </div>
             <form onSubmit={auth} className="mt-4 space-y-3">
-              <input className="input-pp" type="email" required placeholder="Work email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              <input className="input-pp" type="password" required minLength={8} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <input
+                className="input-pp"
+                type="email"
+                required
+                placeholder="Work email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <input
+                className="input-pp"
+                type="password"
+                required
+                minLength={8}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
               <button className="btn-primary w-full" disabled={busy}>
-                {busy ? "One moment…" : mode === "signup" ? "Create account" : "Sign in"}
+                {busy ? "One moment…" : "Sign in"}
               </button>
             </form>
-            <button type="button" onClick={() => setMode(mode === "signup" ? "login" : "signup")} className="mt-4 w-full text-center text-[13px]" style={{ color: "var(--accent)" }}>
-              {mode === "signup" ? "I already have an account" : "Create a new account"}
-            </button>
           </div>
         ) : (
           <div className="card-pp">
             <h2 className="font-serif text-[20px]">Tell clients who they're working with</h2>
             <form onSubmit={saveProfile} className="mt-4 space-y-3">
-              <input className="input-pp" required placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-              <input className="input-pp" placeholder="Firm name (optional)" value={firm} onChange={(e) => setFirm(e.target.value)} />
+              <input
+                className="input-pp"
+                required
+                placeholder="Full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+              <input
+                className="input-pp"
+                placeholder="Firm name (optional)"
+                value={firm}
+                onChange={(e) => setFirm(e.target.value)}
+              />
               <div className="grid grid-cols-2 gap-3">
-                <input className="input-pp" placeholder="Bar #" value={bar} onChange={(e) => setBar(e.target.value)} />
-                <input className="input-pp" placeholder="Jurisdiction" value={jur} onChange={(e) => setJur(e.target.value)} />
+                <input
+                  className="input-pp"
+                  placeholder="Bar #"
+                  value={bar}
+                  onChange={(e) => setBar(e.target.value)}
+                />
+                <input
+                  className="input-pp"
+                  placeholder="Jurisdiction"
+                  value={jur}
+                  onChange={(e) => setJur(e.target.value)}
+                />
               </div>
               <button className="btn-primary w-full" disabled={busy}>
                 {busy ? "Saving…" : "Enter portal"}

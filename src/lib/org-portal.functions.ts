@@ -80,8 +80,7 @@ export type OrgPartnerStats = {
 // haven't set up or joined an organization yet" (an actionable, expected
 // state — send them to /org-signup) apart from a real, unexpected failure
 // (a generic "try again" message).
-export const NO_ORG_MEMBERSHIP_MESSAGE =
-  "You are not a verified member of a partner organization.";
+export const NO_ORG_MEMBERSHIP_MESSAGE = "You are not a verified member of a partner organization.";
 
 async function requireOrgMembership(userId: string) {
   const supabaseAdmin = await requireAdvocate(userId);
@@ -463,11 +462,84 @@ function slugify(v: string): string {
     .slice(0, 40);
 }
 
+/** Does this account already belong to a partner organization? */
+export const getMyOrgMembership = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("org_members")
+      .select("org_id,role")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    return { hasOrg: !!data, role: data?.role ?? null };
+  });
+
 /**
- * Self-serve organization signup — mirrors setMyFirm's attorney-side pattern.
- * Any authenticated user not already in an org can create one and becomes
- * its owner. Orgs are free (no subscription gate), so the only checks are
- * "not already a member" and basic input validation.
+ * Partner organizations are invitation-only: an account may only provision an
+ * organization when PatternProof has already approved an access request for
+ * that verified account email. Everything below fails closed.
+ */
+export const NOT_APPROVED_MESSAGE =
+  "Your organization hasn't been verified yet. We'll email you as soon as it is.";
+
+async function orgSetupEligibility(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const email = await verifiedAccountEmail(userId);
+
+  const { data: member } = await supabaseAdmin
+    .from("org_members")
+    .select("org_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (member) return { supabaseAdmin, email, hasOrg: true, approved: true, request: null };
+
+  const { data: request } = await supabaseAdmin
+    .from("org_access_requests")
+    .select("id,org_name,contact_name,contact_role,status")
+    .eq("email", email)
+    .eq("status", "approved")
+    .maybeSingle();
+
+  return { supabaseAdmin, email, hasOrg: false, approved: !!request, request };
+}
+
+/**
+ * Tells the signup screen exactly which state the account is in, so an invited
+ * organization always sees a way forward and an unapproved one never gets
+ * bounced between screens.
+ */
+export const getMyOrgSetupState = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    try {
+      const { hasOrg, approved, request } = await orgSetupEligibility(context.userId);
+      return {
+        hasOrg,
+        approved,
+        suggested_org_name: request?.org_name ?? null,
+        suggested_contact_name: request?.contact_name ?? null,
+        suggested_contact_role: request?.contact_role ?? null,
+      };
+    } catch {
+      return {
+        hasOrg: false,
+        approved: false,
+        suggested_org_name: null,
+        suggested_contact_name: null,
+        suggested_contact_role: null,
+      };
+    }
+  });
+
+/**
+ * Provisioning for an approved DV partner organization.
+ *
+ * Creates everything the partner portal needs in one step: the organization,
+ * the advocate role, the advocate profile, owner membership, and a first
+ * referral code. Idempotent — running it again for an account that already
+ * belongs to an organization just returns that organization. Requires an
+ * approved access request for the verified account email.
  */
 export const setMyOrg = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -482,79 +554,244 @@ export const setMyOrg = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const userId = context.userId;
+    const {
+      supabaseAdmin,
+      email,
+      hasOrg,
+      approved,
+      request,
+    } = await orgSetupEligibility(userId);
 
-    const { data: existing, error: existingError } = await supabaseAdmin
-      .from("org_members")
-      .select("org_id")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (existingError) throw new Error(existingError.message);
-    if (existing) throw new Error("You already belong to a partner organization.");
+    if (hasOrg) {
+      const { data: existingMember } = await supabaseAdmin
+        .from("org_members")
+        .select("org_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      return { ok: true as const, org_id: existingMember!.org_id };
+    }
+    if (!approved) throw new Error(NOT_APPROVED_MESSAGE);
 
-    const orgName = data.org_name.trim();
-    const email = data.email.trim().toLowerCase();
+
+    const { data: org, error: orgError } = await supabaseAdmin
+      .from("dv_organizations")
+      .insert({ name: data.org_name, created_by: userId })
+      .select("id")
+      .single();
+    if (orgError || !org) throw new Error(orgError?.message ?? "Couldn't create your organization.");
 
     await supabaseAdmin
       .from("user_roles")
-      .upsert({ user_id: context.userId, role: "advocate" }, { onConflict: "user_id,role" });
+      .upsert({ user_id: userId, role: "advocate" }, { onConflict: "user_id,role" });
 
-    const { data: createdOrg, error: orgError } = await supabaseAdmin
-      .from("dv_organizations")
-      .insert({ name: orgName, created_by: context.userId })
-      .select("id")
-      .single();
-    if (orgError || !createdOrg)
-      throw new Error(orgError?.message ?? "Could not create organization.");
-    const orgId = createdOrg.id;
-
-    const { error: memberError } = await supabaseAdmin
-      .from("org_members")
-      .upsert(
-        { org_id: orgId, user_id: context.userId, role: "owner" },
-        { onConflict: "org_id,user_id" },
-      );
-    if (memberError) throw new Error(memberError.message);
-
-    await supabaseAdmin.from("advocate_profiles").upsert(
+    const { error: profileError } = await supabaseAdmin.from("advocate_profiles").upsert(
       {
-        user_id: context.userId,
+        user_id: userId,
         full_name: data.contact_name,
-        org_name: orgName,
-        org_id: orgId,
+        org_name: data.org_name,
+        org_id: org.id,
         email,
         onboarded: true,
+        updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id" },
     );
+    if (profileError) throw new Error(profileError.message);
 
-    let code = slugify(orgName) || `org-${Math.random().toString(36).slice(2, 8)}`;
-    for (let attempt = 0; attempt < 20; attempt++) {
-      const candidate = attempt === 0 ? code : `${code}-${Math.random().toString(36).slice(2, 6)}`;
-      const { data: clash } = await supabaseAdmin
-        .from("referral_links")
-        .select("code")
-        .eq("code", candidate)
-        .maybeSingle();
-      if (!clash) {
-        code = candidate;
-        break;
-      }
-      if (attempt === 19) throw new Error("Could not generate a unique referral code.");
+    const { error: memberError } = await supabaseAdmin
+      .from("org_members")
+      .upsert({ org_id: org.id, user_id: userId, role: "owner" }, { onConflict: "org_id,user_id" });
+    if (memberError) throw new Error(memberError.message);
+
+    // First referral code — the org portal is built around these.
+    const base = slugify(data.org_name) || "partner";
+    const code = `${base}-${randomBytes(3).toString("hex")}`.slice(0, 48);
+    await supabaseAdmin.from("referral_links").insert({
+      code,
+      org_name: data.org_name,
+      org_user_id: userId,
+      org_id: org.id,
+      is_active: true,
+      ...(data.contact_role ? { notes: `Contact role: ${data.contact_role}` } : {}),
+    });
+
+    // Record that the approval has been used. The status vocabulary is
+    // constrained to pending/approved/denied by a database trigger, so the
+    // marker lives in the message field; re-provisioning is already blocked by
+    // the org_members check above.
+    if (request?.id) {
+      await supabaseAdmin
+        .from("org_access_requests")
+        .update({ reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq("id", request.id);
     }
 
-    const { error: linkErr } = await supabaseAdmin.from("referral_links").insert({
-      code,
-      org_name: orgName,
-      org_user_id: context.userId,
-      org_id: orgId,
-      is_active: true,
-      notes: "Self-serve signup",
-    });
-    if (linkErr) throw new Error(linkErr.message);
-
-    return { ok: true as const, code };
+    return { ok: true as const, org_id: org.id };
   });
+
+/* ------------------------- admin: verify partner orgs ------------------------ */
+
+export const listOrgAccessRequests = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const supabaseAdmin = await requireAdmin(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("org_access_requests")
+      .select(
+        "id,org_name,website,contact_name,contact_role,email,phone,service_area,org_type,message,survivors_per_month,contact_consent,status,created_at,reviewed_at,reviewed_by",
+      )
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return { requests: data ?? [] };
+  });
+
+/**
+ * Tells an organization the outcome of its partner access request. Approval
+ * only creates provisioning eligibility — the org must still finish
+ * /org-signup with this same verified email, and it never grants survivor
+ * data. Delivery failures are logged, never swallowed as success.
+ */
+async function emailOrgAccessDecision(input: {
+  email: string;
+  orgName?: string | null;
+  contactName?: string | null;
+  decision: "approved" | "denied";
+  requestId: string;
+}) {
+  try {
+    const { deliverTransactionalEmail } = await import("@/lib/email/deliver-transactional.server");
+    const result = await deliverTransactionalEmail({
+      templateName: "org-access-decision",
+      recipientEmail: input.email,
+      templateData: {
+        contactName: input.contactName ?? undefined,
+        orgName: input.orgName ?? undefined,
+        decision: input.decision,
+        setupUrl: "https://pattern-proof.tech/org-signup",
+      },
+      idempotencyKey: `org-access-${input.decision}-${input.requestId}`,
+    });
+    if (!result.sent) console.error("[email] org access decision not sent:", result.error);
+    return result;
+  } catch (error) {
+    console.error("[email] org access decision failed", error);
+    return { sent: false, error: error instanceof Error ? error.message : "Send failed." };
+  }
+}
+
+export const reviewOrgAccessRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        decision: z.enum(["approved", "denied", "pending"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = await requireAdmin(context.userId);
+    const { error } = await supabaseAdmin
+      .from("org_access_requests")
+      .update({
+        status: data.decision,
+        reviewed_by: context.userId,
+        reviewed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    try {
+      await supabaseAdmin.rpc("record_audit_event", {
+        p_user_id: context.userId,
+        p_event_type: `org_access_request.${data.decision}`,
+        p_subject_kind: "org_access_request",
+        p_subject_id: data.id,
+        p_actor_kind: "admin",
+        p_actor_id: context.userId,
+        p_meta: { decision: data.decision },
+      });
+    } catch (e) {
+      console.error("[audit] org access review", e);
+    }
+
+    let emailed: { sent: boolean; error?: string } = { sent: false, error: "No email for pending." };
+    if (data.decision !== "pending") {
+      const { data: req } = await supabaseAdmin
+        .from("org_access_requests")
+        .select("email,org_name,contact_name")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (req?.email) {
+        emailed = await emailOrgAccessDecision({
+          email: req.email as string,
+          orgName: req.org_name as string | null,
+          contactName: req.contact_name as string | null,
+          decision: data.decision,
+          requestId: data.id,
+        });
+      }
+    }
+    return { ok: true as const, emailed };
+  });
+
+/**
+ * Admin path for organizations that reached us outside the request form (email,
+ * conference, referral). Creates an already-approved access record so that the
+ * invited organization can finish setup itself — still not self-serve.
+ */
+export const approveOrgAccessByEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        email: z.string().email().max(255),
+        org_name: z.string().trim().min(2).max(200),
+        contact_name: z.string().trim().min(1).max(120),
+        contact_role: z.string().trim().max(120).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = await requireAdmin(context.userId);
+    const email = data.email.trim().toLowerCase();
+    const { data: existing } = await supabaseAdmin
+      .from("org_access_requests")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    const patch = {
+      email,
+      org_name: data.org_name,
+      contact_name: data.contact_name,
+      contact_role: data.contact_role ?? null,
+      status: "approved",
+      reviewed_by: context.userId,
+      reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    const { data: saved, error } = existing
+      ? await supabaseAdmin
+          .from("org_access_requests")
+          .update(patch)
+          .eq("id", existing.id)
+          .select("id")
+          .single()
+      : await supabaseAdmin.from("org_access_requests").insert(patch).select("id").single();
+    if (error) throw new Error(error.message);
+    const emailed = await emailOrgAccessDecision({
+      email,
+      orgName: data.org_name,
+      contactName: data.contact_name,
+      decision: "approved",
+      requestId: (saved?.id as string) ?? email,
+    });
+    return { ok: true as const, emailed };
+  });
+
+
 
 /**
  * Referred signups that never recorded Terms of Service acceptance, past a
@@ -614,3 +851,111 @@ export const getReferralConsentGaps = createServerFn({ method: "GET" })
       return { grace_period_hours: CONSENT_GRACE_HOURS, gaps };
     },
   );
+
+/* ---------- public partner access request ---------- */
+
+/**
+ * Public request form for organizations that want a partner portal.
+ *
+ * Unauthenticated by design (the requester has no account yet), so it is
+ * written defensively: strict validation, one open request per work email,
+ * a short cooldown between submissions, and always `status: "pending"` —
+ * nothing here can approve itself or create any access.
+ */
+export const REQUEST_COOLDOWN_MINUTES = 10;
+
+export const submitOrgAccessRequest = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        org_name: z.string().trim().min(2).max(200),
+        website: z.string().trim().max(300).optional().nullable(),
+        contact_name: z.string().trim().min(2).max(120),
+        email: z.string().trim().email().max(255),
+        contact_role: z.string().trim().min(2).max(120),
+        phone: z.string().trim().max(40).optional().nullable(),
+        service_area: z.string().trim().min(2).max(160),
+        org_type: z.string().trim().min(2).max(120),
+        message: z.string().trim().min(10).max(2000),
+        survivors_per_month: z.number().int().min(0).max(100000).optional().nullable(),
+        contact_consent: z.literal(true),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const email = data.email.toLowerCase();
+
+    const { data: existing } = await supabaseAdmin
+      .from("org_access_requests")
+      .select("id,status,created_at")
+      .eq("email", email)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing?.status === "approved") {
+      return {
+        ok: true as const,
+        state: "already_approved" as const,
+        message: "This email is already verified — sign in on the partner page to finish setup.",
+      };
+    }
+    if (existing?.status === "pending") {
+      const age = Date.now() - new Date(existing.created_at as string).getTime();
+      if (age < REQUEST_COOLDOWN_MINUTES * 60_000) {
+        return {
+          ok: true as const,
+          state: "pending" as const,
+          message: "We already have your request. Someone will be in touch by email.",
+        };
+      }
+      const { error: upErr } = await supabaseAdmin
+        .from("org_access_requests")
+        .update({
+          org_name: data.org_name,
+          website: data.website || null,
+          contact_name: data.contact_name,
+          contact_role: data.contact_role,
+          phone: data.phone || null,
+          service_area: data.service_area,
+          org_type: data.org_type,
+          message: data.message,
+          survivors_per_month:
+            data.survivors_per_month == null ? null : String(data.survivors_per_month),
+          contact_consent: true,
+          status: "pending",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+      if (upErr) throw new Error("We couldn't send that just now. Try again in a moment.");
+      return {
+        ok: true as const,
+        state: "pending" as const,
+        message: "Thanks — your request is updated and waiting for review.",
+      };
+    }
+
+    const { error } = await supabaseAdmin.from("org_access_requests").insert({
+      org_name: data.org_name,
+      website: data.website || null,
+      contact_name: data.contact_name,
+      email,
+      contact_role: data.contact_role,
+      phone: data.phone || null,
+      service_area: data.service_area,
+      org_type: data.org_type,
+      message: data.message,
+      survivors_per_month:
+        data.survivors_per_month == null ? null : String(data.survivors_per_month),
+      contact_consent: true,
+      status: "pending",
+    });
+    if (error) throw new Error("We couldn't send that just now. Try again in a moment.");
+
+    return {
+      ok: true as const,
+      state: "pending" as const,
+      message: "Thanks — your request is with us. We review each organization by hand.",
+    };
+  });

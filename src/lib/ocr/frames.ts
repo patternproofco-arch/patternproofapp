@@ -35,7 +35,9 @@ function loadVideo(file: File): Promise<{ video: HTMLVideoElement; url: string }
     video.onloadedmetadata = () => resolve({ video, url });
     video.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("We couldn't read that video. It may be in a format this browser can't open."));
+      reject(
+        new Error("We couldn't read that video. It may be in a format this browser can't open."),
+      );
     };
     video.src = url;
   });
@@ -43,9 +45,15 @@ function loadVideo(file: File): Promise<{ video: HTMLVideoElement; url: string }
 
 function seek(video: HTMLVideoElement, time: number): Promise<void> {
   return new Promise((resolve, reject) => {
-    const done = () => { video.removeEventListener("seeked", done); resolve(); };
+    const done = () => {
+      video.removeEventListener("seeked", done);
+      resolve();
+    };
     video.addEventListener("seeked", done);
-    setTimeout(() => { video.removeEventListener("seeked", done); reject(new Error("seek timeout")); }, 8000);
+    setTimeout(() => {
+      video.removeEventListener("seeked", done);
+      reject(new Error("seek timeout"));
+    }, 8000);
     video.currentTime = Math.min(time, Math.max(0, (video.duration || 0) - 0.05));
   });
 }
@@ -62,7 +70,10 @@ function meanDiff(a: Uint8ClampedArray, b: Uint8ClampedArray): number {
   return sum / (a.length / 4) / 255;
 }
 
-export async function extractFrames(file: File, opts: FrameOptions = {}): Promise<ExtractedFrame[]> {
+export async function extractFrames(
+  file: File,
+  opts: FrameOptions = {},
+): Promise<ExtractedFrame[]> {
   const { intervalSec, changeThreshold, maxFrames } = { ...DEFAULTS, ...opts };
   const { video, url } = await loadVideo(file);
   const frames: ExtractedFrame[] = [];
@@ -98,11 +109,15 @@ export async function extractFrames(file: File, opts: FrameOptions = {}): Promis
       opts.onProgress?.(i + 1, total);
       if (!changed) continue;
 
-      const blob = await new Promise<Blob | null>((resolve) => full.toBlob(resolve, "image/jpeg", 0.9));
+      const blob = await new Promise<Blob | null>((resolve) =>
+        full.toBlob(resolve, "image/jpeg", 0.9),
+      );
       if (!blob) continue;
       kept += 1;
       frames.push({
-        file: new File([blob], `frame-${String(kept).padStart(3, "0")}.jpg`, { type: "image/jpeg" }),
+        file: new File([blob], `frame-${String(kept).padStart(3, "0")}.jpg`, {
+          type: "image/jpeg",
+        }),
         timeSec: Math.round(t * 100) / 100,
         index: kept - 1,
       });

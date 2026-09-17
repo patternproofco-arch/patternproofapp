@@ -128,7 +128,12 @@ export function buildPatternExport(
   // survivor's own records, not AI claims — they are not review-gated, but
   // they're still computed account-wide, so still scope-gated.
   if (!allowedIncidentIds) {
-    for (const key of ["frequency_trends", "abuse_type_breakdown", "severity_trajectory", "pattern_timeline_text"]) {
+    for (const key of [
+      "frequency_trends",
+      "abuse_type_breakdown",
+      "severity_trajectory",
+      "pattern_timeline_text",
+    ]) {
       if (a[key] !== undefined) redacted[key] = a[key];
     }
   }

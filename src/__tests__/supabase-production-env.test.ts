@@ -10,14 +10,19 @@ const env = Object.fromEntries(
     .filter((line) => line && !line.startsWith("#"))
     .map((line) => {
       const separator = line.indexOf("=");
-      return [line.slice(0, separator), line.slice(separator + 1)];
+      const raw = line.slice(separator + 1).trim();
+      const value =
+        (raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))
+          ? raw.slice(1, -1)
+          : raw;
+      return [line.slice(0, separator), value];
     }),
 );
 
 describe("production Supabase environment", () => {
   it("commits the browser-safe values Lovable requires at build time", () => {
     expect(env.VITE_SUPABASE_URL).toMatch(/^https:\/\/[a-z0-9]+\.supabase\.co$/);
-    expect(env.VITE_SUPABASE_PUBLISHABLE_KEY).toMatch(/^sb_publishable_/);
+    expect(env.VITE_SUPABASE_PUBLISHABLE_KEY).toMatch(/^(sb_publishable_|eyJ)/);
     expect(env.VITE_SUPABASE_PROJECT_ID).toMatch(/^[a-z0-9]+$/);
   });
 

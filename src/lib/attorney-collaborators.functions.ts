@@ -44,12 +44,14 @@ export const listCaseCollaborators = createServerFn({ method: "POST" })
 export const inviteCaseCollaborator = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      clientId: z.string().uuid(),
-      email: z.string().trim().email().max(255),
-      name: z.string().trim().max(120).optional().nullable(),
-      role: z.enum(ROLES),
-    }).parse(input),
+    z
+      .object({
+        clientId: z.string().uuid(),
+        email: z.string().trim().email().max(255),
+        name: z.string().trim().max(120).optional().nullable(),
+        role: z.enum(ROLES),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const link = await assertOwnerLink(context.userId, data.clientId);

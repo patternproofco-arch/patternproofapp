@@ -40,33 +40,73 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       lastPattern,
       contradictionRows,
     ] = await Promise.all([
-      supabase.from("incidents").select("id", { count: "exact", head: true })
-        .eq("user_id", userId).is("deleted_at", null)
+      supabase
+        .from("incidents")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .is("deleted_at", null)
         .or("source.neq.ai_extracted,confirmed_at.not.is.null"),
-      supabase.from("incidents").select("id", { count: "exact", head: true })
-        .eq("user_id", userId).is("deleted_at", null)
-        .eq("source", "ai_extracted").is("confirmed_at", null),
-      supabase.from("evidence").select("id", { count: "exact", head: true })
-        .eq("user_id", userId).is("deleted_at", null),
-      supabase.from("incidents").select("id", { count: "exact", head: true })
-        .eq("user_id", userId).is("deleted_at", null)
+      supabase
+        .from("incidents")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .is("deleted_at", null)
+        .eq("source", "ai_extracted")
+        .is("confirmed_at", null),
+      supabase
+        .from("evidence")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .is("deleted_at", null),
+      supabase
+        .from("incidents")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .is("deleted_at", null)
         .neq("date_precision", "exact"),
       supabase.from("pattern_analyses").select("id").eq("user_id", userId).limit(1).maybeSingle(),
-      supabase.from("voice_notes").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      supabase
+        .from("voice_notes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId),
       supabase.from("cases").select("id").eq("user_id", userId).limit(1).maybeSingle(),
-      supabase.from("court_dates").select("id", { count: "exact", head: true })
-        .eq("user_id", userId).gte("hearing_at", nowIso).lte("hearing_at", in30),
+      supabase
+        .from("court_dates")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("hearing_at", nowIso)
+        .lte("hearing_at", in30),
       supabase.from("court_dates").select("id").eq("user_id", userId).limit(1).maybeSingle(),
-      supabase.from("incidents").select("created_at").eq("user_id", userId).is("deleted_at", null)
-        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("evidence").select("created_at").eq("user_id", userId).is("deleted_at", null)
-        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("pattern_analyses").select("created_at").eq("user_id", userId)
-        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("incidents")
+      supabase
+        .from("incidents")
+        .select("created_at")
+        .eq("user_id", userId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("evidence")
+        .select("created_at")
+        .eq("user_id", userId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("pattern_analyses")
+        .select("created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("incidents")
         .select("id,date,time,location,date_precision,source,confirmed_at")
-        .eq("user_id", userId).is("deleted_at", null)
-        .eq("date_precision", "exact").not("date", "is", null),
+        .eq("user_id", userId)
+        .is("deleted_at", null)
+        .eq("date_precision", "exact")
+        .not("date", "is", null),
     ]);
 
     const { data: latestAnalysis } = await supabase
@@ -79,7 +119,10 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     let unreviewed_severity_indicator_count = 0;
     const indicators = (latestAnalysis?.analysis as { severity_indicators?: unknown[] } | null)
       ?.severity_indicators;
-    const reviewedStatus = (latestAnalysis?.reviewed_status ?? {}) as Record<string, { status?: string }>;
+    const reviewedStatus = (latestAnalysis?.reviewed_status ?? {}) as Record<
+      string,
+      { status?: string }
+    >;
     if (Array.isArray(indicators)) {
       unreviewed_severity_indicator_count = indicators.reduce<number>((count, _item, index) => {
         const entry = reviewedStatus[`sev:${index}`];

@@ -12,12 +12,20 @@ export default defineTool({
     description: z.string().min(1).describe("What happened, in the survivor's words."),
     time: z.string().optional().describe("Approximate time (HH:MM, 24h)."),
     location: z.string().optional().describe("Where it happened."),
-    abuse_types: z.array(z.string()).optional().describe("Types of abuse (e.g. emotional, financial, coercive control)."),
+    abuse_types: z
+      .array(z.string())
+      .optional()
+      .describe("Types of abuse (e.g. emotional, financial, coercive control)."),
     severity_level: z.number().int().min(1).max(5).optional().describe("1 (mild) to 5 (severe)."),
     witnesses: z.string().optional().describe("Anyone who saw or heard it."),
     emotional_impact: z.string().optional().describe("How it affected the survivor."),
   },
-  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: false,
+  },
   handler: async (input, ctx) => {
     const authError = requireAuth(ctx);
     if (authError) return authError;

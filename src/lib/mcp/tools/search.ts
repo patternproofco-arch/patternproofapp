@@ -24,19 +24,24 @@ export default defineTool({
     const like = `%${query.replace(/[%_]/g, (m) => "\\" + m)}%`;
     const orValue = `"${like.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
     const [inc, ev, vn] = await Promise.all([
-      sb.from("incidents")
+      sb
+        .from("incidents")
         .select("id,date,description,location")
         .is("deleted_at", null)
-        .or(`description.ilike.${orValue},location.ilike.${orValue},witnesses.ilike.${orValue},emotional_impact.ilike.${orValue}`)
+        .or(
+          `description.ilike.${orValue},location.ilike.${orValue},witnesses.ilike.${orValue},emotional_impact.ilike.${orValue}`,
+        )
         .order("date", { ascending: false })
         .limit(20),
-      sb.from("evidence")
+      sb
+        .from("evidence")
         .select("id,title,date,description,file_type")
         .is("deleted_at", null)
         .or(`title.ilike.${orValue},description.ilike.${orValue}`)
         .order("date", { ascending: false })
         .limit(20),
-      sb.from("voice_notes")
+      sb
+        .from("voice_notes")
         .select("id,title,date")
         .ilike("title", like)
         .order("date", { ascending: false })

@@ -47,6 +47,8 @@ const TABS: Tab[] = [
       "/communications",
       "/court-dates",
       "/share-with-attorney",
+      "/share-with-advocate",
+      "/access",
       "/legal-documents",
     ],
     render: (c) => <Scale size={20} strokeWidth={1.75} color={c} />,

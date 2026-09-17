@@ -1,0 +1,73 @@
+/* Survivor Portal Styles */
+
+.survivor-app {
+  --pp-primary-rgb: 122, 31, 61; /* PatternProof brand color */
+}
+
+/* Responsive Layout */
+@media (max-width: 768px) {
+  .survivor-sidebar {
+    max-width: 256px;
+  }
+}
+
+/* Cards */
+.survivor-app .pp-card {
+  border-color: var(--pp-border);
+  background-color: var(--pp-ground);
+}
+
+/* Buttons */
+.survivor-app .pp-btn-primary {
+  background-color: #7a1f3d;
+  color: white;
+  border: none;
+}
+
+.survivor-app .pp-btn-primary:hover:not(:disabled) {
+  background-color: #5a1630;
+}
+
+.survivor-app .pp-btn-secondary {
+  border-color: var(--pp-border);
+  color: var(--pp-ink);
+  background-color: var(--pp-ground);
+}
+
+.survivor-app .pp-btn-secondary:hover:not(:disabled) {
+  background-color: var(--pp-muted);
+}
+
+/* Timeline */
+.survivor-timeline-item {
+  border-left: 3px solid var(--pp-primary);
+  padding-left: 1rem;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+  .survivor-app {
+    font-size: 14px;
+  }
+
+  .survivor-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 256px;
+    height: 100vh;
+    z-index: 40;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .survivor-app .pp-btn-primary {
+    background-color: #a92d5f;
+  }
+
+  .survivor-app .pp-btn-primary:hover:not(:disabled) {
+    background-color: #7a1f3d;
+  }
+}

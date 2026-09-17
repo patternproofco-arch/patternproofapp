@@ -21,7 +21,12 @@ const base = (size: number, color: string, strokeWidth: number, className?: stri
 });
 
 /** Upload Evidence — page with up arrow. */
-export function UploadDocIcon({ size = 24, strokeWidth = 1.75, color = "currentColor", className }: IconProps): ReactElement {
+export function UploadDocIcon({
+  size = 24,
+  strokeWidth = 1.75,
+  color = "currentColor",
+  className,
+}: IconProps): ReactElement {
   return (
     <svg {...base(size, color, strokeWidth, className)}>
       <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
@@ -33,7 +38,12 @@ export function UploadDocIcon({ size = 24, strokeWidth = 1.75, color = "currentC
 }
 
 /** Timeline — horizontal line with three dots sitting above it. */
-export function TimelineDotsIcon({ size = 24, strokeWidth = 1.75, color = "currentColor", className }: IconProps): ReactElement {
+export function TimelineDotsIcon({
+  size = 24,
+  strokeWidth = 1.75,
+  color = "currentColor",
+  className,
+}: IconProps): ReactElement {
   return (
     <svg {...base(size, color, strokeWidth, className)}>
       <circle cx="6" cy="9" r="1.4" fill={color} stroke="none" />
@@ -46,7 +56,12 @@ export function TimelineDotsIcon({ size = 24, strokeWidth = 1.75, color = "curre
 }
 
 /** Court Calendar — month-view grid. */
-export function CalendarGridIcon({ size = 24, strokeWidth = 1.75, color = "currentColor", className }: IconProps): ReactElement {
+export function CalendarGridIcon({
+  size = 24,
+  strokeWidth = 1.75,
+  color = "currentColor",
+  className,
+}: IconProps): ReactElement {
   return (
     <svg {...base(size, color, strokeWidth, className)}>
       <rect x="3.5" y="5" width="17" height="15.5" rx="2.2" />
@@ -58,7 +73,12 @@ export function CalendarGridIcon({ size = 24, strokeWidth = 1.75, color = "curre
 }
 
 /** Pattern Detection — circle composed of dots. */
-export function DotCirclePatternIcon({ size = 24, strokeWidth = 1.75, color = "currentColor", className }: IconProps): ReactElement {
+export function DotCirclePatternIcon({
+  size = 24,
+  strokeWidth = 1.75,
+  color = "currentColor",
+  className,
+}: IconProps): ReactElement {
   const r = 8;
   const cx = 12;
   const cy = 12;
@@ -77,7 +97,12 @@ export function DotCirclePatternIcon({ size = 24, strokeWidth = 1.75, color = "c
 }
 
 /** PatternProof Agent — triangle outline with "PP" inside. */
-export function PpTriangleIcon({ size = 24, strokeWidth = 1.75, color = "currentColor", className }: IconProps): ReactElement {
+export function PpTriangleIcon({
+  size = 24,
+  strokeWidth = 1.75,
+  color = "currentColor",
+  className,
+}: IconProps): ReactElement {
   return (
     <svg {...base(size, color, strokeWidth, className)}>
       <path d="M12 3.2 21 19.5H3z" />
@@ -99,7 +124,12 @@ export function PpTriangleIcon({ size = 24, strokeWidth = 1.75, color = "current
 }
 
 /** Court Summary — legal document with a justice scale on the page. */
-export function CourtSummaryIcon({ size = 24, strokeWidth = 1.75, color = "currentColor", className }: IconProps): ReactElement {
+export function CourtSummaryIcon({
+  size = 24,
+  strokeWidth = 1.75,
+  color = "currentColor",
+  className,
+}: IconProps): ReactElement {
   return (
     <svg {...base(size, color, strokeWidth, className)}>
       <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />

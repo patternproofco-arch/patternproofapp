@@ -271,7 +271,7 @@ function LiveRecording() {
         <div className="card-pp mt-3">
           <p style={{ color: "var(--muted-foreground)" }}>
             Tap the button above to start recording. Private by default. Protected with per-user
-            access controls and encrypted in transit. You control what you share.
+            access controls and encrypted in transit. You choose what to share.
           </p>
         </div>
       ) : (

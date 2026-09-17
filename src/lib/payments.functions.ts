@@ -4,6 +4,7 @@ import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib
 import JSZip from "jszip";
 import { createHash } from "crypto";
 import { z } from "zod";
+import { PROFESSIONAL_LINK_TTL_SECONDS } from "@/lib/professional-links.server";
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 type PortalResult = { url: string } | { error: string };
@@ -212,7 +213,26 @@ export const getMySubscription = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    return { subscription: (row as SubRow) ?? null };
+    if (row) return { subscription: row as SubRow };
+
+    // No Stripe subscription — surface an active founding-nine trial so the
+    // portal opens for them the same way a paid plan does.
+    const { data: profile } = await supabase
+      .from("attorney_profiles")
+      .select("trial_ends_at")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (profile?.trial_ends_at && new Date(profile.trial_ends_at).getTime() > Date.now()) {
+      return {
+        subscription: {
+          status: "trialing",
+          price_id: "attorney_solo_monthly",
+          current_period_end: profile.trial_ends_at,
+          cancel_at_period_end: false,
+        } as SubRow,
+      };
+    }
+    return { subscription: null };
   });
 
 /**
@@ -321,6 +341,15 @@ export async function isAttorneyEntitled(
     if (active && priceId && attorneyPlans.has(priceId)) {
       return { entitled: true, reason: "subscribed" };
     }
+  }
+  // Founding-nine 90-day trial lives on the attorney profile, not Stripe.
+  const { data: profile } = await supabaseAdmin
+    .from("attorney_profiles")
+    .select("trial_ends_at")
+    .eq("user_id", attorneyId)
+    .maybeSingle();
+  if (profile?.trial_ends_at && new Date(profile.trial_ends_at).getTime() > Date.now()) {
+    return { entitled: true, reason: "subscribed" };
   }
   void clientId;
   return { entitled: false, reason: "paywall" };
@@ -844,7 +873,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
     const signed = await supabaseAdmin.storage
       .from("exports")
-      .createSignedUrl(objectPath, 60 * 60 * 1);
+      .createSignedUrl(objectPath, PROFESSIONAL_LINK_TTL_SECONDS);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
     return {
       ok: true as const,
@@ -1158,7 +1187,7 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
     if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
     const signed = await supabaseAdmin.storage
       .from("exports")
-      .createSignedUrl(objectPath, 60 * 60 * 1);
+      .createSignedUrl(objectPath, PROFESSIONAL_LINK_TTL_SECONDS);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
     return {
       ok: true as const,

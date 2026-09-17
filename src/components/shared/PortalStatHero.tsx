@@ -31,6 +31,7 @@ export function PortalStatHero({
   const shadow = neuShadow();
   return (
     <section
+      className="pp-stat-hero"
       style={{
         borderRadius: 24,
         padding: "clamp(20px,3vw,30px)",

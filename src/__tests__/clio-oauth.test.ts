@@ -47,9 +47,11 @@ describe("clio token encryption", () => {
   it("refuses tampered ciphertext", async () => {
     const { encryptToken, decryptToken } = await import("@/lib/clio-crypto.server");
     const stored = encryptToken("token");
-    const tampered = "v1:" + Buffer.from(
-      Buffer.from(stored.slice(3), "base64").map((b, i) => (i === 30 ? b ^ 0xff : b)),
-    ).toString("base64");
+    const tampered =
+      "v1:" +
+      Buffer.from(
+        Buffer.from(stored.slice(3), "base64").map((b, i) => (i === 30 ? b ^ 0xff : b)),
+      ).toString("base64");
     expect(() => decryptToken(tampered)).toThrow();
   });
 
@@ -150,8 +152,16 @@ describe("clio server surface", () => {
   const server = readFileSync("src/lib/clio.server.ts", "utf8");
 
   it("requires authentication on every Clio server function that touches a connection", () => {
-    for (const name of ["startClioConnect", "getClioStatus", "disconnectClio", "listMyClioMatters"]) {
-      const block = fns.slice(fns.indexOf(`export const ${name}`), fns.indexOf(`export const ${name}`) + 260);
+    for (const name of [
+      "startClioConnect",
+      "getClioStatus",
+      "disconnectClio",
+      "listMyClioMatters",
+    ]) {
+      const block = fns.slice(
+        fns.indexOf(`export const ${name}`),
+        fns.indexOf(`export const ${name}`) + 260,
+      );
       expect(block).toContain("requireSupabaseAuth");
     }
   });

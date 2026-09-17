@@ -8,7 +8,7 @@ shape so the next pass can implement it without re-deriving the design.
 DV organizations and independent advocates (case managers, social workers,
 shelter staff, legal advocates who are not attorneys) already refer
 survivors to PatternProof through the referral-link system. Today they have
-no way to *help* those survivors inside the product — everything is either
+no way to _help_ those survivors inside the product — everything is either
 survivor-only or attorney-only. The org/advocate portal fills that gap
 without giving advocates attorney-level case tooling (no Deposition Prep,
 no billable-time tracking, no professional-review packet generation).
@@ -77,6 +77,7 @@ packet PDF. Those are attorney-only tools.
 
 When a survivor has both an attorney and an advocate linked to the same
 case:
+
 - Both see the same case timeline and evidence (per scoping).
 - Follow-up requests are tagged with the requester so neither steps on
   the other.

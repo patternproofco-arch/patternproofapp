@@ -26,10 +26,13 @@ export type Database = {
           include_all_incidents: boolean
           include_patterns: boolean
           invitation_id: string | null
+          org_admin_visibility: boolean
+          org_visibility_updated_at: string | null
           revoked_at: string | null
           scope_evidence: string[]
           scope_incidents: string[]
           status: string
+          survivor_invite_id: string | null
         }
         Insert: {
           advocate_user_id: string
@@ -42,10 +45,13 @@ export type Database = {
           include_all_incidents?: boolean
           include_patterns?: boolean
           invitation_id?: string | null
+          org_admin_visibility?: boolean
+          org_visibility_updated_at?: string | null
           revoked_at?: string | null
           scope_evidence?: string[]
           scope_incidents?: string[]
           status?: string
+          survivor_invite_id?: string | null
         }
         Update: {
           advocate_user_id?: string
@@ -58,10 +64,13 @@ export type Database = {
           include_all_incidents?: boolean
           include_patterns?: boolean
           invitation_id?: string | null
+          org_admin_visibility?: boolean
+          org_visibility_updated_at?: string | null
           revoked_at?: string | null
           scope_evidence?: string[]
           scope_incidents?: string[]
           status?: string
+          survivor_invite_id?: string | null
         }
         Relationships: [
           {
@@ -69,6 +78,13 @@ export type Database = {
             columns: ["invitation_id"]
             isOneToOne: false
             referencedRelation: "advocate_invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advocate_client_links_survivor_invite_id_fkey"
+            columns: ["survivor_invite_id"]
+            isOneToOne: false
+            referencedRelation: "advocate_survivor_invites"
             referencedColumns: ["id"]
           },
         ]
@@ -182,6 +198,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      advocate_survivor_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          advocate_user_id: string
+          created_at: string
+          declined_at: string | null
+          email_last_attempt_at: string | null
+          email_last_error: string | null
+          email_status: string
+          expires_at: string
+          id: string
+          invite_token: string
+          personal_note: string | null
+          status: string
+          survivor_email: string
+          survivor_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_user_id: string
+          created_at?: string
+          declined_at?: string | null
+          email_last_attempt_at?: string | null
+          email_last_error?: string | null
+          email_status?: string
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          personal_note?: string | null
+          status?: string
+          survivor_email: string
+          survivor_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_user_id?: string
+          created_at?: string
+          declined_at?: string | null
+          email_last_attempt_at?: string | null
+          email_last_error?: string | null
+          email_status?: string
+          expires_at?: string
+          id?: string
+          invite_token?: string
+          personal_note?: string | null
+          status?: string
+          survivor_email?: string
+          survivor_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       agent_messages: {
         Row: {
@@ -781,6 +854,9 @@ export type Database = {
           jurisdiction: string | null
           onboarded: boolean
           role: string | null
+          trial_comped: boolean
+          trial_ends_at: string | null
+          trial_started_at: string | null
           updated_at: string
           user_id: string
         }
@@ -795,6 +871,9 @@ export type Database = {
           jurisdiction?: string | null
           onboarded?: boolean
           role?: string | null
+          trial_comped?: boolean
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -809,6 +888,9 @@ export type Database = {
           jurisdiction?: string | null
           onboarded?: boolean
           role?: string | null
+          trial_comped?: boolean
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1669,8 +1751,17 @@ export type Database = {
           deleted_at: string | null
           derivative_kind: string | null
           description: string | null
+          event_at: string | null
+          event_timestamp_kind: string | null
           exif_captured_at: string | null
           exif_choice: string
+          extracted_at: string | null
+          extracted_text: string | null
+          extraction_method: string | null
+          extraction_pages: number | null
+          extraction_status: string
+          extraction_verified_at: string | null
+          extraction_verified_by: string | null
           family_id: string | null
           file_type: string
           file_url: string
@@ -1723,8 +1814,17 @@ export type Database = {
           deleted_at?: string | null
           derivative_kind?: string | null
           description?: string | null
+          event_at?: string | null
+          event_timestamp_kind?: string | null
           exif_captured_at?: string | null
           exif_choice?: string
+          extracted_at?: string | null
+          extracted_text?: string | null
+          extraction_method?: string | null
+          extraction_pages?: number | null
+          extraction_status?: string
+          extraction_verified_at?: string | null
+          extraction_verified_by?: string | null
           family_id?: string | null
           file_type: string
           file_url: string
@@ -1777,8 +1877,17 @@ export type Database = {
           deleted_at?: string | null
           derivative_kind?: string | null
           description?: string | null
+          event_at?: string | null
+          event_timestamp_kind?: string | null
           exif_captured_at?: string | null
           exif_choice?: string
+          extracted_at?: string | null
+          extracted_text?: string | null
+          extraction_method?: string | null
+          extraction_pages?: number | null
+          extraction_status?: string
+          extraction_verified_at?: string | null
+          extraction_verified_by?: string | null
           family_id?: string | null
           file_type?: string
           file_url?: string
@@ -2444,6 +2553,160 @@ export type Database = {
         }
         Relationships: []
       }
+      matter_advocate_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          advocate_email: string
+          advocate_name: string | null
+          attorney_user_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          matter_id: string
+          status: string
+          token_hash: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_email: string
+          advocate_name?: string | null
+          attorney_user_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          matter_id: string
+          status?: string
+          token_hash: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          advocate_email?: string
+          advocate_name?: string | null
+          attorney_user_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          matter_id?: string
+          status?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matter_advocate_invitations_matter_id_fkey"
+            columns: ["matter_id"]
+            isOneToOne: false
+            referencedRelation: "matters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matter_advocates: {
+        Row: {
+          advocate_email: string | null
+          advocate_name: string | null
+          advocate_user_id: string
+          created_at: string
+          granted_by: string
+          id: string
+          matter_id: string
+          revoked_at: string | null
+        }
+        Insert: {
+          advocate_email?: string | null
+          advocate_name?: string | null
+          advocate_user_id: string
+          created_at?: string
+          granted_by: string
+          id?: string
+          matter_id: string
+          revoked_at?: string | null
+        }
+        Update: {
+          advocate_email?: string | null
+          advocate_name?: string | null
+          advocate_user_id?: string
+          created_at?: string
+          granted_by?: string
+          id?: string
+          matter_id?: string
+          revoked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matter_advocates_matter_id_fkey"
+            columns: ["matter_id"]
+            isOneToOne: false
+            referencedRelation: "matters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matters: {
+        Row: {
+          attorney_user_id: string
+          case_type: string | null
+          client_link_id: string | null
+          court: string | null
+          created_at: string
+          firm_id: string | null
+          id: string
+          jurisdiction: string | null
+          matter_name: string
+          matter_number: string | null
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attorney_user_id: string
+          case_type?: string | null
+          client_link_id?: string | null
+          court?: string | null
+          created_at?: string
+          firm_id?: string | null
+          id?: string
+          jurisdiction?: string | null
+          matter_name: string
+          matter_number?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          case_type?: string | null
+          client_link_id?: string | null
+          court?: string | null
+          created_at?: string
+          firm_id?: string | null
+          id?: string
+          jurisdiction?: string | null
+          matter_name?: string
+          matter_number?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matters_client_link_id_fkey"
+            columns: ["client_link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matters_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "firms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_threads: {
         Row: {
           attorney_summary: string | null
@@ -2605,6 +2868,7 @@ export type Database = {
       }
       org_access_requests: {
         Row: {
+          contact_consent: boolean
           contact_name: string
           contact_role: string | null
           created_at: string
@@ -2612,13 +2876,18 @@ export type Database = {
           id: string
           message: string | null
           org_name: string
+          org_type: string | null
+          phone: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          service_area: string | null
           status: string
           survivors_per_month: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
+          contact_consent?: boolean
           contact_name: string
           contact_role?: string | null
           created_at?: string
@@ -2626,13 +2895,18 @@ export type Database = {
           id?: string
           message?: string | null
           org_name: string
+          org_type?: string | null
+          phone?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          service_area?: string | null
           status?: string
           survivors_per_month?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
+          contact_consent?: boolean
           contact_name?: string
           contact_role?: string | null
           created_at?: string
@@ -2640,11 +2914,15 @@ export type Database = {
           id?: string
           message?: string | null
           org_name?: string
+          org_type?: string | null
+          phone?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          service_area?: string | null
           status?: string
           survivors_per_month?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -2830,6 +3108,7 @@ export type Database = {
           id: string
           model: string | null
           sort_key: string | null
+          sort_key_kind: string | null
           source_evidence_ids: string[]
           source_summary: string | null
           status: string
@@ -2846,6 +3125,7 @@ export type Database = {
           id?: string
           model?: string | null
           sort_key?: string | null
+          sort_key_kind?: string | null
           source_evidence_ids?: string[]
           source_summary?: string | null
           status?: string
@@ -2862,6 +3142,7 @@ export type Database = {
           id?: string
           model?: string | null
           sort_key?: string | null
+          sort_key_kind?: string | null
           source_evidence_ids?: string[]
           source_summary?: string | null
           status?: string
@@ -3545,19 +3826,28 @@ export type Database = {
       }
       user_terms_acceptance: {
         Row: {
+          account_type: string
           created_at: string
+          id: string
+          privacy_version: string
           terms_accepted_at: string
           terms_version: string
           user_id: string
         }
         Insert: {
+          account_type?: string
           created_at?: string
+          id?: string
+          privacy_version?: string
           terms_accepted_at?: string
           terms_version: string
           user_id: string
         }
         Update: {
+          account_type?: string
           created_at?: string
+          id?: string
+          privacy_version?: string
           terms_accepted_at?: string
           terms_version?: string
           user_id?: string
@@ -3649,20 +3939,8 @@ export type Database = {
         Args: { p_email: string; p_token_hash: string; p_user_id: string }
         Returns: string
       }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
-      }
-      firm_peer_user_ids: { Args: never; Returns: string[] }
-      is_firm_owner: { Args: { _firm_id: string }; Returns: boolean }
-      is_org_owner: { Args: { _org_id: string }; Returns: boolean }
-      list_my_oauth_consents: {
-        Args: never
+      admin_list_oauth_consents: {
+        Args: { p_user_id: string }
         Returns: {
           client_id: string
           client_name: string
@@ -3672,6 +3950,21 @@ export type Database = {
           scopes: string
         }[]
       }
+      admin_revoke_oauth_consent: {
+        Args: { _consent_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      delete_email: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      email_queue_dispatch: { Args: never; Returns: undefined }
+      enqueue_email: {
+        Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
+      is_firm_owner: { Args: { _firm_id: string }; Returns: boolean }
+      is_org_owner: { Args: { _org_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -3681,9 +3974,6 @@ export type Database = {
         }
         Returns: number
       }
-      my_firm_id: { Args: never; Returns: string }
-      my_org_id: { Args: never; Returns: string }
-      org_peer_user_ids: { Args: never; Returns: string[] }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -3703,10 +3993,6 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
-      }
-      revoke_my_oauth_consent: {
-        Args: { _consent_id: string }
-        Returns: boolean
       }
     }
     Enums: {
@@ -3743,12 +4029,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3772,11 +4058,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3797,11 +4083,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3822,11 +4108,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3839,11 +4125,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

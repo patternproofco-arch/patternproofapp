@@ -14,6 +14,7 @@ If you discover a security vulnerability in PatternProof, please report it respo
 **Subject line:** `[SECURITY] Vulnerability Report — PatternProof`
 
 Please include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact
@@ -27,12 +28,12 @@ We will acknowledge your report within 48 hours and provide a remediation timeli
 
 ## Severity-Based Remediation Timelines
 
-| Severity | Definition | Target Remediation |
-|----------|------------|-------------------|
+| Severity     | Definition                                                | Target Remediation          |
+| ------------ | --------------------------------------------------------- | --------------------------- |
 | **Critical** | Active exploit, data breach, auth bypass, exposed secrets | Immediate — within 24 hours |
-| **High** | Significant risk to user data or platform integrity | Within 48 hours |
-| **Medium** | Limited impact, no active exploit, mitigations possible | Within 7 business days |
-| **Low** | Minimal risk, informational, hardening improvements | Within 30 days |
+| **High**     | Significant risk to user data or platform integrity       | Within 48 hours             |
+| **Medium**   | Limited impact, no active exploit, mitigations possible   | Within 7 business days      |
+| **Low**      | Minimal risk, informational, hardening improvements       | Within 30 days              |
 
 These timelines apply to both externally reported vulnerabilities and internally detected issues.
 
@@ -64,6 +65,7 @@ npm audit --json
 ### Key Dependencies to Monitor
 
 Given the sensitivity of this platform, pay particular attention to vulnerabilities in:
+
 - `@supabase/supabase-js` — database and auth
 - `@stripe/stripe-js` / `stripe` — payment processing
 - `react` / `react-dom` — frontend framework
@@ -85,6 +87,7 @@ If this project is connected to GitHub:
 4. Review Dependabot PRs within the remediation timelines above — do not let them accumulate
 
 If GitHub is not connected, subscribe to security advisories manually:
+
 - [GitHub Advisory Database](https://github.com/advisories)
 - [npm Security Advisories](https://www.npmjs.com/advisories)
 
@@ -94,9 +97,9 @@ If GitHub is not connected, subscribe to security advisories manually:
 
 Track all identified vulnerabilities and their resolution here. Add a new entry for each issue.
 
-| Date | Severity | Package / Component | CVE / Description | Status | Resolved Date |
-|------|----------|---------------------|-------------------|--------|---------------|
-| — | — | — | No vulnerabilities logged yet | — | — |
+| Date | Severity | Package / Component | CVE / Description             | Status | Resolved Date |
+| ---- | -------- | ------------------- | ----------------------------- | ------ | ------------- |
+| —    | —        | —                   | No vulnerabilities logged yet | —      | —             |
 
 **How to log:** When a vulnerability is identified (via audit, Dependabot, or report), add a row immediately — even before it is resolved. Update the Status column as work progresses: `Identified → In Progress → Resolved`.
 
@@ -127,11 +130,13 @@ For **critical/high severity patches**, the test cycle above is still required �
 Run this checklist before each production deployment:
 
 ### Dependency Scanning
+
 - [ ] Run `bun audit` — no critical or high vulnerabilities outstanding
 - [ ] Dependabot alerts reviewed (if GitHub connected)
 - [ ] No new packages added without vetting the publisher and download count
 
 ### Supabase
+
 - [ ] Supabase dashboard checked for security alerts or warnings
 - [ ] Row Level Security (RLS) enabled on all tables containing user data
 - [ ] No public Supabase tables that should be private
@@ -139,17 +144,20 @@ Run this checklist before each production deployment:
 - [ ] Auth settings reviewed — email confirmation enabled, weak password protection on
 
 ### Hosting / Lovable / Cloudflare
+
 - [ ] No secrets or API keys committed to the repository
 - [ ] Environment variables set in Lovable/Cloudflare dashboard, not in code
 - [ ] Preview deployments are not publicly indexed (check robots.txt)
 - [ ] HTTPS enforced — no mixed content warnings
 
 ### Stripe
+
 - [ ] Live Stripe keys are NOT in any client-side code
 - [ ] Test mode keys are not deployed to production
 - [ ] Stripe webhook signature verification is implemented
 
 ### Vendor Security Notifications
+
 - [ ] Check email (gracieburns200@gmail.com) for security notices from:
   - Lovable
   - Supabase
@@ -159,11 +167,13 @@ Run this checklist before each production deployment:
 - [ ] Any vendor security notices actioned or scheduled
 
 ### Critical / High Vulnerability Patching
+
 - [ ] All Critical CVEs resolved before this deployment
 - [ ] All High CVEs resolved or a written exception logged in the Vulnerability Log above
 - [ ] Exception rationale documented if a High CVE is being deferred
 
 ### Pre-Deployment Testing
+
 - [ ] Sign in / PIN works
 - [ ] Incident log creates and saves correctly
 - [ ] Evidence upload functions (photo, PDF, message export)
@@ -177,12 +187,14 @@ Run this checklist before each production deployment:
 ## Secrets Management
 
 **Never commit the following to the repository:**
+
 - Supabase service role key
 - Stripe secret key (live or test)
 - Any API key for Anthropic, OpenAI, or other AI providers
 - Any third-party OAuth secrets
 
 All secrets must be stored in:
+
 - Lovable environment variables (for Lovable-hosted builds)
 - Cloudflare environment variables / secrets (for Cloudflare Workers/Pages)
 

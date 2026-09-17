@@ -110,6 +110,8 @@ export function FrequencyObservations({ compact = false }: { compact?: boolean }
       </ul>
       <p className="mt-3 text-[11px]" style={{ color: "#3A3849" }}>
         Counts and timeframes only. These are not conclusions, and they say nothing about anyone.
+        Counts of messages or evidence files are labelled as such — several files kept with one
+        event still count as one event.
       </p>
     </div>
   );

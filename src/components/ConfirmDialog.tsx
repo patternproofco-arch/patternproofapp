@@ -51,7 +51,10 @@ export function ConfirmDialog({
           {title}
         </h2>
         {body && (
-          <p className="mt-2 text-[14px]" style={{ color: "var(--muted-foreground)", lineHeight: 1.55 }}>
+          <p
+            className="mt-2 text-[14px]"
+            style={{ color: "var(--muted-foreground)", lineHeight: 1.55 }}
+          >
             {body}
           </p>
         )}

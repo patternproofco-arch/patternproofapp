@@ -9,6 +9,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Solo gets a flat cap; a firm's seats share one pool at the same
  * per-attorney rate, scaled by how many colleagues are actually seated
  * (via the trusted firm_members table, not a self-editable field).
+ *
+ * Counts rows in the `matters` table (status = 'open') — the attorney's
+ * explicit matter/case-file records — not `attorney_client_links`, which is
+ * just a survivor's file-sharing grant and can outnumber actual matters.
  */
 export const SOLO_MATTER_CAP = 10;
 export const MATTER_CAP_PER_SEAT = 10;
@@ -25,10 +29,10 @@ export async function assertMatterCapacity(
 
   if (!membership) {
     const { count } = await supabaseAdmin
-      .from("attorney_client_links")
+      .from("matters")
       .select("id", { count: "exact", head: true })
       .eq("attorney_user_id", attorneyUserId)
-      .eq("status", "active");
+      .eq("status", "open");
     if ((count ?? 0) >= SOLO_MATTER_CAP) {
       throw new Error(
         `You've reached the ${SOLO_MATTER_CAP}-matter limit for a Solo Attorney account.`,
@@ -44,10 +48,10 @@ export async function assertMatterCapacity(
   const memberIds = (colleagues ?? []).map((c) => c.user_id as string);
   const cap = MATTER_CAP_PER_SEAT * Math.max(1, memberIds.length);
   const { count } = await supabaseAdmin
-    .from("attorney_client_links")
+    .from("matters")
     .select("id", { count: "exact", head: true })
     .in("attorney_user_id", memberIds)
-    .eq("status", "active");
+    .eq("status", "open");
   if ((count ?? 0) >= cap) {
     throw new Error(
       `This firm has reached its active-matter limit (${cap}, based on ${memberIds.length} seat${memberIds.length === 1 ? "" : "s"}).`,

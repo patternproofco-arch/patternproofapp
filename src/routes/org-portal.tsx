@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { OrgTeamSettings } from "@/components/team/OrgTeamSettings";
+import { OrgOversight } from "@/components/org/OrgOversight";
 import { ThreadGroup } from "@/components/ThreadConnector";
 import {
   getMyOrgPartnerStats,
@@ -99,7 +100,12 @@ function OrgPortal() {
           Let's set up your organization.
         </h1>
         <p
-          style={{ color: "var(--muted-foreground)", fontSize: 14, maxWidth: 480, marginBottom: 20 }}
+          style={{
+            color: "var(--muted-foreground)",
+            fontSize: 14,
+            maxWidth: 480,
+            marginBottom: 20,
+          }}
         >
           Your partner account is ready, but it isn't linked to an organization yet — that's
           expected for a brand-new advocate account. Set up your organization to get your referral
@@ -229,6 +235,7 @@ function OrgPortal() {
       </Section>
 
       <OrgTeamSettings />
+      <OrgOversight />
     </Shell>
   );
 }

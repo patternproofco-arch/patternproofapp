@@ -1,0 +1,103 @@
+/* Role accents + one iridescent wavy thread. */
+
+:root,
+[data-persona] {
+  --pp-thread-iridescent: linear-gradient(
+    180deg,
+    var(--pp-iridescent-violet) 0%,
+    var(--pp-iridescent-teal) 38%,
+    var(--pp-iridescent-pink) 72%,
+    var(--pp-iridescent-violet) 100%
+  );
+  --pp-thread-iridescent-h: linear-gradient(
+    90deg,
+    var(--pp-iridescent-violet) 0%,
+    var(--pp-iridescent-teal) 38%,
+    var(--pp-iridescent-pink) 72%,
+    var(--pp-iridescent-violet) 100%
+  );
+  /* One S-curve stretched the full height — not a tiled repeat. */
+  --pp-thread-mask-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='200' viewBox='0 0 32 200' fill='none' preserveAspectRatio='none'%3E%3Cpath d='M16 0 C28 28 4 56 16 84 C28 112 4 140 16 168 C22 184 16 192 16 200' stroke='black' stroke-width='1.6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+  --pp-thread-mask-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='32' viewBox='0 0 200 32' fill='none' preserveAspectRatio='none'%3E%3Cpath d='M0 16 C28 4 56 28 84 16 C112 4 140 28 168 16 C184 10 192 16 200 16' stroke='black' stroke-width='1.6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+}
+
+[data-persona="attorney"] {
+  --pp-accent-attorney: var(--purple);
+  --pp-accent: var(--purple);
+  --pp-thread-accent: var(--purple);
+  --primary: var(--purple);
+  --accent: var(--purple);
+}
+
+[data-persona="org"] {
+  --pp-accent-org: var(--pp-sage);
+  --pp-accent: var(--pp-sage);
+  --pp-thread-accent: var(--pp-sage);
+  --primary: var(--pp-sage);
+  --accent: var(--pp-sage);
+}
+
+[data-persona="survivor"] {
+  --pp-accent-survivor: var(--pp-iridescent-violet);
+  --pp-accent: var(--pp-iridescent-violet);
+  --pp-thread-accent: var(--pp-iridescent-violet);
+  --primary: var(--pp-iridescent-violet);
+  --accent: var(--pp-iridescent-violet);
+}
+
+[data-persona="shared"] {
+  --pp-accent-shared: var(--pp-iridescent-teal);
+  --pp-accent: var(--pp-iridescent-teal);
+  --pp-thread-accent: var(--pp-iridescent-teal);
+  --primary: var(--pp-iridescent-teal);
+  --accent: var(--pp-iridescent-teal);
+}
+
+.pp-card-thread {
+  position: relative;
+  padding-left: 36px;
+}
+.pp-card-thread::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 24px;
+  bottom: 24px;
+  width: 32px;
+  pointer-events: none;
+  background: var(--pp-thread-iridescent);
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 32px 100%;
+  mask-size: 32px 100%;
+  opacity: 0.95;
+}
+.pp-card-thread > .card-pp {
+  position: relative;
+}
+.pp-card-thread > .card-pp::before {
+  content: "";
+  position: absolute;
+  left: -30px;
+  top: 18px;
+  width: 18px;
+  height: 18px;
+  border-radius: 99px;
+  background: #fff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--pp-iridescent-violet) 40%, white);
+  z-index: 1;
+}
+
+.pp-thread-row:not(:last-child)::after {
+  width: 32px;
+  left: 14px;
+  background: var(--pp-thread-iridescent);
+  -webkit-mask-image: var(--pp-thread-mask-v);
+  mask-image: var(--pp-thread-mask-v);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 32px 100%;
+  mask-size: 32px 100%;
+}

@@ -8,12 +8,7 @@ import type { ChangeEvent } from "react";
  * same choices and store the same values.
  */
 export type DatePrecision =
-  | "exact"
-  | "approximate_month"
-  | "range"
-  | "before_anchor"
-  | "after_anchor"
-  | "unknown";
+  "exact" | "approximate_month" | "range" | "before_anchor" | "after_anchor" | "unknown";
 
 export interface DateCertaintyValue {
   date_precision: DatePrecision;
@@ -51,7 +46,8 @@ const OPTIONS: Array<{ value: DatePrecision; label: string }> = [
  */
 export function deriveSortDate(v: DateCertaintyValue): string | null {
   if (v.date_precision === "exact") return v.date || null;
-  if (v.date_precision === "approximate_month") return v.approx_month ? `${v.approx_month}-15` : null;
+  if (v.date_precision === "approximate_month")
+    return v.approx_month ? `${v.approx_month}-15` : null;
   if (v.date_precision === "range") return v.date_range_start || v.date_range_end || null;
   return null;
 }
@@ -94,21 +90,32 @@ interface Props {
   compact?: boolean;
 }
 
-export function DateCertaintyField({ value, onChange, label = "When did this happen?", compact }: Props) {
+export function DateCertaintyField({
+  value,
+  onChange,
+  label = "When did this happen?",
+  compact,
+}: Props) {
   const set = (patch: Partial<DateCertaintyValue>) => onChange({ ...value, ...patch });
   const handle =
-    (key: keyof DateCertaintyValue) =>
-    (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    (key: keyof DateCertaintyValue) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       set({ [key]: e.target.value } as Partial<DateCertaintyValue>);
-  const anchored = value.date_precision === "before_anchor" || value.date_precision === "after_anchor";
+  const anchored =
+    value.date_precision === "before_anchor" || value.date_precision === "after_anchor";
 
   return (
     <div className="space-y-2">
       <div>
         <label className="label-eyebrow">{label}</label>
-        <select value={value.date_precision} onChange={handle("date_precision")} className="input-pp mt-1">
+        <select
+          value={value.date_precision}
+          onChange={handle("date_precision")}
+          className="input-pp mt-1"
+        >
           {OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
           ))}
         </select>
         {!compact && (
@@ -121,14 +128,24 @@ export function DateCertaintyField({ value, onChange, label = "When did this hap
       {value.date_precision === "exact" && (
         <div>
           <label className="label-eyebrow">Date</label>
-          <input type="date" value={value.date} onChange={handle("date")} className="input-pp mt-1" />
+          <input
+            type="date"
+            value={value.date}
+            onChange={handle("date")}
+            className="input-pp mt-1"
+          />
         </div>
       )}
 
       {value.date_precision === "approximate_month" && (
         <div>
           <label className="label-eyebrow">Month</label>
-          <input type="month" value={value.approx_month} onChange={handle("approx_month")} className="input-pp mt-1" />
+          <input
+            type="month"
+            value={value.approx_month}
+            onChange={handle("approx_month")}
+            className="input-pp mt-1"
+          />
         </div>
       )}
 
@@ -136,11 +153,21 @@ export function DateCertaintyField({ value, onChange, label = "When did this hap
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label-eyebrow">From</label>
-            <input type="date" value={value.date_range_start} onChange={handle("date_range_start")} className="input-pp mt-1" />
+            <input
+              type="date"
+              value={value.date_range_start}
+              onChange={handle("date_range_start")}
+              className="input-pp mt-1"
+            />
           </div>
           <div>
             <label className="label-eyebrow">To</label>
-            <input type="date" value={value.date_range_end} onChange={handle("date_range_end")} className="input-pp mt-1" />
+            <input
+              type="date"
+              value={value.date_range_end}
+              onChange={handle("date_range_end")}
+              className="input-pp mt-1"
+            />
           </div>
         </div>
       )}
@@ -162,7 +189,8 @@ export function DateCertaintyField({ value, onChange, label = "When did this hap
 
       {value.date_precision === "unknown" && (
         <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          This will be kept with your undated records. You can add a date later if it comes back to you.
+          This will be kept with your undated records. You can add a date later if it comes back to
+          you.
         </p>
       )}
     </div>

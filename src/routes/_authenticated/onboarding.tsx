@@ -17,7 +17,8 @@ import { QuickExitButton } from "@/components/QuickExitButton";
 import { BrandMark } from "@/components/BrandMark";
 import { toast } from "sonner";
 import { US_STATES } from "@/lib/state-resources";
-import { TERMS_VERSION } from "@/routes/terms";
+import { completeSurvivorOnboarding } from "@/lib/legal-consent.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
@@ -34,6 +35,7 @@ function Onboarding() {
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreeLegalUse, setAgreeLegalUse] = useState(false);
+  const completeOnboarding = useServerFn(completeSurvivorOnboarding);
 
   const ready = agreePrivacy && agreeTerms && agreeLegalUse;
 
@@ -44,33 +46,48 @@ function Onboarding() {
     }
     setBusy(true);
     try {
+      // Fail closed before any server write if the browser session is gone —
+      // avoids calling the serverFn without a bearer token.
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("Your session expired. Please sign in again to finish setup.");
+      }
+
+      await completeOnboarding({
+        data: { accepted: true, state, city: city.trim() },
+      });
+
+      // Refresh so local user_metadata picks up onboarding_complete from the
+      // admin write (client updateUser is no longer used for this path).
+      await supabase.auth.refreshSession().catch(() => undefined);
+
       if (pin.length === 4) await setRealPin(pin);
       update({ state, city: city.trim(), onboarded: true });
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      await Promise.all([
-        supabase.auth.updateUser({
-          data: {
-            onboarding_complete: true,
-            state,
-            city: city.trim(),
-            agreed_privacy_at: new Date().toISOString(),
-            agreed_terms_at: new Date().toISOString(),
-            acknowledged_legal_use_at: new Date().toISOString(),
-          },
-        }),
-        // Queryable record of consent, separate from the auth metadata above —
-        // this is what lets a weekly report check whether a given signup ever
-        // accepted terms, which user_metadata can't be joined against.
-        user
-          ? supabase.from("user_terms_acceptance").insert({
-              user_id: user.id,
-              terms_version: TERMS_VERSION,
-            })
-          : Promise.resolve(),
-      ]);
+
+      // If they arrived from an invite link, take them back to finish it.
+      let returnTo: string | null = null;
+      try {
+        returnTo = sessionStorage.getItem("pp_return_to");
+        sessionStorage.removeItem("pp_return_to");
+      } catch {
+        returnTo = null;
+      }
+      if (returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")) {
+        window.location.replace(returnTo);
+        return;
+      }
       navigate({ to: "/dashboard", replace: true });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "We could not securely save your acceptance. Please try again.";
+      const needsReauth = /session|unauthorized|sign in again/i.test(message);
+      toast.error(
+        needsReauth
+          ? "Your session expired. Please sign in again to finish setup."
+          : message,
+      );
     } finally {
       setBusy(false);
     }
@@ -205,8 +222,8 @@ function Onboarding() {
             </li>
           </ul>
           <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-            Nothing leaves your account until you choose to share it. You control who gets access,
-            and you can revoke it at any time.
+            Share only what you choose. You decide who gets access, and you can revoke it at any
+            time.
           </p>
         </StepCard>
 

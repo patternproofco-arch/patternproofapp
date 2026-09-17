@@ -25,13 +25,17 @@ function parseCsvLine(line: string): string[] {
   for (let i = 0; i < line.length; i++) {
     const c = line[i];
     if (inQ) {
-      if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
-      else if (c === '"') inQ = false;
+      if (c === '"' && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else if (c === '"') inQ = false;
       else cur += c;
     } else {
       if (c === '"') inQ = true;
-      else if (c === ",") { out.push(cur); cur = ""; }
-      else cur += c;
+      else if (c === ",") {
+        out.push(cur);
+        cur = "";
+      } else cur += c;
     }
   }
   out.push(cur);
@@ -47,7 +51,10 @@ function pickHeader(headers: string[], names: string[]): number {
   return -1;
 }
 
-function normalizeDate(input: string | null | undefined): { date: string | null; time: string | null } {
+function normalizeDate(input: string | null | undefined): {
+  date: string | null;
+  time: string | null;
+} {
   if (!input) return { date: null, time: null };
   const s = input.trim();
   if (!s) return { date: null, time: null };
@@ -97,7 +104,8 @@ function parseCsv(text: string): ParsedMessage[] {
 // 2024-05-12 21:14 - John: Hey
 function parseTxt(text: string): ParsedMessage[] {
   const lines = text.split(/\r?\n/);
-  const re = /^[\[(]?\s*(\d{1,4}[-/]\d{1,2}[-/]\d{1,4})[, ]+(\d{1,2}:\d{2}(?:\s?[APap][Mm])?)\s*[\])]?\s*[-–:]?\s*([^:]{1,80}?):\s*(.*)$/;
+  const re =
+    /^[[(]?\s*(\d{1,4}[-/]\d{1,2}[-/]\d{1,4})[, ]+(\d{1,2}:\d{2}(?:\s?[APap][Mm])?)\s*[\])]?\s*[-–:]?\s*([^:]{1,80}?):\s*(.*)$/;
   const out: ParsedMessage[] = [];
   let pos = 0;
   let current: ParsedMessage | null = null;
@@ -150,10 +158,13 @@ async function runAiAnalysis(messages: ParsedMessage[]): Promise<{
 } | null> {
   const key = process.env.LOVABLE_API_KEY;
   if (!key || messages.length === 0) return null;
-  const sample = messages.slice(0, 200).map((m, i) => {
-    const when = [m.sent_on, m.sent_at_time].filter(Boolean).join(" ");
-    return `${i + 1}. [${when || "?"}] ${m.sender || "?"}: ${(m.body || "").slice(0, 600)}`;
-  }).join("\n");
+  const sample = messages
+    .slice(0, 200)
+    .map((m, i) => {
+      const when = [m.sent_on, m.sent_at_time].filter(Boolean).join(" ");
+      return `${i + 1}. [${when || "?"}] ${m.sender || "?"}: ${(m.body || "").slice(0, 600)}`;
+    })
+    .join("\n");
 
   try {
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -163,13 +174,16 @@ async function runAiAnalysis(messages: ParsedMessage[]): Promise<{
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: FLAG_SYSTEM },
-          { role: "user", content: `Conversation export (${messages.length} messages, showing up to 200):\n\n${sample}` },
+          {
+            role: "user",
+            content: `Conversation export (${messages.length} messages, showing up to 200):\n\n${sample}`,
+          },
         ],
         response_format: { type: "json_object" },
       }),
     });
     if (!res.ok) return null;
-    const j = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const content = j.choices?.[0]?.message?.content;
     if (!content) return null;
     const parsed = JSON.parse(content) as {
@@ -193,11 +207,13 @@ async function runAiAnalysis(messages: ParsedMessage[]): Promise<{
 export const parseMessageThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      threadId: z.string().uuid(),
-      signedUrl: z.string().url().max(2000),
-      sourceType: z.enum(["pdf", "csv", "excel", "txt", "rsmf", "zip"]),
-    }).parse(input),
+    z
+      .object({
+        threadId: z.string().uuid(),
+        signedUrl: z.string().url().max(2000),
+        sourceType: z.enum(["pdf", "csv", "excel", "txt", "rsmf", "zip"]),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -231,7 +247,8 @@ export const parseMessageThread = createServerFn({ method: "POST" })
       } else {
         // PDF / Excel / RSMF / ZIP: deep parsing is queued. File is safely stored.
         status = "queued";
-        parseError = "This export format is stored securely. Structured parsing for this file type is in active development — your conversation will be available in your timeline shortly.";
+        parseError =
+          "This export format is stored securely. Structured parsing for this file type is in active development — your conversation will be available in your timeline shortly.";
       }
     } catch (e) {
       status = "failed";
@@ -240,7 +257,9 @@ export const parseMessageThread = createServerFn({ method: "POST" })
 
     if (parsed.length === 0 && status === "parsed") {
       status = "partial";
-      parseError = parseError ?? "No messages could be detected in this file. You can still link it as evidence.";
+      parseError =
+        parseError ??
+        "No messages could be detected in this file. You can still link it as evidence.";
     }
 
     // Insert parsed messages
@@ -262,7 +281,11 @@ export const parseMessageThread = createServerFn({ method: "POST" })
       for (let i = 0; i < rows.length; i += 500) {
         const slice = rows.slice(i, i + 500);
         const { error: insErr } = await supabase.from("thread_messages").insert(slice);
-        if (insErr) { status = "partial"; parseError = insErr.message; break; }
+        if (insErr) {
+          status = "partial";
+          parseError = insErr.message;
+          break;
+        }
       }
     }
 
@@ -320,13 +343,21 @@ export const parseMessageThread = createServerFn({ method: "POST" })
 // parsed text is a searchable index labeled AI-extracted — unverified.
 // -----------------------------------------------------------------------------
 
-interface StitchBubble { sender: string | null; timestamp: string | null; text: string; }
+interface StitchBubble {
+  sender: string | null;
+  timestamp: string | null;
+  text: string;
+}
 
 const STITCH_SYSTEM = `You are reading a screenshot of a text/chat conversation. Return STRICT JSON only.
 Schema: { "bubbles": [ { "sender": "string or null", "timestamp": "string or null (as it appears)", "text": "string" } ] }
 Order bubbles top-to-bottom as they appear. Never invent content. If a value is unclear, use null.`;
 
-async function extractBubblesFromImage(signedUrl: string, mimeType: string, key: string): Promise<StitchBubble[]> {
+async function extractBubblesFromImage(
+  signedUrl: string,
+  mimeType: string,
+  key: string,
+): Promise<StitchBubble[]> {
   try {
     assertSupabaseStorageUrl(signedUrl);
     const r = await fetch(signedUrl);
@@ -341,26 +372,35 @@ async function extractBubblesFromImage(signedUrl: string, mimeType: string, key:
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: STITCH_SYSTEM },
-          { role: "user", content: [
-            { type: "text", text: "Extract every visible message bubble from this screenshot." },
-            { type: "image_url", image_url: { url: dataUri } },
-          ] },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Extract every visible message bubble from this screenshot." },
+              { type: "image_url", image_url: { url: dataUri } },
+            ],
+          },
         ],
         response_format: { type: "json_object" },
       }),
     });
     if (!res.ok) return [];
-    const j = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const raw = j.choices?.[0]?.message?.content ?? "";
     const parsed = JSON.parse(raw) as { bubbles?: StitchBubble[] };
-    return Array.isArray(parsed.bubbles) ? parsed.bubbles.filter((b) => b && typeof b.text === "string") : [];
+    return Array.isArray(parsed.bubbles)
+      ? parsed.bubbles.filter((b) => b && typeof b.text === "string")
+      : [];
   } catch {
     return [];
   }
 }
 
 function normText(s: string): string {
-  return s.toLowerCase().replace(/\s+/g, " ").replace(/[^a-z0-9 ]/g, "").trim();
+  return s
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[^a-z0-9 ]/g, "")
+    .trim();
 }
 
 function bubbleOverlap(a: StitchBubble, b: StitchBubble): number {
@@ -375,7 +415,9 @@ function bubbleOverlap(a: StitchBubble, b: StitchBubble): number {
   const ta = new Set(na.split(" "));
   const tb = new Set(nb.split(" "));
   let inter = 0;
-  ta.forEach((t) => { if (tb.has(t)) inter += 1; });
+  ta.forEach((t) => {
+    if (tb.has(t)) inter += 1;
+  });
   const union = ta.size + tb.size - inter;
   return union === 0 ? 0 : inter / union;
 }
@@ -404,12 +446,16 @@ function dedupAcrossScreenshots(perImage: StitchBubble[][]): StitchBubble[] {
 
 export const stitchScreenshotThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({
-    screenshotPaths: z.array(z.string().min(1)).min(1).max(60),
-    capturedAt: z.string().datetime().optional(),
-    captureNotes: z.string().max(500).optional(),
-    participantHint: z.string().max(200).optional(),
-  }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({
+        screenshotPaths: z.array(z.string().min(1)).min(1).max(60),
+        capturedAt: z.string().datetime().optional(),
+        captureNotes: z.string().max(500).optional(),
+        participantHint: z.string().max(200).optional(),
+      })
+      .parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const key = process.env.LOVABLE_API_KEY;
@@ -440,24 +486,36 @@ export const stitchScreenshotThread = createServerFn({ method: "POST" })
     const perImage: StitchBubble[][] = [];
     const shaList: string[] = [];
     for (const path of data.screenshotPaths) {
-      const { data: signed } = await supabase.storage.from("evidence-files").createSignedUrl(path, 600);
-      if (!signed?.signedUrl) { perImage.push([]); continue; }
+      const { data: signed } = await supabase.storage
+        .from("evidence-files")
+        .createSignedUrl(path, 600);
+      if (!signed?.signedUrl) {
+        perImage.push([]);
+        continue;
+      }
       // hash the file for the audit meta
       try {
         const r = await fetch(signed.signedUrl);
         const buf = Buffer.from(await r.arrayBuffer());
         shaList.push(createHash("sha256").update(buf).digest("hex"));
-      } catch { /* ignore */ }
-      const mime = /\.png$/i.test(path) ? "image/png" : /\.webp$/i.test(path) ? "image/webp" : "image/jpeg";
+      } catch {
+        /* ignore */
+      }
+      const mime = /\.png$/i.test(path)
+        ? "image/png"
+        : /\.webp$/i.test(path)
+          ? "image/webp"
+          : "image/jpeg";
       const bubbles = await extractBubblesFromImage(signed.signedUrl, mime, key);
       perImage.push(bubbles);
     }
 
     const merged = dedupAcrossScreenshots(perImage);
     let status: "parsed" | "partial" = merged.length > 0 ? "parsed" : "partial";
-    let parseError: string | null = merged.length === 0
-      ? "We couldn't read any messages from these screenshots. Your original images are safely stored — you can still work with them as evidence."
-      : null;
+    let parseError: string | null =
+      merged.length === 0
+        ? "We couldn't read any messages from these screenshots. Your original images are safely stored — you can still work with them as evidence."
+        : null;
 
     if (merged.length > 0) {
       const rows = merged.map((b, i) => ({
@@ -475,14 +533,23 @@ export const stitchScreenshotThread = createServerFn({ method: "POST" })
       }));
       for (let i = 0; i < rows.length; i += 500) {
         const { error } = await supabase.from("thread_messages").insert(rows.slice(i, i + 500));
-        if (error) { status = "partial"; parseError = error.message; break; }
+        if (error) {
+          status = "partial";
+          parseError = error.message;
+          break;
+        }
       }
     }
 
     // Best-effort AI summary/flags — reuse the same conversation-analysis pipeline
     const asParsed = merged.map((b, i) => ({
-      position: i + 1, sender: b.sender ?? null, recipient: null,
-      sent_on: null, sent_at_time: null, body: b.text, attachment_name: null,
+      position: i + 1,
+      sender: b.sender ?? null,
+      recipient: null,
+      sent_on: null,
+      sent_at_time: null,
+      body: b.text,
+      attachment_name: null,
     }));
     const ai = asParsed.length > 0 ? await runAiAnalysis(asParsed) : null;
 
@@ -525,21 +592,27 @@ export const stitchScreenshotThread = createServerFn({ method: "POST" })
 
 export const ingestRecordedThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({
-    videoPath: z.string().min(1),
-    filename: z.string().max(300),
-    durationSec: z.number().int().nonnegative().optional(),
-    capturedAt: z.string().datetime().optional(),
-    captureNotes: z.string().max(500).optional(),
-    participantHint: z.string().max(200).optional(),
-  }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({
+        videoPath: z.string().min(1),
+        filename: z.string().max(300),
+        durationSec: z.number().int().nonnegative().optional(),
+        capturedAt: z.string().datetime().optional(),
+        captureNotes: z.string().max(500).optional(),
+        participantHint: z.string().max(200).optional(),
+      })
+      .parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
     // hash the video for audit
     let sha: string | null = null;
     try {
-      const { data: signed } = await supabase.storage.from("evidence-files").createSignedUrl(data.videoPath, 600);
+      const { data: signed } = await supabase.storage
+        .from("evidence-files")
+        .createSignedUrl(data.videoPath, 600);
       if (signed?.signedUrl) {
         const r = await fetch(signed.signedUrl);
         const buf = Buffer.from(await r.arrayBuffer());
@@ -547,7 +620,9 @@ export const ingestRecordedThread = createServerFn({ method: "POST" })
           sha = createHash("sha256").update(buf).digest("hex");
         }
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     const { data: inserted, error: insErr } = await supabase
       .from("message_threads")
@@ -557,7 +632,8 @@ export const ingestRecordedThread = createServerFn({ method: "POST" })
         source_filename: data.filename,
         file_url: data.videoPath,
         parse_status: "queued",
-        parse_error: "This is a screen recording — the video itself is your primary evidence. A searchable AI transcript is being generated separately and is labeled unverified until you review it.",
+        parse_error:
+          "This is a screen recording — the video itself is your primary evidence. A searchable AI transcript is being generated separately and is labeled unverified until you review it.",
         capture_method: "screen_recording" as CaptureMethod,
         captured_at: data.capturedAt ?? new Date().toISOString(),
         capture_notes: data.captureNotes ?? null,
@@ -613,7 +689,12 @@ export const transcribeRecordedThread = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .maybeSingle();
     if (rowRes.error || !rowRes.data) throw new Error("Thread not found");
-    const row = rowRes.data as { id: string; file_url: string; source_filename: string | null; capture_method: string | null };
+    const row = rowRes.data as {
+      id: string;
+      file_url: string;
+      source_filename: string | null;
+      capture_method: string | null;
+    };
     if (row.capture_method !== "screen_recording") {
       throw new Error("Only screen recordings are transcribed here.");
     }
@@ -636,14 +717,18 @@ export const transcribeRecordedThread = createServerFn({ method: "POST" })
     };
 
     if (!key) {
-      await failFriendly("Couldn't generate a transcript automatically. The video is still saved as your evidence.");
+      await failFriendly(
+        "Couldn't generate a transcript automatically. The video is still saved as your evidence.",
+      );
       return { ok: false as const, reason: "no_key" as const };
     }
 
     try {
       const dl = await supabase.storage.from("evidence-files").download(row.file_url);
       if (dl.error || !dl.data) {
-        await failFriendly("Couldn't generate a transcript automatically. The video is still saved as your evidence.");
+        await failFriendly(
+          "Couldn't generate a transcript automatically. The video is still saved as your evidence.",
+        );
         return { ok: false as const, reason: "download_failed" as const };
       }
       const form = new FormData();
@@ -657,13 +742,17 @@ export const transcribeRecordedThread = createServerFn({ method: "POST" })
         body: form,
       });
       if (!res.ok) {
-        await failFriendly("Couldn't generate a transcript automatically. The video is still saved as your evidence.");
+        await failFriendly(
+          "Couldn't generate a transcript automatically. The video is still saved as your evidence.",
+        );
         return { ok: false as const, reason: "api_failed" as const, status: res.status };
       }
       const json = (await res.json()) as { text?: string; segments?: Array<{ text?: string }> };
       const text = (json.text ?? (json.segments ?? []).map((s) => s.text ?? "").join(" ")).trim();
       if (!text) {
-        await failFriendly("Couldn't generate a transcript automatically. The video is still saved as your evidence.");
+        await failFriendly(
+          "Couldn't generate a transcript automatically. The video is still saved as your evidence.",
+        );
         return { ok: false as const, reason: "empty" as const };
       }
 
@@ -679,7 +768,9 @@ export const transcribeRecordedThread = createServerFn({ method: "POST" })
 
       return { ok: true as const, length: text.length };
     } catch {
-      await failFriendly("Couldn't generate a transcript automatically. The video is still saved as your evidence.");
+      await failFriendly(
+        "Couldn't generate a transcript automatically. The video is still saved as your evidence.",
+      );
       return { ok: false as const, reason: "exception" as const };
     }
   });
@@ -704,7 +795,11 @@ const CALL_LOG_SYSTEM = `You are reading a screenshot of a phone's call log / Re
 Schema: { "calls": [ { "callerLabel": "string or null (name/number)", "direction": "incoming" | "outgoing" | "missed" | "unknown", "timestampText": "string or null (as shown)", "durationText": "string or null (as shown)" } ] }
 Order top-to-bottom as shown. Missed calls typically appear in red or with an arrow icon. Never invent entries.`;
 
-async function extractCallsFromImage(signedUrl: string, mimeType: string, key: string): Promise<CallRow[]> {
+async function extractCallsFromImage(
+  signedUrl: string,
+  mimeType: string,
+  key: string,
+): Promise<CallRow[]> {
   try {
     assertSupabaseStorageUrl(signedUrl);
     const r = await fetch(signedUrl);
@@ -719,19 +814,27 @@ async function extractCallsFromImage(signedUrl: string, mimeType: string, key: s
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: CALL_LOG_SYSTEM },
-          { role: "user", content: [
-            { type: "text", text: "Extract every visible call row from this call-log screenshot." },
-            { type: "image_url", image_url: { url: dataUri } },
-          ] },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Extract every visible call row from this call-log screenshot.",
+              },
+              { type: "image_url", image_url: { url: dataUri } },
+            ],
+          },
         ],
         response_format: { type: "json_object" },
       }),
     });
     if (!res.ok) return [];
-    const j = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const raw = j.choices?.[0]?.message?.content ?? "";
     const parsed = JSON.parse(raw) as { calls?: CallRow[] };
-    return Array.isArray(parsed.calls) ? parsed.calls.filter((c) => c && typeof c === "object") : [];
+    return Array.isArray(parsed.calls)
+      ? parsed.calls.filter((c) => c && typeof c === "object")
+      : [];
   } catch {
     return [];
   }
@@ -756,10 +859,14 @@ function dedupCallRows(perImage: CallRow[][]): CallRow[] {
 }
 
 function renderCallBody(c: CallRow): string {
-  const dir = c.direction === "missed" ? "Missed call"
-    : c.direction === "incoming" ? "Incoming call"
-    : c.direction === "outgoing" ? "Outgoing call"
-    : "Call";
+  const dir =
+    c.direction === "missed"
+      ? "Missed call"
+      : c.direction === "incoming"
+        ? "Incoming call"
+        : c.direction === "outgoing"
+          ? "Outgoing call"
+          : "Call";
   const bits = [dir];
   if (c.durationText) bits.push(c.durationText);
   return `[${bits.join(" · ")}]${c.timestampText ? ` at ${c.timestampText}` : ""}`;
@@ -767,13 +874,17 @@ function renderCallBody(c: CallRow): string {
 
 export const parseCallLogPhotos = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({
-    photoPaths: z.array(z.string().min(1)).min(1).max(40),
-    platform: z.enum(["iphone", "android", "unknown"]).default("unknown"),
-    capturedAt: z.string().datetime().optional(),
-    captureNotes: z.string().max(500).optional(),
-    participantHint: z.string().max(200).optional(),
-  }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({
+        photoPaths: z.array(z.string().min(1)).min(1).max(40),
+        platform: z.enum(["iphone", "android", "unknown"]).default("unknown"),
+        capturedAt: z.string().datetime().optional(),
+        captureNotes: z.string().max(500).optional(),
+        participantHint: z.string().max(200).optional(),
+      })
+      .parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const key = process.env.LOVABLE_API_KEY;
@@ -802,23 +913,35 @@ export const parseCallLogPhotos = createServerFn({ method: "POST" })
     const perImage: CallRow[][] = [];
     const shaList: string[] = [];
     for (const path of data.photoPaths) {
-      const { data: signed } = await supabase.storage.from("evidence-files").createSignedUrl(path, 600);
-      if (!signed?.signedUrl) { perImage.push([]); continue; }
+      const { data: signed } = await supabase.storage
+        .from("evidence-files")
+        .createSignedUrl(path, 600);
+      if (!signed?.signedUrl) {
+        perImage.push([]);
+        continue;
+      }
       try {
         const r = await fetch(signed.signedUrl);
         const buf = Buffer.from(await r.arrayBuffer());
         shaList.push(createHash("sha256").update(buf).digest("hex"));
-      } catch { /* ignore */ }
-      const mime = /\.png$/i.test(path) ? "image/png" : /\.webp$/i.test(path) ? "image/webp" : "image/jpeg";
+      } catch {
+        /* ignore */
+      }
+      const mime = /\.png$/i.test(path)
+        ? "image/png"
+        : /\.webp$/i.test(path)
+          ? "image/webp"
+          : "image/jpeg";
       const calls = await extractCallsFromImage(signed.signedUrl, mime, key);
       perImage.push(calls);
     }
 
     const merged = dedupCallRows(perImage);
     let status: "parsed" | "partial" = merged.length > 0 ? "parsed" : "partial";
-    const parseError: string | null = merged.length === 0
-      ? "We couldn't read any call entries from these photos. Your original images are safely stored — you can still work with them as evidence."
-      : null;
+    const parseError: string | null =
+      merged.length === 0
+        ? "We couldn't read any call entries from these photos. Your original images are safely stored — you can still work with them as evidence."
+        : null;
 
     if (merged.length > 0) {
       const rows = merged.map((c, i) => ({
@@ -843,7 +966,10 @@ export const parseCallLogPhotos = createServerFn({ method: "POST" })
       }));
       for (let i = 0; i < rows.length; i += 500) {
         const { error } = await supabase.from("thread_messages").insert(rows.slice(i, i + 500));
-        if (error) { status = "partial"; break; }
+        if (error) {
+          status = "partial";
+          break;
+        }
       }
     }
 
@@ -851,9 +977,10 @@ export const parseCallLogPhotos = createServerFn({ method: "POST" })
     const missed = merged.filter((c) => c.direction === "missed").length;
     const incoming = merged.filter((c) => c.direction === "incoming").length;
     const outgoing = merged.filter((c) => c.direction === "outgoing").length;
-    const summary = merged.length === 0
-      ? "No call entries could be read from these images."
-      : `${merged.length} call${merged.length === 1 ? "" : "s"} extracted from the call log — ${incoming} incoming, ${outgoing} outgoing, ${missed} missed. AI-extracted from photos — unverified until you confirm.`;
+    const summary =
+      merged.length === 0
+        ? "No call entries could be read from these images."
+        : `${merged.length} call${merged.length === 1 ? "" : "s"} extracted from the call log — ${incoming} incoming, ${outgoing} outgoing, ${missed} missed. AI-extracted from photos — unverified until you confirm.`;
 
     await supabase
       .from("message_threads")
@@ -863,7 +990,17 @@ export const parseCallLogPhotos = createServerFn({ method: "POST" })
         message_count: merged.length,
         summary,
         attorney_summary: `Call log imported from ${data.platform} phone photos. ${merged.length} rows: ${incoming} incoming, ${outgoing} outgoing, ${missed} missed. Photo screenshots are the primary artifact; row-level extraction is AI-generated and unverified.`,
-        flags: missed >= 5 ? [{ type: "pattern", label: "Repeated missed calls", evidence: `${missed} missed calls visible`, severity: "medium" }] : [],
+        flags:
+          missed >= 5
+            ? [
+                {
+                  type: "pattern",
+                  label: "Repeated missed calls",
+                  evidence: `${missed} missed calls visible`,
+                  severity: "medium",
+                },
+              ]
+            : [],
         exhibit_label: `Call Log — ${data.platform}`,
       })
       .eq("id", threadId);

@@ -6,10 +6,6 @@ export interface HubTab {
   label: string;
 }
 
-/**
- * Flat, quiet tab strip used at the top of each hub (Archive, Recurline,
- * Case, Resources). Purely navigational — every tab is always available.
- */
 export function HubTabs({ tabs }: { tabs: HubTab[] }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
@@ -46,6 +42,7 @@ export const CASE_TABS: HubTab[] = [
   { to: "/court-dates", label: "Court dates" },
   { to: "/share-with-attorney", label: "Share with attorney" },
   { to: "/share-with-advocate", label: "Share with advocate" },
+  { to: "/access", label: "Who can see this" },
 ];
 
 export const RESOURCE_TABS: HubTab[] = [

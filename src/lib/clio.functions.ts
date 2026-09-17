@@ -11,7 +11,8 @@ export const getClioAvailability = createServerFn({ method: "GET" }).handler(asy
 export const startClioConnect = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { assertClioAvailable, buildClioAuthorizeUrl, STATE_TTL_MS } = await import("@/lib/clio.server");
+    const { assertClioAvailable, buildClioAuthorizeUrl, STATE_TTL_MS } =
+      await import("@/lib/clio.server");
     assertClioAvailable();
 
     // Attorney accounts only — this is a practice-management integration.
@@ -23,7 +24,10 @@ export const startClioConnect = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Housekeeping: expired states are useless and must not linger.
-    await supabaseAdmin.from("clio_oauth_states").delete().lt("expires_at", new Date().toISOString());
+    await supabaseAdmin
+      .from("clio_oauth_states")
+      .delete()
+      .lt("expires_at", new Date().toISOString());
 
     const bytes = new Uint8Array(32);
     crypto.getRandomValues(bytes);
@@ -113,9 +117,7 @@ export const listMyClioMatters = createServerFn({ method: "POST" })
  */
 export const pushPacketToClio = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ attorney_client_link_id: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input) => z.object({ attorney_client_link_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { assertClioAvailable } = await import("@/lib/clio.server");
     assertClioAvailable();

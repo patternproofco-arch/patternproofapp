@@ -13,7 +13,9 @@ const analysis = {
     { tactic: "B", description: "desc b" },
   ],
   attorney_summary: "14 entries between March and August.",
-  severity_indicators: [{ label: "Verbal threat", note: "documented in your records", source_incident_ids: ["i1"] }],
+  severity_indicators: [
+    { label: "Verbal threat", note: "documented in your records", source_incident_ids: ["i1"] },
+  ],
 };
 
 describe("buildPatternExport", () => {
@@ -28,7 +30,11 @@ describe("buildPatternExport", () => {
   it("never exports interpretive fields, even from legacy cached rows", () => {
     for (const reviewed of [
       {},
-      { main_pattern: { status: "confirmed" as const }, interpretation: { status: "confirmed" as const }, "tactic:0": { status: "confirmed" as const } },
+      {
+        main_pattern: { status: "confirmed" as const },
+        interpretation: { status: "confirmed" as const },
+        "tactic:0": { status: "confirmed" as const },
+      },
     ]) {
       const r = buildPatternExport(analysis, reviewed);
       const json = JSON.stringify(r.redactedAnalysis);

@@ -54,7 +54,10 @@ function openDb(): Promise<IDBDatabase> {
   });
 }
 
-async function tx<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+async function tx<T>(
+  mode: IDBTransactionMode,
+  run: (store: IDBObjectStore) => IDBRequest<T>,
+): Promise<T> {
   const db = await openDb();
   return new Promise<T>((resolve, reject) => {
     const t = db.transaction(STORE, mode);
@@ -98,7 +101,10 @@ export async function listQueue(userId: string): Promise<QueuedFile[]> {
 }
 
 export async function updateQueued(id: string, patch: Partial<QueuedFile>): Promise<void> {
-  const existing = await tx<QueuedFile | undefined>("readonly", (s) => s.get(id) as IDBRequest<QueuedFile | undefined>);
+  const existing = await tx<QueuedFile | undefined>(
+    "readonly",
+    (s) => s.get(id) as IDBRequest<QueuedFile | undefined>,
+  );
   if (!existing) return;
   await tx("readwrite", (s) => s.put({ ...existing, ...patch }) as IDBRequest<IDBValidKey>);
 }

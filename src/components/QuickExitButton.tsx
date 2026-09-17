@@ -4,7 +4,17 @@ import { useSettings } from "@/lib/settings-context";
 import { useDraggable } from "@/hooks/use-draggable";
 import { quickExit } from "@/lib/quick-exit";
 
-export function QuickExitButton() {
+type ExitPos = { right?: number; bottom?: number; left?: number; top?: number };
+
+export function QuickExitButton({
+  defaultPosition = { right: 16, top: 70 },
+  storageKey = "pp.exit.pos",
+}: {
+  /** Default dock when the user hasn't dragged the control yet. */
+  defaultPosition?: ExitPos;
+  /** Separate keys keep public vs signed-in docks from fighting each other. */
+  storageKey?: string;
+} = {}) {
   const { settings } = useSettings();
   const lastEsc = useRef(0);
   const {
@@ -12,10 +22,17 @@ export function QuickExitButton() {
     style: dragStyle,
     dragHandlers,
     wasDragged,
-  } = useDraggable("pp.exit.pos", { right: 16, top: 70 });
+  } = useDraggable(storageKey, defaultPosition);
 
   // Signs the user out for real, then redirects. See src/lib/quick-exit.ts.
   const exit = () => quickExit(settings.exitUrl);
+
+  // Tell the pre-hydration fallback in __root.tsx to stand down — React is
+  // driving now, so its own click/Escape handling below takes over (this is
+  // what restores drag-to-move and gives up the plain global listener).
+  useEffect(() => {
+    (window as unknown as { __ppQuickExitHydrated?: boolean }).__ppQuickExitHydrated = true;
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -40,7 +57,8 @@ export function QuickExitButton() {
       }}
       aria-label="Quick exit"
       title="Quick exit — signs you out and leaves. Drag to move, double-press Esc to exit"
-      className="no-print fixed z-[9999] inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold"
+      data-quick-exit="true"
+      className="no-print fixed z-[9999] inline-flex items-center gap-1.5 rounded-[3px] px-3 py-1.5 text-[12px] font-bold"
       style={{
         background: "#B7D8B0" /* pastel green */,
         color: "#1F3A1B",

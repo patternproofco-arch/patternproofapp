@@ -69,19 +69,24 @@ export const suggestContentTypes = createServerFn({ method: "POST" })
     const gateway = createLovableAiGatewayProvider(key);
     const listing = (rows.data ?? []).map((r) => ({
       id: r.id as string,
-      hint: [r.title, r.original_filename, r.mime, r.description].filter(Boolean).join(" · ").slice(0, 400),
+      hint: [r.title, r.original_filename, r.mime, r.description]
+        .filter(Boolean)
+        .join(" · ")
+        .slice(0, 400),
     }));
 
     const { output } = await generateText({
       model: gateway("google/gemini-3.6-flash"),
       output: Output.object({
         schema: z.object({
-          items: z.array(z.object({
-            id: z.string(),
-            kind: z.enum(KINDS),
-            confidence: z.number().min(0).max(1),
-            rationale: z.string().max(160),
-          })),
+          items: z.array(
+            z.object({
+              id: z.string(),
+              kind: z.enum(KINDS),
+              confidence: z.number().min(0).max(1),
+              rationale: z.string().max(160),
+            }),
+          ),
         }),
       }),
       system:

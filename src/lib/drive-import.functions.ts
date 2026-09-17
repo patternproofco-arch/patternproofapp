@@ -18,18 +18,21 @@ function gatewayHeaders() {
 export const listDriveFiles = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      query: z.string().max(120).optional(),
-    }).parse(input),
+    z
+      .object({
+        query: z.string().max(120).optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
     try {
       const headers = gatewayHeaders();
       const params = new URLSearchParams();
       // Only PDFs and images, not trashed
-      const mimeFilter =
-        "(mimeType='application/pdf' or mimeType contains 'image/')";
-      const nameFilter = data.query ? ` and name contains '${data.query.replace(/'/g, "\\'")}'` : "";
+      const mimeFilter = "(mimeType='application/pdf' or mimeType contains 'image/')";
+      const nameFilter = data.query
+        ? ` and name contains '${data.query.replace(/'/g, "\\'")}'`
+        : "";
       params.set("q", `trashed=false and ${mimeFilter}${nameFilter}`);
       params.set("pageSize", "30");
       params.set("fields", "files(id,name,mimeType,size,modifiedTime,iconLink)");
@@ -38,7 +41,15 @@ export const listDriveFiles = createServerFn({ method: "POST" })
       if (!res.ok) {
         return { ok: false as const, reason: `drive-${res.status}` };
       }
-      const j = await res.json() as { files?: Array<{ id: string; name: string; mimeType: string; size?: string; modifiedTime?: string }> };
+      const j = (await res.json()) as {
+        files?: Array<{
+          id: string;
+          name: string;
+          mimeType: string;
+          size?: string;
+          modifiedTime?: string;
+        }>;
+      };
       return { ok: true as const, files: j.files ?? [] };
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "unknown";
@@ -49,17 +60,26 @@ export const listDriveFiles = createServerFn({ method: "POST" })
 export const downloadDriveFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      fileId: z.string().min(1).max(120),
-    }).parse(input),
+    z
+      .object({
+        fileId: z.string().min(1).max(120),
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
     try {
       const headers = gatewayHeaders();
       // get metadata
-      const metaRes = await fetch(`${GATEWAY}/files/${data.fileId}?fields=id,name,mimeType,size`, { headers });
+      const metaRes = await fetch(`${GATEWAY}/files/${data.fileId}?fields=id,name,mimeType,size`, {
+        headers,
+      });
       if (!metaRes.ok) return { ok: false as const, reason: `meta-${metaRes.status}` };
-      const meta = await metaRes.json() as { id: string; name: string; mimeType: string; size?: string };
+      const meta = (await metaRes.json()) as {
+        id: string;
+        name: string;
+        mimeType: string;
+        size?: string;
+      };
       if (meta.size && Number(meta.size) > 15 * 1024 * 1024) {
         return { ok: false as const, reason: "too-large" };
       }

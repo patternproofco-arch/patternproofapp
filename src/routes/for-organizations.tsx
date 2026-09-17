@@ -20,24 +20,24 @@ const MONO = "var(--font-mono)";
 export const Route = createFileRoute("/for-organizations")({
   head: () => ({
     meta: [
-      { title: "PatternProof — For DV organizations" },
+      { title: "Domestic Violence Referral Tool for Advocates | PatternProof" },
       {
         name: "description",
         content:
-          "A free, private documentation tool you can hand every survivor at intake. No cost to your org, no data integration required from your systems — just a cleaner referral to counsel.",
+          "A free, private domestic-violence documentation tool for advocates and survivor-service organizations. Refer survivors to an organized evidence timeline they control and can share with counsel when ready.",
       },
-      { property: "og:title", content: "PatternProof — Partner referrals for DV organizations" },
+      { property: "og:title", content: "Domestic Violence Referral Tool for Advocates | PatternProof" },
       {
         property: "og:description",
         content:
-          "Free survivor tool your advocates can hand out at intake. Cleaner referrals, no cost, no org data integration required.",
+          "Give survivors a private documentation tool at intake, then support survivor-controlled sharing with attorneys and approved staff.",
       },
       { property: "og:url", content: "https://pattern-proof.tech/for-organizations" },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "PatternProof for DV organizations" },
+      { name: "twitter:title", content: "Domestic Violence Referral Tool for Advocates | PatternProof" },
       {
         name: "twitter:description",
-        content: "Free survivor tool your advocates can hand out at intake.",
+        content: "A private documentation referral tool for domestic-violence advocates and survivor-service organizations.",
       },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/for-organizations" }],
@@ -81,8 +81,8 @@ function ForOrganizations() {
             marginBottom: 18,
           }}
         >
-          PatternProof is a free, private documentation tool you can hand a survivor at intake —
-          no cost to your organization, no data integration required on your end.
+          PatternProof is a free, private documentation tool you can hand a survivor at intake — no
+          cost to your organization, no data integration required on your end.
         </p>
         <h1
           style={{
@@ -126,8 +126,22 @@ function ForOrganizations() {
             borderRadius: "var(--pp-r-pill)",
           }}
         >
-          Create Your Organization Account →
+          Request access →
         </Link>
+        <p
+          style={{
+            marginTop: 12,
+            fontFamily: MONO,
+            fontSize: 11,
+            color: MUTED,
+            letterSpacing: "0.06em",
+            maxWidth: 560,
+            lineHeight: 1.6,
+          }}
+        >
+          Partner portals are invitation-only. Request access and we&apos;ll follow up with
+          verification and a sign-in link.
+        </p>
       </section>
 
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 24px 80px" }}>
@@ -184,7 +198,7 @@ function ForOrganizations() {
               textUnderlineOffset: 4,
             }}
           >
-            Create an organization account →
+            Request access →
           </Link>
           <Link
             to="/org-feedback"
@@ -201,7 +215,6 @@ function ForOrganizations() {
             Already referring survivors? Tell us how it&apos;s going →
           </Link>
           <Link
-
             to="/privacy"
             style={{
               fontFamily: MONO,

@@ -67,7 +67,9 @@ describe("public cleanup merge blockers", () => {
   it("uses the approved landing promise and keeps the timeline preview", () => {
     expect(landing).toContain("One private timeline.");
     expect(landing).toContain("Everything in the right order.");
-    expect(landing).toContain("<DashboardPreview />");
+    // The preview is now the inline folio sample on the landing page itself.
+    expect(landing).toContain("Sample · demo data · not a real record");
+    expect(landing).toContain("folio-plate");
   });
 
   it("does not globally shrink mobile pages with CSS zoom", () => {

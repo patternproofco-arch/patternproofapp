@@ -7,10 +7,12 @@ const SYSTEM_PROMPT = `You are reviewing a short audio transcript from a safety 
 export const checkAccidental = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      transcript: z.string().max(8000),
-      durationSec: z.number().min(0).max(86400),
-    }).parse(input),
+    z
+      .object({
+        transcript: z.string().max(8000),
+        durationSec: z.number().min(0).max(86400),
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
@@ -24,16 +26,23 @@ export const checkAccidental = createServerFn({ method: "POST" })
           max_tokens: 100,
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: `Duration: ${data.durationSec}s\nTranscript: ${data.transcript || "(empty)"}` },
+            {
+              role: "user",
+              content: `Duration: ${data.durationSec}s\nTranscript: ${data.transcript || "(empty)"}`,
+            },
           ],
         }),
       });
       if (!res.ok) return { accidental: false, confidence: "low", reason: "api-error" };
-      const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+      const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
       const raw = json.choices?.[0]?.message?.content ?? "";
       const match = raw.match(/\{[\s\S]*\}/);
       if (!match) return { accidental: false, confidence: "low", reason: "no-json" };
-      const parsed = JSON.parse(match[0]) as { accidental?: boolean; confidence?: string; reason?: string };
+      const parsed = JSON.parse(match[0]) as {
+        accidental?: boolean;
+        confidence?: string;
+        reason?: string;
+      };
       return {
         accidental: Boolean(parsed.accidental),
         confidence: String(parsed.confidence ?? "low"),

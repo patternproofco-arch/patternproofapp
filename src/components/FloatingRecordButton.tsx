@@ -165,6 +165,7 @@ export function FloatingRecordButton() {
         }}
         onTouchEnd={onPointerUp}
         onClick={handleClick}
+        data-float-record
         className={`no-print fixed z-[94] flex h-14 w-14 items-center justify-center rounded-full ${isRecording ? "pulse-rec" : frozen ? "" : "breathe"}`}
         style={{
           background: bg,
@@ -182,8 +183,7 @@ export function FloatingRecordButton() {
             width: 14,
             height: 14,
             borderRadius: 999,
-            background: isRecording ? "#FFFFFF" : "#E25C5C",
-            boxShadow: "var(--pp-shadow-sm)",
+            background: isRecording ? "var(--paper)" : "var(--oxblood)",
             display: "inline-block",
           }}
         />

@@ -14,6 +14,9 @@ const BANNED = [
   /court[- ]admissible/i,
   /guaranteed? (?:outcome|to win|result)/i,
   /military[- ]grade/i,
+  // Soft-claim bar (Guardian): prefer "you choose what to share" / "share only what you choose"
+  /you control sharing/i,
+  /nothing leaves your account/i,
 ];
 
 function walk(dir: string, out: string[] = []) {

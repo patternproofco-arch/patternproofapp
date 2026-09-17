@@ -22,6 +22,12 @@ import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
 import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
+import {
+  extractEvidenceDocument,
+  verifyExtractedText,
+} from "@/lib/document-extract.functions";
+import { isReadableDocument } from "@/lib/readable-documents";
+
 import { FocusRegion } from "@/components/survivor/focus-mode";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { BatchDropzone } from "@/components/evidence/BatchDropzone";
@@ -49,6 +55,13 @@ interface EvidenceRow {
   review_status?: string | null;
   transcript?: string | null;
   transcript_status?: string | null;
+  extracted_text?: string | null;
+  extraction_status?: string | null;
+  extraction_method?: string | null;
+  extraction_pages?: number | null;
+  extraction_verified_at?: string | null;
+  mime?: string | null;
+
 }
 // review_status: "suggested" rows are held back from exports/attorney views
 // until the survivor confirms the match on /evidence-review.
@@ -89,6 +102,10 @@ type ExtractedDraft = {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+// Files whose words we can read out and show back for review — shared with the
+// batch uploader so both paths handle exactly the same formats.
+
+
 function KindIcon({ kind, size = 22 }: { kind: string; size?: number }) {
   const c = { color: "var(--foreground)" };
   if (kind === "image") return <ImageIcon size={size} style={c} />;
@@ -103,6 +120,9 @@ function EvidencePage() {
   const ingestFn = useServerFn(ingestEvidenceBatch);
   const transcribeFn = useServerFn(transcribeEvidence);
   const proposeTimelineFn = useServerFn(proposeTimelineFromEvidence);
+  const extractDocFn = useServerFn(extractEvidenceDocument);
+  const verifyTextFn = useServerFn(verifyExtractedText);
+
   const [items, setItems] = useState<EvidenceRow[]>([]);
   const [incidents, setIncidents] = useState<IncOption[]>([]);
   const [pending, setPending] = useState<File | null>(null);
@@ -130,7 +150,7 @@ function EvidencePage() {
       supabase
         .from("evidence")
         .select(
-          "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status",
+          "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status,mime,extracted_text,extraction_status,extraction_method,extraction_pages,extraction_verified_at",
         )
         .eq("user_id", user.id)
         .is("deleted_at", null)
@@ -285,10 +305,51 @@ function EvidencePage() {
         });
     }
 
+    // PDFs, Word files and plain-text files: read the words out of the file so
+    // they can be searched and reviewed. A scan with no text layer is read back
+    // by machine and clearly marked as unverified until confirmed.
+    if (isReadableDocument(fileMime, pending?.name ?? null)) {
+      toast("Saved. Reading the text out of this document…");
+      void extractDocFn({ data: { evidence_id: newRow.id } })
+        .then(async (r) => {
+          let note = r.ok
+            ? "Text ready to review below."
+            : r.status === "unsupported"
+              ? "Saved. This format's text can't be read automatically yet."
+              : "Saved. We couldn't read the text this time — you can retry below.";
+          if (r.ok) {
+            // Same review-only path the media files take: the words we read can
+            // suggest a timeline draft, and nothing is added until she accepts.
+            try {
+              const proposal = await proposeTimelineFn({
+                data: {
+                  evidence_ids: [newRow.id],
+                  include_threads: false,
+                  include_voice_notes: false,
+                  max_items: 1,
+                },
+              });
+              if (proposal.ok && proposal.proposed_timeline?.length) {
+                note = "Text ready to review, and a timeline draft is waiting for you.";
+              }
+            } catch {
+              /* the text is saved; drafts can be retried from the timeline */
+            }
+          }
+          toast(note);
+          await load();
+        })
+        .catch(() => {
+          toast("The file is safe, but reading its text failed. You can retry below.");
+          return load();
+        });
+    }
+
     // Auto-run AI extraction for images / PDFs that aren't linked yet
     if (wasImageOrPdf && !newRow.linked_incident_id) {
       void runReview(newRow, fileMime);
     }
+
   };
 
   const runReview = useCallback(
@@ -438,10 +499,10 @@ function EvidencePage() {
 
       <Link
         to="/import-messages"
-        className="mt-5 flex items-start gap-3 rounded-2xl p-4"
+        className="mt-5 flex items-start gap-3 p-4"
         style={{
           background: "var(--pp-card)",
-          boxShadow: "var(--pp-shadow-sm)",
+          
           color: "var(--foreground)",
           textDecoration: "none",
         }}
@@ -450,7 +511,7 @@ function EvidencePage() {
           style={{
             width: 38,
             height: 38,
-            borderRadius: 18,
+            borderRadius: 3,
             display: "grid",
             placeItems: "center",
             flexShrink: 0,
@@ -473,10 +534,10 @@ function EvidencePage() {
 
       <Link
         to="/message-threads"
-        className="mt-3 flex items-start gap-3 rounded-2xl p-4"
+        className="mt-3 flex items-start gap-3 p-4"
         style={{
           background: "var(--pp-card)",
-          boxShadow: "var(--pp-shadow-sm)",
+          
           color: "var(--foreground)",
           textDecoration: "none",
         }}
@@ -485,7 +546,7 @@ function EvidencePage() {
           style={{
             width: 38,
             height: 38,
-            borderRadius: 18,
+            borderRadius: 3,
             background: "transparent",
             display: "grid",
             placeItems: "center",
@@ -499,8 +560,9 @@ function EvidencePage() {
             More options: backup exports, screen recording, or call logs
           </div>
           <div style={{ fontSize: 13, color: "var(--pp-muted)", marginTop: 2, lineHeight: 1.5 }}>
-            For hundreds of messages, a phone backup (PDF, CSV/Excel, TXT, RSMF, ZIP), a screen
-            recording, or a call-log import — with guidance on which option fits your situation.
+            For hundreds of messages: a CSV or TXT backup is read into individual messages you can
+            review. Excel, RSMF and ZIP backups are kept safely as you sent them, but their
+            contents aren't read yet. Screen recordings and call logs work too.
           </div>
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-accent)" }}>Open →</span>
@@ -512,8 +574,8 @@ function EvidencePage() {
       <FocusRegion id="evidence-add">
         <form onSubmit={submit} className="card-pp mt-6 space-y-4">
           <label
-            className="block cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center"
-            style={{ borderColor: "var(--border)" }}
+            className="block cursor-pointer p-8 text-center"
+            style={{ border: "1px solid var(--rule)", borderRadius: 3, background: "var(--paper-deep)" }}
           >
             <Upload
               size={26}
@@ -537,10 +599,11 @@ function EvidencePage() {
           </label>
           {sizeError && (
             <div
-              className="rounded-2xl px-3 py-2 text-[13px]"
+              className="px-3 py-2 text-[13px]"
               style={{
-                background: "var(--tint-purple)",
-                boxShadow: "var(--pp-shadow-sm)",
+                background: "var(--paper-deep)",
+                border: "1px solid var(--rule)",
+                borderRadius: 3,
                 color: "var(--foreground)",
                 lineHeight: 1.5,
               }}
@@ -616,15 +679,12 @@ function EvidencePage() {
                     <button
                       type="button"
                       onClick={() => setTab("documentation")}
-                      className="rounded-2xl px-4 py-1.5 text-[13px] font-semibold"
+                      className="px-4 py-1.5 text-[13px] font-semibold"
                       style={{
-                        background:
-                          tab === "documentation" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
-                        color: tab === "documentation" ? "var(--pp-paper)" : "var(--foreground)",
-                        border:
-                          tab === "documentation"
-                            ? "1px solid var(--foreground)"
-                            : "1px solid rgba(0,0,0,0.10)",
+                        background: tab === "documentation" ? "var(--ink)" : "transparent",
+                        color: tab === "documentation" ? "var(--paper)" : "var(--ink)",
+                        border: "1px solid var(--rule)",
+                        borderRadius: 3,
                       }}
                     >
                       Documentation · {docItems.length}
@@ -632,15 +692,12 @@ function EvidencePage() {
                     <button
                       type="button"
                       onClick={() => setTab("evidence")}
-                      className="rounded-2xl px-4 py-1.5 text-[13px] font-semibold"
+                      className="px-4 py-1.5 text-[13px] font-semibold"
                       style={{
-                        background:
-                          tab === "evidence" ? "var(--foreground)" : "rgba(255,255,255,0.55)",
-                        color: tab === "evidence" ? "var(--pp-paper)" : "var(--foreground)",
-                        border:
-                          tab === "evidence"
-                            ? "1px solid var(--foreground)"
-                            : "1px solid rgba(0,0,0,0.10)",
+                        background: tab === "evidence" ? "var(--ink)" : "transparent",
+                        color: tab === "evidence" ? "var(--paper)" : "var(--ink)",
+                        border: "1px solid var(--rule)",
+                        borderRadius: 3,
                       }}
                     >
                       Evidence · {evItems.length}
@@ -652,7 +709,7 @@ function EvidencePage() {
                   >
                     {tab === "documentation"
                       ? "Your records — screenshots, notes, and message-thread exports. Preserved and searchable, but not yet independently verified. Items move to Evidence automatically when device metadata (EXIF) or an integrity hash is confirmed."
-                      : "Files with intact device metadata, verified integrity hashes, or official-record status. These carry more evidentiary weight in court because their origin and authenticity can be independently checked."}
+                      : "Files with intact device metadata, verified integrity hashes, or official-record status. These details may help a qualified professional assess origin and integrity; they do not establish authenticity or admissibility."}
                   </p>
                 </div>
                 {shown.length === 0 ? (
@@ -664,7 +721,7 @@ function EvidencePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-3">
                     {shown.map((it) => {
                       const url = previewUrls[it.id];
                       const linked = incidents.find((i) => i.id === it.linked_incident_id);
@@ -676,14 +733,22 @@ function EvidencePage() {
                               <div className="font-serif text-[15px] leading-tight">{it.title}</div>
                             </div>
                           </div>
-                          <div className="label-eyebrow mt-2">
-                            {new Date(it.date).toLocaleDateString()}
+                          <div className="mono-meta mono-meta--muted mt-2">
+                            {new Date(it.date).toLocaleDateString()} · {it.file_type} ·{" "}
+                            {it.transcript_status === "ready"
+                              ? "transcript ready"
+                              : it.extraction_status === "ready"
+                                ? "text read"
+                                : it.transcript_status === "pending" ||
+                                    it.extraction_status === "pending"
+                                  ? "being read"
+                                  : "nothing read yet"}
                           </div>
                           {it.review_status === "suggested" && (
                             <div
-                              className="mt-2 rounded-2xl p-2 text-[12px]"
+                              className="mt-2 p-2 text-[12px]"
                               style={{
-                                background: "rgba(231,208,163,0.4)",
+                                background: "var(--paper-deep)",
                                 color: "var(--pp-urgent)",
                               }}
                             >
@@ -698,7 +763,7 @@ function EvidencePage() {
                             <img
                               src={url}
                               alt={it.title}
-                              className="mt-3 max-h-48 w-full rounded-2xl object-cover"
+                              className="mt-3 max-h-48 w-full object-cover"
                             />
                           )}
                           {it.file_type === "audio" && url && (
@@ -708,7 +773,7 @@ function EvidencePage() {
                             <video
                               controls
                               src={url}
-                              className="mt-3 max-h-48 w-full rounded-2xl"
+                              className="mt-3 max-h-48 w-full"
                             />
                           )}
                           {it.description && (
@@ -718,7 +783,7 @@ function EvidencePage() {
                           )}
                           {(it.file_type === "audio" || it.file_type === "video") && (
                             <div
-                              className="mt-2 rounded-2xl p-3 text-[12px]"
+                              className="mt-2 p-3 text-[12px]"
                               style={{ background: "var(--input)", color: "var(--foreground)" }}
                             >
                               <div className="label-eyebrow mb-1">Transcript</div>
@@ -731,6 +796,43 @@ function EvidencePage() {
                                     : "Not transcribed yet."}
                             </div>
                           )}
+                          {isReadableDocument(it.mime, it.title) && (
+                            <div
+                              className="mt-2 p-3 text-[12px]"
+                              style={{ background: "var(--input)", color: "var(--foreground)" }}
+                            >
+                              <div className="label-eyebrow mb-1">
+                                Text from this document
+                                {it.extraction_pages ? ` · ${it.extraction_pages} pages` : ""}
+                              </div>
+                              {it.extraction_status === "ready" && it.extracted_text ? (
+                                <>
+                                  <p className="whitespace-pre-wrap">
+                                    {it.extracted_text.slice(0, 1200)}
+                                    {it.extracted_text.length > 1200 ? "…" : ""}
+                                  </p>
+                                  <p className="mt-2 opacity-80">
+                                    {it.extraction_verified_at
+                                      ? "You confirmed this text matches the document."
+                                      : it.extraction_method === "read-aloud"
+                                        ? "Read by machine from a scan — please check it against the original."
+                                        : "Read from the file — please check it against the original."}
+                                  </p>
+                                </>
+                              ) : it.extraction_status === "needs_ocr" ? (
+                                "This looks like a scan. We couldn't read its text yet."
+                              ) : it.extraction_status === "empty" ? (
+                                "This file has no readable text in it."
+                              ) : it.extraction_status === "unsupported" ? (
+                                "This format's text can't be read automatically yet."
+                              ) : it.extraction_status === "failed" ? (
+                                "Reading the text didn't work. Your original file is still safe."
+                              ) : (
+                                "Not read yet."
+                              )}
+                            </div>
+                          )}
+
                           {linked && (
                             <div className="mt-2 text-[12px]" style={{ color: "var(--accent)" }}>
                               Linked: {linked.date}
@@ -779,6 +881,45 @@ function EvidencePage() {
                                   <Sparkles size={13} /> Retry transcript
                                 </button>
                               )}
+                            {isReadableDocument(it.mime, it.title) &&
+                              it.extraction_status !== "ready" && (
+                                <button
+                                  onClick={() => {
+                                    void extractDocFn({ data: { evidence_id: it.id } })
+                                      .then(() => {
+                                        toast("Text ready to review.");
+                                        return load();
+                                      })
+                                      .catch(() => {
+                                        toast(
+                                          "We couldn't read this document. Try again in a moment.",
+                                        );
+                                        return load();
+                                      });
+                                  }}
+                                  className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                                >
+                                  <Sparkles size={13} /> Read text
+                                </button>
+                              )}
+                            {it.extraction_status === "ready" && !it.extraction_verified_at && (
+                              <button
+                                onClick={() => {
+                                  void verifyTextFn({ data: { evidence_id: it.id } })
+                                    .then(() => {
+                                      toast("Saved. Marked as checked by you.");
+                                      return load();
+                                    })
+                                    .catch(() => {
+                                      toast("We couldn't save that. Try again in a moment.");
+                                    });
+                                }}
+                                className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                              >
+                                <Check size={13} /> Text matches
+                              </button>
+                            )}
+
                             <button
                               onClick={() => remove(it)}
                               className="btn-ghost inline-flex items-center gap-1 text-[12px]"
@@ -839,7 +980,7 @@ function EvidencePage() {
 
             {!reviewBusy && reviewError && (
               <div
-                className="my-4 rounded-2xl bg-white/40 p-4 text-[13px]"
+                className="my-4 p-4 text-[13px]"
                 style={{ color: "var(--pp-ink)" }}
               >
                 {reviewError}
@@ -904,13 +1045,12 @@ function EvidencePage() {
                               else set.add(t);
                               setDraft({ ...draft, abuse_types: Array.from(set) });
                             }}
-                            className="rounded-2xl px-3 py-1 text-[12px] font-semibold"
+                            className="px-3 py-1 text-[12px] font-semibold"
                             style={{
-                              background: active ? opt.color : "var(--pp-card)",
-                              color: active ? "#FFFFFF" : "var(--pp-ink)",
-                              border: active
-                                ? `1px solid ${opt.color}`
-                                : "1px solid rgba(0,0,0,0.10)",
+                              background: active ? "var(--ink)" : "transparent",
+                              color: active ? "var(--paper)" : "var(--ink)",
+                              border: "1px solid var(--rule)",
+                              borderRadius: 3,
                             }}
                           >
                             {opt.label}

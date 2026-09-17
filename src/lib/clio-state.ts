@@ -7,8 +7,7 @@ export interface ClioStateRow {
 }
 
 export type StateCheck =
-  | { ok: true; userId: string }
-  | { ok: false; reason: "missing" | "expired" | "mismatch" };
+  { ok: true; userId: string } | { ok: false; reason: "missing" | "expired" | "mismatch" };
 
 export function checkClioState(
   row: ClioStateRow | null | undefined,

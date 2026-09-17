@@ -7,7 +7,8 @@ export async function enqueueProfessionalReadinessKit(input: {
   try {
     const React = (await import("react")).default;
     const { render } = await import("@react-email/render");
-    const { ProfessionalReadinessKitEmail, kitCopy } = await import("@/lib/email-templates/professional-readiness-kit");
+    const { ProfessionalReadinessKitEmail, kitCopy } =
+      await import("@/lib/email-templates/professional-readiness-kit");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const element = React.createElement(ProfessionalReadinessKitEmail, {
@@ -34,7 +35,10 @@ export async function enqueueProfessionalReadinessKit(input: {
         .join("");
       await supabaseAdmin
         .from("email_unsubscribe_tokens")
-        .upsert({ token: fresh, email: input.email }, { onConflict: "email", ignoreDuplicates: true });
+        .upsert(
+          { token: fresh, email: input.email },
+          { onConflict: "email", ignoreDuplicates: true },
+        );
       const { data: stored } = await supabaseAdmin
         .from("email_unsubscribe_tokens")
         .select("token")

@@ -26,13 +26,33 @@ export interface DraftMessage {
 }
 
 const ATTACHMENT_WORDS = [
-  "photo", "photos", "image", "video", "gif", "sticker", "audio message",
-  "voice message", "attachment", "document", "location", "contact card",
+  "photo",
+  "photos",
+  "image",
+  "video",
+  "gif",
+  "sticker",
+  "audio message",
+  "voice message",
+  "attachment",
+  "document",
+  "location",
+  "contact card",
 ];
 
 const MONTHS: Record<string, number> = {
-  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
-  jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+  jan: 1,
+  feb: 2,
+  mar: 3,
+  apr: 4,
+  may: 5,
+  jun: 6,
+  jul: 7,
+  aug: 8,
+  sep: 9,
+  oct: 10,
+  nov: 11,
+  dec: 12,
 };
 
 function pad(n: number): string {
@@ -81,7 +101,9 @@ export function parseStampLine(raw: string, today = new Date()): ParsedStamp | n
   }
 
   // Mon, Jan 5, 2024 at 4:32 PM  /  Jan 5 at 4:32 PM
-  const named = lower.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:\w{0,2})?(?:,?\s*(\d{4}))?/);
+  const named = lower.match(
+    /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:\w{0,2})?(?:,?\s*(\d{4}))?/,
+  );
   if (named) {
     const month = MONTHS[named[1]!]!;
     const day = Number(named[2]);
@@ -94,13 +116,21 @@ export function parseStampLine(raw: string, today = new Date()): ParsedStamp | n
   // 1/5/24 or 01/05/2024 or 2024-01-05
   const isoish = s.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/);
   if (isoish) {
-    return { date: `${isoish[1]}-${pad(Number(isoish[2]))}-${pad(Number(isoish[3]))}`, time, confidence: "explicit_date" };
+    return {
+      date: `${isoish[1]}-${pad(Number(isoish[2]))}-${pad(Number(isoish[3]))}`,
+      time,
+      confidence: "explicit_date",
+    };
   }
   const slash = s.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{2,4})\b/);
   if (slash) {
     const yr = Number(slash[3]);
     const year = yr < 100 ? 2000 + yr : yr;
-    return { date: `${year}-${pad(Number(slash[1]))}-${pad(Number(slash[2]))}`, time, confidence: "explicit_date" };
+    return {
+      date: `${year}-${pad(Number(slash[1]))}-${pad(Number(slash[2]))}`,
+      time,
+      confidence: "explicit_date",
+    };
   }
 
   if (time && /^[\s\d:apmAPM.\u200e]+$/.test(s)) {
@@ -110,7 +140,10 @@ export function parseStampLine(raw: string, today = new Date()): ParsedStamp | n
 }
 
 export function detectAttachmentMarker(text: string): string | null {
-  const t = text.trim().toLowerCase().replace(/[[\]()]/g, "");
+  const t = text
+    .trim()
+    .toLowerCase()
+    .replace(/[[\]()]/g, "");
   if (t.length > 24) return null;
   const hit = ATTACHMENT_WORDS.find((w) => t === w || t === `1 ${w}` || t === `${w} attachment`);
   return hit ? text.trim() : null;
@@ -214,7 +247,11 @@ export function groupLinesIntoMessages(
 // ---------- duplicate / overlap merging ----------
 
 export function normalizeForCompare(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function trigrams(s: string): Set<string> {
@@ -232,7 +269,9 @@ export function similarity(a: string, b: string): number {
   const ta = trigrams(na);
   const tb = trigrams(nb);
   let shared = 0;
-  ta.forEach((t) => { if (tb.has(t)) shared++; });
+  ta.forEach((t) => {
+    if (tb.has(t)) shared++;
+  });
   return (2 * shared) / (ta.size + tb.size);
 }
 
@@ -267,9 +306,13 @@ export function mergeDuplicates(perImage: DraftMessage[][]): MergedMessage[] {
       if (match) {
         if (!match.source_indices.includes(imageIdx)) match.source_indices.push(imageIdx);
         // Keep the richest version of each field.
-        if (!match.sent_on && m.sent_on) { match.sent_on = m.sent_on; match.date_confidence = m.date_confidence; }
+        if (!match.sent_on && m.sent_on) {
+          match.sent_on = m.sent_on;
+          match.date_confidence = m.date_confidence;
+        }
         if (!match.sent_at_time && m.sent_at_time) match.sent_at_time = m.sent_at_time;
-        if (match.sender_side === "unknown" && m.sender_side !== "unknown") match.sender_side = m.sender_side;
+        if (match.sender_side === "unknown" && m.sender_side !== "unknown")
+          match.sender_side = m.sender_side;
         if (m.body.length > match.body.length) match.body = m.body;
       } else {
         kept.push({ ...m, source_indices: [imageIdx] });

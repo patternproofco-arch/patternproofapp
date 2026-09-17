@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { X, Loader2, ArrowLeft, Sparkles, Check, Heart, MapPin, CalendarDays, Leaf } from "lucide-react";
+import {
+  X,
+  Loader2,
+  ArrowLeft,
+  Sparkles,
+  Check,
+  Heart,
+  MapPin,
+  CalendarDays,
+  Leaf,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +18,16 @@ import { ABUSE_TYPES } from "@/lib/abuse-types";
 import { extractMemoryAsIncident } from "@/lib/extract-memory.functions";
 import { sanitizeLine } from "@/lib/dates";
 
-type Step = "intro" | "grounding" | "window" | "mode" | "recall" | "season" | "location" | "lifeevents" | "done";
+type Step =
+  | "intro"
+  | "grounding"
+  | "window"
+  | "mode"
+  | "recall"
+  | "season"
+  | "location"
+  | "lifeevents"
+  | "done";
 type Mode = "biggest" | "season" | "location" | "lifeevents";
 
 interface SavedIncident {
@@ -93,7 +112,8 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
   const currentContext = (): string | undefined => {
     if (mode === "season") return `Context: ${SEASONS[seasonIdx]} ${seasonYear}.`;
     if (mode === "location" && activeLocation) return `Context: incident at "${activeLocation}".`;
-    if (mode === "lifeevents" && activeAnchor) return `Context: around the time of "${activeAnchor}".`;
+    if (mode === "lifeevents" && activeAnchor)
+      return `Context: around the time of "${activeAnchor}".`;
     return undefined;
   };
 
@@ -128,12 +148,14 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
       emotional_impact?: string;
       clarifying_question?: string;
     };
-    const date = typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) ? e.date : today();
+    const date =
+      typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) ? e.date : today();
     const types = Array.isArray(e.abuse_types)
       ? e.abuse_types.filter((t) => ABUSE_TYPES.some((a) => a.value === t))
       : [];
     const description = (e.description || memory.trim()).slice(0, 4000);
-    const locationFromMode = mode === "location" && activeLocation && activeLocation !== "Other" ? activeLocation : null;
+    const locationFromMode =
+      mode === "location" && activeLocation && activeLocation !== "Other" ? activeLocation : null;
     const { error } = await supabase.from("incidents").insert({
       user_id: user.id,
       date,
@@ -165,7 +187,9 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
         <ul className="space-y-1.5 text-[13px] max-h-32 overflow-auto">
           {saved.slice(-6).map((s, i) => (
             <li key={i} className="flex gap-2">
-              <span className="font-semibold" style={{ color: "var(--accent)" }}>{s.date}</span>
+              <span className="font-semibold" style={{ color: "var(--accent)" }}>
+                {s.date}
+              </span>
               <span className="line-clamp-1">{s.description}</span>
             </li>
           ))}
@@ -175,15 +199,26 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
 
   const ModeSwitcher = () => (
     <div className="flex flex-wrap gap-2 pt-1">
-      <button onClick={() => setStep("mode")} className="btn-ghost text-[12px]">Switch approach</button>
-      <button onClick={() => setStep("done")} className="btn-ghost text-[12px]">Stop for now</button>
+      <button onClick={() => setStep("mode")} className="btn-ghost text-[12px]">
+        Switch approach
+      </button>
+      <button onClick={() => setStep("done")} className="btn-ghost text-[12px]">
+        Stop for now
+      </button>
     </div>
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="relative w-full max-w-xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-auto" style={{ background: "var(--card)" }}>
-        <button onClick={close} aria-label="Close" className="absolute right-4 top-4 rounded-lg p-2 hover:bg-black/5">
+      <div
+        className="relative w-full max-w-xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-auto"
+        style={{ background: "var(--card)" }}
+      >
+        <button
+          onClick={close}
+          aria-label="Close"
+          className="absolute right-4 top-4 rounded-lg p-2 hover:bg-black/5"
+        >
           <X size={18} />
         </button>
 
@@ -191,30 +226,45 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
           <div className="space-y-5">
             <div className="label-eyebrow">Past incidents</div>
             <h2 className="font-serif text-[26px] leading-tight">
-              You have memories scattered<br /><em>across years.</em>
+              You have memories scattered
+              <br />
+              <em>across years.</em>
             </h2>
             <p className="text-[14px] leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
               We'll help you organize them — no pressure to be perfect.
-              <br /><br />
+              <br />
+              <br />
               This will take time. You can do it all at once or come back anytime.
-              <br /><br />
-              Start with what you remember best, not what happened first. Your brain will fill in the rest as you go.
+              <br />
+              <br />
+              Start with what you remember best, not what happened first. Your brain will fill in
+              the rest as you go.
             </p>
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setStep("grounding")} className="btn-primary">Start</button>
-              <button onClick={close} className="btn-ghost">Not now</button>
+              <button onClick={() => setStep("grounding")} className="btn-primary">
+                Start
+              </button>
+              <button onClick={close} className="btn-ghost">
+                Not now
+              </button>
             </div>
           </div>
         )}
 
         {step === "grounding" && (
           <div className="space-y-4">
-            <button onClick={() => setStep("intro")} className="inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            <button
+              onClick={() => setStep("intro")}
+              className="inline-flex items-center gap-1 text-[12px]"
+              style={{ color: "var(--muted-foreground)" }}
+            >
               <ArrowLeft size={14} /> Back
             </button>
             <div className="flex items-center gap-2">
               <Heart size={18} style={{ color: "var(--accent)" }} />
-              <h2 className="font-serif text-[22px]">You're about to recall hard things. That's brave.</h2>
+              <h2 className="font-serif text-[22px]">
+                You're about to recall hard things. That's brave.
+              </h2>
             </div>
             <ul className="space-y-2 text-[14px]" style={{ color: "var(--foreground)" }}>
               <li>• Make sure you're somewhere safe.</li>
@@ -222,33 +272,58 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
               <li>• You can pause anytime. There is no deadline.</li>
               <li>• These memories matter. We're just organizing them.</li>
             </ul>
-            <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>Take a breath. Ready?</p>
+            <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              Take a breath. Ready?
+            </p>
             <div className="flex flex-wrap gap-2 pt-2">
-              <button onClick={() => setStep("window")} className="btn-primary">Yes, start</button>
-              <button onClick={close} className="btn-ghost">I need a break</button>
+              <button onClick={() => setStep("window")} className="btn-primary">
+                Yes, start
+              </button>
+              <button onClick={close} className="btn-ghost">
+                I need a break
+              </button>
             </div>
           </div>
         )}
 
         {step === "window" && (
           <div className="space-y-4">
-            <button onClick={() => setStep("grounding")} className="inline-flex items-center gap-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            <button
+              onClick={() => setStep("grounding")}
+              className="inline-flex items-center gap-1 text-[12px]"
+              style={{ color: "var(--muted-foreground)" }}
+            >
               <ArrowLeft size={14} /> Back
             </button>
-            <h2 className="font-serif text-[22px]">Before we start, let me help jog your memory.</h2>
+            <h2 className="font-serif text-[22px]">
+              Before we start, let me help jog your memory.
+            </h2>
             <div>
               <label className="label-eyebrow">When did the relationship start?</label>
-              <input type="date" value={relStart} onChange={(e) => setRelStart(e.target.value)} className="input-pp mt-1" />
+              <input
+                type="date"
+                value={relStart}
+                onChange={(e) => setRelStart(e.target.value)}
+                className="input-pp mt-1"
+              />
             </div>
             <div>
               <label className="label-eyebrow">When did you leave, or when is "now"?</label>
-              <input type="date" value={relEnd} onChange={(e) => setRelEnd(e.target.value)} className="input-pp mt-1" />
+              <input
+                type="date"
+                value={relEnd}
+                onChange={(e) => setRelEnd(e.target.value)}
+                className="input-pp mt-1"
+              />
             </div>
             <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Think about that span. We'll start with the biggest moments — the ones that come to mind without trying.
+              Think about that span. We'll start with the biggest moments — the ones that come to
+              mind without trying.
             </p>
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setStep("mode")} className="btn-primary">Continue</button>
+              <button onClick={() => setStep("mode")} className="btn-primary">
+                Continue
+              </button>
             </div>
           </div>
         )}
@@ -257,40 +332,73 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
           <div className="space-y-4">
             <h2 className="font-serif text-[22px]">How do you want to remember?</h2>
             <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Trauma memory doesn't run in order. Pick whichever anchor feels easiest right now — you can switch any time.
+              Trauma memory doesn't run in order. Pick whichever anchor feels easiest right now —
+              you can switch any time.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <button
-                onClick={() => { setMode("biggest"); setStep("recall"); }}
+                onClick={() => {
+                  setMode("biggest");
+                  setStep("recall");
+                }}
                 className="text-left rounded-xl border p-3 hover:bg-black/5"
                 style={{ borderColor: "var(--border)" }}
               >
-                <div className="flex items-center gap-2 font-semibold"><Sparkles size={14} /> Biggest moments</div>
-                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>Start with what you'll never forget.</div>
+                <div className="flex items-center gap-2 font-semibold">
+                  <Sparkles size={14} /> Biggest moments
+                </div>
+                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  Start with what you'll never forget.
+                </div>
               </button>
               <button
-                onClick={() => { setMode("season"); setSeasonIdx(0); setSeasonYear(new Date().getFullYear()); setStep("season"); }}
+                onClick={() => {
+                  setMode("season");
+                  setSeasonIdx(0);
+                  setSeasonYear(new Date().getFullYear());
+                  setStep("season");
+                }}
                 className="text-left rounded-xl border p-3 hover:bg-black/5"
                 style={{ borderColor: "var(--border)" }}
               >
-                <div className="flex items-center gap-2 font-semibold"><Leaf size={14} /> By season</div>
-                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>Walk year by year, season by season.</div>
+                <div className="flex items-center gap-2 font-semibold">
+                  <Leaf size={14} /> By season
+                </div>
+                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  Walk year by year, season by season.
+                </div>
               </button>
               <button
-                onClick={() => { setMode("location"); setActiveLocation(null); setStep("location"); }}
+                onClick={() => {
+                  setMode("location");
+                  setActiveLocation(null);
+                  setStep("location");
+                }}
                 className="text-left rounded-xl border p-3 hover:bg-black/5"
                 style={{ borderColor: "var(--border)" }}
               >
-                <div className="flex items-center gap-2 font-semibold"><MapPin size={14} /> By location</div>
-                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>Trauma is location-coded. Start at the kitchen.</div>
+                <div className="flex items-center gap-2 font-semibold">
+                  <MapPin size={14} /> By location
+                </div>
+                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  Trauma is location-coded. Start at the kitchen.
+                </div>
               </button>
               <button
-                onClick={() => { setMode("lifeevents"); setActiveAnchor(null); setStep("lifeevents"); }}
+                onClick={() => {
+                  setMode("lifeevents");
+                  setActiveAnchor(null);
+                  setStep("lifeevents");
+                }}
                 className="text-left rounded-xl border p-3 hover:bg-black/5"
                 style={{ borderColor: "var(--border)" }}
               >
-                <div className="flex items-center gap-2 font-semibold"><CalendarDays size={14} /> By life events</div>
-                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>Anchor to dates you do remember.</div>
+                <div className="flex items-center gap-2 font-semibold">
+                  <CalendarDays size={14} /> By life events
+                </div>
+                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  Anchor to dates you do remember.
+                </div>
               </button>
             </div>
             <SavedList />
@@ -308,14 +416,18 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
             <h2 className="font-serif text-[22px] leading-tight">{PROMPTS[promptIdx]}</h2>
 
             {clarifying && (
-              <div className="rounded-xl p-3 text-[13px]" style={{ background: "rgba(106,146,214,0.15)" }}>
+              <div
+                className="rounded-xl p-3 text-[13px]"
+                style={{ background: "rgba(106,146,214,0.15)" }}
+              >
                 <div className="flex items-start gap-2">
                   <Sparkles size={14} className="mt-0.5" style={{ color: "var(--accent)" }} />
                   <div>
                     <div className="font-semibold">One quick thing:</div>
                     <div>{clarifying}</div>
                     <div className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                      You can edit this Mark later from your Archive — or include the answer in your next memory.
+                      You can edit this Mark later from your Archive — or include the answer in your
+                      next memory.
                     </div>
                   </div>
                 </div>
@@ -331,10 +443,30 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
             />
 
             <div className="flex flex-wrap gap-2">
-              <button onClick={saveMemory} disabled={busy} className="btn-primary inline-flex items-center gap-2">
-                {busy ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : <><Check size={14} /> Save this memory</>}
+              <button
+                onClick={saveMemory}
+                disabled={busy}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                {busy ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" /> Saving…
+                  </>
+                ) : (
+                  <>
+                    <Check size={14} /> Save this memory
+                  </>
+                )}
               </button>
-              <button onClick={() => { setMemory(""); setClarifying(null); setPromptIdx((i) => (i + 1) % PROMPTS.length); }} disabled={busy} className="btn-ghost">
+              <button
+                onClick={() => {
+                  setMemory("");
+                  setClarifying(null);
+                  setPromptIdx((i) => (i + 1) % PROMPTS.length);
+                }}
+                disabled={busy}
+                className="btn-ghost"
+              >
                 Different prompt
               </button>
             </div>
@@ -350,7 +482,8 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
               {SEASONS[seasonIdx]} {seasonYear}
             </h2>
             <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              What happened that {SEASONS[seasonIdx].toLowerCase()}? Take your time. Even small incidents count.
+              What happened that {SEASONS[seasonIdx].toLowerCase()}? Take your time. Even small
+              incidents count.
             </p>
             <div className="flex flex-wrap gap-2">
               <input
@@ -379,8 +512,20 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
               disabled={busy}
             />
             <div className="flex flex-wrap gap-2">
-              <button onClick={saveMemory} disabled={busy} className="btn-primary inline-flex items-center gap-2">
-                {busy ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : <><Check size={14} /> Save</>}
+              <button
+                onClick={saveMemory}
+                disabled={busy}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                {busy ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" /> Saving…
+                  </>
+                ) : (
+                  <>
+                    <Check size={14} /> Save
+                  </>
+                )}
               </button>
               <button
                 onClick={() => {
@@ -397,7 +542,10 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
               </button>
             </div>
             {clarifying && (
-              <div className="rounded-xl p-3 text-[13px]" style={{ background: "rgba(106,146,214,0.15)" }}>
+              <div
+                className="rounded-xl p-3 text-[13px]"
+                style={{ background: "rgba(106,146,214,0.15)" }}
+              >
                 <div className="font-semibold">One quick thing:</div>
                 <div>{clarifying}</div>
               </div>
@@ -424,14 +572,17 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
                       className="px-3 py-2 rounded-lg border text-[13px] hover:bg-black/5"
                       style={{ borderColor: "var(--border)" }}
                     >
-                      <MapPin size={12} className="inline mr-1" />{loc}
+                      <MapPin size={12} className="inline mr-1" />
+                      {loc}
                     </button>
                   ))}
                 </div>
               </>
             ) : (
               <>
-                <h2 className="font-serif text-[22px]">Think about every time something happened in the {activeLocation.toLowerCase()}.</h2>
+                <h2 className="font-serif text-[22px]">
+                  Think about every time something happened in the {activeLocation.toLowerCase()}.
+                </h2>
                 <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
                   Start with what comes first. We'll keep going.
                 </p>
@@ -443,15 +594,38 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
                   disabled={busy}
                 />
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={saveMemory} disabled={busy} className="btn-primary inline-flex items-center gap-2">
-                    {busy ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : <><Check size={14} /> Save</>}
+                  <button
+                    onClick={saveMemory}
+                    disabled={busy}
+                    className="btn-primary inline-flex items-center gap-2"
+                  >
+                    {busy ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" /> Saving…
+                      </>
+                    ) : (
+                      <>
+                        <Check size={14} /> Save
+                      </>
+                    )}
                   </button>
-                  <button onClick={() => { setActiveLocation(null); setMemory(""); setClarifying(null); }} disabled={busy} className="btn-ghost">
+                  <button
+                    onClick={() => {
+                      setActiveLocation(null);
+                      setMemory("");
+                      setClarifying(null);
+                    }}
+                    disabled={busy}
+                    className="btn-ghost"
+                  >
                     Different location
                   </button>
                 </div>
                 {clarifying && (
-                  <div className="rounded-xl p-3 text-[13px]" style={{ background: "rgba(106,146,214,0.15)" }}>
+                  <div
+                    className="rounded-xl p-3 text-[13px]"
+                    style={{ background: "rgba(106,146,214,0.15)" }}
+                  >
                     <div className="font-semibold">One quick thing:</div>
                     <div>{clarifying}</div>
                   </div>
@@ -487,7 +661,9 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
               </>
             ) : (
               <>
-                <h2 className="font-serif text-[22px] leading-tight">Around "{activeAnchor.toLowerCase()}" — what happened?</h2>
+                <h2 className="font-serif text-[22px] leading-tight">
+                  Around "{activeAnchor.toLowerCase()}" — what happened?
+                </h2>
                 <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
                   Before, during, or just after. Whatever surfaces first.
                 </p>
@@ -499,15 +675,38 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
                   disabled={busy}
                 />
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={saveMemory} disabled={busy} className="btn-primary inline-flex items-center gap-2">
-                    {busy ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : <><Check size={14} /> Save</>}
+                  <button
+                    onClick={saveMemory}
+                    disabled={busy}
+                    className="btn-primary inline-flex items-center gap-2"
+                  >
+                    {busy ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" /> Saving…
+                      </>
+                    ) : (
+                      <>
+                        <Check size={14} /> Save
+                      </>
+                    )}
                   </button>
-                  <button onClick={() => { setActiveAnchor(null); setMemory(""); setClarifying(null); }} disabled={busy} className="btn-ghost">
+                  <button
+                    onClick={() => {
+                      setActiveAnchor(null);
+                      setMemory("");
+                      setClarifying(null);
+                    }}
+                    disabled={busy}
+                    className="btn-ghost"
+                  >
                     Different anchor
                   </button>
                 </div>
                 {clarifying && (
-                  <div className="rounded-xl p-3 text-[13px]" style={{ background: "rgba(106,146,214,0.15)" }}>
+                  <div
+                    className="rounded-xl p-3 text-[13px]"
+                    style={{ background: "rgba(106,146,214,0.15)" }}
+                  >
                     <div className="font-semibold">One quick thing:</div>
                     <div>{clarifying}</div>
                   </div>
@@ -522,22 +721,30 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
         {step === "done" && (
           <div className="space-y-4">
             <h2 className="font-serif text-[22px]">
-              {saved.length > 0 ? "Saved. Take a breath." : "That's okay. Come back when you're ready."}
+              {saved.length > 0
+                ? "Saved. Take a breath."
+                : "That's okay. Come back when you're ready."}
             </h2>
             {saved.length > 0 && (
               <>
                 <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-                  You added {saved.length} {saved.length === 1 ? "incident" : "incidents"}. You can edit any of them from your Archive — and add more anytime.
+                  You added {saved.length} {saved.length === 1 ? "incident" : "incidents"}. You can
+                  edit any of them from your Archive — and add more anytime.
                 </p>
                 <p className="text-[13px]" style={{ color: "var(--foreground)" }}>
-                  The pattern is becoming clearer with every entry. That's the story courts need to hear.
+                  The pattern is becoming clearer with every entry. That's the story courts need to
+                  hear.
                 </p>
               </>
             )}
             <div className="flex gap-2">
-              <button onClick={finishAndClose} className="btn-primary">Close</button>
+              <button onClick={finishAndClose} className="btn-primary">
+                Close
+              </button>
               {saved.length > 0 && (
-                <button onClick={() => setStep("mode")} className="btn-ghost">Keep going</button>
+                <button onClick={() => setStep("mode")} className="btn-ghost">
+                  Keep going
+                </button>
               )}
             </div>
           </div>

@@ -54,10 +54,23 @@ const PAGE_ROUTES = [
   { file: "src/routes/resources.tsx", path: "/resources", requireCanonical: true },
   { file: "src/routes/self-help-guide.tsx", path: "/self-help-guide", requireCanonical: true },
   { file: "src/routes/safety.tsx", path: "/safety", requireCanonical: true },
-  { file: "src/routes/evidence-integrity.tsx", path: "/evidence-integrity", requireCanonical: true },
+  {
+    file: "src/routes/evidence-integrity.tsx",
+    path: "/evidence-integrity",
+    requireCanonical: true,
+  },
   { file: "src/routes/ai-transparency.tsx", path: "/ai-transparency", requireCanonical: true },
-  { file: "src/routes/professional-access.tsx", path: "/professional-access", requireCanonical: true },
+  {
+    file: "src/routes/professional-access.tsx",
+    path: "/professional-access",
+    requireCanonical: true,
+  },
   { file: "src/routes/support.tsx", path: "/support", requireCanonical: true },
+  {
+    file: "src/routes/family-law-workload.tsx",
+    path: "/family-law-workload",
+    requireCanonical: true,
+  },
 ];
 
 const readQuoted = (src, startIdx) => {

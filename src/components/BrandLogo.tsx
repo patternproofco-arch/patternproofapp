@@ -17,10 +17,19 @@ interface BrandLogoProps {
  * The single PatternProof lockup: the "P" mark + "PATTERNPROOF" wordmark.
  * There are no per-audience variants.
  */
-export function BrandLogo({ size = 48, className, showTagline = false, onDark = false, variant = "neutral" }: BrandLogoProps) {
+export function BrandLogo({
+  size = 48,
+  className,
+  showTagline = false,
+  onDark = false,
+  variant = "neutral",
+}: BrandLogoProps) {
   const wordmarkColor = onDark ? PAPER : INK;
   return (
-    <span className={className} style={{ display: "inline-flex", alignItems: "center", gap: Math.round(size * 0.28) }}>
+    <span
+      className={className}
+      style={{ display: "inline-flex", alignItems: "center", gap: Math.round(size * 0.28) }}
+    >
       <BrandMark size={size} onDark={onDark} variant={variant} />
       <span style={{ display: "inline-flex", flexDirection: "column" }}>
         <span

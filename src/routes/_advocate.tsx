@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { LogOut } from "lucide-react";
@@ -8,6 +8,9 @@ import { getMyAdvocateRole } from "@/lib/advocate.functions";
 import { AccessDisclaimerBar } from "@/components/AccessDisclaimer";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
+import { useMfaGate } from "@/hooks/use-mfa-gate";
+import { testAccountRole } from "@/lib/test-accounts";
+import "@/styles-role-accents.css";
 
 export const Route = createFileRoute("/_advocate")({
   head: () => ({
@@ -23,17 +26,30 @@ function AdvocateLayout() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const roleFn = useServerFn(getMyAdvocateRole);
+  const pathname = useRouterState({ select: (st) => st.location.pathname });
   const [checking, setChecking] = useState(true);
+  const mfaChecking = useMfaGate(!loading && !!user && testAccountRole(user?.email) !== "advocate");
   const [profile, setProfile] = useState<{
     full_name: string;
     org_name: string | null;
     email: string;
+    onboarded?: boolean;
   } | null>(null);
 
   useEffect(() => {
     if (loading) return;
     if (!user) {
       navigate({ to: "/signin", search: { redirect: "/advocate-cases" }, replace: true });
+      return;
+    }
+    if (testAccountRole(user.email) === "advocate") {
+      setProfile({
+        full_name: "Test Advocate",
+        org_name: "PatternProof test",
+        email: user.email ?? "advocateppme@gmail.com",
+        onboarded: true,
+      });
+      setChecking(false);
       return;
     }
     roleFn()
@@ -43,19 +59,24 @@ function AdvocateLayout() {
           return;
         }
         setProfile(r.profile);
+        if (!r.profile?.onboarded && pathname !== "/advocate-setup") {
+          navigate({ to: "/advocate-setup", replace: true });
+          return;
+        }
         setChecking(false);
       })
       .catch(() => navigate({ to: "/", replace: true }));
-  }, [user, loading, roleFn, navigate]);
+  }, [user, loading, roleFn, navigate, pathname]);
 
-  if (loading || checking) {
+  if (loading || checking || mfaChecking) {
     return (
       <div
         className="pp-portal-shell"
         data-persona="org"
+        data-pp-paper=""
         style={{
           minHeight: "100vh",
-          background: "var(--pp-ground)",
+          background: "var(--paper)",
           display: "grid",
           placeItems: "center",
         }}
@@ -67,12 +88,13 @@ function AdvocateLayout() {
 
   return (
     <div
-      className="pp-portal-shell"
+      className="pp-portal-shell folio-page"
       data-persona="org"
-      style={{ minHeight: "100vh", background: "var(--pp-ground)", color: "var(--foreground)" }}
+      data-pp-paper=""
+      style={{ minHeight: "100vh", background: "var(--paper)", color: "var(--ink)" }}
     >
       <header
-        className="pp-portal-header"
+        className="pp-portal-header pp-app-chrome"
         style={{
           display: "flex",
           alignItems: "center",
@@ -90,6 +112,9 @@ function AdvocateLayout() {
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Advocate access</span>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Link to="/advocate-matters" style={{ fontSize: 12, color: "inherit" }}>
+            Matters
+          </Link>
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
             {profile?.org_name ?? profile?.full_name ?? ""}
           </span>

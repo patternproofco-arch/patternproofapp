@@ -1,5 +1,14 @@
 import React from "react";
-import { Body, Container, Head, Heading, Html, Preview, Section, Text } from "@react-email/components";
+import {
+  Body,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Preview,
+  Section,
+  Text,
+} from "@react-email/components";
 
 export type ProfessionalKitPersona = "attorney" | "org";
 
@@ -27,17 +36,25 @@ export function kitCopy(persona: ProfessionalKitPersona) {
   return persona === "attorney"
     ? {
         title: "Evidence Intake & Chronology Readiness Kit",
-        intro: "A practical intake checklist for building a source-linked chronology without overstating date certainty or losing the original evidence trail.",
+        intro:
+          "A practical intake checklist for building a source-linked chronology without overstating date certainty or losing the original evidence trail.",
         items: attorneyItems,
       }
     : {
         title: "Survivor Referral & Consent Readiness Kit",
-        intro: "A practical referral checklist for introducing PatternProof safely while keeping consent, staff access, and revocation clear.",
+        intro:
+          "A practical referral checklist for introducing PatternProof safely while keeping consent, staff access, and revocation clear.",
         items: orgItems,
       };
 }
 
-export function ProfessionalReadinessKitEmail({ persona, name }: { persona: ProfessionalKitPersona; name: string }) {
+export function ProfessionalReadinessKitEmail({
+  persona,
+  name,
+}: {
+  persona: ProfessionalKitPersona;
+  name: string;
+}) {
   const kit = kitCopy(persona);
   return (
     <Html lang="en" dir="ltr">
@@ -56,8 +73,15 @@ export function ProfessionalReadinessKitEmail({ persona, name }: { persona: Prof
               </Text>
             ))}
           </Section>
-          <Text style={fine}>PatternProof organizes user-provided records and permissions. It does not determine admissibility, provide legal advice, replace attorney judgment, or replace advocate safety planning.</Text>
-          <Text style={fine}>You requested this one-time resource. No marketing subscription was added by this request.</Text>
+          <Text style={fine}>
+            PatternProof organizes user-provided records and permissions. It does not determine
+            admissibility, provide legal advice, replace attorney judgment, or replace advocate
+            safety planning.
+          </Text>
+          <Text style={fine}>
+            You requested this one-time resource. No marketing subscription was added by this
+            request.
+          </Text>
         </Container>
       </Body>
     </Html>
@@ -66,9 +90,19 @@ export function ProfessionalReadinessKitEmail({ persona, name }: { persona: Prof
 
 const main = { backgroundColor: "#ffffff", fontFamily: "Arial, sans-serif" };
 const container = { padding: "28px", maxWidth: "620px" };
-const eyebrow = { fontSize: "11px", letterSpacing: "0.16em", fontWeight: 700 as const, color: "#5f6570" };
+const eyebrow = {
+  fontSize: "11px",
+  letterSpacing: "0.16em",
+  fontWeight: 700 as const,
+  color: "#5f6570",
+};
 const h1 = { fontSize: "25px", lineHeight: 1.25, color: "#1A1224", margin: "10px 0 18px" };
 const body = { fontSize: "15px", lineHeight: 1.65, color: "#1A1224" };
-const panel = { backgroundColor: "#F6F5F2", borderRadius: "14px", padding: "14px 18px", margin: "18px 0" };
+const panel = {
+  backgroundColor: "#F6F5F2",
+  borderRadius: "14px",
+  padding: "14px 18px",
+  margin: "18px 0",
+};
 const itemStyle = { fontSize: "14px", lineHeight: 1.6, color: "#1A1224", margin: "10px 0" };
 const fine = { fontSize: "12px", lineHeight: 1.55, color: "#666b74" };

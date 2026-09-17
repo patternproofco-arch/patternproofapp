@@ -1,15 +1,18 @@
 {
+  "id": "/signin",
   "name": "Notes",
   "short_name": "Notes",
-  "description": "Personal notes.",
-  "start_url": "/dashboard",
+  "description": "Private notes on this device.",
+  "start_url": "/signin",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#FAF8F4",
-  "theme_color": "#7A1F3D",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f1ea",
+  "theme_color": "#f4f1ea",
+  "categories": ["productivity", "utilities"],
   "icons": [
     {
-      "src": "/icons/icon.svg",
+      "src": "/icons/note.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
@@ -25,21 +28,32 @@
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
     {
-      "name": "New note",
-      "short_name": "New note",
-      "description": "Start a new note right away",
-      "url": "/live-recording?auto=1",
-      "icons": [
-        {
-          "src": "/icons/note.svg",
-          "sizes": "any",
-          "type": "image/svg+xml"
-        }
-      ]
+      "name": "Add a note",
+      "short_name": "Add",
+      "url": "/journal",
+      "icons": [{ "src": "/icons/note.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Timeline",
+      "short_name": "Timeline",
+      "url": "/timeline",
+      "icons": [{ "src": "/icons/note.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Files",
+      "short_name": "Files",
+      "url": "/evidence",
+      "icons": [{ "src": "/icons/note.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ]
 }

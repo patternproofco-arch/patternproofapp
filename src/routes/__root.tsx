@@ -7,12 +7,109 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
+import folioLockCss from "../folio-lock.css?url";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
 import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
 import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
+import { GlobalHeader } from "@/components/GlobalHeader";
+import { GlobalFooter } from "@/components/GlobalFooter";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
+const quickExitFallbackScript = `(function () {
+  var SUPABASE_URL = ${JSON.stringify(SUPABASE_URL)};
+  var SUPABASE_KEY = ${JSON.stringify(SUPABASE_PUBLISHABLE_KEY)};
+
+  function getExitUrl() {
+    try {
+      var raw = localStorage.getItem("pp_settings_v1");
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.exitUrl === "string" && parsed.exitUrl) return parsed.exitUrl;
+      }
+    } catch (e) {}
+    return "https://weather.com";
+  }
+
+  function quickExit() {
+    var url = getExitUrl();
+    var accessToken = null;
+    var authKeys = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf("sb-") === 0 && k.indexOf("auth-token") !== -1) authKeys.push(k);
+      }
+      for (var j = 0; j < authKeys.length; j++) {
+        var raw = localStorage.getItem(authKeys[j]);
+        if (raw) {
+          try {
+            var parsed = JSON.parse(raw);
+            accessToken = (parsed && parsed.access_token) || (parsed && parsed.currentSession && parsed.currentSession.access_token) || accessToken;
+          } catch (e) {}
+        }
+      }
+    } catch (e) {}
+    try {
+      for (var m = 0; m < authKeys.length; m++) localStorage.removeItem(authKeys[m]);
+    } catch (e) {}
+    try {
+      var sessionKeys = [];
+      for (var n = 0; n < sessionStorage.length; n++) {
+        var sk = sessionStorage.key(n);
+        if (sk && (sk.indexOf("pp.") === 0 || sk.indexOf("pp_") === 0)) sessionKeys.push(sk);
+      }
+      for (var p = 0; p < sessionKeys.length; p++) sessionStorage.removeItem(sessionKeys[p]);
+    } catch (e) {}
+    try {
+      if (accessToken && SUPABASE_URL && SUPABASE_KEY) {
+        fetch(SUPABASE_URL + "/auth/v1/logout?scope=global", {
+          method: "POST",
+          keepalive: true,
+          headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + accessToken, "Content-Type": "application/json" },
+        }).catch(function () {});
+      }
+    } catch (e) {}
+    try { document.title = "Weather"; } catch (e) {}
+    try { window.history.replaceState(null, "", "/"); } catch (e) {}
+    window.location.replace(url);
+  }
+
+  window.__ppLastEsc = 0;
+  document.addEventListener("click", function (e) {
+    if (window.__ppQuickExitHydrated) return;
+    var btn = e.target && e.target.closest && e.target.closest("[data-quick-exit]");
+    if (!btn) return;
+    quickExit();
+  }, true);
+  document.addEventListener("keydown", function (e) {
+    if (window.__ppQuickExitHydrated) return;
+    if (e.key === "Escape") {
+      var now = Date.now();
+      if (now - window.__ppLastEsc < 500) quickExit();
+      window.__ppLastEsc = now;
+    }
+  }, true);
+})();`;
+
+const FOLIO_PATHS = new Set([
+  "/",
+  "/how-it-works",
+  "/for-attorneys",
+  "/for-organizations",
+  "/pricing",
+  "/safety",
+  "/privacy",
+  "/signup",
+  "/signin",
+  "/login",
+  "/demo",
+  "/family-law-workload",
+]);
 
 function NotFoundComponent() {
   return (
@@ -78,26 +175,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PatternProof — Private documentation for your case" },
+      { title: "Private Evidence Documentation Software | PatternProof" },
       {
         name: "description",
         content:
-          "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+          "PatternProof is private evidence documentation software for domestic violence survivors, family law attorneys, and DV organizations. Organize records with source-linked timelines and survivor-controlled sharing.",
       },
       { property: "og:site_name", content: "PatternProof" },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "PatternProof — Private documentation for your case" },
+      { property: "og:title", content: "Private Evidence Documentation Software | PatternProof" },
       {
         property: "og:description",
         content:
-          "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+          "Private evidence documentation software for domestic violence survivors, family law attorneys, and DV organizations. Organize records with source-linked timelines and survivor-controlled sharing.",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "PatternProof — Private documentation for your case" },
+      { name: "twitter:title", content: "Private Evidence Documentation Software | PatternProof" },
       {
         name: "twitter:description",
         content:
-          "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+          "Private evidence documentation software for domestic violence survivors, family law attorneys, and DV organizations. Organize records with source-linked timelines and survivor-controlled sharing.",
       },
       { name: "twitter:site", content: "@PatternProof" },
       { name: "apple-mobile-web-app-title", content: "Notes" },
@@ -117,11 +214,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      {
+        rel: "stylesheet",
+        href: folioLockCss,
+      },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Public+Sans:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;1,500&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap",
       },
       {
         rel: "manifest",
@@ -145,6 +246,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     scripts: [
       {
+        children: quickExitFallbackScript,
+      },
+      {
         async: true,
         src: `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`,
       },
@@ -153,9 +257,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function gtag(){dataLayer.push(arguments);}
 window.gtag = gtag;
 gtag('js', new Date());
-// send_page_view is off — GA4's default auto-pageview captures the raw
-// URL (query string and all). GoogleAnalyticsRouteTracker sends every
-// pageview itself, including the first, with tokens/query stripped first.
 gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`,
       },
       {
@@ -166,18 +267,20 @@ gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`,
             {
               "@type": "Organization",
               "@id": "https://pattern-proof.tech/#organization",
-              name: "PatternProof",
+              name: "G Burns Company LLC",
+              legalName: "G Burns Company LLC",
+              brand: { "@type": "Brand", name: "PatternProof" },
               url: "https://pattern-proof.tech/",
               description:
-                "Private documentation for survivors of domestic abuse and high-conflict custody cases. Protected with per-user access controls and encrypted in transit.",
+                "The company behind PatternProof, a private evidence documentation product for domestic violence survivors, family law attorneys, and DV organizations.",
             },
             {
               "@type": "WebSite",
               "@id": "https://pattern-proof.tech/#website",
-              name: "PatternProof",
+              name: "PatternProof Private Evidence Documentation",
               url: "https://pattern-proof.tech/",
               description:
-                "Private documentation for your case, encrypted in transit and protected with per-user access controls. Visible only to you and anyone you choose to share it with.",
+                "Private evidence documentation software for domestic violence survivors, family law attorneys, and DV organizations. Organize records into a source-linked timeline and share only what you choose.",
               publisher: { "@id": "https://pattern-proof.tech/#organization" },
             },
           ],
@@ -205,14 +308,51 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function FolioPageFrame({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const path = router.state.location.pathname;
+  const folio = FOLIO_PATHS.has(path);
+  return <div className={folio ? "folio-page" : undefined}>{children}</div>;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Register service worker for PWA functionality
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((err) => {
+        console.error("Service Worker registration failed:", err);
+      });
+    }
+
+    // Handle PWA install prompt
+    let deferredPrompt: BeforeInstallPromptEvent | null = null;
+
+    window.addEventListener("beforeinstallprompt", (e: any) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    // Listen for app installed event
+    window.addEventListener("appinstalled", () => {
+      console.log("PWA installed successfully");
+    });
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <GoogleAnalyticsRouteTracker />
-        <Outlet />
+        <div className="pp-global-layout">
+          <GlobalHeader />
+          <div className="pp-global-page">
+            <FolioPageFrame>
+              <Outlet />
+            </FolioPageFrame>
+          </div>
+          <GlobalFooter />
+        </div>
         <ProfessionalReadinessKitCapture />
         <Toaster
           position="top-center"
@@ -230,4 +370,16 @@ function RootComponent() {
       </AuthProvider>
     </QueryClientProvider>
   );
+}
+
+// TypeScript type for beforeinstallprompt
+declare global {
+  interface WindowEventMap {
+    beforeinstallprompt: BeforeInstallPromptEvent;
+  }
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }

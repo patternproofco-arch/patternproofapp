@@ -48,9 +48,7 @@ export function useIdleLock(enabled: boolean, timeoutSec: number, lock: () => vo
       }
     };
 
-    ACTIVITY_EVENTS.forEach((e) =>
-      window.addEventListener(e, bump, { passive: true })
-    );
+    ACTIVITY_EVENTS.forEach((e) => window.addEventListener(e, bump, { passive: true }));
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {

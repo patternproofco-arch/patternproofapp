@@ -519,7 +519,9 @@ function ClaimReview({
       {editedNote && !editing && (
         <div
           className="mb-2 rounded-2xl px-3 py-2 text-[12px]"
-          style={{ background: tone === "dark" ? "var(--pp-ground-lo, var(--pp-ground))" : "var(--input)" }}
+          style={{
+            background: tone === "dark" ? "var(--pp-ground-lo, var(--pp-ground))" : "var(--input)",
+          }}
         >
           <span className="label-eyebrow" style={{ display: "block", marginBottom: 4 }}>
             Your note

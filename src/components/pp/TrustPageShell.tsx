@@ -91,10 +91,6 @@ export function TrustPage({
           ·{" "}
           <Link to="/professional-access" style={linkS}>
             Professional access
-          </Link>{" "}
-          ·{" "}
-          <Link to="/connect" style={linkS}>
-            Connect an AI assistant
           </Link>
         </p>
       </div>

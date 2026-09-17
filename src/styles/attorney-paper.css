@@ -1,0 +1,25 @@
+/* Loaded after attorney.css so Paper & Ink wins over blue-grey cockpit. */
+.att-root {
+  --att-bg: #f4f1ea;
+  --att-surface: #ebe6dc;
+  --att-surface-2: #f4f1ea;
+  --pp-ground: #f4f1ea;
+  background: #f4f1ea !important;
+  color: #1a1916;
+}
+.att-sidebar,
+.att-content,
+.att-topbar,
+.att-footer {
+  background: #f4f1ea !important;
+  box-shadow: none !important;
+  border-color: #d4cfc4 !important;
+}
+.att-sidebar {
+  background: #ebe6dc !important;
+}
+.att-btn,
+.att-btn-primary {
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}

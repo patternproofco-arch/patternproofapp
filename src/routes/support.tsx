@@ -262,8 +262,18 @@ const h2 = {
   fontWeight: 500,
   margin: "0 0 8px",
 } as const;
-const sub = { fontSize: 16, lineHeight: 1.6, color: "var(--pp-muted)", margin: "12px 0 0" } as const;
-const bodyText = { fontSize: 14, lineHeight: 1.65, color: "var(--pp-muted)", margin: "0 0 12px" } as const;
+const sub = {
+  fontSize: 16,
+  lineHeight: 1.6,
+  color: "var(--pp-muted)",
+  margin: "12px 0 0",
+} as const;
+const bodyText = {
+  fontSize: 14,
+  lineHeight: 1.65,
+  color: "var(--pp-muted)",
+  margin: "0 0 12px",
+} as const;
 
 const safetyNote = {
   background: "rgba(122,31,61,0.07)",

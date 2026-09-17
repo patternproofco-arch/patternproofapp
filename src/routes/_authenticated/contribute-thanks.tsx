@@ -79,7 +79,6 @@ function ContributeThanks() {
     };
     // subRef.current always has the latest `sub` — intentionally not a dep,
     // since `sub` is a fresh object on every refetch.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session_id, navigate]);
 
   return (

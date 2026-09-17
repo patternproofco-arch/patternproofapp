@@ -11,7 +11,9 @@ export const getTrustPanel = createServerFn({ method: "POST" })
     const [linksRes, invitesRes, auditRes] = await Promise.all([
       supabaseAdmin
         .from("attorney_client_links")
-        .select("id,client_user_id,status,created_at,revoked_at,include_all_incidents,include_all_evidence,include_patterns")
+        .select(
+          "id,client_user_id,status,created_at,revoked_at,include_all_incidents,include_all_evidence,include_patterns",
+        )
         .eq("attorney_user_id", context.userId)
         .order("created_at", { ascending: false }),
       supabaseAdmin

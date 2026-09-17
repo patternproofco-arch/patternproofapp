@@ -11,6 +11,8 @@ import { PinScreen } from "@/components/PinScreen";
 import { LockRecoveryScreen } from "@/components/LockRecoveryScreen";
 import { getPinLockState } from "@/lib/pin-lock.functions";
 import { RecordingProvider } from "@/lib/recording-context";
+import { useMfaGate } from "@/hooks/use-mfa-gate";
+import { testAccountRole } from "@/lib/test-accounts";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -38,9 +40,10 @@ function Gate() {
   const roleChecked = useRef(false);
   const readAppLock = useServerFn(getPinLockState);
   const [serverLockOn, setServerLockOn] = useState<boolean | null>(null);
+  const [isSurvivor, setIsSurvivor] = useState<boolean | null>(null);
+  const forcedRole = testAccountRole(user?.email);
+  const mfaChecking = useMfaGate(!loading && !!user && !forcedRole);
 
-  // The server remembers whether a lock is turned on, so clearing site data
-  // can't quietly remove it.
   useEffect(() => {
     if (loading || !user) return;
     let cancelled = false;
@@ -56,8 +59,6 @@ function Gate() {
     };
   }, [loading, user, readAppLock]);
 
-  // Auto-lock after inactivity — only meaningful once they've set up a PIN or
-  // biometric unlock, otherwise there's nothing to unlock with.
   useIdleLock(
     !loading && !!user && (hasPin || hasBiometric) && !isLocked,
     settings.sessionTimeoutSec,
@@ -68,14 +69,23 @@ function Gate() {
     if (!loading && !user) navigate({ to: "/signin", replace: true });
   }, [user, loading, navigate]);
 
-  // Backfill the survivor role for accounts created before roles were
-  // persisted, and send attorney-only accounts to their own portal instead of
-  // leaving them loose in the survivor app. Runs once per session.
   useEffect(() => {
     if (loading || !user || roleChecked.current) return;
     roleChecked.current = true;
+    const forced = testAccountRole(user.email);
+    if (forced === "attorney") {
+      setIsSurvivor(false);
+      navigate({ to: "/clients", replace: true });
+      return;
+    }
+    if (forced === "advocate") {
+      setIsSurvivor(false);
+      navigate({ to: "/advocate-cases", replace: true });
+      return;
+    }
     ensureRole()
       .then((r) => {
+        setIsSurvivor(!!r.is_survivor);
         if (!r.is_survivor && r.roles.includes("attorney")) {
           navigate({ to: "/clients", replace: true });
           return;
@@ -84,30 +94,36 @@ function Gate() {
           navigate({ to: r.is_org_partner ? "/org-portal" : "/advocate-cases", replace: true });
         }
       })
-      .catch(() => undefined);
+      .catch(() => {
+        setIsSurvivor(true);
+      });
   }, [loading, user, ensureRole, navigate]);
 
-  // Seed local onboarded flag from server-side user metadata so returning
-  // users on a new device / private browser / cleared storage don't get
-  // pushed back through onboarding.
+  const onboardingComplete = !!(
+    user &&
+    ((user.user_metadata ?? {}) as { onboarding_complete?: boolean }).onboarding_complete
+  );
+  const survivorNeedsOnboarding = isSurvivor === true && !onboardingComplete;
+
   useEffect(() => {
-    if (loading || !user || settings.onboarded) return;
+    if (loading || !user || isSurvivor !== true) return;
     const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; state?: string };
     if (meta.onboarding_complete) {
-      update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
+      if (!settings.onboarded) {
+        update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
+      }
+    } else if (settings.onboarded) {
+      update({ onboarded: false });
     }
-  }, [loading, user, settings.onboarded, update]);
+  }, [loading, user, isSurvivor, settings.onboarded, update]);
 
   useEffect(() => {
-    if (!loading && user && !settings.onboarded && pathname !== "/onboarding") {
-      const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean };
-      if (!meta.onboarding_complete) {
-        navigate({ to: "/onboarding", replace: true });
-      }
+    if (!loading && user && survivorNeedsOnboarding && pathname !== "/onboarding") {
+      navigate({ to: "/onboarding", replace: true });
     }
-  }, [loading, user, settings.onboarded, pathname, navigate]);
+  }, [loading, user, survivorNeedsOnboarding, pathname, navigate]);
 
-  if (loading || !user || !pinLockReady) {
+  if (loading || !user || !pinLockReady || isSurvivor === null || mfaChecking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="label-eyebrow">Opening your space…</div>
@@ -115,9 +131,14 @@ function Gate() {
     );
   }
 
-  // Server says a lock is on, but nothing on this device can open it (e.g.
-  // biometric enrollment is device-bound and site data was cleared) — ask her
-  // to sign back in rather than defaulting to unlocked.
+  if (survivorNeedsOnboarding && pathname !== "/onboarding") {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="label-eyebrow">Opening your space…</div>
+      </div>
+    );
+  }
+
   if (serverLockOn === true && !hasPin && !hasBiometric && pathname !== "/onboarding") {
     return <LockRecoveryScreen />;
   }

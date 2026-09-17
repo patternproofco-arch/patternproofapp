@@ -32,10 +32,12 @@ Rules:
 export const ocrJournalImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      signedUrl: z.string().url().max(2000),
-      mimeType: z.string().min(1).max(120),
-    }).parse(input),
+    z
+      .object({
+        signedUrl: z.string().url().max(2000),
+        mimeType: z.string().min(1).max(120),
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
@@ -73,7 +75,7 @@ export const ocrJournalImage = createServerFn({ method: "POST" })
       }),
     });
     if (!res.ok) return { ok: false as const, reason: `ai-${res.status}` };
-    const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const text = json.choices?.[0]?.message?.content?.trim() ?? "";
     if (!text) return { ok: false as const, reason: "empty" };
     return { ok: true as const, text };
@@ -82,9 +84,11 @@ export const ocrJournalImage = createServerFn({ method: "POST" })
 export const splitJournalIntoIncidents = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      text: z.string().min(1).max(20000),
-    }).parse(input),
+    z
+      .object({
+        text: z.string().min(1).max(20000),
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
@@ -102,9 +106,13 @@ export const splitJournalIntoIncidents = createServerFn({ method: "POST" })
       }),
     });
     if (!res.ok) return { ok: false as const, reason: `ai-${res.status}` };
-    const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const raw = json.choices?.[0]?.message?.content?.trim() ?? "";
-    const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+    const cleaned = raw
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/```\s*$/i, "")
+      .trim();
     try {
       const parsed = JSON.parse(cleaned) as { incidents?: unknown };
       const arr = Array.isArray(parsed.incidents) ? parsed.incidents : [];
