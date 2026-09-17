@@ -1,14 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
-import { isTestAccountEmail } from "@/lib/test-accounts";
 
-async function currentEmail(): Promise<string | null> {
-  const { data } = await supabase.auth.getUser();
-  return data.user?.email ?? null;
-}
+/**
+ * There are no account-level exemptions here. Every signed-in account,
+ * including internal QA accounts, goes through the same checks.
+ */
 
 /** True when the person has a verified authenticator but this session is still AAL1. */
 export async function sessionNeedsMfa(): Promise<boolean> {
-  if (isTestAccountEmail(await currentEmail())) return false;
   const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (error || !data) return false;
   return data.currentLevel === "aal1" && data.nextLevel === "aal2";
