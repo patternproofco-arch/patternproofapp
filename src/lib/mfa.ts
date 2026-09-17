@@ -20,7 +20,6 @@ export async function verifiedTotpFactorId(): Promise<string | null> {
 }
 
 export async function hasVerifiedTotp(): Promise<boolean> {
-  if (isTestAccountEmail(await currentEmail())) return true;
   return (await verifiedTotpFactorId()) !== null;
 }
 
