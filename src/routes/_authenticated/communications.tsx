@@ -75,7 +75,6 @@ function CommunicationsPage() {
       cancelLabel: "Keep",
     });
     if (!ok) return;
-    if (screenshotPath) await supabase.storage.from("evidence-files").remove([screenshotPath]);
     await supabase
       .from("communications")
       .update({ deleted_at: new Date().toISOString() })

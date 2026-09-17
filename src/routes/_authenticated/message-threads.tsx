@@ -225,22 +225,16 @@ function MessageThreadsPage() {
   const removeThread = async (id: string) => {
     const ok = await confirm({
       title: "Delete this conversation?",
-      body: "Parsed messages and the original file will be removed.",
+      body: "This conversation will be removed from your view.",
       confirmLabel: "Delete",
       cancelLabel: "Keep",
     });
     if (!ok || !user) return;
-    const t = threads.find((x) => x.id === id);
     await supabase
       .from("message_threads")
       .update({ deleted_at: new Date().toISOString() })
       .eq("id", id)
       .eq("user_id", user.id);
-    if (t)
-      await supabase.storage
-        .from("message-exports")
-        .remove([t["file_url" as keyof ThreadRow] as unknown as string])
-        .catch(() => null);
     await load();
   };
 

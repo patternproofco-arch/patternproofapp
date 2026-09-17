@@ -329,7 +329,6 @@ function LegalDocumentsPage() {
       cancelLabel: "Keep",
     });
     if (!ok) return;
-    await supabase.storage.from("evidence-files").remove([d.file_url]);
     await supabase
       .from("legal_documents")
       .update({ deleted_at: new Date().toISOString() })

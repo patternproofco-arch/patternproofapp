@@ -311,13 +311,12 @@ function RecCard({ r, onChanged }: { r: Rec; onChanged: () => void }) {
   const del = async () => {
     const ok = await confirm({
       title: "Remove this recording?",
-      body: "The audio file will be permanently deleted.",
+      body: "The recording will be removed from your view.",
       confirmLabel: "Remove",
       cancelLabel: "Keep",
     });
     if (!ok) return;
     if (!user) return;
-    await supabase.storage.from("conversation-recordings").remove([r.audio_url]);
     await supabase
       .from("recordings")
       .update({ deleted_at: new Date().toISOString() })

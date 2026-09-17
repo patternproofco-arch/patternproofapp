@@ -155,7 +155,6 @@ function VoiceNotesPage() {
       cancelLabel: "Keep",
     });
     if (!ok) return;
-    await supabase.storage.from("voice-notes").remove([n.audio_url]);
     await supabase
       .from("voice_notes")
       .update({ deleted_at: new Date().toISOString() })
