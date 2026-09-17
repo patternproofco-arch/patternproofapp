@@ -1,11 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-/**
- * Public-surface regression. No accounts, no data: safe to run against a
- * deployed build. Account-level flows live in e2e/portals.spec.ts and require
- * fictional QA credentials.
- */
-
 test("homepage loads with its heading and no console errors", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -18,14 +12,25 @@ test("Quick Exit leaves the site", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   const exit = page.getByRole("button", { name: /(quick exit|exit safely)/i }).first();
   await expect(exit).toBeVisible();
-  // Wait until the button is actually live before pressing it.
   await page.waitForFunction(
     () => (window as unknown as { __ppQuickExitHydrated?: boolean }).__ppQuickExitHydrated === true,
     undefined,
     { timeout: 30_000 },
   );
+  const exitRequest = page.waitForRequest(
+    (request) => {
+      try {
+        return new URL(request.url()).hostname.endsWith("weather.com");
+      } catch {
+        return false;
+      }
+    },
+    { timeout: 45_000 },
+  );
   await exit.click();
-  await page.waitForURL(/weather\.com/, { timeout: 45_000 });
+  await expect(page.getByText("PATTERNPROOF")).toHaveCount(0, { timeout: 5_000 });
+  const requested = await exitRequest;
+  expect(new URL(requested.url()).hostname).toMatch(/(^|\.)weather\.com$/);
 });
 
 test("version marker identifies the running build", async ({ request }) => {
@@ -37,8 +42,6 @@ test("version marker identifies the running build", async ({ request }) => {
 });
 
 test("signing in is required for the survivor dashboard", async ({ page }) => {
-  // The sign-in check runs in the browser, so on a cold dev server the first
-  // visit waits on compilation. Warm the route first, then assert.
   await page.request.get("/dashboard");
   await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
   await page.waitForURL(/\/(auth|signin)/, { timeout: 45_000 });
