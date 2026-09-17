@@ -11,6 +11,7 @@ import { ensureSurvivorRole } from "@/lib/roles.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { MARK_PATH, MARK_VIEWBOX } from "@/components/BrandMark";
+import { hasVerifiedTotp, sessionNeedsMfa } from "@/lib/mfa";
 
 type Mode = "login" | "signup";
 
@@ -98,6 +99,20 @@ function PasswordField({
  * "New here? / Already have an account?" toggle can navigate between real
  * URLs instead of just flipping local state.
  */
+async function postAuthPath(
+  role: { role: string; is_org_partner?: boolean },
+  redirectTo?: string,
+): Promise<string> {
+  if (await sessionNeedsMfa()) return "/mfa";
+  if (role.role === "attorney" || role.role === "collaborator") {
+    if (!(await hasVerifiedTotp())) return "/trust";
+  }
+  if (redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")) return redirectTo;
+  if (role.role === "attorney") return "/clients";
+  if (role.role === "advocate") return role.is_org_partner ? "/org-portal" : "/advocate-cases";
+  return "/dashboard";
+}
+
 export function AuthPage({
   mode,
   redirectTo,
@@ -107,11 +122,6 @@ export function AuthPage({
   redirectTo?: string;
   refSlug?: string;
 }) {
-  const homeForRole = (r: { role: string; is_org_partner?: boolean }) => {
-    if (r.role === "attorney") return "/clients";
-    if (r.role === "advocate") return r.is_org_partner ? "/org-portal" : "/advocate-cases";
-    return "/dashboard";
-  };
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const fetchRole = useServerFn(getMyRole);
@@ -126,17 +136,14 @@ export function AuthPage({
 
   useEffect(() => {
     if (!loading && user) {
-      // Best-effort: capture the org-referral slug once, after auth. RLS makes
-      // this a no-op if the row already exists.
       if (refSlug && /^[A-Za-z0-9_-]{1,64}$/.test(refSlug)) {
         recordReferral({ data: { code: refSlug } }).catch(() => {});
       }
-      if (redirectTo && redirectTo.startsWith("/")) {
-        navigate({ to: redirectTo, replace: true });
-        return;
-      }
       fetchRole()
-        .then((r) => navigate({ to: homeForRole(r), replace: true }))
+        .then(async (r) => {
+          const to = await postAuthPath(r, redirectTo);
+          navigate({ to, replace: true });
+        })
         .catch(() => navigate({ to: "/dashboard", replace: true }));
     }
   }, [user, loading, navigate, fetchRole, redirectTo, refSlug, recordReferral]);
@@ -158,8 +165,6 @@ export function AuthPage({
           },
         });
         if (error) throw error;
-        // Persist the survivor role immediately so it's a real grant, not an
-        // absence of one. Best-effort: never block sign-up on it.
         await ensureRole().catch(() => undefined);
         if (redirectTo && redirectTo.startsWith("/")) {
           navigate({ to: redirectTo, replace: true });
@@ -169,12 +174,9 @@ export function AuthPage({
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        if (redirectTo && redirectTo.startsWith("/")) {
-          navigate({ to: redirectTo, replace: true });
-          return;
-        }
         const r = await fetchRole().catch(() => ({ role: "survivor" as const }));
-        navigate({ to: homeForRole(r), replace: true });
+        const to = await postAuthPath(r, redirectTo);
+        navigate({ to, replace: true });
       }
     } catch (err: unknown) {
       const msg =
@@ -196,9 +198,6 @@ export function AuthPage({
       return;
     }
     try {
-      // Google sends people back to a public page that stores the session and
-      // then forwards them on. Sending them straight to a signed-in page means
-      // arriving before the session exists, which reads as "nothing happened".
       if (redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")) {
         try {
           sessionStorage.setItem("pp_oauth_return", redirectTo);

@@ -8,6 +8,9 @@ import { getMyAdvocateRole } from "@/lib/advocate.functions";
 import { AccessDisclaimerBar } from "@/components/AccessDisclaimer";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
+import { useMfaGate } from "@/hooks/use-mfa-gate";
+import { testAccountRole } from "@/lib/test-accounts";
+import "@/styles-role-accents.css";
 
 export const Route = createFileRoute("/_advocate")({
   head: () => ({
@@ -25,6 +28,7 @@ function AdvocateLayout() {
   const roleFn = useServerFn(getMyAdvocateRole);
   const pathname = useRouterState({ select: (st) => st.location.pathname });
   const [checking, setChecking] = useState(true);
+  const mfaChecking = useMfaGate(!loading && !!user && testAccountRole(user?.email) !== "advocate");
   const [profile, setProfile] = useState<{
     full_name: string;
     org_name: string | null;
@@ -38,6 +42,16 @@ function AdvocateLayout() {
       navigate({ to: "/signin", search: { redirect: "/advocate-cases" }, replace: true });
       return;
     }
+    if (testAccountRole(user.email) === "advocate") {
+      setProfile({
+        full_name: "Test Advocate",
+        org_name: "PatternProof test",
+        email: user.email ?? "advocateppme@gmail.com",
+        onboarded: true,
+      });
+      setChecking(false);
+      return;
+    }
     roleFn()
       .then((r) => {
         if (!r.isAdvocate) {
@@ -45,8 +59,6 @@ function AdvocateLayout() {
           return;
         }
         setProfile(r.profile);
-        // No profile yet (advocate signed in before any invite) — collect
-        // their name and organization first.
         if (!r.profile?.onboarded && pathname !== "/advocate-setup") {
           navigate({ to: "/advocate-setup", replace: true });
           return;
@@ -56,14 +68,15 @@ function AdvocateLayout() {
       .catch(() => navigate({ to: "/", replace: true }));
   }, [user, loading, roleFn, navigate, pathname]);
 
-  if (loading || checking) {
+  if (loading || checking || mfaChecking) {
     return (
       <div
         className="pp-portal-shell"
         data-persona="org"
+        data-pp-paper=""
         style={{
           minHeight: "100vh",
-          background: "var(--pp-ground)",
+          background: "var(--paper)",
           display: "grid",
           placeItems: "center",
         }}
@@ -75,9 +88,10 @@ function AdvocateLayout() {
 
   return (
     <div
-      className="pp-portal-shell"
+      className="pp-portal-shell folio-page"
       data-persona="org"
-      style={{ minHeight: "100vh", background: "var(--pp-ground)", color: "var(--foreground)" }}
+      data-pp-paper=""
+      style={{ minHeight: "100vh", background: "var(--paper)", color: "var(--ink)" }}
     >
       <header
         className="pp-portal-header pp-app-chrome"

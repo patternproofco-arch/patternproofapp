@@ -27,7 +27,7 @@ function ForgotPasswordPage() {
     setBusy(true);
     try {
       await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + "/auth/callback",
+        redirectTo: window.location.origin + "/reset-password?reason=recovery",
       });
       setSubmitted(true);
       setEmail("");
@@ -86,7 +86,7 @@ function ForgotPasswordPage() {
               <h1 className="font-serif text-[22px]">Check your email.</h1>
               <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
                 If that email has an account, we've sent a link to reset the password. It expires
-                in 24 hours.
+                in 24 hours. The email never contains a password — only a link to set a new one.
               </p>
               <button
                 type="button"

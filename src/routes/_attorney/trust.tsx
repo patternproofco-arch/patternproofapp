@@ -6,6 +6,8 @@ import { Activity, Lock, Mail, Monitor, Shield, ShieldCheck, User, Users } from 
 import { getTrustPanel } from "@/lib/attorney-trust.functions";
 import { getAttorneyProfile, upsertAttorneyProfile } from "@/lib/attorney-portal.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { ChangePasswordCard } from "@/components/ChangePasswordCard";
+import { TwoFactorCard } from "@/components/TwoFactorCard";
 
 export const Route = createFileRoute("/_attorney/trust")({
   component: SettingsPage,
@@ -199,8 +201,8 @@ function SecuritySection() {
   };
 
   return (
-    <div id="security" className="att-card" style={{ scrollMarginTop: 24 }}>
-      <SectionTitle icon={<Monitor size={16} />}>Security</SectionTitle>
+    <div className="att-card">
+      <SectionTitle icon={<Monitor size={16} />}>Signed-in devices</SectionTitle>
       <p style={{ fontSize: 13, color: "var(--att-text-2)", marginBottom: 12 }}>
         If you ever signed in on a computer or phone you don't control anymore, end that session
         from here — you don't need access to that device to do it. This signs out every session
@@ -411,7 +413,12 @@ function SettingsPage() {
         </div>
       </div>
 
-      <SecuritySection />
+      <div id="security" style={{ display: "grid", gap: 20, scrollMarginTop: 24 }}>
+        <div className="att-eyebrow">Security</div>
+        <ChangePasswordCard className="att-card" headingClassName="att-page-title" />
+        <TwoFactorCard className="att-card" headingClassName="att-page-title" required />
+        <SecuritySection />
+      </div>
     </div>
   );
 }

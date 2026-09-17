@@ -45,13 +45,14 @@ export const BASE_TIERS: Tier[] = [
     sub: "/month · Solo",
     quote: "For solo practitioners taking DV and custody cases one at a time.",
     features: [
+      "Open one client share free — no subscription required",
       "Single attorney account",
       "Source-linked chronology",
       "ZIP export for practice management",
       "Survivor words kept distinct from any tool suggestion",
     ],
-    cta: "Create an attorney account",
-    ctaTo: "/lawyer-signup",
+    cta: "Open one client share free",
+    ctaTo: "mailto:pattern@pattern-proof.tech?subject=Open%20one%20client%20share%20free",
   },
   {
     key: "organization",
@@ -76,6 +77,7 @@ export const ATTORNEY_PORTAL_TIER_BULLETS: {
   firm: string[];
 } = {
   solo: [
+    "Open one client share free — no subscription required",
     "Single attorney account",
     "Structured chronological timeline + pattern analysis",
     "Exportable case summary (ZIP)",
@@ -109,8 +111,8 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
           `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
           "Everything in Solo Attorney",
         ],
-        cta: "Create a firm account",
-        ctaTo: "/lawyer-signup",
+        cta: "Request a 15-minute walkthrough",
+        ctaTo: "mailto:pattern@pattern-proof.tech?subject=Firm%20walkthrough",
         featured: true,
       }
     : {
@@ -130,8 +132,8 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
           "Charter: setup, case import, staff training",
           "$597/month locked 12 months, then $897",
         ],
-        cta: "Create a Charter firm account",
-        ctaTo: "/lawyer-signup",
+        cta: "Request a 15-minute walkthrough",
+        ctaTo: "mailto:pattern@pattern-proof.tech?subject=Charter%20firm%20walkthrough",
         featured: true,
       };
   return [BASE_TIERS[0], BASE_TIERS[1], firm, BASE_TIERS[2]];

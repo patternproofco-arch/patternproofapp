@@ -15,7 +15,7 @@ export const Route = createFileRoute("/lawyer-signup")({
       {
         name: "description",
         content:
-          "Request access to the PatternProof attorney portal, or sign in if you already have an invitation.",
+          "Open one client share free, request a short walkthrough, or sign in if you already have an invitation.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -91,25 +91,24 @@ function LawyerSignup() {
 
         {step === "auth" ? (
           <div className="card-pp">
-            <h2 className="font-serif text-[20px]">Request access or sign in</h2>
+            <h2 className="font-serif text-[20px]">Open one share, or sign in</h2>
             <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Attorney portals are invitation-only while we verify identity. If you already have an
-              invite, sign in below. If not, request access and we&apos;ll send next steps.
+              Opening one client share does not require a subscription. A paid seat unlocks notes and
+              caseload. Paid workspaces are set up with the founder after that first share.
             </p>
-            <Link
-              to="/support"
+            <a
+              href="mailto:pattern@pattern-proof.tech?subject=Open%20one%20client%20share%20free"
               className="btn-primary mt-4 flex w-full items-center justify-center"
               style={{ textDecoration: "none" }}
             >
-              Request access
-            </Link>
+              Open one client share free
+            </a>
             <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-              Use the support form (category: Login/access) with your firm name and jurisdiction —
-              or email{" "}
-              <a href="mailto:pattern@pattern-proof.tech" style={{ color: "var(--accent)" }}>
+              Or request a 15-minute walkthrough at{" "}
+              <a href="mailto:pattern@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough" style={{ color: "var(--accent)" }}>
                 pattern@pattern-proof.tech
               </a>
-              .
+              . Please send no case files or client information.
             </p>
             <div
               className="my-4 text-center text-[11px] font-semibold uppercase tracking-widest"
