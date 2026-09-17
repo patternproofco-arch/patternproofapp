@@ -1,4 +1,11 @@
-import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useNavigate,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import {
@@ -34,7 +41,42 @@ export const Route = createFileRoute("/_attorney")({
     ],
   }),
   component: AttorneyLayout,
+  errorComponent: AttorneyErrorFallback,
 });
+
+function AttorneyErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <div
+      className="att-root"
+      data-persona="attorney"
+      style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+    >
+      <div style={{ textAlign: "center", display: "grid", gap: 12, maxWidth: 420, padding: 24 }}>
+        <BrandMark size={26} variant="attorney" />
+        <span className="att-eyebrow">Something went wrong</span>
+        <p style={{ margin: 0, fontSize: 14 }}>
+          Your client data is safe. Try refreshing, or return to the dashboard.
+        </p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8 }}>
+          <button
+            type="button"
+            className="att-btn att-btn-primary"
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+          >
+            Try again
+          </button>
+          <a href="/clients" className="att-btn">
+            Back to files
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function AttorneyLayout() {
   const { user, loading } = useAuth();

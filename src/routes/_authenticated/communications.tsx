@@ -10,6 +10,7 @@ import { CommFilters, type Filter } from "@/components/communications/CommFilter
 import type { Comm, IncidentLite } from "@/components/communications/types";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/communications")({
   component: CommunicationsPage,
@@ -24,6 +25,7 @@ function CommunicationsPage() {
   const [search, setSearch] = useState("");
   const [screenshotUrls, setScreenshotUrls] = useState<Record<string, string>>({});
   const [bulkOpen, setBulkOpen] = useState(false);
+  const { confirm, dialog } = useConfirm();
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -65,6 +67,13 @@ function CommunicationsPage() {
 
   const remove = async (id: string, screenshotPath: string | null) => {
     if (!user) return;
+    const ok = await confirm({
+      title: "Remove this communication?",
+      body: "This message record will be permanently removed and cannot be undone.",
+      confirmLabel: "Remove",
+      cancelLabel: "Keep",
+    });
+    if (!ok) return;
     if (screenshotPath) await supabase.storage.from("evidence-files").remove([screenshotPath]);
     await supabase.from("communications").delete().eq("id", id).eq("user_id", user.id);
     toast("Removed.");
@@ -93,6 +102,7 @@ function CommunicationsPage() {
 
   return (
     <div>
+      {dialog}
       <HubTabs tabs={CASE_TABS} />
       <div className="label-eyebrow">Communication log</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
