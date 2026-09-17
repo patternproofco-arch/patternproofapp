@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
  * Guide — a help-only assistant for the survivor portal.
@@ -27,6 +28,7 @@ If they ask for any of that, say kindly that it's outside what you can help with
 Keep replies under about 120 words unless they ask for detail.`;
 
 export const guideChat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -42,9 +44,21 @@ export const guideChat = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) return { reply: "The guide isn't available right now. Try again later." };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const since = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count } = await supabaseAdmin
+      .from("ai_chat_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", context.userId)
+      .gte("created_at", since);
+    if ((count ?? 0) >= 10) {
+      return { reply: "Lots of activity right now — please wait a moment before sending more." };
+    }
+    await supabaseAdmin.from("ai_chat_requests").insert({ user_id: context.userId });
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
