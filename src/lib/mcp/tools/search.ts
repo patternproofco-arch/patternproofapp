@@ -43,6 +43,7 @@ export default defineTool({
       sb
         .from("voice_notes")
         .select("id,title,date")
+        .is("deleted_at", null)
         .ilike("title", like)
         .order("date", { ascending: false })
         .limit(10),

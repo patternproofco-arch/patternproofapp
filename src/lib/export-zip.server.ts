@@ -136,16 +136,16 @@ export async function buildSurvivorExportZip(
         .order("date", { ascending: true });
   const ldQ = scopedLegalIds
     ? scopedLegalIds.length
-      ? db.from("legal_documents").select("*").eq("user_id", userId).in("id", scopedLegalIds)
+      ? db.from("legal_documents").select("*").eq("user_id", userId).is("deleted_at", null).in("id", scopedLegalIds)
       : Promise.resolve({ data: [] as unknown[] })
-    : db.from("legal_documents").select("*").eq("user_id", userId);
+    : db.from("legal_documents").select("*").eq("user_id", userId).is("deleted_at", null);
 
   const [incRes, evRes, commsRes, vnRes, ldRes, paRes, singleCaseRes] = await Promise.all([
     incQ,
     evQ,
     // Communications and voice notes aren't attached per-case; export all when unscoped.
-    db.from("communications").select("*").eq("user_id", userId).order("date", { ascending: true }),
-    db.from("voice_notes").select("*").eq("user_id", userId).order("date", { ascending: true }),
+    db.from("communications").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true }),
+    db.from("voice_notes").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true }),
     ldQ,
     db
       .from("pattern_analyses")
@@ -407,9 +407,9 @@ export async function buildSurvivorExportZip(
   if (includeThreads && scope !== "evidence" && scope !== "timeline") {
     const thQ = scopedThreadIds
       ? scopedThreadIds.length
-        ? db.from("message_threads").select("*").eq("user_id", userId).in("id", scopedThreadIds)
+        ? db.from("message_threads").select("*").eq("user_id", userId).is("deleted_at", null).in("id", scopedThreadIds)
         : Promise.resolve({ data: [] as unknown[] })
-      : db.from("message_threads").select("*").eq("user_id", userId);
+      : db.from("message_threads").select("*").eq("user_id", userId).is("deleted_at", null);
     const { data: thData } = await thQ;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const threads = (thData ?? []) as any[];

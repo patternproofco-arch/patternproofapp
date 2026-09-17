@@ -138,6 +138,7 @@ function MessageThreadsPage() {
       .from("message_threads")
       .select("*")
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (error) {
       toast.error("Couldn't load your message threads.");
@@ -230,7 +231,11 @@ function MessageThreadsPage() {
     });
     if (!ok || !user) return;
     const t = threads.find((x) => x.id === id);
-    await supabase.from("message_threads").delete().eq("id", id).eq("user_id", user.id);
+    await supabase
+      .from("message_threads")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("user_id", user.id);
     if (t)
       await supabase.storage
         .from("message-exports")

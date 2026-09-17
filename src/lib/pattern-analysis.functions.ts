@@ -223,6 +223,7 @@ export const analyzePatterns = createServerFn({ method: "POST" })
         .from("communications")
         .select("date,channel,direction,from_party,content,harassment_flag")
         .eq("user_id", userId)
+        .is("deleted_at", null)
         .order("date", { ascending: true }),
       supabase
         .from("escalation_flags")

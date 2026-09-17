@@ -470,6 +470,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
             .from("communications")
             .select("*")
             .eq("user_id", data.clientId)
+            .is("deleted_at", null)
             .order("date")
         : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
       includePatterns

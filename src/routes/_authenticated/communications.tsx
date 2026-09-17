@@ -36,6 +36,7 @@ function CommunicationsPage() {
           "id,date,time,channel,direction,from_party,content,screenshot_url,harassment_flag,notes,linked_incident_id,created_at",
         )
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .order("date", { ascending: false }),
       supabase
         .from("incidents")
@@ -69,13 +70,17 @@ function CommunicationsPage() {
     if (!user) return;
     const ok = await confirm({
       title: "Remove this communication?",
-      body: "This message record will be permanently removed and cannot be undone.",
+      body: "This record will be removed from your view.",
       confirmLabel: "Remove",
       cancelLabel: "Keep",
     });
     if (!ok) return;
     if (screenshotPath) await supabase.storage.from("evidence-files").remove([screenshotPath]);
-    await supabase.from("communications").delete().eq("id", id).eq("user_id", user.id);
+    await supabase
+      .from("communications")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("user_id", user.id);
     toast("Removed.");
     load();
   };

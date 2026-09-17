@@ -80,6 +80,7 @@ function Dashboard() {
           .from("voice_notes")
           .select("id,date,title,created_at")
           .eq("user_id", user.id)
+          .is("deleted_at", null)
           .order("created_at", { ascending: false })
           .limit(8),
       ]);

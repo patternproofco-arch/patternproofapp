@@ -162,6 +162,7 @@ function LegalDocumentsPage() {
         .from("legal_documents")
         .select("*")
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false }),
       supabase
         .from("incidents")
@@ -329,7 +330,11 @@ function LegalDocumentsPage() {
     });
     if (!ok) return;
     await supabase.storage.from("evidence-files").remove([d.file_url]);
-    await supabase.from("legal_documents").delete().eq("id", d.id).eq("user_id", user.id);
+    await supabase
+      .from("legal_documents")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", d.id)
+      .eq("user_id", user.id);
     await log({ data: { action_type: "legal_document_deleted", record_reference: d.id } });
     toast("Removed.");
     load();

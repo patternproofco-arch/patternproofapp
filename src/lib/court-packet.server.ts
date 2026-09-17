@@ -137,6 +137,7 @@ export async function buildCasePacket(
           .from("legal_documents")
           .select("id,title,document_type,effective_date,incident_date,case_number,key_terms")
           .eq("user_id", userId)
+          .is("deleted_at", null)
           .in("id", lgIds)
       : Promise.resolve({ data: [] as unknown[] }),
     thIds.length
@@ -144,6 +145,7 @@ export async function buildCasePacket(
           .from("message_threads")
           .select("id,conversation_participant,source_filename,message_count")
           .eq("user_id", userId)
+          .is("deleted_at", null)
           .in("id", thIds)
       : Promise.resolve({ data: [] as unknown[] }),
     thIds.length

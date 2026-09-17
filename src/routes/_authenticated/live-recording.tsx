@@ -47,6 +47,7 @@ function LiveRecording() {
       .from("recordings")
       .select("id,title,date,audio_url,duration_seconds,transcript")
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
     setList((data as Rec[] | null) ?? []);
   };
@@ -317,7 +318,11 @@ function RecCard({ r, onChanged }: { r: Rec; onChanged: () => void }) {
     if (!ok) return;
     if (!user) return;
     await supabase.storage.from("conversation-recordings").remove([r.audio_url]);
-    await supabase.from("recordings").delete().eq("id", r.id).eq("user_id", user.id);
+    await supabase
+      .from("recordings")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", r.id)
+      .eq("user_id", user.id);
     onChanged();
   };
   return (

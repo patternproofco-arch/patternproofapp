@@ -43,6 +43,7 @@ export const globalSearch = createServerFn({ method: "POST" })
         .from("voice_notes")
         .select("id, title, date")
         .eq("user_id", uid)
+        .is("deleted_at", null)
         .ilike("title", like)
         .order("date", { ascending: false })
         .limit(20),

@@ -225,7 +225,8 @@ function TimelinePage() {
         .select(
           "id,document_type,title,effective_date,incident_date,expiration_date,key_terms,case_number",
         )
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .is("deleted_at", null);
       setLegal((ld as LegalItem[] | null) ?? []);
 
       // Imported message threads sit on the same timeline as everything else.
@@ -233,6 +234,7 @@ function TimelinePage() {
         .from("message_threads")
         .select("id,conversation_participant")
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .eq("capture_method", "multi_screenshot");
       const threadRows =
         (threads as Array<{ id: string; conversation_participant: string | null }> | null) ?? [];

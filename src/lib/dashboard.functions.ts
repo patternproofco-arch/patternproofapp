@@ -68,7 +68,8 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       supabase
         .from("voice_notes")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", userId),
+        .eq("user_id", userId)
+        .is("deleted_at", null),
       supabase.from("cases").select("id").eq("user_id", userId).limit(1).maybeSingle(),
       supabase
         .from("court_dates")
