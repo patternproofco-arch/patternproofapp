@@ -7,3 +7,6 @@
 - [ ] Publish to push og-home.png + metadata to live URL
 - [x] Database security constraints locked in: keep no-policy tables service-role-only, no generic user_id policies, no RPC revocation without proof of no callers, no index drops
 - [x] Verified read-only: the two owner-check helpers have no app callers and are already service-role-only; no destructive change needed
+
+- [x] Release blocker: removed all production test-account email bypasses (deleted src/lib/test-accounts.ts; MFA, role routing, advocate profile, subscription gating); regression tests in src/__tests__/no-test-account-bypass.test.ts
+- [ ] Pre-existing failing check: landing page missing "Sample · demo data · not a real record" folio preview (media-timeline-flow.test.ts)
