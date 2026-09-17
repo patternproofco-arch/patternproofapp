@@ -120,6 +120,8 @@ function Gate() {
     );
   }
 
+  // Fail closed for survivors only: never render the app shell while a
+  // survivor still needs onboarding.
   if (survivorNeedsOnboarding && pathname !== "/onboarding") {
     return (
       <div className="flex min-h-screen items-center justify-center">
