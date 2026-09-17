@@ -39,6 +39,13 @@ export type ExportCounts = {
   legal_documents: number;
 };
 
+/** What ships in the archive. "full" is the original, unscoped behavior —
+ *  every other value narrows it by zeroing out the categories that don't
+ *  belong, right after they're fetched, so every downstream step (CSVs,
+ *  narrative chronology, counts, evidence download loop, manifest) already
+ *  sees the narrowed set with no separate gating logic to keep in sync. */
+export type ExportScope = "full" | "evidence" | "timeline" | "communications";
+
 export type BuiltExport =
   | { ok: false; reason: string }
   | {
@@ -52,9 +59,15 @@ export type BuiltExport =
 
 export async function buildSurvivorExportZip(
   db: Db,
-  args: { userId: string; caseId?: string | null; includeThreads?: boolean },
+  args: {
+    userId: string;
+    caseId?: string | null;
+    includeThreads?: boolean;
+    scope?: ExportScope;
+  },
 ): Promise<BuiltExport> {
   const userId = args.userId;
+  const scope = args.scope ?? "full";
   const data = { case_id: args.caseId ?? null, include_message_threads: args.includeThreads };
   const requestedCaseId = data?.case_id ?? null;
   const includeThreads = data?.include_message_threads !== false;
@@ -123,16 +136,16 @@ export async function buildSurvivorExportZip(
         .order("date", { ascending: true });
   const ldQ = scopedLegalIds
     ? scopedLegalIds.length
-      ? db.from("legal_documents").select("*").eq("user_id", userId).in("id", scopedLegalIds)
+      ? db.from("legal_documents").select("*").eq("user_id", userId).is("deleted_at", null).in("id", scopedLegalIds)
       : Promise.resolve({ data: [] as unknown[] })
-    : db.from("legal_documents").select("*").eq("user_id", userId);
+    : db.from("legal_documents").select("*").eq("user_id", userId).is("deleted_at", null);
 
   const [incRes, evRes, commsRes, vnRes, ldRes, paRes, singleCaseRes] = await Promise.all([
     incQ,
     evQ,
     // Communications and voice notes aren't attached per-case; export all when unscoped.
-    db.from("communications").select("*").eq("user_id", userId).order("date", { ascending: true }),
-    db.from("voice_notes").select("*").eq("user_id", userId).order("date", { ascending: true }),
+    db.from("communications").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true }),
+    db.from("voice_notes").select("*").eq("user_id", userId).is("deleted_at", null).order("date", { ascending: true }),
     ldQ,
     db
       .from("pattern_analyses")
@@ -161,8 +174,30 @@ export async function buildSurvivorExportZip(
   const voiceNotes = (vnRes.data ?? []) as any[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const legalDocs = (ldRes.data ?? []) as any[];
-  const latestAnalysis = paRes.data?.[0];
+  let latestAnalysis = paRes.data?.[0];
   const latestCase = (singleCaseRes.data as Array<Record<string, unknown>> | null)?.[0];
+
+  // Narrow to the chosen scope. Truncating in place (rather than gating each
+  // write-out step separately) means every downstream use of these arrays —
+  // CSVs, narrative chronology, counts, the evidence download loop, the
+  // hash manifest — automatically agrees on what's included.
+  if (scope === "evidence") {
+    incidents.length = 0;
+    comms.length = 0;
+    voiceNotes.length = 0;
+    latestAnalysis = undefined;
+  } else if (scope === "timeline") {
+    evidence.length = 0;
+    comms.length = 0;
+    voiceNotes.length = 0;
+    legalDocs.length = 0;
+  } else if (scope === "communications") {
+    incidents.length = 0;
+    evidence.length = 0;
+    voiceNotes.length = 0;
+    legalDocs.length = 0;
+    latestAnalysis = undefined;
+  }
   const caseLabel = latestCase
     ? (latestCase.case_name as string | null)?.trim() ||
       (latestCase.other_party as string | null)?.trim() ||
@@ -369,12 +404,12 @@ export async function buildSurvivorExportZip(
 
   // Imported message conversations: original screenshots + extracted text +
   // the full correction history, so nothing about provenance is lost.
-  if (includeThreads) {
+  if (includeThreads && scope !== "evidence" && scope !== "timeline") {
     const thQ = scopedThreadIds
       ? scopedThreadIds.length
-        ? db.from("message_threads").select("*").eq("user_id", userId).in("id", scopedThreadIds)
+        ? db.from("message_threads").select("*").eq("user_id", userId).is("deleted_at", null).in("id", scopedThreadIds)
         : Promise.resolve({ data: [] as unknown[] })
-      : db.from("message_threads").select("*").eq("user_id", userId);
+      : db.from("message_threads").select("*").eq("user_id", userId).is("deleted_at", null);
     const { data: thData } = await thQ;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const threads = (thData ?? []) as any[];
@@ -485,6 +520,7 @@ export async function buildSurvivorExportZip(
       {
         exported_at: exportedAt,
         user_id: userId,
+        scope,
         counts: {
           incidents: incidents.length,
           evidence: evidence.length,
@@ -624,9 +660,10 @@ echo "Done."
   });
 
   const ts = exportedAt.replace(/[:.]/g, "-");
+  const scopeSuffix = scope === "full" ? "" : `-${scope}`;
   const fileStem = requestedCaseId
-    ? `patternproof-professional-review-${caseSlug}-${ts}`
-    : `patternproof-professional-review-${ts}`;
+    ? `patternproof-professional-review-${caseSlug}${scopeSuffix}-${ts}`
+    : `patternproof-professional-review${scopeSuffix}-${ts}`;
 
   return {
     ok: true as const,

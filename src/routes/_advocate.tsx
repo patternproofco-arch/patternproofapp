@@ -1,7 +1,14 @@
-import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useNavigate,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyAdvocateRole } from "@/lib/advocate.functions";
@@ -20,7 +27,47 @@ export const Route = createFileRoute("/_advocate")({
     ],
   }),
   component: AdvocateLayout,
+  errorComponent: AdvocateErrorFallback,
 });
+
+function AdvocateErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <div
+      className="pp-portal-shell"
+      data-persona="org"
+      data-pp-paper=""
+      style={{
+        minHeight: "100vh",
+        background: "var(--paper)",
+        display: "grid",
+        placeItems: "center",
+      }}
+    >
+      <div style={{ textAlign: "center", maxWidth: 420, padding: 24 }}>
+        <BrandMark size={22} variant="advocate" />
+        <h1 style={{ fontSize: 18, fontWeight: 600, marginTop: 12 }}>Something went wrong</h1>
+        <p style={{ fontSize: 14, color: "var(--muted-foreground)", marginTop: 8 }}>
+          Your data is safe. Try refreshing, or head back to cases.
+        </p>
+        <div style={{ marginTop: 20, display: "flex", gap: 12, justifyContent: "center" }}>
+          <button
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="btn-pp"
+          >
+            Try again
+          </button>
+          <a href="/advocate-cases" className="btn-ghost">
+            Back to cases
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function AdvocateLayout() {
   const { user, loading } = useAuth();
@@ -114,6 +161,18 @@ function AdvocateLayout() {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Link to="/advocate-matters" style={{ fontSize: 12, color: "inherit" }}>
             Matters
+          </Link>
+          <Link
+            to="/advocate-setup"
+            style={{
+              fontSize: 12,
+              color: "inherit",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <Settings size={13} /> Settings
           </Link>
           <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
             {profile?.org_name ?? profile?.full_name ?? ""}

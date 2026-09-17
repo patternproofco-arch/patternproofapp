@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
@@ -16,7 +16,39 @@ import { testAccountRole } from "@/lib/test-accounts";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
+  errorComponent: AuthErrorFallback,
 });
+
+function AuthErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <div className="flex min-h-screen items-center justify-center px-4" data-persona="survivor">
+      <div className="pp-card max-w-md text-center">
+        <p className="label-eyebrow">PatternProof</p>
+        <h1 className="mt-3 text-xl font-semibold tracking-tight text-foreground">
+          Something went wrong
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Your data is safe. Try refreshing, or head back to the dashboard.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <button
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="btn-pp"
+          >
+            Try again
+          </button>
+          <a href="/" className="btn-ghost">
+            Go home
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function AuthLayout() {
   return (

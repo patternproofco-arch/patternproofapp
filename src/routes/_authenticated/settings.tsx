@@ -10,12 +10,14 @@ import {
   Mic,
   Trash2,
   Plug,
-  FileText,
+  Palette,
   BellOff,
+  Monitor,
+  FileText,
 } from "lucide-react";
 import { MessageCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useSettings } from "@/lib/settings-context";
+import { useSettings, type PpNotificationContent } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -158,11 +160,9 @@ function NotesFromAttorney() {
           {rows.map((r) => (
             <div key={r.linkId} className="rounded-2xl p-3" style={{ background: "var(--input)" }}>
               <div className="text-[13px] font-semibold">{r.attorneyName}</div>
-              {r.updatedAt ? (
-                <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                  Updated {new Date(r.updatedAt).toLocaleString()}
-                </div>
-              ) : null}
+              <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                Shared since {new Date(r.sharedAt).toLocaleDateString()}
+              </div>
               <p className="mt-2 whitespace-pre-wrap text-[14px]">{r.note}</p>
             </div>
           ))}
@@ -178,6 +178,45 @@ const DISGUISES = [
   { name: "Reading List", url: "https://goodreads.com" },
   { name: "Garden Journal", url: "https://gardeners.com" },
 ];
+
+const SETTINGS_SECTIONS = [
+  { id: "personal", label: "Personal" },
+  { id: "safety", label: "Safety & security" },
+  { id: "sharing", label: "Export & sharing" },
+  { id: "account", label: "Account" },
+];
+
+function SettingsSectionNav() {
+  return (
+    <nav
+      aria-label="Settings sections"
+      className="no-print mt-6 flex flex-wrap gap-2"
+    >
+      {SETTINGS_SECTIONS.map((s) => (
+        <a
+          key={s.id}
+          href={`#${s.id}`}
+          className="rounded-2xl px-3 py-1.5 text-[12px] font-semibold"
+          style={{ background: "var(--input)", color: "var(--foreground)" }}
+        >
+          {s.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
+  return (
+    <h2
+      id={id}
+      className="mt-10 scroll-mt-20 font-serif text-[22px] first:mt-0"
+      style={{ borderBottom: "1px solid var(--rule)", paddingBottom: 10 }}
+    >
+      {children}
+    </h2>
+  );
+}
 
 const DELETION_MAILTO =
   "mailto:Privacy_pattern@pattern-proof.tech?subject=Data%20deletion%20request&body=Please%20delete%20my%20PatternProof%20account%20and%20associated%20records.%0A%0AAccount%20email%3A%20%0AReason%20(optional)%3A%20";
@@ -197,17 +236,21 @@ function SettingsPage() {
   const [audit, setAudit] = useState<AuditRow[]>([]);
   const exportFn = useServerFn(generateExportZip);
   const [exporting, setExporting] = useState(false);
+  const [exportScope, setExportScope] = useState<
+    "full" | "evidence" | "timeline" | "communications"
+  >("full");
   const [exportResult, setExportResult] = useState<{
     url: string;
     filename: string;
     bytes: number;
   } | null>(null);
+  const [signingOutOthers, setSigningOutOthers] = useState(false);
 
   const runExport = async () => {
     setExporting(true);
     setExportResult(null);
     try {
-      const r = await exportFn({ data: {} });
+      const r = await exportFn({ data: { scope: exportScope } });
       if (r.ok) {
         setExportResult({ url: r.url, filename: r.filename, bytes: r.bytes });
         toast("Export ready.");
@@ -216,6 +259,20 @@ function SettingsPage() {
       }
     } finally {
       setExporting(false);
+    }
+  };
+
+  const signOutOtherDevices = async () => {
+    setSigningOutOthers(true);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "others" });
+      toast(
+        error
+          ? "Couldn't sign out other devices. Try again in a moment."
+          : "Signed out everywhere except this device.",
+      );
+    } finally {
+      setSigningOutOthers(false);
     }
   };
 
@@ -258,12 +315,84 @@ function SettingsPage() {
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Your safety, <em>your terms.</em>
       </h1>
+      <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+        Grouped into four sections — jump to any of them, or just scroll.
+      </p>
 
-      <div className="mt-6">
-        <ChangePasswordCard />
-      </div>
+      <SettingsSectionNav />
 
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
+      <SectionHeading id="personal">Personal</SectionHeading>
+      <div className="mt-5 grid gap-5 md:grid-cols-2">
+        <div className="card-pp">
+          <div className="flex items-center gap-2">
+            <Palette size={18} style={{ color: "var(--accent)" }} />
+            <h2 className="font-serif text-[19px]">Appearance</h2>
+          </div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            How the real app looks once you're in it — separate from the disguise name below,
+            which only changes the tab and sidebar.
+          </p>
+          <div className="mt-4">
+            <div className="label-eyebrow">Theme</div>
+            <div className="mt-2 flex gap-2">
+              {(["light", "dim"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => update({ theme: t })}
+                  className="flex-1 rounded-2xl px-3 py-2 text-[13px] font-semibold capitalize"
+                  style={{
+                    background: settings.theme === t ? "var(--primary)" : "var(--input)",
+                    color: settings.theme === t ? "var(--primary-foreground)" : "var(--foreground)",
+                  }}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+            {settings.theme === "dim" && (
+              <p className="mt-2 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                Less light off the screen — useful if you're checking the app somewhere you don't
+                want to be noticed doing it.
+              </p>
+            )}
+          </div>
+          <div className="mt-5">
+            <div className="label-eyebrow">Text size</div>
+            <div className="mt-2 flex gap-2">
+              {([100, 115, 130] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => update({ textScale: s })}
+                  className="flex-1 rounded-2xl px-3 py-2 text-[13px] font-semibold"
+                  style={{
+                    background: settings.textScale === s ? "var(--primary)" : "var(--input)",
+                    color:
+                      settings.textScale === s ? "var(--primary-foreground)" : "var(--foreground)",
+                  }}
+                >
+                  {s}%
+                </button>
+              ))}
+            </div>
+          </div>
+          <label
+            className="mt-5 flex items-center justify-between rounded-2xl px-3 py-2.5"
+            style={{ background: "var(--input)" }}
+          >
+            <span className="text-[14px]">
+              Reduce motion{" "}
+              <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                (your device setting is already honored — this is only for this app)
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={settings.reduceMotion}
+              onChange={(e) => update({ reduceMotion: e.target.checked })}
+            />
+          </label>
+        </div>
+
         <div className="card-pp md:col-span-2">
           <div className="flex items-center gap-2">
             <Mic size={18} style={{ color: "var(--primary)" }} />
@@ -327,6 +456,46 @@ function SettingsPage() {
             ))}
           </div>
         </div>
+      </div>
+
+      <SectionHeading id="safety">Safety &amp; security</SectionHeading>
+      <div className="mt-5 grid gap-5 md:grid-cols-2">
+        <div className="card-pp">
+          <div className="flex items-center gap-2">
+            <BellOff size={18} style={{ color: "var(--primary)" }} />
+            <h2 className="font-serif text-[19px]">In-app notifications</h2>
+          </div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            There's no lock-screen notification in PatternProof — nothing reaches your phone while
+            it's locked. This only controls what shows in the banner at the top of the app while
+            it's open, which matters most if someone might glance at your screen while you're
+            using it under a disguise name.
+          </p>
+          <div className="mt-4 flex gap-2">
+            {(
+              [
+                ["full", "Full detail"],
+                ["generic", "Generic only"],
+                ["off", "Off"],
+              ] as [PpNotificationContent, string][]
+            ).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => update({ notificationContent: val })}
+                className="flex-1 rounded-2xl px-2 py-2 text-[12px] font-semibold"
+                style={{
+                  background: settings.notificationContent === val ? "var(--primary)" : "var(--input)",
+                  color:
+                    settings.notificationContent === val
+                      ? "var(--primary-foreground)"
+                      : "var(--foreground)",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="card-pp">
           <div className="flex items-center gap-2">
@@ -356,6 +525,28 @@ function SettingsPage() {
             </button>
           ) : null}
         </div>
+
+        <ChangePasswordCard />
+
+        <div className="card-pp md:col-span-2">
+          <div className="flex items-center gap-2">
+            <Monitor size={18} style={{ color: "var(--accent)" }} />
+            <h2 className="font-serif text-[19px]">Signed-in devices</h2>
+          </div>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            If you ever signed in on a computer or phone you don't control anymore, you can end
+            that session from here — you don't need access to that device to do it. This doesn't
+            list individual devices by name; it signs every session out except the one you're
+            using right now.
+          </p>
+          <button
+            onClick={signOutOtherDevices}
+            disabled={signingOutOthers}
+            className="btn-ghost mt-4"
+          >
+            {signingOutOthers ? "Signing out other devices…" : "Sign out of every other device"}
+          </button>
+        </div>
       </div>
 
       <div className="card-pp mt-6">
@@ -381,6 +572,8 @@ function SettingsPage() {
         )}
       </div>
 
+      <SectionHeading id="sharing">Export &amp; sharing</SectionHeading>
+
       <ConnectedApps />
 
       <NotesFromAttorney />
@@ -404,7 +597,78 @@ function SettingsPage() {
         </label>
       </div>
 
-      <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--primary)" }}>
+      <div className="card-pp mt-6">
+        <div className="flex items-center gap-2">
+          <Download size={18} style={{ color: "var(--accent)" }} />
+          <h2 className="font-serif text-[19px]">Export everything</h2>
+        </div>
+        <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          One ZIP file with every incident, every piece of evidence, every voice note and
+          transcript, your Recurline, and a chronological narrative. SHA-256 hashes are included for
+          integrity. Useful for attorney handoff or a personal backup.
+        </p>
+        <div className="mt-4">
+          <div className="label-eyebrow">What's included</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(
+              [
+                ["full", "Full case"],
+                ["evidence", "Evidence only"],
+                ["timeline", "Timeline only"],
+                ["communications", "Communications only"],
+              ] as [typeof exportScope, string][]
+            ).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => setExportScope(val)}
+                className="rounded-2xl px-3 py-2 text-[12px] font-semibold"
+                style={{
+                  background: exportScope === val ? "var(--primary)" : "var(--input)",
+                  color: exportScope === val ? "var(--primary-foreground)" : "var(--foreground)",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button
+          onClick={runExport}
+          disabled={exporting}
+          className="btn-primary mt-4 inline-flex items-center gap-2"
+        >
+          <Download size={14} /> {exporting ? "Building export…" : "Build export (.zip)"}
+        </button>
+        {exportResult && (
+          <div className="mt-4 rounded-2xl p-3" style={{ background: "var(--input)" }}>
+            <p className="text-[13px]">
+              Ready: {(exportResult.bytes / (1024 * 1024)).toFixed(1)} MB · link valid 1 hour.
+            </p>
+            <a
+              href={exportResult.url}
+              download={exportResult.filename}
+              className="btn-primary mt-2 inline-block"
+            >
+              Download {exportResult.filename}
+            </a>
+          </div>
+        )}
+        <div
+          className="mt-5 rounded-2xl p-3 text-[12px]"
+          style={{ background: "var(--input)", color: "var(--muted-foreground)" }}
+        >
+          Not built yet, so not offered as a toggle here rather than shown broken: automatic
+          blurring of faces or addresses inside photos before export, and automatic deletion of
+          old evidence. Both need dedicated work — the first because a missed face or address in
+          a legal evidence app is a real safety incident, not a UI bug; the second because
+          deleting DV evidence automatically needs a retention policy decided before it's built,
+          not after.
+        </div>
+      </div>
+
+      <SectionHeading id="account">Account</SectionHeading>
+
+      <div className="card-pp mt-5" style={{ borderLeft: "3px solid var(--primary)" }}>
         <div className="flex items-center gap-2">
           <AlertTriangle size={18} style={{ color: "var(--primary)" }} />
           <h2 className="font-serif text-[19px]">A note on safety</h2>
@@ -418,23 +682,6 @@ function SettingsPage() {
           <h2 className="font-serif text-[19px]">Share your experience</h2>
         </div>
         <Link to="/feedback" className="btn-primary mt-4 inline-block">Share feedback</Link>
-      </div>
-
-      <div className="card-pp mt-6">
-        <div className="flex items-center gap-2">
-          <Download size={18} style={{ color: "var(--accent)" }} />
-          <h2 className="font-serif text-[19px]">Export everything</h2>
-        </div>
-        <button onClick={runExport} disabled={exporting} className="btn-primary mt-4 inline-flex items-center gap-2">
-          <Download size={14} /> {exporting ? "Building export…" : "Export everything (.zip)"}
-        </button>
-        {exportResult && (
-          <div className="mt-4 rounded-2xl p-3" style={{ background: "var(--input)" }}>
-            <a href={exportResult.url} download={exportResult.filename} className="btn-primary mt-2 inline-block">
-              Download {exportResult.filename}
-            </a>
-          </div>
-        )}
       </div>
 
       <div className="card-pp mt-6">

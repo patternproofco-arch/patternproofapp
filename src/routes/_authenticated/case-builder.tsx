@@ -167,11 +167,13 @@ function CaseBuilder() {
         .from("legal_documents")
         .select("id,document_type,title,effective_date,case_number")
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false }),
       supabase
         .from("message_threads")
         .select("id,conversation_participant,source_filename,message_count,created_at")
         .eq("user_id", user.id)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false }),
     ]);
     setIncidents((inc.data as IncRow[] | null) ?? []);

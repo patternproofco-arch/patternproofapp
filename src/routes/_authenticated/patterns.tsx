@@ -247,6 +247,50 @@ function PatternsPage() {
             </div>
           )}
 
+          {/* 3.5. Severity indicators — generated, exported, and counted as
+              "unreviewed" on the attorney caseload dashboard for years with
+              no UI anywhere to actually review one. Keys (`sev:${i}`) match
+              pattern-export.ts's per-item gate and dashboard.functions.ts's
+              unreviewed_severity_indicator_count exactly — nothing else
+              needed to change for this to close the loop end-to-end. */}
+          {analysis.severity_indicators && analysis.severity_indicators.length > 0 && (
+            <div className="card-pp lg:col-span-2" style={{ borderLeft: "3px solid var(--primary)" }}>
+              <div className="label-eyebrow">Documented behaviors</div>
+              <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                Labeled from your own Marks. Review each one — only what you confirm or edit can
+                ever reach an export or your attorney.
+              </p>
+              <div className="mt-3 space-y-4">
+                {analysis.severity_indicators.map((s, i) => (
+                  <div
+                    key={i}
+                    className="rounded-2xl p-3"
+                    style={{
+                      background: "var(--input)",
+                      opacity: reviewed[`sev:${i}`]?.status === "rejected" ? 0.5 : 1,
+                    }}
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="font-serif text-[15px] font-semibold">{s.label}</span>
+                      {s.source_incident_ids?.length > 0 && (
+                        <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                          Cites {s.source_incident_ids.length} incident
+                          {s.source_incident_ids.length === 1 ? "" : "s"}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-[13px] leading-relaxed">{s.note}</p>
+                    <ClaimReview
+                      claimKey={`sev:${i}`}
+                      state={reviewed[`sev:${i}`]}
+                      onUpdate={updateClaim}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 4. Pattern Timeline */}
           {analysis.pattern_timeline_text && (
             <div className="card-pp lg:col-span-2">

@@ -75,6 +75,7 @@ function ImportMessagesPage() {
       .from("message_threads")
       .select("id,conversation_participant,created_at,import_status,message_count,screenshot_count")
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .in("capture_method", ["multi_screenshot", "screen_recording"])
       .order("created_at", { ascending: false });
     setThreads((data as ImportThread[] | null) ?? []);

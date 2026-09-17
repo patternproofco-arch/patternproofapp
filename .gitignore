@@ -41,3 +41,6 @@ dist-ssr
 
 test-results/
 playwright-report/
+
+# Design/planning scratch files (published to Artifacts, not part of the app)
+scratchpad/

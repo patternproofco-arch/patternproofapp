@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { ShieldCheck } from "lucide-react";
+import { Monitor, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
 import { completeAdvocateOnboarding, getMyAdvocateRole } from "@/lib/advocate.functions";
 
 export const Route = createFileRoute("/_advocate/advocate-setup")({
@@ -18,6 +19,7 @@ function AdvocateSetupPage() {
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [wasOnboarded, setWasOnboarded] = useState(false);
   const [fullName, setFullName] = useState("");
   const [orgName, setOrgName] = useState("");
   const [email, setEmail] = useState("");
@@ -31,6 +33,13 @@ function AdvocateSetupPage() {
         setFullName(r.profile?.full_name ?? "");
         setOrgName(r.profile?.org_name ?? "");
         setEmail(r.profile?.email ?? user?.email ?? "");
+        // Already-onboarded advocates land here from the Settings link with
+        // an acknowledgement already on file — re-confirming it every visit
+        // just to change an org name would be friction with no purpose.
+        if (r.profile?.onboarded) {
+          setWasOnboarded(true);
+          setConfidentiality(true);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -56,10 +65,28 @@ function AdvocateSetupPage() {
           confidentiality_accepted: true,
         },
       });
-      toast("Saved. Your cases are ready.");
-      navigate({ to: "/advocate-cases", replace: true });
+      if (wasOnboarded) {
+        toast("Saved.");
+      } else {
+        toast("Saved. Your cases are ready.");
+        navigate({ to: "/advocate-cases", replace: true });
+      }
     } catch (err) {
       toast(err instanceof Error ? err.message : "We couldn't save that. Try again in a moment.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const signOutOtherDevices = async () => {
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "others" });
+      toast(
+        error
+          ? "Couldn't sign out other devices. Try again in a moment."
+          : "Signed out everywhere except this device.",
+      );
     } finally {
       setBusy(false);
     }
@@ -68,13 +95,15 @@ function AdvocateSetupPage() {
   if (loading) return <div className="card-pp">Loading…</div>;
 
   return (
-    <div style={{ maxWidth: 640, margin: "24px auto" }}>
-      <h1 className="font-serif text-[26px]" style={{ marginBottom: 6 }}>
-        Set up your advocate profile
-      </h1>
-      <p className="text-[13px]" style={{ color: "var(--muted-foreground)", marginBottom: 18 }}>
-        Survivors see only your name and organization. This takes a moment.
-      </p>
+    <div style={{ maxWidth: 640, margin: "24px auto", display: "grid", gap: 18 }}>
+      <div>
+        <h1 className="font-serif text-[26px]" style={{ marginBottom: 6 }}>
+          {wasOnboarded ? "Settings" : "Set up your advocate profile"}
+        </h1>
+        <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+          Survivors see only your name and organization.
+        </p>
+      </div>
 
       <form onSubmit={onSubmit} className="card-pp space-y-3">
         <input
@@ -102,33 +131,51 @@ function AdvocateSetupPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <label
-          style={{
-            display: "flex",
-            gap: 10,
-            alignItems: "flex-start",
-            fontSize: 13,
-            lineHeight: 1.55,
-            cursor: "pointer",
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={confidentiality}
-            onChange={(e) => setConfidentiality(e.target.checked)}
-            style={{ marginTop: 3 }}
-          />
-          <span>
-            <ShieldCheck size={14} style={{ verticalAlign: "-2px", marginRight: 4 }} />I acknowledge
-            that survivor records are confidential. I will open only the records I have been given
-            access to, and treat everything I see as private.
-          </span>
-        </label>
+        {!wasOnboarded && (
+          <label
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "flex-start",
+              fontSize: 13,
+              lineHeight: 1.55,
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={confidentiality}
+              onChange={(e) => setConfidentiality(e.target.checked)}
+              style={{ marginTop: 3 }}
+            />
+            <span>
+              <ShieldCheck size={14} style={{ verticalAlign: "-2px", marginRight: 4 }} />I
+              acknowledge that survivor records are confidential. I will open only the records I
+              have been given access to, and treat everything I see as private.
+            </span>
+          </label>
+        )}
 
         <button className="btn-primary w-full" disabled={busy}>
-          {busy ? "Saving…" : "Open my cases"}
+          {busy ? "Saving…" : wasOnboarded ? "Save changes" : "Open my cases"}
         </button>
       </form>
+
+      {wasOnboarded && (
+        <div className="card-pp">
+          <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
+            <Monitor size={16} />
+            <span className="font-serif text-[16px]">Security</span>
+          </div>
+          <p className="text-[13px]" style={{ color: "var(--muted-foreground)", marginBottom: 10 }}>
+            If you ever signed in on a computer or phone you don't control anymore, end that
+            session from here — you don't need access to that device to do it.
+          </p>
+          <button onClick={signOutOtherDevices} disabled={busy} className="btn-ghost" type="button">
+            Sign out of every other device
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -45,6 +45,8 @@ export function attorneyPathExemptFromRequiredMfa(pathname: string): boolean {
 /** Unverified enrollments pile up if someone starts setup and leaves. */
 export async function dropUnverifiedTotpFactors(): Promise<void> {
   const { data } = await supabase.auth.mfa.listFactors();
-  const pending = (data?.totp ?? []).filter((f) => f.status === "unverified");
+  const pending = (data?.totp ?? []).filter(
+    (f) => (f.status as string) === "unverified",
+  );
   await Promise.all(pending.map((f) => supabase.auth.mfa.unenroll({ factorId: f.id })));
 }

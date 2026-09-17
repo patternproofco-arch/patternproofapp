@@ -1382,6 +1382,7 @@ export type Database = {
           content: string | null
           created_at: string
           date: string
+          deleted_at: string | null
           direction: string
           from_party: string | null
           harassment_flag: boolean
@@ -1398,6 +1399,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           date: string
+          deleted_at?: string | null
           direction: string
           from_party?: string | null
           harassment_flag?: boolean
@@ -1414,6 +1416,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           date?: string
+          deleted_at?: string | null
           direction?: string
           from_party?: string | null
           harassment_flag?: boolean
@@ -2488,6 +2491,7 @@ export type Database = {
           case_number: string | null
           court_name: string | null
           created_at: string
+          deleted_at: string | null
           document_type: Database["public"]["Enums"]["legal_document_type"]
           effective_date: string | null
           expiration_date: string | null
@@ -2511,6 +2515,7 @@ export type Database = {
           case_number?: string | null
           court_name?: string | null
           created_at?: string
+          deleted_at?: string | null
           document_type: Database["public"]["Enums"]["legal_document_type"]
           effective_date?: string | null
           expiration_date?: string | null
@@ -2534,6 +2539,7 @@ export type Database = {
           case_number?: string | null
           court_name?: string | null
           created_at?: string
+          deleted_at?: string | null
           document_type?: Database["public"]["Enums"]["legal_document_type"]
           effective_date?: string | null
           expiration_date?: string | null
@@ -2715,6 +2721,7 @@ export type Database = {
           captured_at: string | null
           conversation_participant: string | null
           created_at: string
+          deleted_at: string | null
           exhibit_label: string | null
           file_url: string
           flags: Json
@@ -2741,6 +2748,7 @@ export type Database = {
           captured_at?: string | null
           conversation_participant?: string | null
           created_at?: string
+          deleted_at?: string | null
           exhibit_label?: string | null
           file_url: string
           flags?: Json
@@ -2767,6 +2775,7 @@ export type Database = {
           captured_at?: string | null
           conversation_participant?: string | null
           created_at?: string
+          deleted_at?: string | null
           exhibit_label?: string | null
           file_url?: string
           flags?: Json
@@ -3236,6 +3245,7 @@ export type Database = {
           audio_url: string
           created_at: string
           date: string
+          deleted_at: string | null
           duration_seconds: number | null
           id: string
           linked_incident_id: string | null
@@ -3250,6 +3260,7 @@ export type Database = {
           audio_url: string
           created_at?: string
           date?: string
+          deleted_at?: string | null
           duration_seconds?: number | null
           id?: string
           linked_incident_id?: string | null
@@ -3264,6 +3275,7 @@ export type Database = {
           audio_url?: string
           created_at?: string
           date?: string
+          deleted_at?: string | null
           duration_seconds?: number | null
           id?: string
           linked_incident_id?: string | null
@@ -3859,6 +3871,7 @@ export type Database = {
           audio_url: string
           created_at: string
           date: string
+          deleted_at: string | null
           duration_seconds: number | null
           id: string
           title: string
@@ -3871,6 +3884,7 @@ export type Database = {
           audio_url: string
           created_at?: string
           date: string
+          deleted_at?: string | null
           duration_seconds?: number | null
           id?: string
           title: string
@@ -3883,6 +3897,7 @@ export type Database = {
           audio_url?: string
           created_at?: string
           date?: string
+          deleted_at?: string | null
           duration_seconds?: number | null
           id?: string
           title?: string

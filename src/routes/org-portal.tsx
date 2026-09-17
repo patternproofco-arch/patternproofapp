@@ -235,8 +235,43 @@ function OrgPortal() {
       </Section>
 
       <OrgTeamSettings />
+
+      <Section title="Security">
+        <p style={{ fontSize: 13, color: "var(--muted-foreground)", marginBottom: 10 }}>
+          If you ever signed in on a computer you don't control anymore, end that session from
+          here — you don't need access to that device to do it.
+        </p>
+        <SignOutOtherDevices />
+      </Section>
+
       <OrgOversight />
     </Shell>
+  );
+}
+
+function SignOutOtherDevices() {
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        try {
+          const { error } = await supabase.auth.signOut({ scope: "others" });
+          toast[error ? "error" : "success"](
+            error
+              ? "Couldn't sign out other devices. Try again in a moment."
+              : "Signed out everywhere except this device.",
+          );
+        } finally {
+          setBusy(false);
+        }
+      }}
+      style={btnStyle}
+    >
+      {busy ? "Signing out other devices…" : "Sign out of every other device"}
+    </button>
   );
 }
 

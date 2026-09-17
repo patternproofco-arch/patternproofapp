@@ -116,6 +116,7 @@ function CourtPacket() {
             "id,document_type,title,case_number,court_name,judge_name,effective_date,expiration_date,protected_party,restrained_party,incident_date,key_terms,file_type,file_url",
           )
           .eq("user_id", user.id)
+          .is("deleted_at", null)
           .in("id", ldIds);
         const docs = (ld as LegalDoc[] | null) ?? [];
         setLegalDocs(docs);

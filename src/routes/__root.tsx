@@ -334,10 +334,7 @@ function RootComponent() {
       deferredPrompt = e;
     });
 
-    // Listen for app installed event
-    window.addEventListener("appinstalled", () => {
-      console.log("PWA installed successfully");
-    });
+    window.addEventListener("appinstalled", () => {});
   }, []);
 
   return (

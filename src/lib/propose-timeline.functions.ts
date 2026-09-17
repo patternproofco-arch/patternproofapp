@@ -246,6 +246,7 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
           "id, source_filename, summary, attorney_summary, captured_at, created_at, message_count",
         )
         .eq("user_id", userId)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .limit(10);
       for (const t of threads ?? []) {
@@ -276,6 +277,7 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
         .from("voice_notes")
         .select("id, title, date, transcript, transcription_status, created_at")
         .eq("user_id", userId)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .limit(10);
       for (const n of notes ?? []) {

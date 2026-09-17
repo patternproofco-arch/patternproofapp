@@ -52,6 +52,7 @@ function VoiceNotesPage() {
       .from("voice_notes")
       .select("*")
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
     const rows = (data as Note[] | null) ?? [];
     setNotes(rows);
@@ -149,13 +150,16 @@ function VoiceNotesPage() {
     if (!user) return;
     const ok = await confirm({
       title: "Remove this voice note?",
-      body: "The recording and any transcript will be permanently removed.",
+      body: "The recording and transcript will be removed from your view.",
       confirmLabel: "Remove",
       cancelLabel: "Keep",
     });
     if (!ok) return;
-    await supabase.storage.from("voice-notes").remove([n.audio_url]);
-    await supabase.from("voice_notes").delete().eq("id", n.id).eq("user_id", user.id);
+    await supabase
+      .from("voice_notes")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", n.id)
+      .eq("user_id", user.id);
     toast("Removed.");
     load();
   };
