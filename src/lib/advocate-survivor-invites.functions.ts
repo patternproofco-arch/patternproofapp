@@ -6,6 +6,7 @@ import {
   assertInviteUsable,
   assertScopeChosen,
   buildGrantPayload,
+  resolveInviteEffectiveStatus,
   type InviteRow,
 } from "@/lib/advocate-survivor-invites.server";
 
@@ -132,13 +133,39 @@ export const listAdvocateSurvivorInvites = createServerFn({ method: "GET" })
       .eq("advocate_user_id", context.userId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
+
+    const rows = data ?? [];
+    const inviteIds = rows.map((i) => i.id);
+    const grantByInvite = new Map<string, { status: string; expires_at: string | null }>();
+    if (inviteIds.length) {
+      const { data: links, error: linkErr } = await supabaseAdmin
+        .from("advocate_client_links")
+        .select("survivor_invite_id,status,expires_at")
+        .eq("advocate_user_id", context.userId)
+        .in("survivor_invite_id", inviteIds);
+      if (linkErr) throw new Error(linkErr.message);
+      for (const link of links ?? []) {
+        if (!link.survivor_invite_id) continue;
+        // Prefer an active grant if multiple rows exist for the same invite.
+        const prev = grantByInvite.get(link.survivor_invite_id);
+        if (!prev || link.status === "active") {
+          grantByInvite.set(link.survivor_invite_id, {
+            status: link.status,
+            expires_at: link.expires_at ?? null,
+          });
+        }
+      }
+    }
+
     const now = Date.now();
-    const invites = (data ?? []).map((i) => ({
+    const invites = rows.map((i) => ({
       ...i,
-      effective_status:
-        i.status === "pending" && i.expires_at && new Date(i.expires_at).getTime() < now
-          ? ("expired" as const)
-          : (i.status as "pending" | "accepted" | "revoked" | "declined" | "expired"),
+      effective_status: resolveInviteEffectiveStatus({
+        inviteStatus: i.status,
+        expiresAt: i.expires_at,
+        grant: grantByInvite.get(i.id) ?? null,
+        now,
+      }),
     }));
     return { invites };
   });

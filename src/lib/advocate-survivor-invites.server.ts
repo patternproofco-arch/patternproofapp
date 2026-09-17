@@ -98,3 +98,50 @@ export function buildGrantPayload(invite: InviteRow, clientUserId: string, scope
     revoked_at: null as string | null,
   };
 }
+
+export type InviteEffectiveStatus =
+  | "pending"
+  | "accepted"
+  | "revoked"
+  | "declined"
+  | "expired";
+
+export type GrantSnapshot = {
+  status: string;
+  expires_at?: string | null;
+};
+
+/**
+ * Badge lifecycle for Advocate → Survivor Invites.
+ * Green "Accepted" only while the live grant is active.
+ * Survivor withdraw / missing grant → "revoked" (UI: Access withdrawn).
+ */
+export function resolveInviteEffectiveStatus(input: {
+  inviteStatus: string;
+  expiresAt?: string | null;
+  grant?: GrantSnapshot | null;
+  now?: number;
+}): InviteEffectiveStatus {
+  const now = input.now ?? Date.now();
+  const status = input.inviteStatus;
+
+  if (status === "declined") return "declined";
+  if (status === "revoked") return "revoked";
+  if (status === "expired") return "expired";
+
+  if (status === "pending") {
+    if (input.expiresAt && new Date(input.expiresAt).getTime() < now) return "expired";
+    return "pending";
+  }
+
+  if (status === "accepted") {
+    const grant = input.grant;
+    if (!grant) return "revoked";
+    if (grant.status !== "active") return "revoked";
+    if (grant.expires_at && new Date(grant.expires_at).getTime() < now) return "expired";
+    return "accepted";
+  }
+
+  // Unknown invite status → fail closed (never show green Accepted).
+  return "revoked";
+}

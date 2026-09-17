@@ -59,8 +59,9 @@ function Gate() {
     };
   }, [loading, user, readAppLock]);
 
+  // Daily Planner PIN / idle lock is survivor-only (shared-device / Exit safety).
   useIdleLock(
-    !loading && !!user && (hasPin || hasBiometric) && !isLocked,
+    isSurvivor === true && !loading && !!user && (hasPin || hasBiometric) && !isLocked,
     settings.sessionTimeoutSec,
     lock,
   );
@@ -132,6 +133,15 @@ function Gate() {
   }
 
   if (survivorNeedsOnboarding && pathname !== "/onboarding") {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="label-eyebrow">Opening your space…</div>
+      </div>
+    );
+  }
+
+  // Professionals never enter survivor PIN chrome (role isolation).
+  if (isSurvivor !== true) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="label-eyebrow">Opening your space…</div>
