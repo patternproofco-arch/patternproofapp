@@ -41,6 +41,10 @@ function Gate() {
   const readAppLock = useServerFn(getPinLockState);
   const [serverLockOn, setServerLockOn] = useState<boolean | null>(null);
   const [isSurvivor, setIsSurvivor] = useState<boolean | null>(null);
+  // Professionals who land on /_authenticated must leave — never park on "Opening your space…".
+  const [professionalHome, setProfessionalHome] = useState<
+    "/clients" | "/advocate-cases" | "/org-portal" | null
+  >(null);
   const forcedRole = testAccountRole(user?.email);
   const mfaChecking = useMfaGate(!loading && !!user && !forcedRole);
 
@@ -76,11 +80,13 @@ function Gate() {
     const forced = testAccountRole(user.email);
     if (forced === "attorney") {
       setIsSurvivor(false);
+      setProfessionalHome("/clients");
       navigate({ to: "/clients", replace: true });
       return;
     }
     if (forced === "advocate") {
       setIsSurvivor(false);
+      setProfessionalHome("/advocate-cases");
       navigate({ to: "/advocate-cases", replace: true });
       return;
     }
@@ -88,17 +94,27 @@ function Gate() {
       .then((r) => {
         setIsSurvivor(!!r.is_survivor);
         if (!r.is_survivor && r.roles.includes("attorney")) {
+          setProfessionalHome("/clients");
           navigate({ to: "/clients", replace: true });
           return;
         }
         if (!r.is_survivor && r.roles.includes("advocate")) {
-          navigate({ to: r.is_org_partner ? "/org-portal" : "/advocate-cases", replace: true });
+          const home = r.is_org_partner ? "/org-portal" : "/advocate-cases";
+          setProfessionalHome(home);
+          navigate({ to: home, replace: true });
         }
       })
       .catch(() => {
         setIsSurvivor(true);
       });
   }, [loading, user, ensureRole, navigate]);
+
+  // Re-drive redirect if a professional is still sitting on survivor shell routes.
+  useEffect(() => {
+    if (isSurvivor !== false || !professionalHome) return;
+    if (pathname === professionalHome) return;
+    navigate({ to: professionalHome, replace: true });
+  }, [isSurvivor, professionalHome, pathname, navigate]);
 
   const onboardingComplete = !!(
     user &&
@@ -141,10 +157,13 @@ function Gate() {
   }
 
   // Professionals never enter survivor PIN chrome (role isolation).
+  // Soft-claim honesty: never leave them on a forever "Opening your space…" spinner.
   if (isSurvivor !== true) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="label-eyebrow">Opening your space…</div>
+        <div className="label-eyebrow">
+          {professionalHome ? "Taking you to your portal…" : "Opening your space…"}
+        </div>
       </div>
     );
   }

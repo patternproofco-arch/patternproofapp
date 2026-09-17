@@ -90,4 +90,13 @@ describe("Advocate invite badge + survivor-only PIN (source contracts)", () => {
     expect(pin).toBeGreaterThan(profGate);
     expect(recovery).toBeGreaterThan(profGate);
   });
+
+  it("professionals redirect to their portal instead of a forever Opening spinner", () => {
+    expect(auth).toContain("setProfessionalHome");
+    expect(auth).toContain("Taking you to your portal…");
+    expect(auth).toContain('navigate({ to: professionalHome, replace: true })');
+    expect(auth).toContain('"/clients"');
+    expect(auth).toContain('"/advocate-cases"');
+    expect(auth).toContain('"/org-portal"');
+  });
 });
