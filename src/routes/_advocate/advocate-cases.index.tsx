@@ -25,11 +25,12 @@ type Clients = Awaited<ReturnType<typeof listAdvocateClients>>["clients"];
 type InviteRow = Awaited<ReturnType<typeof listAdvocateSurvivorInvites>>["invites"][number];
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
-  pending: { bg: "rgba(47,107,79,0.12)", fg: "#2F6B4F", label: "Pending" },
+  // Grant-status badges: green Accepted only while the live grant is active.
+  pending: { bg: "rgba(90,90,90,0.10)", fg: "#666", label: "Pending" },
   accepted: { bg: "rgba(34,120,80,0.15)", fg: "#1B6B45", label: "Accepted" },
-  revoked: { bg: "rgba(120,40,40,0.12)", fg: "#8B2E2E", label: "Revoked" },
-  declined: { bg: "rgba(100,90,60,0.14)", fg: "#6B5B2E", label: "Declined" },
-  expired: { bg: "rgba(90,90,90,0.12)", fg: "#555", label: "Expired" },
+  revoked: { bg: "rgba(90,90,90,0.10)", fg: "#666", label: "Access withdrawn" },
+  declined: { bg: "rgba(90,90,90,0.10)", fg: "#666", label: "Declined" },
+  expired: { bg: "rgba(90,90,90,0.10)", fg: "#666", label: "Expired" },
 };
 
 function AdvocateCases() {
