@@ -463,6 +463,7 @@ export type Database = {
           scope_evidence: string[]
           scope_incidents: string[]
           status: string
+          updated_at: string
         }
         Insert: {
           attorney_case_notes?: string | null
@@ -488,6 +489,7 @@ export type Database = {
           scope_evidence?: string[]
           scope_incidents?: string[]
           status?: string
+          updated_at?: string
         }
         Update: {
           attorney_case_notes?: string | null
@@ -513,6 +515,7 @@ export type Database = {
           scope_evidence?: string[]
           scope_incidents?: string[]
           status?: string
+          updated_at?: string
         }
         Relationships: [
           {
