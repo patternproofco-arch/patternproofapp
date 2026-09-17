@@ -12,6 +12,7 @@ import {
   Plug,
   FileText,
   BellOff,
+  LogOut,
 } from "lucide-react";
 import { MessageCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -28,6 +29,7 @@ import {
 } from "@/lib/survivor-attorney-notes.functions";
 import { Download } from "lucide-react";
 import { ChangePasswordCard } from "@/components/ChangePasswordCard";
+import { TwoFactorCard } from "@/components/TwoFactorCard";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -194,6 +196,7 @@ function SettingsPage() {
     disableBiometric,
   } = usePinLock();
   const [newPin, setNewPin] = useState("");
+  const [signingOutEverywhere, setSigningOutEverywhere] = useState(false);
   const [audit, setAudit] = useState<AuditRow[]>([]);
   const exportFn = useServerFn(generateExportZip);
   const [exporting, setExporting] = useState(false);
@@ -252,6 +255,17 @@ function SettingsPage() {
     toast(r.ok ? "Device unlock is on." : r.reason);
   };
 
+  const signOutEverywhere = async () => {
+    setSigningOutEverywhere(true);
+    try {
+      await supabase.auth.signOut({ scope: "global" });
+      toast("Signed out everywhere. Any other device will need to sign in again.");
+    } catch {
+      setSigningOutEverywhere(false);
+      toast("Couldn't sign out other devices. Try again in a moment.");
+    }
+  };
+
   return (
     <div className="pp-card-thread">
       <div className="label-eyebrow">Settings</div>
@@ -259,8 +273,29 @@ function SettingsPage() {
         Your safety, <em>your terms.</em>
       </h1>
 
-      <div className="mt-6">
-        <ChangePasswordCard />
+      <div id="security" className="mt-6 scroll-mt-24">
+        <h2 className="font-serif text-[19px]">Security</h2>
+        <div className="mt-4 grid gap-5 md:grid-cols-2">
+          <ChangePasswordCard />
+          <TwoFactorCard />
+          <div className="card-pp md:col-span-2">
+            <div className="flex items-center gap-2">
+              <LogOut size={18} style={{ color: "var(--primary)" }} />
+              <h2 className="font-serif text-[19px]">Sign out everywhere</h2>
+            </div>
+            <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              Ends every signed-in session on every device, including this one. Use this if a
+              device you signed in on is lost, shared, or no longer yours.
+            </p>
+            <button
+              onClick={signOutEverywhere}
+              disabled={signingOutEverywhere}
+              className="btn-primary mt-4"
+            >
+              {signingOutEverywhere ? "Signing out…" : "Sign out everywhere"}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
