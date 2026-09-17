@@ -12,7 +12,6 @@ import { LockRecoveryScreen } from "@/components/LockRecoveryScreen";
 import { getPinLockState } from "@/lib/pin-lock.functions";
 import { RecordingProvider } from "@/lib/recording-context";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
-import { testAccountRole } from "@/lib/test-accounts";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -41,8 +40,7 @@ function Gate() {
   const readAppLock = useServerFn(getPinLockState);
   const [serverLockOn, setServerLockOn] = useState<boolean | null>(null);
   const [isSurvivor, setIsSurvivor] = useState<boolean | null>(null);
-  const forcedRole = testAccountRole(user?.email);
-  const mfaChecking = useMfaGate(!loading && !!user && !forcedRole);
+  const mfaChecking = useMfaGate(!loading && !!user);
 
   useEffect(() => {
     if (loading || !user) return;
@@ -72,17 +70,6 @@ function Gate() {
   useEffect(() => {
     if (loading || !user || roleChecked.current) return;
     roleChecked.current = true;
-    const forced = testAccountRole(user.email);
-    if (forced === "attorney") {
-      setIsSurvivor(false);
-      navigate({ to: "/clients", replace: true });
-      return;
-    }
-    if (forced === "advocate") {
-      setIsSurvivor(false);
-      navigate({ to: "/advocate-cases", replace: true });
-      return;
-    }
     ensureRole()
       .then((r) => {
         setIsSurvivor(!!r.is_survivor);

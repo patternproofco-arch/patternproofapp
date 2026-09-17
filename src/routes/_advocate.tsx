@@ -9,7 +9,6 @@ import { AccessDisclaimerBar } from "@/components/AccessDisclaimer";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
-import { testAccountRole } from "@/lib/test-accounts";
 import "@/styles-role-accents.css";
 
 export const Route = createFileRoute("/_advocate")({
@@ -28,7 +27,7 @@ function AdvocateLayout() {
   const roleFn = useServerFn(getMyAdvocateRole);
   const pathname = useRouterState({ select: (st) => st.location.pathname });
   const [checking, setChecking] = useState(true);
-  const mfaChecking = useMfaGate(!loading && !!user && testAccountRole(user?.email) !== "advocate");
+  const mfaChecking = useMfaGate(!loading && !!user);
   const [profile, setProfile] = useState<{
     full_name: string;
     org_name: string | null;
@@ -40,16 +39,6 @@ function AdvocateLayout() {
     if (loading) return;
     if (!user) {
       navigate({ to: "/signin", search: { redirect: "/advocate-cases" }, replace: true });
-      return;
-    }
-    if (testAccountRole(user.email) === "advocate") {
-      setProfile({
-        full_name: "Test Advocate",
-        org_name: "PatternProof test",
-        email: user.email ?? "advocateppme@gmail.com",
-        onboarded: true,
-      });
-      setChecking(false);
       return;
     }
     roleFn()
