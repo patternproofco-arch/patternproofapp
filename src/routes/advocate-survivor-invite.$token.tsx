@@ -248,15 +248,22 @@ function AdvocateSurvivorInvitePage() {
           marginBottom: 8,
         }}
       >
-        {advocateDisplay} invited you to share records.
+        {done === "accepted"
+          ? `Shared with ${advocateDisplay}`
+          : done === "declined"
+            ? "Invite declined"
+            : `${advocateDisplay} invited you to share records.`}
       </h1>
-      <p style={{ color: "var(--pp-muted)", fontSize: 14, marginBottom: 18 }}>
-        Opening this link does <strong>not</strong> grant access. You choose what to share: Accept only
-        after the checklist below, pick your scope, and revoke anytime. This is not
-        attorney–client privilege.
-      </p>
+      {/* Pre-accept guidance only — never re-show checklist copy on the receipt */}
+      {!done && (
+        <p style={{ color: "var(--pp-muted)", fontSize: 14, marginBottom: 18 }}>
+          Opening this link does <strong>not</strong> grant access. You choose what to share: Accept only
+          after the checklist below, pick your scope, and revoke anytime. This is not
+          attorney–client privilege.
+        </p>
+      )}
 
-      {inv.personal_note && (
+      {!!inv.personal_note && !done && (
         <div
           style={{
             background: "var(--pp-ground)",
