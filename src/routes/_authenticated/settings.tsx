@@ -160,11 +160,9 @@ function NotesFromAttorney() {
           {rows.map((r) => (
             <div key={r.linkId} className="rounded-2xl p-3" style={{ background: "var(--input)" }}>
               <div className="text-[13px] font-semibold">{r.attorneyName}</div>
-              {r.updatedAt ? (
-                <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                  Updated {new Date(r.updatedAt).toLocaleString()}
-                </div>
-              ) : null}
+              <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                Shared since {new Date(r.sharedAt).toLocaleDateString()}
+              </div>
               <p className="mt-2 whitespace-pre-wrap text-[14px]">{r.note}</p>
             </div>
           ))}
