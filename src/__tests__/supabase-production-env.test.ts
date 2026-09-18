@@ -1,38 +1,41 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const productionEnv = readFileSync(".env", "utf8");
+/**
+ * After issue #59, real secrets must never live in git.
+ * This suite guards soft-claim production hygiene:
+ * - no committed .env / .env.production
+ * - .env.example documents browser-safe key *names* only
+ * - no privileged key names in example or public Vite config
+ */
+const exampleEnv = readFileSync(".env.example", "utf8");
 const supabaseConfig = readFileSync("supabase/config.toml", "utf8");
 
-const env = Object.fromEntries(
-  productionEnv
-    .split(/\r?\n/)
-    .filter((line) => line && !line.startsWith("#"))
-    .map((line) => {
-      const separator = line.indexOf("=");
-      const raw = line.slice(separator + 1).trim();
-      const value =
-        (raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))
-          ? raw.slice(1, -1)
-          : raw;
-      return [line.slice(0, separator), value];
-    }),
-);
-
 describe("production Supabase environment", () => {
-  it("commits the browser-safe values Lovable requires at build time", () => {
-    expect(env.VITE_SUPABASE_URL).toMatch(/^https:\/\/[a-z0-9]+\.supabase\.co$/);
-    expect(env.VITE_SUPABASE_PUBLISHABLE_KEY).toMatch(/^(sb_publishable_|eyJ)/);
-    expect(env.VITE_SUPABASE_PROJECT_ID).toMatch(/^[a-z0-9]+$/);
+  it("does not commit real env files to the repo tip", () => {
+    expect(existsSync(".env")).toBe(false);
+    expect(existsSync(".env.production")).toBe(false);
   });
 
-  it("keeps the project reference consistent", () => {
-    expect(env.VITE_SUPABASE_URL).toContain(env.VITE_SUPABASE_PROJECT_ID);
-    expect(supabaseConfig).toContain(`project_id = "${env.VITE_SUPABASE_PROJECT_ID}"`);
+  it("documents browser-safe Supabase key names in .env.example (empty values)", () => {
+    expect(exampleEnv).toMatch(/VITE_SUPABASE_URL=/);
+    expect(exampleEnv).toMatch(/VITE_SUPABASE_PUBLISHABLE_KEY=/);
+    expect(exampleEnv).toMatch(/VITE_SUPABASE_PROJECT_ID=/);
+    // Example values must stay empty / placeholder — no live project URL or JWT in git.
+    for (const line of exampleEnv.split(/\r?\n/)) {
+      if (!line.startsWith("VITE_SUPABASE_")) continue;
+      const value = line.slice(line.indexOf("=") + 1).trim().replace(/^["']|["']$/g, "");
+      expect(value).toBe("");
+    }
   });
 
-  it("never exposes privileged Supabase credentials to the browser", () => {
-    expect(productionEnv).not.toContain("SERVICE_ROLE");
-    expect(productionEnv).not.toContain("SECRET_KEY");
+  it("keeps supabase/config.toml project_id present for local tooling", () => {
+    expect(supabaseConfig).toMatch(/project_id\s*=\s*"[a-z0-9]+"/);
+  });
+
+  it("never documents privileged Supabase credentials for the browser", () => {
+    expect(exampleEnv).not.toMatch(/SERVICE_ROLE/i);
+    expect(exampleEnv).not.toMatch(/SECRET_KEY/i);
+    expect(exampleEnv).not.toMatch(/service_role/i);
   });
 });

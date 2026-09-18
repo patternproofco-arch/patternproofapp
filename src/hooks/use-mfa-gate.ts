@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { hasVerifiedTotp, sessionNeedsMfa } from "@/lib/mfa";
+import { resolveMfaGate } from "@/lib/mfa";
 
 type MfaGateOptions = {
-  /** If true, no verified authenticator means redirect to enrollTo. */
+  /** If true, no verified authenticator means redirect to enrollTo. Lookup/errors deny. */
   requireEnrollment?: boolean;
   enrollTo?: "/trust" | "/two-factor" | "/security";
 };
 
-/** Send an AAL1 session with a verified authenticator to /mfa before app chrome. */
+/**
+ * Gate app chrome until MFA decision is known.
+ * When requireEnrollment is true: only allow / challenge / enroll — never error→allow.
+ */
 export function useMfaGate(enabled: boolean, options: MfaGateOptions = {}) {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(enabled);
@@ -22,24 +25,33 @@ export function useMfaGate(enabled: boolean, options: MfaGateOptions = {}) {
     }
     let cancelled = false;
     const run = async () => {
-      const needsChallenge = await sessionNeedsMfa();
+      const decision = await resolveMfaGate({ requireEnrollment });
       if (cancelled) return;
-      if (needsChallenge) {
-        navigate({ to: "/mfa", replace: true });
-        return;
-      }
-      if (requireEnrollment) {
-        const enrolled = await hasVerifiedTotp();
-        if (cancelled) return;
-        if (!enrolled) {
+      switch (decision) {
+        case "challenge":
+          navigate({ to: "/mfa", replace: true });
+          return;
+        case "enroll":
           navigate({ to: enrollTo, replace: true });
           return;
-        }
+        case "deny":
+          // Fail closed: do not open portal chrome when enrollment is required
+          // and assurance/factor lookup failed.
+          navigate({ to: "/signin", replace: true });
+          return;
+        case "allow":
+        default:
+          if (!cancelled) setChecking(false);
+          return;
       }
-      if (!cancelled) setChecking(false);
     };
     run().catch(() => {
-      if (!cancelled) setChecking(false);
+      if (cancelled) return;
+      if (requireEnrollment) {
+        navigate({ to: "/signin", replace: true });
+        return;
+      }
+      setChecking(false);
     });
     return () => {
       cancelled = true;

@@ -23,11 +23,30 @@ export async function hasVerifiedTotp(): Promise<boolean> {
   return (await verifiedTotpFactorId()) !== null;
 }
 
-/**
- * Attorney routes that must stay reachable at AAL1 so someone can pay,
- * finish setup, and enroll an authenticator. Everything else in the
- * attorney portal requires a verified TOTP factor + AAL2.
- */
+export type MfaGateDecision = "allow" | "challenge" | "enroll" | "deny";
+
+export async function resolveMfaGate(options: {
+  requireEnrollment?: boolean;
+}): Promise<MfaGateDecision> {
+  const required = options.requireEnrollment === true;
+  const onError: MfaGateDecision = required ? "deny" : "allow";
+  try {
+    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error || !data) return onError;
+    if (data.currentLevel === "aal1" && data.nextLevel === "aal2") return "challenge";
+
+    if (required) {
+      const { data: factors, error: factorError } = await supabase.auth.mfa.listFactors();
+      if (factorError || !factors) return "deny";
+      const verified = (factors.totp ?? []).some((f) => f.status === "verified");
+      if (!verified) return "enroll";
+    }
+    return "allow";
+  } catch {
+    return onError;
+  }
+}
+
 export function attorneyPathExemptFromRequiredMfa(pathname: string): boolean {
   return (
     pathname === "/subscribe" ||
@@ -39,7 +58,6 @@ export function attorneyPathExemptFromRequiredMfa(pathname: string): boolean {
   );
 }
 
-/** Unverified enrollments pile up if someone starts setup and leaves. */
 export async function dropUnverifiedTotpFactors(): Promise<void> {
   const { data } = await supabase.auth.mfa.listFactors();
   const pending = (data?.totp ?? []).filter((f) => String(f.status) !== "verified");
