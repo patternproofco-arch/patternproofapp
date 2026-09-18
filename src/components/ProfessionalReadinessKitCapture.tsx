@@ -2,9 +2,13 @@ import { FormEvent, useMemo, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { requestProfessionalReadinessKit } from "@/lib/marketing-leads.functions";
 
-export function ProfessionalReadinessKitCapture() {
+export function ProfessionalReadinessKitCapture({ embed = false }: { embed?: boolean } = {}) {
   const location = useLocation();
   const config = useMemo(() => {
+    // Attorney page mounts the kit below its trust strip; skip the root inject there.
+    if (location.pathname === "/for-attorneys" && !embed) {
+      return null;
+    }
     if (location.pathname === "/for-attorneys") {
       return {
         persona: "attorney" as const,
@@ -24,7 +28,7 @@ export function ProfessionalReadinessKitCapture() {
       };
     }
     return null;
-  }, [location.pathname]);
+  }, [location.pathname, embed]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

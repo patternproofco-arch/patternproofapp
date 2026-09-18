@@ -162,6 +162,14 @@ function Index() {
                   <Link to="/for-attorneys" style={{ color: "var(--indigo)" }}>
                     For attorneys
                   </Link>
+                  <p style={{ margin: "10px 0 0" }}>
+                    <Link
+                      to="/professional-access"
+                      style={{ color: "var(--ink-muted, #5c574f)", fontSize: 14 }}
+                    >
+                      How professional access works →
+                    </Link>
+                  </p>
                 </div>
               </div>
               <div className="docket">
@@ -174,6 +182,14 @@ function Index() {
                   <Link to="/for-organizations" style={{ color: "var(--indigo)" }}>
                     For organizations
                   </Link>
+                  <p style={{ margin: "10px 0 0" }}>
+                    <Link
+                      to="/professional-access"
+                      style={{ color: "var(--ink-muted, #5c574f)", fontSize: 14 }}
+                    >
+                      How professional access works →
+                    </Link>
+                  </p>
                 </div>
               </div>
             </div>

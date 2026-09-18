@@ -320,11 +320,10 @@
 
 .pp-global-footer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  min-height: 72px;
-  padding: 18px 24px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+  padding: 28px 24px 24px;
   background: var(--paper);
   border-top: 1px solid var(--rule);
   color: var(--ink-muted);
@@ -332,10 +331,34 @@
   font-size: 13px;
 }
 
-.pp-global-footer nav {
+.pp-global-footer-groups {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px 32px;
+  width: 100%;
+}
+
+.pp-global-footer-group {
+  min-width: 0;
+}
+
+.pp-global-footer-heading {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pp-global-footer-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .pp-global-footer a {
@@ -344,6 +367,7 @@
   font-weight: 400;
   letter-spacing: 0;
   text-decoration: none;
+  border-radius: 2px;
 }
 
 .pp-global-footer a:hover {
@@ -352,11 +376,16 @@
   text-underline-offset: 3px;
 }
 
+.pp-global-footer a:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  color: var(--ink);
+}
+
 .pp-global-footer p {
   margin: 0;
   color: var(--ink-muted);
   font-size: 13px;
-  white-space: nowrap;
 }
 
 /* Retire route-local global chrome on public pages only. Signed-in portals keep
@@ -392,14 +421,24 @@
   }
 
   .pp-global-footer {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
-    padding: 18px 16px;
+    gap: 18px;
+    padding: 24px 16px 20px;
+  }
+
+  .pp-global-footer-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 24px;
   }
 
   .pp-global-footer p {
     white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  .pp-global-footer-groups {
+    grid-template-columns: 1fr;
+    gap: 18px;
   }
 }
 
