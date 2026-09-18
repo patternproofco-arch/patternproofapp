@@ -28,9 +28,11 @@ export default defineConfig({
   webServer: process.env["E2E_BASE_URL"]
     ? undefined
     : {
-        command: "bun run dev",
+        // CI installs Node only (no bun). Nitro/Cloudflare build has no
+        // dist/server/server.js, so vite preview fails — use Vite/Nitro dev.
+        command: "npm run dev -- --host 127.0.0.1 --port 8080",
         url: "http://localhost:8080",
-        reuseExistingServer: true,
+        reuseExistingServer: !process.env["CI"],
         timeout: 120_000,
       },
 });

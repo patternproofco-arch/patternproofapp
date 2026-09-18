@@ -11,7 +11,7 @@ import { ensureSurvivorRole } from "@/lib/roles.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
-import { hasVerifiedTotp, sessionNeedsMfa } from "@/lib/mfa";
+import { totpStatus, sessionNeedsMfa } from "@/lib/mfa";
 
 type Mode = "login" | "signup";
 
@@ -21,7 +21,14 @@ async function postAuthPath(
 ): Promise<string> {
   if (await sessionNeedsMfa()) return "/mfa";
   if (role.role === "attorney" || role.role === "collaborator") {
-    if (!(await hasVerifiedTotp())) return "/trust";
+    // Lookup failure must fail closed to sign-in — never treat as "needs enroll"
+    // (enroll would open /trust under the attorney shell).
+    const totp = await totpStatus();
+    if (totp === "unknown") {
+      await supabase.auth.signOut();
+      return "/signin";
+    }
+    if (totp === "unenrolled") return "/trust";
   }
   if (redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")) return redirectTo;
   if (role.role === "attorney") return "/clients";

@@ -55,6 +55,9 @@ describe("PR-B advocate to survivor invite", () => {
     expect(route).not.toContain("Authz is server-side");
     expect(route).toContain("Shared with");
     expect(route).toContain("Revoke in Settings");
+    // After Accept, do not keep pre-accept checklist guidance on the receipt screen
+    expect(route).toContain("{!done && (");
+    expect(route).toContain("checklist below");
   });
 
   it("Accept requires explicit scope and rejects omitted/empty whole-vault-by-omission", () => {

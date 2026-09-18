@@ -19,7 +19,7 @@ export const listMyAttorneyCaseNotes = createServerFn({ method: "GET" })
       .eq("client_user_id", context.userId)
       .eq("status", "active");
     if (error) throw new Error("We couldn't load notes from your attorney.");
-    const rows = (links ?? []) as Array<{
+    const rows = (links ?? []) as unknown as Array<{
       id: string;
       attorney_user_id: string;
       attorney_case_notes: string | null;
