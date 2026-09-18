@@ -109,7 +109,7 @@
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^7.3.1",
+    "vite": "7.3.6",
     "vitest": "^4.1.10"
   },
   "overrides": {
@@ -118,18 +118,31 @@
     "js-yaml": "^5.4.2",
     "seroval": "^1.5.6",
     "seroval-plugins": "^1.5.6",
-    "esbuild": "^0.28.2",
-    "hono": "^4.13.8",
+    "esbuild": "0.28.2",
+    "hono": "4.13.8",
     "@hono/node-server": "^1.19.15",
-    "sharp": "^0.35.4",
+    "sharp": "0.35.4",
     "fast-uri": "^3.1.6",
     "ip-address": "^10.7.2",
     "browserslist": "^4.29.0",
     "baseline-browser-mapping": "^2.11.24",
     "qs": "^6.16.0",
     "nanoid": "^5.1.16",
-    "postcss": {
-      "nanoid": "^3.3.18"
+    "postcss": "8.5.28",
+    "wrangler": {
+      "sharp": "0.35.4"
+    },
+    "@cloudflare/vite-plugin": {
+      "sharp": "0.35.4"
+    },
+    "miniflare": {
+      "sharp": "0.35.4"
+    },
+    "vite": "7.3.6",
+    "brace-expansion": "5.0.12",
+    "minimatch": {
+      ".": "10.2.6",
+      "brace-expansion": "5.0.12"
     }
   },
   "resolutions": {

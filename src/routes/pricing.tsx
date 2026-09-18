@@ -68,10 +68,10 @@ function PricingPage() {
       <main style={{ maxWidth: 1180, margin: "0 auto", padding: "40px 24px 120px" }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <h1 style={{ fontFamily: "Newsreader, Georgia, serif", fontWeight: 400, fontSize: "clamp(2rem,5vw,3.2rem)" }}>
-            Pattern is evidence.
+            One record. Different roles.
           </h1>
           <p style={{ color: "var(--ink-muted, #5c574f)" }}>
-            Survivors free. Attorneys pay for a workspace. Organizations partner at no cost.
+            Survivors use PatternProof free. Attorneys pay for a workspace. Organizations partner at no cost.
           </p>
         </div>
         <ThreadGroup

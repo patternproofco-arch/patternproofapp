@@ -132,6 +132,21 @@ function HowItWorks() {
       </section>
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "16px 24px 88px" }}>
+        <p
+          style={{
+            margin: "0 0 16px",
+            fontSize: 14,
+            lineHeight: 1.6,
+            color: SUBTEXT,
+            maxWidth: 620,
+          }}
+        >
+          Before you begin: see what Quick Exit does, how shared-device risk works, and what
+          “private” means here.{" "}
+          <Link to="/safety" style={{ color: INK, textUnderlineOffset: 3 }}>
+            Read Survivor Safety →
+          </Link>
+        </p>
         <div
           style={{
             borderRadius: "var(--pp-r-lg)",

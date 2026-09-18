@@ -85,6 +85,10 @@ function LawyerSignup() {
           <BrandMark size={72} variant="attorney" />
           <div className="font-serif text-[28px] font-bold mt-3">Attorney portal</div>
           <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            Received a client share link? Open that link directly and follow the access steps shown
+            there.
+          </p>
+          <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             A source-linked chronology instead of a folder of screenshots.
           </p>
         </div>

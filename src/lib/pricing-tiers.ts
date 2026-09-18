@@ -31,7 +31,7 @@ export const BASE_TIERS: Tier[] = [
       "Unlimited incident logging",
       "Photo, document and audio evidence",
       "Source-linked chronology",
-      "Pattern counts, not legal conclusions",
+      "Suggested groupings for review, never legal conclusions",
       "Professional-review packet — free",
       "Share a link with an attorney or advocate — free",
     ],
