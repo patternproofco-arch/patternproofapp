@@ -15,15 +15,15 @@ export const listMyAttorneyCaseNotes = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: links, error } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id, attorney_user_id, attorney_case_notes, created_at")
+      .select("id, attorney_user_id, attorney_case_notes, attorney_case_notes_updated_at")
       .eq("client_user_id", context.userId)
       .eq("status", "active");
     if (error) throw new Error("We couldn't load notes from your attorney.");
-    const rows = (links ?? []) as Array<{
+    const rows = (links ?? []) as unknown as Array<{
       id: string;
       attorney_user_id: string;
       attorney_case_notes: string | null;
-      created_at: string | null;
+      attorney_case_notes_updated_at: string | null;
     }>;
     const visible = rows.filter((r) => (r.attorney_case_notes ?? "").trim().length > 0);
     if (visible.length === 0) return [];
@@ -44,6 +44,6 @@ export const listMyAttorneyCaseNotes = createServerFn({ method: "GET" })
       linkId: r.id,
       attorneyName: names.get(r.attorney_user_id) ?? "Your attorney",
       note: (r.attorney_case_notes ?? "").trim(),
-      updatedAt: r.created_at,
+      updatedAt: r.attorney_case_notes_updated_at,
     }));
   });

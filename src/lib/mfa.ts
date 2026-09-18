@@ -1,4 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+
+/**
+ * There are no account-level exemptions here. Every signed-in account,
+ * including internal QA accounts, goes through the same checks.
+ */
+
 /** True when the person has a verified authenticator but this session is still AAL1. */
 export async function sessionNeedsMfa(): Promise<boolean> {
   const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
@@ -54,8 +60,6 @@ export function attorneyPathExemptFromRequiredMfa(pathname: string): boolean {
 
 export async function dropUnverifiedTotpFactors(): Promise<void> {
   const { data } = await supabase.auth.mfa.listFactors();
-  const pending = (data?.totp ?? []).filter(
-    (f) => (f as { status?: string }).status === "unverified",
-  );
+  const pending = (data?.totp ?? []).filter((f) => String(f.status) !== "verified");
   await Promise.all(pending.map((f) => supabase.auth.mfa.unenroll({ factorId: f.id })));
 }
