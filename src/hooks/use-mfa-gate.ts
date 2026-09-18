@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { resolveMfaGate } from "@/lib/mfa";
+import { supabase } from "@/integrations/supabase/client";
 
 type MfaGateOptions = {
   /** If true, no verified authenticator means redirect to enrollTo. Lookup/errors deny. */
@@ -36,7 +37,8 @@ export function useMfaGate(enabled: boolean, options: MfaGateOptions = {}) {
           return;
         case "deny":
           // Fail closed: do not open portal chrome when enrollment is required
-          // and assurance/factor lookup failed.
+          // and assurance/factor lookup failed. Sign out so /signin does not bounce.
+          await supabase.auth.signOut();
           navigate({ to: "/signin", replace: true });
           return;
         case "allow":
@@ -48,7 +50,9 @@ export function useMfaGate(enabled: boolean, options: MfaGateOptions = {}) {
     run().catch(() => {
       if (cancelled) return;
       if (requireEnrollment) {
-        navigate({ to: "/signin", replace: true });
+        void supabase.auth.signOut().finally(() => {
+          navigate({ to: "/signin", replace: true });
+        });
         return;
       }
       setChecking(false);

@@ -12,15 +12,34 @@ export async function sessionNeedsMfa(): Promise<boolean> {
   return data.currentLevel === "aal1" && data.nextLevel === "aal2";
 }
 
+export type TotpStatus = "verified" | "unenrolled" | "unknown";
+
+/**
+ * Distinguish "no authenticator" from "we could not look up factors".
+ * Callers that require MFA must treat "unknown" as fail-closed (deny / sign-in),
+ * never as enroll.
+ */
+export async function totpStatus(): Promise<TotpStatus> {
+  try {
+    const { data, error } = await supabase.auth.mfa.listFactors();
+    if (error || !data) return "unknown";
+    const verified = (data.totp ?? []).some((f) => f.status === "verified");
+    return verified ? "verified" : "unenrolled";
+  } catch {
+    return "unknown";
+  }
+}
+
 export async function verifiedTotpFactorId(): Promise<string | null> {
-  const { data, error } = await supabase.auth.mfa.listFactors();
-  if (error || !data) return null;
-  const verified = data.totp.find((f) => f.status === "verified");
+  const status = await totpStatus();
+  if (status !== "verified") return null;
+  const { data } = await supabase.auth.mfa.listFactors();
+  const verified = data?.totp.find((f) => f.status === "verified");
   return verified?.id ?? null;
 }
 
 export async function hasVerifiedTotp(): Promise<boolean> {
-  return (await verifiedTotpFactorId()) !== null;
+  return (await totpStatus()) === "verified";
 }
 
 export type MfaGateDecision = "allow" | "challenge" | "enroll" | "deny";
@@ -36,6 +55,7 @@ export async function resolveMfaGate(options: {
     if (data.currentLevel === "aal1" && data.nextLevel === "aal2") return "challenge";
 
     if (required) {
+      // listFactors must succeed. Network/API failure → deny, never enroll.
       const { data: factors, error: factorError } = await supabase.auth.mfa.listFactors();
       if (factorError || !factors) return "deny";
       const verified = (factors.totp ?? []).some((f) => f.status === "verified");
@@ -56,6 +76,11 @@ export function attorneyPathExemptFromRequiredMfa(pathname: string): boolean {
     pathname === "/trust" ||
     pathname === "/two-factor"
   );
+}
+
+/** Paths where attorney portal chrome (sidebar/caseload nav) must not appear. */
+export function attorneyPathWithoutPortalChrome(pathname: string): boolean {
+  return pathname === "/trust" || pathname === "/two-factor";
 }
 
 export async function dropUnverifiedTotpFactors(): Promise<void> {
