@@ -28,8 +28,9 @@ export default defineConfig({
   webServer: process.env["E2E_BASE_URL"]
     ? undefined
     : {
-        // CI installs Node only (no bun). Prefer preview after `npm run build`.
-        command: process.env["CI"] ? "npm run preview -- --host 127.0.0.1 --port 8080" : "npm run dev -- --host 127.0.0.1 --port 8080",
+        // CI installs Node only (no bun). Nitro/Cloudflare build has no
+        // dist/server/server.js, so vite preview fails — use Vite/Nitro dev.
+        command: "npm run dev -- --host 127.0.0.1 --port 8080",
         url: "http://localhost:8080",
         reuseExistingServer: !process.env["CI"],
         timeout: 120_000,
