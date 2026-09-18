@@ -23,7 +23,10 @@ import attorneyCss from "@/styles/attorney.css?url";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
-import { attorneyPathExemptFromRequiredMfa } from "@/lib/mfa";
+import {
+  attorneyPathExemptFromRequiredMfa,
+  attorneyPathWithoutPortalChrome,
+} from "@/lib/mfa";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -182,6 +185,23 @@ function AttorneyLayout() {
         style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         <span className="att-eyebrow">Opening portal…</span>
+      </div>
+    );
+  }
+
+  // MFA enroll / challenge setup: no caseload sidebar chrome.
+  // A failed factor lookup must never look like an open attorney portal.
+  if (attorneyPathWithoutPortalChrome(pathname)) {
+    return (
+      <div
+        className="att-root"
+        data-persona="attorney"
+        data-mfa-shell="minimal"
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 24 }}
+      >
+        <div style={{ width: "100%", maxWidth: 560 }}>
+          <Outlet />
+        </div>
       </div>
     );
   }
