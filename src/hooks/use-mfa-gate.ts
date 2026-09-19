@@ -36,10 +36,14 @@ export function useMfaGate(enabled: boolean, options: MfaGateOptions = {}) {
           navigate({ to: enrollTo, replace: true });
           return;
         case "deny":
-          // Fail closed: do not open portal chrome when enrollment is required
-          // and assurance/factor lookup failed. Sign out so /signin does not bounce.
+          // Fail closed: sign out, then hard-nav to /signin so the attorney
+          // layout's !user effect cannot race us to /lawyer-signup.
           await supabase.auth.signOut();
-          navigate({ to: "/signin", replace: true });
+          if (typeof window !== "undefined") {
+            window.location.replace("/signin");
+          } else {
+            navigate({ to: "/signin", replace: true });
+          }
           return;
         case "allow":
         default:
@@ -51,7 +55,11 @@ export function useMfaGate(enabled: boolean, options: MfaGateOptions = {}) {
       if (cancelled) return;
       if (requireEnrollment) {
         void supabase.auth.signOut().finally(() => {
-          navigate({ to: "/signin", replace: true });
+          if (typeof window !== "undefined") {
+            window.location.replace("/signin");
+          } else {
+            navigate({ to: "/signin", replace: true });
+          }
         });
         return;
       }
