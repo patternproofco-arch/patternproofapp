@@ -55,6 +55,7 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
     const scope = data.scope;
     const empty = !(scope.include_all_incidents || scope.include_all_evidence || scope.include_patterns || (scope.scope_incidents ?? []).length || (scope.scope_evidence ?? []).length);
     if (empty) throw new Error("Choose at least one thing to share before accepting.");
+
     const linkPayload = {
       attorney_user_id: inv.attorney_user_id,
       client_user_id: context.userId,

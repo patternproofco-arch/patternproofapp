@@ -97,6 +97,8 @@ export const createMatter = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.client_link_id) await assertOwnedLink(context.userId, data.client_link_id);
+    const { assertMatterCapacity } = await import("@/lib/matter-cap");
+    await assertMatterCapacity(supabaseAdmin, context.userId);
     const { data: membership } = await supabaseAdmin
       .from("firm_members")
       .select("firm_id")
@@ -134,8 +136,14 @@ export const updateMatter = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await assertOwnedMatter(context.userId, data.id);
+    const existing = await assertOwnedMatter(context.userId, data.id);
     if (data.client_link_id) await assertOwnedLink(context.userId, data.client_link_id);
+    // Reopening a closed matter takes a pool slot again, same as creating a
+    // new one — otherwise close-then-reopen bypasses the cap entirely.
+    if (data.status === "open" && existing.status !== "open") {
+      const { assertMatterCapacity } = await import("@/lib/matter-cap");
+      await assertMatterCapacity(supabaseAdmin, context.userId);
+    }
     const { id, ...rest } = data;
     const patch: Record<string, string | null> = {};
     for (const [k, v] of Object.entries(rest)) {
