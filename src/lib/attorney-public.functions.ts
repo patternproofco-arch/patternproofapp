@@ -145,7 +145,7 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
         ? supabaseAdmin
             .from("incidents")
             .select(
-              "id,date,time,location,description,abuse_types,witnesses,emotional_impact,source,confirmed_at",
+              "id,date,time,location,location_reveal_opt_in,description,abuse_types,witnesses,emotional_impact,source,confirmed_at",
             )
             .eq("user_id", userId)
             .in("id", access.shared_incident_ids)
@@ -176,6 +176,7 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
       date: string;
       time: string | null;
       location: string | null;
+      location_reveal_opt_in?: boolean | null;
       description: string;
       abuse_types: string[];
       witnesses: string | null;
@@ -183,9 +184,12 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
       source?: string | null;
       confirmed_at?: string | null;
     }>;
-    const filteredIncidents = incRows.filter(
-      (i) => !(i.source === "ai_extracted" && !i.confirmed_at),
-    );
+    // A text location can itself be a home address — excluded unless the
+    // survivor opted this specific incident in.
+    const { redactIncidentLocation } = await import("@/lib/attorney-access.server");
+    const filteredIncidents = incRows
+      .filter((i) => !(i.source === "ai_extracted" && !i.confirmed_at))
+      .map((i) => redactIncidentLocation(i));
 
     const evRows = (evR.data ?? []) as Array<{
       id: string;

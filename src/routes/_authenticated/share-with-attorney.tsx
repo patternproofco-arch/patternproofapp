@@ -21,6 +21,7 @@ import {
   revokeInvitation,
   revokeLink,
 } from "@/lib/attorney-invitations.functions";
+import { listMyAccessNotices, keepAttorneyAccessGoing } from "@/lib/attorney-verification.functions";
 import { sendTransactionalEmail } from "@/lib/email/send";
 import {
   listMessages,
@@ -48,6 +49,11 @@ function ShareWithAttorney() {
   const create = useServerFn(createInvitation);
   const revokeInv = useServerFn(revokeInvitation);
   const revokeLk = useServerFn(revokeLink);
+  const listNotices = useServerFn(listMyAccessNotices);
+  const keepGoing = useServerFn(keepAttorneyAccessGoing);
+  type Notice = Awaited<ReturnType<typeof listMyAccessNotices>>["notices"][number];
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [keepingGoing, setKeepingGoing] = useState<string | null>(null);
   const setPhrasingConsent = useServerFn(setDepositionPrepConsent);
   const setClioConsent = useServerFn(setClioShareConsent);
 
@@ -101,7 +107,10 @@ function ShareWithAttorney() {
     unreadFn()
       .then((r) => setUnread(r.counts ?? {}))
       .catch(() => setUnread({}));
-  }, [list, unreadFn]);
+    listNotices()
+      .then((r) => setNotices(r.notices.filter((n) => n.link_still_active && !n.action_at)))
+      .catch(() => setNotices([]));
+  }, [list, unreadFn, listNotices]);
   useEffect(() => {
     load();
   }, [load]);
@@ -184,6 +193,38 @@ function ShareWithAttorney() {
       <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
         Your attorney will only see what you choose to share. You can revoke access at any time.
       </p>
+
+      {notices.map((n) => (
+        <div
+          key={n.id}
+          className="card-pp mt-4"
+          style={{ borderLeft: "3px solid var(--pp-urgent, #C4622B)" }}
+        >
+          <div className="font-serif text-[16px]">{n.attorney_name}'s access expires in 7 days</div>
+          <p className="mt-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            Nobody has confirmed they're still on this case in almost 6 months. Keep access going with
+            one tap, or it ends automatically.
+          </p>
+          <button
+            className="btn-primary mt-3"
+            disabled={keepingGoing === n.id}
+            onClick={async () => {
+              setKeepingGoing(n.id);
+              try {
+                await keepGoing({ data: { notice_id: n.id } });
+                toast("Access kept going for another 180 days.");
+                load();
+              } catch (e) {
+                toast(e instanceof Error ? e.message : "Couldn't update. Try again in a moment.");
+              } finally {
+                setKeepingGoing(null);
+              }
+            }}
+          >
+            {keepingGoing === n.id ? "Keeping access…" : "Keep access going"}
+          </button>
+        </div>
+      ))}
 
       <div className="mt-4">
         <Link
@@ -395,6 +436,20 @@ function ShareWithAttorney() {
           </div>
         )}
       </div>
+
+      {data?.links.some((l) => l.status === "pending_verification") && (
+        <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--accent)" }}>
+          <div className="font-serif text-[16px]">Pending bar verification</div>
+          <p className="mt-1 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+            {data.links
+              .filter((l) => l.status === "pending_verification")
+              .map((l) => l.profile?.full_name ?? "This attorney")
+              .join(", ")}{" "}
+            accepted your invitation, but PatternProof hasn't verified their bar standing yet. Their
+            case file opens automatically once that's done — nothing further needed from you.
+          </p>
+        </div>
+      )}
 
       <h2 className="mt-10 font-serif text-[20px]">Active counsel</h2>
       <div className="mt-3 space-y-2">

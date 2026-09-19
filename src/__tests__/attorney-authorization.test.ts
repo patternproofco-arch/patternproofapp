@@ -39,6 +39,14 @@ function world(overrides: Partial<Tables> = {}): Tables {
       { user_id: ATTY_A, firm_id: FIRM },
       { user_id: ATTY_B, firm_id: FIRM },
     ],
+    // Bar-verified by default — the verification gate itself is covered in
+    // attorney-verification-and-cutoff.test.ts. Everything in this file is
+    // testing the other access rules and should not also have to think
+    // about verification state.
+    attorney_profiles: [
+      { user_id: ATTY_A, verification_status: "verified" },
+      { user_id: ATTY_B, verification_status: "verified" },
+    ],
     attorney_client_links: [
       {
         id: LINK_A,

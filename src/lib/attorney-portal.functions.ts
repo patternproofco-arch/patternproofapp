@@ -34,6 +34,43 @@ async function assertAttorney(userId: string) {
   return access.assertAttorney(await admin(), userId);
 }
 
+const DECLINE_REAPPLY_WAIT_DAYS = 90;
+
+/**
+ * A declined attorney account cannot immediately resubmit and land back in
+ * the review queue — that would make the decision meaningless. Suspended
+ * accounts have no self-service path back at all; only a reviewer can
+ * reinstate one (attorney-verification.functions.ts).
+ *
+ * Returns "pending" when a profile save should (re)enter the review queue —
+ * a brand-new account, or a declined one past its wait — and null when the
+ * save should leave verification_status untouched (an already-pending or
+ * already-verified attorney editing their own profile text).
+ */
+async function reapplyStatusPatch(userId: string): Promise<"pending" | null> {
+  const supabaseAdmin = await admin();
+  const { data: profile } = await supabaseAdmin
+    .from("attorney_profiles")
+    .select("verification_status,declined_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!profile) return "pending";
+  if (profile.verification_status === "suspended") {
+    throw new Error("This account is suspended. Contact PatternProof support.");
+  }
+  if (profile.verification_status === "declined" && profile.declined_at) {
+    const waitUntil = new Date(profile.declined_at).getTime() + DECLINE_REAPPLY_WAIT_DAYS * 86400000;
+    if (Date.now() < waitUntil) {
+      const daysLeft = Math.ceil((waitUntil - Date.now()) / 86400000);
+      throw new Error(
+        `This application was declined. You can reapply in ${daysLeft} day${daysLeft === 1 ? "" : "s"}.`,
+      );
+    }
+    return "pending";
+  }
+  return null;
+}
+
 async function assertSameFirm(attorneyA: string, attorneyB: string) {
   return access.assertSameFirm(await admin(), attorneyA, attorneyB);
 }
@@ -119,10 +156,16 @@ export const upsertAttorneyProfile = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await assertAttorney(context.userId);
-    // firm_name is profile text only. Joining a firm requires a verified invitation.
-    const { error } = await supabaseAdmin
-      .from("attorney_profiles")
-      .upsert({ user_id: context.userId, ...data, updated_at: new Date().toISOString() });
+    // A resubmission past the decline wait goes back to pending, not straight
+    // to verified — a reviewer looks at it again. An already pending/verified
+    // profile editing its own text is left alone.
+    const statusPatch = await reapplyStatusPatch(context.userId);
+    const { error } = await supabaseAdmin.from("attorney_profiles").upsert({
+      user_id: context.userId,
+      ...data,
+      ...(statusPatch ? { verification_status: statusPatch } : {}),
+      updated_at: new Date().toISOString(),
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -146,6 +189,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await assertAttorney(context.userId);
     // firm_name is profile text only. Joining a firm requires a verified invitation.
+    const statusPatch = await reapplyStatusPatch(context.userId);
     const { error } = await supabaseAdmin.from("attorney_profiles").upsert({
       user_id: context.userId,
       full_name: data.full_name,
@@ -156,6 +200,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
       role: data.role,
       confidentiality_accepted_at: new Date().toISOString(),
       onboarded: true,
+      ...(statusPatch ? { verification_status: statusPatch } : {}),
       updated_at: new Date().toISOString(),
     });
     if (error) throw new Error(error.message);
@@ -826,7 +871,10 @@ export const getClientCase = createServerFn({ method: "POST" })
             .maybeSingle(),
     ]);
 
-    const incidents = incQ.data ?? [];
+    // An incident's `location` text field can itself be a home address.
+    // Excluded from every attorney-facing read unless the survivor opted
+    // this specific incident in — same shape as evidence GPS below.
+    const incidents = (incQ.data ?? []).map((i) => access.redactIncidentLocation(i));
     // The attorney should be able to see the exact terms they hold access
     // under, not just the data itself.
     const { data: grantInv } = link.id

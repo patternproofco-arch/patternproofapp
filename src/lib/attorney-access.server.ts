@@ -34,14 +34,29 @@ export type AttorneyLink = {
   scope_threads?: string[];
   case_id?: string | null;
   expires_at?: string | null;
+  last_confirmed_at?: string | null;
 };
 
 export const LINK_COLUMNS =
-  "id,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,scope_incidents,scope_evidence,case_id,expires_at";
+  "id,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,scope_incidents,scope_evidence,case_id,expires_at,last_confirmed_at";
 
 /** True once a grant's expiry has passed. Expired access is treated the same as revoked. */
 export function isExpired(expiresAt: string | null | undefined): boolean {
   return !!expiresAt && new Date(expiresAt).getTime() < Date.now();
+}
+
+/**
+ * An attorney_client_link that nobody reconfirms goes stale after 180 days.
+ * This is checked at query time (not only by the cron sweep that flips
+ * status to 'cutoff') so a request landing exactly on day 180 fails closed
+ * even if the sweep hasn't run yet this cycle.
+ */
+export const ACCESS_CUTOFF_DAYS = 180;
+
+export function isPastAccessCutoff(lastConfirmedAt: string | null | undefined): boolean {
+  if (!lastConfirmedAt) return false;
+  const cutoffMs = new Date(lastConfirmedAt).getTime() + ACCESS_CUTOFF_DAYS * 24 * 60 * 60 * 1000;
+  return Date.now() > cutoffMs;
 }
 
 export async function assertAttorney(admin: Admin, userId: string) {
@@ -52,6 +67,24 @@ export async function assertAttorney(admin: Admin, userId: string) {
     .eq("role", "attorney")
     .maybeSingle();
   if (!data) throw new Error("Attorney role required");
+}
+
+/**
+ * A human reviewer must verify an attorney's bar standing before that
+ * account can reach real survivor data. Declined and suspended accounts
+ * fail the same way as never-reviewed ones — this is intentionally not
+ * distinguishable from the caller's side, since a paid subscription proves
+ * nothing about bar standing.
+ */
+export async function assertVerifiedAttorney(admin: Admin, attorneyUserId: string) {
+  const { data } = await admin
+    .from("attorney_profiles")
+    .select("verification_status")
+    .eq("user_id", attorneyUserId)
+    .maybeSingle();
+  if (!data || data.verification_status !== "verified") {
+    throw new Error("Attorney account is not verified");
+  }
 }
 
 export async function assertSameFirm(admin: Admin, attorneyA: string, attorneyB: string) {
@@ -154,6 +187,10 @@ export async function assertLink(
   if (!data || data.status !== "active" || isExpired(data.expires_at)) {
     throw new Error("No active access");
   }
+  if (isPastAccessCutoff(data.last_confirmed_at)) {
+    throw new Error("No active access");
+  }
+  await assertVerifiedAttorney(admin, attorneyId);
   await applyCaseScope(admin, data, clientId);
   return data as AttorneyLink;
 }
@@ -178,7 +215,13 @@ export async function assertCaseAccess(
     .eq("attorney_user_id", userId)
     .eq("client_user_id", clientId)
     .maybeSingle();
-  if (owner && owner.status === "active" && !isExpired(owner.expires_at)) {
+  if (
+    owner &&
+    owner.status === "active" &&
+    !isExpired(owner.expires_at) &&
+    !isPastAccessCutoff(owner.last_confirmed_at)
+  ) {
+    await assertVerifiedAttorney(admin, userId);
     await applyCaseScope(admin, owner, clientId);
     return { link: owner as AttorneyLink, role: "owner" };
   }
@@ -207,7 +250,15 @@ export async function assertCaseAccess(
     .eq("client_user_id", clientId)
     .eq("status", "active")
     .maybeSingle();
-  if (!link || isExpired(link.expires_at)) throw new Error("No active access");
+  if (!link || isExpired(link.expires_at) || isPastAccessCutoff(link.last_confirmed_at)) {
+    throw new Error("No active access");
+  }
+  // Both ends of the chain must be verified: the colleague/staff member
+  // making the request, and the attorney whose original share this access
+  // descends from. Suspending either one cuts off everyone downstream on
+  // their very next request — there is no separate cascade step to forget.
+  await assertVerifiedAttorney(admin, userId);
+  await assertVerifiedAttorney(admin, link.attorney_user_id);
   await applyCaseScope(admin, link, clientId);
   const collabRole = collabs.find((c) => c.link_id === link.id)?.role as
     | "paralegal"
@@ -234,15 +285,20 @@ export async function assertLinkParticipant(
 }> {
   const { data: link } = await admin
     .from("attorney_client_links")
-    .select("id,attorney_user_id,client_user_id,status,expires_at")
+    .select("id,attorney_user_id,client_user_id,status,expires_at,last_confirmed_at")
     .eq("id", linkId)
     .maybeSingle();
   if (!link || link.status !== "active") throw new Error("No active link");
   if (link.client_user_id === userId) return { link, role: "survivor" };
   // Expiry only gates the attorney side — the survivor can always reach her own
   // thread even after a window she set has lapsed.
-  if (isExpired(link.expires_at)) throw new Error("No active link");
-  if (link.attorney_user_id === userId) return { link, role: "owner" };
+  if (isExpired(link.expires_at) || isPastAccessCutoff(link.last_confirmed_at)) {
+    throw new Error("No active link");
+  }
+  if (link.attorney_user_id === userId) {
+    await assertVerifiedAttorney(admin, userId);
+    return { link, role: "owner" };
+  }
   const { data: collab } = await admin
     .from("case_collaborators")
     .select("id")
@@ -250,7 +306,11 @@ export async function assertLinkParticipant(
     .eq("collaborator_user_id", userId)
     .eq("status", "active")
     .maybeSingle();
-  if (collab) return { link, role: "collaborator" };
+  if (collab) {
+    await assertVerifiedAttorney(admin, userId);
+    await assertVerifiedAttorney(admin, link.attorney_user_id);
+    return { link, role: "collaborator" };
+  }
   const { data: grant } = await admin
     .from("case_grants")
     .select("id")
@@ -260,9 +320,26 @@ export async function assertLinkParticipant(
     .maybeSingle();
   if (grant) {
     await assertSameFirm(admin, userId, link.attorney_user_id);
+    await assertVerifiedAttorney(admin, userId);
+    await assertVerifiedAttorney(admin, link.attorney_user_id);
     return { link, role: "collaborator" };
   }
   throw new Error("Not a participant");
+}
+
+/**
+ * An incident's free-text `location` can itself be a survivor's home
+ * address. Every attorney-facing read of an incident must go through this
+ * before the record leaves the server — never trust a call site to
+ * remember the opt-in check on its own.
+ */
+export function redactIncidentLocation<T extends { location?: unknown; location_reveal_opt_in?: unknown }>(
+  incident: T,
+): Omit<T, "location_reveal_opt_in"> {
+  const clone: Record<string, unknown> = { ...incident };
+  if (!clone.location_reveal_opt_in) clone.location = null;
+  delete clone.location_reveal_opt_in;
+  return clone as Omit<T, "location_reveal_opt_in">;
 }
 
 /**

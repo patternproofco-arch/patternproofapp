@@ -102,12 +102,20 @@ export function AuthPage({
         navigate({ to, replace: true });
       }
     } catch (err: unknown) {
-      const msg =
+      const rawMsg =
         err instanceof Error ? err.message : "Something didn't work. Try again in a moment.";
-      const friendly =
-        mode === "login"
-          ? "We couldn't sign you in. " + msg
-          : "We couldn't create your account. " + msg;
+      // Never let a signup error confirm or deny that an email already has
+      // an account — that's an enumeration channel a stalker could use to
+      // check whether a specific person has signed up. Supabase's own
+      // "already registered" wording (when it surfaces) is replaced with a
+      // neutral message that reads the same either way.
+      const enumeratesAccount =
+        mode === "signup" && /already registered|already exists|already in use/i.test(rawMsg);
+      const friendly = enumeratesAccount
+        ? "Check your email to continue. If this address is new, confirm it to finish creating your account. If it's already registered, sign in instead."
+        : mode === "login"
+          ? "We couldn't sign you in. " + rawMsg
+          : "We couldn't create your account. " + rawMsg;
       setAuthError(friendly);
       toast(friendly);
     } finally {

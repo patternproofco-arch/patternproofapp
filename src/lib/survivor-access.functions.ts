@@ -26,6 +26,56 @@ export const listMyAccessAudit = createServerFn({ method: "GET" })
     return { events: data ?? [] };
   });
 
+/**
+ * Every open/revoked/expired/rate-limited attempt against one of the
+ * survivor's own professional share links (attorney_access tokens) — the
+ * log behind fetchSharedBundle's rate limiting. Previously read only
+ * internally; this is the survivor-facing view of the same table, not a
+ * separate admin-only copy.
+ */
+export const listMyShareLinkAccessLog = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: shares, error: sharesError } = await supabaseAdmin
+      .from("attorney_access")
+      .select("id,access_token,attorney_name,attorney_email,created_at,revoked_at,expires_at")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false });
+    if (sharesError) throw new Error(sharesError.message);
+    const rows = shares ?? [];
+    if (!rows.length) return { entries: [] };
+
+    const hash = async (value: string) => {
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+      return Array.from(new Uint8Array(digest))
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("");
+    };
+    const hashToShare = new Map<string, (typeof rows)[number]>();
+    for (const s of rows) hashToShare.set(await hash(s.access_token), s);
+
+    const { data: logRows, error: logError } = await supabaseAdmin
+      .from("share_link_access_log")
+      .select("token_hash,outcome,created_at")
+      .in("token_hash", Array.from(hashToShare.keys()))
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (logError) throw new Error(logError.message);
+
+    return {
+      entries: (logRows ?? []).map((r) => {
+        const share = hashToShare.get(r.token_hash);
+        return {
+          outcome: r.outcome,
+          accessed_at: r.created_at,
+          attorney_name: share?.attorney_name ?? "Unknown",
+          attorney_email: share?.attorney_email ?? null,
+        };
+      }),
+    };
+  });
+
 export const listPendingAdvocateInvitesForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

@@ -7,11 +7,17 @@
 export type Tables = Record<string, Array<Record<string, unknown>>>;
 
 type Filter = (row: Record<string, unknown>) => boolean;
+type PendingOp =
+  | { kind: "update"; patch: Record<string, unknown> }
+  | { kind: "insert"; rows: Array<Record<string, unknown>> };
 
-class Query implements PromiseLike<{ data: unknown; error: null }> {
+let insertCounter = 0;
+
+class Query implements PromiseLike<{ data: unknown; error: null; count: number }> {
   private filters: Filter[] = [];
   private single = false;
   private limitN: number | null = null;
+  private op: PendingOp | null = null;
 
   constructor(
     private rows: Array<Record<string, unknown>>,
@@ -42,6 +48,30 @@ class Query implements PromiseLike<{ data: unknown; error: null }> {
     this.filters.push((r) => (val === null ? r[col] === null || r[col] === undefined : r[col] === val));
     return this;
   }
+  gte(col: string, val: unknown) {
+    this.filters.push((r) => {
+      const a = r[col];
+      if (a == null) return false;
+      return typeof a === "string" || typeof a === "number" ? a >= (val as never) : false;
+    });
+    return this;
+  }
+  lte(col: string, val: unknown) {
+    this.filters.push((r) => {
+      const a = r[col];
+      if (a == null) return false;
+      return typeof a === "string" || typeof a === "number" ? a <= (val as never) : false;
+    });
+    return this;
+  }
+  lt(col: string, val: unknown) {
+    this.filters.push((r) => {
+      const a = r[col];
+      if (a == null) return false;
+      return typeof a === "string" || typeof a === "number" ? a < (val as never) : false;
+    });
+    return this;
+  }
   or() {
     return this;
   }
@@ -53,19 +83,41 @@ class Query implements PromiseLike<{ data: unknown; error: null }> {
     this.single = true;
     return this;
   }
+  single() {
+    this.single = true;
+    return this;
+  }
+  /** Deferred to run(), so filters chained *after* .update() (the real-world
+   * order — e.g. `.update(patch).eq("id", x)`) still apply. */
   update(patch: Record<string, unknown>) {
-    for (const r of this.rows.filter((r) => this.filters.every((f) => f(r)))) Object.assign(r, patch);
+    this.op = { kind: "update", patch };
+    return this;
+  }
+  insert(patch: Record<string, unknown> | Array<Record<string, unknown>>) {
+    const rowsIn = Array.isArray(patch) ? patch : [patch];
+    const rows = rowsIn.map((r) => ({ id: r.id ?? `fake-${insertCounter++}`, ...r }));
+    this.op = { kind: "insert", rows };
     return this;
   }
 
   private run() {
+    const op = this.op;
+    if (op && op.kind === "insert") {
+      this.rows.push(...op.rows);
+      return { data: this.single ? (op.rows[0] ?? null) : op.rows, error: null, count: op.rows.length };
+    }
+    if (op && op.kind === "update") {
+      const matched = this.rows.filter((r) => this.filters.every((f) => f(r)));
+      for (const r of matched) Object.assign(r, op.patch);
+      return { data: this.single ? (matched[0] ?? null) : matched, error: null, count: matched.length };
+    }
     let out = this.rows.filter((r) => this.filters.every((f) => f(r)));
     if (this.limitN !== null) out = out.slice(0, this.limitN);
-    return { data: this.single ? (out[0] ?? null) : out, error: null };
+    return { data: this.single ? (out[0] ?? null) : out, error: null, count: out.length };
   }
 
-  then<R1 = { data: unknown; error: null }, R2 = never>(
-    onfulfilled?: ((v: { data: unknown; error: null }) => R1 | PromiseLike<R1>) | null,
+  then<R1 = { data: unknown; error: null; count: number }, R2 = never>(
+    onfulfilled?: ((v: { data: unknown; error: null; count: number }) => R1 | PromiseLike<R1>) | null,
     onrejected?: ((reason: unknown) => R2 | PromiseLike<R2>) | null,
   ): PromiseLike<R1 | R2> {
     return Promise.resolve(this.run()).then(onfulfilled, onrejected);
