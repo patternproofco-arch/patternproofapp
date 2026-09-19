@@ -60,6 +60,10 @@ function AttorneyLayout() {
 
   useEffect(() => {
     if (loading) return;
+    // Do not run role routing while MFA gate is still deciding — otherwise
+    // getRole can send unknown/non-attorney to /lawyer-signup before deny
+    // finishes location.replace('/signin').
+    if (mfaChecking) return;
     if (!user) {
       // Signed-out / MFA deny must land on sign-in, not the public signup form.
       navigate({ to: "/signin", replace: true });
@@ -97,7 +101,7 @@ function AttorneyLayout() {
     return () => {
       cancelled = true;
     };
-  }, [user, loading, getRole, getProfile, navigate, retryKey]);
+  }, [user, loading, mfaChecking, getRole, getProfile, navigate, retryKey]);
 
   useEffect(() => {
     if (!(loading || checking || sub.loading || mfaChecking)) return;
