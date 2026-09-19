@@ -91,6 +91,8 @@ async function requireOrgMembership(userId: string) {
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!member) throw new Error(NO_ORG_MEMBERSHIP_MESSAGE);
+  const { assertOrgVerified } = await import("@/lib/professional-verification.server");
+  await assertOrgVerified(supabaseAdmin, member.org_id);
   return { supabaseAdmin, member };
 }
 
@@ -574,9 +576,15 @@ export const setMyOrg = createServerFn({ method: "POST" })
     if (!approved) throw new Error(NOT_APPROVED_MESSAGE);
 
 
+    // Access-request approval is eligibility only. Org stays Pending until a
+    // human CLEAR sets verification_status = verified (payment never unlocks).
     const { data: org, error: orgError } = await supabaseAdmin
       .from("dv_organizations")
-      .insert({ name: data.org_name, created_by: userId })
+      .insert({
+        name: data.org_name,
+        created_by: userId,
+        verification_status: "pending",
+      })
       .select("id")
       .single();
     if (orgError || !org) throw new Error(orgError?.message ?? "Couldn't create your organization.");
@@ -894,11 +902,13 @@ export const submitOrgAccessRequest = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
 
+    // Enumeration-safe: never reveal whether an email is already approved or
+    // associated with an account. Same pending acknowledgement either way.
     if (existing?.status === "approved") {
       return {
         ok: true as const,
-        state: "already_approved" as const,
-        message: "This email is already verified — sign in on the partner page to finish setup.",
+        state: "pending" as const,
+        message: "Thanks — your request is with us. We review each organization by hand.",
       };
     }
     if (existing?.status === "pending") {
@@ -907,7 +917,7 @@ export const submitOrgAccessRequest = createServerFn({ method: "POST" })
         return {
           ok: true as const,
           state: "pending" as const,
-          message: "We already have your request. Someone will be in touch by email.",
+          message: "Thanks — your request is with us. We review each organization by hand.",
         };
       }
       const { error: upErr } = await supabaseAdmin

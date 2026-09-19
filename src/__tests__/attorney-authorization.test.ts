@@ -28,6 +28,18 @@ const HOUR = 3600_000;
 const past = new Date(Date.now() - HOUR).toISOString();
 const future = new Date(Date.now() + HOUR).toISOString();
 
+function verifiedAttorney(userId: string) {
+  return {
+    user_id: userId,
+    verification_status: "verified",
+    verification_expires_at: future,
+    bar_callback_phone: "555-0100",
+    address_visible_to_survivors: false,
+    legal_aid_dual_role: false,
+    office_address: null,
+  };
+}
+
 function world(overrides: Partial<Tables> = {}): Tables {
   return {
     user_roles: [
@@ -38,6 +50,21 @@ function world(overrides: Partial<Tables> = {}): Tables {
     firm_members: [
       { user_id: ATTY_A, firm_id: FIRM },
       { user_id: ATTY_B, firm_id: FIRM },
+    ],
+    attorney_profiles: [verifiedAttorney(ATTY_A), verifiedAttorney(ATTY_B)],
+    attorney_bar_jurisdictions: [
+      {
+        attorney_user_id: ATTY_A,
+        jurisdiction: "NJ",
+        verification_status: "verified",
+        verification_expires_at: future,
+      },
+      {
+        attorney_user_id: ATTY_B,
+        jurisdiction: "NJ",
+        verification_status: "verified",
+        verification_expires_at: future,
+      },
     ],
     attorney_client_links: [
       {
@@ -55,6 +82,8 @@ function world(overrides: Partial<Tables> = {}): Tables {
         scope_evidence: [],
         case_id: CASE_A,
         expires_at: null,
+        created_at: new Date().toISOString(),
+        case_engagement_confirmed_at: new Date().toISOString(),
       },
     ],
     cases: [
@@ -226,5 +255,26 @@ describe("attorney access — role check", () => {
     await expect(assertAttorney(fakeAdmin(world()), SURV_A)).rejects.toThrow(
       "Attorney role required",
     );
+  });
+});
+
+describe("attorney verification gate", () => {
+  it("Pending attorney cannot open a grant even with an active link", async () => {
+    const t = world();
+    t["attorney_profiles"]![0]!["verification_status"] = "pending";
+    await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow(/not verified/i);
+  });
+
+  it("Suspended attorney cannot open a grant", async () => {
+    const t = world();
+    t["attorney_profiles"]![0]!["verification_status"] = "suspended";
+    await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow(/not verified/i);
+  });
+
+  it("lapsed 6-month engagement fails closed", async () => {
+    const t = world();
+    t["attorney_client_links"]![0]!["created_at"] = "2025-01-01T00:00:00Z";
+    t["attorney_client_links"]![0]!["case_engagement_confirmed_at"] = null;
+    await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow(/still-on-case/i);
   });
 });

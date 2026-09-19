@@ -18,6 +18,12 @@ import * as access from "@/lib/attorney-access.server";
 async function assertEntitled(attorneyId: string, clientId: string) {
   const ent = await isAttorneyEntitled(attorneyId, clientId);
   if (!ent.entitled) throw new Error("An active attorney subscription is required.");
+  // Payment never unlocks Verified — fail closed until human CLEAR.
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { assertAttorneyVerified } = await import(
+    "@/lib/professional-verification.server"
+  );
+  await assertAttorneyVerified(supabaseAdmin, attorneyId);
 }
 
 /**
@@ -146,6 +152,8 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await assertAttorney(context.userId);
     // firm_name is profile text only. Joining a firm requires a verified invitation.
+    // Onboarding + payment never set Verified. Status stays pending until
+    // a reviewer CLEARs bar callback phone (not signup phone) per jurisdiction.
     const { error } = await supabaseAdmin.from("attorney_profiles").upsert({
       user_id: context.userId,
       full_name: data.full_name,
@@ -156,6 +164,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
       role: data.role,
       confidentiality_accepted_at: new Date().toISOString(),
       onboarded: true,
+      verification_status: "pending",
       updated_at: new Date().toISOString(),
     });
     if (error) throw new Error(error.message);

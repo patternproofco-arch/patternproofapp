@@ -41,6 +41,19 @@ export const createInvitation = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Share-target list gate: known attorney emails must be live Verified.
+    const targetEmail = data.attorney_email.toLowerCase();
+    const { data: targetProfile } = await supabaseAdmin
+      .from("attorney_profiles")
+      .select("user_id,verification_status,verification_expires_at")
+      .eq("email", targetEmail)
+      .maybeSingle();
+    if (targetProfile) {
+      const { assertAttorneyVerified } = await import(
+        "@/lib/professional-verification.server"
+      );
+      await assertAttorneyVerified(supabaseAdmin, targetProfile.user_id);
+    }
     // If a case_id is supplied, verify it belongs to the survivor. Otherwise
     // treat the invitation as "all cases" for backward compatibility.
     let scopedCaseId: string | null = null;
@@ -250,6 +263,17 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       throw new Error("This invitation was sent to a different email address.");
     }
 
+    const {
+      assertAttorneyVerified,
+      SURVIVOR_CONFIRM_REQUIRED_MESSAGE,
+    } = await import("@/lib/professional-verification.server");
+    // Required "Is this your attorney?" before grant create.
+    if (!inv.survivor_confirmed_attorney_at) {
+      throw new Error(SURVIVOR_CONFIRM_REQUIRED_MESSAGE);
+    }
+    // Payment never unlocks — Verified CLEAR required to create the grant.
+    await assertAttorneyVerified(supabaseAdmin, context.userId);
+
     // Ensure attorney role
     await supabaseAdmin
       .from("user_roles")
@@ -273,6 +297,8 @@ export const acceptInvitation = createServerFn({ method: "POST" })
         case_id: inv.case_id ?? null,
         expires_at: inv.expires_at ?? null,
         status: "active",
+        case_engagement_confirmed_at: new Date().toISOString(),
+        case_engagement_confirmed_by: context.userId,
       })
       .select("id,client_user_id")
       .single();

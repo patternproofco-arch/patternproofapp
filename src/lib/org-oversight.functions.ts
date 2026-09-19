@@ -46,6 +46,12 @@ export const getOrgOversight = createServerFn({ method: "GET" })
     if (member.role !== "owner" && member.role !== "admin") {
       throw new Error("Only an organization owner or administrator can see team oversight.");
     }
+    const {
+      assertOrgVerified,
+      assertNotLegalAidOrgWidePull,
+    } = await import("@/lib/professional-verification.server");
+    await assertOrgVerified(supabaseAdmin, member.org_id);
+    await assertNotLegalAidOrgWidePull(supabaseAdmin, context.userId);
 
     const [{ data: org }, { data: members }] = await Promise.all([
       supabaseAdmin.from("dv_organizations").select("name").eq("id", member.org_id).maybeSingle(),

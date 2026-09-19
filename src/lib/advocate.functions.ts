@@ -47,6 +47,18 @@ export const createAdvocateInvitation = createServerFn({ method: "POST" })
       throw new Error("Choose at least one thing to share before sending this invite.");
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Share-target gate: if the email maps to an org advocate, that org must
+    // be Verified (Pending / Needs info / Declined / Suspended = DENY).
+    const email = data.advocate_email.toLowerCase();
+    const { data: targetProfile } = await supabaseAdmin
+      .from("advocate_profiles")
+      .select("user_id,org_id")
+      .eq("email", email)
+      .maybeSingle();
+    if (targetProfile?.org_id) {
+      const { assertOrgVerified } = await import("@/lib/professional-verification.server");
+      await assertOrgVerified(supabaseAdmin, targetProfile.org_id);
+    }
     let scopedCaseId: string | null = null;
     if (data.case_id) {
       const { data: c } = await supabaseAdmin
@@ -253,6 +265,12 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
     if (jwtEmail !== String(inv.advocate_email).toLowerCase()) {
       throw new Error("This invitation was sent to a different email address.");
     }
+
+    // Grant create fails closed if the advocate's org is not live Verified.
+    const { assertAdvocateOrgVerifiedIfAny } = await import(
+      "@/lib/professional-verification.server"
+    );
+    await assertAdvocateOrgVerifiedIfAny(supabaseAdmin, context.userId);
 
     await supabaseAdmin
       .from("user_roles")

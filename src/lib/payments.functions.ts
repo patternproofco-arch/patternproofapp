@@ -307,6 +307,9 @@ export const recordOrgReferral = createServerFn({ method: "POST" })
  * Entitlement: attorney needs an active PatternProof attorney subscription.
  * "The Pilot" (first client free) is marketing copy on the pricing page —
  * full app access requires an active Solo/Firm/Enterprise subscription.
+ *
+ * IMPORTANT: Pending + paid ≠ Verified. Billing entitlement never grants
+ * verification CLEAR. Case data paths also call assertAttorneyVerified.
  */
 export async function isAttorneyEntitled(
   attorneyId: string,

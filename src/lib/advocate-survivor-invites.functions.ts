@@ -95,6 +95,14 @@ export const createAdvocateSurvivorInvite = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabaseAdmin = await requireAdvocate(context.userId);
+    const {
+      assertAdvocateOrgVerifiedIfAny,
+      assertNotLegalAidOrgWidePull,
+    } = await import("@/lib/professional-verification.server");
+    // Legal-aid dual role ≠ org-wide pull. Org-affiliated advocates may mint
+    // only while their org is live Verified (Pending/Suspended deny).
+    await assertNotLegalAidOrgWidePull(supabaseAdmin, context.userId);
+    await assertAdvocateOrgVerifiedIfAny(supabaseAdmin, context.userId);
     const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
     const { data: row, error } = await supabaseAdmin
       .from("advocate_survivor_invites")

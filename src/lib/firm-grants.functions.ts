@@ -270,6 +270,10 @@ export const createFirmMemberInvitation = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const manager = await assertFirmManager(context.userId);
+    const { assertAttorneyVerified } = await import(
+      "@/lib/professional-verification.server"
+    );
+    await assertAttorneyVerified(supabaseAdmin, context.userId);
     if (!canInviteRole(manager.role as TeamRole, data.role)) {
       throw new Error("Only the firm owner can invite an administrator.");
     }
