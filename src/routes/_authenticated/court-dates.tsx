@@ -196,13 +196,13 @@ function CourtDatesPage() {
       });
       if (res.ok) {
         toast("Added to your Google Calendar.");
-      } else if (res.reason === "not-connected") {
-        toast("Google Calendar isn't connected yet.");
+      } else if (res.kind === "not_configured") {
+        toast("Google Calendar isn't set up yet. Reach out to your project owner to enable it.");
       } else {
-        toast("We couldn't sync to Google Calendar.");
+        toast("We couldn't sync to Google Calendar. Try again in a moment.");
       }
     } catch {
-      toast("We couldn't sync to Google Calendar.");
+      toast("We couldn't sync to Google Calendar. Try again in a moment.");
     } finally {
       setSyncing(null);
     }
