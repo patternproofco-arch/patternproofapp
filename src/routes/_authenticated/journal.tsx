@@ -44,7 +44,12 @@ export const Route = createFileRoute("/_authenticated/journal")({
 const today = () => new Date().toISOString().slice(0, 10);
 
 type Precision =
-  "exact" | "approximate_month" | "range" | "before_anchor" | "after_anchor" | "unknown";
+  | "exact"
+  | "approximate_month"
+  | "range"
+  | "before_anchor"
+  | "after_anchor"
+  | "unknown";
 
 const PRECISION_OPTIONS: { value: Precision; label: string }[] = [
   { value: "exact", label: "Exact date" },
@@ -111,6 +116,11 @@ function JournalPage() {
     anchor_label: "",
   });
   const [busy, setBusy] = useState(false);
+  /** Inline save status — toast alone is easy to miss; role=alert keeps it accessible. */
+  const [formFeedback, setFormFeedback] = useState<{
+    kind: "error" | "success";
+    message: string;
+  } | null>(null);
   const [journalOpen, setJournalOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
@@ -237,94 +247,120 @@ function JournalPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      const msg = "You're signed out. Sign in again, then save.";
+      setFormFeedback({ kind: "error", message: msg });
+      toast(msg);
+      return;
+    }
     if (!form.description.trim() || form.abuse_types.length === 0) {
-      toast("Add a description and at least one type.");
+      const msg = "Add a description and at least one type.";
+      setFormFeedback({ kind: "error", message: msg });
+      toast(msg);
       return;
     }
+    setFormFeedback(null);
     setBusy(true);
-    // Anchor incident lookup: if the user picked an existing incident, capture
-    // its date so we can order this record chronologically near the anchor.
-    const anchor = form.anchor_incident_id
-      ? list.find((i) => i.id === form.anchor_incident_id)
-      : null;
-    const anchorDate = anchor?.date ?? "";
-    const sortDate = deriveSortDate(form.date_precision, {
-      date: form.date,
-      date_range_start: form.date_range_start,
-      date_range_end: form.date_range_end,
-      approx_month: form.approx_month,
-      anchor_date: anchorDate,
-    });
-    const payload = {
-      user_id: user.id,
-      date: sortDate, // sort helper; UI renders precision-aware label instead
-      time: form.time || null,
-      location: sanitizeLine(form.location) || null,
-      description: form.description,
-      abuse_types: form.abuse_types,
-      witnesses: sanitizeLine(form.witnesses) || null,
-      emotional_impact: form.emotional_impact || null,
-      date_precision: form.date_precision,
-      date_range_start: form.date_precision === "range" ? form.date_range_start || null : null,
-      date_range_end: form.date_precision === "range" ? form.date_range_end || null : null,
-      anchor_incident_id:
-        form.date_precision === "before_anchor" || form.date_precision === "after_anchor"
-          ? form.anchor_incident_id || null
-          : null,
-      anchor_label:
-        form.date_precision === "before_anchor" || form.date_precision === "after_anchor"
-          ? sanitizeLine(form.anchor_label) || null
-          : null,
-    };
-    const insertPayload = {
-      ...payload,
-      // Preserve provenance when the draft started from an AI extraction, but
-      // pressing Save after review IS confirmation — otherwise the record is
-      // silently filtered out of attorney shares and pattern analysis.
-      source: aiFilled ? "ai_extracted" : "survivor",
-      confirmed_at: new Date().toISOString(),
-    };
-    let error;
-    let savedId: string | null = editingId;
-    if (editingId) {
-      const current = list.find((i) => i.id === editingId);
-      const updatePayload: typeof payload & { confirmed_at?: string } = { ...payload };
-      // Editing an unconfirmed AI-extracted record IS an act of confirmation.
-      // Never overwrite `source` on edit.
-      if (current && !current.confirmed_at) {
-        updatePayload.confirmed_at = new Date().toISOString();
-      }
-      ({ error } = await supabase
-        .from("incidents")
-        .update(updatePayload)
-        .eq("id", editingId)
-        .eq("user_id", user.id));
-    } else {
-      const res = await supabase.from("incidents").insert(insertPayload).select("id").single();
-      error = res.error;
-      savedId = res.data?.id ?? null;
-    }
-    if (error) {
-      setBusy(false);
-      toast("We couldn't save that. Try again in a moment.");
-      return;
-    }
-    // The incident row is already saved at this point — an attachment upload
-    // failure (e.g. a thrown network error, not just a returned {error})
-    // must never leave the button stuck on "Saving…" with no confirmation,
-    // which could otherwise read as data loss and prompt a duplicate entry.
-    let attachMsg: string | null = null;
     try {
-      attachMsg = savedId && attachments.length ? await uploadAttachments(savedId) : null;
-    } catch {
-      attachMsg = "Saved — but one or more attachments failed to upload. Add them from Evidence.";
+      // Anchor incident lookup: if the user picked an existing incident, capture
+      // its date so we can order this record chronologically near the anchor.
+      const anchor = form.anchor_incident_id
+        ? list.find((i) => i.id === form.anchor_incident_id)
+        : null;
+      const anchorDate = anchor?.date ?? "";
+      const sortDate = deriveSortDate(form.date_precision, {
+        date: form.date,
+        date_range_start: form.date_range_start,
+        date_range_end: form.date_range_end,
+        approx_month: form.approx_month,
+        anchor_date: anchorDate,
+      });
+      const payload = {
+        user_id: user.id,
+        date: sortDate, // sort helper; UI renders precision-aware label instead
+        time: form.time || null,
+        location: sanitizeLine(form.location) || null,
+        description: form.description,
+        abuse_types: form.abuse_types,
+        witnesses: sanitizeLine(form.witnesses) || null,
+        emotional_impact: form.emotional_impact || null,
+        date_precision: form.date_precision,
+        date_range_start: form.date_precision === "range" ? form.date_range_start || null : null,
+        date_range_end: form.date_precision === "range" ? form.date_range_end || null : null,
+        anchor_incident_id:
+          form.date_precision === "before_anchor" || form.date_precision === "after_anchor"
+            ? form.anchor_incident_id || null
+            : null,
+        anchor_label:
+          form.date_precision === "before_anchor" || form.date_precision === "after_anchor"
+            ? sanitizeLine(form.anchor_label) || null
+            : null,
+      };
+      const insertPayload = {
+        ...payload,
+        // Preserve provenance when the draft started from an AI extraction, but
+        // pressing Save after review IS confirmation — otherwise the record is
+        // silently filtered out of attorney shares and pattern analysis.
+        source: aiFilled ? "ai_extracted" : "survivor",
+        confirmed_at: new Date().toISOString(),
+      };
+      let error;
+      let savedId: string | null = editingId;
+      if (editingId) {
+        const current = list.find((i) => i.id === editingId);
+        const updatePayload: typeof payload & { confirmed_at?: string } = { ...payload };
+        // Editing an unconfirmed AI-extracted record IS an act of confirmation.
+        // Never overwrite `source` on edit.
+        if (current && !current.confirmed_at) {
+          updatePayload.confirmed_at = new Date().toISOString();
+        }
+        ({ error } = await supabase
+          .from("incidents")
+          .update(updatePayload)
+          .eq("id", editingId)
+          .eq("user_id", user.id));
+      } else {
+        const res = await supabase.from("incidents").insert(insertPayload).select("id").single();
+        error = res.error;
+        savedId = res.data?.id ?? null;
+      }
+      if (error) {
+        const detail =
+          typeof error.message === "string" && error.message.trim() ? error.message : null;
+        const msg = detail
+          ? `We couldn't save that. ${detail}`
+          : "We couldn't save that. Try again in a moment.";
+        setFormFeedback({ kind: "error", message: msg });
+        toast(msg);
+        return;
+      }
+      // The incident row is already saved at this point — an attachment upload
+      // failure (e.g. a thrown network error, not just a returned {error})
+      // must never leave the button stuck on "Saving…" with no confirmation,
+      // which could otherwise read as data loss and prompt a duplicate entry.
+      let attachMsg: string | null = null;
+      try {
+        attachMsg = savedId && attachments.length ? await uploadAttachments(savedId) : null;
+      } catch {
+        attachMsg = "Saved — but one or more attachments failed to upload. Add them from Evidence.";
+      }
+      const okMsg = attachMsg ?? "Saved. Your record is in your Marks list.";
+      setFormFeedback({ kind: "success", message: okMsg });
+      toast(okMsg);
+      reset();
+      setListOpen(true);
+      await load();
+    } catch (err: unknown) {
+      const detail =
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Check your connection and try again.";
+      const msg = `We couldn't save that. ${detail}`;
+      setFormFeedback({ kind: "error", message: msg });
+      toast(msg);
     } finally {
       setBusy(false);
     }
-    toast(attachMsg ?? "Saved. Your record is safe.");
-    reset();
-    load();
   };
 
   const edit = (i: FullIncident) => {
@@ -931,6 +967,30 @@ function JournalPage() {
                     placeholder="Optional — your emotional state, physical impact, or anything else that felt important"
                   />
                 </div>
+
+                {formFeedback && (
+                  <p
+                    role="alert"
+                    aria-live={formFeedback.kind === "error" ? "assertive" : "polite"}
+                    data-testid="journal-save-feedback"
+                    className="rounded-xl px-3 py-2 text-[13px] font-semibold"
+                    style={
+                      formFeedback.kind === "error"
+                        ? {
+                            color: "#9B2C3E",
+                            background: "rgba(155, 44, 62, 0.08)",
+                            border: "1px solid rgba(155, 44, 62, 0.25)",
+                          }
+                        : {
+                            color: "var(--foreground)",
+                            background: "rgba(106, 146, 214, 0.15)",
+                            border: "1px solid rgba(106, 146, 214, 0.35)",
+                          }
+                    }
+                  >
+                    {formFeedback.message}
+                  </p>
+                )}
 
                 <div className="flex items-center gap-2 pt-2">
                   <button type="submit" disabled={busy} className="btn-primary">
