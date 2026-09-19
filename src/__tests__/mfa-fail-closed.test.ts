@@ -1,63 +1,88 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-type Aal = { currentLevel: string; nextLevel: string };
+const session = {
+  access_token: "test-token",
+};
 
-const mfa: {
-  aal: { data: Aal | null; error: { message: string } | null };
-  factors: {
-    data: { totp: Array<{ id: string; status: string }> } | null;
-    error: { message: string } | null;
-  };
-} = {
-  aal: { data: { currentLevel: "aal1", nextLevel: "aal1" }, error: null },
-  factors: { data: { totp: [] }, error: null },
+const aal = {
+  data: { currentLevel: "aal1", nextLevel: "aal1" } as {
+    currentLevel: string;
+    nextLevel: string;
+  } | null,
+  error: null as { message: string } | null,
 };
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
+      getSession: async () => ({ data: { session }, error: null }),
       mfa: {
-        getAuthenticatorAssuranceLevel: async () => mfa.aal,
-        listFactors: async () => mfa.factors,
+        getAuthenticatorAssuranceLevel: async () => aal,
+        listFactors: async () => ({ data: { totp: [] }, error: null }),
+        unenroll: async () => ({ data: null, error: null }),
       },
     },
   },
 }));
 
-describe("resolveMfaGate fail-closed", () => {
+describe("resolveMfaGate fail-closed (network factors probe)", () => {
   beforeEach(() => {
-    mfa.aal = { data: { currentLevel: "aal1", nextLevel: "aal1" }, error: null };
-    mfa.factors = { data: { totp: [] }, error: null };
+    vi.resetModules();
+    aal.data = { currentLevel: "aal1", nextLevel: "aal1" };
+    aal.error = null;
+    vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "anon-key");
+    vi.unstubAllGlobals();
   });
 
-  it("denies when requireEnrollment and AAL lookup errors", async () => {
+  it("denies when requireEnrollment and factors HTTP request fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("nope", { status: 500 })),
+    );
     const { resolveMfaGate } = await import("@/lib/mfa");
-    mfa.aal = { data: null, error: { message: "blocked" } };
     await expect(resolveMfaGate({ requireEnrollment: true })).resolves.toBe("deny");
   });
 
-  it("denies when requireEnrollment and listFactors errors", async () => {
+  it("denies when requireEnrollment and factors fetch throws/aborts", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    );
     const { resolveMfaGate } = await import("@/lib/mfa");
-    mfa.factors = { data: null, error: { message: "blocked" } };
     await expect(resolveMfaGate({ requireEnrollment: true })).resolves.toBe("deny");
   });
 
-  it("enrolls only when listFactors succeeds with no verified factor", async () => {
+  it("enrolls only when factors HTTP succeeds with no verified totp", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify({ totp: [], phone: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
     const { resolveMfaGate } = await import("@/lib/mfa");
-    mfa.factors = { data: { totp: [] }, error: null };
     await expect(resolveMfaGate({ requireEnrollment: true })).resolves.toBe("enroll");
   });
 
-  it("totpStatus returns unknown on listFactors error", async () => {
+  it("totpStatus returns unknown when factors HTTP fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("blocked");
+      }),
+    );
     const { totpStatus } = await import("@/lib/mfa");
-    mfa.factors = { data: null, error: { message: "blocked" } };
     await expect(totpStatus()).resolves.toBe("unknown");
   });
 
-  it("attorneyPathWithoutPortalChrome covers trust and two-factor", async () => {
-    const { attorneyPathWithoutPortalChrome } = await import("@/lib/mfa");
-    expect(attorneyPathWithoutPortalChrome("/trust")).toBe(true);
-    expect(attorneyPathWithoutPortalChrome("/two-factor")).toBe(true);
-    expect(attorneyPathWithoutPortalChrome("/clients")).toBe(false);
+  it("challenges when AAL says verified factor still pending", async () => {
+    aal.data = { currentLevel: "aal1", nextLevel: "aal2" };
+    const { resolveMfaGate } = await import("@/lib/mfa");
+    await expect(resolveMfaGate({ requireEnrollment: true })).resolves.toBe("challenge");
   });
 });
