@@ -14,14 +14,8 @@ const COLLABORATOR_SEAT_MAX = 5;
 
 async function assertOwnerLink(userId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: link } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id,status")
-    .eq("attorney_user_id", userId)
-    .eq("client_user_id", clientId)
-    .maybeSingle();
-  if (!link || link.status !== "active") throw new Error("No active client link");
-  return link;
+  const { assertLink } = await import("@/lib/attorney-access.server");
+  return assertLink(supabaseAdmin, userId, clientId);
 }
 
 export const listCaseCollaborators = createServerFn({ method: "POST" })
@@ -142,7 +136,7 @@ export const acceptCollaboratorInvite = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: inv } = await supabaseAdmin
       .from("case_collaborators")
-      .select("id,owner_attorney_user_id,collaborator_email,status")
+      .select("id,owner_attorney_user_id,collaborator_email,status,link_id")
       .eq("invite_token", data.token)
       .maybeSingle();
     if (!inv) throw new Error("Invite not found");
@@ -154,6 +148,10 @@ export const acceptCollaboratorInvite = createServerFn({ method: "POST" })
     if (inv.owner_attorney_user_id === context.userId) {
       throw new Error("The owning attorney cannot accept their own collaborator invite.");
     }
+    const { assertLinkParticipant } = await import("@/lib/attorney-access.server");
+    const { assertAttorneyVerified } = await import("@/lib/professional-verification.server");
+    await assertLinkParticipant(supabaseAdmin, inv.link_id, inv.owner_attorney_user_id);
+    await assertAttorneyVerified(supabaseAdmin, context.userId);
     const { error } = await supabaseAdmin
       .from("case_collaborators")
       .update({

@@ -20,10 +20,7 @@ const migration = readFileSync(
 const orgFns = readFileSync("src/lib/org-portal.functions.ts", "utf8");
 const advocateFns = readFileSync("src/lib/advocate.functions.ts", "utf8");
 const advocatePacket = readFileSync("src/lib/advocate-packet.server.ts", "utf8");
-const advocateInviteFns = readFileSync(
-  "src/lib/advocate-survivor-invites.functions.ts",
-  "utf8",
-);
+const advocateInviteFns = readFileSync("src/lib/advocate-survivor-invites.functions.ts", "utf8");
 const attorneyAccess = readFileSync("src/lib/attorney-access.server.ts", "utf8");
 const attorneyInvites = readFileSync("src/lib/attorney-invitations.functions.ts", "utf8");
 const attorneyPortal = readFileSync("src/lib/attorney-portal.functions.ts", "utf8");
@@ -33,10 +30,7 @@ const attorneySurvivorInvites = readFileSync(
 );
 const clioFns = readFileSync("src/lib/clio.functions.ts", "utf8");
 const firmFns = readFileSync("src/lib/firm-grants.functions.ts", "utf8");
-const verificationFns = readFileSync(
-  "src/lib/professional-verification.functions.ts",
-  "utf8",
-);
+const verificationFns = readFileSync("src/lib/professional-verification.functions.ts", "utf8");
 const payments = readFileSync("src/lib/payments.functions.ts", "utf8");
 const types = readFileSync("src/integrations/supabase/types.ts", "utf8");
 const allMigrations = readdirSync("supabase/migrations")
@@ -49,8 +43,8 @@ describe("live Verified status helper", () => {
       expect(isLiveVerifiedStatus(status, null)).toBe(false);
     }
   });
-  it("allows Verified without expiry and denies expired Verified", () => {
-    expect(isLiveVerifiedStatus("verified", null)).toBe(true);
+  it("requires a current expiry for Verified", () => {
+    expect(isLiveVerifiedStatus("verified", null)).toBe(false);
     expect(isLiveVerifiedStatus("verified", "2099-01-01T00:00:00Z")).toBe(true);
     expect(isLiveVerifiedStatus("verified", "2020-01-01T00:00:00Z")).toBe(false);
   });
@@ -58,7 +52,9 @@ describe("live Verified status helper", () => {
 
 describe("Guardian CLEAR — DV org paths enforce Verified", () => {
   it("migration models the five org statuses and Suspended cutoff RPC", () => {
-    expect(migration).toContain("'pending', 'needs_more_info', 'declined', 'verified', 'suspended'");
+    expect(migration).toContain(
+      "'pending', 'needs_more_info', 'declined', 'verified', 'suspended'",
+    );
     expect(migration).toContain("set_org_verification_status");
     expect(migration).toContain("UPDATE public.advocate_client_links");
     expect(migration).toContain("org_member_invitations");
@@ -109,7 +105,9 @@ describe("Guardian CLEAR — DV org paths enforce Verified", () => {
   it("proof uploads are reviewer-only and marked never-AI", () => {
     expect(migration).toContain("professional_verification_proofs");
     expect(migration).toContain("Never send to AI");
-    expect(migration).toMatch(/REVOKE ALL ON public\.professional_verification_proofs FROM anon, authenticated/);
+    expect(migration).toMatch(
+      /REVOKE ALL ON public\.professional_verification_proofs FROM anon, authenticated/,
+    );
     expect(verificationFns).toContain("recordVerificationProof");
   });
 
@@ -175,12 +173,10 @@ describe("Guardian CLEAR — attorney paths on same spine", () => {
     const now = Date.parse("2026-09-19T12:00:00Z");
     expect(isCaseEngagementCurrent("2026-08-01T00:00:00Z", null, now)).toBe(true);
     expect(isCaseEngagementCurrent("2025-01-01T00:00:00Z", null, now)).toBe(false);
-    expect(
-      isCaseEngagementCurrent("2025-01-01T00:00:00Z", "2026-08-01T00:00:00Z", now),
-    ).toBe(true);
-    expect(
-      isCaseEngagementCurrent("2025-01-01T00:00:00Z", "2025-02-01T00:00:00Z", now),
-    ).toBe(false);
+    expect(isCaseEngagementCurrent("2025-01-01T00:00:00Z", "2026-08-01T00:00:00Z", now)).toBe(true);
+    expect(isCaseEngagementCurrent("2025-01-01T00:00:00Z", "2025-02-01T00:00:00Z", now)).toBe(
+      false,
+    );
     expect(attorneyAccess).toContain("assertLiveEngagement");
     expect(attorneyAccess).toContain("assertVerifiedAttorneyAccess");
   });
@@ -220,7 +216,9 @@ describe("Verifier negative-test plan (fictional orgs / attorneys)", () => {
   });
 
   it("Suspended cutoff revokes grants before notices in the same function body", () => {
-    const orgFn = migration.indexOf("CREATE OR REPLACE FUNCTION public.set_org_verification_status");
+    const orgFn = migration.indexOf(
+      "CREATE OR REPLACE FUNCTION public.set_org_verification_status",
+    );
     const revokeAt = migration.indexOf("UPDATE public.advocate_client_links", orgFn);
     const noticeAt = migration.indexOf("professional_suspension_notices", orgFn);
     expect(orgFn).toBeGreaterThan(0);

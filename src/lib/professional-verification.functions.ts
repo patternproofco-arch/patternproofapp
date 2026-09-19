@@ -7,6 +7,7 @@ import {
   SURVIVOR_CONFIRM_REQUIRED_MESSAGE,
   VERIFICATION_STATUSES,
   assertAttorneyVerified,
+  attorneyHasVerifiedJurisdiction,
   assertOrgVerified,
   denyAttorneySurvivorLookup,
   isLiveVerifiedStatus,
@@ -68,6 +69,14 @@ export const setAttorneyVerificationStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabaseAdmin = await requireAdmin(context.userId);
+    if (
+      data.status === "verified" &&
+      !(await attorneyHasVerifiedJurisdiction(supabaseAdmin, data.attorney_user_id))
+    ) {
+      throw new Error(
+        "Every bar jurisdiction must have current verification before this account can be verified.",
+      );
+    }
     const { error } = await supabaseAdmin.rpc("set_attorney_verification_status", {
       p_user_id: data.attorney_user_id,
       p_status: data.status,
@@ -163,9 +172,7 @@ export const recordVerificationProof = createServerFn({ method: "POST" })
 
 export const searchVerifiedOrganizations = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ query: z.string().trim().min(1).max(120) }).parse(input),
-  )
+  .inputValidator((input) => z.object({ query: z.string().trim().min(1).max(120) }).parse(input))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const q = data.query.replace(/[%_]/g, "");
@@ -175,12 +182,14 @@ export const searchVerifiedOrganizations = createServerFn({ method: "POST" })
       .ilike("name", `%${q}%`)
       .limit(25);
     if (error) throw new Error(error.message);
-    const orgs = ((rows ?? []) as Array<{
-      id: string;
-      name: string;
-      verification_status: string;
-      verification_expires_at: string | null;
-    }>)
+    const orgs = (
+      (rows ?? []) as Array<{
+        id: string;
+        name: string;
+        verification_status: string;
+        verification_expires_at: string | null;
+      }>
+    )
       .filter((o) => isLiveVerifiedStatus(o.verification_status, o.verification_expires_at))
       .map((o) => ({ id: o.id, name: o.name }));
     return { orgs };
@@ -192,9 +201,7 @@ export const searchVerifiedOrganizations = createServerFn({ method: "POST" })
  */
 export const searchVerifiedAttorneysForShare = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ query: z.string().trim().min(1).max(120) }).parse(input),
-  )
+  .inputValidator((input) => z.object({ query: z.string().trim().min(1).max(120) }).parse(input))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const q = data.query.replace(/[%_]/g, "");
@@ -345,3 +352,76 @@ export {
   ATTORNEY_NOT_VERIFIED_MESSAGE,
   SURVIVOR_CONFIRM_REQUIRED_MESSAGE,
 };
+
+/** Own status and renewal handles only; no survivor identities or case content. */
+export const getMyVerificationReview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: profile, error } = await supabaseAdmin
+      .from("attorney_profiles")
+      .select("verification_status,verification_expires_at")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    const { data: jurisdictions, error: barError } = await supabaseAdmin
+      .from("attorney_bar_jurisdictions")
+      .select("jurisdiction,verification_status,verification_expires_at")
+      .eq("attorney_user_id", context.userId);
+    if (barError) throw new Error(barError.message);
+    let verified = false;
+    try {
+      await assertAttorneyVerified(supabaseAdmin, context.userId);
+      verified = true;
+    } catch {
+      /* deny */
+    }
+    const { data: links, error: linksError } = verified
+      ? await supabaseAdmin
+          .from("attorney_client_links")
+          .select("id,created_at,case_engagement_confirmed_at")
+          .eq("attorney_user_id", context.userId)
+          .eq("status", "active")
+      : { data: [], error: null };
+    if (linksError) throw new Error(linksError.message);
+    const { isCaseEngagementCurrent } = await import("@/lib/professional-verification.server");
+    return {
+      profile,
+      verified,
+      jurisdictions: jurisdictions ?? [],
+      renewals: (links ?? []).filter(
+        (link) => !isCaseEngagementCurrent(link.created_at, link.case_engagement_confirmed_at),
+      ),
+    };
+  });
+
+export const listProfessionalReviews = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const admin = await requireAdmin(context.userId);
+    const [orgs, attorneys, jurisdictions] = await Promise.all([
+      admin
+        .from("dv_organizations")
+        .select("id,name,verification_status,verification_expires_at")
+        .order("name")
+        .limit(100),
+      admin
+        .from("attorney_profiles")
+        .select(
+          "user_id,full_name,email,jurisdiction,bar_number,verification_status,verification_expires_at",
+        )
+        .order("full_name")
+        .limit(100),
+      admin
+        .from("attorney_bar_jurisdictions")
+        .select("attorney_user_id,jurisdiction,verification_status,verification_expires_at")
+        .limit(1000),
+    ]);
+    for (const result of [orgs, attorneys, jurisdictions])
+      if (result.error) throw new Error(result.error.message);
+    return {
+      orgs: orgs.data ?? [],
+      attorneys: attorneys.data ?? [],
+      jurisdictions: jurisdictions.data ?? [],
+    };
+  });

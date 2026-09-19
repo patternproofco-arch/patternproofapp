@@ -816,6 +816,8 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           accepted_by?: string | null
+          survivor_confirmed_attorney_at?: string | null
+          survivor_confirmed_attorney_by?: string | null
           attorney_email: string
           attorney_name?: string | null
           case_id?: string | null
@@ -841,6 +843,8 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           accepted_by?: string | null
+          survivor_confirmed_attorney_at?: string | null
+          survivor_confirmed_attorney_by?: string | null
           attorney_email?: string
           attorney_name?: string | null
           case_id?: string | null
@@ -4110,6 +4114,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      set_org_verification_status: {
+        Args: { p_org_id: string; p_status: string; p_actor_id: string; p_reason?: string | null; p_expires_at?: string | null }
+        Returns: boolean
+      }
+      set_attorney_verification_status: {
+        Args: { p_user_id: string; p_status: string; p_actor_id: string; p_reason?: string | null; p_expires_at?: string | null }
+        Returns: boolean
+      }
       accept_firm_member_invitation: {
         Args: { p_email: string; p_token_hash: string; p_user_id: string }
         Returns: string

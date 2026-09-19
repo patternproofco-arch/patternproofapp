@@ -20,9 +20,7 @@ async function assertEntitled(attorneyId: string, clientId: string) {
   if (!ent.entitled) throw new Error("An active attorney subscription is required.");
   // Payment never unlocks Verified — fail closed until human CLEAR.
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { assertAttorneyVerified } = await import(
-    "@/lib/professional-verification.server"
-  );
+  const { assertAttorneyVerified } = await import("@/lib/professional-verification.server");
   await assertAttorneyVerified(supabaseAdmin, attorneyId);
 }
 
@@ -207,7 +205,6 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
     return { ok: true, trial_ends_at: profile?.trial_ends_at ?? null };
   });
 
-
 export const getAttorneyProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -227,6 +224,8 @@ export const listMyClients = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const { assertAttorneyVerified } = await import("@/lib/professional-verification.server");
+    await assertAttorneyVerified(supabaseAdmin, context.userId);
     // Owner attorney's own client links
     const ownerQ = supabaseAdmin
       .from("attorney_client_links")
@@ -278,10 +277,19 @@ export const listMyClients = createServerFn({ method: "GET" })
     const linksMap = new Map<string, NonNullable<typeof ownerLinks>[number]>();
     for (const l of (ownerLinks ?? []).concat(collabLinks ?? [])) linksMap.set(l.id, l);
     const ownerSet = new Set((ownerLinks ?? []).map((l) => l.id));
-    const links = Array.from(linksMap.values()).sort(
+    const candidates = Array.from(linksMap.values()).sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
 
+    const links: typeof candidates = [];
+    for (const candidate of candidates) {
+      try {
+        await access.assertLinkParticipant(supabaseAdmin, candidate.id, context.userId);
+        links.push(candidate);
+      } catch {
+        // No client metadata is returned when live authorization cannot be established.
+      }
+    }
     const clients = await Promise.all(
       (links ?? []).map(async (l) => {
         // Case-scope the link in place so the queries below stay uniform.

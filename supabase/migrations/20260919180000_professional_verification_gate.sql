@@ -11,10 +11,10 @@ CREATE OR REPLACE FUNCTION public.professional_status_is_live_verified(
   p_expires_at timestamptz
 ) RETURNS boolean
 LANGUAGE sql
-IMMUTABLE
+STABLE
 AS $$
   SELECT p_status = 'verified'
-    AND (p_expires_at IS NULL OR p_expires_at > now());
+    AND p_expires_at IS NOT NULL AND p_expires_at > now();
 $$;
 
 REVOKE ALL ON FUNCTION public.professional_status_is_live_verified(text, timestamptz)
@@ -45,17 +45,8 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
--- Historical partners were already human-approved via access requests.
-UPDATE public.dv_organizations
-SET
-  verification_status = 'verified',
-  verified_at = coalesce(verified_at, created_at, now()),
-  verification_expires_at = coalesce(
-    verification_expires_at,
-    coalesce(verified_at, created_at, now()) + interval '12 months'
-  )
-WHERE verification_status = 'pending'
-  AND verified_at IS NULL;
+-- Existing organizations stay Pending until a reviewer records CLEAR.
+-- Historical access-request approval is not evidence of current verification.
 
 CREATE OR REPLACE FUNCTION public.org_is_verified(p_org_id uuid)
 RETURNS boolean
@@ -142,11 +133,12 @@ AS $$
       SELECT public.professional_status_is_live_verified(
         p.verification_status, p.verification_expires_at
       )
-      AND EXISTS (
+      AND EXISTS (SELECT 1 FROM public.attorney_bar_jurisdictions j WHERE j.attorney_user_id = p.user_id)
+      AND NOT EXISTS (
         SELECT 1
         FROM public.attorney_bar_jurisdictions j
         WHERE j.attorney_user_id = p.user_id
-          AND public.professional_status_is_live_verified(
+          AND NOT public.professional_status_is_live_verified(
             j.verification_status, j.verification_expires_at
           )
       )
@@ -229,12 +221,12 @@ CREATE OR REPLACE FUNCTION public.attorney_case_engagement_current(
   p_confirmed_at timestamptz
 ) RETURNS boolean
 LANGUAGE sql
-IMMUTABLE
+STABLE
 AS $$
   SELECT CASE
-    WHEN p_linked_at IS NULL THEN false
+    WHEN p_linked_at IS NULL OR p_linked_at > now() THEN false
     WHEN p_linked_at > (now() - interval '6 months') THEN true
-    WHEN p_confirmed_at IS NOT NULL
+    WHEN p_confirmed_at IS NOT NULL AND p_confirmed_at <= now()
       AND p_confirmed_at > (now() - interval '6 months') THEN true
     ELSE false
   END;
@@ -263,6 +255,9 @@ DECLARE
   v_prev text;
   v_survivor uuid;
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = p_actor_id AND role = 'admin') THEN
+    RAISE EXCEPTION 'Not authorized';
+  END IF;
   IF p_status NOT IN ('pending', 'needs_more_info', 'declined', 'verified', 'suspended') THEN
     RAISE EXCEPTION 'Invalid organization verification status';
   END IF;
@@ -402,7 +397,11 @@ DECLARE
   v_firm uuid;
   v_survivor uuid;
   v_member uuid;
+  v_collab_survivors uuid[];
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = p_actor_id AND role = 'admin') THEN
+    RAISE EXCEPTION 'Not authorized';
+  END IF;
   IF p_status NOT IN ('pending', 'needs_more_info', 'declined', 'verified', 'suspended') THEN
     RAISE EXCEPTION 'Invalid attorney verification status';
   END IF;
@@ -430,6 +429,11 @@ BEGIN
   WHERE user_id = p_user_id;
 
   IF p_status = 'suspended' THEN
+    SELECT array_agg(DISTINCT l.client_user_id) INTO v_collab_survivors
+    FROM public.case_collaborators c JOIN public.attorney_client_links l ON l.id = c.link_id
+    WHERE c.status = 'active' AND l.status = 'active'
+      AND (c.owner_attorney_user_id = p_user_id OR c.collaborator_user_id = p_user_id);
+
     -- Immediate grant cutoff for this attorney.
     UPDATE public.attorney_client_links
     SET status = 'revoked', revoked_at = coalesce(revoked_at, now())
@@ -456,6 +460,13 @@ BEGIN
         SELECT lower(email) FROM public.attorney_profiles WHERE user_id = p_user_id
       );
 
+    -- Revoke this person's collaborations on other attorneys' cases as well.
+    UPDATE public.case_collaborators
+    SET status = 'revoked'
+    WHERE status IN ('pending', 'active')
+      AND (owner_attorney_user_id = p_user_id OR collaborator_user_id = p_user_id
+        OR lower(collaborator_email) = (SELECT lower(email) FROM public.attorney_profiles WHERE user_id = p_user_id));
+
     -- Staff cascade: if this attorney owns/admins a firm, revoke pending
     -- firm invites and sever case_grants for firm members (grants already
     -- revalidated against membership; revoke live grants they hold).
@@ -465,6 +476,19 @@ BEGIN
     LIMIT 1;
 
     IF v_firm IS NOT NULL THEN
+      SELECT coalesce(v_collab_survivors, '{}'::uuid[]) || coalesce(array_agg(DISTINCT l.client_user_id), '{}'::uuid[])
+      INTO v_collab_survivors
+      FROM public.case_collaborators c JOIN public.attorney_client_links l ON l.id = c.link_id
+      WHERE c.status = 'active' AND l.status = 'active'
+        AND (c.owner_attorney_user_id IN (SELECT user_id FROM public.firm_members WHERE firm_id = v_firm)
+          OR c.collaborator_user_id IN (SELECT user_id FROM public.firm_members WHERE firm_id = v_firm));
+
+      UPDATE public.case_collaborators
+      SET status = 'revoked'
+      WHERE status IN ('pending', 'active')
+        AND (owner_attorney_user_id IN (SELECT user_id FROM public.firm_members WHERE firm_id = v_firm)
+          OR collaborator_user_id IN (SELECT user_id FROM public.firm_members WHERE firm_id = v_firm));
+
       UPDATE public.firm_member_invitations
       SET status = 'revoked'
       WHERE firm_id = v_firm AND status = 'pending';
@@ -484,6 +508,7 @@ BEGIN
       WHERE attorney_user_id = p_user_id
         AND revoked_at IS NOT NULL
         AND revoked_at >= now() - interval '1 minute'
+      UNION SELECT unnest(coalesce(v_collab_survivors, '{}'::uuid[]))
     LOOP
       INSERT INTO public.professional_suspension_notices (
         subject_kind, subject_id, survivor_user_id

@@ -20,6 +20,7 @@ export const createInvitation = createServerFn({ method: "POST" })
     z
       .object({
         attorney_email: z.string().email().max(255),
+        is_my_attorney: z.literal(true),
         attorney_name: z.string().trim().max(120).optional(),
         firm_name: z.string().trim().max(200).optional(),
         personal_note: z.string().trim().max(2000).optional(),
@@ -43,15 +44,14 @@ export const createInvitation = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Share-target list gate: known attorney emails must be live Verified.
     const targetEmail = data.attorney_email.toLowerCase();
-    const { data: targetProfile } = await supabaseAdmin
+    const { data: targetProfile, error: targetError } = await supabaseAdmin
       .from("attorney_profiles")
       .select("user_id,verification_status,verification_expires_at")
       .eq("email", targetEmail)
       .maybeSingle();
+    if (targetError) throw new Error("Unable to verify this sharing recipient. Please try again.");
     if (targetProfile) {
-      const { assertAttorneyVerified } = await import(
-        "@/lib/professional-verification.server"
-      );
+      const { assertAttorneyVerified } = await import("@/lib/professional-verification.server");
       await assertAttorneyVerified(supabaseAdmin, targetProfile.user_id);
     }
     // If a case_id is supplied, verify it belongs to the survivor. Otherwise
@@ -72,6 +72,8 @@ export const createInvitation = createServerFn({ method: "POST" })
       .from("attorney_invitations")
       .insert({
         client_user_id: context.userId,
+        survivor_confirmed_attorney_at: new Date().toISOString(),
+        survivor_confirmed_attorney_by: context.userId,
         attorney_email: data.attorney_email.toLowerCase(),
         attorney_name: data.attorney_name ?? null,
         firm_name: data.firm_name ?? null,
@@ -263,12 +265,13 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       throw new Error("This invitation was sent to a different email address.");
     }
 
-    const {
-      assertAttorneyVerified,
-      SURVIVOR_CONFIRM_REQUIRED_MESSAGE,
-    } = await import("@/lib/professional-verification.server");
+    const { assertAttorneyVerified, SURVIVOR_CONFIRM_REQUIRED_MESSAGE } =
+      await import("@/lib/professional-verification.server");
     // Required "Is this your attorney?" before grant create.
-    if (!inv.survivor_confirmed_attorney_at) {
+    if (
+      !inv.survivor_confirmed_attorney_at ||
+      inv.survivor_confirmed_attorney_by !== inv.client_user_id
+    ) {
       throw new Error(SURVIVOR_CONFIRM_REQUIRED_MESSAGE);
     }
     // Payment never unlocks — Verified CLEAR required to create the grant.

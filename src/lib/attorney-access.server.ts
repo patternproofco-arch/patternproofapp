@@ -43,7 +43,9 @@ export const LINK_COLUMNS =
 
 /** True once a grant's expiry has passed. Expired access is treated the same as revoked. */
 export function isExpired(expiresAt: string | null | undefined): boolean {
-  return !!expiresAt && new Date(expiresAt).getTime() < Date.now();
+  return (
+    !!expiresAt && (!Number.isFinite(Date.parse(expiresAt)) || Date.parse(expiresAt) <= Date.now())
+  );
 }
 
 async function assertVerifiedAttorneyAccess(admin: Admin, userId: string) {
@@ -55,9 +57,7 @@ async function assertLiveEngagement(link: {
   created_at?: string | null;
   case_engagement_confirmed_at?: string | null;
 }) {
-  const { assertAttorneyCaseEngagement } = await import(
-    "@/lib/professional-verification.server"
-  );
+  const { assertAttorneyCaseEngagement } = await import("@/lib/professional-verification.server");
   await assertAttorneyCaseEngagement(link.created_at, link.case_engagement_confirmed_at);
 }
 
@@ -218,7 +218,10 @@ export async function assertCaseAccess(
 
   const collabs = (collabRows ?? []) as Array<{ role: string; link_id: string }>;
   const grants = (grantRows ?? []) as Array<{ client_link_id: string }>;
-  const candidateLinkIds = [...collabs.map((r) => r.link_id), ...grants.map((r) => r.client_link_id)];
+  const candidateLinkIds = [
+    ...collabs.map((r) => r.link_id),
+    ...grants.map((r) => r.client_link_id),
+  ];
   if (!candidateLinkIds.length) throw new Error("No active access");
 
   const { data: link } = await admin
@@ -230,17 +233,19 @@ export async function assertCaseAccess(
     .maybeSingle();
   if (!link || isExpired(link.expires_at)) throw new Error("No active access");
   await assertVerifiedAttorneyAccess(admin, userId);
+  await assertVerifiedAttorneyAccess(admin, link.attorney_user_id);
   await assertLiveEngagement(link);
   await applyCaseScope(admin, link, clientId);
   const collabRole = collabs.find((c) => c.link_id === link.id)?.role as
-    | "paralegal"
-    | "associate"
-    | "attorney"
-    | undefined;
+    "paralegal" | "associate" | "attorney" | undefined;
   if (!collabRole && grants.some((g) => g.client_link_id === link.id)) {
     await assertSameFirm(admin, userId, link.attorney_user_id);
   }
-  return { link: link as AttorneyLink, role: "collaborator", ...(collabRole ? { collabRole } : {}) };
+  return {
+    link: link as AttorneyLink,
+    role: "collaborator",
+    ...(collabRole ? { collabRole } : {}),
+  };
 }
 
 /**
@@ -257,7 +262,9 @@ export async function assertLinkParticipant(
 }> {
   const { data: link } = await admin
     .from("attorney_client_links")
-    .select("id,attorney_user_id,client_user_id,status,expires_at")
+    .select(
+      "id,attorney_user_id,client_user_id,status,expires_at,created_at,case_engagement_confirmed_at",
+    )
     .eq("id", linkId)
     .maybeSingle();
   if (!link || link.status !== "active") throw new Error("No active link");
@@ -265,8 +272,13 @@ export async function assertLinkParticipant(
   // Expiry only gates the attorney side — the survivor can always reach her own
   // thread even after a window she set has lapsed.
   if (isExpired(link.expires_at)) throw new Error("No active link");
-  if (link.attorney_user_id === userId) {
+  const assertProfessional = async () => {
     await assertVerifiedAttorneyAccess(admin, userId);
+    await assertVerifiedAttorneyAccess(admin, link.attorney_user_id);
+    await assertLiveEngagement(link);
+  };
+  if (link.attorney_user_id === userId) {
+    await assertProfessional();
     return { link, role: "owner" };
   }
   const { data: collab } = await admin
@@ -276,7 +288,10 @@ export async function assertLinkParticipant(
     .eq("collaborator_user_id", userId)
     .eq("status", "active")
     .maybeSingle();
-  if (collab) return { link, role: "collaborator" };
+  if (collab) {
+    await assertProfessional();
+    return { link, role: "collaborator" };
+  }
   const { data: grant } = await admin
     .from("case_grants")
     .select("id")
@@ -285,6 +300,7 @@ export async function assertLinkParticipant(
     .is("revoked_at", null)
     .maybeSingle();
   if (grant) {
+    await assertProfessional();
     await assertSameFirm(admin, userId, link.attorney_user_id);
     return { link, role: "collaborator" };
   }
