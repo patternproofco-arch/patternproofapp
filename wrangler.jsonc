@@ -4,4 +4,11 @@
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  // Retry backstop for the email queue (email-cron.server.ts): the primary
+  // path drains synchronously right after enqueue, so this just catches
+  // anything a failed synchronous attempt left behind. No-ops cheaply when
+  // both queues are empty, which is the common case.
+  "triggers": {
+    "crons": ["*/5 * * * *"],
+  },
 }
