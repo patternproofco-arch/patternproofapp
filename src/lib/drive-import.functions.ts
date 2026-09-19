@@ -1,14 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { classifyConnectorError, connectorNotConfiguredError } from "@/lib/connector-errors";
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_drive/drive/v3";
 
 function gatewayHeaders() {
   const lov = process.env.LOVABLE_API_KEY;
   const drive = process.env.GOOGLE_DRIVE_API_KEY;
-  if (!lov) throw new Error("missing-lovable-key");
-  if (!drive) throw new Error("missing-drive-connection");
+  if (!lov || !drive) throw connectorNotConfiguredError();
   return {
     Authorization: `Bearer ${lov}`,
     "X-Connection-Api-Key": drive,
@@ -39,7 +39,11 @@ export const listDriveFiles = createServerFn({ method: "POST" })
       params.set("orderBy", "modifiedTime desc");
       const res = await fetch(`${GATEWAY}/files?${params.toString()}`, { headers });
       if (!res.ok) {
-        return { ok: false as const, reason: `drive-${res.status}` };
+        return {
+          ok: false as const,
+          kind: "upstream_error" as const,
+          reason: `drive-${res.status}`,
+        };
       }
       const j = (await res.json()) as {
         files?: Array<{
@@ -52,8 +56,7 @@ export const listDriveFiles = createServerFn({ method: "POST" })
       };
       return { ok: true as const, files: j.files ?? [] };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "unknown";
-      return { ok: false as const, reason: msg };
+      return classifyConnectorError(e);
     }
   });
 
@@ -73,7 +76,12 @@ export const downloadDriveFile = createServerFn({ method: "POST" })
       const metaRes = await fetch(`${GATEWAY}/files/${data.fileId}?fields=id,name,mimeType,size`, {
         headers,
       });
-      if (!metaRes.ok) return { ok: false as const, reason: `meta-${metaRes.status}` };
+      if (!metaRes.ok)
+        return {
+          ok: false as const,
+          kind: "upstream_error" as const,
+          reason: `meta-${metaRes.status}`,
+        };
       const meta = (await metaRes.json()) as {
         id: string;
         name: string;
@@ -81,10 +89,15 @@ export const downloadDriveFile = createServerFn({ method: "POST" })
         size?: string;
       };
       if (meta.size && Number(meta.size) > 15 * 1024 * 1024) {
-        return { ok: false as const, reason: "too-large" };
+        return { ok: false as const, kind: "too_large" as const, reason: "too-large" };
       }
       const binRes = await fetch(`${GATEWAY}/files/${data.fileId}?alt=media`, { headers });
-      if (!binRes.ok) return { ok: false as const, reason: `download-${binRes.status}` };
+      if (!binRes.ok)
+        return {
+          ok: false as const,
+          kind: "upstream_error" as const,
+          reason: `download-${binRes.status}`,
+        };
       const buf = Buffer.from(await binRes.arrayBuffer());
       return {
         ok: true as const,
@@ -93,7 +106,6 @@ export const downloadDriveFile = createServerFn({ method: "POST" })
         base64: buf.toString("base64"),
       };
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "unknown";
-      return { ok: false as const, reason: msg };
+      return classifyConnectorError(e);
     }
   });
