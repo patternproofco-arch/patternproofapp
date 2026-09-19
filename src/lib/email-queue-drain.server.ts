@@ -148,6 +148,42 @@ export async function drainEmailQueues(
     for (let i = 0; i < messages.length; i++) {
       const msg = messages[i];
       const payload = msg.message;
+      // Recheck consent at delivery: an email can be unsubscribed after it was queued.
+      if (payload.label === "attorney-nurture") {
+        const { readOfferSettings } = await import("./attorney-offer.server");
+        const settings = await readOfferSettings(supabase);
+        const [
+          { data: suppressed, error: suppressionError },
+          { data: enrollment, error: enrollmentError },
+          { data: token, error: tokenError },
+        ] = await Promise.all([
+          supabase.from("suppressed_emails").select("email").eq("email", payload.to).maybeSingle(),
+          supabase
+            .from("attorney_nurture_enrollments")
+            .select("confirmed_at,stopped_at")
+            .eq("id", payload.nurture_id)
+            .eq("email", payload.to)
+            .maybeSingle(),
+          supabase
+            .from("email_unsubscribe_tokens")
+            .select("used_at")
+            .eq("token", payload.unsubscribe_token)
+            .eq("email", payload.to)
+            .maybeSingle(),
+        ]);
+        if (suppressionError || enrollmentError || tokenError) continue;
+        if (
+          !settings.nurture_enabled ||
+          suppressed ||
+          !enrollment?.confirmed_at ||
+          enrollment.stopped_at ||
+          !token ||
+          token.used_at
+        ) {
+          await supabase.rpc("delete_email", { queue_name: queue, message_id: msg.msg_id });
+          continue;
+        }
+      }
       const failedAttempts =
         payload?.message_id && typeof payload.message_id === "string"
           ? (failedAttemptsByMessageId.get(payload.message_id) ?? 0)

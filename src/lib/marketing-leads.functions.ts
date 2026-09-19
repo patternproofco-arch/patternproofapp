@@ -6,6 +6,7 @@ const schema = z.object({
   email: z.string().trim().email().max(255),
   phone: z.string().trim().max(40).optional(),
   persona: z.enum(["attorney", "org"]),
+  nurtureConsent: z.boolean().default(false),
   sourcePage: z.enum(["/for-attorneys", "/for-organizations"]),
 });
 
@@ -44,11 +45,12 @@ export const requestProfessionalReadinessKit = createServerFn({ method: "POST" }
     // email address it targets.
     if (ipHash) {
       const since = new Date(Date.now() - IP_WINDOW_MS).toISOString();
-      const { count } = await db
+      const { count, error: throttleError } = await db
         .from("marketing_leads")
         .select("id", { count: "exact", head: true })
         .eq("ip_hash", ipHash)
         .gte("created_at", since);
+      if (throttleError) return { ok: false as const, emailed: false as const };
       if ((count ?? 0) >= IP_MAX_PER_WINDOW) {
         return { ok: false as const, emailed: false as const };
       }
@@ -59,16 +61,24 @@ export const requestProfessionalReadinessKit = createServerFn({ method: "POST" }
     // repeat submission (accidental or scripted) can't be used to flood
     // someone else's address.
     const emailSince = new Date(Date.now() - EMAIL_COOLDOWN_MS).toISOString();
-    const { count: recentForEmail } = await db
+    const { count: recentForEmail, error: cooldownError } = await db
       .from("marketing_leads")
       .select("id", { count: "exact", head: true })
       .eq("email", email)
       .eq("persona", data.persona)
       .gte("created_at", emailSince);
+    if (cooldownError) return { ok: false as const, emailed: false as const };
     if ((recentForEmail ?? 0) > 0) {
       return { ok: true as const, emailed: false as const };
     }
 
+    const { readOfferSettings } = await import("./attorney-offer.server");
+    const settings = await readOfferSettings(db);
+    const nurtureRequested =
+      data.persona === "attorney" &&
+      data.nurtureConsent &&
+      settings.nurture_enabled &&
+      !!process.env.MARKETING_POSTAL_ADDRESS;
     const { data: row, error } = await db
       .from("marketing_leads")
       .insert({
@@ -78,6 +88,7 @@ export const requestProfessionalReadinessKit = createServerFn({ method: "POST" }
         persona: data.persona,
         source_page: data.sourcePage,
         ip_hash: ipHash,
+        ...(nurtureRequested ? { nurture_requested_at: new Date().toISOString() } : {}),
       })
       .select("id")
       .single();
@@ -86,9 +97,15 @@ export const requestProfessionalReadinessKit = createServerFn({ method: "POST" }
       return { ok: false as const, emailed: false as const };
     }
 
+    let confirmationUrl: string | undefined;
+    if (nurtureRequested) {
+      const { prepareNurtureConfirmation } = await import("./attorney-nurture.server");
+      confirmationUrl = await prepareNurtureConfirmation(db, { id: row.id, email });
+    }
     const { enqueueProfessionalReadinessKit } = await import("@/lib/marketing-leads.server");
     const emailed = await enqueueProfessionalReadinessKit({
       id: row.id,
+      confirmationUrl,
       name: data.name,
       email,
       persona: data.persona,

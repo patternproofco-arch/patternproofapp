@@ -1,3 +1,4 @@
+import { planForPrice } from "./attorney-offer";
 import { FIRM_SEAT_MAX } from "@/lib/pricing-tiers";
 
 export const FIRM_INCLUDED_SEATS = FIRM_SEAT_MAX;
@@ -14,7 +15,8 @@ export function firmSeatsForSubscription(input: {
   currentPeriodEnd?: string | number | null;
   now?: number;
 }) {
-  if (!input.priceId || !FIRM_PRICE_IDS.has(input.priceId)) return 0;
+  const plan = planForPrice(input.priceId);
+  if (!input.priceId || (!FIRM_PRICE_IDS.has(input.priceId) && (!plan || plan.seats < 2))) return 0;
   const now = input.now ?? Date.now();
   const end =
     typeof input.currentPeriodEnd === "number"
@@ -26,5 +28,5 @@ export function firmSeatsForSubscription(input: {
   const active =
     (["active", "trialing", "past_due"].includes(input.status ?? "") && withinPaidPeriod) ||
     (input.status === "canceled" && end !== null && end > now);
-  return active ? FIRM_INCLUDED_SEATS : 0;
+  return active ? (plan?.seats ?? FIRM_INCLUDED_SEATS) : 0;
 }

@@ -8,7 +8,11 @@ import { getCharterAvailability } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { ATTORNEY_PORTAL_TIER_BULLETS } from "@/lib/pricing-tiers";
 
+import { getAttorneyOffer } from "@/lib/attorney-offer.functions";
+import { ATTORNEY_PLANS, ATTORNEY_PLAN_VALUE, FIRST_CASE_MESSAGE } from "@/lib/attorney-offer";
+
 export const Route = createFileRoute("/_attorney/subscribe")({
+  loader: () => getAttorneyOffer(),
   component: SubscribePage,
 });
 
@@ -57,6 +61,7 @@ const TIERS: Record<
 };
 
 function SubscribePage() {
+  const offer = Route.useLoaderData();
   const sub = useSubscription();
   const [remaining, setRemaining] = useState<number | null>(null);
   const [selected, setSelected] = useState<TierKey>("firm_charter");
@@ -79,6 +84,8 @@ function SubscribePage() {
   if (sub.loading) {
     return <div className="att-card">Loading subscription…</div>;
   }
+
+  if (offer.enabled) return <ConversionSubscribe sub={sub} />;
 
   if (sub.isActive) {
     return (
@@ -295,6 +302,66 @@ function SubscribePage() {
           <StripeEmbeddedCheckout priceId={t.priceId} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function ConversionSubscribe({ sub }: { sub: ReturnType<typeof useSubscription> }) {
+  const [selected, setSelected] = useState<string>(ATTORNEY_PLANS[0].lookupKey);
+  const [checkout, setCheckout] = useState(false);
+  const plan = ATTORNEY_PLANS.find((p) => p.lookupKey === selected)!;
+  if (sub.isActive && sub.status !== "free_case")
+    return (
+      <div className="att-card">
+        <h1>Your workspace plan is active.</h1>
+        <p>Existing subscriptions keep their agreed terms. Manage changes through billing.</p>
+        <Link to="/billing">Manage billing</Link>
+      </div>
+    );
+  return (
+    <div className="att-card" style={{ maxWidth: 900, margin: "32px auto" }}>
+      <h1 className="att-page-title">
+        {sub.status === "free_case" ? "Your first case workspace" : "Attorney access and plans"}
+      </h1>
+      <p>
+        {sub.status === "free_case"
+          ? FIRST_CASE_MESSAGE
+          : "Complete your profile and attorney access review before starting a case or checking out. Approval does not automatically share client records."}
+      </p>
+      {sub.status === "free_case" && (
+        <p>
+          <Link to="/matters">Open your free matter</Link>
+        </p>
+      )}
+      <label htmlFor="attorney-plan">Choose a monthly plan</label>
+      <select
+        id="attorney-plan"
+        value={selected}
+        onChange={(e) => {
+          setSelected(e.target.value);
+          setCheckout(false);
+        }}
+        className="input-pp"
+      >
+        {ATTORNEY_PLANS.map((p) => (
+          <option key={p.key} value={p.lookupKey}>
+            {p.name}: ${p.monthly}/month, {p.cases} active cases, {p.seats} seats
+            {p.approval ? " (approval required)" : ""}
+          </option>
+        ))}
+      </select>
+      <p>{ATTORNEY_PLAN_VALUE[plan.key]}</p>
+      <p>
+        No automatic charge. You review payment details at checkout. The discounted rate requires
+        separate approval.
+      </p>
+      <button type="button" className="att-btn-primary" onClick={() => setCheckout(true)}>
+        Continue with {plan.name}
+      </button>
+      {checkout && <StripeEmbeddedCheckout key={selected} priceId={selected} />}
+      <p>
+        <Link to="/security-privacy">Read the security and privacy FAQ</Link>
+      </p>
     </div>
   );
 }

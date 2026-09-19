@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
+import { ClientInvitationTemplate } from "@/components/AttorneyConversion";
 import { Lock, ShieldCheck, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -81,9 +82,12 @@ function OnboardingPage() {
       });
       // A granted trial is real access, not a paywall detour. Only send people
       // to pricing when there is no trial to walk into.
-      if (res?.trial_ends_at && new Date(res.trial_ends_at).getTime() > Date.now()) {
-        toast("Setup complete. Your trial is open.");
-        navigate({ to: "/caseload", replace: true });
+      if (
+        ("free_case" in res && res.free_case) ||
+        (res?.trial_ends_at && new Date(res.trial_ends_at).getTime() > Date.now())
+      ) {
+        toast("Setup complete. Your workspace is open.");
+        navigate({ to: "/matters", replace: true });
       } else {
         toast("Profile saved. Choose your plan next.");
         navigate({ to: "/subscribe", replace: true });
@@ -109,6 +113,10 @@ function OnboardingPage() {
         profile; survivors only see your name and firm.
       </p>
 
+      <details style={{ marginBottom: 24 }}>
+        <summary>Preview the client invitation template</summary>
+        <ClientInvitationTemplate />
+      </details>
       <form onSubmit={onSubmit} className="att-card" style={{ display: "grid", gap: 18 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           <Field label="Full name *">

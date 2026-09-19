@@ -8,14 +8,17 @@ import { upsertAttorneyProfile } from "@/lib/attorney-portal.functions";
 import { toast } from "sonner";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
+import { getAttorneyOffer, requestAttorneyOffer } from "@/lib/attorney-offer.functions";
+
 export const Route = createFileRoute("/lawyer-signup")({
+  loader: () => getAttorneyOffer(),
   head: () => ({
     meta: [
       { title: "Attorney access — PatternProof" },
       {
         name: "description",
         content:
-          "Open one client share free, request a short walkthrough, or sign in if you already have an invitation.",
+          "Create an attorney profile, request access review, or sign in to your existing workspace.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -25,6 +28,11 @@ export const Route = createFileRoute("/lawyer-signup")({
 
 function LawyerSignup() {
   const { user, loading } = useAuth();
+  const offer = Route.useLoaderData();
+  const requestOffer = useServerFn(requestAttorneyOffer);
+  const [creating, setCreating] = useState(true);
+  const [consent, setConsent] = useState(false);
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
   const upsert = useServerFn(upsertAttorneyProfile);
 
@@ -45,10 +53,25 @@ function LawyerSignup() {
     e.preventDefault();
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      setMessage("");
+      if (offer.enabled && creating) {
+        if (!consent) throw new Error("Please agree to the Terms and Privacy Policy.");
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin + "/lawyer-signup" },
+        });
+        if (error) throw error;
+        if (!data.session)
+          setMessage(
+            "Check your inbox to confirm your account, then return here to sign in. If you already have an account, sign in instead.",
+          );
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
     } catch (err) {
-      toast(err instanceof Error ? err.message : "Try again in a moment.");
+      setMessage(err instanceof Error ? err.message : "Try again in a moment.");
     } finally {
       setBusy(false);
     }
@@ -59,6 +82,7 @@ function LawyerSignup() {
     if (!user) return;
     setBusy(true);
     try {
+      if (offer.enabled) await requestOffer();
       await upsert({
         data: {
           full_name: fullName,
@@ -91,36 +115,36 @@ function LawyerSignup() {
 
         {step === "auth" ? (
           <div className="card-pp">
-            <h2 className="font-serif text-[20px]">Open one share, or sign in</h2>
-            <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Opening one client share does not require a subscription. A paid seat unlocks notes and
-              caseload. Paid workspaces are set up with the founder after that first share.
+            <h2 className="font-serif text-[20px]">
+              {offer.enabled && creating
+                ? "Create your attorney account"
+                : "Sign in to attorney access"}
+            </h2>
+            <p className="mt-2 text-[13px]">
+              {offer.enabled
+                ? "No card required for the first case. Attorney access review and client consent are required before opening shared records."
+                : "The new first case offer is not active yet. Get the free kit and fictional sample while access is being prepared."}
             </p>
-            <a
-              href="mailto:pattern@pattern-proof.tech?subject=Open%20one%20client%20share%20free"
-              className="btn-primary mt-4 flex w-full items-center justify-center"
-              style={{ textDecoration: "none" }}
-            >
-              Open one client share free
-            </a>
-            <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-              Or request a 15-minute walkthrough at{" "}
-              <a href="mailto:pattern@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough" style={{ color: "var(--accent)" }}>
-                pattern@pattern-proof.tech
-              </a>
-              . Please send no case files or client information.
-            </p>
-            <div
-              className="my-4 text-center text-[11px] font-semibold uppercase tracking-widest"
-              style={{ color: "var(--muted-foreground)" }}
-            >
-              Already invited?
-            </div>
+            {!offer.enabled && <Link to="/for-attorneys">Get the free intake kit</Link>}
+            {offer.enabled && (
+              <button
+                type="button"
+                className="mt-3 underline"
+                onClick={() => {
+                  setCreating(!creating);
+                  setMessage("");
+                }}
+              >
+                {creating ? "Already have an account? Sign in" : "Create a new account"}
+              </button>
+            )}
             <form onSubmit={auth} className="mt-4 space-y-3">
               <input
                 className="input-pp"
                 type="email"
                 required
+                aria-label="Work email"
+                autoComplete="email"
                 placeholder="Work email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -130,12 +154,33 @@ function LawyerSignup() {
                 type="password"
                 required
                 minLength={8}
+                aria-label="Password"
+                autoComplete={creating ? "new-password" : "current-password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              {offer.enabled && creating && (
+                <label className="flex gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    required
+                  />
+                  <span>
+                    I agree to the <Link to="/terms">Terms</Link> and{" "}
+                    <Link to="/privacy">Privacy Policy</Link>.
+                  </span>
+                </label>
+              )}
+              {message && (
+                <p role="alert" className="text-sm">
+                  {message}
+                </p>
+              )}
               <button className="btn-primary w-full" disabled={busy}>
-                {busy ? "One moment…" : "Sign in"}
+                {busy ? "One moment…" : offer.enabled && creating ? "Create account" : "Sign in"}
               </button>
             </form>
           </div>

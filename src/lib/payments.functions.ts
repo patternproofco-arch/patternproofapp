@@ -6,6 +6,8 @@ import { createHash } from "crypto";
 import { z } from "zod";
 import { PROFESSIONAL_LINK_TTL_SECONDS } from "@/lib/professional-links.server";
 
+import { planForPrice } from "./attorney-offer";
+
 type CheckoutResult = { clientSecret: string } | { error: string };
 type PortalResult = { url: string } | { error: string };
 type SubRow = {
@@ -95,6 +97,17 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       const prices = await stripe.prices.list({ lookup_keys: [data.priceId] });
       if (!prices.data.length) throw new Error("Price not found");
       const stripePrice = prices.data[0];
+      if (planForPrice(data.priceId)) {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { validateOfferCheckout } = await import("./attorney-offer.server");
+        await validateOfferCheckout(
+          supabaseAdmin,
+          userId,
+          data.environment,
+          data.priceId,
+          stripePrice,
+        );
+      }
       const isRecurring = stripePrice.type === "recurring";
 
       const customerId = await resolveOrCreateCustomer(stripe, { email, userId });
@@ -213,7 +226,15 @@ export const getMySubscription = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (row) return { subscription: row as SubRow };
+    const { supabaseAdmin: offerAdmin } = await import("@/integrations/supabase/client.server");
+    const { activeSubscription, offerPaidSubscription, readOfferSettings } =
+      await import("./attorney-offer.server");
+    const offerSettings = await readOfferSettings(offerAdmin);
+    if (offerSettings.enabled) {
+      const paid = await offerPaidSubscription(offerAdmin, userId);
+      if (paid) return { subscription: paid as SubRow };
+    } else if (row && activeSubscription(row) && !planForPrice(row.price_id))
+      return { subscription: row as SubRow };
 
     // No Stripe subscription — surface an active founding-nine trial so the
     // portal opens for them the same way a paid plan does.
@@ -232,6 +253,18 @@ export const getMySubscription = createServerFn({ method: "POST" })
         } as SubRow,
       };
     }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { freeCaseState } = await import("./attorney-offer.server");
+    const freeCase = await freeCaseState(supabaseAdmin, userId);
+    if (freeCase?.approved_at)
+      return {
+        subscription: {
+          status: "free_case",
+          price_id: "attorney_first_case",
+          current_period_end: null,
+          cancel_at_period_end: false,
+        },
+      };
     return { subscription: null };
   });
 
@@ -305,43 +338,17 @@ export const recordOrgReferral = createServerFn({ method: "POST" })
 
 /**
  * Entitlement: attorney needs an active PatternProof attorney subscription.
- * "The Pilot" (first client free) is marketing copy on the pricing page —
- * full app access requires an active Solo/Firm/Enterprise subscription.
+ * The reviewed first-case offer is bound to one surviving, case-scoped grant.
+ * Payment and the free offer never replace access, expiry, or revocation checks.
  */
 export async function isAttorneyEntitled(
   attorneyId: string,
   clientId: string,
 ): Promise<{ entitled: boolean; reason: "free" | "subscribed" | "paywall" }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: sub } = await supabaseAdmin
-    .from("subscriptions")
-    .select("status,current_period_end,price_id")
-    .eq("user_id", attorneyId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (sub) {
-    const end = sub.current_period_end
-      ? new Date(sub.current_period_end as string).getTime()
-      : null;
-    const future = end === null || end > Date.now();
-    const status = sub.status as string;
-    const priceId = sub.price_id as string | null;
-    const attorneyPlans = new Set([
-      "attorney_solo_monthly",
-      "attorney_firm_monthly",
-      "attorney_firm_charter_monthly",
-      "attorney_enterprise_monthly",
-      // legacy price id used during The Pilot rollout
-      "attorney_portal_monthly_297",
-    ]);
-    const active =
-      (["active", "trialing", "past_due"].includes(status) && future) ||
-      (status === "canceled" && end !== null && end > Date.now());
-    if (active && priceId && attorneyPlans.has(priceId)) {
-      return { entitled: true, reason: "subscribed" };
-    }
-  }
+  const { offerPaidSubscription } = await import("./attorney-offer.server");
+  if (await offerPaidSubscription(supabaseAdmin, attorneyId))
+    return { entitled: true, reason: "subscribed" };
   // Founding-nine 90-day trial lives on the attorney profile, not Stripe.
   const { data: profile } = await supabaseAdmin
     .from("attorney_profiles")
@@ -351,7 +358,9 @@ export async function isAttorneyEntitled(
   if (profile?.trial_ends_at && new Date(profile.trial_ends_at).getTime() > Date.now()) {
     return { entitled: true, reason: "subscribed" };
   }
-  void clientId;
+  const { hasFreeCaseAccess } = await import("./attorney-offer.server");
+  if (await hasFreeCaseAccess(supabaseAdmin, attorneyId, clientId))
+    return { entitled: true, reason: "free" };
   return { entitled: false, reason: "paywall" };
 }
 

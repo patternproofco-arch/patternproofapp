@@ -160,6 +160,12 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
 
+    const { readOfferSettings, freeCaseState } = await import("./attorney-offer.server");
+    if ((await readOfferSettings(supabaseAdmin)).enabled) {
+      const account = await freeCaseState(supabaseAdmin, context.userId);
+      return { ok: true, trial_ends_at: null, free_case: !!account?.approved_at };
+    }
+
     // Founding-nine trial: the first nine attorneys who finish setup get 90
     // days of full portal access. Internal test accounts are comped and don't
     // take one of the nine spots.
@@ -197,7 +203,6 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
 
     return { ok: true, trial_ends_at: profile?.trial_ends_at ?? null };
   });
-
 
 export const getAttorneyProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -273,8 +278,17 @@ export const listMyClients = createServerFn({ method: "GET" })
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
 
+    const { readOfferSettings } = await import("./attorney-offer.server");
+    const offerEnabled = (await readOfferSettings(supabaseAdmin)).enabled;
+    const allowed = await Promise.all(
+      links.map(
+        async (link) =>
+          !offerEnabled || (await isAttorneyEntitled(context.userId, link.client_user_id)).entitled,
+      ),
+    );
+    const billableLinks = links.filter((_, i) => allowed[i]);
     const clients = await Promise.all(
-      (links ?? []).map(async (l) => {
+      billableLinks.map(async (l) => {
         // Case-scope the link in place so the queries below stay uniform.
         await applyCaseScope(l, l.client_user_id);
         const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
@@ -462,163 +476,173 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
 
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
+    const { readOfferSettings } = await import("./attorney-offer.server");
+    const offerEnabled = (await readOfferSettings(supabaseAdmin)).enabled;
+    const allowed = await Promise.all(
+      links.map(
+        async (link) =>
+          !offerEnabled || (await isAttorneyEntitled(context.userId, link.client_user_id)).entitled,
+      ),
+    );
     const rows = await Promise.all(
-      links.map(async (l) => {
-        await applyCaseScope(l, l.client_user_id);
-        const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
-        const scopedEvidenceIds = (l.scope_evidence ?? []) as string[];
+      links
+        .filter((_, i) => allowed[i])
+        .map(async (l) => {
+          await applyCaseScope(l, l.client_user_id);
+          const scopedIncidentIds = (l.scope_incidents ?? []) as string[];
+          const scopedEvidenceIds = (l.scope_evidence ?? []) as string[];
 
-        // Confirmed-only incident count (matches getClientCase / listMyClients filter).
-        const confirmedIncidentsQ = l.include_all_incidents
-          ? supabaseAdmin
-              .from("incidents")
-              .select("id,date,created_at", { count: "exact" })
-              .eq("user_id", l.client_user_id)
-              .is("deleted_at", null)
-              .or("source.neq.ai_extracted,confirmed_at.not.is.null")
-          : scopedIncidentIds.length
+          // Confirmed-only incident count (matches getClientCase / listMyClients filter).
+          const confirmedIncidentsQ = l.include_all_incidents
             ? supabaseAdmin
                 .from("incidents")
                 .select("id,date,created_at", { count: "exact" })
                 .eq("user_id", l.client_user_id)
-                .in("id", scopedIncidentIds)
                 .is("deleted_at", null)
                 .or("source.neq.ai_extracted,confirmed_at.not.is.null")
-            : Promise.resolve({
-                data: [] as { id: string; date: string | null; created_at: string }[],
-                count: 0,
-              });
+            : scopedIncidentIds.length
+              ? supabaseAdmin
+                  .from("incidents")
+                  .select("id,date,created_at", { count: "exact" })
+                  .eq("user_id", l.client_user_id)
+                  .in("id", scopedIncidentIds)
+                  .is("deleted_at", null)
+                  .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+              : Promise.resolve({
+                  data: [] as { id: string; date: string | null; created_at: string }[],
+                  count: 0,
+                });
 
-        // Unconfirmed AI drafts count.
-        const unconfirmedQ = l.include_all_incidents
-          ? supabaseAdmin
-              .from("incidents")
-              .select("id", { count: "exact", head: true })
-              .eq("user_id", l.client_user_id)
-              .is("deleted_at", null)
-              .eq("source", "ai_extracted")
-              .is("confirmed_at", null)
-          : scopedIncidentIds.length
+          // Unconfirmed AI drafts count.
+          const unconfirmedQ = l.include_all_incidents
             ? supabaseAdmin
                 .from("incidents")
                 .select("id", { count: "exact", head: true })
                 .eq("user_id", l.client_user_id)
-                .in("id", scopedIncidentIds)
                 .is("deleted_at", null)
                 .eq("source", "ai_extracted")
                 .is("confirmed_at", null)
-            : Promise.resolve({ data: null, count: 0 });
+            : scopedIncidentIds.length
+              ? supabaseAdmin
+                  .from("incidents")
+                  .select("id", { count: "exact", head: true })
+                  .eq("user_id", l.client_user_id)
+                  .in("id", scopedIncidentIds)
+                  .is("deleted_at", null)
+                  .eq("source", "ai_extracted")
+                  .is("confirmed_at", null)
+              : Promise.resolve({ data: null, count: 0 });
 
-        // Evidence: total + most recent created_at.
-        const evidenceTotalQ = l.include_all_evidence
-          ? supabaseAdmin
-              .from("evidence")
-              .select("id", { count: "exact", head: true })
-              .eq("user_id", l.client_user_id)
-              .is("deleted_at", null)
-              .neq("review_status", "suggested")
-          : scopedEvidenceIds.length
+          // Evidence: total + most recent created_at.
+          const evidenceTotalQ = l.include_all_evidence
             ? supabaseAdmin
                 .from("evidence")
                 .select("id", { count: "exact", head: true })
                 .eq("user_id", l.client_user_id)
-                .in("id", scopedEvidenceIds)
                 .is("deleted_at", null)
                 .neq("review_status", "suggested")
-            : Promise.resolve({ data: null, count: 0 });
-        const evidenceRecentQ = l.include_all_evidence
-          ? supabaseAdmin
-              .from("evidence")
-              .select("created_at")
-              .eq("user_id", l.client_user_id)
-              .is("deleted_at", null)
-              .neq("review_status", "suggested")
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .maybeSingle()
-          : scopedEvidenceIds.length
+            : scopedEvidenceIds.length
+              ? supabaseAdmin
+                  .from("evidence")
+                  .select("id", { count: "exact", head: true })
+                  .eq("user_id", l.client_user_id)
+                  .in("id", scopedEvidenceIds)
+                  .is("deleted_at", null)
+                  .neq("review_status", "suggested")
+              : Promise.resolve({ data: null, count: 0 });
+          const evidenceRecentQ = l.include_all_evidence
             ? supabaseAdmin
                 .from("evidence")
                 .select("created_at")
                 .eq("user_id", l.client_user_id)
-                .in("id", scopedEvidenceIds)
                 .is("deleted_at", null)
                 .neq("review_status", "suggested")
                 .order("created_at", { ascending: false })
                 .limit(1)
                 .maybeSingle()
-            : Promise.resolve({ data: null as { created_at: string } | null });
+            : scopedEvidenceIds.length
+              ? supabaseAdmin
+                  .from("evidence")
+                  .select("created_at")
+                  .eq("user_id", l.client_user_id)
+                  .in("id", scopedEvidenceIds)
+                  .is("deleted_at", null)
+                  .neq("review_status", "suggested")
+                  .order("created_at", { ascending: false })
+                  .limit(1)
+                  .maybeSingle()
+              : Promise.resolve({ data: null as { created_at: string } | null });
 
-        // Latest pattern analysis (for severity-indicator review counting).
-        const patternQ = l.include_patterns
-          ? supabaseAdmin
-              .from("pattern_analyses")
-              .select("analysis,reviewed_status,created_at")
-              .eq("user_id", l.client_user_id)
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .maybeSingle()
-          : Promise.resolve({
-              data: null as {
-                analysis: AnyJson;
-                reviewed_status: AnyJson | null;
-                created_at: string;
-              } | null,
-            });
+          // Latest pattern analysis (for severity-indicator review counting).
+          const patternQ = l.include_patterns
+            ? supabaseAdmin
+                .from("pattern_analyses")
+                .select("analysis,reviewed_status,created_at")
+                .eq("user_id", l.client_user_id)
+                .order("created_at", { ascending: false })
+                .limit(1)
+                .maybeSingle()
+            : Promise.resolve({
+                data: null as {
+                  analysis: AnyJson;
+                  reviewed_status: AnyJson | null;
+                  created_at: string;
+                } | null,
+              });
 
-        const [confirmedInc, unconfirmed, evTotal, evRecent, pattern] = await Promise.all([
-          confirmedIncidentsQ,
-          unconfirmedQ,
-          evidenceTotalQ,
-          evidenceRecentQ,
-          patternQ,
-        ]);
+          const [confirmedInc, unconfirmed, evTotal, evRecent, pattern] = await Promise.all([
+            confirmedIncidentsQ,
+            unconfirmedQ,
+            evidenceTotalQ,
+            evidenceRecentQ,
+            patternQ,
+          ]);
 
-        const incRows = confirmedInc.data ?? [];
-        // "Last activity" = most recent of (incident created_at, evidence created_at, incident date).
-        const lastIncidentCreated = incRows.reduce<string | null>(
-          (acc, r) => (!acc || r.created_at > acc ? r.created_at : acc),
-          null,
-        );
-        const lastEvidenceCreated = evRecent.data?.created_at ?? null;
-        const lastActivity = [lastIncidentCreated, lastEvidenceCreated]
-          .filter((v): v is string => !!v)
-          .reduce<string | null>((acc, v) => (!acc || v > acc ? v : acc), null);
+          const incRows = confirmedInc.data ?? [];
+          // "Last activity" = most recent of (incident created_at, evidence created_at, incident date).
+          const lastIncidentCreated = incRows.reduce<string | null>(
+            (acc, r) => (!acc || r.created_at > acc ? r.created_at : acc),
+            null,
+          );
+          const lastEvidenceCreated = evRecent.data?.created_at ?? null;
+          const lastActivity = [lastIncidentCreated, lastEvidenceCreated]
+            .filter((v): v is string => !!v)
+            .reduce<string | null>((acc, v) => (!acc || v > acc ? v : acc), null);
 
-        // Disengagement: no incident OR no evidence added in the last 30 days.
-        const recentIncidentAdded = incRows.some((r) => r.created_at >= thirtyDaysAgo);
-        const recentEvidenceAdded = lastEvidenceCreated
-          ? lastEvidenceCreated >= thirtyDaysAgo
-          : false;
-        const disengaged = !recentIncidentAdded && !recentEvidenceAdded;
+          // Disengagement: no incident OR no evidence added in the last 30 days.
+          const recentIncidentAdded = incRows.some((r) => r.created_at >= thirtyDaysAgo);
+          const recentEvidenceAdded = lastEvidenceCreated
+            ? lastEvidenceCreated >= thirtyDaysAgo
+            : false;
+          const disengaged = !recentIncidentAdded && !recentEvidenceAdded;
 
-        // Unreviewed severity indicators — same "sev:<index>" keying as the survivor dashboard.
-        const indicators = (pattern.data?.analysis as { severity_indicators?: unknown[] } | null)
-          ?.severity_indicators;
-        const reviewedStatus = (pattern.data?.reviewed_status ?? {}) as Record<
-          string,
-          { status?: string }
-        >;
-        let unreviewedSeverityIndicatorCount = 0;
-        if (Array.isArray(indicators)) {
-          unreviewedSeverityIndicatorCount = indicators.reduce<number>((count, _item, index) => {
-            const entry = reviewedStatus[`sev:${index}`];
-            return !entry || entry.status === "unsure" ? count + 1 : count;
-          }, 0);
-        }
+          // Unreviewed severity indicators — same "sev:<index>" keying as the survivor dashboard.
+          const indicators = (pattern.data?.analysis as { severity_indicators?: unknown[] } | null)
+            ?.severity_indicators;
+          const reviewedStatus = (pattern.data?.reviewed_status ?? {}) as Record<
+            string,
+            { status?: string }
+          >;
+          let unreviewedSeverityIndicatorCount = 0;
+          if (Array.isArray(indicators)) {
+            unreviewedSeverityIndicatorCount = indicators.reduce<number>((count, _item, index) => {
+              const entry = reviewedStatus[`sev:${index}`];
+              return !entry || entry.status === "unsure" ? count + 1 : count;
+            }, 0);
+          }
 
-        return {
-          link_id: l.id,
-          client_user_id: l.client_user_id,
-          linked_at: l.created_at,
-          confirmed_incident_count: confirmedInc.count ?? 0,
-          unconfirmed_ai_draft_count: unconfirmed.count ?? 0,
-          evidence_count: evTotal.count ?? 0,
-          last_activity_at: lastActivity,
-          disengaged_30d: disengaged,
-          unreviewed_severity_indicator_count: unreviewedSeverityIndicatorCount,
-        };
-      }),
+          return {
+            link_id: l.id,
+            client_user_id: l.client_user_id,
+            linked_at: l.created_at,
+            confirmed_incident_count: confirmedInc.count ?? 0,
+            unconfirmed_ai_draft_count: unconfirmed.count ?? 0,
+            evidence_count: evTotal.count ?? 0,
+            last_activity_at: lastActivity,
+            disengaged_30d: disengaged,
+            unreviewed_severity_indicator_count: unreviewedSeverityIndicatorCount,
+          };
+        }),
     );
 
     const needs_attention = (r: (typeof rows)[number]) =>

@@ -3,6 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { createMatter, listMatters } from "@/lib/matters.functions";
+import { useSubscription } from "@/hooks/useSubscription";
+import { ClientInvitationTemplate } from "@/components/AttorneyConversion";
 import { folio } from "@/components/pp/folio";
 
 export const Route = createFileRoute("/_attorney/matters/")({
@@ -29,6 +31,7 @@ export const Route = createFileRoute("/_attorney/matters/")({
 type Data = Awaited<ReturnType<typeof listMatters>>;
 
 function MattersIndex() {
+  const sub = useSubscription();
   const list = useServerFn(listMatters);
   const create = useServerFn(createMatter);
   const [data, setData] = useState<Data | null>(null);
@@ -82,6 +85,20 @@ function MattersIndex() {
         with you, and assign an advocate to a single matter at a time.
       </p>
 
+      {sub.status === "free_case" && (
+        <div className="att-card">
+          <p>
+            Your first matter is free and stays tied to one case. Closing or deleting it does not
+            reset the offer. Attach one active case scoped client share after the client sends an
+            invitation.
+          </p>
+          <Link to="/subscribe">Plans for additional cases</Link>
+        </div>
+      )}
+      <details>
+        <summary>Client invitation template</summary>
+        <ClientInvitationTemplate />
+      </details>
       {!open && (
         <button type="button" style={folio.btn} onClick={() => setOpen(true)}>
           Open a matter

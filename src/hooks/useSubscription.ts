@@ -56,6 +56,7 @@ function computeActive(
   } | null,
 ): boolean {
   if (!row) return false;
+  if (row.status === "free_case") return true;
   const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
   const future = end === null || end > Date.now();
   if (["active", "trialing", "past_due"].includes(row.status) && future) return true;
@@ -75,11 +76,11 @@ export function useSubscription(): SubscriptionState {
     try {
       env = getStripeEnvironment();
     } catch {
-      setLoading(false);
-      return;
+      env = "live"; // A free case does not require a Stripe client token.
     }
     fetcher({ data: { environment: env } })
       .then((r) => setRow(r.subscription))
+      .catch(() => setRow(null))
       .finally(() => setLoading(false));
   }, [fetcher]);
 
@@ -127,9 +128,14 @@ function deriveTier(
   switch (priceId) {
     case "court_ready_monthly":
       return "court_ready";
+    case "attorney_first_case":
+    case "attorney_solo_v2_monthly":
+    case "attorney_legal_aid_v2_monthly":
     case "attorney_solo_monthly":
     case "attorney_portal_monthly_297":
       return "solo";
+    case "attorney_practice_v2_monthly":
+    case "attorney_firm_v2_monthly":
     case "attorney_firm_monthly":
     case "attorney_firm_charter_monthly":
       return "firm";

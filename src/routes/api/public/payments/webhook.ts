@@ -75,7 +75,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, env:
     },
     { onConflict: "stripe_subscription_id" },
   );
-  await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
+  if (env === "live") await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription, env: StripeEnv) {
