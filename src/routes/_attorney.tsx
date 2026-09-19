@@ -61,7 +61,8 @@ function AttorneyLayout() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      navigate({ to: "/lawyer-signup", replace: true });
+      // Signed-out / MFA deny must land on sign-in, not the public signup form.
+      navigate({ to: "/signin", replace: true });
       return;
     }
     let cancelled = false;
@@ -369,7 +370,7 @@ function AttorneyTopBar({ firmName }: { firmName: string | null }) {
       <button
         onClick={async () => {
           await supabase.auth.signOut();
-          navigate({ to: "/lawyer-signup" });
+          navigate({ to: "/signin" });
         }}
         className="att-btn-ghost"
         style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
