@@ -36,6 +36,7 @@ function AcceptInvite() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [pendingVerification, setPendingVerification] = useState(false);
   const [confidentialityOk, setConfidentialityOk] = useState(false);
   const [fullName, setFullName] = useState("");
   const [barNumber, setBarNumber] = useState("");
@@ -56,8 +57,13 @@ function AcceptInvite() {
     if (!loading && user && peeked?.status === "ok" && !accepted) {
       setBusy(true);
       accept({ data: { token } })
-        .then(() => {
+        .then((r) => {
           setAccepted(true);
+          if (r.pending_verification) {
+            setPendingVerification(true);
+            toast("Account created. Your access opens once PatternProof verifies your bar standing.");
+            return;
+          }
           toast("Access granted. One step left.");
           navigate({ to: "/subscribe" });
         })
@@ -82,7 +88,14 @@ function AcceptInvite() {
         if (error) throw error;
       }
     } catch (err) {
-      toast(err instanceof Error ? err.message : "Try again in a moment.");
+      const rawMsg = err instanceof Error ? err.message : "Try again in a moment.";
+      const enumeratesAccount =
+        mode === "signup" && /already registered|already exists|already in use/i.test(rawMsg);
+      toast(
+        enumeratesAccount
+          ? "Check your email to continue, or use \"I already have an attorney account\" to sign in."
+          : rawMsg,
+      );
     } finally {
       setBusy(false);
     }
@@ -116,6 +129,15 @@ function AcceptInvite() {
     return (
       <Frame>
         <Msg title="Already accepted" body="This invitation has already been accepted." />
+      </Frame>
+    );
+  if (pendingVerification)
+    return (
+      <Frame>
+        <Msg
+          title="Pending verification"
+          body="Your account is created and this client's share is recorded. PatternProof verifies bar standing before opening any case file — you'll get an email as soon as that's done."
+        />
       </Frame>
     );
 

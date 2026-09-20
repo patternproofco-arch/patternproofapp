@@ -1,5 +1,8 @@
-const MINIMUM_REPORTING_COHORT = 5;
-const REPORTING_BUCKET_SIZE = 5;
+// A count under 10 can identify a specific survivor to a small org (one
+// referral this week is one person). Hidden entirely below that floor, then
+// only ever shown as a 10-wide lower bound above it.
+const MINIMUM_REPORTING_COHORT = 10;
+const REPORTING_BUCKET_SIZE = 10;
 const REPORTING_DELAY_MS = 7 * 86_400_000;
 
 /**

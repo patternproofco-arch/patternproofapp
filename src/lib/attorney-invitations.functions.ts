@@ -255,6 +255,18 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
 
+    // Bar re-check: this is the moment an attorney is chosen for a new
+    // survivor share. An account a reviewer hasn't cleared yet still gets
+    // the invitation recorded as accepted — the survivor's link isn't
+    // lost — but the link itself opens locked until verification finishes,
+    // rather than granting real case data to an unreviewed account.
+    const { data: profile } = await supabaseAdmin
+      .from("attorney_profiles")
+      .select("verification_status")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    const linkStatus = profile?.verification_status === "verified" ? "active" : "pending_verification";
+
     // Create link
     const { data: link, error: linkErr } = await supabaseAdmin
       .from("attorney_client_links")
@@ -272,7 +284,8 @@ export const acceptInvitation = createServerFn({ method: "POST" })
         include_legal_documents: inv.include_legal_documents,
         case_id: inv.case_id ?? null,
         expires_at: inv.expires_at ?? null,
-        status: "active",
+        status: linkStatus,
+        last_confirmed_at: new Date().toISOString(),
       })
       .select("id,client_user_id")
       .single();
@@ -287,5 +300,5 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       })
       .eq("id", inv.id);
 
-    return { ok: true, link };
+    return { ok: true, link, pending_verification: linkStatus === "pending_verification" };
   });

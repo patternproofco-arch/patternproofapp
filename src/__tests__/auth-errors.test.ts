@@ -22,8 +22,17 @@ describe("formatAuthError", () => {
     );
   });
 
-  it("maps already registered for signup", () => {
+  it("never confirms an account already exists on signup (enumeration-safe)", () => {
+    expect(formatAuthError(new Error("User already registered"), "signup")).not.toMatch(
+      /already has an account/,
+    );
     expect(formatAuthError(new Error("User already registered"), "signup")).toMatch(
+      /check your email/i,
+    );
+  });
+
+  it("login keeps the direct 'already has an account' message — enumeration protection is a signup-only concern", () => {
+    expect(formatAuthError(new Error("User already registered"), "login")).toMatch(
       /already has an account/,
     );
   });
@@ -50,13 +59,13 @@ describe("formatAuthError", () => {
 });
 
 describe("formatSignupNoSession", () => {
-  it("treats empty identities as possible duplicate", () => {
-    expect(formatSignupNoSession({ identities: [] })).toMatch(/already have an account/);
-    expect(formatSignupNoSession(null)).toMatch(/already have an account/);
-  });
-
-  it("asks for email confirmation when user was created", () => {
-    expect(formatSignupNoSession({ identities: [{ id: "1" }] })).toMatch(/confirmation link/);
+  it("returns identical copy for a duplicate email and a fresh signup — enumeration-safe", () => {
+    const duplicate = formatSignupNoSession({ identities: [] });
+    const fresh = formatSignupNoSession({ identities: [{ id: "1" }] });
+    const noUser = formatSignupNoSession(null);
+    expect(duplicate).toBe(fresh);
+    expect(duplicate).toBe(noUser);
+    expect(duplicate).toMatch(/check your email/i);
   });
 });
 

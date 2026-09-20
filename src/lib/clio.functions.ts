@@ -23,6 +23,11 @@ export const startClioConnect = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Nothing syncs to or from Clio until bar verification clears — the
+    // integration can move real survivor case data, so an unreviewed
+    // account is never allowed to connect it in the first place.
+    const { assertVerifiedAttorney } = await import("@/lib/attorney-access.server");
+    await assertVerifiedAttorney(supabaseAdmin, context.userId);
     // Housekeeping: expired states are useless and must not linger.
     await supabaseAdmin
       .from("clio_oauth_states")
@@ -105,6 +110,9 @@ export const listMyClioMatters = createServerFn({ method: "POST" })
     if (role !== "attorney" && role !== "collaborator") {
       throw new Error("This area is for attorney accounts.");
     }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertVerifiedAttorney } = await import("@/lib/attorney-access.server");
+    await assertVerifiedAttorney(supabaseAdmin, context.userId);
     const { listClioMatters } = await import("@/lib/clio-matters.server");
     const matters = await listClioMatters(context.userId, { query: data.query });
     return { matters };
@@ -121,6 +129,9 @@ export const pushPacketToClio = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { assertClioAvailable } = await import("@/lib/clio.server");
     assertClioAvailable();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertVerifiedAttorney } = await import("@/lib/attorney-access.server");
+    await assertVerifiedAttorney(supabaseAdmin, context.userId);
     const { pushLatestPacketToClio } = await import("@/lib/clio-documents.server");
     return pushLatestPacketToClio(context.userId, data.attorney_client_link_id);
   });

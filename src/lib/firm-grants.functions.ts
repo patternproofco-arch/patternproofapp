@@ -463,6 +463,10 @@ async function assertOwnerLink(clientId: string, ownerId: string) {
     .eq("client_user_id", clientId)
     .maybeSingle();
   if (!link || link.status !== "active") throw new Error("No active case");
+  // A suspended/pending owner can't grant, list colleagues for, or list
+  // grants on a case they can no longer open themselves.
+  const { assertVerifiedAttorney } = await import("@/lib/attorney-access.server");
+  await assertVerifiedAttorney(supabaseAdmin, ownerId);
   return link;
 }
 
@@ -484,13 +488,18 @@ export const listFirmColleagues = createServerFn({ method: "POST" })
     const { data: colleagues, error: profileError } = ids.length
       ? await supabaseAdmin
           .from("attorney_profiles")
-          .select("user_id,full_name,email,role")
+          .select("user_id,full_name,email,role,verification_status")
           .in("user_id", ids)
+          // A colleague who hasn't cleared bar verification can't be picked
+          // for a new case grant — they wouldn't be able to open it anyway,
+          // and listing them here would surface their review status to a
+          // firm-mate who isn't their reviewer.
+          .eq("verification_status", "verified")
       : { data: [], error: null };
     if (profileError) throw new Error(profileError.message);
     const membershipRoles = new Map((members ?? []).map((m) => [m.user_id, m.role]));
     return {
-      colleagues: (colleagues ?? []).map((c) => ({
+      colleagues: (colleagues ?? []).map(({ verification_status: _vs, ...c }) => ({
         ...c,
         membership_role: membershipRoles.get(c.user_id),
       })),
@@ -546,6 +555,12 @@ export const grantCaseAccess = createServerFn({ method: "POST" })
     if (theirError) throw new Error(theirError.message);
     if (!mine || !theirs || mine.firm_id !== theirs.firm_id)
       throw new Error("That attorney is not a verified member of your firm.");
+    // Bar re-check: firm membership alone isn't proof this colleague ever
+    // cleared review, and a prior verification can have been suspended
+    // since. Re-checked at the moment they're chosen for this survivor's
+    // case, not only when they first joined the firm.
+    const { assertVerifiedAttorney } = await import("@/lib/attorney-access.server");
+    await assertVerifiedAttorney(supabaseAdmin, data.attorney_user_id);
     const { data: existing, error: existingError } = await supabaseAdmin
       .from("case_grants")
       .select("id")

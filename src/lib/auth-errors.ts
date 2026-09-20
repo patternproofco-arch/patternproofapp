@@ -38,7 +38,12 @@ export function formatAuthError(err: unknown, mode: AuthMode): string {
   }
 
   if (/user already registered|already been registered|already registered/i.test(lower)) {
-    return "That email already has an account. Try signing in instead.";
+    // Never confirm or deny that an email already has an account on signup —
+    // that's an enumeration channel a stalker could use to check whether a
+    // specific person has signed up. The reply reads the same either way.
+    return mode === "signup"
+      ? "Check your email to continue. If this address is new, confirm it to finish creating your account. If it's already registered, sign in instead."
+      : "That email already has an account. Try signing in instead.";
   }
 
   if (/password.*(at least|too short|least 6|least 8)|weak password/i.test(lower)) {
@@ -69,17 +74,17 @@ export function formatAuthError(err: unknown, mode: AuthMode): string {
 }
 
 /**
- * After signUp with no session: either email confirmation is required,
- * or Supabase hid a duplicate-email case (empty identities).
+ * After signUp with no session: either email confirmation is required, or
+ * Supabase hid a duplicate-email case (empty identities). Deliberately
+ * returns the same copy either way — distinguishing the two would let
+ * anyone check whether a specific email already has an account, which is
+ * exactly the enumeration channel this app can't expose.
  */
 export function formatSignupNoSession(
   user: {
     identities?: { id?: string }[] | null;
   } | null,
 ): string {
-  const identities = user?.identities ?? [];
-  if (!user || identities.length === 0) {
-    return "That email may already have an account. Try signing in instead.";
-  }
-  return "Check your email for a confirmation link, then come back to sign in.";
+  void user;
+  return "Check your email to continue. If this address is new, confirm it to finish creating your account. If it's already registered, sign in instead.";
 }

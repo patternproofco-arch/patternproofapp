@@ -16,6 +16,8 @@ import { template as referralSignupNotificationTemplate } from "./referral-signu
 import { template as teamInvitationTemplate } from "./team-invitation.config";
 import { template as orgAccessDecisionTemplate } from "./org-access-decision";
 import { template as attorneySurvivorInvitationTemplate } from "./attorney-survivor-invitation";
+import { template as attorneyVerificationDecisionTemplate } from "./attorney-verification-decision";
+import { template as attorneyStillOnCaseReminderTemplate } from "./attorney-still-on-case-reminder";
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   "attorney-invitation": attorneyInvitationTemplate,
@@ -25,4 +27,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "referral-signup-notification": referralSignupNotificationTemplate,
   "team-invitation": teamInvitationTemplate,
   "org-access-decision": orgAccessDecisionTemplate,
+  "attorney-verification-decision": attorneyVerificationDecisionTemplate,
+  "attorney-still-on-case-reminder": attorneyStillOnCaseReminderTemplate,
 };
