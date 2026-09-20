@@ -134,6 +134,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiCronAttorneyAccessCutoffRouteImport } from './routes/api/cron/attorney-access-cutoff'
 
 const VersionDotjsonRoute = VersionDotjsonRouteImport.update({
   id: '/version.json',
@@ -788,6 +789,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiCronAttorneyAccessCutoffRoute =
+  ApiCronAttorneyAccessCutoffRouteImport.update({
+    id: '/api/cron/attorney-access-cutoff',
+    path: '/api/cron/attorney-access-cutoff',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -907,6 +914,7 @@ export interface FileRoutesByFullPath {
   '/matters/': typeof AttorneyMattersIndexRoute
   '/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/cron/attorney-access-cutoff': typeof ApiCronAttorneyAccessCutoffRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -1029,6 +1037,7 @@ export interface FileRoutesByTo {
   '/matters': typeof AttorneyMattersIndexRoute
   '/agent': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/cron/attorney-access-cutoff': typeof ApiCronAttorneyAccessCutoffRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -1157,6 +1166,7 @@ export interface FileRoutesById {
   '/_attorney/matters/': typeof AttorneyMattersIndexRoute
   '/_authenticated/agent/': typeof AuthenticatedAgentIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/cron/attorney-access-cutoff': typeof ApiCronAttorneyAccessCutoffRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -1283,6 +1293,7 @@ export interface FileRouteTypes {
     | '/matters/'
     | '/agent/'
     | '/api/public/payments/webhook'
+    | '/api/cron/attorney-access-cutoff'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1405,6 +1416,7 @@ export interface FileRouteTypes {
     | '/matters'
     | '/agent'
     | '/api/public/payments/webhook'
+    | '/api/cron/attorney-access-cutoff'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1532,6 +1544,7 @@ export interface FileRouteTypes {
     | '/_attorney/matters/'
     | '/_authenticated/agent/'
     | '/api/public/payments/webhook'
+    | '/api/cron/attorney-access-cutoff'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1602,6 +1615,7 @@ export interface RootRouteChildren {
   IntegrationsClioDeauthorizeRoute: typeof IntegrationsClioDeauthorizeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiCronAttorneyAccessCutoffRoute: typeof ApiCronAttorneyAccessCutoffRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -2486,6 +2500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/attorney-access-cutoff': {
+      id: '/api/cron/attorney-access-cutoff'
+      path: '/api/cron/attorney-access-cutoff'
+      fullPath: '/api/cron/attorney-access-cutoff'
+      preLoaderRoute: typeof ApiCronAttorneyAccessCutoffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -2718,6 +2739,7 @@ const rootRouteChildren: RootRouteChildren = {
   IntegrationsClioDeauthorizeRoute: IntegrationsClioDeauthorizeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiCronAttorneyAccessCutoffRoute: ApiCronAttorneyAccessCutoffRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

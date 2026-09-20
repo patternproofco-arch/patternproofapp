@@ -15,7 +15,7 @@ let insertCounter = 0;
 
 class Query implements PromiseLike<{ data: unknown; error: null; count: number }> {
   private filters: Filter[] = [];
-  private single = false;
+  private singleMode = false;
   private limitN: number | null = null;
   private op: PendingOp | null = null;
 
@@ -52,7 +52,7 @@ class Query implements PromiseLike<{ data: unknown; error: null; count: number }
     this.filters.push((r) => {
       const a = r[col];
       if (a == null) return false;
-      return typeof a === "string" || typeof a === "number" ? a >= (val as never) : false;
+      return (typeof a === "string" || typeof a === "number") && (a as string | number) >= (val as string | number);
     });
     return this;
   }
@@ -60,7 +60,7 @@ class Query implements PromiseLike<{ data: unknown; error: null; count: number }
     this.filters.push((r) => {
       const a = r[col];
       if (a == null) return false;
-      return typeof a === "string" || typeof a === "number" ? a <= (val as never) : false;
+      return (typeof a === "string" || typeof a === "number") && (a as string | number) <= (val as string | number);
     });
     return this;
   }
@@ -68,7 +68,7 @@ class Query implements PromiseLike<{ data: unknown; error: null; count: number }
     this.filters.push((r) => {
       const a = r[col];
       if (a == null) return false;
-      return typeof a === "string" || typeof a === "number" ? a < (val as never) : false;
+      return (typeof a === "string" || typeof a === "number") && (a as string | number) < (val as string | number);
     });
     return this;
   }
@@ -80,11 +80,11 @@ class Query implements PromiseLike<{ data: unknown; error: null; count: number }
     return this;
   }
   maybeSingle() {
-    this.single = true;
+    this.singleMode = true;
     return this;
   }
   single() {
-    this.single = true;
+    this.singleMode = true;
     return this;
   }
   /** Deferred to run(), so filters chained *after* .update() (the real-world
@@ -104,16 +104,16 @@ class Query implements PromiseLike<{ data: unknown; error: null; count: number }
     const op = this.op;
     if (op && op.kind === "insert") {
       this.rows.push(...op.rows);
-      return { data: this.single ? (op.rows[0] ?? null) : op.rows, error: null, count: op.rows.length };
+      return { data: this.singleMode ? (op.rows[0] ?? null) : op.rows, error: null, count: op.rows.length };
     }
     if (op && op.kind === "update") {
       const matched = this.rows.filter((r) => this.filters.every((f) => f(r)));
       for (const r of matched) Object.assign(r, op.patch);
-      return { data: this.single ? (matched[0] ?? null) : matched, error: null, count: matched.length };
+      return { data: this.singleMode ? (matched[0] ?? null) : matched, error: null, count: matched.length };
     }
     let out = this.rows.filter((r) => this.filters.every((f) => f(r)));
     if (this.limitN !== null) out = out.slice(0, this.limitN);
-    return { data: this.single ? (out[0] ?? null) : out, error: null, count: out.length };
+    return { data: this.singleMode ? (out[0] ?? null) : out, error: null, count: out.length };
   }
 
   then<R1 = { data: unknown; error: null; count: number }, R2 = never>(

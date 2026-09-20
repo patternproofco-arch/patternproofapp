@@ -5,16 +5,18 @@ import {
 } from "@/lib/org-referral-privacy";
 
 describe("organization referral privacy", () => {
-  it("suppresses cohorts smaller than five without distinguishing zero from four", () => {
+  it("suppresses cohorts smaller than ten without distinguishing zero from nine", () => {
     expect(privacyBucketReferralCount(0)).toBeNull();
     expect(privacyBucketReferralCount(1)).toBeNull();
     expect(privacyBucketReferralCount(4)).toBeNull();
+    expect(privacyBucketReferralCount(9)).toBeNull();
   });
 
-  it("reports only lower-bound five-person buckets", () => {
-    expect(privacyBucketReferralCount(5)).toBe(5);
-    expect(privacyBucketReferralCount(9)).toBe(5);
+  it("reports only lower-bound ten-person buckets", () => {
     expect(privacyBucketReferralCount(10)).toBe(10);
+    expect(privacyBucketReferralCount(15)).toBe(10);
+    expect(privacyBucketReferralCount(19)).toBe(10);
+    expect(privacyBucketReferralCount(20)).toBe(20);
   });
 
   it("delays referral reporting for seven full days", () => {

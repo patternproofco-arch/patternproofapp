@@ -339,7 +339,7 @@ describe("180-day cutoff: reminders, survivor notice, and the cutoff itself", ()
       attorney_access_notices: [],
     };
     const db = fakeAdmin(t);
-    const sendReminder = vi.fn(async () => undefined);
+    const sendReminder = vi.fn(async (_admin: unknown, _link: CutoffLink, _day: 150 | 165 | 175) => undefined);
     const result = await runAttorneyAccessCutoffSweep(db, { sendReminder });
 
     expect(result).toEqual({ reminders_sent: 1, survivor_notices_sent: 1, links_cut_off: 1 });
@@ -365,7 +365,7 @@ describe("180-day cutoff: reminders, survivor notice, and the cutoff itself", ()
       attorney_access_notices: [],
     };
     const db = fakeAdmin(t);
-    const sendReminder = vi.fn(async () => undefined);
+    const sendReminder = vi.fn(async (_admin: unknown, _link: CutoffLink, _day: 150 | 165 | 175) => undefined);
     await runAttorneyAccessCutoffSweep(db, { sendReminder });
     const second = await runAttorneyAccessCutoffSweep(db, { sendReminder });
     expect(second).toEqual({ reminders_sent: 0, survivor_notices_sent: 0, links_cut_off: 0 });

@@ -448,6 +448,7 @@ export type Database = {
           clio_share_consent: boolean
           clio_share_consent_at: string | null
           created_at: string
+          cutoff_at: string | null
           deposition_prep_consent: boolean
           deposition_prep_consent_at: string | null
           expires_at: string | null
@@ -459,11 +460,16 @@ export type Database = {
           include_patterns: boolean
           include_voice_notes: boolean
           invitation_id: string | null
+          last_confirmed_at: string
           org_id: string | null
+          reminder_150_sent_at: string | null
+          reminder_165_sent_at: string | null
+          reminder_175_sent_at: string | null
           revoked_at: string | null
           scope_evidence: string[]
           scope_incidents: string[]
           status: string
+          survivor_notice_sent_at: string | null
         }
         Insert: {
           attorney_case_notes?: string | null
@@ -474,6 +480,7 @@ export type Database = {
           clio_share_consent?: boolean
           clio_share_consent_at?: string | null
           created_at?: string
+          cutoff_at?: string | null
           deposition_prep_consent?: boolean
           deposition_prep_consent_at?: string | null
           expires_at?: string | null
@@ -485,11 +492,16 @@ export type Database = {
           include_patterns?: boolean
           include_voice_notes?: boolean
           invitation_id?: string | null
+          last_confirmed_at?: string
           org_id?: string | null
+          reminder_150_sent_at?: string | null
+          reminder_165_sent_at?: string | null
+          reminder_175_sent_at?: string | null
           revoked_at?: string | null
           scope_evidence?: string[]
           scope_incidents?: string[]
           status?: string
+          survivor_notice_sent_at?: string | null
         }
         Update: {
           attorney_case_notes?: string | null
@@ -500,6 +512,7 @@ export type Database = {
           clio_share_consent?: boolean
           clio_share_consent_at?: string | null
           created_at?: string
+          cutoff_at?: string | null
           deposition_prep_consent?: boolean
           deposition_prep_consent_at?: string | null
           expires_at?: string | null
@@ -511,11 +524,16 @@ export type Database = {
           include_patterns?: boolean
           include_voice_notes?: boolean
           invitation_id?: string | null
+          last_confirmed_at?: string
           org_id?: string | null
+          reminder_150_sent_at?: string | null
+          reminder_165_sent_at?: string | null
+          reminder_175_sent_at?: string | null
           revoked_at?: string | null
           scope_evidence?: string[]
           scope_incidents?: string[]
           status?: string
+          survivor_notice_sent_at?: string | null
         }
         Relationships: [
           {
@@ -850,6 +868,7 @@ export type Database = {
           bar_number: string | null
           confidentiality_accepted_at: string | null
           created_at: string
+          declined_at: string | null
           email: string
           firm_id: string | null
           firm_name: string | null
@@ -857,16 +876,20 @@ export type Database = {
           jurisdiction: string | null
           onboarded: boolean
           role: string | null
+          suspended_at: string | null
           trial_comped: boolean
           trial_ends_at: string | null
           trial_started_at: string | null
           updated_at: string
           user_id: string
+          verification_status: string
+          verified_at: string | null
         }
         Insert: {
           bar_number?: string | null
           confidentiality_accepted_at?: string | null
           created_at?: string
+          declined_at?: string | null
           email: string
           firm_id?: string | null
           firm_name?: string | null
@@ -874,16 +897,20 @@ export type Database = {
           jurisdiction?: string | null
           onboarded?: boolean
           role?: string | null
+          suspended_at?: string | null
           trial_comped?: boolean
           trial_ends_at?: string | null
           trial_started_at?: string | null
           updated_at?: string
           user_id: string
+          verification_status?: string
+          verified_at?: string | null
         }
         Update: {
           bar_number?: string | null
           confidentiality_accepted_at?: string | null
           created_at?: string
+          declined_at?: string | null
           email?: string
           firm_id?: string | null
           firm_name?: string | null
@@ -891,11 +918,14 @@ export type Database = {
           jurisdiction?: string | null
           onboarded?: boolean
           role?: string | null
+          suspended_at?: string | null
           trial_comped?: boolean
           trial_ends_at?: string | null
           trial_started_at?: string | null
           updated_at?: string
           user_id?: string
+          verification_status?: string
+          verified_at?: string | null
         }
         Relationships: [
           {
@@ -992,6 +1022,109 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "attorney_time_logs_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attorney_verification_decisions: {
+        Row: {
+          attorney_user_id: string
+          created_at: string
+          decision: string
+          evidence: string
+          id: string
+          reason: string | null
+          reviewer_user_id: string
+        }
+        Insert: {
+          attorney_user_id: string
+          created_at?: string
+          decision: string
+          evidence: string
+          id?: string
+          reason?: string | null
+          reviewer_user_id: string
+        }
+        Update: {
+          attorney_user_id?: string
+          created_at?: string
+          decision?: string
+          evidence?: string
+          id?: string
+          reason?: string | null
+          reviewer_user_id?: string
+        }
+        Relationships: []
+      }
+      attorney_access_confirmations: {
+        Row: {
+          confirmed_by: string
+          confirmed_role: string
+          created_at: string
+          id: string
+          link_id: string
+        }
+        Insert: {
+          confirmed_by: string
+          confirmed_role: string
+          created_at?: string
+          id?: string
+          link_id: string
+        }
+        Update: {
+          confirmed_by?: string
+          confirmed_role?: string
+          created_at?: string
+          id?: string
+          link_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_access_confirmations_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attorney_access_notices: {
+        Row: {
+          action: string | null
+          action_at: string | null
+          client_user_id: string
+          created_at: string
+          id: string
+          link_id: string
+          notice_type: string
+          read_at: string | null
+        }
+        Insert: {
+          action?: string | null
+          action_at?: string | null
+          client_user_id: string
+          created_at?: string
+          id?: string
+          link_id: string
+          notice_type: string
+          read_at?: string | null
+        }
+        Update: {
+          action?: string | null
+          action_at?: string | null
+          client_user_id?: string
+          created_at?: string
+          id?: string
+          link_id?: string
+          notice_type?: string
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_access_notices_link_id_fkey"
             columns: ["link_id"]
             isOneToOne: false
             referencedRelation: "attorney_client_links"
@@ -2344,6 +2477,7 @@ export type Database = {
           is_draft: boolean
           is_sealed: boolean
           location: string | null
+          location_reveal_opt_in: boolean
           practical_consequence: string | null
           record_kind: string
           sealed_at: string | null
@@ -2383,6 +2517,7 @@ export type Database = {
           is_draft?: boolean
           is_sealed?: boolean
           location?: string | null
+          location_reveal_opt_in?: boolean
           practical_consequence?: string | null
           record_kind?: string
           sealed_at?: string | null
@@ -2422,6 +2557,7 @@ export type Database = {
           is_draft?: boolean
           is_sealed?: boolean
           location?: string | null
+          location_reveal_opt_in?: boolean
           practical_consequence?: string | null
           record_kind?: string
           sealed_at?: string | null

@@ -10,7 +10,7 @@ interface Props {
 const Email = ({ day = 150, daysRemaining = 30 }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm you're still on this case — {daysRemaining} days left.</Preview>
+    <Preview>{`Confirm you're still on this case — ${daysRemaining} days left.`}</Preview>
     <Body style={main}>
       <Container style={container}>
         <Text style={eyebrow}>PATTERNPROOF · CASE ACCESS CHECK-IN</Text>

@@ -56,7 +56,11 @@ export const ACCESS_CUTOFF_DAYS = 180;
 export function isPastAccessCutoff(lastConfirmedAt: string | null | undefined): boolean {
   if (!lastConfirmedAt) return false;
   const cutoffMs = new Date(lastConfirmedAt).getTime() + ACCESS_CUTOFF_DAYS * 24 * 60 * 60 * 1000;
-  return Date.now() > cutoffMs;
+  // >= , not >: the instant 180 days have elapsed, access is already over —
+  // a strict > left a one-millisecond window where a request landing
+  // exactly on the boundary was (incorrectly, and non-deterministically in
+  // tests) still let through.
+  return Date.now() >= cutoffMs;
 }
 
 export async function assertAttorney(admin: Admin, userId: string) {
