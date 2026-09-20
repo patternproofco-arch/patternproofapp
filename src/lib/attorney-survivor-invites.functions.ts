@@ -21,6 +21,12 @@ export const createSurvivorInvite = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabaseAdmin = await admin();
+    const {
+      assertAttorneyVerified,
+      assertNotLegalAidOrgWidePull,
+    } = await import("@/lib/professional-verification.server");
+    await assertAttorneyVerified(supabaseAdmin, context.userId);
+    await assertNotLegalAidOrgWidePull(supabaseAdmin, context.userId);
     const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
     const { data: row, error } = await supabaseAdmin.from("attorney_survivor_invites").insert({
       attorney_user_id: context.userId,
@@ -47,6 +53,12 @@ export const createSurvivorInvitesBulk = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabaseAdmin = await admin();
+    const {
+      assertAttorneyVerified,
+      assertNotLegalAidOrgWidePull,
+    } = await import("@/lib/professional-verification.server");
+    await assertAttorneyVerified(supabaseAdmin, context.userId);
+    await assertNotLegalAidOrgWidePull(supabaseAdmin, context.userId);
     const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
     type Outcome = { index: number; ok: true; email: string; invite_token: string; id: string } | { index: number; ok: false; email: string; error: string };
     const results: Outcome[] = [];

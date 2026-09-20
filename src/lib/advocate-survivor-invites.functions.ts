@@ -32,8 +32,10 @@ async function verifiedAccountEmail(userId: string) {
 }
 
 function onboardingComplete(user: { user_metadata?: Record<string, unknown> | null }) {
-  return (user.user_metadata as { onboarding_complete?: boolean } | null | undefined)
-    ?.onboarding_complete === true;
+  return (
+    (user.user_metadata as { onboarding_complete?: boolean } | null | undefined)
+      ?.onboarding_complete === true
+  );
 }
 
 async function sendAdvocateSurvivorInviteEmail(input: {
@@ -47,8 +49,7 @@ async function sendAdvocateSurvivorInviteEmail(input: {
   resend?: boolean;
 }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const origin =
-    process.env.PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://pattern-proof.tech";
+  const origin = process.env.PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://pattern-proof.tech";
   const { data: prof } = await supabaseAdmin
     .from("advocate_profiles")
     .select("full_name,org_name")
@@ -75,7 +76,9 @@ async function sendAdvocateSurvivorInviteEmail(input: {
     .update({
       email_status: delivery.sent ? "sent" : "failed",
       email_last_attempt_at: new Date().toISOString(),
-      email_last_error: delivery.sent ? null : (delivery.error ?? "Delivery could not be confirmed."),
+      email_last_error: delivery.sent
+        ? null
+        : (delivery.error ?? "Delivery could not be confirmed."),
     })
     .eq("id", input.inviteId);
   return delivery;
@@ -95,6 +98,12 @@ export const createAdvocateSurvivorInvite = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabaseAdmin = await requireAdvocate(context.userId);
+    const { assertAdvocateOrgVerifiedIfAny, assertNotLegalAidOrgWidePull } =
+      await import("@/lib/professional-verification.server");
+    // Legal-aid dual role ≠ org-wide pull. Org-affiliated advocates may mint
+    // only while their org is live Verified (Pending/Suspended deny).
+    await assertNotLegalAidOrgWidePull(supabaseAdmin, context.userId);
+    await assertAdvocateOrgVerifiedIfAny(supabaseAdmin, context.userId);
     const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
     const { data: row, error } = await supabaseAdmin
       .from("advocate_survivor_invites")
@@ -257,9 +266,7 @@ export const peekAdvocateSurvivorInvite = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: inv } = await supabaseAdmin
       .from("advocate_survivor_invites")
-      .select(
-        "id,survivor_email,survivor_name,personal_note,advocate_user_id,status,expires_at",
-      )
+      .select("id,survivor_email,survivor_name,personal_note,advocate_user_id,status,expires_at")
       .eq("invite_token", data.token)
       .maybeSingle();
     if (!inv) return { status: "not-found" as const };
@@ -300,6 +307,10 @@ export const declineAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       .maybeSingle();
     const inv = found as InviteRow | null;
     assertInviteUsable(inv, email);
+    const { assertAdvocateOrgVerifiedIfAny, assertNotLegalAidOrgWidePull } =
+      await import("@/lib/professional-verification.server");
+    await assertAdvocateOrgVerifiedIfAny(supabaseAdmin, inv.advocate_user_id);
+    await assertNotLegalAidOrgWidePull(supabaseAdmin, inv.advocate_user_id);
 
     const { error } = await supabaseAdmin
       .from("advocate_survivor_invites")
@@ -329,6 +340,10 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       .maybeSingle();
     const inv = found as (InviteRow & Record<string, unknown>) | null;
     assertInviteUsable(inv, email);
+    const { assertAdvocateOrgVerifiedIfAny, assertNotLegalAidOrgWidePull } =
+      await import("@/lib/professional-verification.server");
+    await assertAdvocateOrgVerifiedIfAny(supabaseAdmin, inv.advocate_user_id);
+    await assertNotLegalAidOrgWidePull(supabaseAdmin, inv.advocate_user_id);
 
     const scope = data.scope;
     assertScopeChosen(scope);

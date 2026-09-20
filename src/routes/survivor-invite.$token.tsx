@@ -36,6 +36,7 @@ function SurvivorInvitePage() {
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmedAttorney, setConfirmedAttorney] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [step, setStep] = useState<"auth" | "scope">("auth");
@@ -140,7 +141,8 @@ function SurvivorInvitePage() {
         scope_incidents: incidentMode === "all" ? [] : selectedIncidents,
         scope_evidence: evidenceMode === "all" ? [] : selectedEvidence,
       };
-      await accept({ data: { token, scope } });
+      if (!confirmedAttorney) throw new Error("Confirm this is your attorney before sharing.");
+      await accept({ data: { token, scope, is_my_attorney: true } });
       setDone(true);
       toast("Connected. Your attorney now has access to your case.");
       setTimeout(() => navigate({ to: "/dashboard", replace: true }), 1500);
@@ -497,10 +499,21 @@ function SurvivorInvitePage() {
             </p>
           </div>
 
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={confirmedAttorney}
+              onChange={(e) => setConfirmedAttorney(e.target.checked)}
+            />
+            <span>
+              Is this your attorney? I confirm this is my attorney and want to share the records
+              selected above.
+            </span>
+          </label>
           <button
             type="button"
             onClick={confirmScope}
-            disabled={busy}
+            disabled={busy || !confirmedAttorney}
             style={{
               padding: "12px 18px",
               background: "var(--pp-accent)",

@@ -1713,7 +1713,7 @@ function TimelineTab({
                         </div>
                         {i.abuse_types?.length ? (
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
-                            {i.abuse_types.map((t) => (
+                            {i.abuse_types.map((t: string) => (
                               <span key={t} className={`att-tag att-tag-${t}`}>
                                 {typeLabel(t)}
                               </span>

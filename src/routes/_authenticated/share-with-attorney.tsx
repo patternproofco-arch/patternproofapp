@@ -21,6 +21,7 @@ import {
   revokeInvitation,
   revokeLink,
 } from "@/lib/attorney-invitations.functions";
+import { confirmAttorneyShareIdentity } from "@/lib/professional-verification.functions";
 import { sendTransactionalEmail } from "@/lib/email/send";
 import {
   listMessages,
@@ -46,6 +47,7 @@ function ShareWithAttorney() {
   const { confirm, dialog } = useConfirm();
   const list = useServerFn(listMyInvitations);
   const create = useServerFn(createInvitation);
+  const confirmIdentity = useServerFn(confirmAttorneyShareIdentity);
   const revokeInv = useServerFn(revokeInvitation);
   const revokeLk = useServerFn(revokeLink);
   const setPhrasingConsent = useServerFn(setDepositionPrepConsent);
@@ -55,6 +57,7 @@ function ShareWithAttorney() {
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState<Record<string, number>>({});
   const [messagingLinkId, setMessagingLinkId] = useState<string | null>(null);
+  const [confirmedAttorney, setConfirmedAttorney] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [firm, setFirm] = useState("");
@@ -115,6 +118,10 @@ function ShareWithAttorney() {
   }, [unreadFn]);
 
   const submit = async () => {
+    if (!confirmedAttorney) {
+      toast("Confirm this is your attorney before sharing.");
+      return;
+    }
     if (!email.trim()) {
       toast("Add an email.");
       return;
@@ -124,6 +131,7 @@ function ShareWithAttorney() {
       const r = await create({
         data: {
           attorney_email: email.trim(),
+          is_my_attorney: true,
           attorney_name: name.trim() || undefined,
           firm_name: firm.trim() || undefined,
           personal_note: personalNote.trim() || undefined,
@@ -156,6 +164,7 @@ function ShareWithAttorney() {
       setJustCreated({ url, email: recipient, sent });
       setOpen(false);
       setEmail("");
+      setConfirmedAttorney(false);
       setName("");
       setFirm("");
       setPersonalNote("");
@@ -293,7 +302,10 @@ function ShareWithAttorney() {
                   className="input-pp mt-1"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setConfirmedAttorney(false);
+                  }}
                 />
               </div>
               <div>
@@ -384,8 +396,23 @@ function ShareWithAttorney() {
               />
             </div>
 
+            <label className="flex items-start gap-2 text-[13px]">
+              <input
+                type="checkbox"
+                checked={confirmedAttorney}
+                onChange={(e) => setConfirmedAttorney(e.target.checked)}
+              />
+              <span>
+                Is this your attorney? I confirm that {email || "the recipient above"} is my
+                attorney and I want to share the selected records.
+              </span>
+            </label>
             <div className="flex gap-2">
-              <button onClick={submit} disabled={busy} className="btn-primary">
+              <button
+                onClick={submit}
+                disabled={busy || !confirmedAttorney}
+                className="btn-primary"
+              >
                 {busy ? "Creating…" : "Generate Secure Access Link"}
               </button>
               <button onClick={() => setOpen(false)} className="btn-ghost">
@@ -617,6 +644,30 @@ function ShareWithAttorney() {
                   </div>
                 </div>
                 <div className="flex gap-2">
+                  {!i.survivor_confirmed_attorney_at && (
+                    <button
+                      className="btn-primary"
+                      onClick={async () => {
+                        const yes = await confirm({
+                          title: "Is this your attorney?",
+                          body: `Confirm that ${i.attorney_email} is your attorney before access is granted.`,
+                          confirmLabel: "Yes, my attorney",
+                          cancelLabel: "Cancel",
+                        });
+                        if (!yes) return;
+                        try {
+                          await confirmIdentity({
+                            data: { invitation_id: i.id, is_my_attorney: true },
+                          });
+                          load();
+                        } catch (e) {
+                          toast(e instanceof Error ? e.message : "Could not confirm attorney.");
+                        }
+                      }}
+                    >
+                      Confirm attorney
+                    </button>
+                  )}
                   <button
                     onClick={() => copy(i.invite_token)}
                     className="btn-ghost inline-flex items-center gap-1 text-[12px]"
