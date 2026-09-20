@@ -8,7 +8,7 @@ import {
 } from "@/lib/attorney-access.server";
 import {
   nextCutoffAction,
-  CutoffSweepResult,
+  runAttorneyAccessCutoffSweep,
   REMINDER_DAY_150,
   REMINDER_DAY_165,
   REMINDER_DAY_175,
@@ -258,7 +258,7 @@ describe("180-day cutoff", () => {
       notifications: [],
     };
     const sent: Array<{ id: string; day: number }> = [];
-    const result = await CutoffSweepResult(fakeAdmin(t), {
+    const result = await runAttorneyAccessCutoffSweep(fakeAdmin(t), {
       sendReminder: async (_admin, link, day) => {
         sent.push({ id: link.id, day });
       },
