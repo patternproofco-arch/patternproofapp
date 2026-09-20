@@ -57,6 +57,13 @@ class Query implements PromiseLike<{ data: unknown; error: null }> {
     for (const r of this.rows.filter((r) => this.filters.every((f) => f(r)))) Object.assign(r, patch);
     return this;
   }
+  insert(row: Record<string, unknown> | Array<Record<string, unknown>>) {
+    const rowsIn = Array.isArray(row) ? row : [row];
+    for (const r of rowsIn) {
+      this.rows.push({ id: (r.id as string | undefined) ?? `fake-${this.rows.length + 1}`, ...r });
+    }
+    return this;
+  }
 
   private run() {
     let out = this.rows.filter((r) => this.filters.every((f) => f(r)));

@@ -368,7 +368,10 @@ export const listMyClients = createServerFn({ method: "GET" })
             .eq("status", "open"),
         ]);
 
-        const incidents = inc.data ?? [];
+        const { redactIncidentLocation } = await import("@/lib/attorney-access.server");
+    const incidents = ((incQ?.data ?? inc?.data ?? []) as Array<Record<string, unknown>>).map((row) =>
+      redactIncidentLocation(row as { location?: unknown; location_reveal_opt_in?: unknown }),
+    );
         const datedIncidents = incidents.filter((r): r is typeof r & { date: string } => !!r.date);
         const lastIncident = datedIncidents.reduce<string | null>(
           (acc, r) => (!acc || r.date > acc ? r.date : acc),
@@ -843,7 +846,10 @@ export const getClientCase = createServerFn({ method: "POST" })
             .maybeSingle(),
     ]);
 
-    const incidents = incQ.data ?? [];
+    const { redactIncidentLocation } = await import("@/lib/attorney-access.server");
+    const incidents = ((incQ?.data ?? inc?.data ?? []) as Array<Record<string, unknown>>).map((row) =>
+      redactIncidentLocation(row as { location?: unknown; location_reveal_opt_in?: unknown }),
+    );
     // The attorney should be able to see the exact terms they hold access
     // under, not just the data itself.
     const { data: grantInv } = link.id
