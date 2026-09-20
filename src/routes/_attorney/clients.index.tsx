@@ -21,6 +21,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AttorneyVerificationStatus } from "@/components/AttorneyVerificationStatus";
 import { listMyClients } from "@/lib/attorney-portal.functions";
 import { listClioMatterLinks, unlinkClioMatter } from "@/lib/clio-matter-links.functions";
 import {
@@ -82,16 +83,24 @@ function ClientsIndex() {
   }, [reloadMatterLinks]);
 
   useEffect(() => {
-    fetcher().then((r) => setClients(r.clients));
+    fetcher()
+      .then((r) => setClients(r.clients))
+      .catch(() => setClients([]));
   }, [fetcher]);
   useEffect(() => {
-    invitesFetcher().then((r) => setInvites(r.invites));
+    invitesFetcher()
+      .then((r) => setInvites(r.invites))
+      .catch(() => setInvites([]));
   }, [invitesFetcher]);
 
-  const reloadInvites = () => invitesFetcher().then((r) => setInvites(r.invites));
+  const reloadInvites = () =>
+    invitesFetcher()
+      .then((r) => setInvites(r.invites))
+      .catch(() => setInvites([]));
 
   return (
     <div>
+      <AttorneyVerificationStatus />
       <div className="att-eyebrow">Case files</div>
       <h1 className="att-page-title">Matters</h1>
       <p

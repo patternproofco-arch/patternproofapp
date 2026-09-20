@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 import { ensureSurvivorRole } from "@/lib/roles.functions";
+import { ProfessionalSuspensionNotices } from "@/components/ProfessionalSuspensionNotices";
 import { AppShell } from "@/components/AppShell";
 import { SettingsProvider, useSettings } from "@/lib/settings-context";
 import { PinLockProvider, usePinLock } from "@/lib/pin-lock";
@@ -89,8 +90,7 @@ function Gate() {
   }, [loading, user, ensureRole, navigate]);
 
   const onboardingComplete = !!(
-    user &&
-    ((user.user_metadata ?? {}) as { onboarding_complete?: boolean }).onboarding_complete
+    user && ((user.user_metadata ?? {}) as { onboarding_complete?: boolean }).onboarding_complete
   );
   const survivorNeedsOnboarding = isSurvivor === true && !onboardingComplete;
 
@@ -138,5 +138,10 @@ function Gate() {
     return <PinScreen />;
   }
 
-  return <AppShell />;
+  return (
+    <>
+      <ProfessionalSuspensionNotices />
+      <AppShell />
+    </>
+  );
 }

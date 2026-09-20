@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
+import { ProfessionalReviewPanel } from "@/components/ProfessionalReviewPanel";
 import { toast } from "sonner";
 import {
   approveOrgAccessByEmail,
@@ -14,7 +15,8 @@ export const Route = createFileRoute("/_authenticated/admin/org-requests")({
       { title: "Partner verification — PatternProof" },
       {
         name: "description",
-        content: "Review and approve DV organization access requests for the PatternProof partner portal.",
+        content:
+          "Review and approve DV organization access requests for the PatternProof partner portal.",
       },
       { name: "robots", content: "noindex, nofollow" },
     ],
@@ -80,7 +82,9 @@ function OrgRequestsAdmin() {
   };
 
   return (
-    <div style={{ maxWidth: 860, margin: "0 auto", padding: "28px 20px", display: "grid", gap: 20 }}>
+    <div
+      style={{ maxWidth: 860, margin: "0 auto", padding: "28px 20px", display: "grid", gap: 20 }}
+    >
       <div>
         <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, margin: 0 }}>
           Partner verification
@@ -91,6 +95,7 @@ function OrgRequestsAdmin() {
         </p>
       </div>
 
+      <ProfessionalReviewPanel />
       <form onSubmit={addApproval} className="card-pp" style={{ display: "grid", gap: 10 }}>
         <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, margin: 0 }}>
           Approve an organization directly

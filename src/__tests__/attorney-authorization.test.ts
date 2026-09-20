@@ -28,6 +28,18 @@ const HOUR = 3600_000;
 const past = new Date(Date.now() - HOUR).toISOString();
 const future = new Date(Date.now() + HOUR).toISOString();
 
+function verifiedAttorney(userId: string) {
+  return {
+    user_id: userId,
+    verification_status: "verified",
+    verification_expires_at: future,
+    bar_callback_phone: "555-0100",
+    address_visible_to_survivors: false,
+    legal_aid_dual_role: false,
+    office_address: null,
+  };
+}
+
 function world(overrides: Partial<Tables> = {}): Tables {
   return {
     user_roles: [
@@ -38,6 +50,21 @@ function world(overrides: Partial<Tables> = {}): Tables {
     firm_members: [
       { user_id: ATTY_A, firm_id: FIRM },
       { user_id: ATTY_B, firm_id: FIRM },
+    ],
+    attorney_profiles: [verifiedAttorney(ATTY_A), verifiedAttorney(ATTY_B)],
+    attorney_bar_jurisdictions: [
+      {
+        attorney_user_id: ATTY_A,
+        jurisdiction: "NJ",
+        verification_status: "verified",
+        verification_expires_at: future,
+      },
+      {
+        attorney_user_id: ATTY_B,
+        jurisdiction: "NJ",
+        verification_status: "verified",
+        verification_expires_at: future,
+      },
     ],
     attorney_client_links: [
       {
@@ -55,6 +82,8 @@ function world(overrides: Partial<Tables> = {}): Tables {
         scope_evidence: [],
         case_id: CASE_A,
         expires_at: null,
+        created_at: new Date().toISOString(),
+        case_engagement_confirmed_at: new Date().toISOString(),
       },
     ],
     cases: [
@@ -103,7 +132,9 @@ describe("attorney access — the owning attorney", () => {
   });
 
   it("cannot reach a survivor who never shared with them", async () => {
-    await expect(assertLink(fakeAdmin(world()), ATTY_A, SURV_B)).rejects.toThrow("No active access");
+    await expect(assertLink(fakeAdmin(world()), ATTY_A, SURV_B)).rejects.toThrow(
+      "No active access",
+    );
     await expect(assertCaseAccess(fakeAdmin(world()), ATTY_A, SURV_B)).rejects.toThrow(
       "No active access",
     );
@@ -176,7 +207,9 @@ describe("attorney access — firm colleagues", () => {
     t["attorney_client_links"]![0]!["status"] = "revoked";
     const ids = await verifiedFirmGrantLinkIds(fakeAdmin(t), ATTY_B, [{ client_link_id: LINK_A }]);
     expect(ids.size).toBe(0);
-    await expect(assertCaseAccess(fakeAdmin(t), ATTY_B, SURV_A)).rejects.toThrow("No active access");
+    await expect(assertCaseAccess(fakeAdmin(t), ATTY_B, SURV_A)).rejects.toThrow(
+      "No active access",
+    );
   });
 
   it("refuses an attorney with no grant and no collaboration at all", async () => {
@@ -226,5 +259,92 @@ describe("attorney access — role check", () => {
     await expect(assertAttorney(fakeAdmin(world()), SURV_A)).rejects.toThrow(
       "Attorney role required",
     );
+  });
+});
+
+describe("attorney verification gate", () => {
+  it("Pending attorney cannot open a grant even with an active link", async () => {
+    const t = world();
+    t["attorney_profiles"]![0]!["verification_status"] = "pending";
+    await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow(/not verified/i);
+  });
+
+  it("Suspended attorney cannot open a grant", async () => {
+    const t = world();
+    t["attorney_profiles"]![0]!["verification_status"] = "suspended";
+    await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow(/not verified/i);
+  });
+
+  it("lapsed 6-month engagement fails closed", async () => {
+    const t = world();
+    t["attorney_client_links"]![0]!["created_at"] = "2025-01-01T00:00:00Z";
+    t["attorney_client_links"]![0]!["case_engagement_confirmed_at"] = null;
+    await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow(/still-on-case/i);
+  });
+});
+
+describe("verification review regression cases", () => {
+  const collabWorld = () =>
+    world({
+      case_collaborators: [
+        {
+          id: "qa-collab",
+          link_id: LINK_A,
+          collaborator_user_id: ATTY_B,
+          status: "active",
+          role: "attorney",
+        },
+      ],
+    });
+  it.each(["pending", "suspended", "declined", "needs_more_info"])(
+    "denies %s collaborators on another attorney's active thread",
+    async (status) => {
+      const t = collabWorld();
+      t.attorney_profiles[1].verification_status = status;
+      await expect(assertLinkParticipant(fakeAdmin(t), LINK_A, ATTY_B)).rejects.toThrow(
+        /not verified/i,
+      );
+    },
+  );
+  it("rechecks verification in the same session", async () => {
+    const t = collabWorld();
+    const db = fakeAdmin(t);
+    await expect(assertLinkParticipant(db, LINK_A, ATTY_B)).resolves.toMatchObject({
+      role: "collaborator",
+    });
+    t.attorney_profiles[1].verification_status = "suspended";
+    await expect(assertLinkParticipant(db, LINK_A, ATTY_B)).rejects.toThrow(/not verified/i);
+  });
+  it("denies access when the owning attorney's review expires", async () => {
+    const t = collabWorld();
+    t.attorney_profiles[0].verification_expires_at = past;
+    await expect(assertCaseAccess(fakeAdmin(t), ATTY_B, SURV_A)).rejects.toThrow(/not verified/i);
+    await expect(assertLinkParticipant(fakeAdmin(t), LINK_A, ATTY_B)).rejects.toThrow(
+      /not verified/i,
+    );
+  });
+  it("blocks lapsed engagement for both owner and collaborator messaging but preserves survivor access", async () => {
+    const t = collabWorld();
+    Object.assign(t.attorney_client_links[0], {
+      created_at: "2025-01-01T00:00:00Z",
+      case_engagement_confirmed_at: null,
+    });
+    for (const id of [ATTY_A, ATTY_B])
+      await expect(assertLinkParticipant(fakeAdmin(t), LINK_A, id)).rejects.toThrow(
+        /still-on-case/i,
+      );
+    await expect(assertLinkParticipant(fakeAdmin(t), LINK_A, SURV_A)).resolves.toMatchObject({
+      role: "survivor",
+    });
+  });
+  it("denies a suspended second jurisdiction even when the first is verified", async () => {
+    const t = world();
+    t.attorney_bar_jurisdictions.push({
+      attorney_user_id: ATTY_A,
+      jurisdiction: "PA",
+      verification_status: "suspended",
+      verification_expires_at: future,
+    });
+    await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow(/not verified/i);
   });
 });

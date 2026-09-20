@@ -77,6 +77,16 @@ export async function resolveAdvocateGrant(
   }
   if (!notExpired(link, invExpires)) return null;
 
+  // Org verification gate on grant read — Suspended / Pending fail closed.
+  try {
+    const { assertAdvocateOrgVerifiedIfAny } = await import(
+      "@/lib/professional-verification.server"
+    );
+    await assertAdvocateOrgVerifiedIfAny(admin, opts.advocateUserId);
+  } catch {
+    return null;
+  }
+
   let includeAllIncidents = !!link.include_all_incidents;
   let includeAllEvidence = !!link.include_all_evidence;
   let scopedIncidents = (link.scope_incidents ?? []) as string[];

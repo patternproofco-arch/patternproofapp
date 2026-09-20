@@ -23,6 +23,11 @@ export const startClioConnect = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Clio stays locked until human Verified CLEAR (payment never unlocks).
+    const { assertAttorneyVerified } = await import(
+      "@/lib/professional-verification.server"
+    );
+    await assertAttorneyVerified(supabaseAdmin, context.userId);
     // Housekeeping: expired states are useless and must not linger.
     await supabaseAdmin
       .from("clio_oauth_states")
@@ -105,6 +110,11 @@ export const listMyClioMatters = createServerFn({ method: "POST" })
     if (role !== "attorney" && role !== "collaborator") {
       throw new Error("This area is for attorney accounts.");
     }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertAttorneyVerified } = await import(
+      "@/lib/professional-verification.server"
+    );
+    await assertAttorneyVerified(supabaseAdmin, context.userId);
     const { listClioMatters } = await import("@/lib/clio-matters.server");
     const matters = await listClioMatters(context.userId, { query: data.query });
     return { matters };
