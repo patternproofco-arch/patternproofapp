@@ -4,4 +4,13 @@
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  // Cron Triggers (Nitro cloudflare:scheduled plugins):
+  //  - */5 * * * *  → email-queue retry backstop (email-cron.server.ts)
+  //  - 15 13 * * *  → attorney 180-day access cutoff sweep
+  //                   (attorney-access-cutoff-cron.server.ts)
+  // Manual/HTTP fallback: POST /api/cron/attorney-access-cutoff with
+  // header x-cron-secret: $CRON_SECRET
+  "triggers": {
+    "crons": ["*/5 * * * *", "15 13 * * *"],
+  },
 }

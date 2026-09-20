@@ -48,6 +48,25 @@ export function isExpired(expiresAt: string | null | undefined): boolean {
   );
 }
 
+export {
+  ACCESS_CUTOFF_DAYS,
+  isPastAccessCutoff,
+  engagementClockStart,
+} from "@/lib/professional-verification.server";
+
+/**
+ * Incident free-text `location` can be a home address. Default redacted for
+ * attorney reads unless the survivor opted that specific incident in.
+ */
+export function redactIncidentLocation<
+  T extends { location?: unknown; location_reveal_opt_in?: unknown },
+>(incident: T): Omit<T, "location_reveal_opt_in"> {
+  const clone = { ...incident } as T & { location?: unknown; location_reveal_opt_in?: unknown };
+  if (!clone.location_reveal_opt_in) clone.location = null;
+  delete clone.location_reveal_opt_in;
+  return clone as Omit<T, "location_reveal_opt_in">;
+}
+
 async function assertVerifiedAttorneyAccess(admin: Admin, userId: string) {
   const { assertAttorneyVerified } = await import("@/lib/professional-verification.server");
   await assertAttorneyVerified(admin, userId);

@@ -46,29 +46,41 @@ export function isLiveVerifiedStatus(
   return Number.isFinite(exp) && exp > now;
 }
 
-/** 6-month still-on-case: unconfirmed after six months = fail closed. */
+/** Exact day-180 still-on-case clock. Fail closed at day 180 even if cron lags. */
+export const ACCESS_CUTOFF_DAYS = 180;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Clock starts at last confirm, else link created_at. Missing either → fail closed. */
+export function engagementClockStart(
+  linkedAt: string | null | undefined,
+  confirmedAt: string | null | undefined,
+): string | null {
+  return confirmedAt || linkedAt || null;
+}
+
+/**
+ * True once the 180-day window has elapsed (inclusive). Uses >= so a request
+ * landing exactly on day 180 fails closed even if the cutoff sweep has not
+ * flipped status yet this cycle.
+ */
+export function isPastAccessCutoff(
+  linkedAt: string | null | undefined,
+  confirmedAt: string | null | undefined,
+  now = Date.now(),
+): boolean {
+  const start = engagementClockStart(linkedAt, confirmedAt);
+  if (!start) return true;
+  const t = new Date(start).getTime();
+  if (!Number.isFinite(t)) return true;
+  return now >= t + ACCESS_CUTOFF_DAYS * DAY_MS;
+}
+
 export function isCaseEngagementCurrent(
   linkedAt: string | null | undefined,
   confirmedAt: string | null | undefined,
   now = Date.now(),
 ): boolean {
-  if (!linkedAt) return false;
-  const linked = new Date(linkedAt).getTime();
-  if (!Number.isFinite(linked)) return false;
-  const cutoff = new Date(now);
-  const day = cutoff.getUTCDate();
-  cutoff.setUTCDate(1);
-  cutoff.setUTCMonth(cutoff.getUTCMonth() - 6);
-  const lastDay = new Date(
-    Date.UTC(cutoff.getUTCFullYear(), cutoff.getUTCMonth() + 1, 0),
-  ).getUTCDate();
-  cutoff.setUTCDate(Math.min(day, lastDay));
-  const threshold = cutoff.getTime();
-  if (linked > now) return false;
-  if (linked > threshold) return true;
-  if (!confirmedAt) return false;
-  const confirmed = new Date(confirmedAt).getTime();
-  return Number.isFinite(confirmed) && confirmed <= now && confirmed > threshold;
+  return !isPastAccessCutoff(linkedAt, confirmedAt, now);
 }
 
 export async function loadOrgVerification(admin: Admin, orgId: string) {
