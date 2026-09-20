@@ -12,6 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
 import { totpStatus, sessionNeedsMfa } from "@/lib/mfa";
+import { formatAuthError, formatSignupNoSession } from "@/lib/auth-errors";
 
 type Mode = "login" | "signup";
 
@@ -77,7 +78,7 @@ export function AuthPage({
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -88,6 +89,13 @@ export function AuthPage({
           },
         });
         if (error) throw error;
+        // No session: email confirmation required, or duplicate email (empty identities).
+        if (!data.session) {
+          const friendly = formatSignupNoSession(data.user);
+          setAuthError(friendly);
+          toast(friendly);
+          return;
+        }
         await ensureRole().catch(() => undefined);
         if (redirectTo && redirectTo.startsWith("/")) {
           navigate({ to: redirectTo, replace: true });
@@ -102,20 +110,7 @@ export function AuthPage({
         navigate({ to, replace: true });
       }
     } catch (err: unknown) {
-      const rawMsg =
-        err instanceof Error ? err.message : "Something didn't work. Try again in a moment.";
-      // Never let a signup error confirm or deny that an email already has
-      // an account — that's an enumeration channel a stalker could use to
-      // check whether a specific person has signed up. Supabase's own
-      // "already registered" wording (when it surfaces) is replaced with a
-      // neutral message that reads the same either way.
-      const enumeratesAccount =
-        mode === "signup" && /already registered|already exists|already in use/i.test(rawMsg);
-      const friendly = enumeratesAccount
-        ? "Check your email to continue. If this address is new, confirm it to finish creating your account. If it's already registered, sign in instead."
-        : mode === "login"
-          ? "We couldn't sign you in. " + rawMsg
-          : "We couldn't create your account. " + rawMsg;
+      const friendly = formatAuthError(err, mode);
       setAuthError(friendly);
       toast(friendly);
     } finally {
@@ -125,9 +120,12 @@ export function AuthPage({
 
   const signInWithGoogle = async () => {
     if (consentBlocked) {
-      toast("Please review and check the box to agree to the Terms and Privacy Policy first.");
+      const msg = "Please review and check the box to agree to the Terms and Privacy Policy first.";
+      setAuthError(msg);
+      toast(msg);
       return;
     }
+    setAuthError(null);
     try {
       if (redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")) {
         try {
@@ -140,12 +138,19 @@ export function AuthPage({
         redirect_uri: window.location.origin + "/auth/callback",
       });
       if (result.error) {
-        const msg = result.error instanceof Error ? result.error.message : "Try again in a moment.";
-        toast("We couldn't reach Google. " + msg);
+        const friendly = formatAuthError(
+          result.error instanceof Error
+            ? result.error
+            : new Error("We couldn't reach Google. Try again in a moment."),
+          mode,
+        );
+        setAuthError(friendly);
+        toast(friendly);
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Try again in a moment.";
-      toast("We couldn't reach Google. " + msg);
+      const friendly = formatAuthError(err, mode);
+      setAuthError(friendly);
+      toast(friendly);
     }
   };
 
@@ -235,7 +240,12 @@ export function AuthPage({
               autoComplete="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (authError) setAuthError(null);
+              }}
+              aria-invalid={authError ? true : undefined}
+              aria-describedby={authError ? "auth-error-msg" : undefined}
               className="input-pp"
             />
             <input
@@ -245,11 +255,27 @@ export function AuthPage({
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (authError) setAuthError(null);
+              }}
+              aria-invalid={authError ? true : undefined}
+              aria-describedby={authError ? "auth-error-msg" : undefined}
               className="input-pp"
             />
             {authError && (
-              <p className="mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              <p
+                role="alert"
+                aria-live="assertive"
+                id="auth-error-msg"
+                data-testid="auth-error"
+                className="mt-2 rounded-xl px-3 py-2 text-[13px] font-semibold"
+                style={{
+                  color: "#9B2C3E",
+                  background: "rgba(155, 44, 62, 0.08)",
+                  border: "1px solid rgba(155, 44, 62, 0.25)",
+                }}
+              >
                 {authError}
               </p>
             )}
