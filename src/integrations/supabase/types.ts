@@ -387,6 +387,114 @@ export type Database = {
         }
         Relationships: []
       }
+      attorney_bar_jurisdictions: {
+        Row: {
+          attorney_user_id: string
+          bar_callback_phone: string | null
+          bar_number: string | null
+          created_at: string
+          id: string
+          jurisdiction: string
+          updated_at: string
+          verification_expires_at: string | null
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          attorney_user_id: string
+          bar_callback_phone?: string | null
+          bar_number?: string | null
+          created_at?: string
+          id?: string
+          jurisdiction: string
+          updated_at?: string
+          verification_expires_at?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          attorney_user_id?: string
+          bar_callback_phone?: string | null
+          bar_number?: string | null
+          created_at?: string
+          id?: string
+          jurisdiction?: string
+          updated_at?: string
+          verification_expires_at?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
+      professional_suspension_notices: {
+        Row: {
+          created_at: string
+          id: string
+          seen_at: string | null
+          subject_id: string
+          subject_kind: string
+          survivor_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          seen_at?: string | null
+          subject_id: string
+          subject_kind: string
+          survivor_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          seen_at?: string | null
+          subject_id?: string
+          subject_kind?: string
+          survivor_user_id?: string
+        }
+        Relationships: []
+      }
+      professional_verification_proofs: {
+        Row: {
+          byte_size: number | null
+          content_type: string | null
+          created_at: string
+          id: string
+          original_filename: string | null
+          reviewer_note: string | null
+          storage_path: string
+          subject_id: string
+          subject_kind: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          byte_size?: number | null
+          content_type?: string | null
+          created_at?: string
+          id?: string
+          original_filename?: string | null
+          reviewer_note?: string | null
+          storage_path: string
+          subject_id: string
+          subject_kind: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          byte_size?: number | null
+          content_type?: string | null
+          created_at?: string
+          id?: string
+          original_filename?: string | null
+          reviewer_note?: string | null
+          storage_path?: string
+          subject_id?: string
+          subject_kind?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       attorney_access: {
         Row: {
           access_level: Database["public"]["Enums"]["access_level"]
@@ -443,6 +551,8 @@ export type Database = {
           attorney_case_notes: string | null
           attorney_case_notes_updated_at: string | null
           attorney_user_id: string
+          case_engagement_confirmed_at: string | null
+          case_engagement_confirmed_by: string | null
           case_id: string | null
           client_user_id: string
           clio_share_consent: boolean
@@ -469,6 +579,8 @@ export type Database = {
           attorney_case_notes?: string | null
           attorney_case_notes_updated_at?: string | null
           attorney_user_id: string
+          case_engagement_confirmed_at?: string | null
+          case_engagement_confirmed_by?: string | null
           case_id?: string | null
           client_user_id: string
           clio_share_consent?: boolean
@@ -495,6 +607,8 @@ export type Database = {
           attorney_case_notes?: string | null
           attorney_case_notes_updated_at?: string | null
           attorney_user_id?: string
+          case_engagement_confirmed_at?: string | null
+          case_engagement_confirmed_by?: string | null
           case_id?: string | null
           client_user_id?: string
           clio_share_consent?: boolean
@@ -675,6 +789,8 @@ export type Database = {
         Row: {
           accepted_at: string | null
           accepted_by: string | null
+          survivor_confirmed_attorney_at: string | null
+          survivor_confirmed_attorney_by: string | null
           attorney_email: string
           attorney_name: string | null
           case_id: string | null
@@ -700,6 +816,8 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           accepted_by?: string | null
+          survivor_confirmed_attorney_at?: string | null
+          survivor_confirmed_attorney_by?: string | null
           attorney_email: string
           attorney_name?: string | null
           case_id?: string | null
@@ -725,6 +843,8 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           accepted_by?: string | null
+          survivor_confirmed_attorney_at?: string | null
+          survivor_confirmed_attorney_by?: string | null
           attorney_email?: string
           attorney_name?: string | null
           case_id?: string | null
@@ -847,6 +967,8 @@ export type Database = {
       }
       attorney_profiles: {
         Row: {
+          address_visible_to_survivors: boolean
+          bar_callback_phone: string | null
           bar_number: string | null
           confidentiality_accepted_at: string | null
           created_at: string
@@ -855,15 +977,26 @@ export type Database = {
           firm_name: string | null
           full_name: string
           jurisdiction: string | null
+          legal_aid_dual_role: boolean
+          office_address: string | null
           onboarded: boolean
           role: string | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
           trial_comped: boolean
           trial_ends_at: string | null
           trial_started_at: string | null
           updated_at: string
           user_id: string
+          verification_expires_at: string | null
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
+          address_visible_to_survivors?: boolean
+          bar_callback_phone?: string | null
           bar_number?: string | null
           confidentiality_accepted_at?: string | null
           created_at?: string
@@ -872,15 +1005,26 @@ export type Database = {
           firm_name?: string | null
           full_name: string
           jurisdiction?: string | null
+          legal_aid_dual_role?: boolean
+          office_address?: string | null
           onboarded?: boolean
           role?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           trial_comped?: boolean
           trial_ends_at?: string | null
           trial_started_at?: string | null
           updated_at?: string
           user_id: string
+          verification_expires_at?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
+          address_visible_to_survivors?: boolean
+          bar_callback_phone?: string | null
           bar_number?: string | null
           confidentiality_accepted_at?: string | null
           created_at?: string
@@ -889,13 +1033,22 @@ export type Database = {
           firm_name?: string | null
           full_name?: string
           jurisdiction?: string | null
+          legal_aid_dual_role?: boolean
+          office_address?: string | null
           onboarded?: boolean
           role?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           trial_comped?: boolean
           trial_ends_at?: string | null
           trial_started_at?: string | null
           updated_at?: string
           user_id?: string
+          verification_expires_at?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -1530,25 +1683,52 @@ export type Database = {
       }
       dv_organizations: {
         Row: {
+          admin_email_domain: string | null
           created_at: string
           created_by: string | null
           id: string
           name: string
+          primary_callback_phone: string | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
           updated_at: string
+          verification_expires_at: string | null
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
+          admin_email_domain?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           name: string
+          primary_callback_phone?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string
+          verification_expires_at?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
+          admin_email_domain?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           name?: string
+          primary_callback_phone?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string
+          verification_expires_at?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: []
       }
@@ -3934,6 +4114,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      set_org_verification_status: {
+        Args: { p_org_id: string; p_status: string; p_actor_id: string; p_reason?: string | null; p_expires_at?: string | null }
+        Returns: boolean
+      }
+      set_attorney_verification_status: {
+        Args: { p_user_id: string; p_status: string; p_actor_id: string; p_reason?: string | null; p_expires_at?: string | null }
+        Returns: boolean
+      }
       accept_firm_member_invitation: {
         Args: { p_email: string; p_token_hash: string; p_user_id: string }
         Returns: string
