@@ -20,60 +20,82 @@ Object.assign(process.env, serverEnv);
 
 // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
 // @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
-// Build/version marker: resolved from the build environment's git metadata so
-// /version.json can prove which commit is deployed. Never hardcoded.
-function resolveCommitSha(): { sha: string; source: string } {
-  const fromEnv =
-    process.env.LOVABLE_COMMIT_SHA ||
-    process.env.CF_PAGES_COMMIT_SHA ||
-    process.env.WORKERS_CI_COMMIT_SHA ||
-    process.env.GITHUB_SHA ||
-    process.env.VERCEL_GIT_COMMIT_SHA ||
-    process.env.COMMIT_SHA;
-  if (fromEnv && fromEnv.trim()) return { sha: fromEnv.trim(), source: "build-env" };
-  try {
-    return {
-      sha: execSync("git rev-parse HEAD", { stdio: ["ignore", "pipe", "ignore"] })
-        .toString()
-        .trim(),
-      source: "git",
-    };
-  } catch {
-    // Deploy machines often ship the working tree without a git binary.
-  }
-  // Read .git directly — works when the git CLI is unavailable.
-  try {
-    const head = readFileSync(resolve(process.cwd(), ".git/HEAD"), "utf8").trim();
-    if (/^[0-9a-f]{40}$/.test(head)) return { sha: head, source: "git-head" };
-    const ref = head.replace(/^ref:\s*/, "");
-    const refPath = resolve(process.cwd(), ".git", ref);
-    if (existsSync(refPath))
-      return { sha: readFileSync(refPath, "utf8").trim(), source: "git-ref" };
-    const packed = readFileSync(resolve(process.cwd(), ".git/packed-refs"), "utf8");
-    const line = packed.split("\n").find((l) => l.endsWith(` ${ref}`));
-    if (line) return { sha: line.split(" ")[0]!.trim(), source: "git-packed-ref" };
-  } catch {
-    // Fall through to the checked-in stamp.
-  }
-  // Last resort: a stamp file committed with the source.
-  try {
-    const stamp = readFileSync(resolve(process.cwd(), "public/COMMIT"), "utf8").trim();
-    if (stamp) return { sha: stamp, source: "stamp-file (may lag one commit)" };
-  } catch {
-    // No stamp available.
-  }
-  return { sha: "unknown", source: "unavailable" };
+// Build/version marker: MUST resolve a real full git SHA at build time.
+// Fail closed — never emit "unknown" or a lagging stamp-file revision.
+// Publish/CI must set LOVABLE_COMMIT_SHA (or another listed env) when .git is absent.
+const FULL_SHA = /^[0-9a-f]{40}$/i;
+
+function normalizeSha(raw: string | undefined | null): string | null {
+  if (!raw) return null;
+  const sha = raw.trim().toLowerCase();
+  return FULL_SHA.test(sha) ? sha : null;
 }
 
-/**
- * Always-unique marker for a build, so two deploys can be told apart even when
- * no git metadata reached the build machine.
- */
+function resolveCommitSha(): { sha: string; source: string } {
+  const envPairs: [string, string | undefined][] = [
+    ["LOVABLE_COMMIT_SHA", process.env.LOVABLE_COMMIT_SHA],
+    ["CF_PAGES_COMMIT_SHA", process.env.CF_PAGES_COMMIT_SHA],
+    ["WORKERS_CI_COMMIT_SHA", process.env.WORKERS_CI_COMMIT_SHA],
+    ["GITHUB_SHA", process.env.GITHUB_SHA],
+    ["VERCEL_GIT_COMMIT_SHA", process.env.VERCEL_GIT_COMMIT_SHA],
+    ["COMMIT_SHA", process.env.COMMIT_SHA],
+  ];
+  for (const [name, value] of envPairs) {
+    const sha = normalizeSha(value);
+    if (sha) return { sha, source: `build-env:${name}` };
+  }
+  try {
+    const sha = normalizeSha(
+      execSync("git rev-parse HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString(),
+    );
+    if (sha) return { sha, source: "git" };
+  } catch {
+    // Deploy machines may ship without a git binary — try raw .git next.
+  }
+  try {
+    const head = readFileSync(resolve(process.cwd(), ".git/HEAD"), "utf8").trim();
+    const direct = normalizeSha(head);
+    if (direct) return { sha: direct, source: "git-head" };
+    const ref = head.replace(/^ref:\s*/, "");
+    const refPath = resolve(process.cwd(), ".git", ref);
+    if (existsSync(refPath)) {
+      const sha = normalizeSha(readFileSync(refPath, "utf8"));
+      if (sha) return { sha, source: "git-ref" };
+    }
+    const packed = readFileSync(resolve(process.cwd(), ".git/packed-refs"), "utf8");
+    const line = packed.split("\n").find((l) => l.endsWith(` ${ref}`));
+    if (line) {
+      const sha = normalizeSha(line.split(" ")[0]);
+      if (sha) return { sha, source: "git-packed-ref" };
+    }
+  } catch {
+    // No readable .git metadata.
+  }
+
+  throw new Error(
+    [
+      "Build refused: cannot resolve a full 40-character git commit SHA.",
+      "Set LOVABLE_COMMIT_SHA (preferred for Publish) or GITHUB_SHA / CF_PAGES_COMMIT_SHA /",
+      "WORKERS_CI_COMMIT_SHA / VERCEL_GIT_COMMIT_SHA / COMMIT_SHA, or build inside a git checkout.",
+      "Lagging stamp-file and \"unknown\" fallbacks are disabled so /version.json",
+      "cannot report a lagging or fabricated revision.",
+    ].join(" "),
+  );
+}
+
+/** Unique per build from (resolved SHA + build time). SHA is always known (fail-closed). */
 function buildId(sha: string, time: string): string {
   return createHash("sha256").update(`${sha}|${time}`).digest("hex").slice(0, 12);
 }
 
-const { sha: COMMIT_SHA, source: COMMIT_SOURCE } = resolveCommitSha();
+let COMMIT_SHA: string;
+let COMMIT_SOURCE: string;
+try {
+  ({ sha: COMMIT_SHA, source: COMMIT_SOURCE } = resolveCommitSha());
+} catch (err) {
+  console.error(err instanceof Error ? err.message : err);
+  process.exit(1);
+}
 const BUILD_TIME = new Date().toISOString();
 const BUILD_ID = buildId(COMMIT_SHA, BUILD_TIME);
 

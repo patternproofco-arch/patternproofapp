@@ -22,9 +22,9 @@ describe("/version.json runtime contract", () => {
 
     expect(body.commit).toBeTruthy();
     expect(typeof body.commit).toBe("string");
-    // Either a real 40-char SHA or the explicit "unknown" fallback — never a
-    // silently truncated or fabricated value.
-    expect(body.commit === "unknown" || /^[0-9a-f]{40}$/.test(body.commit)).toBe(true);
+    // Fail-closed builds always embed a full 40-char SHA — never "unknown" or a stamp lag.
+    expect(/^[0-9a-f]{40}$/.test(body.commit)).toBe(true);
+    expect(body.commit).not.toBe("unknown");
     expect(body.commit_short).toBe(body.commit.slice(0, 12));
     expect(body.commit_source).toBeTruthy();
     expect(body.build_id).toBeTruthy();

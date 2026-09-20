@@ -96,8 +96,8 @@ function VersionPage() {
         </div>
 
         <p className="mt-4 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          If the commit reads &quot;unknown&quot;, the build machine had no repository history — the
-          build ID and build time still identify the release uniquely.
+          Commit is the full git SHA embedded at build time. Builds fail if that SHA cannot be
+          resolved — this page should never show an unknown or lagging stamp-file revision.
         </p>
       </div>
     </div>

@@ -183,7 +183,7 @@ function ResetPasswordPage() {
             <>
               <h1 className="font-serif text-[22px]">Set a new password.</h1>
               <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-                Your records stay exactly as you left them. Pick something only you will know.
+                Your records stay as you left them. Pick something only you will know.
               </p>
               <form onSubmit={submit} className="space-y-3">
                 <input
@@ -193,7 +193,12 @@ function ResetPasswordPage() {
                   autoComplete="new-password"
                   placeholder={`New password (at least ${MIN_LEN} characters)`}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError(null);
+                  }}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? "reset-password-error" : undefined}
                   className="input-pp"
                 />
                 <input
@@ -203,11 +208,27 @@ function ResetPasswordPage() {
                   autoComplete="new-password"
                   placeholder="Confirm new password"
                   value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
+                  onChange={(e) => {
+                    setConfirm(e.target.value);
+                    if (error) setError(null);
+                  }}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? "reset-password-error" : undefined}
                   className="input-pp"
                 />
                 {error ? (
-                  <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                  <p
+                    role="alert"
+                    aria-live="assertive"
+                    id="reset-password-error"
+                    data-testid="reset-password-error"
+                    className="rounded-xl px-3 py-2 text-[13px] font-semibold"
+                    style={{
+                      color: "#9B2C3E",
+                      background: "rgba(155, 44, 62, 0.08)",
+                      border: "1px solid rgba(155, 44, 62, 0.25)",
+                    }}
+                  >
                     {error}
                   </p>
                 ) : null}

@@ -57,14 +57,28 @@ function ForAttorneys() {
           Review an organized case timeline,<br /><em>without rebuilding it yourself.</em>
         </h1>
         <p style={{ marginTop: 28, fontSize: 16, lineHeight: 1.55, maxWidth: 560 }}>
-          Open one client share free. A paid seat unlocks notes and caseload — opening one client share does not require a subscription.
+          Invitation-only. Request access through G. BURNS COMPANY LLC. Paying does not unlock
+          access — verification does.
         </p>
         <a
-          href="mailto:pattern@pattern-proof.tech?subject=Open%20one%20client%20share%20free"
+          href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20attorney%20access%20via%20G.%20BURNS%20COMPANY%20LLC"
           style={{ display: "inline-block", marginTop: 28, background: NAVY, color: "#F4F6FB", padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none", borderRadius: "var(--pp-r-pill)" }}
         >
-          Open one client share free →
+          Request invitation-only access →
         </a>
+        <div
+          style={{
+            marginTop: 14,
+            fontFamily: MONO,
+            fontSize: 11,
+            color: MUTED,
+            maxWidth: 560,
+            lineHeight: 1.6,
+            letterSpacing: "0.04em",
+          }}
+        >
+          Invitation-only · G. BURNS COMPANY LLC · verification required
+        </div>
         <div style={{ marginTop: 14 }}>
           <Link to="/demo" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: INK, textTransform: "uppercase" }}>
             View the attorney demo
@@ -73,9 +87,15 @@ function ForAttorneys() {
         <div style={{ marginTop: 16, fontFamily: MONO, fontSize: 11, color: MUTED, maxWidth: 560, lineHeight: 1.6 }}>{startsAt}</div>
       </section>
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
-        <Link to="/lawyer-signup" style={{ display: "inline-block", fontFamily: MONO, fontSize: 12, letterSpacing: "0.1em", color: INK, textDecoration: "underline", textTransform: "uppercase" }}>Create an attorney account</Link>
+        <a
+          href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20attorney%20access%20via%20G.%20BURNS%20COMPANY%20LLC"
+          style={{ display: "inline-block", fontFamily: MONO, fontSize: 12, letterSpacing: "0.1em", color: INK, textDecoration: "underline", textTransform: "uppercase" }}
+        >
+          Request access through G. BURNS COMPANY LLC
+        </a>
         <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, maxWidth: 640, lineHeight: 1.6 }}>
-          Request a 15-minute walkthrough if you would rather see the chronology before opening a share. Founder setup is included on the first paid seat.
+          Access stays invitation-only. A paid workspace does not bypass verification. You choose
+          what client material to review after a survivor shares it with you.
         </div>
       </section>
     </div>
