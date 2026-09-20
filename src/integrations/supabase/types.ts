@@ -4127,8 +4127,6 @@ export type Database = {
         }
         Relationships: []
       }
-    }
-
       attorney_access_confirmations: {
         Row: {
           id: string
@@ -4186,6 +4184,8 @@ export type Database = {
         }
         Relationships: []
       }
+    }
+
     Views: {
       [_ in never]: never
     }

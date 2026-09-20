@@ -120,6 +120,7 @@ import { Route as AdvocateAdvocateCasesIndexRouteImport } from './routes/_advoca
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integrations.clio.deauthorize'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
+import { Route as ApiCronAttorneyAccessCutoffRouteImport } from './routes/api/cron/attorney-access-cutoff'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AuthenticatedAdminPasswordResetRouteImport } from './routes/_authenticated/admin.password-reset'
 import { Route as AuthenticatedAdminOrgRequestsRouteImport } from './routes/_authenticated/admin.org-requests'
@@ -709,6 +710,12 @@ const IntegrationsClioCallbackRoute =
     path: '/integrations/clio/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiCronAttorneyAccessCutoffRoute =
+  ApiCronAttorneyAccessCutoffRouteImport.update({
+    id: '/api/cron/attorney-access-cutoff',
+    path: '/api/cron/attorney-access-cutoff',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAgentThreadIdRoute =
   AuthenticatedAgentThreadIdRouteImport.update({
     id: '/$threadId',
@@ -899,6 +906,7 @@ export interface FileRoutesByFullPath {
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
+  '/api/cron/attorney-access-cutoff': typeof ApiCronAttorneyAccessCutoffRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -1021,6 +1029,7 @@ export interface FileRoutesByTo {
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
+  '/api/cron/attorney-access-cutoff': typeof ApiCronAttorneyAccessCutoffRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -1149,6 +1158,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/_authenticated/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
+  '/api/cron/attorney-access-cutoff': typeof ApiCronAttorneyAccessCutoffRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -1275,6 +1285,7 @@ export interface FileRouteTypes {
     | '/admin/org-requests'
     | '/admin/password-reset'
     | '/agent/$threadId'
+    | '/api/cron/attorney-access-cutoff'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/suppression'
@@ -1397,6 +1408,7 @@ export interface FileRouteTypes {
     | '/admin/org-requests'
     | '/admin/password-reset'
     | '/agent/$threadId'
+    | '/api/cron/attorney-access-cutoff'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/suppression'
@@ -1524,6 +1536,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/org-requests'
     | '/_authenticated/admin/password-reset'
     | '/_authenticated/agent/$threadId'
+    | '/api/cron/attorney-access-cutoff'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/suppression'
@@ -1598,6 +1611,7 @@ export interface RootRouteChildren {
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiCronAttorneyAccessCutoffRoute: typeof ApiCronAttorneyAccessCutoffRoute
   IntegrationsClioCallbackRoute: typeof IntegrationsClioCallbackRoute
   IntegrationsClioDeauthorizeRoute: typeof IntegrationsClioDeauthorizeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
@@ -2388,6 +2402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationsClioCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/attorney-access-cutoff': {
+      id: '/api/cron/attorney-access-cutoff'
+      path: '/api/cron/attorney-access-cutoff'
+      fullPath: '/api/cron/attorney-access-cutoff'
+      preLoaderRoute: typeof ApiCronAttorneyAccessCutoffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/agent/$threadId': {
       id: '/_authenticated/agent/$threadId'
       path: '/$threadId'
@@ -2714,6 +2735,7 @@ const rootRouteChildren: RootRouteChildren = {
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiCronAttorneyAccessCutoffRoute: ApiCronAttorneyAccessCutoffRoute,
   IntegrationsClioCallbackRoute: IntegrationsClioCallbackRoute,
   IntegrationsClioDeauthorizeRoute: IntegrationsClioDeauthorizeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,

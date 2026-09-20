@@ -369,9 +369,10 @@ export const listMyClients = createServerFn({ method: "GET" })
         ]);
 
         const { redactIncidentLocation } = await import("@/lib/attorney-access.server");
-    const incidents = ((incQ?.data ?? inc?.data ?? []) as Array<Record<string, unknown>>).map((row) =>
-      redactIncidentLocation(row as { location?: unknown; location_reveal_opt_in?: unknown }),
-    );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const incidents = ((inc?.data ?? []) as Array<Record<string, any>>).map((row) =>
+          redactIncidentLocation(row),
+        );
         const datedIncidents = incidents.filter((r): r is typeof r & { date: string } => !!r.date);
         const lastIncident = datedIncidents.reduce<string | null>(
           (acc, r) => (!acc || r.date > acc ? r.date : acc),
@@ -847,8 +848,9 @@ export const getClientCase = createServerFn({ method: "POST" })
     ]);
 
     const { redactIncidentLocation } = await import("@/lib/attorney-access.server");
-    const incidents = ((incQ?.data ?? inc?.data ?? []) as Array<Record<string, unknown>>).map((row) =>
-      redactIncidentLocation(row as { location?: unknown; location_reveal_opt_in?: unknown }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const incidents = ((incQ?.data ?? []) as Array<Record<string, any>>).map((row) =>
+      redactIncidentLocation(row),
     );
     // The attorney should be able to see the exact terms they hold access
     // under, not just the data itself.

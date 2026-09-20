@@ -72,6 +72,8 @@ export function isPastAccessCutoff(
   if (!start) return true;
   const t = new Date(start).getTime();
   if (!Number.isFinite(t)) return true;
+  // Future clocks fail closed (clock skew / tamper) — same as SQL helper.
+  if (t > now) return true;
   return now >= t + ACCESS_CUTOFF_DAYS * DAY_MS;
 }
 
