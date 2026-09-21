@@ -13,7 +13,7 @@ import { enqueueTeamInvitation, recordTeamAudit, runTeamRpc } from "@/lib/team-i
 import { firmSeatsForSubscription } from "@/lib/firm-seats";
 
 /** Hard maximum members per firm (owner + colleagues). */
-export const FIRM_SEAT_MAX = 5;
+export const FIRM_SEAT_MAX = 10;
 
 function newInvitationToken() {
   return randomBytes(32).toString("base64url");
@@ -68,10 +68,7 @@ async function firmSeatUsage(firmId: string) {
     ]);
   if (firmError) throw new Error(firmError.message);
   if (memberError) throw new Error(memberError.message);
-  const rawLimit = Math.max(
-    1,
-    (firm?.seats_included ?? FIRM_SEAT_MAX) + (firm?.seats_purchased ?? 0),
-  );
+  const rawLimit = Math.max(1, (firm?.seats_included ?? 1) + (firm?.seats_purchased ?? 0));
   const limit = Math.min(FIRM_SEAT_MAX, rawLimit);
   const used = memberCount ?? 0;
   return { limit, used, available: Math.max(0, limit - used) };

@@ -1,6 +1,8 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState, useEffect } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { requestProfessionalReadinessKit } from "@/lib/marketing-leads.functions";
+
+import { getAttorneyOffer } from "@/lib/attorney-offer.functions";
 
 export function ProfessionalReadinessKitCapture() {
   const location = useLocation();
@@ -11,7 +13,7 @@ export function ProfessionalReadinessKitCapture() {
         sourcePage: "/for-attorneys" as const,
         title: "Evidence Intake & Chronology Readiness Kit",
         description:
-          "A one-page intake checklist for source-linking, date certainty, evidence handling, and professional review.",
+          "A printable intake worksheet, fictional chronology sample, and a client invitation template. No case information is requested.",
       };
     }
     if (location.pathname === "/for-organizations") {
@@ -26,6 +28,13 @@ export function ProfessionalReadinessKitCapture() {
     return null;
   }, [location.pathname]);
 
+  const [nurtureConsent, setNurtureConsent] = useState(false);
+  const [nurtureEnabled, setNurtureEnabled] = useState(false);
+  useEffect(() => {
+    getAttorneyOffer()
+      .then((o) => setNurtureEnabled(o.nurtureEnabled))
+      .catch(() => setNurtureEnabled(false));
+  }, []);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -45,6 +54,7 @@ export function ProfessionalReadinessKitCapture() {
           phone: phone.trim() || undefined,
           persona: config.persona,
           sourcePage: config.sourcePage,
+          nurtureConsent: config.persona === "attorney" && nurtureEnabled && nurtureConsent,
         },
       });
       setStatus(result.ok ? "sent" : "error");
@@ -103,7 +113,13 @@ export function ProfessionalReadinessKitCapture() {
         {status === "sent" ? (
           <div role="status" style={{ lineHeight: 1.6 }}>
             <strong>Request received.</strong> Check {email} for the kit. If delivery is delayed,
-            your request is still saved.
+            your request is still saved.{" "}
+            {config.persona === "attorney" && (
+              <p>
+                <a href="/resources/attorney-kit">Download the printable kit now</a> ·{" "}
+                <a href="/lawyer-signup">Explore attorney access</a>
+              </p>
+            )}
           </div>
         ) : (
           <form onSubmit={onSubmit} style={{ display: "grid", gap: 14 }}>
@@ -144,6 +160,17 @@ export function ProfessionalReadinessKitCapture() {
                 style={inputStyle}
               />
             </label>
+            {config.persona === "attorney" && nurtureEnabled && (
+              <label style={{ fontSize: 13, lineHeight: 1.6 }}>
+                <input
+                  type="checkbox"
+                  checked={nurtureConsent}
+                  onChange={(e) => setNurtureConsent(e.target.checked)}
+                />{" "}
+                Optional: send four follow-up emails over 14 days about the attorney workflow and
+                plans. I will confirm this choice through my inbox and can unsubscribe at any time.
+              </label>
+            )}
             <button
               type="submit"
               disabled={status === "sending" || !name.trim() || !email.trim()}
@@ -159,8 +186,8 @@ export function ProfessionalReadinessKitCapture() {
               </p>
             )}
             <p style={{ margin: 0, color: "var(--pp-muted)", fontSize: 12.5, lineHeight: 1.55 }}>
-              One-time resource delivery only. No pre-checked marketing consent and no automatic
-              newsletter enrollment. Phone is optional.
+              The kit does not create an app account or enroll you in marketing. Optional follow-ups
+              require a separate choice and inbox confirmation. Phone is optional.
             </p>
           </form>
         )}

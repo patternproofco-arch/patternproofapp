@@ -1,94 +1,142 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ThreadGroup } from "@/components/ThreadConnector";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
-import { useEffect, useState } from "react";
-import { buildTiers } from "@/lib/pricing-tiers";
-import { getCharterAvailability } from "@/lib/payments.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
-
-const INK = "var(--pp-ink)";
-const NAVY = "var(--pp-accent-attorney)";
-const MUTED = "var(--pp-muted)";
-const SERIF = "var(--font-serif)";
-const SANS = "var(--font-sans)";
-const MONO = "var(--font-mono)";
+import {
+  AttorneyPlanComparison,
+  AttorneyTrustFaq,
+  ClientInvitationTemplate,
+} from "@/components/AttorneyConversion";
+import { getAttorneyOffer } from "@/lib/attorney-offer.functions";
+import conversionCss from "@/styles/attorney-conversion.css?url";
 
 export const Route = createFileRoute("/for-attorneys")({
+  loader: () => getAttorneyOffer(),
   head: () => ({
     meta: [
-      { title: "Family Law Evidence Intake Software for Attorneys | PatternProof" },
+      { title: "Client Evidence Intake for Family Law Attorneys | PatternProof" },
       {
         name: "description",
         content:
-          "PatternProof helps family-law and domestic-violence attorneys review client-provided evidence in a dated, source-linked chronology instead of sorting screenshots, messages, and files by hand.",
+          "See a fictional source-linked chronology, download an evidence intake kit, compare attorney plans, and understand survivor-controlled sharing.",
       },
     ],
-    links: [{ rel: "canonical", href: "https://pattern-proof.tech/for-attorneys" }],
+    links: [
+      { rel: "canonical", href: "https://pattern-proof.tech/for-attorneys" },
+      { rel: "stylesheet", href: conversionCss },
+    ],
   }),
   component: ForAttorneys,
 });
 
 function ForAttorneys() {
-  const [remaining, setRemaining] = useState<number | null>(null);
-  useEffect(() => {
-    let env: ReturnType<typeof getStripeEnvironment>;
-    try {
-      env = getStripeEnvironment();
-    } catch {
-      return;
-    }
-    getCharterAvailability({ data: { environment: env } })
-      .then((r) => setRemaining(r.remaining))
-      .catch(() => setRemaining(null));
-  }, []);
-  const attorneyTiers = buildTiers(remaining).filter((t) => t.key.startsWith("attorney_"));
-  const solo = attorneyTiers.find((t) => t.key === "attorney_solo");
-  const startsAt = `If a paid workspace is useful after that, plans start at ${solo?.price ?? "$297"} / month for a solo attorney seat.`;
+  const offer = Route.useLoaderData();
   return (
-    <div data-persona="attorney" style={{ background: "var(--pp-ground)", color: INK, minHeight: "100vh", fontFamily: SANS }}>
+    <div className="attorney-conversion" data-persona="attorney">
       <PublicQuickExit />
-      <TopBar />
-      <section style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(56px,9vw,104px) 24px 40px" }}>
-        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, marginBottom: 24 }}>For attorneys</div>
-        <p style={{ fontSize: 16, lineHeight: 1.5, color: "var(--pp-muted)", maxWidth: 560, marginBottom: 18 }}>
-          PatternProof is a documentation platform your clients use to record domestic-violence and coercive-control incidents — you receive a structured, source-linked chronology instead of a folder of screenshots.
+      <nav className="conversion-nav" aria-label="Attorney resources">
+        <Link to="/">PatternProof</Link>
+        <a href="#plans">Pricing</a>
+        <Link to="/security-privacy">Security & privacy</Link>
+        <Link to="/signin">Sign in</Link>
+      </nav>
+      <section className="conversion-section">
+        <p className="conversion-eyebrow">
+          Built for survivor choice. Designed for attorney review.
         </p>
-        <h1 style={{ fontFamily: SERIF, fontWeight: 700, fontSize: "clamp(2.2rem,5.2vw,3.8rem)", lineHeight: 1.05, letterSpacing: "-0.02em", margin: 0 }}>
-          Review an organized case timeline,<br /><em>without rebuilding it yourself.</em>
+        <h1>
+          Your client brings the records.
+          <br />
+          You see the chronology.
         </h1>
-        <p style={{ marginTop: 28, fontSize: 16, lineHeight: 1.55, maxWidth: 560 }}>
-          Open one client share free. A paid seat unlocks notes and caseload — opening one client share does not require a subscription.
+        <p>
+          Help clients move from scattered screenshots, messages, and notes to a dated timeline with
+          links to the original sources. They review their entries and choose what to share. You
+          bring the professional judgment.
         </p>
-        <a
-          href="mailto:pattern@pattern-proof.tech?subject=Open%20one%20client%20share%20free"
-          style={{ display: "inline-block", marginTop: 28, background: NAVY, color: "#F4F6FB", padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none", borderRadius: "var(--pp-r-pill)" }}
-        >
-          Open one client share free →
-        </a>
-        <div style={{ marginTop: 14 }}>
-          <Link to="/demo" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: INK, textTransform: "uppercase" }}>
-            View the attorney demo
-          </Link>
-        </div>
-        <div style={{ marginTop: 16, fontFamily: MONO, fontSize: 11, color: MUTED, maxWidth: 560, lineHeight: 1.6 }}>{startsAt}</div>
+        <p>
+          <a href="#professional-kit-title" className="conversion-button">
+            Get the free evidence intake kit
+          </a>
+        </p>
+        <p>
+          <Link to="/lawyer-signup">
+            {offer.enabled ? "Start your first case free" : "Request attorney access"}
+          </Link>{" "}
+          · <a href="/resources/attorney-sample">Download the fictional sample PDF</a>
+        </p>
+        <p>
+          {offer.enabled
+            ? "One case after access review. No card required. No automatic client sharing."
+            : "Preview resources use fictional examples. The new first case offer is not active yet."}
+        </p>
       </section>
-      <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
-        <Link to="/lawyer-signup" style={{ display: "inline-block", fontFamily: MONO, fontSize: 12, letterSpacing: "0.1em", color: INK, textDecoration: "underline", textTransform: "uppercase" }}>Create an attorney account</Link>
-        <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, maxWidth: 640, lineHeight: 1.6 }}>
-          Request a 15-minute walkthrough if you would rather see the chronology before opening a share. Founder setup is included on the first paid seat.
+      <section className="conversion-section">
+        <p className="conversion-eyebrow">From scattered records to a reviewable file</p>
+        <h2>A clearer place to start.</h2>
+        <div className="conversion-grid">
+          <article className="conversion-panel">
+            <h3>The manual process</h3>
+            <p>
+              Messages in one folder. Photos in another. Dates mixed with upload times. Context in
+              an email. You rebuild the sequence before you can review it.
+            </p>
+          </article>
+          <article className="conversion-panel">
+            <h3>The PatternProof workflow</h3>
+            <p>
+              Client confirmed entries in date order. Uncertain dates labeled. Each entry points
+              back to its source. Only the shared scope is available to you.
+            </p>
+            <p>
+              Extraction can suggest information. The client reviews it. The software does not
+              decide whether abuse occurred.
+            </p>
+          </article>
         </div>
       </section>
-    </div>
-  );
-}
-
-function TopBar() {
-  return (
-    <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
-      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 24px", display: "flex", justifyContent: "space-between" }}>
-        <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em", color: INK, textDecoration: "none", textTransform: "uppercase" }}>← PatternProof</Link>
-        <a href="mailto:pattern@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textTransform: "uppercase" }}>Request a walkthrough</a>
+      <section className="conversion-section">
+        <h2>Three steps, with consent at the center.</h2>
+        <div className="conversion-grid">
+          <article>
+            <h3>1. Prepare your workspace</h3>
+            <p>
+              Create your profile and complete attorney access review. Once approved, open a matter.
+              Creating a matter does not give you client data.
+            </p>
+          </article>
+          <article>
+            <h3>2. Let the client choose</h3>
+            <p>
+              The client documents at their own pace, reviews dates and entries, and sends a case
+              scoped invitation to your verified work email.
+            </p>
+          </article>
+          <article>
+            <h3>3. Review what is shared</h3>
+            <p>
+              Accept the invitation and attach it to the matter. Review the chronology and source
+              files. Export only the material authorized for your access.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section className="conversion-section">
+        <h2>See the output before you sign up.</h2>
+        <p>
+          The sample is a fictional illustration, not a customer case, testimonial, or guarantee of
+          a court outcome. The kit has a matching worksheet and an invitation template.
+        </p>
+        <p>
+          <a href="/resources/attorney-sample" className="conversion-button">
+            Download sample chronology
+          </a>{" "}
+          · <a href="/resources/attorney-kit">Download printable kit</a>
+        </p>
+      </section>
+      <div id="plans">
+        <AttorneyPlanComparison enabled={offer.enabled} />
       </div>
-    </header>
+      <AttorneyTrustFaq />
+      <ClientInvitationTemplate />
+    </div>
   );
 }

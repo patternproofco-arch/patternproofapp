@@ -51,7 +51,8 @@ async function assertOwnedLink(userId: string, linkId: string) {
     .eq("attorney_user_id", userId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("That shared file isn't available to you.");
+  if (!data || data.status !== "active")
+    throw new Error("That shared file isn't available to you.");
   return data;
 }
 
@@ -59,6 +60,8 @@ export const listMatters = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertAttorney } = await import("./attorney-access.server");
+    await assertAttorney(supabaseAdmin, context.userId);
     const [mattersRes, linksRes] = await Promise.all([
       supabaseAdmin
         .from("matters")
@@ -96,6 +99,8 @@ export const createMatter = createServerFn({ method: "POST" })
   .inputValidator((input) => matterInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertAttorney } = await import("./attorney-access.server");
+    await assertAttorney(supabaseAdmin, context.userId);
     if (data.client_link_id) await assertOwnedLink(context.userId, data.client_link_id);
     const { data: membership } = await supabaseAdmin
       .from("firm_members")
@@ -134,6 +139,8 @@ export const updateMatter = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertAttorney } = await import("./attorney-access.server");
+    await assertAttorney(supabaseAdmin, context.userId);
     await assertOwnedMatter(context.userId, data.id);
     if (data.client_link_id) await assertOwnedLink(context.userId, data.client_link_id);
     const { id, ...rest } = data;
@@ -157,6 +164,8 @@ export const getMatter = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertAttorney } = await import("./attorney-access.server");
+    await assertAttorney(supabaseAdmin, context.userId);
     const matter = await assertOwnedMatter(context.userId, data.id);
     const [advocatesRes, invitesRes, linksRes] = await Promise.all([
       supabaseAdmin
@@ -201,6 +210,8 @@ export const inviteAdvocateToMatter = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertAttorney } = await import("./attorney-access.server");
+    await assertAttorney(supabaseAdmin, context.userId);
     const matter = await assertOwnedMatter(context.userId, data.matter_id);
     const email = data.email.trim().toLowerCase();
     await supabaseAdmin
@@ -222,7 +233,8 @@ export const inviteAdvocateToMatter = createServerFn({ method: "POST" })
       })
       .select("id,advocate_email,advocate_name,status,expires_at,created_at,accepted_at")
       .single();
-    if (error || !invitation) throw new Error(error?.message ?? "We couldn't send that invitation.");
+    if (error || !invitation)
+      throw new Error(error?.message ?? "We couldn't send that invitation.");
     return { invitation, acceptPath: `/matter-invite/${token}` };
   });
 
@@ -231,6 +243,8 @@ export const revokeMatterInvitation = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertAttorney } = await import("./attorney-access.server");
+    await assertAttorney(supabaseAdmin, context.userId);
     const { error } = await supabaseAdmin
       .from("matter_advocate_invitations")
       .update({ status: "revoked" })
@@ -245,6 +259,8 @@ export const revokeMatterAdvocate = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertAttorney } = await import("./attorney-access.server");
+    await assertAttorney(supabaseAdmin, context.userId);
     const { error } = await supabaseAdmin
       .from("matter_advocates")
       .update({ revoked_at: new Date().toISOString() })

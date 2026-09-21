@@ -5,6 +5,7 @@ import {
   Head,
   Heading,
   Html,
+  Link,
   Preview,
   Section,
   Text,
@@ -51,9 +52,11 @@ export function kitCopy(persona: ProfessionalKitPersona) {
 export function ProfessionalReadinessKitEmail({
   persona,
   name,
+  confirmationUrl,
 }: {
   persona: ProfessionalKitPersona;
   name: string;
+  confirmationUrl?: string;
 }) {
   const kit = kitCopy(persona);
   return (
@@ -78,6 +81,31 @@ export function ProfessionalReadinessKitEmail({
             admissibility, provide legal advice, replace attorney judgment, or replace advocate
             safety planning.
           </Text>
+          {persona === "attorney" && (
+            <Section>
+              <Text style={body}>
+                <Link href="https://pattern-proof.tech/resources/attorney-kit">
+                  Download the printable kit
+                </Link>{" "}
+                ·{" "}
+                <Link href="https://pattern-proof.tech/resources/attorney-sample">
+                  View the fictional chronology sample
+                </Link>
+              </Text>
+              <Text style={body}>
+                <Link href="https://pattern-proof.tech/for-attorneys">
+                  Explore the app, plans, and current first case offer
+                </Link>
+              </Text>
+            </Section>
+          )}
+          {confirmationUrl && (
+            <Text style={body}>
+              You requested optional follow-ups.{" "}
+              <Link href={confirmationUrl}>Confirm four follow-up emails over 14 days</Link>.
+              Nothing is scheduled until you confirm. The kit is yours either way.
+            </Text>
+          )}
           <Text style={fine}>
             You requested this one-time resource. No marketing subscription was added by this
             request.

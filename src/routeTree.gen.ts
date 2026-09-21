@@ -20,6 +20,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SelfHelpGuideRouteImport } from './routes/self-help-guide'
+import { Route as SecurityPrivacyRouteImport } from './routes/security-privacy'
 import { Route as SampleCaseRouteImport } from './routes/sample-case'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as ResourcesRouteImport } from './routes/resources'
@@ -54,8 +55,11 @@ import { Route as AdvocateRouteImport } from './routes/_advocate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
+import { Route as ResourcesAttorneySampleRouteImport } from './routes/resources/attorney-sample'
+import { Route as ResourcesAttorneyKitRouteImport } from './routes/resources/attorney-kit'
 import { Route as MatterInviteTokenRouteImport } from './routes/matter-invite.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as EmailAttorneyFollowupsRouteImport } from './routes/email/attorney-followups'
 import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
@@ -188,6 +192,11 @@ const SigninRoute = SigninRouteImport.update({
 const SelfHelpGuideRoute = SelfHelpGuideRouteImport.update({
   id: '/self-help-guide',
   path: '/self-help-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityPrivacyRoute = SecurityPrivacyRouteImport.update({
+  id: '/security-privacy',
+  path: '/security-privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SampleCaseRoute = SampleCaseRouteImport.update({
@@ -357,6 +366,16 @@ const ReviewTokenRoute = ReviewTokenRouteImport.update({
   path: '/review/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResourcesAttorneySampleRoute = ResourcesAttorneySampleRouteImport.update({
+  id: '/attorney-sample',
+  path: '/attorney-sample',
+  getParentRoute: () => ResourcesRoute,
+} as any)
+const ResourcesAttorneyKitRoute = ResourcesAttorneyKitRouteImport.update({
+  id: '/attorney-kit',
+  path: '/attorney-kit',
+  getParentRoute: () => ResourcesRoute,
+} as any)
 const MatterInviteTokenRoute = MatterInviteTokenRouteImport.update({
   id: '/matter-invite/$token',
   path: '/matter-invite/$token',
@@ -365,6 +384,11 @@ const MatterInviteTokenRoute = MatterInviteTokenRouteImport.update({
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmailAttorneyFollowupsRoute = EmailAttorneyFollowupsRouteImport.update({
+  id: '/email/attorney-followups',
+  path: '/email/attorney-followups',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CollaboratorInviteTokenRoute = CollaboratorInviteTokenRouteImport.update({
@@ -816,9 +840,10 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
+  '/resources': typeof ResourcesRouteWithChildren
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
+  '/security-privacy': typeof SecurityPrivacyRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -887,8 +912,11 @@ export interface FileRoutesByFullPath {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
+  '/email/attorney-followups': typeof EmailAttorneyFollowupsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
+  '/resources/attorney-kit': typeof ResourcesAttorneyKitRoute
+  '/resources/attorney-sample': typeof ResourcesAttorneySampleRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -940,9 +968,10 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
+  '/resources': typeof ResourcesRouteWithChildren
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
+  '/security-privacy': typeof SecurityPrivacyRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -1009,8 +1038,11 @@ export interface FileRoutesByTo {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
+  '/email/attorney-followups': typeof EmailAttorneyFollowupsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
+  '/resources/attorney-kit': typeof ResourcesAttorneyKitRoute
+  '/resources/attorney-sample': typeof ResourcesAttorneySampleRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -1066,9 +1098,10 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/professional-access': typeof ProfessionalAccessRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
+  '/resources': typeof ResourcesRouteWithChildren
   '/safety': typeof SafetyRoute
   '/sample-case': typeof SampleCaseRoute
+  '/security-privacy': typeof SecurityPrivacyRoute
   '/self-help-guide': typeof SelfHelpGuideRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -1137,8 +1170,11 @@ export interface FileRoutesById {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
+  '/email/attorney-followups': typeof EmailAttorneyFollowupsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
+  '/resources/attorney-kit': typeof ResourcesAttorneyKitRoute
+  '/resources/attorney-sample': typeof ResourcesAttorneySampleRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -1195,6 +1231,7 @@ export interface FileRouteTypes {
     | '/resources'
     | '/safety'
     | '/sample-case'
+    | '/security-privacy'
     | '/self-help-guide'
     | '/signin'
     | '/signup'
@@ -1263,8 +1300,11 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/auth/callback'
     | '/collaborator-invite/$token'
+    | '/email/attorney-followups'
     | '/email/unsubscribe'
     | '/matter-invite/$token'
+    | '/resources/attorney-kit'
+    | '/resources/attorney-sample'
     | '/review/$token'
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
@@ -1319,6 +1359,7 @@ export interface FileRouteTypes {
     | '/resources'
     | '/safety'
     | '/sample-case'
+    | '/security-privacy'
     | '/self-help-guide'
     | '/signin'
     | '/signup'
@@ -1385,8 +1426,11 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/auth/callback'
     | '/collaborator-invite/$token'
+    | '/email/attorney-followups'
     | '/email/unsubscribe'
     | '/matter-invite/$token'
+    | '/resources/attorney-kit'
+    | '/resources/attorney-sample'
     | '/review/$token'
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
@@ -1444,6 +1488,7 @@ export interface FileRouteTypes {
     | '/resources'
     | '/safety'
     | '/sample-case'
+    | '/security-privacy'
     | '/self-help-guide'
     | '/signin'
     | '/signup'
@@ -1512,8 +1557,11 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/auth/callback'
     | '/collaborator-invite/$token'
+    | '/email/attorney-followups'
     | '/email/unsubscribe'
     | '/matter-invite/$token'
+    | '/resources/attorney-kit'
+    | '/resources/attorney-sample'
     | '/review/$token'
     | '/survivor-invite/$token'
     | '/.lovable/oauth/consent'
@@ -1569,9 +1617,10 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ProfessionalAccessRoute: typeof ProfessionalAccessRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  ResourcesRoute: typeof ResourcesRoute
+  ResourcesRoute: typeof ResourcesRouteWithChildren
   SafetyRoute: typeof SafetyRoute
   SampleCaseRoute: typeof SampleCaseRoute
+  SecurityPrivacyRoute: typeof SecurityPrivacyRoute
   SelfHelpGuideRoute: typeof SelfHelpGuideRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
@@ -1592,6 +1641,7 @@ export interface RootRouteChildren {
   AttorneyTokenRoute: typeof AttorneyTokenRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
+  EmailAttorneyFollowupsRoute: typeof EmailAttorneyFollowupsRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   MatterInviteTokenRoute: typeof MatterInviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
@@ -1686,6 +1736,13 @@ declare module '@tanstack/react-router' {
       path: '/self-help-guide'
       fullPath: '/self-help-guide'
       preLoaderRoute: typeof SelfHelpGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security-privacy': {
+      id: '/security-privacy'
+      path: '/security-privacy'
+      fullPath: '/security-privacy'
+      preLoaderRoute: typeof SecurityPrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sample-case': {
@@ -1926,6 +1983,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/resources/attorney-sample': {
+      id: '/resources/attorney-sample'
+      path: '/attorney-sample'
+      fullPath: '/resources/attorney-sample'
+      preLoaderRoute: typeof ResourcesAttorneySampleRouteImport
+      parentRoute: typeof ResourcesRoute
+    }
+    '/resources/attorney-kit': {
+      id: '/resources/attorney-kit'
+      path: '/attorney-kit'
+      fullPath: '/resources/attorney-kit'
+      preLoaderRoute: typeof ResourcesAttorneyKitRouteImport
+      parentRoute: typeof ResourcesRoute
+    }
     '/matter-invite/$token': {
       id: '/matter-invite/$token'
       path: '/matter-invite/$token'
@@ -1938,6 +2009,13 @@ declare module '@tanstack/react-router' {
       path: '/email/unsubscribe'
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/email/attorney-followups': {
+      id: '/email/attorney-followups'
+      path: '/email/attorney-followups'
+      fullPath: '/email/attorney-followups'
+      preLoaderRoute: typeof EmailAttorneyFollowupsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/collaborator-invite/$token': {
@@ -2654,6 +2732,20 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface ResourcesRouteChildren {
+  ResourcesAttorneyKitRoute: typeof ResourcesAttorneyKitRoute
+  ResourcesAttorneySampleRoute: typeof ResourcesAttorneySampleRoute
+}
+
+const ResourcesRouteChildren: ResourcesRouteChildren = {
+  ResourcesAttorneyKitRoute: ResourcesAttorneyKitRoute,
+  ResourcesAttorneySampleRoute: ResourcesAttorneySampleRoute,
+}
+
+const ResourcesRouteWithChildren = ResourcesRoute._addFileChildren(
+  ResourcesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdvocateRoute: AdvocateRouteWithChildren,
@@ -2684,9 +2776,10 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ProfessionalAccessRoute: ProfessionalAccessRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  ResourcesRoute: ResourcesRoute,
+  ResourcesRoute: ResourcesRouteWithChildren,
   SafetyRoute: SafetyRoute,
   SampleCaseRoute: SampleCaseRoute,
+  SecurityPrivacyRoute: SecurityPrivacyRoute,
   SelfHelpGuideRoute: SelfHelpGuideRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
@@ -2708,6 +2801,7 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneyTokenRoute: AttorneyTokenRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
+  EmailAttorneyFollowupsRoute: EmailAttorneyFollowupsRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   MatterInviteTokenRoute: MatterInviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,

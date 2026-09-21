@@ -21,7 +21,12 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 import { ATTORNEY_PORTAL_TIER_BULLETS } from "@/lib/pricing-tiers";
 
+import { ATTORNEY_PLANS, ATTORNEY_PLAN_VALUE, planForPrice } from "@/lib/attorney-offer";
+import { getAttorneyOffer } from "@/lib/attorney-offer.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
+
 export const Route = createFileRoute("/_attorney/billing")({
+  loader: () => getAttorneyOffer(),
   component: BillingPage,
 });
 
@@ -65,6 +70,19 @@ const TIERS: Array<{
 ];
 
 function BillingPage() {
+  const offer = Route.useLoaderData();
+  const displayTiers = offer.enabled
+    ? ATTORNEY_PLANS.map((p) => ({
+        key: p.key,
+        name: p.name,
+        price: `$${p.monthly}`,
+        per: "/mo",
+        priceId: p.lookupKey,
+        bullets: [ATTORNEY_PLAN_VALUE[p.key]],
+        recommended: false,
+        priceStrike: undefined,
+      }))
+    : TIERS;
   const sub = useSubscription();
   const portalFn = useServerFn(createPortalSession);
   const [opening, setOpening] = useState(false);
@@ -72,7 +90,7 @@ function BillingPage() {
   const openPortal = async () => {
     setOpening(true);
     try {
-      const env = (import.meta.env.VITE_STRIPE_ENV as "live" | "sandbox") ?? "sandbox";
+      const env = getStripeEnvironment();
       const r = await portalFn({ data: { environment: env, returnUrl: window.location.href } });
       if ("url" in r) window.location.href = r.url;
       else toast("Couldn't open billing portal: " + r.error);
@@ -109,21 +127,29 @@ function BillingPage() {
         >
           <div>
             <div className="att-eyebrow" style={{ color: "var(--att-slate)" }}>
-              {sub.isActive ? "Active subscription" : "No active subscription"}
+              {sub.status === "free_case"
+                ? "Free first case workspace"
+                : sub.isActive
+                  ? "Active subscription"
+                  : "No active subscription"}
             </div>
             <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4 }}>
-              {sub.isActive
-                ? `PatternProof ${
-                    sub.priceId === "attorney_firm_charter_monthly"
-                      ? "Firm Charter"
-                      : sub.priceId === "attorney_firm_monthly"
-                        ? "Firm"
-                        : sub.priceId === "attorney_solo_monthly" ||
-                            sub.priceId === "attorney_portal_monthly_297"
-                          ? "Solo"
-                          : "Plan"
-                  }`
-                : "Pick a plan to unlock case files"}
+              {sub.status === "free_case"
+                ? "One case, no recurring charge"
+                : planForPrice(sub.priceId)
+                  ? `PatternProof ${planForPrice(sub.priceId)!.name}`
+                  : sub.isActive
+                    ? `PatternProof ${
+                        sub.priceId === "attorney_firm_charter_monthly"
+                          ? "Firm Charter"
+                          : sub.priceId === "attorney_firm_monthly"
+                            ? "Firm"
+                            : sub.priceId === "attorney_solo_monthly" ||
+                                sub.priceId === "attorney_portal_monthly_297"
+                              ? "Solo"
+                              : "Plan"
+                      }`
+                    : "Pick a plan to unlock case files"}
             </div>
             {sub.isActive && (
               <div style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 4 }}>
@@ -138,7 +164,7 @@ function BillingPage() {
             )}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            {sub.isActive ? (
+            {sub.isActive && sub.status !== "free_case" ? (
               <button
                 className="att-btn-primary"
                 onClick={openPortal}
@@ -163,9 +189,13 @@ function BillingPage() {
         <ThreadGroup
           persona="attorney"
           orientation="vertical-behind"
-          style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 14 }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px,1fr))",
+            gap: 14,
+          }}
         >
-          {TIERS.map((t) => {
+          {displayTiers.map((t) => {
             const isCurrent = sub.isActive && sub.priceId === t.priceId;
             return (
               <div

@@ -1,4 +1,5 @@
 export async function enqueueProfessionalReadinessKit(input: {
+  confirmationUrl?: string;
   id: string;
   name: string;
   email: string;
@@ -14,6 +15,7 @@ export async function enqueueProfessionalReadinessKit(input: {
     const element = React.createElement(ProfessionalReadinessKitEmail, {
       persona: input.persona,
       name: input.name,
+      confirmationUrl: input.confirmationUrl,
     });
     const html = await render(element);
     const text = await render(element, { plainText: true });

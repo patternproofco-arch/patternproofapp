@@ -34,6 +34,14 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
         }
 
         const supabase: SupabaseClient<any, any> = createClient(supabaseUrl, supabaseServiceKey);
+        const { enqueueDueAttorneyNurture } = await import("@/lib/attorney-nurture.server");
+        try {
+          await enqueueDueAttorneyNurture(supabase);
+        } catch {
+          console.error(
+            "Attorney follow-up scheduling failed; transactional delivery will continue.",
+          );
+        }
         const result = await drainEmailQueues(supabase, apiKey, process.env.LOVABLE_SEND_URL);
         return Response.json(result);
       },
