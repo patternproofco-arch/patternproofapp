@@ -76,6 +76,7 @@
         "tailwindcss": "^4.2.1",
         "tesseract.js": "^7.0.0",
         "tw-animate-css": "^1.3.4",
+        "undici": "7.29.1",
         "unpdf": "^1.8.1",
         "vaul": "^1.1.2",
         "vite-tsconfig-paths": "^6.0.2",
@@ -120,7 +121,7 @@
     "seroval": "^1.5.6",
     "seroval-plugins": "^1.5.6",
     "sharp": "^0.35.4",
-    "undici": "^8.10.2",
+    "undici": "7.29.1",
     "ws": "^8.21.0",
   },
   "packages": {
@@ -1828,7 +1829,7 @@
 
     "uint8array-extras": ["uint8array-extras@1.5.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/uint8array-extras/-/uint8array-extras-1.5.0.tgz", {}, "sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A=="],
 
-    "undici": ["undici@8.10.2", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/undici/-/undici-8.10.2.tgz", {}, "sha512-/y4/bH9YNU5hi9NIrpOuvGXFcxrj3CMrV+/AYpowAYTpHn8gX/XPFjNy766FPoYY0miQhdW977JFWKGNhBdwyQ=="],
+    "undici": ["undici@7.29.1", "", {}, "sha512-RYONW2MeafgYlkVOKYKkA/Ag7BmXqgIWCa8t1m0JcxrQg9pI9lEqRhAOruOBCbAohOa/gkCF+iPi9hrgvTzu6Q=="],
 
     "undici-types": ["undici-types@6.21.0", "", {}, "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="],
 
