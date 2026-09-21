@@ -81,8 +81,8 @@ function ForOrganizations() {
             marginBottom: 18,
           }}
         >
-          PatternProof is a free, private documentation tool you can hand a survivor at intake — no
-          cost to your organization, no data integration required on your end.
+          PatternProof is a documentation tool you can hand a survivor at intake — organizations
+          partner at no cost after verification, with no data integration required on your end.
         </p>
         <h1
           style={{
@@ -110,8 +110,8 @@ function ForOrganizations() {
           PatternProof helps survivors organize their history privately, then share it with your
           team only when they choose.
         </p>
-        <Link
-          to="/org-signup"
+        <a
+          href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20organization%20partner%20review%20via%20G.%20BURNS%20COMPANY%20LLC"
           style={{
             display: "inline-block",
             marginTop: 34,
@@ -126,8 +126,8 @@ function ForOrganizations() {
             borderRadius: "var(--pp-r-pill)",
           }}
         >
-          Request access →
-        </Link>
+          Request invitation-only partner review →
+        </a>
         <p
           style={{
             marginTop: 12,
@@ -139,8 +139,8 @@ function ForOrganizations() {
             lineHeight: 1.6,
           }}
         >
-          Partner portals are invitation-only. Request access and we&apos;ll follow up with
-          verification and a sign-in link.
+          Invitation-only partner review via G. BURNS COMPANY LLC. Organizations partner at no cost
+          after verification. Survivors choose what to share.
         </p>
       </section>
 
@@ -186,8 +186,8 @@ function ForOrganizations() {
         </p>
 
         <div style={{ marginTop: 32, display: "grid", gap: 10 }}>
-          <Link
-            to="/org-signup"
+          <a
+            href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20organization%20partner%20review%20via%20G.%20BURNS%20COMPANY%20LLC"
             style={{
               fontFamily: MONO,
               fontSize: 12,
@@ -198,8 +198,8 @@ function ForOrganizations() {
               textUnderlineOffset: 4,
             }}
           >
-            Request access →
-          </Link>
+            Request invitation-only access via G. BURNS COMPANY LLC →
+          </a>
           <Link
             to="/org-feedback"
             style={{

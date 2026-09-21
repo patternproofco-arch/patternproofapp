@@ -38,12 +38,21 @@ describe("/version.json build marker", () => {
 });
 
 describe("build-time commit resolution", () => {
-  it("tries build env vars, the git CLI, raw .git files, then a committed stamp", () => {
+  it("tries build env vars, the git CLI, then raw .git files — never a lagging stamp", () => {
     expect(viteConfig).toContain("LOVABLE_COMMIT_SHA");
     expect(viteConfig).toContain("git rev-parse HEAD");
     expect(viteConfig).toContain(".git/HEAD");
     expect(viteConfig).toContain(".git/packed-refs");
-    expect(viteConfig).toContain("public/COMMIT");
+    expect(viteConfig).not.toContain("stamp-file (may lag one commit)");
+    expect(viteConfig).not.toContain('return { sha: "unknown"');
+    expect(viteConfig).not.toContain('source: "unavailable"');
+    expect(viteConfig).not.toMatch(/readFileSync\([^)]*COMMIT/);
+  });
+
+  it("fails the build when no full SHA can be resolved", () => {
+    expect(viteConfig).toContain("Build refused: cannot resolve a full 40-character git commit SHA");
+    expect(viteConfig).toContain("process.exit(1)");
+    expect(viteConfig).toContain("FULL_SHA");
   });
 
   it("never hardcodes a commit sha in the endpoint or page", () => {
@@ -51,7 +60,7 @@ describe("build-time commit resolution", () => {
     expect(page).not.toMatch(/[0-9a-f]{40}/);
   });
 
-  it("always produces a unique build id even without git metadata", () => {
+  it("always produces a build id from the resolved SHA and build time", () => {
     expect(viteConfig).toContain("function buildId(");
     expect(viteConfig).toContain("createHash");
   });
