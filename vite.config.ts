@@ -89,16 +89,19 @@ export default defineConfig({
       __COMMIT_SOURCE__: JSON.stringify(COMMIT_SOURCE),
       // Publishable (anon) backend config — safe to ship to the browser.
       // Inlined here so the deployed client bundle always has it, even when
-      // the build environment provides no .env files.
+      // the build environment provides no .env files. Fallback values are
+      // this app's real production Supabase project (obljoemiijkryjlxihic) —
+      // never a placeholder/template ref, since a build missing these env
+      // vars would otherwise silently ship pointed at the wrong project.
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-        process.env["VITE_SUPABASE_URL"] || "https://muynotmkcmehxnkhffzl.supabase.co",
+        process.env["VITE_SUPABASE_URL"] || "https://obljoemiijkryjlxihic.supabase.co",
       ),
       "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify(
-        process.env["VITE_SUPABASE_PROJECT_ID"] || "muynotmkcmehxnkhffzl",
+        process.env["VITE_SUPABASE_PROJECT_ID"] || "obljoemiijkryjlxihic",
       ),
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
         process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ||
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11eW5vdG1rY21laHhua2hmZnpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NTQ2NDgsImV4cCI6MjA5NDUzMDY0OH0.CpRhDOXOFCBXzv5NREgGxM1MjFNEIfzA0BTcg21V800",
+          "sb_publishable_qgB_aM0bppIfeHbR2jdK0A_odM_Kv9N",
       ),
     },
 
