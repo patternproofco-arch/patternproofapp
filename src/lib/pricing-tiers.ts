@@ -6,6 +6,10 @@
 export const CHARTER_COHORT_CAP = 10;
 export const FIRM_SEAT_MAX = 5;
 
+/** Active-matter caps — must match SOLO_MATTER_CAP / MATTER_CAP_PER_SEAT in matter-cap.ts. */
+export const SOLO_MATTER_CAP = 10;
+export const FIRM_MATTER_CAP = 10 * FIRM_SEAT_MAX;
+
 export type Tier = {
   key: string;
   name: string;
@@ -47,6 +51,7 @@ export const BASE_TIERS: Tier[] = [
     features: [
       "Open one client share free — no subscription required",
       "Single attorney account",
+      `Up to ${SOLO_MATTER_CAP} active matters`,
       "Source-linked chronology",
       "ZIP export for practice management",
       "Survivor words kept distinct from any tool suggestion",
@@ -79,6 +84,7 @@ export const ATTORNEY_PORTAL_TIER_BULLETS: {
   solo: [
     "Open one client share free — no subscription required",
     "Single attorney account",
+    `Up to ${SOLO_MATTER_CAP} active matters`,
     "Structured chronological timeline + pattern analysis",
     "Exportable case summary (ZIP)",
     "Private attorney notes per incident",
@@ -87,12 +93,14 @@ export const ATTORNEY_PORTAL_TIER_BULLETS: {
   firm_charter: [
     `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
     "Everything in Solo Attorney",
+    `Up to ${FIRM_MATTER_CAP} active matters (10 per seat)`,
     "Charter program: personal setup and staff training",
     "$597/month locked 12 months, then $897",
   ],
   firm: [
     `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
     "Everything in Solo Attorney",
+    `Up to ${FIRM_MATTER_CAP} active matters (10 per seat)`,
     "Priority client onboarding + practice-management-ready exports",
   ],
 };
@@ -110,6 +118,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         features: [
           `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
           "Everything in Solo Attorney",
+          `Up to ${FIRM_MATTER_CAP} active matters (10 per seat)`,
         ],
         cta: "Request a 15-minute walkthrough",
         ctaTo: "mailto:pattern@pattern-proof.tech?subject=Firm%20walkthrough",
@@ -129,6 +138,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
         features: [
           `Shared firm workspace — up to ${FIRM_SEAT_MAX} seats`,
           "Everything in Solo Attorney",
+          `Up to ${FIRM_MATTER_CAP} active matters (10 per seat)`,
           "Charter: setup, case import, staff training",
           "$597/month locked 12 months, then $897",
         ],
