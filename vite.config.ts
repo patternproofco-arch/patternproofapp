@@ -23,7 +23,9 @@ Object.assign(process.env, serverEnv);
 // Build/version marker: MUST resolve a real full git SHA at build time.
 // Fail closed — never emit "unknown" or a lagging stamp-file revision.
 // Publish/CI must set LOVABLE_COMMIT_SHA (or another listed env) when .git is absent.
+// A normal git checkout resolves via `git rev-parse HEAD` — no Lovable env required.
 const FULL_SHA = /^[0-9a-f]{40}$/i;
+const SHORT_SHA = /^[0-9a-f]{7,39}$/i;
 
 function normalizeSha(raw: string | undefined | null): string | null {
   if (!raw) return null;
@@ -31,18 +33,48 @@ function normalizeSha(raw: string | undefined | null): string | null {
   return FULL_SHA.test(sha) ? sha : null;
 }
 
+/** Expand a 7–39 hex short SHA via git when .git exists. Never invent a full SHA. */
+function expandShortShaViaGit(raw: string): string | null {
+  const short = raw.trim().toLowerCase();
+  if (!SHORT_SHA.test(short)) return null;
+  try {
+    // short is strictly hex (validated above) — safe for rev-parse.
+    return normalizeSha(
+      execSync(`git rev-parse ${short}`, {
+        stdio: ["ignore", "pipe", "ignore"],
+      }).toString(),
+    );
+  } catch {
+    return null;
+  }
+}
+
 function resolveCommitSha(): { sha: string; source: string } {
   const envPairs: [string, string | undefined][] = [
     ["LOVABLE_COMMIT_SHA", process.env.LOVABLE_COMMIT_SHA],
+    ["LOVABLE_GIT_COMMIT", process.env.LOVABLE_GIT_COMMIT],
+    ["LOVABLE_GIT_COMMIT_SHA", process.env.LOVABLE_GIT_COMMIT_SHA],
     ["CF_PAGES_COMMIT_SHA", process.env.CF_PAGES_COMMIT_SHA],
     ["WORKERS_CI_COMMIT_SHA", process.env.WORKERS_CI_COMMIT_SHA],
+    ["CLOUDFLARE_COMMIT_SHA", process.env.CLOUDFLARE_COMMIT_SHA],
     ["GITHUB_SHA", process.env.GITHUB_SHA],
     ["VERCEL_GIT_COMMIT_SHA", process.env.VERCEL_GIT_COMMIT_SHA],
+    ["CI_COMMIT_SHA", process.env.CI_COMMIT_SHA],
     ["COMMIT_SHA", process.env.COMMIT_SHA],
+    ["GIT_COMMIT", process.env.GIT_COMMIT],
+    ["GIT_COMMIT_SHA", process.env.GIT_COMMIT_SHA],
   ];
   for (const [name, value] of envPairs) {
     const sha = normalizeSha(value);
     if (sha) return { sha, source: `build-env:${name}` };
+  }
+  // Short env SHAs: expand via git when possible; do not invent.
+  for (const [name, value] of envPairs) {
+    if (!value) continue;
+    const trimmed = value.trim().toLowerCase();
+    if (!SHORT_SHA.test(trimmed)) continue;
+    const expanded = expandShortShaViaGit(trimmed);
+    if (expanded) return { sha: expanded, source: `build-env:${name}+git-expand` };
   }
   try {
     const sha = normalizeSha(
@@ -75,8 +107,11 @@ function resolveCommitSha(): { sha: string; source: string } {
   throw new Error(
     [
       "Build refused: cannot resolve a full 40-character git commit SHA.",
-      "Set LOVABLE_COMMIT_SHA (preferred for Publish) or GITHUB_SHA / CF_PAGES_COMMIT_SHA /",
-      "WORKERS_CI_COMMIT_SHA / VERCEL_GIT_COMMIT_SHA / COMMIT_SHA, or build inside a git checkout.",
+      "Set LOVABLE_COMMIT_SHA / LOVABLE_GIT_COMMIT (preferred for Publish), or",
+      "GITHUB_SHA / CF_PAGES_COMMIT_SHA / WORKERS_CI_COMMIT_SHA /",
+      "VERCEL_GIT_COMMIT_SHA / CI_COMMIT_SHA / COMMIT_SHA / GIT_COMMIT,",
+      "or build inside a git checkout (git rev-parse HEAD).",
+      "Short (7–39) hex SHAs are expanded via git when .git exists; otherwise fail closed.",
       "Lagging stamp-file and \"unknown\" fallbacks are disabled so /version.json",
       "cannot report a lagging or fabricated revision.",
     ].join(" "),
