@@ -99,16 +99,31 @@ try {
 const BUILD_TIME = new Date().toISOString();
 const BUILD_ID = buildId(COMMIT_SHA, BUILD_TIME);
 
+type ClientBuildEnv =
+  | "VITE_SUPABASE_URL"
+  | "VITE_SUPABASE_PROJECT_ID"
+  | "VITE_SUPABASE_PUBLISHABLE_KEY";
+
+const pullRequestPlaceholders: Record<ClientBuildEnv, string> = {
+  VITE_SUPABASE_URL: "https://example.invalid",
+  VITE_SUPABASE_PROJECT_ID: "ci-placeholder",
+  VITE_SUPABASE_PUBLISHABLE_KEY: "ci-placeholder-not-a-secret",
+};
+
 /**
  * Client-visible Supabase configuration must be provided by the deployment.
- * Never fall back to a checked-in project key: a missing value must stop the build.
+ * GitHub pull-request checks receive inert placeholders and cannot reach production.
+ * All other missing values stop the build.
  */
-function requiredBuildEnv(name: string): string {
+function requiredBuildEnv(name: ClientBuildEnv): string {
   const value = process.env[name]?.trim();
-  if (!value) {
-    throw new Error(`Missing required build environment variable: ${name}`);
-  }
-  return value;
+  if (value) return value;
+
+  const isGitHubPullRequest =
+    process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_EVENT_NAME === "pull_request";
+  if (isGitHubPullRequest) return pullRequestPlaceholders[name];
+
+  throw new Error(`Missing required build environment variable: ${name}`);
 }
 
 export default defineConfig({
