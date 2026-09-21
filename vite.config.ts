@@ -99,6 +99,18 @@ try {
 const BUILD_TIME = new Date().toISOString();
 const BUILD_ID = buildId(COMMIT_SHA, BUILD_TIME);
 
+/**
+ * Client-visible Supabase configuration must be provided by the deployment.
+ * Never fall back to a checked-in project key: a missing value must stop the build.
+ */
+function requiredBuildEnv(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) {
+    throw new Error(`Missing required build environment variable: ${name}`);
+  }
+  return value;
+}
+
 export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
@@ -109,21 +121,16 @@ export default defineConfig({
       __BUILD_TIME__: JSON.stringify(BUILD_TIME),
       __BUILD_ID__: JSON.stringify(BUILD_ID),
       __COMMIT_SOURCE__: JSON.stringify(COMMIT_SOURCE),
-      // Publishable (anon) backend config — safe to ship to the browser.
-      // Inlined here so the deployed client bundle always has it, even when
-      // the build environment provides no .env files. Fallback values are
-      // this app's real production Supabase project (obljoemiijkryjlxihic) —
-      // never a placeholder/template ref, since a build missing these env
-      // vars would otherwise silently ship pointed at the wrong project.
+      // Publishable client configuration is intentionally injected by the host.
+      // Missing values fail closed so an old checked-in key can never be reused.
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-        process.env["VITE_SUPABASE_URL"] || "https://obljoemiijkryjlxihic.supabase.co",
+        requiredBuildEnv("VITE_SUPABASE_URL"),
       ),
       "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify(
-        process.env["VITE_SUPABASE_PROJECT_ID"] || "obljoemiijkryjlxihic",
+        requiredBuildEnv("VITE_SUPABASE_PROJECT_ID"),
       ),
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
-        process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ||
-          "sb_publishable_qgB_aM0bppIfeHbR2jdK0A_odM_Kv9N",
+        requiredBuildEnv("VITE_SUPABASE_PUBLISHABLE_KEY"),
       ),
     },
 
