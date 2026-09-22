@@ -39,6 +39,18 @@ These timelines apply to both externally reported vulnerabilities and internally
 
 ---
 
+
+
+## Secret exposure / issue #59
+
+If credentials were ever committed (including only in git history):
+
+1. Rotate them in the provider dashboard — tip deletion is not enough.
+2. Follow `docs/security/issue-59-credential-remediation.md` (inventory, history cleanup options, rotation checklist).
+3. Keep issue #59 open until rotations are verified on the live host.
+
+CI runs gitleaks (`.github/workflows/secret-scan.yml`). Do not allowlist legitimate secret findings just to go green.
+
 ## Dependency Vulnerability Management
 
 ### Scanning

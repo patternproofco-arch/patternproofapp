@@ -112,7 +112,7 @@ function resolveCommitSha(): { sha: string; source: string } {
       "VERCEL_GIT_COMMIT_SHA / CI_COMMIT_SHA / COMMIT_SHA / GIT_COMMIT,",
       "or build inside a git checkout (git rev-parse HEAD).",
       "Short (7–39) hex SHAs are expanded via git when .git exists; otherwise fail closed.",
-      "Lagging stamp-file and \"unknown\" fallbacks are disabled so /version.json",
+      'Lagging stamp-file and "unknown" fallbacks are disabled so /version.json',
       "cannot report a lagging or fabricated revision.",
     ].join(" "),
   );
@@ -134,6 +134,36 @@ try {
 const BUILD_TIME = new Date().toISOString();
 const BUILD_ID = buildId(COMMIT_SHA, BUILD_TIME);
 
+type ClientBuildEnv =
+  "VITE_SUPABASE_URL" | "VITE_SUPABASE_PROJECT_ID" | "VITE_SUPABASE_PUBLISHABLE_KEY";
+
+/** Inert values for GitHub pull_request CI and Vitest only — never production. */
+const pullRequestPlaceholders: Record<ClientBuildEnv, string> = {
+  VITE_SUPABASE_URL: "https://example.invalid",
+  VITE_SUPABASE_PROJECT_ID: "ci-placeholder",
+  VITE_SUPABASE_PUBLISHABLE_KEY: "ci-placeholder-not-a-secret",
+};
+
+/**
+ * Client-visible Supabase configuration must come from the deployment host.
+ * Missing values fail closed so a previously checked-in key can never be reused.
+ * GitHub pull_request checks receive inert placeholders and cannot reach production.
+ */
+function requiredBuildEnv(name: ClientBuildEnv): string {
+  const value = process.env[name]?.trim();
+  if (value) return value;
+
+  // Inert placeholders only — never production credentials.
+  // - GitHub pull_request checks (Launch Readiness / typecheck)
+  // - Vitest loads this config at startup (VITEST=true)
+  const isGitHubPullRequest =
+    process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_EVENT_NAME === "pull_request";
+  const isVitest = process.env.VITEST === "true" || process.env.VITEST === "1";
+  if (isGitHubPullRequest || isVitest) return pullRequestPlaceholders[name];
+
+  throw new Error(`Missing required build environment variable: ${name}`);
+}
+
 export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
@@ -144,21 +174,14 @@ export default defineConfig({
       __BUILD_TIME__: JSON.stringify(BUILD_TIME),
       __BUILD_ID__: JSON.stringify(BUILD_ID),
       __COMMIT_SOURCE__: JSON.stringify(COMMIT_SOURCE),
-      // Publishable (anon) backend config — safe to ship to the browser.
-      // Inlined here so the deployed client bundle always has it, even when
-      // the build environment provides no .env files. Fallback values are
-      // this app's real production Supabase project (obljoemiijkryjlxihic) —
-      // never a placeholder/template ref, since a build missing these env
-      // vars would otherwise silently ship pointed at the wrong project.
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-        process.env["VITE_SUPABASE_URL"] || "https://obljoemiijkryjlxihic.supabase.co",
-      ),
+      // Publishable client configuration is injected by the host only.
+      // Missing values fail closed — no checked-in production fallbacks (#59 / #103).
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(requiredBuildEnv("VITE_SUPABASE_URL")),
       "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify(
-        process.env["VITE_SUPABASE_PROJECT_ID"] || "obljoemiijkryjlxihic",
+        requiredBuildEnv("VITE_SUPABASE_PROJECT_ID"),
       ),
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
-        process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ||
-          "sb_publishable_qgB_aM0bppIfeHbR2jdK0A_odM_Kv9N",
+        requiredBuildEnv("VITE_SUPABASE_PUBLISHABLE_KEY"),
       ),
     },
 
