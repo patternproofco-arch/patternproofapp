@@ -41,3 +41,17 @@ dist-ssr
 
 test-results/
 playwright-report/
+
+# Env backups / editor dumps — never commit
+*.env.bak
+*.env.backup
+*.env.old
+*.env.copy
+.env*.local
+.envrc
+!.env.example
+
+# Secret scan / credential dumps
+gitleaks-report.json
+*-secrets.json
+credentials.json

@@ -21,7 +21,12 @@
 
 import { toCrossJSONAsync } from "seroval";
 
-const PROJECT_REF = (process.env.VITE_SUPABASE_URL || "https://obljoemiijkryjlxihic.supabase.co")
+// Prefer deployment env. Never fall back to a real production project ref (#59).
+const PROJECT_REF = (
+  process.env.VITE_SUPABASE_URL ||
+  process.env.VITE_SUPABASE_PROJECT_ID ||
+  "ci-placeholder"
+)
   .replace(/^https?:\/\//, "")
   .split(".")[0];
 const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`;
