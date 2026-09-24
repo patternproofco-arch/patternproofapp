@@ -3,7 +3,12 @@
 -- Soft claim: aligns DB RLS helper and peer-link SELECT policies with the
 -- expiry check already enforced in src/lib/attorney-access.server.ts
 -- (isExpired / assertLink). Fail closed when expires_at has passed while
--- status remains 'active'. Does not claim absolute security.
+-- status remains 'active', and when revoked_at is set (half-state
+-- where status may still look active). Peer policies already require
+-- revoked_at IS NULL; helper must match. Does not claim absolute security.
+--
+-- Follow-up (accepted): inline message policies that bypass this helper
+-- are out of scope for this change.
 -- Needs @Guardian CLEAR before apply. Idempotent (CREATE OR REPLACE +
 -- DROP POLICY IF EXISTS).
 --
@@ -26,6 +31,7 @@ AS $$
     WHERE attorney_user_id = _attorney_id
       AND client_user_id = _client_id
       AND status = 'active'
+      AND revoked_at IS NULL
       AND (expires_at IS NULL OR expires_at > now())
   )
 $$;

@@ -15,12 +15,19 @@ could diverge from that fail-closed behaviour.
 Migration `20260924160000_honour_share_expiry_has_attorney_access.sql`:
 
 1. `private.has_attorney_access` — `status = 'active'` **and**
-   `(expires_at IS NULL OR expires_at > now())`.
+   `revoked_at IS NULL` **and** `(expires_at IS NULL OR expires_at > now())`.
+   Peer SELECT policies already required `revoked_at IS NULL`; the helper
+   must fail closed on the same half-state.
 2. Policy `Firm colleagues read firm client links` — same expiry clause.
 3. Policy `Org colleagues read org client links` — same (column exists on
    `advocate_client_links`).
 
 Policies that already call `private.has_attorney_access` inherit the fix.
+
+## Follow-up (accepted)
+
+Inline message policies that bypass `private.has_attorney_access` are out of
+scope for this change; track separately if Guardian wants them aligned.
 
 ## Soft claims only
 

@@ -7,9 +7,11 @@ const MIGRATION =
 describe("honour share expiry in has_attorney_access (RLS)", () => {
   const sql = readFileSync(MIGRATION, "utf8");
 
-  it("redefines private.has_attorney_access with active + expiry fail-closed", () => {
+  it("redefines private.has_attorney_access with active + revoked_at + expiry fail-closed", () => {
     expect(sql).toContain("CREATE OR REPLACE FUNCTION private.has_attorney_access");
     expect(sql).toContain("status = 'active'");
+    // Half-state: status may still look active after revoke — helper must fail closed.
+    expect(sql).toContain("revoked_at IS NULL");
     // Expired-but-active must be denied at the helper (matches app-server isExpired).
     expect(sql).toMatch(/expires_at IS NULL OR expires_at > now\(\)/);
   });
@@ -28,16 +30,17 @@ describe("honour share expiry in has_attorney_access (RLS)", () => {
     expect(orgBlock).toContain("status = 'active'");
   });
 
-  it("documents that an expired-but-active link is denied (contract)", () => {
-    // Static contract: helper EXISTS clause must require non-expired.
+  it("documents that expired or revoked-but-active links are denied (contract)", () => {
+    // Static contract: helper EXISTS must require non-revoked + non-expired.
     // Live DB RLS denial is verified after Guardian CLEAR + apply.
     const fn = sql.slice(
       sql.indexOf("CREATE OR REPLACE FUNCTION private.has_attorney_access"),
       sql.indexOf("REVOKE ALL ON FUNCTION private.has_attorney_access"),
     );
     expect(fn).toContain("AND status = 'active'");
+    expect(fn).toContain("AND revoked_at IS NULL");
     expect(fn).toContain("AND (expires_at IS NULL OR expires_at > now())");
-    // Must not weaken to status-only.
+    // Must not weaken to status-only (peer policies already have revoked_at).
     expect(fn.replace(/\s+/g, " ")).not.toMatch(
       /WHERE attorney_user_id = _attorney_id AND client_user_id = _client_id AND status = 'active'\)/,
     );
