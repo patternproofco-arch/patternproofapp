@@ -16,6 +16,8 @@ Guide is **post-login only** in the UI, so `guideChat` **requires**
 2. `src/lib/guide-chat.functions.ts`
    - `requireSupabaseAuth`
    - per-user + per-IP counters via `ai_chat_requests` (no message contents stored)
+   - fail closed if `ai_chat_requests` insert returns `{ error }` — soft busy
+     reply, no Lovable / `LOVABLE_API_KEY` spend
 3. `src/lib/support.functions.ts`
    - stays public (intentional for login/billing help)
    - IP + reply-email throttles

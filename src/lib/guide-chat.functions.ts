@@ -99,10 +99,15 @@ export const guideChat = createServerFn({ method: "POST" })
     }
 
     // Counter row only — do not store Guide message contents.
-    await db.from("ai_chat_requests").insert({
+    // Fail closed: if the rate-limit counter insert errors, do not call Lovable
+    // / spend LOVABLE_API_KEY (insert must not be fire-and-forget).
+    const { error: counterError } = await db.from("ai_chat_requests").insert({
       user_id: context.userId,
       ip_hash: ipHash,
     });
+    if (counterError) {
+      return { reply: "Lots of activity right now — try again in a moment." };
+    }
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

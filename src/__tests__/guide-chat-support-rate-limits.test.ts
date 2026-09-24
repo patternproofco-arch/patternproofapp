@@ -23,6 +23,24 @@ describe("guideChat auth + rate limits", () => {
     expect(guide).not.toMatch(/ai_chat_requests"\)\.insert\([^)]*messages/);
     expect(guide).not.toMatch(/console\.(log|info|debug).*messages/);
   });
+
+  it("fails closed on ai_chat_requests insert error (no Lovable spend)", () => {
+    // Counter insert must be awaited and checked; fire-and-forget would still
+    // call Lovable / spend LOVABLE_API_KEY when the insert returns { error }.
+    expect(guide).toContain("counterError");
+    expect(guide).toMatch(
+      /const \{ error: counterError \} = await db\.from\("ai_chat_requests"\)\.insert/,
+    );
+    const insertIdx = guide.indexOf('from("ai_chat_requests").insert');
+    const lovableIdx = guide.indexOf("ai.gateway.lovable.dev");
+    expect(insertIdx).toBeGreaterThan(-1);
+    expect(lovableIdx).toBeGreaterThan(insertIdx);
+    const between = guide.slice(insertIdx, lovableIdx);
+    expect(between).toContain("if (counterError)");
+    expect(between).toContain(
+      'return { reply: "Lots of activity right now — try again in a moment." }',
+    );
+  });
 });
 
 describe("submitSupportRequest rate limits (public retained)", () => {
