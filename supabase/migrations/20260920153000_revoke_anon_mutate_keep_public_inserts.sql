@@ -19,8 +19,12 @@
 -- Public-form INSERT tables (remain allowed for anon):
 --   - public.feedback_submissions
 --   - public.org_access_requests
---   - public.waitlist_signups
 --   - public.marketing_leads
+--
+-- waitlist_signups: NOT re-granted here. Waitlist lockdown (#108 /
+--   20260924100000_lock_down_waitlist_signups.sql) supersedes any prior
+--   anon INSERT grant; re-granting would undo that lockdown.
+--   Table remains in the REVOKE DELETE/UPDATE/TRUNCATE list below.
 --
 -- Everything else listed below: anon may NOT DELETE / UPDATE / TRUNCATE.
 -- Anon SELECT is also not granted here (fail closed).
@@ -123,7 +127,7 @@ end $$;
 -- Re-assert the only anon table writes intended for public browser forms.
 grant insert on table public.feedback_submissions to anon;
 grant insert on table public.org_access_requests to anon;
-grant insert on table public.waitlist_signups to anon;
+-- waitlist_signups intentionally omitted: #108 lockdown supersedes; do not re-grant.
 grant insert on table public.marketing_leads to anon;
 
 -- Default privileges: future tables created by postgres in public should not
@@ -132,8 +136,10 @@ alter default privileges for role postgres in schema public
   revoke delete, update, truncate on tables from anon;
 
 -- Remains allowed after this migration (anon):
---   INSERT on feedback_submissions, org_access_requests, waitlist_signups, marketing_leads
+--   INSERT on feedback_submissions, org_access_requests, marketing_leads
+-- waitlist_signups: no INSERT re-grant (superseded by #108 lockdown)
 -- Remains denied (anon) on every listed sensitive table:
 --   DELETE, UPDATE, TRUNCATE (and no new SELECT/UPDATE/DELETE grants)
 -- Not changed:
 --   authenticated role, service_role, RLS policies
+--   (except waitlist_signups INSERT intentionally not restored for anon)
