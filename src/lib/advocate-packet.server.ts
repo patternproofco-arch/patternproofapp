@@ -1,3 +1,4 @@
+import { toSafeCsv } from "@/lib/csv-safe";
 import JSZip from "jszip";
 import { createHash } from "crypto";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
@@ -326,15 +327,8 @@ export async function buildPacketPdf(input: PacketInput): Promise<Uint8Array> {
 
 /* --------------------------------- ZIP ---------------------------------- */
 
-function csv(rows: Array<Record<string, unknown>>) {
-  if (!rows.length) return "";
-  const cols = Array.from(new Set(rows.flatMap((r) => Object.keys(r))));
-  const esc = (v: unknown) => {
-    if (v === null || v === undefined) return "";
-    const s = typeof v === "string" ? v : JSON.stringify(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  return [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+function csv(rows: Array<Record<string, unknown>>): string {
+  return toSafeCsv(rows);
 }
 
 export async function buildAdvocateZip(

@@ -152,7 +152,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: St
   if (session.metadata?.tier !== "court_ready_pwyc") return;
   const userId = session.metadata?.userId;
   if (!userId) return;
-  if (session.payment_status === "unpaid") return;
+  if (session.payment_status !== "paid") return;
+  // Verify the amount Stripe actually collected, not the client-requested one.
+  const paid = session.amount_total ?? 0;
+  if ((session.currency ?? "").toLowerCase() !== "usd" || paid < 100 || paid > 50000) {
+    console.warn("[payments] PWYC session outside allowed range; not granting access");
+    return;
+  }
   const now = new Date();
   const oneYear = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
   const supabase = getSupabase();

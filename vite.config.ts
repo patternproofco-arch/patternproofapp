@@ -166,8 +166,10 @@ function requiredBuildEnv(name: ClientBuildEnv): string | undefined {
   if (isGitHubPullRequest || isVitest) return pullRequestPlaceholders[name];
 
   // Not in this process env: leave it to the host's own VITE_* injection.
-  // No checked-in production fallback is ever used, and the build never fails
-  // closed here — the hosting platform supplies these values at deploy time.
+  // No checked-in production fallback is ever used. Strict CI can opt in to failing.
+  if (process.env.REQUIRE_CLIENT_ENV === "1") {
+    throw new Error(`Missing required build environment variable: ${name}`);
+  }
   return undefined;
 }
 

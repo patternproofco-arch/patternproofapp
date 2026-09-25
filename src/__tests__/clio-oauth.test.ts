@@ -216,3 +216,41 @@ describe("clio server surface", () => {
     expect(readFileSync(".env.example", "utf8")).not.toMatch(/VITE_CLIO/);
   });
 });
+
+describe("clio deauthorize webhook fail-closed", () => {
+  const deauth = readFileSync("src/routes/integrations.clio.deauthorize.ts", "utf8");
+  const fns = readFileSync("src/lib/clio.functions.ts", "utf8");
+  // Strip line comments so documentation that names the table does not false-positive.
+  const deauthCode = deauth
+    .split("\n")
+    .filter((line) => !/^\s*\/\//.test(line))
+    .join("\n");
+
+  it("does not import supabaseAdmin or mutate clio_connections (forged POST cannot revoke)", () => {
+    // Structural proof that an unauthenticated POST — even with a matching
+    // client_id shape — has no executable path that updates/deletes connections.
+    expect(deauthCode).not.toMatch(/supabaseAdmin/);
+    expect(deauthCode).not.toMatch(/clio_connections/);
+    expect(deauthCode).not.toMatch(/\.from\(/);
+    expect(deauthCode).not.toMatch(/\.update\(/);
+    expect(deauthCode).not.toMatch(/\.delete\(/);
+    expect(deauthCode).not.toMatch(/revoked_at/);
+    expect(deauthCode).not.toMatch(/record_audit_event/);
+  });
+
+  it("still acknowledges the callback with HTTP 200", () => {
+    expect(deauth).toMatch(/status:\s*200/);
+    expect(deauth).toContain("POST:");
+  });
+
+  it("documents that the callback is unauthenticated and not authoritative", () => {
+    expect(deauth.toLowerCase()).toMatch(/fail-closed|not treat|not.*authoritative|unauthenticated/);
+    expect(deauth).toMatch(/disconnectClio/);
+  });
+
+  it("leaves authenticated disconnectClio ownership model unchanged (own user_id only)", () => {
+    const block = fns.slice(fns.indexOf("export const disconnectClio"));
+    expect(block).toContain("requireSupabaseAuth");
+    expect(block).toContain('.eq("user_id", context.userId)');
+  });
+});
