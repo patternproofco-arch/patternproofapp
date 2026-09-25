@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { Check, ExternalLink, Lock, Star, Plug, Clock } from "lucide-react";
 import { createPortalSession } from "@/lib/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 import { ThreadGroup } from "@/components/ThreadConnector";
 import {
   getClioAvailability,
@@ -72,12 +73,12 @@ function BillingPage() {
   const openPortal = async () => {
     setOpening(true);
     try {
-      const env = (import.meta.env.VITE_STRIPE_ENV as "live" | "sandbox") ?? "sandbox";
+      const env = getStripeEnvironment();
       const r = await portalFn({ data: { environment: env, returnUrl: window.location.href } });
       if ("url" in r) window.location.href = r.url;
       else toast("Couldn't open billing portal: " + r.error);
-    } catch {
-      toast("Couldn't open billing portal.");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Couldn't open billing portal.");
     } finally {
       setOpening(false);
     }
