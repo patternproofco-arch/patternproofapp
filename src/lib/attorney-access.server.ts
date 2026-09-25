@@ -7,7 +7,7 @@
  * an in-memory stand-in.
  *
  * The rules, in one place:
- *  - Access always starts from an ACTIVE, non-revoked, non-expired attorney_client_links row.
+ *  - Access always starts from an ACTIVE, non-expired attorney_client_links row.
  *  - Route params, ids and anything the browser sends are never trusted.
  *  - A link tied to one case can only ever reach that case's own records.
  *  - A firm colleague's grant is inert the moment either attorney leaves the firm.
@@ -34,20 +34,14 @@ export type AttorneyLink = {
   scope_threads?: string[];
   case_id?: string | null;
   expires_at?: string | null;
-  revoked_at?: string | null;
 };
 
 export const LINK_COLUMNS =
-  "id,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,scope_incidents,scope_evidence,case_id,expires_at,revoked_at";
+  "id,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,scope_incidents,scope_evidence,case_id,expires_at";
 
 /** True once a grant's expiry has passed. Expired access is treated the same as revoked. */
 export function isExpired(expiresAt: string | null | undefined): boolean {
   return !!expiresAt && new Date(expiresAt).getTime() < Date.now();
-}
-
-/** True when revoked_at is set (half-state: status may still read 'active'). Match SQL has_attorney_access. */
-export function isRevoked(revokedAt: string | null | undefined): boolean {
-  return revokedAt != null && revokedAt !== "";
 }
 
 export async function assertAttorney(admin: Admin, userId: string) {
@@ -96,8 +90,7 @@ export async function verifiedFirmGrantLinkIds(
     .from("attorney_client_links")
     .select("id,attorney_user_id,status")
     .in("id", linkIds)
-    .eq("status", "active")
-    .is("revoked_at", null);
+    .eq("status", "active");
   if (linksError) throw new Error(linksError.message);
   const linkRows = (links ?? []) as Array<{ id: string; attorney_user_id: string }>;
   const ownerIds = Array.from(new Set(linkRows.map((l) => l.attorney_user_id)));
@@ -158,7 +151,7 @@ export async function assertLink(
     .eq("attorney_user_id", attorneyId)
     .eq("client_user_id", clientId)
     .maybeSingle();
-  if (!data || data.status !== "active" || isRevoked(data.revoked_at) || isExpired(data.expires_at)) {
+  if (!data || data.status !== "active" || isExpired(data.expires_at)) {
     throw new Error("No active access");
   }
   await applyCaseScope(admin, data, clientId);
@@ -185,7 +178,7 @@ export async function assertCaseAccess(
     .eq("attorney_user_id", userId)
     .eq("client_user_id", clientId)
     .maybeSingle();
-  if (owner && owner.status === "active" && !isRevoked(owner.revoked_at) && !isExpired(owner.expires_at)) {
+  if (owner && owner.status === "active" && !isExpired(owner.expires_at)) {
     await applyCaseScope(admin, owner, clientId);
     return { link: owner as AttorneyLink, role: "owner" };
   }
@@ -213,9 +206,8 @@ export async function assertCaseAccess(
     .in("id", candidateLinkIds)
     .eq("client_user_id", clientId)
     .eq("status", "active")
-    .is("revoked_at", null)
     .maybeSingle();
-  if (!link || isRevoked(link.revoked_at) || isExpired(link.expires_at)) throw new Error("No active access");
+  if (!link || isExpired(link.expires_at)) throw new Error("No active access");
   await applyCaseScope(admin, link, clientId);
   const collabRole = collabs.find((c) => c.link_id === link.id)?.role as
     | "paralegal"
@@ -242,14 +234,13 @@ export async function assertLinkParticipant(
 }> {
   const { data: link } = await admin
     .from("attorney_client_links")
-    .select("id,attorney_user_id,client_user_id,status,expires_at,revoked_at")
+    .select("id,attorney_user_id,client_user_id,status,expires_at")
     .eq("id", linkId)
     .maybeSingle();
-  if (!link || link.status !== "active" || isRevoked(link.revoked_at)) throw new Error("No active link");
+  if (!link || link.status !== "active") throw new Error("No active link");
   if (link.client_user_id === userId) return { link, role: "survivor" };
   // Expiry only gates the attorney side — the survivor can always reach her own
-  // thread even after a window she set has lapsed. Revocation (revoked_at set)
-  // denies everyone, including the survivor, matching intentional withdraw.
+  // thread even after a window she set has lapsed.
   if (isExpired(link.expires_at)) throw new Error("No active link");
   if (link.attorney_user_id === userId) return { link, role: "owner" };
   const { data: collab } = await admin

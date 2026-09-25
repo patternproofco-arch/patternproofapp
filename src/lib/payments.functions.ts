@@ -137,7 +137,8 @@ export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        amountInCents: z.number().int().min(100).max(50000),
+        // Whole-dollar amounts only, $1–$500 (pay-what-you-can by design).
+        amountInCents: z.number().int().min(100).max(50000).multipleOf(100),
         returnUrl: z.string().url().transform(assertSafeReturnUrl),
         environment: z.enum(["sandbox", "live"]),
       })
