@@ -187,6 +187,11 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  // The Cron Trigger backstop for the email queue (nitro-plugins/email-cron.ts)
+  // is registered via the root nitro.config.ts, not here — this wrapper's
+  // `nitro` option type doesn't expose `plugins`, but Nitro itself
+  // auto-loads nitro.config.ts independently (confirmed via its c12-based
+  // config loader), so that's the sanctioned registration point.
   vite: {
     define: {
       __GIT_COMMIT_SHA__: JSON.stringify(COMMIT_SHA),
