@@ -20,6 +20,14 @@ async function assertEntitled(attorneyId: string, clientId: string) {
   if (!ent.entitled) throw new Error("An active attorney subscription is required.");
 }
 
+/** Caseload-wide entitlement check (no single client in scope). */
+async function assertAttorneySubscribed(attorneyId: string) {
+  const ent = await isAttorneyEntitled(attorneyId, "");
+  if (ent.reason !== "subscribed") {
+    throw new Error("An active attorney subscription is required.");
+  }
+}
+
 /**
  * The access rules themselves live in attorney-access.server.ts so they can be
  * run in tests against an in-memory database. These wrappers only supply the
@@ -216,6 +224,7 @@ export const getAttorneyProfile = createServerFn({ method: "GET" })
 export const listMyClients = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    await assertAttorneySubscribed(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Owner attorney's own client links
@@ -413,6 +422,7 @@ export const listMyClients = createServerFn({ method: "GET" })
 export const getCaseloadOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    await assertAttorneySubscribed(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Reuse the same access model as listMyClients: owner links + collaborator + firm-granted links.
@@ -1491,9 +1501,16 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
         () => undefined,
         (e: unknown) => console.error("[audit] evidence download log failed", e),
       );
-    // file_url may be a storage path inside evidence-files bucket OR an absolute URL.
-    if (/^https?:\/\//i.test(ev.file_url))
-      return { url: ev.file_url, file_type: ev.file_type, title: ev.title };
+    // Only sign objects inside the evidence owner's own storage folder. Never
+    // follow absolute URLs or paths that point at another user's files.
+    const path = String(ev.file_url ?? "");
+    if (
+      /^https?:\/\//i.test(path) ||
+      !path.startsWith(`${data.clientId}/`) ||
+      path.includes("..")
+    ) {
+      throw new Error("This file can't be opened from here.");
+    }
     const { data: signed } = await supabaseAdmin.storage
       .from("evidence-files")
       .createSignedUrl(ev.file_url, PROFESSIONAL_LINK_TTL_SECONDS);

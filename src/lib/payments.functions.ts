@@ -1,3 +1,5 @@
+import { toSafeCsv } from "@/lib/csv-safe";
+import { assertSafeReturnUrl } from "@/lib/return-url";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
@@ -65,7 +67,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { priceId: string; returnUrl: string; environment: StripeEnv }) => {
     if (!/^[a-zA-Z0-9_-]+$/.test(data.priceId)) throw new Error("Invalid priceId");
-    return data;
+    return { ...data, returnUrl: assertSafeReturnUrl(String(data.returnUrl)) };
   })
   .handler(async ({ data, context }): Promise<CheckoutResult> => {
     try {
@@ -136,7 +138,7 @@ export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
     z
       .object({
         amountInCents: z.number().int().min(100).max(50000),
-        returnUrl: z.string().url(),
+        returnUrl: z.string().url().transform(assertSafeReturnUrl),
         environment: z.enum(["sandbox", "live"]),
       })
       .parse(input),
@@ -176,7 +178,10 @@ export const createPayWhatYouCanCheckout = createServerFn({ method: "POST" })
 
 export const createPortalSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { returnUrl?: string; environment: StripeEnv }) => data)
+  .inputValidator((data: { returnUrl?: string; environment: StripeEnv }) => ({
+    ...data,
+    returnUrl: data.returnUrl ? assertSafeReturnUrl(String(data.returnUrl)) : undefined,
+  }))
   .handler(async ({ data, context }): Promise<PortalResult> => {
     const { supabase, userId } = context;
     const { data: sub } = await supabase
@@ -368,14 +373,7 @@ export const getAttorneyEntitlement = createServerFn({ method: "POST" })
  * Reuses the survivor exporter shape but scoped to one client via the admin client.
  */
 function toCsv(rows: Array<Record<string, unknown>>): string {
-  if (rows.length === 0) return "";
-  const cols = Array.from(new Set(rows.flatMap((r) => Object.keys(r))));
-  const esc = (v: unknown) => {
-    if (v === null || v === undefined) return "";
-    const s = typeof v === "string" ? v : JSON.stringify(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  return [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+  return toSafeCsv(rows);
 }
 function sha256(buf: ArrayBuffer | Uint8Array): string {
   return createHash("sha256")
