@@ -27,7 +27,6 @@ interface Ctx {
 }
 
 const RecCtx = createContext<Ctx | null>(null);
-const LIMIT_SEC = 60;
 
 export function RecordingProvider({ children }: { children: ReactNode }) {
   const [isRecording, setIsRecording] = useState(false);
@@ -54,7 +53,41 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
         if (e.data.size > 0) chunks.current.push(e.data);
       };
       mr.current = m;
-      m.start();
+      m.start(1000);
+      // Best-effort live transcript where the browser supports it.
+      try {
+        const w = window as unknown as Record<string, unknown>;
+        const SR = (w.SpeechRecognition || w.webkitSpeechRecognition) as
+          | (new () => {
+              continuous: boolean;
+              interimResults: boolean;
+              onresult: (e: { resultIndex: number; results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void;
+              onend: () => void;
+              start: () => void;
+              stop: () => void;
+            })
+          | undefined;
+        if (SR) {
+          const rec = new SR();
+          rec.continuous = true;
+          rec.interimResults = false;
+          let active = true;
+          rec.onresult = (e) => {
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+              if (e.results[i].isFinal) transcript.current += `${e.results[i][0].transcript} `;
+            }
+          };
+          rec.onend = () => {
+            if (active && mr.current) {
+              try { rec.start(); } catch { /* ignore */ }
+            }
+          };
+          rec.start();
+          sr.current = { stop: () => { active = false; rec.stop(); } };
+        }
+      } catch {
+        /* transcript is optional */
+      }
       startedAt.current = new Date().toISOString();
       setIsRecording(true);
       setElapsed(0);
@@ -70,8 +103,7 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
     const m = mr.current;
     const dur = elapsed;
     const started = startedAt.current;
-    const tx = transcript.current;
-
+    
     return await new Promise((resolve) => {
       m.onstop = () => {
         const blob = new Blob(chunks.current, { type: "audio/webm" });
@@ -91,7 +123,7 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
         setIsRecording(false);
         const result: PendingRecording = {
           blob,
-          transcript: tx,
+          transcript: transcript.current.trim(),
           durationSec: dur,
           startedAt: started,
           endedAt: new Date().toISOString(),
@@ -107,12 +139,6 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
       }
     });
   }, [elapsed]);
-
-  useEffect(() => {
-    if (isRecording && elapsed >= LIMIT_SEC) {
-      void stop();
-    }
-  }, [isRecording, elapsed, stop]);
 
   const consumePending = useCallback(() => {
     const p = pending;

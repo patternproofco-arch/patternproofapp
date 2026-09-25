@@ -86,7 +86,13 @@ function ResetPasswordPage() {
           if (!cancelled) setExpired(true);
         }
       } catch {
-        if (!cancelled) setExpired(true);
+        // The client may already have exchanged the recovery code on load;
+        // only show "expired" if there is genuinely no session.
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          markPasswordRecovery();
+          window.history.replaceState({}, "", "/reset-password");
+        } else if (!cancelled) setExpired(true);
       } finally {
         if (!cancelled) setReady(true);
       }
