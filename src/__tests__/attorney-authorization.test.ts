@@ -7,6 +7,7 @@ import {
   assertLinkParticipant,
   idInScope,
   isExpired,
+  isRevoked,
   verifiedFirmGrantLinkIds,
 } from "@/lib/attorney-access.server";
 
@@ -55,6 +56,7 @@ function world(overrides: Partial<Tables> = {}): Tables {
         scope_evidence: [],
         case_id: CASE_A,
         expires_at: null,
+        revoked_at: null,
       },
     ],
     cases: [
@@ -100,6 +102,16 @@ describe("attorney access — the owning attorney", () => {
     expect(isExpired(past)).toBe(true);
     expect(isExpired(future)).toBe(false);
     await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow("No active access");
+  });
+
+  it("is refused when revoked_at is set even if status stays active (half-state)", async () => {
+    const t = world();
+    t["attorney_client_links"]![0]!["revoked_at"] = past;
+    expect(t["attorney_client_links"]![0]!["status"]).toBe("active");
+    expect(isRevoked(past)).toBe(true);
+    expect(isRevoked(null)).toBe(false);
+    await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow("No active access");
+    await expect(assertCaseAccess(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow("No active access");
   });
 
   it("cannot reach a survivor who never shared with them", async () => {
@@ -211,6 +223,17 @@ describe("attorney access — message threads and document requests", () => {
   it("refuses everyone once the link is revoked", async () => {
     const t = world();
     t["attorney_client_links"]![0]!["status"] = "revoked";
+    await expect(assertLinkParticipant(fakeAdmin(t), LINK_A, SURV_A)).rejects.toThrow(
+      "No active link",
+    );
+    await expect(assertLinkParticipant(fakeAdmin(t), LINK_A, ATTY_A)).rejects.toThrow(
+      "No active link",
+    );
+  });
+
+  it("refuses everyone when revoked_at is set while status stays active", async () => {
+    const t = world();
+    t["attorney_client_links"]![0]!["revoked_at"] = past;
     await expect(assertLinkParticipant(fakeAdmin(t), LINK_A, SURV_A)).rejects.toThrow(
       "No active link",
     );
