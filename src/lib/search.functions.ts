@@ -18,7 +18,7 @@ export const globalSearch = createServerFn({ method: "POST" })
     const q = data.q;
     // Strip PostgREST filter delimiters so the term cannot alter .or() filters.
     const safe = q.replace(/[,()."'\\:*%_]/g, " ").replace(/\s+/g, " ").trim();
-    if (!safe) return [] as SearchHit[];
+    if (!safe) return { hits: [] as SearchHit[], q };
     const like = `%${safe}%`;
     const uid = context.userId;
     const sb = context.supabase;
