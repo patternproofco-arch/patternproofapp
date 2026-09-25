@@ -8,6 +8,13 @@
       "when": 1790352989526,
       "tag": "0000_lock_down_waitlist_signups",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790369344400,
+      "tag": "0001_rate_limit_columns_and_audit_grant",
+      "breakpoints": true
     }
   ]
 }
