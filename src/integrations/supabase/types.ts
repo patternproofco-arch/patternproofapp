@@ -319,19 +319,16 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          ip_hash: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
-          ip_hash?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
-          ip_hash?: string | null
           user_id?: string
         }
         Relationships: []
@@ -3463,7 +3460,6 @@ export type Database = {
           category: string
           created_at: string
           id: string
-          ip_hash: string | null
           message: string
           name: string | null
           reply_email: string
@@ -3475,7 +3471,6 @@ export type Database = {
           category: string
           created_at?: string
           id?: string
-          ip_hash?: string | null
           message: string
           name?: string | null
           reply_email: string
@@ -3487,7 +3482,6 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
-          ip_hash?: string | null
           message?: string
           name?: string | null
           reply_email?: string

@@ -129,7 +129,11 @@ try {
   ({ sha: COMMIT_SHA, source: COMMIT_SOURCE } = resolveCommitSha());
 } catch (err) {
   console.error(err instanceof Error ? err.message : err);
-  process.exit(1);
+  // Strict CI can opt into failing the build; hosted builds without git metadata
+  // report the revision truthfully as unavailable instead of claiming a commit.
+  if (process.env.REQUIRE_COMMIT_SHA === "1") process.exit(1);
+  COMMIT_SHA = "unknown";
+  COMMIT_SOURCE = "unavailable";
 }
 const BUILD_TIME = new Date().toISOString();
 const BUILD_ID = buildId(COMMIT_SHA, BUILD_TIME);
