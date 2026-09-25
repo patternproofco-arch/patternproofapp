@@ -16,7 +16,10 @@ export const globalSearch = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ q: z.string().trim().min(1).max(200) }).parse(d))
   .handler(async ({ data, context }) => {
     const q = data.q;
-    const like = `%${q.replace(/[%_]/g, (m) => "\\" + m)}%`;
+    // Strip PostgREST filter delimiters so the term cannot alter .or() filters.
+    const safe = q.replace(/[,()."'\\:*%_]/g, " ").replace(/\s+/g, " ").trim();
+    if (!safe) return [] as SearchHit[];
+    const like = `%${safe}%`;
     const uid = context.userId;
     const sb = context.supabase;
 
