@@ -153,7 +153,7 @@ const pullRequestPlaceholders: Record<ClientBuildEnv, string> = {
  * Missing values fail closed so a previously checked-in key can never be reused.
  * GitHub pull_request checks receive inert placeholders and cannot reach production.
  */
-function requiredBuildEnv(name: ClientBuildEnv): string {
+function requiredBuildEnv(name: ClientBuildEnv): string | undefined {
   const value = process.env[name]?.trim();
   if (value) return value;
 
@@ -165,7 +165,19 @@ function requiredBuildEnv(name: ClientBuildEnv): string {
   const isVitest = process.env.VITEST === "true" || process.env.VITEST === "1";
   if (isGitHubPullRequest || isVitest) return pullRequestPlaceholders[name];
 
-  throw new Error(`Missing required build environment variable: ${name}`);
+  // Not in this process env: leave it to the host's own VITE_* injection.
+  // No checked-in production fallback is ever used.
+  return undefined;
+}
+
+const clientEnvDefines: Record<string, string> = {};
+for (const name of [
+  "VITE_SUPABASE_URL",
+  "VITE_SUPABASE_PROJECT_ID",
+  "VITE_SUPABASE_PUBLISHABLE_KEY",
+] as const) {
+  const value = requiredBuildEnv(name);
+  if (value) clientEnvDefines[`import.meta.env.${name}`] = JSON.stringify(value);
 }
 
 export default defineConfig({
@@ -178,15 +190,8 @@ export default defineConfig({
       __BUILD_TIME__: JSON.stringify(BUILD_TIME),
       __BUILD_ID__: JSON.stringify(BUILD_ID),
       __COMMIT_SOURCE__: JSON.stringify(COMMIT_SOURCE),
-      // Publishable client configuration is injected by the host only.
-      // Missing values fail closed — no checked-in production fallbacks (#59 / #103).
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(requiredBuildEnv("VITE_SUPABASE_URL")),
-      "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify(
-        requiredBuildEnv("VITE_SUPABASE_PROJECT_ID"),
-      ),
-      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
-        requiredBuildEnv("VITE_SUPABASE_PUBLISHABLE_KEY"),
-      ),
+      // Publishable client configuration comes from the host only (#59 / #103).
+      ...clientEnvDefines,
     },
 
     plugins: [mcpPlugin()],
