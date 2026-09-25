@@ -90,7 +90,11 @@ function SupportPage() {
       });
       if (!res.ok) {
         setStatus("idle");
-        setError("We couldn't send that. Try again in a moment.");
+        setError(
+          "rateLimited" in res && res.rateLimited
+            ? "We've received several messages from this connection in the last hour. Please try again a little later."
+            : "We couldn't send that. Try again in a moment.",
+        );
         return;
       }
       setStatus("sent");
