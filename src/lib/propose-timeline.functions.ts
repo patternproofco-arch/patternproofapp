@@ -521,7 +521,18 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
     if (incError || !incident) throw new Error(incError?.message ?? "Could not create incident.");
 
     // Link source evidence when the IDs refer to evidence rows
-    const sourceIds = (proposal.source_evidence_ids ?? []) as string[];
+    const rawIds = (proposal.source_evidence_ids ?? []) as string[];
+    // Only link IDs that are the survivor's own, non-deleted evidence rows.
+    let sourceIds: string[] = [];
+    if (rawIds.length > 0) {
+      const { data: owned } = await supabase
+        .from("evidence")
+        .select("id")
+        .eq("user_id", userId)
+        .is("deleted_at", null)
+        .in("id", rawIds);
+      sourceIds = (owned ?? []).map((r: { id: string }) => r.id);
+    }
     if (sourceIds.length > 0) {
       const { error: linkError } = await supabase.from("incident_evidence_links").upsert(
         sourceIds.map((evidenceId) => ({

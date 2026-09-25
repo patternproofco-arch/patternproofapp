@@ -82,7 +82,7 @@ export const submitSupportRequest = createServerFn({ method: "POST" })
         .eq("ip_hash", ipHash)
         .gte("created_at", since);
       if ((count ?? 0) >= IP_MAX_PER_WINDOW) {
-        return { ok: false as const, emailed: false as const };
+        return { ok: false as const, emailed: false as const, rateLimited: true as const };
       }
     }
 
@@ -92,10 +92,9 @@ export const submitSupportRequest = createServerFn({ method: "POST" })
       .select("id", { count: "exact", head: true })
       .eq("reply_email", replyEmail)
       .gte("created_at", emailSince);
-    if ((recentForEmail ?? 0) > 0) {
-      // Soft success without enqueue — avoids inbox flood / probing.
-      return { ok: true as const, emailed: false as const };
-    }
+    // Follow-ups within the hour are still saved so support sees them; only
+    // the notification email is skipped to avoid flooding the inbox.
+    const isFollowUp = (recentForEmail ?? 0) > 0;
 
     const { data: row, error } = await db
       .from("support_requests")
@@ -113,6 +112,8 @@ export const submitSupportRequest = createServerFn({ method: "POST" })
     if (error) {
       return { ok: false as const, emailed: false as const };
     }
+
+    if (isFollowUp) return { ok: true as const, emailed: false as const };
 
     const { enqueueSupportEmail } = await import("@/lib/support.server");
     const emailed = await enqueueSupportEmail({

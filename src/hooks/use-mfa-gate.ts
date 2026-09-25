@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { resolveMfaGate } from "@/lib/mfa";
-import { supabase } from "@/integrations/supabase/client";
 
 type MfaGateOptions = {
   /** If true, no verified authenticator means redirect to enrollTo. Lookup/errors deny. */
@@ -25,8 +24,27 @@ export function useMfaGate(enabled: boolean, options: MfaGateOptions = {}) {
       return;
     }
     let cancelled = false;
+    let retryTimer: number | undefined;
+    let attempt = 0;
+    // Fail closed without signing out: an indeterminate check (network blip,
+    // slow response) keeps the protected portal hidden and retries, instead of
+    // ending the session and losing the attorney's place.
+    const scheduleRetry = () => {
+      if (cancelled || typeof window === "undefined") return;
+      attempt += 1;
+      const delay = Math.min(15000, 1500 * attempt);
+      retryTimer = window.setTimeout(() => void run(), delay);
+    };
     const run = async () => {
-      const decision = await resolveMfaGate({ requireEnrollment });
+      let decision: Awaited<ReturnType<typeof resolveMfaGate>>;
+      try {
+        decision = await resolveMfaGate({ requireEnrollment });
+      } catch {
+        if (cancelled) return;
+        if (requireEnrollment) scheduleRetry();
+        else setChecking(false);
+        return;
+      }
       if (cancelled) return;
       switch (decision) {
         case "challenge":
@@ -36,37 +54,25 @@ export function useMfaGate(enabled: boolean, options: MfaGateOptions = {}) {
           navigate({ to: enrollTo, replace: true });
           return;
         case "deny":
-          // Fail closed: sign out, then hard-nav to /signin so the attorney
-          // layout's !user effect cannot race us to /lawyer-signup.
-          await supabase.auth.signOut();
-          if (typeof window !== "undefined") {
-            window.location.replace("/signin");
-          } else {
-            navigate({ to: "/signin", replace: true });
-          }
+          setChecking(true);
+          scheduleRetry();
           return;
         case "allow":
         default:
-          if (!cancelled) setChecking(false);
+          setChecking(false);
           return;
       }
     };
-    run().catch(() => {
-      if (cancelled) return;
-      if (requireEnrollment) {
-        void supabase.auth.signOut().finally(() => {
-          if (typeof window !== "undefined") {
-            window.location.replace("/signin");
-          } else {
-            navigate({ to: "/signin", replace: true });
-          }
-        });
-        return;
-      }
-      setChecking(false);
-    });
+    const onOnline = () => {
+      if (retryTimer) clearTimeout(retryTimer);
+      void run();
+    };
+    if (typeof window !== "undefined") window.addEventListener("online", onOnline);
+    void run();
     return () => {
       cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+      if (typeof window !== "undefined") window.removeEventListener("online", onOnline);
     };
   }, [enabled, navigate, requireEnrollment, enrollTo]);
 
