@@ -50,6 +50,15 @@ export function isRevoked(revokedAt: string | null | undefined): boolean {
   return revokedAt != null && revokedAt !== "";
 }
 
+/** Active share: status active, revoked_at unset, and not past expires_at. Match SQL has_attorney_access. */
+export function isActiveShareLink(link: {
+  status?: string | null;
+  revoked_at?: string | null;
+  expires_at?: string | null;
+}): boolean {
+  return link.status === "active" && !isRevoked(link.revoked_at) && !isExpired(link.expires_at);
+}
+
 export async function assertAttorney(admin: Admin, userId: string) {
   const { data } = await admin
     .from("user_roles")

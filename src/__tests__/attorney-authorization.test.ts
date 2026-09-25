@@ -6,6 +6,7 @@ import {
   assertLink,
   assertLinkParticipant,
   idInScope,
+  isActiveShareLink,
   isExpired,
   isRevoked,
   verifiedFirmGrantLinkIds,
@@ -110,6 +111,7 @@ describe("attorney access — the owning attorney", () => {
     expect(t["attorney_client_links"]![0]!["status"]).toBe("active");
     expect(isRevoked(past)).toBe(true);
     expect(isRevoked(null)).toBe(false);
+    expect(isActiveShareLink(t["attorney_client_links"]![0]!)).toBe(false);
     await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow("No active access");
     await expect(assertCaseAccess(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow("No active access");
   });
@@ -249,5 +251,34 @@ describe("attorney access — role check", () => {
     await expect(assertAttorney(fakeAdmin(world()), SURV_A)).rejects.toThrow(
       "Attorney role required",
     );
+  });
+});
+
+describe("isActiveShareLink — billing / list filters", () => {
+  it("allows an active non-revoked non-expired link", () => {
+    expect(
+      isActiveShareLink({ status: "active", revoked_at: null, expires_at: null }),
+    ).toBe(true);
+    expect(
+      isActiveShareLink({ status: "active", revoked_at: null, expires_at: future }),
+    ).toBe(true);
+  });
+
+  it("denies half-state: status active but revoked_at set", () => {
+    expect(
+      isActiveShareLink({ status: "active", revoked_at: past, expires_at: null }),
+    ).toBe(false);
+  });
+
+  it("denies active link with past expires_at", () => {
+    expect(
+      isActiveShareLink({ status: "active", revoked_at: null, expires_at: past }),
+    ).toBe(false);
+  });
+
+  it("denies non-active status even when revoked_at/expires_at are clear", () => {
+    expect(
+      isActiveShareLink({ status: "revoked", revoked_at: null, expires_at: null }),
+    ).toBe(false);
   });
 });
