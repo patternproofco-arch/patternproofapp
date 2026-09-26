@@ -319,16 +319,19 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          ip_hash: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          ip_hash?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          ip_hash?: string | null
           user_id?: string
         }
         Relationships: []
@@ -441,6 +444,7 @@ export type Database = {
       attorney_client_links: {
         Row: {
           attorney_case_notes: string | null
+          attorney_case_notes_updated_at: string | null
           attorney_user_id: string
           case_id: string | null
           client_user_id: string
@@ -466,6 +470,7 @@ export type Database = {
         }
         Insert: {
           attorney_case_notes?: string | null
+          attorney_case_notes_updated_at?: string | null
           attorney_user_id: string
           case_id?: string | null
           client_user_id: string
@@ -491,6 +496,7 @@ export type Database = {
         }
         Update: {
           attorney_case_notes?: string | null
+          attorney_case_notes_updated_at?: string | null
           attorney_user_id?: string
           case_id?: string | null
           client_user_id?: string
@@ -3457,6 +3463,7 @@ export type Database = {
           category: string
           created_at: string
           id: string
+          ip_hash: string | null
           message: string
           name: string | null
           reply_email: string
@@ -3468,6 +3475,7 @@ export type Database = {
           category: string
           created_at?: string
           id?: string
+          ip_hash?: string | null
           message: string
           name?: string | null
           reply_email: string
@@ -3479,6 +3487,7 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          ip_hash?: string | null
           message?: string
           name?: string | null
           reply_email?: string

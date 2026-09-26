@@ -67,9 +67,11 @@ describe("public cleanup merge blockers", () => {
   it("uses the approved landing promise and keeps the timeline preview", () => {
     expect(landing).toContain("One private timeline.");
     expect(landing).toContain("Everything in the right order.");
-    // The preview is now the inline folio sample on the landing page itself.
-    expect(landing).toContain("Sample · demo data · not a real record");
-    expect(landing).toContain("folio-plate");
+    // Inline chronology sample must stay labeled as demo / not a real record.
+    expect(landing).toContain("<ChronologyThread");
+    expect(landing).toContain("SAMPLE_BEADS");
+    const thread = readFileSync("src/components/ChronologyThread.tsx", "utf8");
+    expect(thread).toContain("Demo · not a real record");
   });
 
   it("does not globally shrink mobile pages with CSS zoom", () => {

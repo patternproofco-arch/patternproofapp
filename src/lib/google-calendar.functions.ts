@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { classifyConnectorError } from "@/lib/connector-errors";
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_calendar/calendar/v3";
 
@@ -21,7 +22,7 @@ export const syncCourtDateToGoogle = createServerFn({ method: "POST" })
     const lovableKey = process.env.LOVABLE_API_KEY;
     const connKey = process.env.GOOGLE_CALENDAR_API_KEY;
     if (!lovableKey || !connKey) {
-      return { ok: false as const, reason: "not-connected" };
+      return { ok: false as const, kind: "not_configured" as const, reason: "not-configured" };
     }
     const start = new Date(data.startISO);
     const end = new Date(start.getTime() + data.durationMinutes * 60_000);
@@ -40,19 +41,28 @@ export const syncCourtDateToGoogle = createServerFn({ method: "POST" })
         ],
       },
     };
-    const res = await fetch(`${GATEWAY}/calendars/primary/events`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableKey}`,
-        "X-Connection-Api-Key": connKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      return { ok: false as const, reason: `gateway-${res.status}`, detail: text.slice(0, 300) };
+    try {
+      const res = await fetch(`${GATEWAY}/calendars/primary/events`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${lovableKey}`,
+          "X-Connection-Api-Key": connKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        return {
+          ok: false as const,
+          kind: "upstream_error" as const,
+          reason: `gateway-${res.status}`,
+          detail: text.slice(0, 300),
+        };
+      }
+      const event = (await res.json()) as { id?: string; htmlLink?: string };
+      return { ok: true as const, eventId: event.id ?? null, htmlLink: event.htmlLink ?? null };
+    } catch (e: unknown) {
+      return classifyConnectorError(e);
     }
-    const event = (await res.json()) as { id?: string; htmlLink?: string };
-    return { ok: true as const, eventId: event.id ?? null, htmlLink: event.htmlLink ?? null };
   });

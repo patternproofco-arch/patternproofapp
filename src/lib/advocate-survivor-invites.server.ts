@@ -1,3 +1,4 @@
+import { isLiveAdvocateShare } from "@/lib/advocate-access.server";
 /**
  * Pure, testable decision rules for advocate → survivor invitations.
  * The server functions in advocate-survivor-invites.functions.ts delegate to
@@ -99,16 +100,12 @@ export function buildGrantPayload(invite: InviteRow, clientUserId: string, scope
   };
 }
 
-export type InviteEffectiveStatus =
-  | "pending"
-  | "accepted"
-  | "revoked"
-  | "declined"
-  | "expired";
+export type InviteEffectiveStatus = "pending" | "accepted" | "revoked" | "declined" | "expired";
 
 export type GrantSnapshot = {
   status: string;
   expires_at?: string | null;
+  revoked_at?: string | null;
 };
 
 /**
@@ -130,15 +127,16 @@ export function resolveInviteEffectiveStatus(input: {
   if (status === "expired") return "expired";
 
   if (status === "pending") {
-    if (input.expiresAt && new Date(input.expiresAt).getTime() < now) return "expired";
+    if (input.expiresAt && !(Date.parse(input.expiresAt) > now)) return "expired";
     return "pending";
   }
 
   if (status === "accepted") {
     const grant = input.grant;
     if (!grant) return "revoked";
-    if (grant.status !== "active") return "revoked";
-    if (grant.expires_at && new Date(grant.expires_at).getTime() < now) return "expired";
+    if (grant.status !== "active" || grant.revoked_at) return "revoked";
+    if (!isLiveAdvocateShare(grant, now)) return "expired";
+    if (input.expiresAt && !(Date.parse(input.expiresAt) > now)) return "expired";
     return "accepted";
   }
 

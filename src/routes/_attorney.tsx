@@ -23,7 +23,10 @@ import attorneyCss from "@/styles/attorney.css?url";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
-import { attorneyPathExemptFromRequiredMfa } from "@/lib/mfa";
+import {
+  attorneyPathExemptFromRequiredMfa,
+  attorneyPathWithoutPortalChrome,
+} from "@/lib/mfa";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -57,8 +60,13 @@ function AttorneyLayout() {
 
   useEffect(() => {
     if (loading) return;
+    // Do not run role routing while MFA gate is still deciding — otherwise
+    // getRole can send unknown/non-attorney to /lawyer-signup before deny
+    // finishes location.replace('/signin').
+    if (mfaChecking) return;
     if (!user) {
-      navigate({ to: "/lawyer-signup", replace: true });
+      // Signed-out / MFA deny must land on sign-in, not the public signup form.
+      navigate({ to: "/signin", replace: true });
       return;
     }
     let cancelled = false;
@@ -93,7 +101,7 @@ function AttorneyLayout() {
     return () => {
       cancelled = true;
     };
-  }, [user, loading, getRole, getProfile, navigate, retryKey]);
+  }, [user, loading, mfaChecking, getRole, getProfile, navigate, retryKey]);
 
   useEffect(() => {
     if (!(loading || checking || sub.loading || mfaChecking)) return;
@@ -182,6 +190,23 @@ function AttorneyLayout() {
         style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         <span className="att-eyebrow">Opening portal…</span>
+      </div>
+    );
+  }
+
+  // MFA enroll / challenge setup: no caseload sidebar chrome.
+  // A failed factor lookup must never look like an open attorney portal.
+  if (attorneyPathWithoutPortalChrome(pathname)) {
+    return (
+      <div
+        className="att-root"
+        data-persona="attorney"
+        data-mfa-shell="minimal"
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 24 }}
+      >
+        <div style={{ width: "100%", maxWidth: 560 }}>
+          <Outlet />
+        </div>
       </div>
     );
   }
@@ -349,7 +374,7 @@ function AttorneyTopBar({ firmName }: { firmName: string | null }) {
       <button
         onClick={async () => {
           await supabase.auth.signOut();
-          navigate({ to: "/lawyer-signup" });
+          navigate({ to: "/signin" });
         }}
         className="att-btn-ghost"
         style={{ display: "inline-flex", alignItems: "center", gap: 6 }}

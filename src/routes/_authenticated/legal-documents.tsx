@@ -187,6 +187,11 @@ function LegalDocumentsPage() {
     if (inputRef.current) inputRef.current.value = "";
   };
 
+  const driveErrorMessage = (r: { kind: string }): string =>
+    r.kind === "not_configured"
+      ? "Google Drive isn't set up yet. Reach out to your project owner to enable it."
+      : "We couldn't reach Google Drive. Try again in a moment.";
+
   const openDrivePicker = async () => {
     setDriveOpen(true);
     setDriveError(null);
@@ -194,12 +199,7 @@ function LegalDocumentsPage() {
     const r = await driveList({ data: { query: driveQuery || undefined } });
     setDriveBusy(false);
     if (r.ok) setDriveFiles(r.files);
-    else
-      setDriveError(
-        r.reason === "missing-drive-connection"
-          ? "Google Drive isn't connected yet. Reach out to your project owner to enable it."
-          : "We couldn't reach Google Drive. Try again in a moment.",
-      );
+    else setDriveError(driveErrorMessage(r));
   };
 
   const searchDrive = async () => {
@@ -208,7 +208,7 @@ function LegalDocumentsPage() {
     const r = await driveList({ data: { query: driveQuery || undefined } });
     setDriveBusy(false);
     if (r.ok) setDriveFiles(r.files);
-    else setDriveError("Search failed. Try again.");
+    else setDriveError(driveErrorMessage(r));
   };
 
   const pickDriveFile = async (f: { id: string; name: string; mimeType: string }) => {
@@ -217,9 +217,11 @@ function LegalDocumentsPage() {
     const dl = await driveDownload({ data: { fileId: f.id } });
     if (!dl.ok) {
       toast(
-        dl.reason === "too-large"
+        dl.kind === "too_large"
           ? "That file is too large to import."
-          : "We couldn't import that file.",
+          : dl.kind === "not_configured"
+            ? "Google Drive isn't set up yet. Reach out to your project owner to enable it."
+            : "We couldn't import that file. Try again in a moment.",
       );
       setPhase("idle");
       return;

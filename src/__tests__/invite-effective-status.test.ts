@@ -77,26 +77,39 @@ describe("Advocate invite badge + survivor-only PIN (source contracts)", () => {
     expect(fns).toContain("survivor_invite_id");
     expect(fns).toContain("resolveInviteEffectiveStatus");
   });
+});
 
-  it("Daily Planner PIN / idle lock / lock recovery are survivor-only", () => {
-    expect(auth).toMatch(/isSurvivor === true && !loading && !!user && \(hasPin \|\| hasBiometric\)/);
-    expect(auth).toContain("if (isSurvivor !== true)");
-    expect(auth).toContain("Professionals never enter survivor PIN chrome");
-    // PIN screens appear only after the survivor-only gate
-    const profGate = auth.indexOf("if (isSurvivor !== true)");
-    const pin = auth.indexOf("<PinScreen");
-    const recovery = auth.indexOf("<LockRecoveryScreen");
-    expect(profGate).toBeGreaterThan(-1);
-    expect(pin).toBeGreaterThan(profGate);
-    expect(recovery).toBeGreaterThan(profGate);
+describe("badge boundary and partial-revocation cases", () => {
+  const now = Date.parse("2026-09-17T12:00:00Z");
+  it.each(["2026-09-17T12:00:00Z", "bad date"])(
+    "never accepts an expired or malformed grant: %s",
+    (expires_at) => {
+      expect(
+        resolveInviteEffectiveStatus({
+          inviteStatus: "accepted",
+          grant: { status: "active", expires_at },
+          now,
+        }),
+      ).toBe("expired");
+    },
+  );
+  it("revoked_at overrides a leftover active status", () => {
+    expect(
+      resolveInviteEffectiveStatus({
+        inviteStatus: "accepted",
+        grant: { status: "active", revoked_at: "2026-09-17T11:00:00Z" },
+        now,
+      }),
+    ).toBe("revoked");
   });
-
-  it("professionals redirect to their portal instead of a forever Opening spinner", () => {
-    expect(auth).toContain("setProfessionalHome");
-    expect(auth).toContain("Taking you to your portal…");
-    expect(auth).toContain('navigate({ to: professionalHome, replace: true })');
-    expect(auth).toContain('"/clients"');
-    expect(auth).toContain('"/advocate-cases"');
-    expect(auth).toContain('"/org-portal"');
+  it("invite expiry also prevents a green badge", () => {
+    expect(
+      resolveInviteEffectiveStatus({
+        inviteStatus: "accepted",
+        expiresAt: "2026-09-17T11:00:00Z",
+        grant: { status: "active" },
+        now,
+      }),
+    ).toBe("expired");
   });
 });

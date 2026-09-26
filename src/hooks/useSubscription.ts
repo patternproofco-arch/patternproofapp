@@ -4,7 +4,6 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getMySubscription } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { supabase } from "@/integrations/supabase/client";
-import { isTestAccountEmail } from "@/lib/test-accounts";
 
 export type SubscriptionState = {
   loading: boolean;
@@ -92,13 +91,11 @@ export function useSubscription(): SubscriptionState {
   loadRef.current = load;
 
   const [userId, setUserId] = useState<string | null>(null);
-  const [testAccount, setTestAccount] = useState(false);
   useEffect(() => {
     let active = true;
     supabase.auth.getUser().then(({ data }) => {
       if (!active) return;
       setUserId(data.user?.id ?? null);
-      setTestAccount(isTestAccountEmail(data.user?.email));
     });
     return () => {
       active = false;
@@ -112,10 +109,10 @@ export function useSubscription(): SubscriptionState {
 
   return {
     loading,
-    isActive: testAccount || computeActive(row),
+    isActive: computeActive(row),
     status: row?.status ?? null,
     priceId: row?.price_id ?? null,
-    tier: deriveTier(row?.price_id ?? null, testAccount || computeActive(row)),
+    tier: deriveTier(row?.price_id ?? null, computeActive(row)),
     currentPeriodEnd: row?.current_period_end ?? null,
     cancelAtPeriodEnd: row?.cancel_at_period_end ?? false,
     refetch: load,

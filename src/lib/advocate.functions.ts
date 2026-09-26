@@ -1,3 +1,4 @@
+import { advocateLinkIsAuthorized } from "@/lib/advocate-access.server";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -357,36 +358,34 @@ export const listAdvocateClients = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: links } = await supabaseAdmin
+    const { data: links, error } = await supabaseAdmin
       .from("advocate_client_links")
-      .select("id,client_user_id,created_at,status,revoked_at,case_id")
+      .select(
+        "id,client_user_id,created_at,status,revoked_at,expires_at,case_id,invitation_id,survivor_invite_id",
+      )
       .eq("advocate_user_id", context.userId)
       .order("created_at", { ascending: false });
-    const clientIds = (links ?? []).map((l) => l.client_user_id);
-    const { data: cases } = clientIds.length
-      ? await supabaseAdmin
-          .from("cases")
-          .select("id,user_id,case_name,other_party")
-          .in("user_id", clientIds)
-      : {
-          data: [] as Array<{
-            id: string;
-            user_id: string;
-            case_name: string | null;
-            other_party: string | null;
-          }>,
-        };
-    return {
-      clients: (links ?? []).map((l) => {
-        const c = (cases ?? []).find((x) =>
-          l.case_id ? x.id === l.case_id : x.user_id === l.client_user_id,
-        );
-        return {
-          ...l,
-          case_label: c ? c.case_name?.trim() || c.other_party?.trim() || "Case" : null,
-        };
+    if (error) throw new Error("Could not verify shared cases.");
+    const clients = await Promise.all(
+      (links ?? []).map(async (link) => {
+        const authorized = await advocateLinkIsAuthorized(supabaseAdmin, link);
+        let case_label: string | null = null;
+        // Never fetch a withdrawn client's current case labels. A content-only
+        // grant without a case ID does not implicitly share another case's title.
+        if (authorized && link.case_id) {
+          const { data: c, error: caseError } = await supabaseAdmin
+            .from("cases")
+            .select("case_name,other_party")
+            .eq("id", link.case_id)
+            .eq("user_id", link.client_user_id)
+            .maybeSingle();
+          if (caseError) throw new Error("Could not load shared case.");
+          case_label = c ? c.case_name?.trim() || c.other_party?.trim() || "Case" : null;
+        }
+        return { ...link, status: authorized ? "active" : "revoked", case_label };
       }),
-    };
+    );
+    return { clients };
   });
 
 /** Read-only case view for an advocate. No notes, no writes, no file downloads. */
@@ -398,13 +397,13 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
     const { data: link } = await supabaseAdmin
       .from("advocate_client_links")
       .select(
-        "id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,created_at,invitation_id,expires_at",
+        "id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,created_at,invitation_id,survivor_invite_id,expires_at,revoked_at",
       )
       .eq("advocate_user_id", context.userId)
       .eq("client_user_id", data.clientId)
       .maybeSingle();
-    const expired = !!link?.expires_at && new Date(link.expires_at).getTime() < Date.now();
-    if (!link || link.status !== "active" || expired) throw new Error("No active access");
+    if (!link || !(await advocateLinkIsAuthorized(supabaseAdmin, link)))
+      throw new Error("No active access");
 
     // Provenance: record that this advocate opened the case file. Mirrors
     // the attorney-side case.viewed_by_professional event — previously only
@@ -496,13 +495,7 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
             .eq("id", link.case_id)
             .eq("user_id", data.clientId)
             .maybeSingle()
-        : supabaseAdmin
-            .from("cases")
-            .select("*")
-            .eq("user_id", data.clientId)
-            .order("updated_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
+        : Promise.resolve({ data: null }),
     ]);
 
     // GPS stays quarantined — it never leaves the survivor's own view. File

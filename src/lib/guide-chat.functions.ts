@@ -1,12 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
  * Guide — a help-only assistant for the survivor portal.
  *
- * It answers only what they type. It receives no incident data, no evidence,
- * no page-activity history, and nothing is written to the database or any log:
- * the conversation lives in browser memory for as long as the panel is open.
+ * UI: GuideHelper inside AppShell under `/_authenticated` (post-login only).
+ * Soft claim: requireSupabaseAuth + per-user and per-IP rate limits reduce
+ * unauthenticated spend against LOVABLE_API_KEY. Does not claim absolute
+ * security. Conversation text is not written to ai_chat_requests (counter
+ * rows only) and is not logged beyond the existing in-memory UI design.
+ *
+ * Needs @Guardian CLEAR before merge/apply of the companion migration.
  */
 const SYSTEM_PROMPT = `You are the PatternProof Guide. You help someone find and understand features of the PatternProof app. Nothing more.
 
@@ -26,7 +31,20 @@ If they ask for any of that, say kindly that it's outside what you can help with
 
 Keep replies under about 120 words unless they ask for detail.`;
 
+const USER_WINDOW_MS = 60 * 1000;
+const USER_MAX_PER_WINDOW = 10;
+const IP_WINDOW_MS = 60 * 1000;
+const IP_MAX_PER_WINDOW = 20;
+
+const hash = async (value: string) => {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+};
+
 export const guideChat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -42,9 +60,54 @@ export const guideChat = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) return { reply: "The guide isn't available right now. Try again later." };
+
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
+
+    const request = getRequest();
+    const forwardedIp =
+      request?.headers.get("cf-connecting-ip") ||
+      request?.headers.get("x-forwarded-for") ||
+      request?.headers.get("x-real-ip");
+    const ip = forwardedIp?.split(",")[0]?.trim() || null;
+    const ipHash = ip ? await hash(ip) : null;
+
+    const userSince = new Date(Date.now() - USER_WINDOW_MS).toISOString();
+    const { count: userCount } = await db
+      .from("ai_chat_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", context.userId)
+      .gte("created_at", userSince);
+    if ((userCount ?? 0) >= USER_MAX_PER_WINDOW) {
+      return { reply: "Lots of activity right now — try again in a moment." };
+    }
+
+    if (ipHash) {
+      const ipSince = new Date(Date.now() - IP_WINDOW_MS).toISOString();
+      const { count: ipCount } = await db
+        .from("ai_chat_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("ip_hash", ipHash)
+        .gte("created_at", ipSince);
+      if ((ipCount ?? 0) >= IP_MAX_PER_WINDOW) {
+        return { reply: "Lots of activity right now — try again in a moment." };
+      }
+    }
+
+    // Counter row only — do not store Guide message contents.
+    // Fail closed: if the rate-limit counter insert errors, do not call Lovable
+    // / spend LOVABLE_API_KEY (insert must not be fire-and-forget).
+    const { error: counterError } = await db.from("ai_chat_requests").insert({
+      user_id: context.userId,
+      ip_hash: ipHash,
+    });
+    if (counterError) {
+      return { reply: "Lots of activity right now — try again in a moment." };
+    }
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

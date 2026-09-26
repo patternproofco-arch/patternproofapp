@@ -18,6 +18,22 @@ const schema = z.object({
   message: z.string().trim().min(10).max(4000),
 });
 
+// Soft claim: public support stays reachable (login/billing help without a
+// session), with IP + email throttles mirroring marketing_leads. Does not
+// claim absolute security. Optional session auth still attaches user_id when
+// present. Message body is stored only in support_requests (existing design)
+// — not logged to console.
+const EMAIL_COOLDOWN_MS = 60 * 60 * 1000; // one ticket per email per hour
+const IP_WINDOW_MS = 60 * 60 * 1000;
+const IP_MAX_PER_WINDOW = 8;
+
+const hash = async (value: string) => {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+};
+
 /** Derive the caller's user id from their own verified session, never from input. */
 async function resolveCallerUserId(): Promise<string | null> {
   try {
@@ -45,17 +61,50 @@ export const submitSupportRequest = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => schema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
 
     const userId = await resolveCallerUserId();
+    const replyEmail = data.replyEmail.toLowerCase();
 
-    const { data: row, error } = await supabaseAdmin
+    const request = getRequest();
+    const forwardedIp =
+      request?.headers.get("cf-connecting-ip") ||
+      request?.headers.get("x-forwarded-for") ||
+      request?.headers.get("x-real-ip");
+    const ip = forwardedIp?.split(",")[0]?.trim() || null;
+    const ipHash = ip ? await hash(ip) : null;
+
+    if (ipHash) {
+      const since = new Date(Date.now() - IP_WINDOW_MS).toISOString();
+      const { count } = await db
+        .from("support_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("ip_hash", ipHash)
+        .gte("created_at", since);
+      if ((count ?? 0) >= IP_MAX_PER_WINDOW) {
+        return { ok: false as const, emailed: false as const, rateLimited: true as const };
+      }
+    }
+
+    const emailSince = new Date(Date.now() - EMAIL_COOLDOWN_MS).toISOString();
+    const { count: recentForEmail } = await db
+      .from("support_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("reply_email", replyEmail)
+      .gte("created_at", emailSince);
+    // Follow-ups within the hour are still saved so support sees them; only
+    // the notification email is skipped to avoid flooding the inbox.
+    const isFollowUp = (recentForEmail ?? 0) > 0;
+
+    const { data: row, error } = await db
       .from("support_requests")
       .insert({
         user_id: userId,
         name: data.name || null,
-        reply_email: data.replyEmail.toLowerCase(),
+        reply_email: replyEmail,
         category: data.category,
         message: data.message,
+        ip_hash: ipHash,
       })
       .select("id")
       .single();
@@ -63,6 +112,8 @@ export const submitSupportRequest = createServerFn({ method: "POST" })
     if (error) {
       return { ok: false as const, emailed: false as const };
     }
+
+    if (isFollowUp) return { ok: true as const, emailed: false as const };
 
     const { enqueueSupportEmail } = await import("@/lib/support.server");
     const emailed = await enqueueSupportEmail({

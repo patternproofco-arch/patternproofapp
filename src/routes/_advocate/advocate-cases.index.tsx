@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useAdvocateCaseload } from "@/hooks/use-advocate-caseload";
+import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { FolderOpen, Clock3, Mail, Plus, X, Send, Copy, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 import { listAdvocateClients } from "@/lib/advocate.functions";
@@ -37,24 +38,12 @@ function AdvocateCases() {
   const t = portalTheme("advocate");
   const listFn = useServerFn(listAdvocateClients);
   const listInvitesFn = useServerFn(listAdvocateSurvivorInvites);
-  const [clients, setClients] = useState<Clients | null>(null);
-  const [invites, setInvites] = useState<InviteRow[] | null>(null);
-
-  const loadInvites = useCallback(() => {
-    listInvitesFn()
-      .then((r) => setInvites(r.invites))
-      .catch(() => setInvites([]));
-  }, [listInvitesFn]);
-
-  useEffect(() => {
-    listFn()
-      .then((r) => setClients(r.clients))
-      .catch(() => setClients([]));
-  }, [listFn]);
-
-  useEffect(() => {
-    loadInvites();
-  }, [loadInvites]);
+  const {
+    clients,
+    invites,
+    refresh: loadInvites,
+    error,
+  } = useAdvocateCaseload(listFn, listInvitesFn);
 
   const active = (clients ?? []).filter((c) => c.status === "active");
   const withdrawn = (clients ?? []).filter((c) => c.status !== "active");
@@ -92,6 +81,12 @@ function AdvocateCases() {
         message="Read-only. Access is given by the survivor and can be withdrawn at any time."
       />
 
+      {error ? (
+        <p role="alert">
+          Couldn’t verify current access. Case details are hidden.{" "}
+          <button onClick={loadInvites}>Try again</button>
+        </p>
+      ) : null}
       <InvitePanel invites={invites} onChange={loadInvites} />
 
       <FocusRegion id="advocate-followup">
@@ -110,9 +105,9 @@ function AdvocateCases() {
       ) : null}
 
       <p style={{ margin: 0, fontSize: 12, color: t.muted }}>
-        <Link to="/advocate-cases" style={{ color: t.accent }}>
+        <button onClick={loadInvites} style={{ color: t.accent }}>
           Refresh your list
-        </Link>{" "}
+        </button>{" "}
         if something looks out of date.
       </p>
     </div>
@@ -219,11 +214,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
           </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            style={btn(t.accent, true)}
-          >
+          <button type="button" onClick={() => setOpen(true)} style={btn(t.accent, true)}>
             <Plus size={14} /> Invite by email
           </button>
           {open && (
@@ -395,9 +386,15 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
                     </div>
                   )}
                 </div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                <div
+                  style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}
+                >
                   {isPending && (
-                    <button type="button" onClick={() => copyLink(inv.invite_token)} style={btn(t.muted, false)}>
+                    <button
+                      type="button"
+                      onClick={() => copyLink(inv.invite_token)}
+                      style={btn(t.muted, false)}
+                    >
                       <Copy size={12} /> Copy link
                     </button>
                   )}
