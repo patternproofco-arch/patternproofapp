@@ -1,3 +1,4 @@
+import { isLiveAdvocateShare } from "@/lib/advocate-access.server";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -6,6 +7,7 @@ import {
   assertInviteUsable,
   assertScopeChosen,
   buildGrantPayload,
+  resolveInviteEffectiveStatus,
   type InviteRow,
 } from "@/lib/advocate-survivor-invites.server";
 
@@ -32,8 +34,10 @@ async function verifiedAccountEmail(userId: string) {
 }
 
 function onboardingComplete(user: { user_metadata?: Record<string, unknown> | null }) {
-  return (user.user_metadata as { onboarding_complete?: boolean } | null | undefined)
-    ?.onboarding_complete === true;
+  return (
+    (user.user_metadata as { onboarding_complete?: boolean } | null | undefined)
+      ?.onboarding_complete === true
+  );
 }
 
 async function sendAdvocateSurvivorInviteEmail(input: {
@@ -47,8 +51,7 @@ async function sendAdvocateSurvivorInviteEmail(input: {
   resend?: boolean;
 }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const origin =
-    process.env.PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://pattern-proof.tech";
+  const origin = process.env.PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://pattern-proof.tech";
   const { data: prof } = await supabaseAdmin
     .from("advocate_profiles")
     .select("full_name,org_name")
@@ -75,7 +78,9 @@ async function sendAdvocateSurvivorInviteEmail(input: {
     .update({
       email_status: delivery.sent ? "sent" : "failed",
       email_last_attempt_at: new Date().toISOString(),
-      email_last_error: delivery.sent ? null : (delivery.error ?? "Delivery could not be confirmed."),
+      email_last_error: delivery.sent
+        ? null
+        : (delivery.error ?? "Delivery could not be confirmed."),
     })
     .eq("id", input.inviteId);
   return delivery;
@@ -132,13 +137,43 @@ export const listAdvocateSurvivorInvites = createServerFn({ method: "GET" })
       .eq("advocate_user_id", context.userId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
+
+    const rows = data ?? [];
+    const inviteIds = rows.map((i) => i.id);
     const now = Date.now();
-    const invites = (data ?? []).map((i) => ({
+    const grantByInvite = new Map<
+      string,
+      { status: string; expires_at: string | null; revoked_at: string | null }
+    >();
+    if (inviteIds.length) {
+      const { data: links, error: linkErr } = await supabaseAdmin
+        .from("advocate_client_links")
+        .select("survivor_invite_id,status,expires_at,revoked_at")
+        .eq("advocate_user_id", context.userId)
+        .in("survivor_invite_id", inviteIds);
+      if (linkErr) throw new Error(linkErr.message);
+      for (const link of links ?? []) {
+        if (!link.survivor_invite_id) continue;
+        // Prefer an active grant if multiple rows exist for the same invite.
+        const prev = grantByInvite.get(link.survivor_invite_id);
+        if (!prev || (!isLiveAdvocateShare(prev, now) && isLiveAdvocateShare(link, now))) {
+          grantByInvite.set(link.survivor_invite_id, {
+            status: link.status,
+            revoked_at: link.revoked_at,
+            expires_at: link.expires_at ?? null,
+          });
+        }
+      }
+    }
+
+    const invites = rows.map((i) => ({
       ...i,
-      effective_status:
-        i.status === "pending" && i.expires_at && new Date(i.expires_at).getTime() < now
-          ? ("expired" as const)
-          : (i.status as "pending" | "accepted" | "revoked" | "declined" | "expired"),
+      effective_status: resolveInviteEffectiveStatus({
+        inviteStatus: i.status,
+        expiresAt: i.expires_at,
+        grant: grantByInvite.get(i.id) ?? null,
+        now,
+      }),
     }));
     return { invites };
   });
@@ -257,9 +292,7 @@ export const peekAdvocateSurvivorInvite = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: inv } = await supabaseAdmin
       .from("advocate_survivor_invites")
-      .select(
-        "id,survivor_email,survivor_name,personal_note,advocate_user_id,status,expires_at",
-      )
+      .select("id,survivor_email,survivor_name,personal_note,advocate_user_id,status,expires_at")
       .eq("invite_token", data.token)
       .maybeSingle();
     if (!inv) return { status: "not-found" as const };

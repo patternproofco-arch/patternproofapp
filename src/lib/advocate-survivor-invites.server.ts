@@ -1,3 +1,4 @@
+import { isLiveAdvocateShare } from "@/lib/advocate-access.server";
 /**
  * Pure, testable decision rules for advocate → survivor invitations.
  * The server functions in advocate-survivor-invites.functions.ts delegate to
@@ -97,4 +98,48 @@ export function buildGrantPayload(invite: InviteRow, clientUserId: string, scope
     status: "active",
     revoked_at: null as string | null,
   };
+}
+
+export type InviteEffectiveStatus = "pending" | "accepted" | "revoked" | "declined" | "expired";
+
+export type GrantSnapshot = {
+  status: string;
+  expires_at?: string | null;
+  revoked_at?: string | null;
+};
+
+/**
+ * Badge lifecycle for Advocate → Survivor Invites.
+ * Green "Accepted" only while the live grant is active.
+ * Survivor withdraw / missing grant → "revoked" (UI: Access withdrawn).
+ */
+export function resolveInviteEffectiveStatus(input: {
+  inviteStatus: string;
+  expiresAt?: string | null;
+  grant?: GrantSnapshot | null;
+  now?: number;
+}): InviteEffectiveStatus {
+  const now = input.now ?? Date.now();
+  const status = input.inviteStatus;
+
+  if (status === "declined") return "declined";
+  if (status === "revoked") return "revoked";
+  if (status === "expired") return "expired";
+
+  if (status === "pending") {
+    if (input.expiresAt && !(Date.parse(input.expiresAt) > now)) return "expired";
+    return "pending";
+  }
+
+  if (status === "accepted") {
+    const grant = input.grant;
+    if (!grant) return "revoked";
+    if (grant.status !== "active" || grant.revoked_at) return "revoked";
+    if (!isLiveAdvocateShare(grant, now)) return "expired";
+    if (input.expiresAt && !(Date.parse(input.expiresAt) > now)) return "expired";
+    return "accepted";
+  }
+
+  // Unknown invite status → fail closed (never show green Accepted).
+  return "revoked";
 }

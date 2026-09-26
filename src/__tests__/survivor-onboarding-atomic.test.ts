@@ -56,7 +56,6 @@ describe("survivor onboarding atomic finish", () => {
     expect(fnBody).toContain("user_metadata");
   });
 
-
   it("gates forced metadata failure behind server env only (Guardian CLEAR)", () => {
     expect(legalConsent).toContain("isOnboardingForceMetaFailEnabled");
     expect(legalConsent).toContain('ONBOARDING_FORCE_META_FAIL === "1"');
@@ -64,7 +63,9 @@ describe("survivor onboarding atomic finish", () => {
     // Must not be flipable via request input / query params.
     const fnStart = legalConsent.indexOf("export const completeSurvivorOnboarding");
     const fnBody = legalConsent.slice(fnStart);
-    expect(fnBody).not.toMatch(/forceMetaFail.*data\.|data\..*force|searchParams.*FORCE|query.*FORCE_META/i);
+    expect(fnBody).not.toMatch(
+      /forceMetaFail.*data\.|data\..*force|searchParams.*FORCE|query.*FORCE_META/i,
+    );
     // Production hard-deny BEFORE any write.
     expect(legalConsent).toMatch(/refused before any write/);
     expect(legalConsent).toContain("pk_live_");
@@ -97,27 +98,4 @@ describe("survivor onboarding atomic finish", () => {
   });
 });
 
-describe("survivor onboarding gate", () => {
-  it("fail-closes on server onboarding_complete, not local settings.onboarded alone", () => {
-    expect(authenticatedLayout).toContain("onboarding_complete");
-    expect(authenticatedLayout).toContain("onboardingComplete");
-    expect(authenticatedLayout).toContain("survivorNeedsOnboarding");
-    // Redirect must not require !settings.onboarded (that skipped fresh signups
-    // when localStorage still had onboarded=true from a prior account).
-    expect(authenticatedLayout).toMatch(/survivorNeedsOnboarding && pathname !== "\/onboarding"/);
-    expect(authenticatedLayout).not.toMatch(
-      /!settings\.onboarded && pathname !== "\/onboarding"/,
-    );
-    // Must not render app shell while incomplete survivors are gated.
-    expect(authenticatedLayout).toMatch(/Fail closed for survivors only:[\s\S]*survivorNeedsOnboarding/);
-  });
-
-  it("scopes fail-closed gate to survivors via ensureSurvivorRole", () => {
-    expect(authenticatedLayout).toContain("ensureSurvivorRole");
-    expect(authenticatedLayout).toContain("setIsSurvivor");
-    expect(authenticatedLayout).toContain("is_survivor");
-    expect(authenticatedLayout).toMatch(/isSurvivor === true && !onboardingComplete/);
-    // Professionals are explicitly not subject to this gate.
-    expect(authenticatedLayout).toMatch(/Professionals \(attorney \/ advocate \/ org\)/);
-  });
-});
+// Survivor route behavior (including onboarding) is exercised in portal-isolation.test.tsx.

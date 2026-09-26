@@ -14,10 +14,12 @@ export const ensureSurvivorRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: existing } = await supabaseAdmin
+    const { data: existing, error: roleError } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId);
+
+    if (roleError || !existing) throw new Error("Could not verify account roles.");
 
     const roles = (existing ?? []).map((r) => String(r.role));
 
@@ -25,10 +27,11 @@ export const ensureSurvivorRole = createServerFn({ method: "POST" })
     // belong in /org-portal, not the survivor app and not the advocate caseload.
     let is_org_partner = false;
     if (roles.includes("advocate")) {
-      const { count } = await supabaseAdmin
+      const { count, error: orgError } = await supabaseAdmin
         .from("referral_links")
         .select("code", { count: "exact", head: true })
         .eq("org_user_id", context.userId);
+      if (orgError || count === null) throw new Error("Could not verify organization access.");
       is_org_partner = (count ?? 0) > 0;
     }
 

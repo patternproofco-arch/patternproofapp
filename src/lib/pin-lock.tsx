@@ -10,10 +10,14 @@ import {
   checkUnlockToken,
 } from "@/lib/pin-lock.functions";
 
+import { withAccessTimeout } from "@/lib/portal-access";
+
 const UNLOCK_TOKEN_KEY = "pp_unlock_token_v2";
 const BIO_CRED_KEY = "pp_biometric_cred_v1";
 
 interface Ctx {
+  appLockEnabled: boolean;
+  loadError: boolean;
   hasPin: boolean;
   hasBiometric: boolean;
   biometricSupported: boolean;
@@ -33,6 +37,8 @@ const PinCtx = createContext<Ctx | null>(null);
 
 export function PinLockProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const [appLockEnabled, setAppLockEnabled] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [hasPin, setHasPin] = useState(false);
   const [hasBiometric, setHasBiometric] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);
@@ -44,6 +50,9 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined" || !user) return;
     let cancelled = false;
+    setReady(false);
+    setIsLocked(true);
+    setLoadError(false);
     const bio = !!localStorage.getItem(BIO_CRED_KEY);
     setBiometricSupported(
       typeof window.PublicKeyCredential !== "undefined" &&
@@ -51,8 +60,9 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     );
 
     (async () => {
-      const state = await getPinLockState().catch(() => null);
+      const state = await withAccessTimeout(getPinLockState());
       if (cancelled) return;
+      setAppLockEnabled(state.app_lock_enabled);
       const serverHasPin = !!state?.has_pin;
       const serverBiometric = !!state?.biometric_enabled && bio;
       setHasPin(serverHasPin);
@@ -69,7 +79,9 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
         setReady(true);
         return;
       }
-      const check = await checkUnlockToken({ data: { token } }).catch(() => ({ valid: false }));
+      const check = await withAccessTimeout(checkUnlockToken({ data: { token } })).catch(() => ({
+        valid: false,
+      }));
       if (cancelled) return;
       if (check.valid) {
         setIsLocked(false);
@@ -78,7 +90,13 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
         setIsLocked(true);
       }
       setReady(true);
-    })();
+    })().catch(() => {
+      if (!cancelled) {
+        setLoadError(true);
+        setIsLocked(true);
+        setReady(false);
+      }
+    });
 
     return () => {
       cancelled = true;
@@ -204,6 +222,8 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
   return (
     <PinCtx.Provider
       value={{
+        appLockEnabled,
+        loadError,
         hasPin,
         hasBiometric,
         biometricSupported,
