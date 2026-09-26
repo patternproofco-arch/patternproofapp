@@ -3,10 +3,13 @@ import { fakeAdmin, type Tables } from "./helpers/fake-supabase";
 import {
   assertAttorney,
   assertCaseAccess,
+  assertEditableTimeEntry,
   assertLink,
   assertLinkParticipant,
   idInScope,
+  isActiveShareLink,
   isExpired,
+  isRevoked,
   verifiedFirmGrantLinkIds,
 } from "@/lib/attorney-access.server";
 
@@ -23,6 +26,7 @@ const SURV_B = "qa-survivor-b";
 const LINK_A = "qa-link-a";
 const CASE_A = "qa-case-a";
 const FIRM = "qa-firm-1";
+const TIME_A = "qa-time-a";
 
 const HOUR = 3600_000;
 const past = new Date(Date.now() - HOUR).toISOString();
@@ -102,11 +106,52 @@ describe("attorney access — the owning attorney", () => {
     await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow("No active access");
   });
 
+  it("is refused when revoked_at is set even if status stays active (half-state)", async () => {
+    const t = world();
+    t["attorney_client_links"]![0]!["revoked_at"] = past;
+    expect(t["attorney_client_links"]![0]!["status"]).toBe("active");
+    expect(isRevoked(past)).toBe(true);
+    expect(isRevoked(null)).toBe(false);
+    expect(isActiveShareLink(t["attorney_client_links"]![0]!)).toBe(false);
+    await expect(assertLink(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow("No active access");
+    await expect(assertCaseAccess(fakeAdmin(t), ATTY_A, SURV_A)).rejects.toThrow("No active access");
+  });
+
   it("cannot reach a survivor who never shared with them", async () => {
     await expect(assertLink(fakeAdmin(world()), ATTY_A, SURV_B)).rejects.toThrow("No active access");
     await expect(assertCaseAccess(fakeAdmin(world()), ATTY_A, SURV_B)).rejects.toThrow(
       "No active access",
     );
+  });
+});
+
+describe("time entry mutation authorization", () => {
+  const withTime = () => world({
+    time_entries: [{ id: TIME_A, case_link_id: LINK_A, attorney_user_id: ATTY_A }],
+  });
+
+  it("permits the author while the same case link is active", async () => {
+    await expect(assertEditableTimeEntry(fakeAdmin(withTime()), ATTY_A, TIME_A)).resolves.toBe(LINK_A);
+  });
+
+  it("denies an expired, revoked, or malformed-expiry share", async () => {
+    for (const change of [
+      { expires_at: past },
+      { revoked_at: past },
+      { expires_at: "not-a-date" },
+    ]) {
+      const t = withTime();
+      Object.assign(t.attorney_client_links![0]!, change);
+      await expect(assertEditableTimeEntry(fakeAdmin(t), ATTY_A, TIME_A)).rejects.toThrow(
+        "No active access",
+      );
+    }
+  });
+
+  it("denies a different author or a missing time entry", async () => {
+    const t = withTime();
+    await expect(assertEditableTimeEntry(fakeAdmin(t), ATTY_B, TIME_A)).rejects.toThrow("No active access");
+    await expect(assertEditableTimeEntry(fakeAdmin(t), ATTY_A, "missing")).rejects.toThrow("No active access");
   });
 });
 
@@ -226,5 +271,34 @@ describe("attorney access — role check", () => {
     await expect(assertAttorney(fakeAdmin(world()), SURV_A)).rejects.toThrow(
       "Attorney role required",
     );
+  });
+});
+
+describe("isActiveShareLink — billing / list filters", () => {
+  it("allows an active non-revoked non-expired link", () => {
+    expect(
+      isActiveShareLink({ status: "active", revoked_at: null, expires_at: null }),
+    ).toBe(true);
+    expect(
+      isActiveShareLink({ status: "active", revoked_at: null, expires_at: future }),
+    ).toBe(true);
+  });
+
+  it("denies half-state: status active but revoked_at set", () => {
+    expect(
+      isActiveShareLink({ status: "active", revoked_at: past, expires_at: null }),
+    ).toBe(false);
+  });
+
+  it("denies active link with past expires_at", () => {
+    expect(
+      isActiveShareLink({ status: "active", revoked_at: null, expires_at: past }),
+    ).toBe(false);
+  });
+
+  it("denies non-active status even when revoked_at/expires_at are clear", () => {
+    expect(
+      isActiveShareLink({ status: "revoked", revoked_at: null, expires_at: null }),
+    ).toBe(false);
   });
 });
