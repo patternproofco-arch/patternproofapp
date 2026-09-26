@@ -271,7 +271,7 @@ function ClientCaseView() {
         <Metric label="Incidents" v={data.incidents.length} />
         <Metric label="Evidence" v={data.evidence.length} />
         <Metric label="Last 30 days" v={data.last_30_days} />
-        <Metric label="Avg severity" v={data.avg_severity.toFixed(1)} />
+        <Metric label="Avg recorded severity" v={data.avg_severity.toFixed(1)} />
         <Metric label="Active flags" v={data.flags.filter((f) => !f.dismissed_at).length} />
       </FocusRegion>
 
@@ -532,7 +532,7 @@ async function generateWordDoc(args: {
         ["Evidence files", String(data.evidence.length)],
         ["Documentation density", (data.documentation_density ?? "—").toString().toUpperCase()],
         ["Active flags", String((data.flags ?? []).filter((f: any) => !f.dismissed_at).length)],
-        ["Avg severity", (data.avg_severity ?? 0).toFixed(1)],
+        ["Avg recorded severity", (data.avg_severity ?? 0).toFixed(1)],
         ["Incidents (last 30 days)", String(data.last_30_days ?? 0)],
         ["Other party", data.case?.other_party ?? "—"],
         ["Jurisdiction", data.case?.jurisdiction ?? "—"],
@@ -578,7 +578,7 @@ async function generateWordDoc(args: {
 
   // 3. Patterns
   if (include.patterns) {
-    children.push(h2("3. Pattern Analysis"));
+    children.push(h2("3. Documented Categories and Dates"));
     const cats = [...(data.categories ?? [])].sort((a, b) => b.count - a.count);
     children.push(
       dataTable(
@@ -589,7 +589,7 @@ async function generateWordDoc(args: {
     children.push(p("", { spacingAfter: 120 }));
     children.push(
       dataTable(
-        ["Month", "Incidents", "Avg severity"],
+        ["Month", "Incidents", "Avg recorded severity"],
         (data.timeline ?? []).map((m: any) => [
           m.month,
           String(m.count),
@@ -818,12 +818,12 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
                         height: "100%",
                         borderRadius: 999,
                         width: `${(m.count / tMax) * 100}%`,
-                        background: m.avg_severity >= 3 ? "var(--att-navy)" : "var(--att-navy-mid)",
+                        background: "var(--att-navy-mid)",
                       }}
                     />
                   </div>
-                  <div style={{ width: 80, textAlign: "right" }}>
-                    {m.count} · sev {m.avg_severity.toFixed(1)}
+                  <div style={{ minWidth: 190, textAlign: "right" }}>
+                    {m.count} recorded · avg self-rating {m.avg_severity.toFixed(1)}
                   </div>
                 </div>
               ))}
@@ -886,7 +886,7 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
       </div>
 
       <div className="att-card">
-        <SectionTitle icon={<AlertTriangle size={16} />}>Escalation arc</SectionTitle>
+        <SectionTitle icon={<AlertTriangle size={16} />}>Recorded events and flags</SectionTitle>
         <div
           style={{
             display: "grid",
@@ -897,11 +897,11 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
         >
           <Metric label="Incidents" v={data.incidents.length} />
           <Metric label="Last 30 days" v={data.last_30_days} />
-          <Metric label="Avg severity" v={data.avg_severity.toFixed(1)} />
-          <Metric label="High-severity flags" v={high} />
+          <Metric label="Avg recorded severity" v={data.avg_severity.toFixed(1)} />
+          <Metric label="Flags rated 3+" v={high} />
         </div>
         {data.flags.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No escalation flags recorded.</p>
+          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No flags recorded in this file.</p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
             {data.flags.slice(0, 8).map((f) => (
@@ -918,9 +918,9 @@ function Dashboard({ data, clientId }: { data: CaseData; clientId: string }) {
                   borderRadius: 16,
                 }}
               >
-                <span>{f.details ?? f.flag_type ?? "Escalation flagged"}</span>
+                <span>{f.details ?? f.flag_type ?? "Flag recorded"}</span>
                 <span className="att-mono" style={{ color: "var(--att-text-2)" }}>
-                  sev {f.severity_tier ?? "?"}
+                  recorded rating {f.severity_tier ?? "?"}
                 </span>
               </li>
             ))}
@@ -1859,12 +1859,12 @@ function Patterns({ data, clientId }: { data: CaseData; clientId: string }) {
                       height: "100%",
                       borderRadius: 999,
                       width: `${(m.count / tMax) * 100}%`,
-                      background: m.avg_severity >= 3 ? "var(--att-navy)" : "var(--att-navy-mid)",
+                      background: "var(--att-navy-mid)",
                     }}
                   />
                 </div>
-                <div style={{ width: 90, textAlign: "right" }}>
-                  {m.count} · sev {m.avg_severity.toFixed(1)}
+                <div style={{ minWidth: 190, textAlign: "right" }}>
+                  {m.count} recorded · avg self-rating {m.avg_severity.toFixed(1)}
                 </div>
               </div>
             );
@@ -3338,34 +3338,18 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
   ).length;
   const linked = data.evidence.filter((e) => e.linked_incident_id).length;
 
-  const strengthPct = totalEv === 0 ? 0 : Math.round(((useful * 2 + linked) / (totalEv * 3)) * 100);
-  const strengthLabel =
-    strengthPct >= 70
-      ? "Strong"
-      : strengthPct >= 40
-        ? "Building"
-        : totalEv === 0
-          ? "No evidence yet"
-          : "Thin";
-  const strengthColor =
-    strengthPct >= 70
-      ? "var(--att-navy)"
-      : strengthPct >= 40
-        ? "var(--att-muted)"
-        : "var(--att-navy)";
-
   const reviewPct = totalEv === 0 ? 0 : Math.round((reviewed / totalEv) * 100);
-  const highRisk = data.flags.filter((f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3).length;
+  const highRatedFlags = data.flags.filter((f) => !f.dismissed_at && (f.severity_tier ?? 0) >= 3).length;
 
   const moves: { label: string; why: string }[] = [];
-  if (highRisk > 0)
+  if (highRatedFlags > 0)
     moves.push({
-      label: `${highRisk} high-severity flag${highRisk === 1 ? "" : "s"} on record`,
+      label: `${highRatedFlags} flag${highRatedFlags === 1 ? "" : "s"} rated 3+ on record`,
       why: "Review before next filing.",
     });
   if (data.gaps.some((g) => g.severity === "high"))
     moves.push({
-      label: "Unresolved high-severity gaps in the case file",
+        label: "Unresolved documentation gaps in the case file",
       why: "Consider requesting additional documentation from the client.",
     });
   if (totalEv > 0 && reviewed < totalEv)
@@ -3395,28 +3379,13 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
       }}
     >
       <div className="att-card">
-        <SectionTitle icon={<Gauge size={14} />}>Evidence strength</SectionTitle>
-        <div
-          style={{
-            fontSize: 28,
-            fontFamily: "var(--font-sans)",
-            color: strengthColor,
-          }}
-        >
-          {strengthPct}%
+        <SectionTitle icon={<Gauge size={14} />}>Evidence organization</SectionTitle>
+        <div style={{ fontSize: 28, fontFamily: "var(--font-sans)" }}>
+          {linked} / {totalEv}
         </div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)", marginBottom: 8 }}>
-          {strengthLabel} · {linked}/{totalEv || 0} linked to incidents
-        </div>
-        <div style={{ height: 6, background: "var(--att-border)", borderRadius: 999 }}>
-          <div
-            style={{
-              width: `${strengthPct}%`,
-              height: "100%",
-              background: strengthColor,
-              borderRadius: 999,
-            }}
-          />
+          Files linked to incidents · {useful} marked useful or as exhibit candidates by a reviewer.
+          These counts do not assess evidentiary value.
         </div>
       </div>
 
@@ -3443,20 +3412,21 @@ function DashboardKpiRowInner({ data, reviews }: { data: CaseData; reviews: Revi
       </div>
 
       <div className="att-card">
-        <SectionTitle icon={<Shield size={14} />}>Urgent risk flags</SectionTitle>
+        <SectionTitle icon={<Shield size={14} />}>Flags rated 3+</SectionTitle>
         <div
           style={{
             fontSize: 28,
             fontFamily: "var(--font-sans)",
-            color: highRisk > 0 ? "var(--att-navy)" : "var(--att-text)",
+            color: highRatedFlags > 0 ? "var(--att-navy)" : "var(--att-text)",
           }}
         >
-          {highRisk}
+          {highRatedFlags}
         </div>
         <div style={{ fontSize: 12, color: "var(--att-text-2)" }}>
-          {highRisk === 0
-            ? "No high-severity flags active"
-            : `High-severity escalation${highRisk === 1 ? "" : "s"} on record`}
+          {highRatedFlags === 0
+            ? "No flags rated 3+ in this file"
+            : `${highRatedFlags} active flag${highRatedFlags === 1 ? "" : "s"} with a recorded rating of 3+`}
+          . Ratings are not a risk assessment.
         </div>
       </div>
 
@@ -3607,7 +3577,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
               {data.flags.length > 0 && (
                 <>
                   {" "}
-                  Survivor has flagged {data.flags.length} escalation event
+                  The file contains {data.flags.length} recorded flag
                   {data.flags.length === 1 ? "" : "s"}.
                 </>
               )}
@@ -3671,10 +3641,10 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
         ),
     },
     {
-      title: "Urgent risks",
+      title: "Recorded flags",
       body:
         data.flags.filter((f) => !f.dismissed_at).length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No active escalation flags.</p>
+          <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>No active flags in this file.</p>
         ) : (
           <ul style={{ fontSize: 13, paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
             {data.flags
@@ -3683,7 +3653,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
               .map((f) => (
                 <li key={f.id}>
                   Severity {f.severity_tier ?? "?"}:{" "}
-                  {f.details ?? f.flag_type ?? "Escalation flagged"}
+                  {f.details ?? f.flag_type ?? "Flag recorded"}
                 </li>
               ))}
           </ul>

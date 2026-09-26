@@ -9,46 +9,25 @@ import { z } from "zod";
  * on the case. Enforced by RLS + the assertion below.
  */
 
+/**
+ * Reuses assertCaseAccess so time-entry paths honour the same deny rules as
+ * the portal: status !== active OR revoked_at set OR expired → deny.
+ */
 async function assertLinkAccess(
   userId: string,
   clientId: string,
 ): Promise<{ linkId: string; isOwner: boolean }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: owner } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id")
-    .eq("attorney_user_id", userId)
-    .eq("client_user_id", clientId)
-    .eq("status", "active")
-    .maybeSingle();
-  if (owner) return { linkId: owner.id, isOwner: true };
+  const { assertCaseAccess } = await import("@/lib/attorney-access.server");
+  const { link, role } = await assertCaseAccess(supabaseAdmin, userId, clientId);
+  return { linkId: link.id, isOwner: role === "owner" };
+}
 
-  const [{ data: collabs }, { data: grants }] = await Promise.all([
-    supabaseAdmin
-      .from("case_collaborators")
-      .select("link_id")
-      .eq("collaborator_user_id", userId)
-      .eq("status", "active"),
-    supabaseAdmin
-      .from("case_grants")
-      .select("client_link_id")
-      .eq("attorney_user_id", userId)
-      .is("revoked_at", null),
-  ]);
-  const ids = [
-    ...(collabs ?? []).map((r) => r.link_id),
-    ...(grants ?? []).map((r) => r.client_link_id),
-  ];
-  if (!ids.length) throw new Error("No active access");
-  const { data: link } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id")
-    .in("id", ids)
-    .eq("client_user_id", clientId)
-    .eq("status", "active")
-    .maybeSingle();
-  if (!link) throw new Error("No active access");
-  return { linkId: link.id, isOwner: false };
+/** Recheck the current grant before mutating an existing time entry. */
+async function assertTimeEntryAccess(userId: string, entryId: string): Promise<string> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { assertEditableTimeEntry } = await import("@/lib/attorney-access.server");
+  return assertEditableTimeEntry(supabaseAdmin, userId, entryId);
 }
 
 export const listTimeEntries = createServerFn({ method: "POST" })
@@ -137,7 +116,7 @@ export const updateTimeEntry = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const linkId = await assertTimeEntryAccess(context.userId, data.id);
     const patch: {
       description?: string;
       minutes?: number;
@@ -148,12 +127,17 @@ export const updateTimeEntry = createServerFn({ method: "POST" })
     if (data.minutes !== undefined) patch.minutes = data.minutes;
     if (data.billable !== undefined) patch.billable = data.billable;
     if (data.entry_date !== undefined) patch.entry_date = data.entry_date;
-    const { error } = await supabaseAdmin
+    // User-scoped client keeps the database RLS predicate in the write itself.
+    const { data: updated, error } = await context.supabase
       .from("time_entries")
       .update(patch)
       .eq("id", data.id)
-      .eq("attorney_user_id", context.userId);
+      .eq("case_link_id", linkId)
+      .eq("attorney_user_id", context.userId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!updated) throw new Error("No active access");
     return { ok: true as const };
   });
 
@@ -161,13 +145,17 @@ export const deleteTimeEntry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+    const linkId = await assertTimeEntryAccess(context.userId, data.id);
+    const { data: deleted, error } = await context.supabase
       .from("time_entries")
       .delete()
       .eq("id", data.id)
-      .eq("attorney_user_id", context.userId);
+      .eq("case_link_id", linkId)
+      .eq("attorney_user_id", context.userId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!deleted) throw new Error("No active access");
     return { ok: true as const };
   });
 
@@ -180,13 +168,19 @@ export const listMyAttorneyBilling = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Match assertLink / SQL has_attorney_access: half-state (active + revoked_at)
+    // and expired shares must not surface billing rows.
+    const { isActiveShareLink } = await import("@/lib/attorney-access.server");
     const { data: links, error: linksErr } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id,attorney_user_id,status,created_at")
+      .select("id,attorney_user_id,status,created_at,revoked_at,expires_at")
       .eq("client_user_id", context.userId)
-      .eq("status", "active");
+      .eq("status", "active")
+      .is("revoked_at", null);
     if (linksErr) throw new Error(linksErr.message);
-    const linkList = links ?? [];
+    // Belt-and-suspenders: query filters revoked_at; isActiveShareLink also
+    // drops expiry half-states the query cannot express portably.
+    const linkList = (links ?? []).filter((l) => isActiveShareLink(l));
     if (linkList.length === 0) {
       return {
         attorneys: [] as Array<{

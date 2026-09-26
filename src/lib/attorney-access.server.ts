@@ -37,11 +37,27 @@ export type AttorneyLink = {
 };
 
 export const LINK_COLUMNS =
-  "id,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,scope_incidents,scope_evidence,case_id,expires_at";
+  "id,status,revoked_at,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,scope_incidents,scope_evidence,case_id,expires_at";
 
 /** True once a grant's expiry has passed. Expired access is treated the same as revoked. */
 export function isExpired(expiresAt: string | null | undefined): boolean {
-  return !!expiresAt && new Date(expiresAt).getTime() < Date.now();
+  if (expiresAt == null) return false;
+  const timestamp = new Date(expiresAt).getTime();
+  return !Number.isFinite(timestamp) || timestamp <= Date.now();
+}
+
+/** True when revoked_at is set (half-state: status may still read 'active'). Match SQL has_attorney_access. */
+export function isRevoked(revokedAt: string | null | undefined): boolean {
+  return revokedAt != null && revokedAt !== "";
+}
+
+/** Active share: status active, revoked_at unset, and not past expires_at. Match SQL has_attorney_access. */
+export function isActiveShareLink(link: {
+  status?: string | null;
+  revoked_at?: string | null;
+  expires_at?: string | null;
+}): boolean {
+  return link.status === "active" && !isRevoked(link.revoked_at) && !isExpired(link.expires_at);
 }
 
 export async function assertAttorney(admin: Admin, userId: string) {
@@ -88,11 +104,14 @@ export async function verifiedFirmGrantLinkIds(
   const linkIds = Array.from(new Set(grants.map((g) => g.client_link_id)));
   const { data: links, error: linksError } = await admin
     .from("attorney_client_links")
-    .select("id,attorney_user_id,status")
+    .select("id,attorney_user_id,status,revoked_at,expires_at")
     .in("id", linkIds)
     .eq("status", "active");
   if (linksError) throw new Error(linksError.message);
-  const linkRows = (links ?? []) as Array<{ id: string; attorney_user_id: string }>;
+  const linkRows = ((links ?? []) as Array<{
+    id: string; attorney_user_id: string; status: string;
+    revoked_at: string | null; expires_at: string | null;
+  }>).filter(isActiveShareLink);
   const ownerIds = Array.from(new Set(linkRows.map((l) => l.attorney_user_id)));
   if (!ownerIds.length) return new Set();
   const { data: owners, error: ownersError } = await admin
@@ -151,7 +170,7 @@ export async function assertLink(
     .eq("attorney_user_id", attorneyId)
     .eq("client_user_id", clientId)
     .maybeSingle();
-  if (!data || data.status !== "active" || isExpired(data.expires_at)) {
+  if (!data || !isActiveShareLink(data)) {
     throw new Error("No active access");
   }
   await applyCaseScope(admin, data, clientId);
@@ -178,7 +197,7 @@ export async function assertCaseAccess(
     .eq("attorney_user_id", userId)
     .eq("client_user_id", clientId)
     .maybeSingle();
-  if (owner && owner.status === "active" && !isExpired(owner.expires_at)) {
+  if (owner && isActiveShareLink(owner)) {
     await applyCaseScope(admin, owner, clientId);
     return { link: owner as AttorneyLink, role: "owner" };
   }
@@ -207,7 +226,7 @@ export async function assertCaseAccess(
     .eq("client_user_id", clientId)
     .eq("status", "active")
     .maybeSingle();
-  if (!link || isExpired(link.expires_at)) throw new Error("No active access");
+  if (!link || !isActiveShareLink(link)) throw new Error("No active access");
   await applyCaseScope(admin, link, clientId);
   const collabRole = collabs.find((c) => c.link_id === link.id)?.role as
     | "paralegal"
@@ -218,6 +237,30 @@ export async function assertCaseAccess(
     await assertSameFirm(admin, userId, link.attorney_user_id);
   }
   return { link: link as AttorneyLink, role: "collaborator", ...(collabRole ? { collabRole } : {}) };
+}
+
+/** Admin-client time-entry mutations must recheck the author's CURRENT case grant. */
+export async function assertEditableTimeEntry(
+  admin: Admin,
+  userId: string,
+  entryId: string,
+): Promise<string> {
+  const { data: entry, error } = await admin
+    .from("time_entries")
+    .select("case_link_id")
+    .eq("id", entryId)
+    .eq("attorney_user_id", userId)
+    .maybeSingle();
+  if (error || !entry) throw new Error("No active access");
+  const { data: link, error: linkError } = await admin
+    .from("attorney_client_links")
+    .select("client_user_id")
+    .eq("id", entry.case_link_id)
+    .maybeSingle();
+  if (linkError || !link) throw new Error("No active access");
+  const current = await assertCaseAccess(admin, userId, link.client_user_id);
+  if (current.link.id !== entry.case_link_id) throw new Error("No active access");
+  return current.link.id;
 }
 
 /**
@@ -234,14 +277,14 @@ export async function assertLinkParticipant(
 }> {
   const { data: link } = await admin
     .from("attorney_client_links")
-    .select("id,attorney_user_id,client_user_id,status,expires_at")
+    .select("id,attorney_user_id,client_user_id,status,revoked_at,expires_at")
     .eq("id", linkId)
     .maybeSingle();
   if (!link || link.status !== "active") throw new Error("No active link");
   if (link.client_user_id === userId) return { link, role: "survivor" };
   // Expiry only gates the attorney side — the survivor can always reach her own
   // thread even after a window she set has lapsed.
-  if (isExpired(link.expires_at)) throw new Error("No active link");
+  if (!isActiveShareLink(link)) throw new Error("No active link");
   if (link.attorney_user_id === userId) return { link, role: "owner" };
   const { data: collab } = await admin
     .from("case_collaborators")
