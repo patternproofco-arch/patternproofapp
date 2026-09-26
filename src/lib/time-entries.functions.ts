@@ -23,6 +23,13 @@ async function assertLinkAccess(
   return { linkId: link.id, isOwner: role === "owner" };
 }
 
+/** Recheck the current grant before mutating an existing time entry. */
+async function assertTimeEntryAccess(userId: string, entryId: string): Promise<string> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { assertEditableTimeEntry } = await import("@/lib/attorney-access.server");
+  return assertEditableTimeEntry(supabaseAdmin, userId, entryId);
+}
+
 export const listTimeEntries = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
@@ -109,7 +116,7 @@ export const updateTimeEntry = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const linkId = await assertTimeEntryAccess(context.userId, data.id);
     const patch: {
       description?: string;
       minutes?: number;
@@ -120,12 +127,17 @@ export const updateTimeEntry = createServerFn({ method: "POST" })
     if (data.minutes !== undefined) patch.minutes = data.minutes;
     if (data.billable !== undefined) patch.billable = data.billable;
     if (data.entry_date !== undefined) patch.entry_date = data.entry_date;
-    const { error } = await supabaseAdmin
+    // User-scoped client keeps the database RLS predicate in the write itself.
+    const { data: updated, error } = await context.supabase
       .from("time_entries")
       .update(patch)
       .eq("id", data.id)
-      .eq("attorney_user_id", context.userId);
+      .eq("case_link_id", linkId)
+      .eq("attorney_user_id", context.userId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!updated) throw new Error("No active access");
     return { ok: true as const };
   });
 
@@ -133,13 +145,17 @@ export const deleteTimeEntry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+    const linkId = await assertTimeEntryAccess(context.userId, data.id);
+    const { data: deleted, error } = await context.supabase
       .from("time_entries")
       .delete()
       .eq("id", data.id)
-      .eq("attorney_user_id", context.userId);
+      .eq("case_link_id", linkId)
+      .eq("attorney_user_id", context.userId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!deleted) throw new Error("No active access");
     return { ok: true as const };
   });
 
