@@ -23,6 +23,13 @@ async function assertLinkAccess(
   return { linkId: link.id, isOwner: role === "owner" };
 }
 
+/** Recheck the current grant before mutating an existing time entry. */
+async function assertTimeEntryAccess(userId: string, entryId: string): Promise<string> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { assertEditableTimeEntry } = await import("@/lib/attorney-access.server");
+  return assertEditableTimeEntry(supabaseAdmin, userId, entryId);
+}
+
 export const listTimeEntries = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
@@ -109,6 +116,7 @@ export const updateTimeEntry = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const linkId = await assertTimeEntryAccess(context.userId, data.id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const patch: {
       description?: string;
@@ -124,6 +132,7 @@ export const updateTimeEntry = createServerFn({ method: "POST" })
       .from("time_entries")
       .update(patch)
       .eq("id", data.id)
+      .eq("case_link_id", linkId)
       .eq("attorney_user_id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true as const };
@@ -133,11 +142,13 @@ export const deleteTimeEntry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    const linkId = await assertTimeEntryAccess(context.userId, data.id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("time_entries")
       .delete()
       .eq("id", data.id)
+      .eq("case_link_id", linkId)
       .eq("attorney_user_id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true as const };
