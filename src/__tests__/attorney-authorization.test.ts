@@ -3,6 +3,7 @@ import { fakeAdmin, type Tables } from "./helpers/fake-supabase";
 import {
   assertAttorney,
   assertCaseAccess,
+  assertEditableTimeEntry,
   assertLink,
   assertLinkParticipant,
   idInScope,
@@ -25,6 +26,7 @@ const SURV_B = "qa-survivor-b";
 const LINK_A = "qa-link-a";
 const CASE_A = "qa-case-a";
 const FIRM = "qa-firm-1";
+const TIME_A = "qa-time-a";
 
 const HOUR = 3600_000;
 const past = new Date(Date.now() - HOUR).toISOString();
@@ -121,6 +123,36 @@ describe("attorney access — the owning attorney", () => {
     await expect(assertCaseAccess(fakeAdmin(world()), ATTY_A, SURV_B)).rejects.toThrow(
       "No active access",
     );
+  });
+});
+
+describe("time entry mutation authorization", () => {
+  const withTime = () => world({
+    time_entries: [{ id: TIME_A, case_link_id: LINK_A, attorney_user_id: ATTY_A }],
+  });
+
+  it("permits the author while the same case link is active", async () => {
+    await expect(assertEditableTimeEntry(fakeAdmin(withTime()), ATTY_A, TIME_A)).resolves.toBe(LINK_A);
+  });
+
+  it("denies an expired, revoked, or malformed-expiry share", async () => {
+    for (const change of [
+      { expires_at: past },
+      { revoked_at: past },
+      { expires_at: "not-a-date" },
+    ]) {
+      const t = withTime();
+      Object.assign(t.attorney_client_links![0]!, change);
+      await expect(assertEditableTimeEntry(fakeAdmin(t), ATTY_A, TIME_A)).rejects.toThrow(
+        "No active access",
+      );
+    }
+  });
+
+  it("denies a different author or a missing time entry", async () => {
+    const t = withTime();
+    await expect(assertEditableTimeEntry(fakeAdmin(t), ATTY_B, TIME_A)).rejects.toThrow("No active access");
+    await expect(assertEditableTimeEntry(fakeAdmin(t), ATTY_A, "missing")).rejects.toThrow("No active access");
   });
 });
 
