@@ -42,7 +42,9 @@ export const LINK_COLUMNS =
 
 /** True once a grant's expiry has passed. Expired access is treated the same as revoked. */
 export function isExpired(expiresAt: string | null | undefined): boolean {
-  return !!expiresAt && new Date(expiresAt).getTime() < Date.now();
+  if (expiresAt == null) return false;
+  const timestamp = new Date(expiresAt).getTime();
+  return !Number.isFinite(timestamp) || timestamp <= Date.now();
 }
 
 /** True when revoked_at is set (half-state: status may still read 'active'). Match SQL has_attorney_access. */
@@ -235,6 +237,30 @@ export async function assertCaseAccess(
     await assertSameFirm(admin, userId, link.attorney_user_id);
   }
   return { link: link as AttorneyLink, role: "collaborator", ...(collabRole ? { collabRole } : {}) };
+}
+
+/** Admin-client time-entry mutations must recheck the author's CURRENT case grant. */
+export async function assertEditableTimeEntry(
+  admin: Admin,
+  userId: string,
+  entryId: string,
+): Promise<string> {
+  const { data: entry, error } = await admin
+    .from("time_entries")
+    .select("case_link_id")
+    .eq("id", entryId)
+    .eq("attorney_user_id", userId)
+    .maybeSingle();
+  if (error || !entry) throw new Error("No active access");
+  const { data: link, error: linkError } = await admin
+    .from("attorney_client_links")
+    .select("client_user_id")
+    .eq("id", entry.case_link_id)
+    .maybeSingle();
+  if (linkError || !link) throw new Error("No active access");
+  const current = await assertCaseAccess(admin, userId, link.client_user_id);
+  if (current.link.id !== entry.case_link_id) throw new Error("No active access");
+  return current.link.id;
 }
 
 /**
