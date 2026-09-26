@@ -3,6 +3,13 @@
 -- Apply only after exercising fictional owner, collaborator, grantee and survivor
 -- journeys on a staging clone; production has not been changed by this file.
 
+-- Production check found TRUNCATE privileges on 62 public tables for both
+-- anon and authenticated. RLS does not apply to TRUNCATE. The separate
+-- anonymous least-privilege migration restricts anon table access more broadly.
+REVOKE TRUNCATE ON ALL TABLES IN SCHEMA public FROM anon, authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE TRUNCATE ON TABLES FROM anon, authenticated;
+
 -- These tables currently inherit broad privileges, including TRUNCATE, which
 -- bypasses row-level policies. Restore only the client operations in use.
 REVOKE ALL ON public.attorney_messages, public.time_entries FROM PUBLIC, anon, authenticated;
