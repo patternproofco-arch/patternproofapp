@@ -73,11 +73,12 @@ export const getPinLockState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from("user_security_settings")
       .select("app_lock_enabled,biometric_enabled,pin_hash")
       .eq("user_id", context.userId)
       .maybeSingle();
+    if (error) throw new Error("Could not verify app lock settings.");
     return {
       app_lock_enabled: !!data?.app_lock_enabled,
       has_pin: !!data?.pin_hash,

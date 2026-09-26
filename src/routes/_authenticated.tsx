@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 import { ensureSurvivorRole } from "@/lib/roles.functions";
@@ -9,134 +9,117 @@ import { PinLockProvider, usePinLock } from "@/lib/pin-lock";
 import { useIdleLock } from "@/hooks/use-idle-lock";
 import { PinScreen } from "@/components/PinScreen";
 import { LockRecoveryScreen } from "@/components/LockRecoveryScreen";
-import { getPinLockState } from "@/lib/pin-lock.functions";
 import { RecordingProvider } from "@/lib/recording-context";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
+import { resolvePortal, withAccessTimeout } from "@/lib/portal-access";
 
-export const Route = createFileRoute("/_authenticated")({
-  component: AuthLayout,
-});
+export const Route = createFileRoute("/_authenticated")({ component: AuthLayout });
 
-function AuthLayout() {
+function Waiting({ message = "Opening your space…" }: { message?: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center" role="status">
+      {message}
+    </div>
+  );
+}
+function RetryAccess({ retry }: { retry: () => void }) {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4" role="alert">
+      <p>We couldn’t verify your access. Your information stays hidden.</p>
+      <button onClick={retry}>Try again</button>
+    </div>
+  );
+}
+
+export function AuthLayout() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!loading && !user) void navigate({ to: "/signin", replace: true });
+  }, [loading, user, navigate]);
+  if (loading || !user) return <Waiting />;
+  // Remount all role, MFA, settings and lock state when the account changes.
+  return <RoleGate key={user.id} />;
+}
+
+function RoleGate() {
+  const ensureRole = useServerFn(ensureSurvivorRole);
+  const navigate = useNavigate();
+  const [portal, setPortal] = useState<ReturnType<typeof resolvePortal> | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const mfaChecking = useMfaGate(true);
+  useEffect(() => {
+    let cancelled = false;
+    setPortal(null);
+    setFailed(false);
+    withAccessTimeout(ensureRole())
+      .then((result) => {
+        if (!cancelled) setPortal(resolvePortal(result));
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ensureRole, attempt]);
+  useEffect(() => {
+    if (portal && portal !== "survivor" && !mfaChecking) {
+      void navigate({ to: portal, replace: true }).catch(() => setFailed(true));
+    }
+  }, [portal, mfaChecking, navigate]);
+  if (failed) return <RetryAccess retry={() => setAttempt((n) => n + 1)} />;
+  if (!portal || mfaChecking) return <Waiting />;
+  if (portal !== "survivor") return <Waiting message="Taking you to your portal…" />;
+  // Professionals never mount survivor PIN, settings or recording providers.
   return (
     <SettingsProvider>
-      <PinLockProvider>
+      <PinLockProvider key={attempt}>
         <RecordingProvider>
-          <Gate />
+          <SurvivorGate retry={() => setAttempt((n) => n + 1)} />
         </RecordingProvider>
       </PinLockProvider>
     </SettingsProvider>
   );
 }
 
-function Gate() {
-  const { user, loading } = useAuth();
+function SurvivorGate({ retry }: { retry: () => void }) {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { settings, update } = useSettings();
-  const { hasPin, hasBiometric, isLocked, ready: pinLockReady, lock } = usePinLock();
+  const { hasPin, hasBiometric, isLocked, ready, lock, appLockEnabled, loadError } = usePinLock();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const ensureRole = useServerFn(ensureSurvivorRole);
-  const roleChecked = useRef(false);
-  const readAppLock = useServerFn(getPinLockState);
-  const [serverLockOn, setServerLockOn] = useState<boolean | null>(null);
-  const [isSurvivor, setIsSurvivor] = useState<boolean | null>(null);
-  const mfaChecking = useMfaGate(!loading && !!user);
-
-  useEffect(() => {
-    if (loading || !user) return;
-    let cancelled = false;
-    readAppLock()
-      .then((r) => {
-        if (!cancelled) setServerLockOn(!!r.app_lock_enabled);
-      })
-      .catch(() => {
-        if (!cancelled) setServerLockOn(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [loading, user, readAppLock]);
-
+  const onboardingComplete = user?.user_metadata?.onboarding_complete === true;
   useIdleLock(
-    !loading && !!user && (hasPin || hasBiometric) && !isLocked,
+    ready && !loadError && (hasPin || hasBiometric) && !isLocked,
     settings.sessionTimeoutSec,
     lock,
   );
-
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/signin", replace: true });
-  }, [user, loading, navigate]);
-
-  // Professionals (attorney / advocate / org) are routed to their own portals
-  // and are never subject to the survivor onboarding gate below.
-  useEffect(() => {
-    if (loading || !user || roleChecked.current) return;
-    roleChecked.current = true;
-    ensureRole()
-      .then((r) => {
-        setIsSurvivor(!!r.is_survivor);
-        if (!r.is_survivor && r.roles.includes("attorney")) {
-          navigate({ to: "/clients", replace: true });
-          return;
-        }
-        if (!r.is_survivor && r.roles.includes("advocate")) {
-          navigate({ to: r.is_org_partner ? "/org-portal" : "/advocate-cases", replace: true });
-        }
-      })
-      .catch(() => {
-        setIsSurvivor(true);
-      });
-  }, [loading, user, ensureRole, navigate]);
-
-  const onboardingComplete = !!(
-    user &&
-    ((user.user_metadata ?? {}) as { onboarding_complete?: boolean }).onboarding_complete
-  );
-  const survivorNeedsOnboarding = isSurvivor === true && !onboardingComplete;
-
-  useEffect(() => {
-    if (loading || !user || isSurvivor !== true) return;
-    const meta = (user.user_metadata ?? {}) as { onboarding_complete?: boolean; state?: string };
-    if (meta.onboarding_complete) {
-      if (!settings.onboarded) {
-        update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
-      }
-    } else if (settings.onboarded) {
-      update({ onboarded: false });
-    }
-  }, [loading, user, isSurvivor, settings.onboarded, update]);
-
-  useEffect(() => {
-    if (!loading && user && survivorNeedsOnboarding && pathname !== "/onboarding") {
-      navigate({ to: "/onboarding", replace: true });
-    }
-  }, [loading, user, survivorNeedsOnboarding, pathname, navigate]);
-
-  if (loading || !user || !pinLockReady || isSurvivor === null || mfaChecking) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="label-eyebrow">Opening your space…</div>
-      </div>
-    );
-  }
-
-  // Fail closed for survivors only: never render the app shell while a
-  // survivor still needs onboarding.
-  if (survivorNeedsOnboarding && pathname !== "/onboarding") {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="label-eyebrow">Opening your space…</div>
-      </div>
-    );
-  }
-
-  if (serverLockOn === true && !hasPin && !hasBiometric && pathname !== "/onboarding") {
-    return <LockRecoveryScreen />;
-  }
-
-  if ((hasPin || hasBiometric) && isLocked && pathname !== "/onboarding") {
-    return <PinScreen />;
-  }
-
+    if (!ready || loadError || isLocked) return;
+    const meta = user?.user_metadata ?? {};
+    if (onboardingComplete && !settings.onboarded)
+      update({ onboarded: true, ...(meta.state ? { state: meta.state } : {}) });
+    else if (!onboardingComplete && settings.onboarded) update({ onboarded: false });
+    if (!onboardingComplete && pathname !== "/onboarding")
+      void navigate({ to: "/onboarding", replace: true });
+  }, [
+    ready,
+    loadError,
+    isLocked,
+    user,
+    onboardingComplete,
+    settings.onboarded,
+    update,
+    pathname,
+    navigate,
+  ]);
+  if (loadError) return <RetryAccess retry={retry} />;
+  if (!ready) return <Waiting />;
+  // Direct onboarding URLs cannot bypass an existing app lock.
+  if (appLockEnabled && !hasPin && !hasBiometric) return <LockRecoveryScreen />;
+  if ((hasPin || hasBiometric) && isLocked) return <PinScreen />;
+  if (!onboardingComplete && pathname !== "/onboarding") return <Waiting />;
   return <AppShell />;
 }

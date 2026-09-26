@@ -1,3 +1,4 @@
+import { advocateLinkIsAuthorized } from "@/lib/advocate-access.server";
 import { toSafeCsv } from "@/lib/csv-safe";
 import JSZip from "jszip";
 import { createHash } from "crypto";
@@ -34,13 +35,6 @@ export type ResolvedGrant = {
   org_name: string | null;
 };
 
-function notExpired(row: { expires_at?: string | null }, invExpires: string | null) {
-  const now = Date.now();
-  if (row.expires_at && new Date(row.expires_at).getTime() < now) return false;
-  if (invExpires && new Date(invExpires).getTime() < now) return false;
-  return true;
-}
-
 /**
  * Resolve the effective grant between one advocate and one survivor.
  * Returns null when there is no active, non-expired link — never a partial.
@@ -58,7 +52,7 @@ export async function resolveAdvocateGrant(
   if (opts.linkId) q = q.eq("id", opts.linkId);
   const { data: rows } = await q.order("created_at", { ascending: false }).limit(1);
   const link = (rows ?? [])[0];
-  if (!link) return null;
+  if (!link || !(await advocateLinkIsAuthorized(admin, link))) return null;
 
   let invExpires: string | null = null;
   let invitedEmail: string | null = null;
@@ -76,7 +70,6 @@ export async function resolveAdvocateGrant(
       orgName = inv.org_name ?? null;
     }
   }
-  if (!notExpired(link, invExpires)) return null;
 
   let includeAllIncidents = !!link.include_all_incidents;
   let includeAllEvidence = !!link.include_all_evidence;
@@ -250,9 +243,7 @@ export async function buildPacketPdf(input: PacketInput): Promise<Uint8Array> {
   write("Sharing scope", { size: 13, boldFace: true, gap: 6 });
   write(
     `Shared with: ${input.advocate?.full_name ?? g.invited_email ?? "Advocate"}${
-      input.advocate?.org_name || g.org_name
-        ? ` — ${input.advocate?.org_name ?? g.org_name}`
-        : ""
+      input.advocate?.org_name || g.org_name ? ` — ${input.advocate?.org_name ?? g.org_name}` : ""
     }`,
   );
   if (input.advocate?.email || g.invited_email)
@@ -390,7 +381,9 @@ export async function buildAdvocateZip(
         if (!data) return;
         const buf = new Uint8Array(await data.arrayBuffer());
         const ext = String(e.file_url).split(".").pop() || "bin";
-        const safe = `${e.date ?? "undated"}_${String(e.id).slice(0, 8)}_${String(e.title ?? "evidence")
+        const safe = `${e.date ?? "undated"}_${String(e.id).slice(0, 8)}_${String(
+          e.title ?? "evidence",
+        )
           .replace(/[^a-zA-Z0-9-_]+/g, "_")
           .slice(0, 60)}.${ext}`;
         folder.file(safe, buf);
