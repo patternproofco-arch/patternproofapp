@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
+import { SupportReplyForm } from "@/components/admin/SupportReplyForm";
 import { listSupportRequests, type SupportInboxRow } from "@/lib/support-inbox.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/support")({
@@ -53,9 +54,10 @@ function SupportInbox() {
             </time>
           </div>
           <div style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--ink-muted)" }}>
-            {r.category} · {r.user_id ? "Signed-in account" : "Logged-out visitor"}
+            {r.category} · {r.status === "replied" ? "Replied" : "Awaiting reply"} · {r.user_id ? "Signed-in account" : "Logged-out visitor"}
           </div>
           <p style={{ margin: 0, whiteSpace: "pre-wrap", fontSize: 14, lineHeight: 1.6 }}>{r.message}</p>
+          <SupportReplyForm id={r.id} replyBody={r.reply_body} repliedAt={r.replied_at} onReplied={load} />
         </article>
       ))}
     </div>
