@@ -13,7 +13,7 @@ export function FloatingRecordButton() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { settings, update } = useSettings();
-  const { isRecording, elapsed, start, stop } = useRecording();
+  const { isRecording, elapsed, remaining, nearLimit, start, stop } = useRecording();
   const [menuOpen, setMenuOpen] = useState(false);
   const longPress = useRef<number | undefined>(undefined);
   const fired = useRef(false);
@@ -102,6 +102,11 @@ export function FloatingRecordButton() {
           }}
         >
           {fmt(elapsed)}
+          {nearLimit && (
+            <span role="status" aria-live="polite" style={{ color: "var(--oxblood)" }}>
+              {" "}· stops in {remaining}s
+            </span>
+          )}
         </div>
       )}
 

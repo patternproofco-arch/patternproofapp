@@ -69,7 +69,7 @@ export function GuideHelper() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Open the guide"
-        className="no-print fixed bottom-24 right-4 z-[80] flex h-12 w-12 items-center justify-center rounded-full shadow-md md:bottom-6"
+        className="no-print fixed bottom-[168px] right-6 z-[96] flex h-12 w-12 items-center justify-center rounded-full"
         style={{
           background: "var(--card)",
           color: "var(--foreground)",
@@ -83,7 +83,7 @@ export function GuideHelper() {
 
   return (
     <div
-      className="no-print fixed bottom-0 right-0 z-[90] flex h-[72vh] w-full flex-col md:bottom-4 md:right-4 md:h-[520px] md:w-[380px] md:rounded-2xl"
+      className="no-print fixed bottom-0 right-0 z-[97] flex h-[72vh] w-full flex-col md:bottom-4 md:right-4 md:h-[520px] md:w-[380px] md:rounded-2xl"
       style={{ background: "var(--card)", boxShadow: "var(--pp-shadow-sm)" }}
     >
       <div
