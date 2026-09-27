@@ -1,6 +1,6 @@
 # PatternProof — Private Evidence Documentation
 
-> PatternProof (pattern-proof.tech) is the private evidence documentation product of G Burns Company LLC. It serves domestic violence survivors, family law attorneys, and DV organizations by organizing photos, messages, voice notes, and written entries into a source-linked chronology. It does not diagnose abuse, give legal advice, or predict outcomes. It is a separate product from the AI co-parenting analysis product at patternproofai.com.
+> PatternProof (pattern-proof.tech) is the private evidence documentation product of G. BURNS COMPANY LLC. It serves domestic violence survivors, family law attorneys, and DV organizations by organizing photos, messages, voice notes, and written entries into a source-linked chronology. It does not diagnose abuse, give legal advice, or predict outcomes. It is a separate product from the AI co-parenting analysis product at patternproofai.com.
 
 Survivor accounts are free (no trial, no credit card). Attorney plans start at $297/month. DV organizations can refer survivors at no cost.
 
