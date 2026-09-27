@@ -15,6 +15,13 @@
       "when": 1790369344400,
       "tag": "0001_rate_limit_columns_and_audit_grant",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790539619117,
+      "tag": "0002_support_request_replies",
+      "breakpoints": true
     }
   ]
 }
