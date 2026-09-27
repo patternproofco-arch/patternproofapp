@@ -83,7 +83,7 @@ export function GuideHelper() {
 
   return (
     <div
-      className="no-print fixed bottom-0 right-0 z-[90] flex h-[72vh] w-full flex-col md:bottom-4 md:right-4 md:h-[520px] md:w-[380px] md:rounded-2xl"
+      className="no-print fixed bottom-0 right-0 z-[97] flex h-[72vh] w-full flex-col md:bottom-4 md:right-4 md:h-[520px] md:w-[380px] md:rounded-2xl"
       style={{ background: "var(--card)", boxShadow: "var(--pp-shadow-sm)" }}
     >
       <div
