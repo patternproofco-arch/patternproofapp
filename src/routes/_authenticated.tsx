@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouterState, Outlet } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
@@ -48,6 +48,11 @@ function RoleGate() {
   const [portal, setPortal] = useState<ReturnType<typeof resolvePortal> | null>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Staff pages (/admin/*) are shown to admins whatever their other portal is.
+  // Presentation only — every admin server function re-checks the role.
+  const adminView = isAdmin && pathname.startsWith("/admin");
   const mfaChecking = useMfaGate(true);
   useEffect(() => {
     let cancelled = false;
@@ -55,7 +60,9 @@ function RoleGate() {
     setFailed(false);
     withAccessTimeout(ensureRole())
       .then((result) => {
-        if (!cancelled) setPortal(resolvePortal(result));
+        if (cancelled) return;
+        setIsAdmin((result.roles as string[]).includes("admin"));
+        setPortal(resolvePortal(result));
       })
       .catch(() => {
         if (!cancelled) setFailed(true);
@@ -65,12 +72,13 @@ function RoleGate() {
     };
   }, [ensureRole, attempt]);
   useEffect(() => {
-    if (portal && portal !== "survivor" && !mfaChecking) {
+    if (portal && portal !== "survivor" && !mfaChecking && !adminView) {
       void navigate({ to: portal, replace: true }).catch(() => setFailed(true));
     }
-  }, [portal, mfaChecking, navigate]);
+  }, [portal, mfaChecking, navigate, adminView]);
   if (failed) return <RetryAccess retry={() => setAttempt((n) => n + 1)} />;
   if (!portal || mfaChecking) return <Waiting />;
+  if (adminView && portal !== "survivor") return <Outlet />;
   if (portal !== "survivor") return <Waiting message="Taking you to your portal…" />;
   // Professionals never mount survivor PIN, settings or recording providers.
   return (
