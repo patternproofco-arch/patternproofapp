@@ -9,46 +9,18 @@ import { z } from "zod";
  * on the case. Enforced by RLS + the assertion below.
  */
 
+/**
+ * Reuses assertCaseAccess so time-entry paths honour the same deny rules as
+ * the portal: status !== active OR revoked_at set OR expired → deny.
+ */
 async function assertLinkAccess(
   userId: string,
   clientId: string,
 ): Promise<{ linkId: string; isOwner: boolean }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: owner } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id")
-    .eq("attorney_user_id", userId)
-    .eq("client_user_id", clientId)
-    .eq("status", "active")
-    .maybeSingle();
-  if (owner) return { linkId: owner.id, isOwner: true };
-
-  const [{ data: collabs }, { data: grants }] = await Promise.all([
-    supabaseAdmin
-      .from("case_collaborators")
-      .select("link_id")
-      .eq("collaborator_user_id", userId)
-      .eq("status", "active"),
-    supabaseAdmin
-      .from("case_grants")
-      .select("client_link_id")
-      .eq("attorney_user_id", userId)
-      .is("revoked_at", null),
-  ]);
-  const ids = [
-    ...(collabs ?? []).map((r) => r.link_id),
-    ...(grants ?? []).map((r) => r.client_link_id),
-  ];
-  if (!ids.length) throw new Error("No active access");
-  const { data: link } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id")
-    .in("id", ids)
-    .eq("client_user_id", clientId)
-    .eq("status", "active")
-    .maybeSingle();
-  if (!link) throw new Error("No active access");
-  return { linkId: link.id, isOwner: false };
+  const { assertCaseAccess } = await import("@/lib/attorney-access.server");
+  const { link, role } = await assertCaseAccess(supabaseAdmin, userId, clientId);
+  return { linkId: link.id, isOwner: role === "owner" };
 }
 
 export const listTimeEntries = createServerFn({ method: "POST" })
@@ -180,13 +152,19 @@ export const listMyAttorneyBilling = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Match assertLink / SQL has_attorney_access: half-state (active + revoked_at)
+    // and expired shares must not surface billing rows.
+    const { isActiveShareLink } = await import("@/lib/attorney-access.server");
     const { data: links, error: linksErr } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id,attorney_user_id,status,created_at")
+      .select("id,attorney_user_id,status,created_at,revoked_at,expires_at")
       .eq("client_user_id", context.userId)
-      .eq("status", "active");
+      .eq("status", "active")
+      .is("revoked_at", null);
     if (linksErr) throw new Error(linksErr.message);
-    const linkList = links ?? [];
+    // Belt-and-suspenders: query filters revoked_at; isActiveShareLink also
+    // drops expiry half-states the query cannot express portably.
+    const linkList = (links ?? []).filter((l) => isActiveShareLink(l));
     if (linkList.length === 0) {
       return {
         attorneys: [] as Array<{
