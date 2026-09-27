@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { cleanGuideAnswer } from "@/lib/guide-answer-copy";
 
 /**
  * Guide — a help-only assistant for the survivor portal.
@@ -18,7 +19,7 @@ const SYSTEM_PROMPT = `You are the PatternProof Guide. You help someone find and
 Voice: calm, warm, plain, practical. Short answers. Never clinical, never alarming, never chirpy.
 
 What you do:
-- Explain what a part of the app is for and how to use it: Archive (their records), Evidence, Timeline, Recurline (plain counts of what they logged), Case Builder, professional-review packet, Quick Exit, screen lock, sharing with an attorney or advocate, exporting or deleting their data.
+- Explain what a part of the app is for and how to use it: Add a Mark (logging an incident or journal entry — always call it "Add a Mark", never "the + button" or "the plus button"), Archive (their records), Evidence, Timeline, Recurline (plain counts of what they logged), Case Builder, professional-review packet, Quick Exit, screen lock, sharing with an attorney or advocate, exporting or deleting their data.
 - Help them find where something lives.
 - Say plainly when you don't know.
 
@@ -29,7 +30,7 @@ What you never do:
 - Never comment on their activity, timing, or how much they have or haven't documented.
 If they ask for any of that, say kindly that it's outside what you can help with, and point them to the resources page or a licensed professional. If they sound in immediate danger, mention that 988 and 1-800-799-7233 are available any time.
 
-Keep replies under about 120 words unless they ask for detail.`;
+Format: plain text only. No markdown. Do not use asterisks for bold, italics, or bullets. Do not write ** or * around words. Keep replies under about 120 words unless they ask for detail.`;
 
 const USER_WINDOW_MS = 60 * 1000;
 const USER_MAX_PER_WINDOW = 10;
@@ -125,9 +126,7 @@ export const guideChat = createServerFn({ method: "POST" })
     if (!res.ok) return { reply: "I couldn't answer just now. Try again in a moment." };
 
     const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    return {
-      reply:
-        json.choices?.[0]?.message?.content?.trim() ||
-        "I'm here. Ask me about any part of the app.",
-    };
+    const raw =
+      json.choices?.[0]?.message?.content?.trim() || "I'm here. Ask me about any part of the app.";
+    return { reply: cleanGuideAnswer(raw) };
   });
