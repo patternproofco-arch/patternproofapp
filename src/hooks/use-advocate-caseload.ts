@@ -25,8 +25,9 @@ export function useAdvocateCaseload(
   const refresh = useCallback(async () => {
     const request = ++generation.current;
     if (!userId) return;
-    // Clear labels while revalidating, including focus/online after time away.
-    setSnapshot(null);
+    // Keep the previous snapshot on screen while revalidating so the page
+    // doesn't blank mid-task; revoked access is removed as soon as the
+    // server confirms it. Backend authorization remains authoritative.
     try {
       const [c, i] = await withAccessTimeout(Promise.all([listClients(), listInvites()]));
       if (request === generation.current)
@@ -43,8 +44,9 @@ export function useAdvocateCaseload(
     };
     const visibility = () => {
       if (document.visibilityState === "hidden") {
+        // Cancel in-flight work while hidden, but keep the last snapshot so
+        // returning to the tab updates in place instead of flashing empty.
         ++generation.current;
-        setSnapshot(null);
       } else visible();
     };
     const timer = window.setInterval(visible, 15000);
