@@ -16,8 +16,17 @@ export interface PendingRecording {
   endedAt: string;
 }
 
+export const RECORDING_LIMIT_SEC = 60;
+export const RECORDING_WARN_SEC = 45;
+
 interface Ctx {
   isRecording: boolean;
+  /** Seconds left before the recording stops on its own. */
+  remaining: number;
+  /** True in the last 15 seconds before the limit. */
+  nearLimit: boolean;
+  /** True when the last recording was stopped by the limit, not the user. */
+  stoppedAtLimit: boolean;
   elapsed: number;
   pending: PendingRecording | null;
   start: () => Promise<boolean>;
@@ -32,6 +41,7 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
   const [isRecording, setIsRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [pending, setPending] = useState<PendingRecording | null>(null);
+  const [stoppedAtLimit, setStoppedAtLimit] = useState(false);
 
   const mr = useRef<MediaRecorder | null>(null);
   const stream = useRef<MediaStream | null>(null);
@@ -90,6 +100,7 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
       }
       startedAt.current = new Date().toISOString();
       setIsRecording(true);
+      setStoppedAtLimit(false);
       setElapsed(0);
       timer.current = window.setInterval(() => setElapsed((e) => e + 1), 1000);
       return true;
@@ -140,6 +151,14 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
     });
   }, [elapsed]);
 
+  // Stop at the limit — the warning has been visible for the last 15 seconds.
+  useEffect(() => {
+    if (isRecording && elapsed >= RECORDING_LIMIT_SEC) {
+      setStoppedAtLimit(true);
+      void stop();
+    }
+  }, [isRecording, elapsed, stop]);
+
   const consumePending = useCallback(() => {
     const p = pending;
     setPending(null);
@@ -158,7 +177,12 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
 
   return (
     <RecCtx.Provider
-      value={{ isRecording, elapsed, pending, start, stop, consumePending, discardPending }}
+      value={{
+        isRecording,
+        remaining: Math.max(0, RECORDING_LIMIT_SEC - elapsed),
+        nearLimit: isRecording && elapsed >= RECORDING_WARN_SEC,
+        stoppedAtLimit,
+        elapsed, pending, start, stop, consumePending, discardPending }}
     >
       {children}
     </RecCtx.Provider>

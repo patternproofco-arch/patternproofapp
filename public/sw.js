@@ -1,10 +1,21 @@
-const CACHE_VERSION = "v3-survivor-pwa";
+const CACHE_VERSION = "v4-survivor-pwa";
 const CACHE_NAME = `patternproof-${CACHE_VERSION}`;
 
-const ASSETS_TO_CACHE = ["/", "/signin", "/manifest.webmanifest", "/favicon.svg", "/icons/icon-192.png"];
+const ASSETS_TO_CACHE = ["/", "/index.html", "/signin", "/manifest.webmanifest", "/favicon.svg", "/icons/icon-192.png"];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE)));
+  // Cache each entry on its own so one missing file can't block the install.
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(
+        ASSETS_TO_CACHE.map((url) =>
+          fetch(url, { cache: "reload" })
+            .then((res) => (res.ok ? cache.put(url, res) : undefined))
+            .catch(() => undefined),
+        ),
+      ),
+    ),
+  );
   self.skipWaiting();
 });
 
@@ -37,6 +48,7 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(async () =>
           (await caches.match(event.request)) ||
+          (await caches.match("/index.html")) ||
           (await caches.match("/signin")) ||
           (await caches.match("/")) ||
           Response.error(),

@@ -69,7 +69,7 @@ export function GuideHelper() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Open the guide"
-        className="no-print fixed bottom-24 right-4 z-[80] flex h-12 w-12 items-center justify-center rounded-full shadow-md md:bottom-6"
+        className="no-print fixed bottom-[168px] right-6 z-[96] flex h-12 w-12 items-center justify-center rounded-full"
         style={{
           background: "var(--card)",
           color: "var(--foreground)",

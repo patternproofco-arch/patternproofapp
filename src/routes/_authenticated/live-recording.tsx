@@ -8,6 +8,7 @@ import { useSettings } from "@/lib/settings-context";
 import { useRecording, type PendingRecording } from "@/lib/recording-context";
 import { useServerFn } from "@tanstack/react-start";
 import { checkAccidental } from "@/lib/accidental-check.functions";
+import { transcribeRecording } from "@/lib/transcribe-recording.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/live-recording")({
@@ -26,8 +27,20 @@ interface Rec {
 function LiveRecording() {
   const { user } = useAuth();
   const { settings } = useSettings();
-  const { isRecording, elapsed, pending, start, stop, consumePending, discardPending } =
-    useRecording();
+  const {
+    isRecording,
+    elapsed,
+    remaining,
+    nearLimit,
+    stoppedAtLimit,
+    pending,
+    start,
+    stop,
+    consumePending,
+    discardPending,
+  } = useRecording();
+  const runTranscribe = useServerFn(transcribeRecording);
+  const [transcribing, setTranscribing] = useState(false);
   const runCheck = useServerFn(checkAccidental);
   const [warned, setWarned] = useState(false);
   const [item, setItem] = useState<PendingRecording | null>(null);
@@ -82,9 +95,30 @@ function LiveRecording() {
       if (p) {
         setItem(p);
         setTranscript(p.transcript);
+        if (!p.transcript && p.blob.size > 0) {
+          setTranscribing(true);
+          void (async () => {
+            try {
+              const buf = new Uint8Array(await p.blob.arrayBuffer());
+              let bin = "";
+              for (let i = 0; i < buf.length; i += 0x8000) {
+                bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+              }
+              const r = await runTranscribe({
+                data: { audioBase64: btoa(bin), mime: p.blob.type || "audio/webm" },
+              });
+              if (r.text) setTranscript((t) => t || r.text);
+              else if (r.error) toast(r.error);
+            } catch {
+              toast("We couldn't transcribe this recording. You can still save it.");
+            } finally {
+              setTranscribing(false);
+            }
+          })();
+        }
       }
     }
-  }, [pending, item, consumePending]);
+  }, [pending, item, consumePending, runTranscribe]);
 
   // Run accidental check once per item
   useEffect(() => {
@@ -199,11 +233,26 @@ function LiveRecording() {
             >
               <Square size={32} color="#fff" />
             </button>
-            <p className="mt-4 text-[14px]">Recording… {fmt(elapsed)}</p>
+            <p className="mt-4 text-[14px]">Recording… {fmt(elapsed)} of 1:00</p>
+            {nearLimit && (
+              <p role="status" aria-live="polite" className="mt-2 text-[14px]" style={{ color: "var(--oxblood)" }}>
+                This recording will stop in {remaining} seconds. You can start a new one right after.
+              </p>
+            )}
           </>
         )}
         {item && !isRecording && (
           <div className="space-y-3 text-left">
+            {stoppedAtLimit && (
+              <p className="text-[14px]" style={{ color: "var(--ink-muted)" }}>
+                Recording stopped at the one-minute limit. Everything up to that point is kept.
+              </p>
+            )}
+            {transcribing && (
+              <p className="text-[14px]" style={{ color: "var(--ink-muted)" }}>
+                Writing out the transcript…
+              </p>
+            )}
             {accidental?.accidental && accidental.confidence === "high" && (
               <div
                 className="rounded-2xl px-4 py-3"
