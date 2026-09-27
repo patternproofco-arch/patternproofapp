@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v4-survivor-pwa";
+const CACHE_VERSION = "v5-offline-shell";
 const CACHE_NAME = `patternproof-${CACHE_VERSION}`;
 
 const ASSETS_TO_CACHE = ["/", "/index.html", "/signin", "/manifest.webmanifest", "/favicon.svg", "/icons/icon-192.png"];
