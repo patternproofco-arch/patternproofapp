@@ -3466,6 +3466,9 @@ export type Database = {
           ip_hash: string | null
           message: string
           name: string | null
+          replied_at: string | null
+          replied_by: string | null
+          reply_body: string | null
           reply_email: string
           status: string
           updated_at: string
@@ -3478,6 +3481,9 @@ export type Database = {
           ip_hash?: string | null
           message: string
           name?: string | null
+          replied_at?: string | null
+          replied_by?: string | null
+          reply_body?: string | null
           reply_email: string
           status?: string
           updated_at?: string
@@ -3490,6 +3496,9 @@ export type Database = {
           ip_hash?: string | null
           message?: string
           name?: string | null
+          replied_at?: string | null
+          replied_by?: string | null
+          reply_body?: string | null
           reply_email?: string
           status?: string
           updated_at?: string
