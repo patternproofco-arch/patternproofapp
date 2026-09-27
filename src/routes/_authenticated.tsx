@@ -61,7 +61,7 @@ function RoleGate() {
     withAccessTimeout(ensureRole())
       .then((result) => {
         if (cancelled) return;
-        setIsAdmin(result.roles.includes("admin"));
+        setIsAdmin((result.roles as string[]).includes("admin"));
         setPortal(resolvePortal(result));
       })
       .catch(() => {
