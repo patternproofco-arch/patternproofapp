@@ -123,6 +123,7 @@ import { Route as AttorneyMattersIndexRouteImport } from './routes/_attorney/mat
 import { Route as AttorneyMattersMatterIdRouteImport } from './routes/_attorney/matters.$matterId'
 import { Route as AuthenticatedAdminOrgRequestsRouteImport } from './routes/_authenticated/admin.org-requests'
 import { Route as AuthenticatedAdminPasswordResetRouteImport } from './routes/_authenticated/admin.password-reset'
+import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin.support'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
@@ -726,6 +727,12 @@ const AuthenticatedAdminPasswordResetRoute =
     path: '/admin/password-reset',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminSupportRoute =
+  AuthenticatedAdminSupportRouteImport.update({
+    id: '/admin/support',
+    path: '/admin/support',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAgentIndexRoute = AuthenticatedAgentIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -898,6 +905,7 @@ export interface FileRoutesByFullPath {
   '/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
+  '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
@@ -1020,6 +1028,7 @@ export interface FileRoutesByTo {
   '/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
+  '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
@@ -1148,6 +1157,7 @@ export interface FileRoutesById {
   '/_attorney/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/_authenticated/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/_authenticated/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
+  '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
@@ -1274,6 +1284,7 @@ export interface FileRouteTypes {
     | '/matters/$matterId'
     | '/admin/org-requests'
     | '/admin/password-reset'
+    | '/admin/support'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
@@ -1396,6 +1407,7 @@ export interface FileRouteTypes {
     | '/matters/$matterId'
     | '/admin/org-requests'
     | '/admin/password-reset'
+    | '/admin/support'
     | '/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
@@ -1523,6 +1535,7 @@ export interface FileRouteTypes {
     | '/_attorney/matters/$matterId'
     | '/_authenticated/admin/org-requests'
     | '/_authenticated/admin/password-reset'
+    | '/_authenticated/admin/support'
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
@@ -2409,6 +2422,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPasswordResetRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/support': {
+      id: '/_authenticated/admin/support'
+      path: '/admin/support'
+      fullPath: '/admin/support'
+      preLoaderRoute: typeof AuthenticatedAdminSupportRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/agent/': {
       id: '/_authenticated/agent/'
       path: '/'
@@ -2608,6 +2628,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
   AuthenticatedAdminOrgRequestsRoute: typeof AuthenticatedAdminOrgRequestsRoute
   AuthenticatedAdminPasswordResetRoute: typeof AuthenticatedAdminPasswordResetRoute
+  AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -2648,6 +2669,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
   AuthenticatedAdminOrgRequestsRoute: AuthenticatedAdminOrgRequestsRoute,
   AuthenticatedAdminPasswordResetRoute: AuthenticatedAdminPasswordResetRoute,
+  AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
