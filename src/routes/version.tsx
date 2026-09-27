@@ -96,8 +96,11 @@ function VersionPage() {
         </div>
 
         <p className="mt-4 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          Commit is the full git SHA embedded at build time. Builds fail if that SHA cannot be
-          resolved — this page should never show an unknown or lagging stamp-file revision.
+          Commit is the git revision embedded at build time. When the build environment can't
+          supply one, this page says "unknown" rather than guessing.
+        </p>
+        <p className="mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+          PatternProof is operated by G. BURNS COMPANY LLC.
         </p>
       </div>
     </div>

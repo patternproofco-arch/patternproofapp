@@ -43,8 +43,8 @@ function Terms() {
           <section className="pp-legal-prose">
             <H2>1. Who we are</H2>
             <p>
-              PatternProof is operated by G Burns Company LLC, doing business as PatternProof
-              ("PatternProof," "we," "us"). PatternProof is operated through G Burns Company LLC, a
+              PatternProof is operated by G. BURNS COMPANY LLC, doing business as PatternProof
+              ("PatternProof," "we," "us"). PatternProof is operated through G. BURNS COMPANY LLC, a
               New Jersey limited liability company. By creating an account or using the Service, you
               agree to these Terms, including the limitation of liability and indemnification
               provisions below.
@@ -127,7 +127,7 @@ function Terms() {
               is limited to the amount you paid us in the 12 months before the claim.
             </p>
             <p>
-              You agree to indemnify and hold harmless G Burns Company LLC and its members from any
+              You agree to indemnify and hold harmless G. BURNS COMPANY LLC and its members from any
               claims, damages, losses, or expenses (including reasonable attorney's fees) arising
               out of: (a) your violation of these Terms; (b) content you upload or submit, including
               any claim that it was fabricated, obtained illegally, or violates another person's
