@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { HelpCircle, X, Send, PowerOff } from "lucide-react";
 import { guideChat } from "@/lib/guide-chat.functions";
+import { cleanGuideAnswer } from "@/lib/guide-answer-copy";
 import { useSettings } from "@/lib/settings-context";
 
 interface Msg {
@@ -47,7 +48,7 @@ export function GuideHelper() {
     setBusy(true);
     try {
       const { reply } = await ask({ data: { messages: next.slice(-20) } });
-      setMsgs([...next, { role: "assistant", content: reply }]);
+      setMsgs([...next, { role: "assistant", content: cleanGuideAnswer(reply) }]);
     } catch {
       setMsgs([
         ...next,
