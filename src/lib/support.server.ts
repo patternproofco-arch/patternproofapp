@@ -97,3 +97,90 @@ export async function enqueueSupportEmail(input: {
     return false;
   }
 }
+
+/** Email an admin's reply to the person who sent a support request. */
+export async function enqueueSupportReplyEmail(input: {
+  id: string;
+  name: string | null;
+  replyEmail: string;
+  reply: string;
+  originalMessage: string;
+}): Promise<boolean> {
+  try {
+    const React = (await import("react")).default;
+    const { render } = await import("@react-email/render");
+    const { template } = await import("@/lib/email-templates/support-reply");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const props = {
+      name: input.name ?? undefined,
+      reply: input.reply,
+      originalMessage: input.originalMessage,
+    };
+    const element = React.createElement(template.component, props);
+    const html = await render(element);
+    const text = await render(element, { plainText: true });
+    const to = input.replyEmail.toLowerCase();
+    const messageId = crypto.randomUUID();
+
+    const { data: existing } = await supabaseAdmin
+      .from("email_unsubscribe_tokens")
+      .select("token")
+      .eq("email", to)
+      .maybeSingle();
+    let unsubscribeToken = existing?.token;
+    if (!unsubscribeToken) {
+      const bytes = new Uint8Array(32);
+      crypto.getRandomValues(bytes);
+      const fresh = Array.from(bytes)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      await supabaseAdmin
+        .from("email_unsubscribe_tokens")
+        .upsert({ token: fresh, email: to }, { onConflict: "email", ignoreDuplicates: true });
+      const { data: stored } = await supabaseAdmin
+        .from("email_unsubscribe_tokens")
+        .select("token")
+        .eq("email", to)
+        .maybeSingle();
+      unsubscribeToken = stored?.token ?? fresh;
+    }
+
+    await supabaseAdmin.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: "support-reply",
+      recipient_email: to,
+      status: "pending",
+    });
+    const { error } = await supabaseAdmin.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: {
+        message_id: messageId,
+        to,
+        from: "patternproofapp <noreply@pattern-proof.tech>",
+        sender_domain: "notify.pattern-proof.tech",
+        reply_to: "pattern@pattern-proof.tech",
+        subject: template.subject,
+        html,
+        text,
+        purpose: "transactional",
+        label: "support-reply",
+        idempotency_key: `support-reply-${input.id}-${messageId}`,
+        unsubscribe_token: unsubscribeToken,
+        queued_at: new Date().toISOString(),
+      },
+    });
+    if (error) return false;
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (apiKey) {
+      const { drainEmailQueues } = await import("@/lib/email-queue-drain.server");
+      try {
+        await drainEmailQueues(supabaseAdmin, apiKey, process.env.LOVABLE_SEND_URL);
+      } catch {
+        // Queue will retry on its own.
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
