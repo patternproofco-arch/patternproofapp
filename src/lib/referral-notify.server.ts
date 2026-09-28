@@ -19,9 +19,6 @@ export async function enqueueReferralSignupNotification(input: {
     const subject =
       typeof template.subject === "function" ? template.subject(props) : template.subject;
 
-
-
-
     const result = await sendRenderedEmail({
       to: template.to!,
       from: "patternproofapp <noreply@pattern-proof.tech>",
@@ -29,7 +26,7 @@ export async function enqueueReferralSignupNotification(input: {
       html,
       text,
       label: "referral-signup-notification",
-      idempotencyKey: `referral-signup-${input.code}-${messageId}`,
+      idempotencyKey: `referral-signup-${input.code}-${crypto.randomUUID()}`,
     });
     return result.sent;
   } catch {

@@ -63,10 +63,15 @@ export async function sendRenderedEmail(input: {
       message_id: null,
       template_name: input.label,
       recipient_email: input.to,
-      status: result.sent ? "sent" : result.reason === "recipient_suppressed" ? "suppressed" : "failed",
+      status: result.sent
+        ? "sent"
+        : result.reason === "recipient_suppressed"
+          ? "suppressed"
+          : "failed",
       error_message: !result.sent && result.reason === "failed" ? result.error : null,
     });
-    if (error) console.error("[email] send log write failed", { code: error.code, message: error.message });
+    if (error)
+      console.error("[email] send log write failed", { code: error.code, message: error.message });
   } catch (error) {
     console.error("[email] send log write failed", error);
   }

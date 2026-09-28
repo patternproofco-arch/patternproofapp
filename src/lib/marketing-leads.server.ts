@@ -19,8 +19,6 @@ export async function enqueueProfessionalReadinessKit(input: {
     const text = await render(element, { plainText: true });
     const subject = kitCopy(input.persona).title;
 
-
-
     const result = await sendRenderedEmail({
       to: input.email,
       from: "PatternProof <noreply@pattern-proof.tech>",

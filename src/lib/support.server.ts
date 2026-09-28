@@ -26,9 +26,6 @@ export async function enqueueSupportEmail(input: {
     const subject =
       typeof template.subject === "function" ? template.subject(props) : template.subject;
 
-
-
-
     const result = await sendRenderedEmail({
       to: template.to!,
       from: "patternproofapp <noreply@pattern-proof.tech>",
@@ -68,7 +65,6 @@ export async function enqueueSupportReplyEmail(input: {
     const text = await render(element, { plainText: true });
     const to = input.replyEmail.toLowerCase();
 
-
     const result = await sendRenderedEmail({
       to: to,
       from: "patternproofapp <noreply@pattern-proof.tech>",
@@ -76,7 +72,7 @@ export async function enqueueSupportReplyEmail(input: {
       html,
       text,
       label: "support-reply",
-      idempotencyKey: `support-reply-${input.id}-${messageId}`,
+      idempotencyKey: `support-reply-${input.id}-${crypto.randomUUID()}`,
       replyTo: "pattern@pattern-proof.tech",
     });
     return result.sent;
