@@ -1,9 +1,9 @@
-import { supabase } from "@/integrations/supabase/client";
+import { sendInvitationEmail } from "@/lib/email/invitation-email.functions";
 
 /**
- * Thin client helper for app emails. Posts to the internal send route with the
- * current user's session token. Returns false instead of throwing so a failed
- * send never blocks the survivor's flow.
+ * Thin client helper for invitation emails. The server rebuilds the email
+ * content from the caller's own pending invitation. Returns false instead of
+ * throwing so a failed send never blocks the survivor's flow.
  */
 export async function sendTransactionalEmail(input: {
   templateName: string;
@@ -11,21 +11,21 @@ export async function sendTransactionalEmail(input: {
   idempotencyKey?: string;
   templateData?: Record<string, unknown>;
 }): Promise<boolean> {
+  if (
+    input.templateName !== "advocate-survivor-invitation" &&
+    input.templateName !== "attorney-invitation"
+  ) {
+    return false;
+  }
   try {
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
-    if (!token) return false;
-    const res = await fetch("/lovable/email/transactional/send", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        Authorization: `Bearer ${token}`,
+    const res = await sendInvitationEmail({
+      data: {
+        templateName: input.templateName,
+        recipientEmail: input.recipientEmail,
+        idempotencyKey: input.idempotencyKey,
       },
-      body: JSON.stringify(input),
     });
-    if (!res.ok) return false;
-    const body = (await res.json()) as { success?: boolean };
-    return body.success !== false;
+    return res.success;
   } catch {
     return false;
   }

@@ -54,30 +54,21 @@ export async function buildTeamInvitationMessage(
 }
 
 export async function enqueueTeamInvitation(input: TeamInvitationInput) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { sendRenderedEmail } = await import("@/lib/email/managed-send.server");
   const message = await buildTeamInvitationMessage(input);
-  const { error } = await supabaseAdmin.rpc("enqueue_email", {
-    queue_name: "transactional_emails",
-    payload: message.payload as Json,
+  const p = message.payload;
+  const result = await sendRenderedEmail({
+    to: p.to,
+    from: p.from,
+    subject: p.subject,
+    html: p.html,
+    text: p.text,
+    label: p.label,
+    idempotencyKey: p.idempotency_key,
   });
-  if (error) throw new Error("Invitation created, but the email could not be queued.");
-
-  // Send immediately rather than waiting on a scheduler — there is no cron
-  // trigger wired up to drain this queue any other way.
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (apiKey) {
-    const { drainEmailQueues } = await import("@/lib/email-queue-drain.server");
-    try {
-      await drainEmailQueues(supabaseAdmin, apiKey, process.env.LOVABLE_SEND_URL);
-    } catch (drainError) {
-      console.error("Immediate drain after enqueue failed", { drainError });
-    }
-  } else {
-    console.error(
-      "LOVABLE_API_KEY not configured — invitation email will not send until drained manually",
-    );
+  if (!result.sent && result.reason === "failed") {
+    throw new Error("Invitation created, but the email could not be sent.");
   }
-
   return { acceptUrl: message.acceptUrl };
 }
 

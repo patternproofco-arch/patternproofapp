@@ -109,7 +109,6 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
-import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as MatterInviteTokenRouteImport } from './routes/matter-invite.$token'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
@@ -128,13 +127,11 @@ import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integrations.clio.deauthorize'
-import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
-import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -652,11 +649,6 @@ const CollaboratorInviteTokenRoute = CollaboratorInviteTokenRouteImport.update({
   path: '/collaborator-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
-  id: '/email/unsubscribe',
-  path: '/email/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MatterInviteTokenRoute = MatterInviteTokenRouteImport.update({
   id: '/matter-invite/$token',
   path: '/matter-invite/$token',
@@ -756,9 +748,9 @@ const IntegrationsClioDeauthorizeRoute =
     path: '/integrations/clio/deauthorize',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
-  id: '/lovable/email/suppression',
-  path: '/lovable/email/suppression',
+const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
+  id: '/lovable/email/events',
+  path: '/lovable/email/events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPaymentsWebhookRoute =
@@ -777,22 +769,10 @@ const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
   path: '/lovable/email/auth/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
     path: '/lovable/email/transactional/preview',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailTransactionalSendRoute =
-  LovableEmailTransactionalSendRouteImport.update({
-    id: '/lovable/email/transactional/send',
-    path: '/lovable/email/transactional/send',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -894,7 +874,6 @@ export interface FileRoutesByFullPath {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
-  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
@@ -909,7 +888,7 @@ export interface FileRoutesByFullPath {
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
-  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/clients/': typeof AttorneyClientsIndexRoute
   '/matters/': typeof AttorneyMattersIndexRoute
@@ -917,9 +896,7 @@ export interface FileRoutesByFullPath {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
-  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
-  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1017,7 +994,6 @@ export interface FileRoutesByTo {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
-  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
@@ -1032,7 +1008,7 @@ export interface FileRoutesByTo {
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
-  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/advocate-cases': typeof AdvocateAdvocateCasesIndexRoute
   '/clients': typeof AttorneyClientsIndexRoute
   '/matters': typeof AttorneyMattersIndexRoute
@@ -1040,9 +1016,7 @@ export interface FileRoutesByTo {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
-  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
-  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1146,7 +1120,6 @@ export interface FileRoutesById {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
-  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
@@ -1161,7 +1134,7 @@ export interface FileRoutesById {
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
-  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/_advocate/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
   '/_attorney/matters/': typeof AttorneyMattersIndexRoute
@@ -1169,9 +1142,7 @@ export interface FileRoutesById {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
-  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
-  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1273,7 +1244,6 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/auth/callback'
     | '/collaborator-invite/$token'
-    | '/email/unsubscribe'
     | '/matter-invite/$token'
     | '/review/$token'
     | '/survivor-invite/$token'
@@ -1288,7 +1258,7 @@ export interface FileRouteTypes {
     | '/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
-    | '/lovable/email/suppression'
+    | '/lovable/email/events'
     | '/advocate-cases/'
     | '/clients/'
     | '/matters/'
@@ -1296,9 +1266,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
-    | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
-    | '/lovable/email/transactional/send'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1396,7 +1364,6 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/auth/callback'
     | '/collaborator-invite/$token'
-    | '/email/unsubscribe'
     | '/matter-invite/$token'
     | '/review/$token'
     | '/survivor-invite/$token'
@@ -1411,7 +1378,7 @@ export interface FileRouteTypes {
     | '/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
-    | '/lovable/email/suppression'
+    | '/lovable/email/events'
     | '/advocate-cases'
     | '/clients'
     | '/matters'
@@ -1419,9 +1386,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
-    | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
-    | '/lovable/email/transactional/send'
   id:
     | '__root__'
     | '/'
@@ -1524,7 +1489,6 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/auth/callback'
     | '/collaborator-invite/$token'
-    | '/email/unsubscribe'
     | '/matter-invite/$token'
     | '/review/$token'
     | '/survivor-invite/$token'
@@ -1539,7 +1503,7 @@ export interface FileRouteTypes {
     | '/_authenticated/agent/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
-    | '/lovable/email/suppression'
+    | '/lovable/email/events'
     | '/_advocate/advocate-cases/'
     | '/_attorney/clients/'
     | '/_attorney/matters/'
@@ -1547,9 +1511,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
-    | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
-    | '/lovable/email/transactional/send'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1605,7 +1567,6 @@ export interface RootRouteChildren {
   AttorneyTokenRoute: typeof AttorneyTokenRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
-  EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   MatterInviteTokenRoute: typeof MatterInviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
@@ -1613,13 +1574,11 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   IntegrationsClioCallbackRoute: typeof IntegrationsClioCallbackRoute
   IntegrationsClioDeauthorizeRoute: typeof IntegrationsClioDeauthorizeRoute
-  LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
-  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
-  LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2324,13 +2283,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CollaboratorInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/email/unsubscribe': {
-      id: '/email/unsubscribe'
-      path: '/email/unsubscribe'
-      fullPath: '/email/unsubscribe'
-      preLoaderRoute: typeof EmailUnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/matter-invite/$token': {
       id: '/matter-invite/$token'
       path: '/matter-invite/$token'
@@ -2457,11 +2409,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationsClioDeauthorizeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/suppression': {
-      id: '/lovable/email/suppression'
-      path: '/lovable/email/suppression'
-      fullPath: '/lovable/email/suppression'
-      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+    '/lovable/email/events': {
+      id: '/lovable/email/events'
+      path: '/lovable/email/events'
+      fullPath: '/lovable/email/events'
+      preLoaderRoute: typeof LovableEmailEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
@@ -2485,25 +2437,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
       path: '/lovable/email/transactional/preview'
       fullPath: '/lovable/email/transactional/preview'
       preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/transactional/send': {
-      id: '/lovable/email/transactional/send'
-      path: '/lovable/email/transactional/send'
-      fullPath: '/lovable/email/transactional/send'
-      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -2730,7 +2668,6 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneyTokenRoute: AttorneyTokenRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
-  EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   MatterInviteTokenRoute: MatterInviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
@@ -2738,13 +2675,11 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   IntegrationsClioCallbackRoute: IntegrationsClioCallbackRoute,
   IntegrationsClioDeauthorizeRoute: IntegrationsClioDeauthorizeRoute,
-  LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  LovableEmailEventsRoute: LovableEmailEventsRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
-  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
-  LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
