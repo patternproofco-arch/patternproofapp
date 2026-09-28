@@ -22,7 +22,7 @@ export const Route = createFileRoute("/unsubscribe")({
   component: UnsubscribePage,
 });
 
-type State = "checking" | "ready" | "done" | function UnsubscribePage() {
+function UnsubscribePage() {
   return (
     <main
       style={{
