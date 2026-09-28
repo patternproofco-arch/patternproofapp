@@ -10,7 +10,7 @@ export async function enqueueSupportEmail(input: {
     const React = (await import("react")).default;
     const { render } = await import("@react-email/render");
     const { template } = await import("@/lib/email-templates/support-request");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { sendRenderedEmail } = await import("@/lib/email/managed-send.server");
 
     const props = {
       requestId: input.id,
@@ -26,73 +26,20 @@ export async function enqueueSupportEmail(input: {
     const subject =
       typeof template.subject === "function" ? template.subject(props) : template.subject;
 
-    const messageId = crypto.randomUUID();
 
-    // The email API requires an unsubscribe token for every transactional send.
-    const inbox = template.to!.toLowerCase();
-    const { data: existing } = await supabaseAdmin
-      .from("email_unsubscribe_tokens")
-      .select("token")
-      .eq("email", inbox)
-      .maybeSingle();
-    let unsubscribeToken = existing?.token;
-    if (!unsubscribeToken) {
-      const bytes = new Uint8Array(32);
-      crypto.getRandomValues(bytes);
-      const fresh = Array.from(bytes)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-      await supabaseAdmin
-        .from("email_unsubscribe_tokens")
-        .upsert({ token: fresh, email: inbox }, { onConflict: "email", ignoreDuplicates: true });
-      const { data: stored } = await supabaseAdmin
-        .from("email_unsubscribe_tokens")
-        .select("token")
-        .eq("email", inbox)
-        .maybeSingle();
-      unsubscribeToken = stored?.token ?? fresh;
-    }
 
-    await supabaseAdmin.from("email_send_log").insert({
-      message_id: messageId,
-      template_name: "support-request",
-      recipient_email: template.to!,
-      status: "pending",
+
+    const result = await sendRenderedEmail({
+      to: template.to!,
+      from: "patternproofapp <noreply@pattern-proof.tech>",
+      subject: subject,
+      html,
+      text,
+      label: "support-request",
+      idempotencyKey: `support-request-${input.id}`,
+      replyTo: input.replyEmail,
     });
-
-    const { error } = await supabaseAdmin.rpc("enqueue_email", {
-      queue_name: "transactional_emails",
-      payload: {
-        message_id: messageId,
-        to: template.to!,
-        from: "patternproofapp <noreply@pattern-proof.tech>",
-        sender_domain: "notify.pattern-proof.tech",
-        reply_to: input.replyEmail,
-        subject,
-        html,
-        text,
-        purpose: "transactional",
-        label: "support-request",
-        idempotency_key: `support-request-${input.id}`,
-        unsubscribe_token: unsubscribeToken,
-        queued_at: new Date().toISOString(),
-      },
-    });
-    if (error) return false;
-
-    // Send immediately rather than waiting on a scheduler — there is no cron
-    // trigger wired up to drain this queue any other way.
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (apiKey) {
-      const { drainEmailQueues } = await import("@/lib/email-queue-drain.server");
-      try {
-        await drainEmailQueues(supabaseAdmin, apiKey, process.env.LOVABLE_SEND_URL);
-      } catch (drainError) {
-        console.error("Immediate drain after enqueue failed", { drainError });
-      }
-    }
-
-    return true;
+    return result.sent;
   } catch {
     return false;
   }
@@ -110,7 +57,7 @@ export async function enqueueSupportReplyEmail(input: {
     const React = (await import("react")).default;
     const { render } = await import("@react-email/render");
     const { template } = await import("@/lib/email-templates/support-reply");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { sendRenderedEmail } = await import("@/lib/email/managed-send.server");
     const props = {
       name: input.name ?? undefined,
       reply: input.reply,
@@ -120,66 +67,19 @@ export async function enqueueSupportReplyEmail(input: {
     const html = await render(element);
     const text = await render(element, { plainText: true });
     const to = input.replyEmail.toLowerCase();
-    const messageId = crypto.randomUUID();
 
-    const { data: existing } = await supabaseAdmin
-      .from("email_unsubscribe_tokens")
-      .select("token")
-      .eq("email", to)
-      .maybeSingle();
-    let unsubscribeToken = existing?.token;
-    if (!unsubscribeToken) {
-      const bytes = new Uint8Array(32);
-      crypto.getRandomValues(bytes);
-      const fresh = Array.from(bytes)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-      await supabaseAdmin
-        .from("email_unsubscribe_tokens")
-        .upsert({ token: fresh, email: to }, { onConflict: "email", ignoreDuplicates: true });
-      const { data: stored } = await supabaseAdmin
-        .from("email_unsubscribe_tokens")
-        .select("token")
-        .eq("email", to)
-        .maybeSingle();
-      unsubscribeToken = stored?.token ?? fresh;
-    }
 
-    await supabaseAdmin.from("email_send_log").insert({
-      message_id: messageId,
-      template_name: "support-reply",
-      recipient_email: to,
-      status: "pending",
+    const result = await sendRenderedEmail({
+      to: to,
+      from: "patternproofapp <noreply@pattern-proof.tech>",
+      subject: template.subject,
+      html,
+      text,
+      label: "support-reply",
+      idempotencyKey: `support-reply-${input.id}-${messageId}`,
+      replyTo: "pattern@pattern-proof.tech",
     });
-    const { error } = await supabaseAdmin.rpc("enqueue_email", {
-      queue_name: "transactional_emails",
-      payload: {
-        message_id: messageId,
-        to,
-        from: "patternproofapp <noreply@pattern-proof.tech>",
-        sender_domain: "notify.pattern-proof.tech",
-        reply_to: "pattern@pattern-proof.tech",
-        subject: template.subject,
-        html,
-        text,
-        purpose: "transactional",
-        label: "support-reply",
-        idempotency_key: `support-reply-${input.id}-${messageId}`,
-        unsubscribe_token: unsubscribeToken,
-        queued_at: new Date().toISOString(),
-      },
-    });
-    if (error) return false;
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (apiKey) {
-      const { drainEmailQueues } = await import("@/lib/email-queue-drain.server");
-      try {
-        await drainEmailQueues(supabaseAdmin, apiKey, process.env.LOVABLE_SEND_URL);
-      } catch {
-        // Queue will retry on its own.
-      }
-    }
-    return true;
+    return result.sent;
   } catch {
     return false;
   }
