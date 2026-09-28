@@ -9,7 +9,7 @@ const fns =
 const route = readFileSync("src/routes/advocate-survivor-invite.$token.tsx", "utf8");
 const template = readFileSync("src/lib/email-templates/advocate-survivor-invitation.tsx", "utf8");
 const registry = readFileSync("src/lib/email-templates/registry.ts", "utf8");
-const send = readFileSync("src/routes/lovable/email/transactional/send.ts", "utf8");
+const send = readFileSync("src/lib/email/invitation-email.functions.ts", "utf8");
 const migration = readFileSync(
   "supabase/migrations/20260906230724_advocate_survivor_invites.sql",
   "utf8",
