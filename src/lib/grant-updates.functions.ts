@@ -43,8 +43,8 @@ export const listPrivateSinceSharing = createServerFn({ method: "POST" })
         .from(TABLE[kind])
         .select("id,status,revoked_at,expires_at,scope_incidents,scope_evidence")
         .eq("client_user_id", context.userId);
-      for (const link of (data ?? []) as Array<Record<string, never>>) {
-        const l = link as unknown as {
+      for (const link of (data ?? []) as unknown[]) {
+        const l = link as {
           id: string;
           status: string;
           revoked_at: string | null;
