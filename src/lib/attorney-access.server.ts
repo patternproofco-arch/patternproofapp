@@ -131,6 +131,8 @@ export async function verifiedFirmGrantLinkIds(
 export async function applyCaseScope(
   admin: Admin,
   link: {
+    id?: string;
+    created_at?: string | null;
     case_id?: string | null;
     include_all_incidents: boolean;
     include_all_evidence: boolean;
