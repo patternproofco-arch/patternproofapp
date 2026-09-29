@@ -255,17 +255,25 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
 
-    // Create link
+    // Create link. "All entries" is frozen to what existed when the survivor
+    // chose to share — later uploads are never swept in automatically.
+    const { snapshotShareScope } = await import("@/lib/grant-snapshot.server");
+    const frozen = await snapshotShareScope(supabaseAdmin, inv.client_user_id, {
+      include_all_incidents: inv.include_all_incidents,
+      include_all_evidence: inv.include_all_evidence,
+      scope_incidents: inv.scope_incidents,
+      scope_evidence: inv.scope_evidence,
+    });
     const { data: link, error: linkErr } = await supabaseAdmin
       .from("attorney_client_links")
       .insert({
         attorney_user_id: context.userId,
         client_user_id: inv.client_user_id,
         invitation_id: inv.id,
-        scope_incidents: inv.scope_incidents,
-        scope_evidence: inv.scope_evidence,
-        include_all_incidents: inv.include_all_incidents,
-        include_all_evidence: inv.include_all_evidence,
+        scope_incidents: frozen.scope_incidents,
+        scope_evidence: frozen.scope_evidence,
+        include_all_incidents: false,
+        include_all_evidence: false,
         include_patterns: inv.include_patterns,
         include_voice_notes: inv.include_voice_notes,
         include_communications: inv.include_communications,
