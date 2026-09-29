@@ -32,6 +32,8 @@ describe("sharing never reaches forward in time", () => {
     const frozen = await snapshotShareScope(db, SURV, {
       include_all_incidents: true,
       include_all_evidence: true,
+      scope_incidents: [],
+      scope_evidence: [],
     });
     expect(frozen.include_all_incidents).toBe(false);
     expect(frozen.scope_incidents?.sort()).toEqual(["inc-1", "inc-2"]);
