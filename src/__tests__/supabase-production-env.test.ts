@@ -13,8 +13,11 @@ const supabaseConfig = readFileSync("supabase/config.toml", "utf8");
 
 describe("production Supabase environment", () => {
   it("does not commit privileged env files to the repo tip", () => {
-    expect(existsSync(".env.production")).toBe(false);
-    expect(existsSync(".env.development")).toBe(false);
+    // The sandbox may hold platform-written env files; what matters is what git tracks.
+    const tracked = execSync("git ls-files", { encoding: "utf8" })
+      .split("\n")
+      .filter((f) => f.startsWith(".env"));
+    expect(tracked.sort()).toEqual([".env", ".env.example"]);
   });
 
   it("tracked .env, when present, holds only the 6 publishable Supabase names", () => {
