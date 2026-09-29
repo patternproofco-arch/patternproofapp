@@ -38,7 +38,7 @@ export type AttorneyLink = {
 };
 
 export const LINK_COLUMNS =
-  "id,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,scope_incidents,scope_evidence,case_id,expires_at,revoked_at";
+  "id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,scope_incidents,scope_evidence,case_id,expires_at,revoked_at";
 
 /** True once a grant's expiry has passed. Expired access is treated the same as revoked. */
 export function isExpired(expiresAt: string | null | undefined): boolean {
@@ -131,6 +131,8 @@ export async function verifiedFirmGrantLinkIds(
 export async function applyCaseScope(
   admin: Admin,
   link: {
+    id?: string;
+    created_at?: string | null;
     case_id?: string | null;
     include_all_incidents: boolean;
     include_all_evidence: boolean;
@@ -141,6 +143,17 @@ export async function applyCaseScope(
   },
   clientUserId: string,
 ): Promise<void> {
+  // Older grants may still carry blanket "everything" flags. Freeze them to
+  // what existed when access was granted before anything else reads them.
+  if (link.id && (link.include_all_incidents || link.include_all_evidence)) {
+    const { freezeLegacyBlanketScope } = await import("@/lib/grant-snapshot.server");
+    await freezeLegacyBlanketScope(
+      admin,
+      "attorney_client_links",
+      link as { id: string } & typeof link,
+      clientUserId,
+    );
+  }
   if (!link.case_id) return;
   const { data: c } = await admin
     .from("cases")

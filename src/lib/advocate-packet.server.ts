@@ -71,6 +71,14 @@ export async function resolveAdvocateGrant(
     }
   }
 
+  // Older grants may still carry blanket "everything" flags. Freeze them to
+  // the items that existed when access was granted, so entries the survivor
+  // has documented since stay private.
+  if (link.include_all_incidents || link.include_all_evidence) {
+    const { freezeLegacyBlanketScope } = await import("@/lib/grant-snapshot.server");
+    await freezeLegacyBlanketScope(admin, "advocate_client_links", link, opts.clientUserId);
+  }
+
   let includeAllIncidents = !!link.include_all_incidents;
   let includeAllEvidence = !!link.include_all_evidence;
   let scopedIncidents = (link.scope_incidents ?? []) as string[];

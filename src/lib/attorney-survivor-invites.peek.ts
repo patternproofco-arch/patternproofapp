@@ -56,14 +56,18 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
     const empty = !(scope.include_all_incidents || scope.include_all_evidence || scope.include_patterns || (scope.scope_incidents ?? []).length || (scope.scope_evidence ?? []).length);
     if (empty) throw new Error("Choose at least one thing to share before accepting.");
 
+    // "All entries" is frozen to the ids that exist right now. Anything the
+    // survivor documents after this moment stays private until they say so.
+    const { snapshotShareScope } = await import("@/lib/grant-snapshot.server");
+    const frozen = await snapshotShareScope(supabaseAdmin, context.userId, scope);
     const linkPayload = {
       attorney_user_id: inv.attorney_user_id,
       client_user_id: context.userId,
-      include_all_incidents: scope.include_all_incidents,
-      include_all_evidence: scope.include_all_evidence,
+      include_all_incidents: false,
+      include_all_evidence: false,
       include_patterns: scope.include_patterns,
-      scope_incidents: scope.include_all_incidents ? [] : (scope.scope_incidents ?? []),
-      scope_evidence: scope.include_all_evidence ? [] : (scope.scope_evidence ?? []),
+      scope_incidents: frozen.scope_incidents,
+      scope_evidence: frozen.scope_evidence,
       status: "active",
     };
     const { error: linkErr } = await supabaseAdmin.from("attorney_client_links").insert(linkPayload);

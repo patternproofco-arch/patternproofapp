@@ -34,6 +34,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
+import { PrivateSinceSharing } from "@/components/sharing/PrivateSinceSharing";
 
 export const Route = createFileRoute("/_authenticated/share-with-attorney")({
   component: ShareWithAttorney,
@@ -182,8 +183,15 @@ function ShareWithAttorney() {
         Share your case with <em>your attorney</em>.
       </h1>
       <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-        Your attorney will only see what you choose to share. You can revoke access at any time.
+        Your attorney only sees the entries you choose, as they are when you choose them. Anything
+        you add later stays private until you share it.
       </p>
+      <p className="mt-2 max-w-2xl text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+        You can withdraw access at any time. Withdrawing stops any further access right away, but
+        anything already downloaded, printed, or saved by your attorney can't be called back.
+      </p>
+
+      <PrivateSinceSharing kind="attorney" />
 
       <div className="mt-4">
         <Link

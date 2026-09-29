@@ -19,6 +19,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
+import { PrivateSinceSharing } from "@/components/sharing/PrivateSinceSharing";
 
 export const Route = createFileRoute("/_authenticated/share-with-advocate")({
   component: ShareWithAdvocate,
@@ -142,6 +143,13 @@ function ShareWithAdvocate() {
         obligations vary. Anything downloaded stays on their computer — withdrawing access stops
         future access but can't reach copies already saved.
       </p>
+      <p style={{ fontSize: 12.5, lineHeight: 1.6, color: "var(--muted-foreground)", maxWidth: 640, marginTop: 8 }}>
+        What you share is fixed at the moment you share it. Anything you add later stays private
+        until you choose to add it.
+      </p>
+
+      <PrivateSinceSharing kind="advocate" />
+
 
       {justCreated && (
         <div
