@@ -42,6 +42,22 @@ class Query implements PromiseLike<{ data: unknown; error: null }> {
     this.filters.push((r) => (val === null ? r[col] === null || r[col] === undefined : r[col] === val));
     return this;
   }
+  lte(col: string, val: unknown) {
+    this.filters.push((r) => {
+      const v = r[col];
+      if (v == null) return true;
+      return String(v) <= String(val);
+    });
+    return this;
+  }
+  gte(col: string, val: unknown) {
+    this.filters.push((r) => {
+      const v = r[col];
+      if (v == null) return false;
+      return String(v) >= String(val);
+    });
+    return this;
+  }
   or() {
     return this;
   }
