@@ -18,6 +18,11 @@ export function GlobalFooter() {
         ))}
       </nav>
       <p>You choose what is shared and with whom.</p>
+      <p>
+        PatternProof is a documentation tool, not legal representation or an emergency service.
+        If you are in immediate danger, call 911 or the National Domestic Violence Hotline at
+        1-800-799-7233.
+      </p>
     </footer>
   );
 }

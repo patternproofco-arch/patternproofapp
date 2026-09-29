@@ -848,6 +848,11 @@ textarea.input-pp {
   .print-page {
     padding: 0 !important;
   }
+  .card-pp,
+  article {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }
 
 [data-density="survivor"] {
