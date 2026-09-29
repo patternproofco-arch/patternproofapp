@@ -1,0 +1,13 @@
+# Extends the default gitleaks rules. Only exception: the two Supabase
+# publishable (anon) key lines in the tracked root .env. These are public by
+# design (they ship in the browser bundle). Private keys never live in .env —
+# src/__tests__/supabase-production-env.test.ts enforces the 6 allowed names.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Supabase publishable (anon) key lines in tracked .env only"
+regexTarget = "line"
+regexes = [
+  '''^(VITE_)?SUPABASE_PUBLISHABLE_KEY="?eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"?$''',
+]
