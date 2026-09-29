@@ -19,6 +19,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
+import { PrivateSinceSharing } from "@/components/sharing/PrivateSinceSharing";
 
 export const Route = createFileRoute("/_authenticated/share-with-advocate")({
   component: ShareWithAdvocate,
