@@ -388,7 +388,17 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       }
     }
 
-    const linkPayload = buildGrantPayload(inv, context.userId, scope);
+    // Freeze "all entries" into explicit ids before the grant is written, so
+    // nothing the survivor documents later is shared without them choosing it.
+    const { snapshotShareScope } = await import("@/lib/grant-snapshot.server");
+    const frozenScope = await snapshotShareScope(supabaseAdmin, context.userId, scope);
+    const linkPayload = buildGrantPayload(inv, context.userId, {
+      ...scope,
+      include_all_incidents: false,
+      include_all_evidence: false,
+      scope_incidents: frozenScope.scope_incidents ?? [],
+      scope_evidence: frozenScope.scope_evidence ?? [],
+    });
 
     const { data: existing } = await supabaseAdmin
       .from("advocate_client_links")

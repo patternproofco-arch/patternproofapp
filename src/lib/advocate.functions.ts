@@ -277,6 +277,15 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
       .eq("client_user_id", inv.client_user_id)
       .maybeSingle();
 
+    // Freeze "all entries" to what exists now — later entries stay private.
+    const { snapshotShareScope } = await import("@/lib/grant-snapshot.server");
+    const frozen = await snapshotShareScope(supabaseAdmin, inv.client_user_id, {
+      include_all_incidents: inv.include_all_incidents,
+      include_all_evidence: inv.include_all_evidence,
+      scope_incidents: inv.scope_incidents,
+      scope_evidence: inv.scope_evidence,
+    });
+
     let linkId = existing?.id ?? null;
     if (linkId) {
       await supabaseAdmin
@@ -285,8 +294,10 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
           status: "active",
           revoked_at: null,
           invitation_id: inv.id,
-          include_all_incidents: inv.include_all_incidents,
-          include_all_evidence: inv.include_all_evidence,
+          include_all_incidents: false,
+          include_all_evidence: false,
+          scope_incidents: frozen.scope_incidents,
+          scope_evidence: frozen.scope_evidence,
           include_patterns: inv.include_patterns,
           case_id: inv.case_id ?? null,
           expires_at: inv.expires_at ?? null,
@@ -299,11 +310,11 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
           advocate_user_id: context.userId,
           client_user_id: inv.client_user_id,
           invitation_id: inv.id,
-          include_all_incidents: inv.include_all_incidents,
-          include_all_evidence: inv.include_all_evidence,
+          include_all_incidents: false,
+          include_all_evidence: false,
           include_patterns: inv.include_patterns,
-          scope_incidents: inv.scope_incidents,
-          scope_evidence: inv.scope_evidence,
+          scope_incidents: frozen.scope_incidents,
+          scope_evidence: frozen.scope_evidence,
           case_id: inv.case_id ?? null,
           expires_at: inv.expires_at ?? null,
           status: "active",
