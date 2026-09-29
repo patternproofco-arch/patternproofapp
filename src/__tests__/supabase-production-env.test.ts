@@ -18,7 +18,8 @@ describe("production Supabase environment", () => {
     const tracked = execSync("git ls-files", { encoding: "utf8" })
       .split("\n")
       .filter((f) => f.startsWith(".env"));
-    expect(tracked.sort()).toEqual([".env", ".env.example"]);
+    // Only .env (publishable values, guarded by the test below) and .env.example may be tracked.
+    for (const f of tracked) expect([".env", ".env.example"]).toContain(f);
   });
 
   it("tracked .env, when present, holds only the 6 publishable Supabase names", () => {
