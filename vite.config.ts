@@ -173,6 +173,19 @@ function requiredBuildEnv(name: ClientBuildEnv): string | undefined {
   return undefined;
 }
 
+// Loud (non-fatal) warning: a production build without the publishable Supabase
+// config ships a site whose sign-in hangs. Values come from the tracked .env
+// (publishable keys only) or the host's own VITE_* injection — never hardcoded.
+if (
+  process.env.NODE_ENV === "production" &&
+  (!process.env.VITE_SUPABASE_URL?.trim() || !process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim())
+) {
+  console.warn(
+    "[build] WARNING: VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY are not set. " +
+      "The published site will not be able to sign in. Provide them via the tracked .env or host env.",
+  );
+}
+
 const clientEnvDefines: Record<string, string> = {};
 for (const name of [
   "VITE_SUPABASE_URL",

@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
@@ -12,9 +13,33 @@ const exampleEnv = readFileSync(".env.example", "utf8");
 const supabaseConfig = readFileSync("supabase/config.toml", "utf8");
 
 describe("production Supabase environment", () => {
-  it("does not commit real env files to the repo tip", () => {
-    expect(existsSync(".env")).toBe(false);
-    expect(existsSync(".env.production")).toBe(false);
+  it("does not commit privileged env files to the repo tip", () => {
+    // The sandbox may hold platform-written env files; what matters is what git tracks.
+    const tracked = execSync("git ls-files", { encoding: "utf8" })
+      .split("\n")
+      .filter((f) => f.startsWith(".env"));
+    // Only .env (publishable values, guarded by the test below) and .env.example may be tracked.
+    for (const f of tracked) expect([".env", ".env.example"]).toContain(f);
+  });
+
+  it("tracked .env, when present, holds only the 6 publishable Supabase names", () => {
+    if (!existsSync(".env")) return;
+    const allowed = new Set([
+      "SUPABASE_URL",
+      "SUPABASE_PUBLISHABLE_KEY",
+      "SUPABASE_PROJECT_ID",
+      "VITE_SUPABASE_URL",
+      "VITE_SUPABASE_PUBLISHABLE_KEY",
+      "VITE_SUPABASE_PROJECT_ID",
+    ]);
+    const names = readFileSync(".env", "utf8")
+      .split(/\r?\n/)
+      .filter((line) => line.trim() && !line.trim().startsWith("#"))
+      .map((line) => line.slice(0, line.indexOf("=")).trim());
+    for (const name of names) {
+      expect(allowed.has(name), `unexpected name in .env: ${name}`).toBe(true);
+      expect(name).not.toMatch(/SERVICE_ROLE|SECRET|PASSWORD|PRIVATE/i);
+    }
   });
 
   it("documents browser-safe Supabase key names in .env.example (empty values)", () => {
