@@ -12,9 +12,29 @@ const exampleEnv = readFileSync(".env.example", "utf8");
 const supabaseConfig = readFileSync("supabase/config.toml", "utf8");
 
 describe("production Supabase environment", () => {
-  it("does not commit real env files to the repo tip", () => {
-    expect(existsSync(".env")).toBe(false);
+  it("does not commit privileged env files to the repo tip", () => {
     expect(existsSync(".env.production")).toBe(false);
+    expect(existsSync(".env.development")).toBe(false);
+  });
+
+  it("tracked .env, when present, holds only the 6 publishable Supabase names", () => {
+    if (!existsSync(".env")) return;
+    const allowed = new Set([
+      "SUPABASE_URL",
+      "SUPABASE_PUBLISHABLE_KEY",
+      "SUPABASE_PROJECT_ID",
+      "VITE_SUPABASE_URL",
+      "VITE_SUPABASE_PUBLISHABLE_KEY",
+      "VITE_SUPABASE_PROJECT_ID",
+    ]);
+    const names = readFileSync(".env", "utf8")
+      .split(/\r?\n/)
+      .filter((line) => line.trim() && !line.trim().startsWith("#"))
+      .map((line) => line.slice(0, line.indexOf("=")).trim());
+    for (const name of names) {
+      expect(allowed.has(name), `unexpected name in .env: ${name}`).toBe(true);
+      expect(name).not.toMatch(/SERVICE_ROLE|SECRET|PASSWORD|PRIVATE/i);
+    }
   });
 
   it("documents browser-safe Supabase key names in .env.example (empty values)", () => {
