@@ -81,3 +81,61 @@ export async function unsharedSinceGrant(
     evidence: allEvidence.filter((id) => !shownEvidence.has(id)),
   };
 }
+
+/**
+ * Legacy grants created before scope freezing still carry blanket
+ * include_all_* flags. The first time one is resolved we freeze it in place:
+ * it keeps exactly the items that existed when the survivor granted access,
+ * and stops absorbing anything documented since. Narrowing only — it can
+ * never widen what a professional can see.
+ */
+export async function freezeLegacyBlanketScope(
+  admin: Admin,
+  table: "attorney_client_links" | "advocate_client_links",
+  link: {
+    id: string;
+    created_at?: string | null;
+    include_all_incidents?: boolean;
+    include_all_evidence?: boolean;
+    scope_incidents?: string[] | null;
+    scope_evidence?: string[] | null;
+  },
+  clientUserId: string,
+): Promise<void> {
+  if (!link.include_all_incidents && !link.include_all_evidence) return;
+  const cutoff = link.created_at ?? new Date().toISOString();
+
+  const asOf = async (t: "incidents" | "evidence") => {
+    const { data, error } = await admin
+      .from(t)
+      .select("id")
+      .eq("user_id", clientUserId)
+      .is("deleted_at", null)
+      .lte("created_at", cutoff);
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
+  };
+
+  const incidents = link.include_all_incidents
+    ? uniq([...(link.scope_incidents ?? []), ...(await asOf("incidents"))])
+    : uniq(link.scope_incidents ?? []);
+  const evidence = link.include_all_evidence
+    ? uniq([...(link.scope_evidence ?? []), ...(await asOf("evidence"))])
+    : uniq(link.scope_evidence ?? []);
+
+  await admin
+    .from(table)
+    .update({
+      include_all_incidents: false,
+      include_all_evidence: false,
+      scope_incidents: incidents,
+      scope_evidence: evidence,
+    })
+    .eq("id", link.id)
+    .eq("client_user_id", clientUserId);
+
+  link.include_all_incidents = false;
+  link.include_all_evidence = false;
+  link.scope_incidents = incidents;
+  link.scope_evidence = evidence;
+}
