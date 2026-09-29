@@ -32,6 +32,9 @@ dist-ssr
 *.sw?
 
 # Environment variables — never commit secrets
+# Lovable Cloud may inject a local .env at Publish time; do NOT track filled values
+# (Guardian 2026-09-29: #59 class — filled .env must not stay on public main).
+.env
 .env.*
 !.env.example
 
