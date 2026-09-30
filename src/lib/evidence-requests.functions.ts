@@ -182,6 +182,7 @@ export const submitEvidenceRequest = createServerFn({ method: "POST" })
       })
       .eq("id", data.id);
     if (error) throw new Error("We couldn't send that. Try again in a moment.");
+    await queueRequestDraft(admin, context.userId, req.title ?? "Requested item", data.note, ids);
     return { ok: true, shared: ids.length };
   });
 
