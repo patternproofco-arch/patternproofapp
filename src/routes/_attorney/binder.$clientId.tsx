@@ -4,8 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Printer } from "lucide-react";
 import { getClientCase } from "@/lib/attorney-portal.functions";
 import { listClientEvidenceRequests } from "@/lib/evidence-requests.functions";
-import { buildBinderEntries, type BinderEntry } from "@/lib/binder";
+import { buildBinderEntries } from "@/lib/binder";
 import { CourtTimeline } from "@/components/CourtTimeline";
+import { BinderExhibits } from "@/components/BinderExhibits";
 
 export const Route = createFileRoute("/_attorney/binder/$clientId")({
   head: () => ({
