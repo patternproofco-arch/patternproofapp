@@ -105,13 +105,65 @@ async function loadOwnOpenRequest(userId: string, id: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("attorney_document_requests")
-    .select("id,status,link_id,client_user_id")
+    .select("id,status,link_id,client_user_id,title")
     .eq("id", id)
     .eq("client_user_id", userId)
     .maybeSingle();
   if (!data) throw new Error("We couldn't find that request.");
   if (data.status !== "open") throw new Error("This request has already been answered.");
   return { admin: supabaseAdmin, req: data };
+}
+
+type Admin = Awaited<ReturnType<typeof loadOwnOpenRequest>>["admin"];
+
+/**
+ * Put a request answer into the survivor's "Drafts to review" tray.
+ * The draft carries the survivor's note plus any transcript / photo text
+ * already pulled from the picked files, so the survivor can edit it.
+ * Nothing reaches the timeline until the survivor approves it there.
+ * Failure here never blocks the send itself.
+ */
+async function queueRequestDraft(
+  admin: Admin,
+  userId: string,
+  title: string,
+  note: string,
+  ids: string[],
+): Promise<void> {
+  try {
+    const { data: files } = ids.length
+      ? await admin
+          .from("evidence")
+          .select("id,title,date,transcript,extracted_text")
+          .eq("user_id", userId)
+          .in("id", ids)
+      : { data: [] as { id: string; title: string; date: string | null; transcript: string | null; extracted_text: string | null }[] };
+    const parts: string[] = [];
+    if (note) parts.push(note);
+    for (const f of files ?? []) {
+      const text = (f.transcript || f.extracted_text || "").trim();
+      if (text) parts.push(`From "${f.title}":\n${text}`);
+    }
+    const description = (parts.join("\n\n") || `Answer to request: ${title}`).slice(0, 4000);
+    const firstDate = (files ?? []).map((f) => f.date).filter(Boolean).sort()[0] ?? null;
+    await admin.from("proposed_incidents").insert({
+      user_id: userId,
+      batch_id: crypto.randomUUID(),
+      sort_key: firstDate,
+      sort_key_kind: firstDate ? "file_date" : null,
+      date_certainty: "unknown",
+      draft: { date: null, description, abuse_types: [] },
+      source_evidence_ids: ids,
+      source_summary: `Answer to request: ${title}`,
+      confidence_notes: [
+        "Built from your answer to a request. Check the text and add the event date yourself.",
+      ],
+      status: "pending",
+      model: null,
+    });
+  } catch {
+    // Draft is a convenience; the answer was already sent.
+  }
 }
 
 async function ownEvidenceIds(userId: string, ids: string[]): Promise<string[]> {
@@ -182,6 +234,7 @@ export const submitEvidenceRequest = createServerFn({ method: "POST" })
       })
       .eq("id", data.id);
     if (error) throw new Error("We couldn't send that. Try again in a moment.");
+    await queueRequestDraft(admin, context.userId, req.title ?? "Requested item", data.note, ids);
     return { ok: true, shared: ids.length };
   });
 
