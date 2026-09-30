@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
  * browser harness therefore never fails that helper — it still returns empty
  * totp and looks like "unenrolled" / enroll.
  *
- * For fail-closed MFA we MUST probe GET /auth/v1/factors over the network.
+ * For fail-closed MFA we MUST probe GET /auth/v1/user (its factors list) over the network.
  * If that request errors, times out, or is non-OK → treat as unknown/deny.
  */
 
@@ -32,7 +32,7 @@ async function probeFactorsOverNetwork(): Promise<FactorProbe> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8_000);
     try {
-      const res = await fetch(`${String(baseUrl).replace(/\/$/, "")}/auth/v1/factors`, {
+      const res = await fetch(`${String(baseUrl).replace(/\/$/, "")}/auth/v1/user`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${sessionData.session.access_token}`,
@@ -42,9 +42,12 @@ async function probeFactorsOverNetwork(): Promise<FactorProbe> {
         signal: controller.signal,
       });
       if (!res.ok) return { ok: false };
-      const body = (await res.json()) as
-        | { totp?: Array<{ id: string; status: string }> }
-        | Array<{ id: string; status: string; factor_type?: string }>;
+      // GET /auth/v1/factors is not a supported endpoint (405). The live
+      // user record carries the enrolled factors, so read them from there.
+      const user = (await res.json()) as {
+        factors?: Array<{ id: string; status: string; factor_type?: string }>;
+      };
+      const body = user.factors ?? [];
 
       // GoTrue may return { totp, phone, ... } or a flat factor array.
       if (Array.isArray(body)) {
