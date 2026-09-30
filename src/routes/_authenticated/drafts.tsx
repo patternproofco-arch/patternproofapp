@@ -30,7 +30,7 @@ function DraftsPage() {
       <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
         Text read from your recordings, videos, photos and files shows up here as a draft. Edit
         anything that&apos;s wrong, approve what&apos;s right, or discard it. Nothing goes on your
-        timeline until you approve it, and approved entries are marked &quot;User-reviewed.&quot;
+        timeline until you approve it, and approved entries are recorded as reviewed by you.
       </p>
       <p className="mt-2 max-w-2xl text-[13px]" style={{ color: "var(--muted-foreground)" }}>
         Dates are suggestions. Check whether a date is when something happened, when the photo was
