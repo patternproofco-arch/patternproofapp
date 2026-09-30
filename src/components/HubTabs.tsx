@@ -44,6 +44,7 @@ export const CASE_TABS: HubTab[] = [
   { to: "/share-with-advocate", label: "Share with advocate" },
   { to: "/requests", label: "Requests" },
   { to: "/drafts", label: "Drafts to review" },
+  { to: "/court-timeline", label: "Court timeline" },
   { to: "/access", label: "Who can see this" },
 ];
 
