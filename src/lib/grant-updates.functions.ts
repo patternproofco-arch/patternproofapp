@@ -24,12 +24,26 @@ function isLive(link: { status?: string | null; revoked_at?: string | null; expi
   return true;
 }
 
+type LinkRow = {
+  id: string;
+  status: string;
+  revoked_at: string | null;
+  expires_at: string | null;
+  created_at?: string | null;
+  include_all_incidents?: boolean;
+  include_all_evidence?: boolean;
+  scope_incidents: string[] | null;
+  scope_evidence: string[] | null;
+};
+
 /** Counts of the survivor's own entries that each live grant cannot see. */
 export const listPrivateSinceSharing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { unsharedSinceGrant } = await import("@/lib/grant-snapshot.server");
+    const { unsharedSinceGrant, freezeLegacyBlanketScope } = await import(
+      "@/lib/grant-snapshot.server"
+    );
 
     const out: Array<{
       kind: LinkKind;
@@ -41,18 +55,18 @@ export const listPrivateSinceSharing = createServerFn({ method: "POST" })
     for (const kind of ["attorney", "advocate"] as LinkKind[]) {
       const { data } = await supabaseAdmin
         .from(TABLE[kind])
-        .select("id,status,revoked_at,expires_at,scope_incidents,scope_evidence")
+        .select(
+          "id,created_at,status,revoked_at,expires_at,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence",
+        )
         .eq("client_user_id", context.userId);
       for (const link of (data ?? []) as unknown[]) {
-        const l = link as {
-          id: string;
-          status: string;
-          revoked_at: string | null;
-          expires_at: string | null;
-          scope_incidents: string[] | null;
-          scope_evidence: string[] | null;
-        };
+        const l = link as LinkRow;
         if (!isLive(l)) continue;
+        // Legacy "share everything" grants still carry blanket flags and would
+        // make every entry look private here while the professional can in
+        // fact see it. Freeze them first so this panel always matches what
+        // the professional's portal actually shows.
+        await freezeLegacyBlanketScope(supabaseAdmin, TABLE[kind], l, context.userId);
         const gap = await unsharedSinceGrant(supabaseAdmin, context.userId, l);
         if (!gap.incidents.length && !gap.evidence.length) continue;
         out.push({
