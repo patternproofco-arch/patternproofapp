@@ -470,11 +470,13 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     const [incRes, evRes, commsRes, paRes, casesRes, flagsRes] = await Promise.all([
       incidentsQuery,
       evidenceQuery,
-      includeAllIncidents
+      // Only messages tied to a shared entry, and only with communications consent.
+      includeComms && scopeIncidents.length
         ? supabaseAdmin
             .from("communications")
             .select("*")
             .eq("user_id", data.clientId)
+            .in("linked_incident_id", scopeIncidents)
             .order("date")
         : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
       includePatterns
@@ -491,10 +493,12 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
         .eq("user_id", data.clientId)
         .order("updated_at", { ascending: false })
         .limit(1),
+      // Flags only for shared entries — otherwise they reveal unshared ones.
       supabaseAdmin
         .from("escalation_flags")
         .select("*")
         .eq("user_id", data.clientId)
+        .in("incident_id", flagIncidentIds)
         .order("created_at"),
     ]);
     const incidents = incRes.data ?? [];
