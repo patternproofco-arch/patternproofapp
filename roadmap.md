@@ -24,3 +24,4 @@
 - [x] Master court packet / exhibit binder page (/binder/$clientId)
 - [x] Request answers → draft entry in Drafts to review (note + transcript/photo text, survivor approves)
 - [x] Upload auto soft drafts: photo/audio/video → pending proposed_incidents for /drafts (soft claims; survivor approves)
+- [x] Drafts accept → timeline + binder consistency; survivor transcript/OCR review tray (soft claims; no share bypass)

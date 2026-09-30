@@ -129,6 +129,7 @@ async function shareIncidentWithLink(
   linkId: string,
   userId: string,
   incidentId: string,
+  evidenceIds: string[] = [],
 ): Promise<boolean> {
   try {
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
@@ -147,14 +148,25 @@ async function shareIncidentWithLink(
     await freezeLegacyBlanketScope(db, "attorney_client_links", link, userId);
     const { data: fresh } = await db
       .from("attorney_client_links")
-      .select("scope_incidents")
+      .select("scope_incidents,scope_evidence")
       .eq("id", linkId)
       .single();
-    const current = (fresh?.scope_incidents ?? link.scope_incidents ?? []) as string[];
-    if (current.includes(incidentId)) return true;
+    const currentInc = (fresh?.scope_incidents ?? link.scope_incidents ?? []) as string[];
+    const currentEv = (fresh?.scope_evidence ?? link.scope_evidence ?? []) as string[];
+    const nextInc = currentInc.includes(incidentId)
+      ? currentInc
+      : [...currentInc, incidentId];
+    const ownedEv = evidenceIds.filter(Boolean);
+    const nextEv = [...new Set([...currentEv, ...ownedEv])];
+    const incChanged = nextInc.length !== currentInc.length;
+    const evChanged = nextEv.length !== currentEv.length;
+    if (!incChanged && !evChanged) return true;
     const { error } = await db
       .from("attorney_client_links")
-      .update({ scope_incidents: [...current, incidentId] })
+      .update({
+        ...(incChanged ? { scope_incidents: nextInc } : {}),
+        ...(evChanged ? { scope_evidence: nextEv } : {}),
+      })
       .eq("id", linkId)
       .eq("client_user_id", userId);
     return !error;
@@ -554,11 +566,9 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
         witnesses: finalDraft.witnesses ?? null,
         emotional_impact: finalDraft.emotional_impact ?? null,
         date_precision: datePrecision,
-        // The database only recognises 'survivor' | 'ai_extracted'. This entry
-        // was drafted from evidence by AI and then explicitly confirmed by the
-        // survivor, so it is recorded as AI-derived with a human confirmation
-        // stamp — which is what recurrence counting requires.
-        source: "ai_extracted",
+        // Soft upload / request drafts use model null — record as survivor.
+        // AI proposals keep ai_extracted + confirmed_at for recurrence counting.
+        source: proposal.model ? "ai_extracted" : "survivor",
         confirmed_at: new Date().toISOString(),
       })
       .select("id")
@@ -622,10 +632,122 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
     const shareLinkId = (finalDraft as { share_with_link_id?: unknown }).share_with_link_id;
     let sharedWithProfessional = false;
     if (typeof shareLinkId === "string" && shareLinkId) {
-      sharedWithProfessional = await shareIncidentWithLink(shareLinkId, userId, incident.id);
+      // Only when the draft already named this link (request-answer path).
+      // Never invent a share for ordinary upload/AI drafts (no share bypass).
+      sharedWithProfessional = await shareIncidentWithLink(
+        shareLinkId,
+        userId,
+        incident.id,
+        sourceIds,
+      );
     }
 
     return { ok: true as const, incident_id: incident.id, shared: sharedWithProfessional };
+  });
+
+
+/** Soft-claim source materials for a pending draft (transcript / photo OCR). */
+export const listDraftSourceMaterials = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ proposal_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: proposal, error } = await supabase
+      .from("proposed_incidents")
+      .select("id,source_evidence_ids,status")
+      .eq("id", data.proposal_id)
+      .eq("user_id", userId)
+      .eq("status", "pending")
+      .maybeSingle();
+    if (error || !proposal) throw new Error("Draft not found or already reviewed.");
+    const ids = (proposal.source_evidence_ids ?? []) as string[];
+    if (!ids.length) return { items: [] as const };
+
+    const { data: rows, error: evErr } = await supabase
+      .from("evidence")
+      .select(
+        "id,title,original_filename,mime,file_type,transcript,transcript_status,extracted_text,extraction_status",
+      )
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .in("id", ids);
+    if (evErr) throw new Error(evErr.message);
+
+    return {
+      items: (rows ?? []).map((r) => {
+        const mime = (r.mime ?? "").toLowerCase();
+        const kind =
+          mime.startsWith("audio/") || r.file_type === "audio"
+            ? ("audio" as const)
+            : mime.startsWith("video/") || r.file_type === "video"
+              ? ("video" as const)
+              : mime.startsWith("image/") || r.file_type === "image"
+                ? ("photo" as const)
+                : ("file" as const);
+        const field =
+          kind === "audio" || kind === "video"
+            ? ("transcript" as const)
+            : ("extracted_text" as const);
+        const text =
+          field === "transcript"
+            ? ((r.transcript ?? "") as string)
+            : ((r.extracted_text ?? "") as string);
+        return {
+          evidence_id: r.id as string,
+          title: (r.title || r.original_filename || "Untitled file") as string,
+          kind,
+          field,
+          text,
+          status:
+            field === "transcript"
+              ? ((r.transcript_status as string | null) ?? null)
+              : ((r.extraction_status as string | null) ?? null),
+        };
+      }),
+    };
+  });
+
+/**
+ * Survivor edits transcript or photo OCR on their own evidence before accept.
+ * Soft claims only: writes the text the survivor typed; no new AI/OCR call.
+ */
+export const saveDraftSourceText = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        evidence_id: z.string().uuid(),
+        field: z.enum(["transcript", "extracted_text"]),
+        text: z.string().max(200000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const now = new Date().toISOString();
+    const patch =
+      data.field === "transcript"
+        ? {
+            transcript: data.text,
+            transcript_status: "ready",
+            transcript_verified_at: now,
+            transcript_verified_by: userId,
+          }
+        : {
+            extracted_text: data.text,
+            extraction_status: "ready",
+            extraction_method: "human-corrected",
+            extraction_verified_at: now,
+            extraction_verified_by: userId,
+          };
+    const { error } = await supabase
+      .from("evidence")
+      .update(patch)
+      .eq("id", data.evidence_id)
+      .eq("user_id", userId)
+      .is("deleted_at", null);
+    if (error) throw new Error("We couldn't save that source text. Try again in a moment.");
+    return { ok: true as const };
   });
 
 /** Deny a proposal — it will not be auto-reproposed. */
