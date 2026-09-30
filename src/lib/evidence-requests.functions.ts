@@ -129,6 +129,7 @@ async function queueRequestDraft(
   title: string,
   note: string,
   ids: string[],
+  linkId: string | null,
 ): Promise<void> {
   try {
     const { data: files } = ids.length
@@ -152,11 +153,16 @@ async function queueRequestDraft(
       sort_key: firstDate,
       sort_key_kind: firstDate ? "file_date" : null,
       date_certainty: "unknown",
-      draft: { date: null, description, abuse_types: [] },
+      // share_with_link_id carries the sharing link this answer belongs to, so
+      // that approving the draft puts the entry on the same professional's
+      // binder the survivor already answered. It only ever names a link the
+      // survivor has already chosen to share with.
+      draft: { date: null, description, abuse_types: [], share_with_link_id: linkId },
       source_evidence_ids: ids,
       source_summary: `Answer to request: ${title}`,
       confidence_notes: [
         "Built from your answer to a request. Check the text and add the event date yourself.",
+        "When you approve this, it joins your timeline and the binder your attorney sees.",
       ],
       status: "pending",
       model: null,
@@ -234,7 +240,14 @@ export const submitEvidenceRequest = createServerFn({ method: "POST" })
       })
       .eq("id", data.id);
     if (error) throw new Error("We couldn't send that. Try again in a moment.");
-    await queueRequestDraft(admin, context.userId, req.title ?? "Requested item", data.note, ids);
+    await queueRequestDraft(
+      admin,
+      context.userId,
+      req.title ?? "Requested item",
+      data.note,
+      ids,
+      link.id,
+    );
     return { ok: true, shared: ids.length };
   });
 
