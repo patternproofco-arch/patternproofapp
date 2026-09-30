@@ -10,10 +10,12 @@ export async function sendTransactionalEmail(input: {
   recipientEmail: string;
   idempotencyKey?: string;
   templateData?: Record<string, unknown>;
+  discreet?: boolean;
 }): Promise<boolean> {
   if (
     input.templateName !== "advocate-survivor-invitation" &&
-    input.templateName !== "attorney-invitation"
+    input.templateName !== "attorney-invitation" &&
+    input.templateName !== "attorney-survivor-invitation"
   ) {
     return false;
   }
@@ -23,6 +25,7 @@ export async function sendTransactionalEmail(input: {
         templateName: input.templateName,
         recipientEmail: input.recipientEmail,
         idempotencyKey: input.idempotencyKey,
+        discreet: input.discreet,
       },
     });
     return res.success;

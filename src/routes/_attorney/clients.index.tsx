@@ -1,3 +1,4 @@
+import { sendTransactionalEmail } from "@/lib/email/send";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -755,6 +756,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
+  const [sender, setSender] = useState<"discreet" | "standard" | "none">("discreet");
   const [saving, setSaving] = useState(false);
   const create = useServerFn(createSurvivorInvite);
   const revoke = useServerFn(revokeSurvivorInvite);
@@ -772,7 +774,20 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
           expires_days: 30,
         },
       });
-      toast("Invite sent. Copy the link to share securely.");
+      if (sender === "none") {
+        toast("Invite created. Copy the link and share it the way your client prefers.");
+      } else {
+        const sent = await sendTransactionalEmail({
+          templateName: "attorney-survivor-invitation",
+          recipientEmail: email.trim(),
+          discreet: sender === "discreet",
+        });
+        toast(
+          sent
+            ? "Invite emailed. You can also copy the link below."
+            : "Invite created, but the email didn't go out. Copy the link to share it.",
+        );
+      }
       setEmail("");
       setName("");
       setNote("");
@@ -881,6 +896,23 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
                 rows={3}
                 placeholder="Shown to the survivor with your invite. Keep it brief and warm."
               />
+            </label>
+            <label style={{ display: "grid", gap: 6 }}>
+              <span className="att-eyebrow">How to reach them</span>
+              <select
+                className="att-input"
+                value={sender}
+                onChange={(e) => setSender(e.target.value as typeof sender)}
+              >
+                <option value="discreet">
+                  Discreet email — plain subject, no firm, app, or note shown
+                </option>
+                <option value="standard">Standard email — your name, firm and note</option>
+                <option value="none">Don't email — I'll share the link a safe way</option>
+              </select>
+              <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+                Ask your client first. Someone else may read their inbox.
+              </span>
             </label>
             <div
               style={{

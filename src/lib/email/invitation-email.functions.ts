@@ -31,7 +31,12 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        templateName: z.enum(["advocate-survivor-invitation", "attorney-invitation"]),
+        templateName: z.enum([
+          "advocate-survivor-invitation",
+          "attorney-invitation",
+          "attorney-survivor-invitation",
+        ]),
+        discreet: z.boolean().optional(),
         recipientEmail: z.string().trim().min(3).max(320),
         idempotencyKey: z.string().max(300).optional(),
       })
@@ -110,6 +115,36 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
         survivorName: inv.survivor_name ?? undefined,
         personalNote: inv.personal_note ?? undefined,
         acceptUrl: `${origin}/advocate-survivor-invite/${inv.invite_token}`,
+        expiresLabel: daysLeft(inv.expires_at),
+      };
+    } else if (data.templateName === "attorney-survivor-invitation") {
+      const { data: inv } = await supabaseAdmin
+        .from("attorney_survivor_invites")
+        .select("survivor_name, personal_note, invite_token, expires_at")
+        .eq("attorney_user_id", userId)
+        .eq("survivor_email", recipient)
+        .eq("status", "pending")
+        .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!inv) {
+        await logAttempt("recipient_not_authorized");
+        return { success: false };
+      }
+      const discreet = data.discreet !== false;
+      const { data: prof } = await supabaseAdmin
+        .from("attorney_profiles")
+        .select("full_name,firm_name")
+        .eq("user_id", userId)
+        .maybeSingle();
+      templateData = {
+        discreet,
+        attorneyName: discreet ? undefined : (prof?.full_name ?? undefined),
+        firmName: discreet ? undefined : (prof?.firm_name ?? undefined),
+        survivorName: discreet ? undefined : (inv.survivor_name ?? undefined),
+        personalNote: discreet ? undefined : (inv.personal_note ?? undefined),
+        acceptUrl: `${origin}/survivor-invite/${inv.invite_token}`,
         expiresLabel: daysLeft(inv.expires_at),
       };
     } else {
