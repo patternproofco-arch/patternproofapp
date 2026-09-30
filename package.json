@@ -133,9 +133,6 @@
     "baseline-browser-mapping": "^2.11.24",
     "qs": "^6.16.0",
     "nanoid": "^5.1.16",
-    "postcss": {
-      "nanoid": "^3.3.18"
-    }
   },
   "resolutions": {
     "ws": "^8.21.0",
