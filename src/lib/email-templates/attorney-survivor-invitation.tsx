@@ -14,6 +14,7 @@ import {
 import type { TemplateEntry } from "./registry";
 
 interface Props {
+  discreet?: boolean;
   attorneyName?: string;
   firmName?: string | null;
   survivorName?: string | null;
@@ -23,6 +24,7 @@ interface Props {
 }
 
 const Email = ({
+  discreet,
   attorneyName,
   firmName,
   survivorName,
@@ -38,6 +40,30 @@ const Email = ({
       ? firmName
       : "An attorney";
   const greeting = survivorName ? `${survivorName},` : "Hello,";
+
+  if (discreet) {
+    return (
+      <Html lang="en" dir="ltr">
+        <Head />
+        <Preview>A private link you asked about.</Preview>
+        <Body style={main}>
+          <Container style={container}>
+            <Heading style={h1}>Hello,</Heading>
+            <Text style={p}>
+              Someone you&apos;re working with shared a private link. Opening it shares nothing —
+              you choose what happens next.
+            </Text>
+            <Section style={{ margin: "24px 0" }}>
+              <Link href={acceptUrl} style={button}>
+                Open link
+              </Link>
+            </Section>
+            <Text style={small}>This link expires in {expiresLabel}.</Text>
+          </Container>
+        </Body>
+      </Html>
+    );
+  }
 
   return (
     <Html lang="en" dir="ltr">
@@ -85,8 +111,10 @@ const Email = ({
 
 export const template = {
   component: Email,
-  subject: ({ attorneyName }: Record<string, unknown>) =>
-    attorneyName
+  subject: ({ attorneyName, discreet }: Record<string, unknown>) =>
+    discreet
+      ? "A private link for you"
+      : attorneyName
       ? `${String(attorneyName)} invited you to share PatternProof records`
       : "An attorney invited you to share PatternProof records",
   displayName: "Attorney → survivor invitation",
