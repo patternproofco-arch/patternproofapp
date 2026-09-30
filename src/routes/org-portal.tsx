@@ -9,6 +9,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { OrgTeamSettings } from "@/components/team/OrgTeamSettings";
 import { OrgOversight } from "@/components/org/OrgOversight";
+import { GrantReport } from "@/components/org/GrantReport";
 import { ThreadGroup } from "@/components/ThreadConnector";
 import {
   getMyOrgPartnerStats,
@@ -236,6 +237,7 @@ function OrgPortal() {
 
       <OrgTeamSettings />
       <OrgOversight />
+      <GrantReport />
     </Shell>
   );
 }

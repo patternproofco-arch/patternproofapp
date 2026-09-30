@@ -83,6 +83,7 @@ import { Route as AuthenticatedCourtReadyRouteImport } from './routes/_authentic
 import { Route as AuthenticatedCourtReadyThanksRouteImport } from './routes/_authenticated/court-ready-thanks'
 import { Route as AuthenticatedCourtSystemsRouteImport } from './routes/_authenticated/court-systems'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDraftsRouteImport } from './routes/_authenticated/drafts'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
 import { Route as AuthenticatedEvidenceReviewRouteImport } from './routes/_authenticated/evidence-review'
 import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
@@ -95,6 +96,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
 import { Route as AuthenticatedPasswordRouteImport } from './routes/_authenticated/password'
 import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
+import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -512,6 +514,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDraftsRoute = AuthenticatedDraftsRouteImport.update({
+  id: '/drafts',
+  path: '/drafts',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedEvidenceRoute = AuthenticatedEvidenceRouteImport.update({
   id: '/evidence',
   path: '/evidence',
@@ -575,6 +582,11 @@ const AuthenticatedPasswordRoute = AuthenticatedPasswordRouteImport.update({
 const AuthenticatedPatternsRoute = AuthenticatedPatternsRouteImport.update({
   id: '/patterns',
   path: '/patterns',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedRequestsRoute = AuthenticatedRequestsRouteImport.update({
+  id: '/requests',
+  path: '/requests',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
@@ -855,6 +867,7 @@ export interface FileRoutesByFullPath {
   '/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
   '/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/drafts': typeof AuthenticatedDraftsRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/evidence-review': typeof AuthenticatedEvidenceReviewRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
@@ -867,6 +880,7 @@ export interface FileRoutesByFullPath {
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/password': typeof AuthenticatedPasswordRoute
   '/patterns': typeof AuthenticatedPatternsRoute
+  '/requests': typeof AuthenticatedRequestsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/security': typeof AuthenticatedSecurityRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -976,6 +990,7 @@ export interface FileRoutesByTo {
   '/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
   '/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/drafts': typeof AuthenticatedDraftsRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/evidence-review': typeof AuthenticatedEvidenceReviewRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
@@ -988,6 +1003,7 @@ export interface FileRoutesByTo {
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/password': typeof AuthenticatedPasswordRoute
   '/patterns': typeof AuthenticatedPatternsRoute
+  '/requests': typeof AuthenticatedRequestsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/security': typeof AuthenticatedSecurityRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -1103,6 +1119,7 @@ export interface FileRoutesById {
   '/_authenticated/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
   '/_authenticated/court-systems': typeof AuthenticatedCourtSystemsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/drafts': typeof AuthenticatedDraftsRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
   '/_authenticated/evidence-review': typeof AuthenticatedEvidenceReviewRoute
   '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
@@ -1115,6 +1132,7 @@ export interface FileRoutesById {
   '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/_authenticated/password': typeof AuthenticatedPasswordRoute
   '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
+  '/_authenticated/requests': typeof AuthenticatedRequestsRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -1228,6 +1246,7 @@ export interface FileRouteTypes {
     | '/court-ready-thanks'
     | '/court-systems'
     | '/dashboard'
+    | '/drafts'
     | '/evidence'
     | '/evidence-review'
     | '/feedback'
@@ -1240,6 +1259,7 @@ export interface FileRouteTypes {
     | '/opra-helper'
     | '/password'
     | '/patterns'
+    | '/requests'
     | '/search'
     | '/security'
     | '/settings'
@@ -1349,6 +1369,7 @@ export interface FileRouteTypes {
     | '/court-ready-thanks'
     | '/court-systems'
     | '/dashboard'
+    | '/drafts'
     | '/evidence'
     | '/evidence-review'
     | '/feedback'
@@ -1361,6 +1382,7 @@ export interface FileRouteTypes {
     | '/opra-helper'
     | '/password'
     | '/patterns'
+    | '/requests'
     | '/search'
     | '/security'
     | '/settings'
@@ -1475,6 +1497,7 @@ export interface FileRouteTypes {
     | '/_authenticated/court-ready-thanks'
     | '/_authenticated/court-systems'
     | '/_authenticated/dashboard'
+    | '/_authenticated/drafts'
     | '/_authenticated/evidence'
     | '/_authenticated/evidence-review'
     | '/_authenticated/feedback'
@@ -1487,6 +1510,7 @@ export interface FileRouteTypes {
     | '/_authenticated/opra-helper'
     | '/_authenticated/password'
     | '/_authenticated/patterns'
+    | '/_authenticated/requests'
     | '/_authenticated/search'
     | '/_authenticated/security'
     | '/_authenticated/settings'
@@ -2114,6 +2138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/drafts': {
+      id: '/_authenticated/drafts'
+      path: '/drafts'
+      fullPath: '/drafts'
+      preLoaderRoute: typeof AuthenticatedDraftsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/evidence': {
       id: '/_authenticated/evidence'
       path: '/evidence'
@@ -2196,6 +2227,13 @@ declare module '@tanstack/react-router' {
       path: '/patterns'
       fullPath: '/patterns'
       preLoaderRoute: typeof AuthenticatedPatternsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/requests': {
+      id: '/_authenticated/requests'
+      path: '/requests'
+      fullPath: '/requests'
+      preLoaderRoute: typeof AuthenticatedRequestsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/search': {
@@ -2565,6 +2603,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCourtReadyThanksRoute: typeof AuthenticatedCourtReadyThanksRoute
   AuthenticatedCourtSystemsRoute: typeof AuthenticatedCourtSystemsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDraftsRoute: typeof AuthenticatedDraftsRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
   AuthenticatedEvidenceReviewRoute: typeof AuthenticatedEvidenceReviewRoute
   AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
@@ -2577,6 +2616,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
   AuthenticatedPasswordRoute: typeof AuthenticatedPasswordRoute
   AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
+  AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -2607,6 +2647,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCourtReadyThanksRoute: AuthenticatedCourtReadyThanksRoute,
   AuthenticatedCourtSystemsRoute: AuthenticatedCourtSystemsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDraftsRoute: AuthenticatedDraftsRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
   AuthenticatedEvidenceReviewRoute: AuthenticatedEvidenceReviewRoute,
   AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
@@ -2619,6 +2660,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
   AuthenticatedPasswordRoute: AuthenticatedPasswordRoute,
   AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
+  AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
