@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 const evidencePage = readFileSync("src/routes/_authenticated/evidence.tsx", "utf8");
 const batchDropzone = readFileSync("src/components/evidence/BatchDropzone.tsx", "utf8");
 const proposals = readFileSync("src/lib/propose-timeline.functions.ts", "utf8");
+const uploadDrafts = readFileSync("src/lib/upload-draft.functions.ts", "utf8");
+const draftsPage = readFileSync("src/routes/_authenticated/drafts.tsx", "utf8");
 const timeline = readFileSync("src/routes/_authenticated/timeline.tsx", "utf8");
 const linkMigration = readFileSync(
   "supabase/migrations/20260829120000_incident_evidence_links.sql",
@@ -56,6 +58,42 @@ describe("media to reviewed timeline wiring", () => {
     ]) {
       expect(evidencePage).toContain(mime);
     }
+  });
+});
+
+describe("upload auto soft drafts for /drafts", () => {
+  it("queues soft drafts for photo, audio, and video without inventing event dates", () => {
+    expect(uploadDrafts).toContain("ensureMediaUploadDrafts");
+    expect(uploadDrafts).toContain('date_certainty: "unknown"');
+    expect(uploadDrafts).toContain("draft: { date: null, description, abuse_types: [] }");
+    expect(uploadDrafts).toContain("Nothing reaches your timeline until you approve this draft.");
+    expect(uploadDrafts).toContain("model: null");
+    expect(uploadDrafts).not.toContain("court-ready");
+    expect(uploadDrafts).not.toContain("LOVABLE_API_KEY");
+  });
+
+  it("skips evidence already waiting as a pending proposed draft", () => {
+    expect(uploadDrafts).toContain('eq("status", "pending")');
+    expect(uploadDrafts).toContain("alreadyProposed.has(row.id)");
+  });
+
+  it("wires single photo upload and A/V fallback into soft drafts", () => {
+    expect(evidencePage).toContain("ensureMediaUploadDrafts");
+    expect(evidencePage).toContain('fileMime.startsWith("image/")');
+    expect(evidencePage).toContain("ensureDraftsFn({ data: { evidence_ids: [newRow.id] } })");
+    expect(evidencePage).toContain("A draft is waiting in Drafts to review.");
+  });
+
+  it("wires batch upload soft-draft ensure after AI propose", () => {
+    expect(batchDropzone).toContain("ensureMediaUploadDrafts");
+    expect(batchDropzone).toContain("ensureDrafts({ data: { evidence_ids: evidenceIds } })");
+    expect(batchDropzone).toContain("Nothing becomes a journal entry until accepted");
+  });
+
+  it("keeps the survivor drafts review page as the approval gate", () => {
+    expect(draftsPage).toContain("ProposedTimelineReview");
+    expect(draftsPage).toContain("Nothing goes on your");
+    expect(draftsPage).toContain("timeline until you approve it");
   });
 });
 

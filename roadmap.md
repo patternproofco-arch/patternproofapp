@@ -23,3 +23,4 @@
 - [ ] Real-inbox discreet invite test — needs user to send one invite to their own address from the attorney portal
 - [x] Master court packet / exhibit binder page (/binder/$clientId)
 - [x] Request answers → draft entry in Drafts to review (note + transcript/photo text, survivor approves)
+- [x] Upload auto soft drafts: photo/audio/video → pending proposed_incidents for /drafts (soft claims; survivor approves)

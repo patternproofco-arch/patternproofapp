@@ -22,6 +22,7 @@ import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
 import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
+import { ensureMediaUploadDrafts } from "@/lib/upload-draft.functions";
 import {
   extractEvidenceDocument,
   verifyExtractedText,
@@ -120,6 +121,7 @@ function EvidencePage() {
   const ingestFn = useServerFn(ingestEvidenceBatch);
   const transcribeFn = useServerFn(transcribeEvidence);
   const proposeTimelineFn = useServerFn(proposeTimelineFromEvidence);
+  const ensureDraftsFn = useServerFn(ensureMediaUploadDrafts);
   const extractDocFn = useServerFn(extractEvidenceDocument);
   const verifyTextFn = useServerFn(verifyExtractedText);
 
@@ -292,14 +294,31 @@ function EvidencePage() {
               max_items: 1,
             },
           });
+          // Soft fallback: always queue a /drafts entry if AI did not.
+          let queuedSoft = false;
+          try {
+            const soft = await ensureDraftsFn({ data: { evidence_ids: [newRow.id] } });
+            queuedSoft = Boolean(soft.ok && soft.queued > 0);
+          } catch {
+            /* draft is a convenience */
+          }
           toast(
             proposal.ok && proposal.proposed_timeline?.length
               ? "Transcript ready. A timeline draft is ready for your review."
-              : "Transcript ready. You can organize it from your timeline.",
+              : queuedSoft
+                ? "Transcript ready. A draft is waiting in Drafts to review."
+                : "Transcript ready. You can organize it from your timeline.",
           );
           await load();
         })
-        .catch(() => {
+        .catch(async () => {
+          // Even without a transcript, queue a soft draft so the upload is
+          // visible in Drafts to review for the survivor to complete.
+          try {
+            await ensureDraftsFn({ data: { evidence_ids: [newRow.id] } });
+          } catch {
+            /* ignore */
+          }
           toast("The file is safe, but transcription failed. You can retry below.");
           return load();
         });
@@ -342,6 +361,21 @@ function EvidencePage() {
         .catch(() => {
           toast("The file is safe, but reading its text failed. You can retry below.");
           return load();
+        });
+    }
+
+    // Photos: queue a soft draft into Drafts to review (same tray as AI /
+    // request-answer drafts). No event date is invented; survivor approves.
+    const wasPhoto = fileMime.startsWith("image/");
+    if (wasPhoto && !newRow.linked_incident_id) {
+      void ensureDraftsFn({ data: { evidence_ids: [newRow.id] } })
+        .then((soft) => {
+          if (soft.ok && soft.queued > 0) {
+            toast("A draft is waiting in Drafts to review.");
+          }
+        })
+        .catch(() => {
+          /* upload already succeeded */
         });
     }
 

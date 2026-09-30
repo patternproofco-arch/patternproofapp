@@ -26,6 +26,7 @@ import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
 import { extractEvidenceDocument } from "@/lib/document-extract.functions";
 import { isReadableDocument } from "@/lib/readable-documents";
 import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
+import { ensureMediaUploadDrafts } from "@/lib/upload-draft.functions";
 import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 import { readExif, stripExif, type ExifSummary } from "@/lib/exif";
 import { FileIntakeRow, type ExifChoice } from "./FileIntakeRow";
@@ -149,6 +150,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const transcribe = useServerFn(transcribeEvidence);
   const extractDoc = useServerFn(extractEvidenceDocument);
   const proposeTimeline = useServerFn(proposeTimelineFromEvidence);
+  const ensureDrafts = useServerFn(ensureMediaUploadDrafts);
   const openBatch = useServerFn(openIntakeBatch);
   const updateBatch = useServerFn(updateIntakeBatch);
   const [files, setFiles] = useState<FileState[]>([]);
@@ -438,6 +440,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         .map((it) => it.evidence_id)
         .filter((id): id is string => Boolean(id));
       if (evidenceIds.length > 0) {
+        let aiCount = 0;
         try {
           const proposed = await proposeTimeline({
             data: {
@@ -448,13 +451,25 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
             },
           });
           if (proposed.ok && proposed.proposed_timeline?.length) {
-            toast(
-              `${proposed.proposed_timeline.length} timeline draft${proposed.proposed_timeline.length === 1 ? " is" : "s are"} ready for review.`,
-            );
+            aiCount = proposed.proposed_timeline.length;
           }
         } catch {
-          // Preservation and transcription succeeded. Timeline organization is
-          // additive and can be retried from the Timeline page.
+          // Preservation and transcription succeeded. Soft drafts below still run.
+        }
+        // Soft drafts for any photo/audio/video not already pending in /drafts.
+        // Skips IDs the AI path already queued. Soft claims only.
+        let softQueued = 0;
+        try {
+          const soft = await ensureDrafts({ data: { evidence_ids: evidenceIds } });
+          if (soft.ok) softQueued = soft.queued;
+        } catch {
+          /* convenience only */
+        }
+        const total = aiCount + softQueued;
+        if (total > 0) {
+          toast(
+            `${total} draft${total === 1 ? " is" : "s are"} ready in Drafts to review. Nothing becomes a journal entry until accepted.`,
+          );
         }
       }
     } catch (err) {
