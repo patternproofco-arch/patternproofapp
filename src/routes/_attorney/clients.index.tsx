@@ -991,6 +991,9 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
                     </div>
                     <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 4 }}>
                       Sent {new Date(inv.created_at).toLocaleDateString()}
+                      {inv.opened_at && !inv.accepted_at && (
+                        <> · link opened {new Date(inv.opened_at).toLocaleDateString()}</>
+                      )}
                       {inv.accepted_at && (
                         <> · accepted {new Date(inv.accepted_at).toLocaleDateString()}</>
                       )}
