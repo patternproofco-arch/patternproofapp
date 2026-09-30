@@ -5,6 +5,7 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { getClientCase } from "@/lib/attorney-portal.functions";
 import { listClientEvidenceRequests } from "@/lib/evidence-requests.functions";
 import { buildBinderEntries, type BinderEntry } from "@/lib/binder";
+import { CourtTimeline } from "@/components/CourtTimeline";
 
 export const Route = createFileRoute("/_attorney/binder/$clientId")({
   head: () => ({
@@ -75,9 +76,11 @@ function BinderPage() {
           Generated {new Date().toLocaleDateString()}
         </p>
       </header>
-      {entries.length === 0 ? (
-        <p className="text-muted-foreground">Nothing has been shared yet.</p>
-      ) : (
+      <section className="mb-8 break-after-page">
+        <h2 className="mb-3 font-display text-lg">Court timeline</h2>
+        <CourtTimeline entries={entries} />
+      </section>
+      {entries.length > 0 && (
         <ol className="space-y-4">
           {entries.map((e) => (
             <BinderRow key={`${e.kind}-${e.id}`} entry={e} />

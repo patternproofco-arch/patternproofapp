@@ -82,6 +82,7 @@ import { Route as AuthenticatedCourtPacketRouteImport } from './routes/_authenti
 import { Route as AuthenticatedCourtReadyRouteImport } from './routes/_authenticated/court-ready'
 import { Route as AuthenticatedCourtReadyThanksRouteImport } from './routes/_authenticated/court-ready-thanks'
 import { Route as AuthenticatedCourtSystemsRouteImport } from './routes/_authenticated/court-systems'
+import { Route as AuthenticatedCourtTimelineRouteImport } from './routes/_authenticated/court-timeline'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDraftsRouteImport } from './routes/_authenticated/drafts'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
@@ -510,6 +511,12 @@ const AuthenticatedCourtSystemsRoute =
     path: '/court-systems',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCourtTimelineRoute =
+  AuthenticatedCourtTimelineRouteImport.update({
+    id: '/court-timeline',
+    path: '/court-timeline',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -872,6 +879,7 @@ export interface FileRoutesByFullPath {
   '/court-ready': typeof AuthenticatedCourtReadyRoute
   '/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
   '/court-systems': typeof AuthenticatedCourtSystemsRoute
+  '/court-timeline': typeof AuthenticatedCourtTimelineRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/drafts': typeof AuthenticatedDraftsRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
@@ -996,6 +1004,7 @@ export interface FileRoutesByTo {
   '/court-ready': typeof AuthenticatedCourtReadyRoute
   '/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
   '/court-systems': typeof AuthenticatedCourtSystemsRoute
+  '/court-timeline': typeof AuthenticatedCourtTimelineRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/drafts': typeof AuthenticatedDraftsRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
@@ -1126,6 +1135,7 @@ export interface FileRoutesById {
   '/_authenticated/court-ready': typeof AuthenticatedCourtReadyRoute
   '/_authenticated/court-ready-thanks': typeof AuthenticatedCourtReadyThanksRoute
   '/_authenticated/court-systems': typeof AuthenticatedCourtSystemsRoute
+  '/_authenticated/court-timeline': typeof AuthenticatedCourtTimelineRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/drafts': typeof AuthenticatedDraftsRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
@@ -1254,6 +1264,7 @@ export interface FileRouteTypes {
     | '/court-ready'
     | '/court-ready-thanks'
     | '/court-systems'
+    | '/court-timeline'
     | '/dashboard'
     | '/drafts'
     | '/evidence'
@@ -1378,6 +1389,7 @@ export interface FileRouteTypes {
     | '/court-ready'
     | '/court-ready-thanks'
     | '/court-systems'
+    | '/court-timeline'
     | '/dashboard'
     | '/drafts'
     | '/evidence'
@@ -1507,6 +1519,7 @@ export interface FileRouteTypes {
     | '/_authenticated/court-ready'
     | '/_authenticated/court-ready-thanks'
     | '/_authenticated/court-systems'
+    | '/_authenticated/court-timeline'
     | '/_authenticated/dashboard'
     | '/_authenticated/drafts'
     | '/_authenticated/evidence'
@@ -2143,6 +2156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCourtSystemsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/court-timeline': {
+      id: '/_authenticated/court-timeline'
+      path: '/court-timeline'
+      fullPath: '/court-timeline'
+      preLoaderRoute: typeof AuthenticatedCourtTimelineRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -2623,6 +2643,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCourtReadyRoute: typeof AuthenticatedCourtReadyRoute
   AuthenticatedCourtReadyThanksRoute: typeof AuthenticatedCourtReadyThanksRoute
   AuthenticatedCourtSystemsRoute: typeof AuthenticatedCourtSystemsRoute
+  AuthenticatedCourtTimelineRoute: typeof AuthenticatedCourtTimelineRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDraftsRoute: typeof AuthenticatedDraftsRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
@@ -2667,6 +2688,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCourtReadyRoute: AuthenticatedCourtReadyRoute,
   AuthenticatedCourtReadyThanksRoute: AuthenticatedCourtReadyThanksRoute,
   AuthenticatedCourtSystemsRoute: AuthenticatedCourtSystemsRoute,
+  AuthenticatedCourtTimelineRoute: AuthenticatedCourtTimelineRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDraftsRoute: AuthenticatedDraftsRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
