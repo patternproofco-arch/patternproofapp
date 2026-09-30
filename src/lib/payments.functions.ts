@@ -924,7 +924,7 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
         () => undefined,
         (e: unknown) => console.error("[audit] export log failed", e),
       );
-    const includeAllEvidence = link.include_all_evidence !== false;
+    const includeAllEvidence = link.include_all_evidence === true;
     const scopeIncidents = (link.scope_incidents as string[] | null) ?? [];
     const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];
 
