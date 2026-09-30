@@ -95,25 +95,26 @@ export const shareNewItemsWithGrant = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { unsharedSinceGrant } = await import("@/lib/grant-snapshot.server");
+    const { unsharedSinceGrant, freezeLegacyBlanketScope } = await import(
+      "@/lib/grant-snapshot.server"
+    );
 
     const table = TABLE[data.kind as LinkKind];
     const { data: found } = await supabaseAdmin
       .from(table)
-      .select("id,status,revoked_at,expires_at,scope_incidents,scope_evidence")
+      .select(
+        "id,created_at,status,revoked_at,expires_at,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence",
+      )
       .eq("id", data.link_id)
       // Ownership is decided here, on the server, from the signed-in user.
       .eq("client_user_id", context.userId)
       .maybeSingle();
-    const link = found as {
-      id: string;
-      status: string;
-      revoked_at: string | null;
-      expires_at: string | null;
-      scope_incidents: string[] | null;
-      scope_evidence: string[] | null;
-    } | null;
+    const link = found as LinkRow | null;
     if (!link || !isLive(link)) throw new Error("That access is no longer active.");
+
+    // Freeze any legacy blanket grant first so "add these too" only adds what
+    // is genuinely not yet shared.
+    await freezeLegacyBlanketScope(supabaseAdmin, table, link, context.userId);
 
     const gap = await unsharedSinceGrant(supabaseAdmin, context.userId, link);
     const nextIncidents = data.include_incidents
