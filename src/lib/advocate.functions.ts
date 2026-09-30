@@ -435,6 +435,10 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
         (e: unknown) => console.error("[audit] advocate case view log failed", e),
       );
 
+    // Freeze older "share everything" grants to what existed when granted.
+    const { freezeLegacyBlanketScope } = await import("@/lib/grant-snapshot.server");
+    await freezeLegacyBlanketScope(supabaseAdmin, "advocate_client_links", link, data.clientId);
+
     let includeAllIncidents = link.include_all_incidents;
     let includeAllEvidence = link.include_all_evidence;
     let scopedIncidents = (link.scope_incidents ?? []) as string[];

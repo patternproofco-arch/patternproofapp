@@ -188,6 +188,29 @@ export async function assertLink(
 }
 
 /**
+ * Pattern analyses are computed over the survivor's whole vault. Showing one to
+ * a professional would reveal counts/dates of entries they were never given, so
+ * it is only allowed when every current (non-deleted) incident is in scope.
+ * Fails closed.
+ */
+export async function patternsVisibleToProfessional(
+  admin: Admin,
+  link: { include_patterns?: boolean | null; include_all_incidents: boolean; scope_incidents: string[] | null },
+  clientUserId: string,
+): Promise<boolean> {
+  if (link.include_patterns === false || link.include_patterns == null) return false;
+  if (link.include_all_incidents) return false;
+  const { data, error } = await admin
+    .from("incidents")
+    .select("id")
+    .eq("user_id", clientUserId)
+    .is("deleted_at", null);
+  if (error) return false;
+  const scope = new Set(link.scope_incidents ?? []);
+  return ((data ?? []) as Array<{ id: string }>).every((r) => scope.has(r.id));
+}
+
+/**
  * Allow either the owning attorney OR an active case collaborator to open a
  * client case file. Read-only data + messaging only; private attorney notes
  * stay owner-only because their own queries scope by attorney.

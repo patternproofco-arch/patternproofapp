@@ -401,7 +401,10 @@ export async function buildAdvocateZip(
           title: e.title,
           date: e.date,
           file_type: e.file_type,
-          linked_incident_id: e.linked_incident_id ?? null,
+          // Don't point at an entry that wasn't shared.
+          linked_incident_id: input.content.incidents.some((i) => i.id === e.linked_incident_id)
+            ? e.linked_incident_id
+            : null,
           bytes: buf.byteLength,
           sha256: createHash("sha256").update(Buffer.from(buf)).digest("hex"),
         });

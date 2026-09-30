@@ -398,24 +398,30 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Authorization: an active attorney_client_link must exist for this pair.
-    // Billing entitlement alone does NOT authorize data access.
-    const { data: link } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select(
-        "id,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence",
-      )
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .eq("status", "active")
-      .maybeSingle();
-    if (!link) return { ok: false as const, reason: "no-active-link" as const };
+    // Authorization: an active, unexpired, unrevoked link must exist for this pair.
+    // Billing entitlement alone does NOT authorize data access. assertLink also
+    // freezes legacy blanket grants and applies case scope.
+    const access = await import("@/lib/attorney-access.server");
+    let link: Awaited<ReturnType<typeof access.assertLink>>;
+    try {
+      link = await access.assertLink(supabaseAdmin, context.userId, data.clientId);
+    } catch {
+      return { ok: false as const, reason: "no-active-link" as const };
+    }
 
     const scopeIncidents = (link.scope_incidents as string[] | null) ?? [];
     const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];
-    const includeAllIncidents = link.include_all_incidents !== false;
-    const includeAllEvidence = link.include_all_evidence !== false;
-    const includePatterns = link.include_patterns !== false;
+    const includeAllIncidents = link.include_all_incidents === true;
+    const includeAllEvidence = link.include_all_evidence === true;
+    const includePatterns = await access.patternsVisibleToProfessional(
+      supabaseAdmin,
+      link,
+      data.clientId,
+    );
+    const includeComms = link.include_communications === true;
+    const flagIncidentIds = scopeIncidents.length
+      ? scopeIncidents
+      : ["00000000-0000-0000-0000-000000000000"];
     await supabaseAdmin
       .rpc("record_audit_event", {
         p_user_id: data.clientId,
@@ -464,11 +470,13 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     const [incRes, evRes, commsRes, paRes, casesRes, flagsRes] = await Promise.all([
       incidentsQuery,
       evidenceQuery,
-      includeAllIncidents
+      // Only messages tied to a shared entry, and only with communications consent.
+      includeComms && scopeIncidents.length
         ? supabaseAdmin
             .from("communications")
             .select("*")
             .eq("user_id", data.clientId)
+            .in("linked_incident_id", scopeIncidents)
             .order("date")
         : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
       includePatterns
@@ -485,10 +493,12 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
         .eq("user_id", data.clientId)
         .order("updated_at", { ascending: false })
         .limit(1),
+      // Flags only for shared entries — otherwise they reveal unshared ones.
       supabaseAdmin
         .from("escalation_flags")
         .select("*")
         .eq("user_id", data.clientId)
+        .in("incident_id", flagIncidentIds)
         .order("created_at"),
     ]);
     const incidents = incRes.data ?? [];
@@ -893,16 +903,15 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: link } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence")
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .eq("status", "active")
-      .maybeSingle();
-    if (!link) return { ok: false as const, reason: "no-active-link" as const };
+    const access = await import("@/lib/attorney-access.server");
+    let link: Awaited<ReturnType<typeof access.assertLink>>;
+    try {
+      link = await access.assertLink(supabaseAdmin, context.userId, data.clientId);
+    } catch {
+      return { ok: false as const, reason: "no-active-link" as const };
+    }
 
-    const includeAllIncidents = link.include_all_incidents !== false;
+    const includeAllIncidents = link.include_all_incidents === true;
     await supabaseAdmin
       .rpc("record_audit_event", {
         p_user_id: data.clientId,
@@ -915,7 +924,7 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
         () => undefined,
         (e: unknown) => console.error("[audit] export log failed", e),
       );
-    const includeAllEvidence = link.include_all_evidence !== false;
+    const includeAllEvidence = link.include_all_evidence === true;
     const scopeIncidents = (link.scope_incidents as string[] | null) ?? [];
     const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];
 

@@ -337,7 +337,7 @@ export const listMyClients = createServerFn({ method: "GET" })
         const [inc, ev, pat, esc, msg, doc] = await Promise.all([
           incidentsQ,
           evidenceQ,
-          l.include_patterns
+          (await access.patternsVisibleToProfessional(supabaseAdmin, l, l.client_user_id))
             ? supabaseAdmin
                 .from("pattern_analyses")
                 .select("analysis,created_at")
@@ -560,7 +560,7 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
             : Promise.resolve({ data: null as { created_at: string } | null });
 
         // Latest pattern analysis (for severity-indicator review counting).
-        const patternQ = l.include_patterns
+        const patternQ = (await access.patternsVisibleToProfessional(supabaseAdmin, l, l.client_user_id))
           ? supabaseAdmin
               .from("pattern_analyses")
               .select("analysis,reviewed_status,created_at")
@@ -745,7 +745,7 @@ export const getClientCase = createServerFn({ method: "POST" })
               .neq("review_status", "suggested")
               .order("date", { ascending: true })
           : Promise.resolve({ data: [] }),
-      link.include_patterns
+      (await access.patternsVisibleToProfessional(supabaseAdmin, link, data.clientId))
         ? supabaseAdmin
             .from("pattern_analyses")
             .select("*")
@@ -1127,7 +1127,7 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
               .is("deleted_at", null)
               .neq("review_status", "suggested")
           : Promise.resolve({ data: [] }),
-      link.include_patterns
+      (await access.patternsVisibleToProfessional(supabaseAdmin, link, data.clientId))
         ? supabaseAdmin
             .from("pattern_analyses")
             .select("analysis")
@@ -1696,6 +1696,10 @@ export const syncMissingEvidenceChecklistFromGaps = createServerFn({ method: "PO
     const link = await assertLink(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    // Gaps are derived from the whole vault; hide unless everything is shared.
+    if (!(await access.patternsVisibleToProfessional(supabaseAdmin, link, data.clientId))) {
+      return { added: 0, skipped: 0 };
+    }
     const { data: pat } = await supabaseAdmin
       .from("pattern_analyses")
       .select("analysis")
