@@ -588,7 +588,7 @@ function BulkInvitePanel({ onDone }: { onDone: () => void }) {
       // exact original row numbers, including invalid rows that should fail.
       const r = await bulkFn({ data: { rows, expires_days: 30 } });
       setResults(r.results as BulkOutcome[]);
-      toast(`${r.sent} invite${r.sent === 1 ? "" : "s"} sent. ${r.failed} failed.`);
+      toast(`${r.sent} invite${r.sent === 1 ? "" : "s"} created (copy links below to share). ${r.failed} failed.`);
       onDone();
     } catch (e) {
       toast(e instanceof Error ? e.message : "Bulk invite failed.");
@@ -766,7 +766,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
     e.preventDefault();
     setSaving(true);
     try {
-      await create({
+      const created = await create({
         data: {
           survivor_email: email.trim(),
           survivor_name: name.trim() || null,
@@ -777,10 +777,12 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
       if (sender === "none") {
         toast("Invite created. Copy the link and share it the way your client prefers.");
       } else {
+        const recipient = email.trim();
         const sent = await sendTransactionalEmail({
           templateName: "attorney-survivor-invitation",
-          recipientEmail: email.trim(),
+          recipientEmail: recipient,
           discreet: sender === "discreet",
+          idempotencyKey: `attorney-survivor-invitation-${created.invite.id}`,
         });
         toast(
           sent
@@ -793,7 +795,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
       setNote("");
       onChange();
     } catch (err) {
-      toast(err instanceof Error ? err.message : "Couldn't send invite.");
+      toast(err instanceof Error ? err.message : "Couldn't create invite.");
     } finally {
       setSaving(false);
     }
@@ -927,7 +929,14 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
                 Invite expires in 30 days. They control what they share.
               </span>
               <button type="submit" disabled={saving} className="att-btn-primary">
-                <Send size={13} /> {saving ? "Sending…" : "Send invite"}
+                <Send size={13} />{" "}
+                {saving
+                  ? sender === "none"
+                    ? "Creating…"
+                    : "Sending…"
+                  : sender === "none"
+                    ? "Create invite"
+                    : "Send invite"}
               </button>
             </div>
           </form>
@@ -953,7 +962,7 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
             }}
           >
             <Mail size={16} style={{ color: "var(--att-slate)" }} />
-            No invites sent yet. Send one above to bring a survivor into your portal.
+            No invites yet. Create one above to invite a survivor to share their case.
           </div>
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
@@ -1040,7 +1049,18 @@ function InvitePanel({ invites, onChange }: { invites: InviteRow[] | null; onCha
                         onClick={async () => {
                           try {
                             await resend({ data: { id: inv.id, expires_days: 30 } });
-                            toast("Invite reactivated for 30 more days.");
+                            // Soft/discreet by default on resend — preference is not stored on the invite.
+                            const sent = await sendTransactionalEmail({
+                              templateName: "attorney-survivor-invitation",
+                              recipientEmail: inv.survivor_email,
+                              discreet: true,
+                              idempotencyKey: `attorney-survivor-invitation-resend-${inv.id}-${Date.now()}`,
+                            });
+                            toast(
+                              sent
+                                ? "Invite emailed again for 30 more days. You can also copy the link."
+                                : "Invite renewed for 30 more days; email couldn't be sent — copy the link.",
+                            );
                             onChange();
                           } catch (e) {
                             toast(e instanceof Error ? e.message : "Couldn't resend.");
