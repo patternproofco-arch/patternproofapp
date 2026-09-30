@@ -48,7 +48,15 @@ export const getMyCourtTimeline = createServerFn({ method: "GET" })
       const evIds = l.scope_evidence ?? [];
       const [inc, ev, req, prof] = await Promise.all([
         incIds.length
-          ? db.from("incidents").select("*").eq("user_id", context.userId).in("id", incIds).is("deleted_at", null)
+          ? db
+              .from("incidents")
+              .select("*")
+              .eq("user_id", context.userId)
+              .in("id", incIds)
+              .is("deleted_at", null)
+              // Same rule as the attorney's binder: machine-read entries the
+              // survivor never confirmed are not shown to the attorney.
+              .or("source.neq.ai_extracted,confirmed_at.not.is.null")
           : Promise.resolve({ data: [] }),
         evIds.length
           ? db.from("evidence").select("*").eq("user_id", context.userId).in("id", evIds).is("deleted_at", null)
