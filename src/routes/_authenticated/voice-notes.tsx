@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
 import { transcribeVoiceNote } from "@/lib/transcribe-voice-note.functions";
+import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { checkUploadSize } from "@/lib/upload-limits";
@@ -33,6 +34,7 @@ function VoiceNotesPage() {
   const [search, setSearch] = useState("");
   const [transcribingId, setTranscribingId] = useState<string | null>(null);
   const transcribeFn = useServerFn(transcribeVoiceNote);
+  const proposeFn = useServerFn(proposeTimelineFromEvidence);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [pendingBlob, setPendingBlob] = useState<Blob | null>(null);
@@ -124,15 +126,19 @@ function VoiceNotesPage() {
       toast("We couldn't save that recording. Try again in a moment.");
       return;
     }
-    const { error } = await supabase.from("voice_notes").insert({
-      user_id: user.id,
-      title: title.trim() || "Voice note",
-      date,
-      audio_url: key,
-      duration_seconds: pendingDuration,
-    });
+    const { data: inserted, error } = await supabase
+      .from("voice_notes")
+      .insert({
+        user_id: user.id,
+        title: title.trim() || "Voice note",
+        date,
+        audio_url: key,
+        duration_seconds: pendingDuration,
+      })
+      .select("id")
+      .single();
     setBusy(false);
-    if (error) {
+    if (error || !inserted) {
       toast("Couldn't record the details.");
       return;
     }
@@ -142,7 +148,31 @@ function VoiceNotesPage() {
     setPendingDuration(0);
     setTitle("");
     setDate(today());
-    load();
+    await load();
+    void autoDraft(inserted.id);
+  };
+
+  // Transcribe in the background, then queue a draft in Drafts to review.
+  // Nothing reaches the timeline until the survivor approves it there.
+  const autoDraft = async (id: string) => {
+    setTranscribingId(id);
+    try {
+      const r = await transcribeFn({ data: { voiceNoteId: id } });
+      if (!r.ok) return;
+      const p = await proposeFn({
+        data: { voice_note_ids: [id], include_voice_notes: false, include_threads: false },
+      });
+      toast(
+        p.ok && p.proposed_timeline?.length
+          ? "Transcript ready. A draft is waiting for you in Drafts to review."
+          : "Transcript ready.",
+      );
+    } catch {
+      /* the recording is safe; transcription can be retried below */
+    } finally {
+      setTranscribingId(null);
+      load();
+    }
   };
 
   const remove = async (n: Note) => {
