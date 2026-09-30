@@ -51,7 +51,13 @@ export const getMyCourtTimeline = createServerFn({ method: "GET" })
           ? db.from("incidents").select("*").eq("user_id", context.userId).in("id", incIds).is("deleted_at", null)
           : Promise.resolve({ data: [] }),
         evIds.length
-          ? db.from("evidence").select("*").eq("user_id", context.userId).in("id", evIds).is("deleted_at", null)
+          ? db
+              .from("evidence")
+              .select("*")
+              .eq("user_id", context.userId)
+              .in("id", evIds)
+              .is("deleted_at", null)
+              .neq("review_status", "suggested")
           : Promise.resolve({ data: [] }),
         db
           .from("attorney_document_requests")
