@@ -1611,6 +1611,8 @@ function Overview({ data }: { data: CaseData }) {
             <button className="att-btn-secondary" onClick={() => window.print()}>
               <Printer size={13} /> Print case file
             </button>
+            <BinderLink />
+
           </div>
         </div>
       </div>
