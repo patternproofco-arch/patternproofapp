@@ -903,16 +903,15 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: link } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence")
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .eq("status", "active")
-      .maybeSingle();
-    if (!link) return { ok: false as const, reason: "no-active-link" as const };
+    const access = await import("@/lib/attorney-access.server");
+    let link: Awaited<ReturnType<typeof access.assertLink>>;
+    try {
+      link = await access.assertLink(supabaseAdmin, context.userId, data.clientId);
+    } catch {
+      return { ok: false as const, reason: "no-active-link" as const };
+    }
 
-    const includeAllIncidents = link.include_all_incidents !== false;
+    const includeAllIncidents = link.include_all_incidents === true;
     await supabaseAdmin
       .rpc("record_audit_event", {
         p_user_id: data.clientId,
