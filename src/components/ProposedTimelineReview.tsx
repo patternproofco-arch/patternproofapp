@@ -18,6 +18,8 @@ type Draft = {
   witnesses?: string | null;
   emotional_impact?: string | null;
   people_present?: string | null;
+  /** Set only on drafts built from an answer to a professional's request. */
+  share_with_link_id?: string | null;
 };
 
 type Proposal = {
@@ -107,13 +109,17 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
   const onAccept = async (p: Proposal, withEdits?: Draft) => {
     setBusyId(p.id);
     try {
-      await acceptFn({
+      const r = await acceptFn({
         data: {
           proposal_id: p.id,
           ...(withEdits ? { edits: withEdits } : {}),
         },
       });
-      toast("Added to your timeline.");
+      toast(
+        r?.shared
+          ? "Added to your timeline and to the binder your attorney sees."
+          : "Added to your timeline.",
+      );
       setEditingId(null);
       setEditDraft(null);
       setItems((prev) => prev.filter((x) => x.id !== p.id));
