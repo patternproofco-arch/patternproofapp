@@ -14,6 +14,11 @@ export const peekSurvivorInvite = createServerFn({ method: "POST" })
     if (!inv) return { status: "not-found" as const };
     if (inv.status !== "pending") return { status: inv.status as "accepted" | "revoked" };
     if (inv.expires_at && new Date(inv.expires_at) < new Date()) return { status: "expired" as const };
+    await supabaseAdmin
+      .from("attorney_survivor_invites")
+      .update({ opened_at: new Date().toISOString() })
+      .eq("id", inv.id)
+      .is("opened_at", null);
     const { data: prof } = await supabaseAdmin.from("attorney_profiles").select("full_name,firm_name").eq("user_id", inv.attorney_user_id).maybeSingle();
     return {
       status: "ok" as const,
