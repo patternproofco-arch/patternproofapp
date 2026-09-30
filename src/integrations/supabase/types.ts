@@ -543,10 +543,17 @@ export type Database = {
           client_user_id: string
           completed_at: string | null
           created_at: string
+          declined_at: string | null
           details: string | null
+          draft_saved_at: string | null
+          due_at: string | null
           id: string
+          kind: string
           link_id: string
+          response_evidence_ids: string[]
+          response_note: string | null
           status: string
+          submitted_at: string | null
           title: string
         }
         Insert: {
@@ -554,10 +561,17 @@ export type Database = {
           client_user_id: string
           completed_at?: string | null
           created_at?: string
+          declined_at?: string | null
           details?: string | null
+          draft_saved_at?: string | null
+          due_at?: string | null
           id?: string
+          kind?: string
           link_id: string
+          response_evidence_ids?: string[]
+          response_note?: string | null
           status?: string
+          submitted_at?: string | null
           title: string
         }
         Update: {
@@ -565,10 +579,17 @@ export type Database = {
           client_user_id?: string
           completed_at?: string | null
           created_at?: string
+          declined_at?: string | null
           details?: string | null
+          draft_saved_at?: string | null
+          due_at?: string | null
           id?: string
+          kind?: string
           link_id?: string
+          response_evidence_ids?: string[]
+          response_note?: string | null
           status?: string
+          submitted_at?: string | null
           title?: string
         }
         Relationships: [
