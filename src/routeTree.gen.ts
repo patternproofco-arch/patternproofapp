@@ -118,6 +118,7 @@ import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AdvocateAdvocateCasesIndexRouteImport } from './routes/_advocate/advocate-cases.index'
 import { Route as AdvocateAdvocateCasesClientIdRouteImport } from './routes/_advocate/advocate-cases.$clientId'
+import { Route as AttorneyBinderClientIdRouteImport } from './routes/_attorney/binder.$clientId'
 import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/clients.index'
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as AttorneyMattersIndexRouteImport } from './routes/_attorney/matters.index'
@@ -700,6 +701,11 @@ const AdvocateAdvocateCasesClientIdRoute =
     path: '/advocate-cases/$clientId',
     getParentRoute: () => AdvocateRoute,
   } as any)
+const AttorneyBinderClientIdRoute = AttorneyBinderClientIdRouteImport.update({
+  id: '/binder/$clientId',
+  path: '/binder/$clientId',
+  getParentRoute: () => AttorneyRoute,
+} as any)
 const AttorneyClientsIndexRoute = AttorneyClientsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -901,6 +907,7 @@ export interface FileRoutesByFullPath {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
+  '/binder/$clientId': typeof AttorneyBinderClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
@@ -1024,6 +1031,7 @@ export interface FileRoutesByTo {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
+  '/binder/$clientId': typeof AttorneyBinderClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
@@ -1153,6 +1161,7 @@ export interface FileRoutesById {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_advocate/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
+  '/_attorney/binder/$clientId': typeof AttorneyBinderClientIdRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_attorney/matters/$matterId': typeof AttorneyMattersMatterIdRoute
   '/_authenticated/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
@@ -1280,6 +1289,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
+    | '/binder/$clientId'
     | '/clients/$clientId'
     | '/matters/$matterId'
     | '/admin/org-requests'
@@ -1403,6 +1413,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
+    | '/binder/$clientId'
     | '/clients/$clientId'
     | '/matters/$matterId'
     | '/admin/org-requests'
@@ -1531,6 +1542,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_advocate/advocate-cases/$clientId'
+    | '/_attorney/binder/$clientId'
     | '/_attorney/clients/$clientId'
     | '/_attorney/matters/$matterId'
     | '/_authenticated/admin/org-requests'
@@ -2383,6 +2395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdvocateAdvocateCasesClientIdRouteImport
       parentRoute: typeof AdvocateRoute
     }
+    '/_attorney/binder/$clientId': {
+      id: '/_attorney/binder/$clientId'
+      path: '/binder/$clientId'
+      fullPath: '/binder/$clientId'
+      preLoaderRoute: typeof AttorneyBinderClientIdRouteImport
+      parentRoute: typeof AttorneyRoute
+    }
     '/_attorney/clients/': {
       id: '/_attorney/clients/'
       path: '/'
@@ -2549,6 +2568,7 @@ interface AttorneyRouteChildren {
   AttorneyTeamRoute: typeof AttorneyTeamRoute
   AttorneyTrustRoute: typeof AttorneyTrustRoute
   AttorneyTwoFactorRoute: typeof AttorneyTwoFactorRoute
+  AttorneyBinderClientIdRoute: typeof AttorneyBinderClientIdRoute
   AttorneyMattersMatterIdRoute: typeof AttorneyMattersMatterIdRoute
   AttorneyMattersIndexRoute: typeof AttorneyMattersIndexRoute
 }
@@ -2565,6 +2585,7 @@ const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneyTeamRoute: AttorneyTeamRoute,
   AttorneyTrustRoute: AttorneyTrustRoute,
   AttorneyTwoFactorRoute: AttorneyTwoFactorRoute,
+  AttorneyBinderClientIdRoute: AttorneyBinderClientIdRoute,
   AttorneyMattersMatterIdRoute: AttorneyMattersMatterIdRoute,
   AttorneyMattersIndexRoute: AttorneyMattersIndexRoute,
 }

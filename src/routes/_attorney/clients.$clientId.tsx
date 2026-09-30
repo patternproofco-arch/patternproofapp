@@ -1611,6 +1611,8 @@ function Overview({ data }: { data: CaseData }) {
             <button className="att-btn-secondary" onClick={() => window.print()}>
               <Printer size={13} /> Print case file
             </button>
+            <BinderLink />
+
           </div>
         </div>
       </div>
@@ -4889,5 +4891,14 @@ function CrossReferenceSection({ clientId }: { clientId: string }) {
         </div>
       )}
     </div>
+  );
+}
+
+function BinderLink() {
+  const { clientId } = useParams({ from: "/_attorney/clients/$clientId" });
+  return (
+    <Link to="/binder/$clientId" params={{ clientId }} className="att-btn-secondary">
+      <FileText size={13} /> Exhibit binder (by date)
+    </Link>
   );
 }

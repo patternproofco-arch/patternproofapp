@@ -21,5 +21,5 @@
 ## Open (Sep 30)
 - [ ] Live two-account screen check — blocked: practice attorney 2-step sign-in rejects test sign-in; practice survivor not onboarded
 - [ ] Real-inbox discreet invite test — needs user to send one invite to their own address from the attorney portal
-- [ ] Master court packet / exhibit binder page (shared incidents + evidence + submitted requests, by date)
+- [x] Master court packet / exhibit binder page (/binder/$clientId)
 - [x] Request answers → draft entry in Drafts to review (note + transcript/photo text, survivor approves)
