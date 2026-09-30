@@ -570,7 +570,17 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
       .eq("id", proposal.id)
       .eq("user_id", userId);
 
-    return { ok: true as const, incident_id: incident.id };
+    // A draft built from an answer to a professional's request carries the
+    // sharing link the survivor already answered. Approving it puts the entry
+    // on that professional's binder too — never any other link, and never
+    // when sharing has ended.
+    const shareLinkId = (finalDraft as { share_with_link_id?: unknown }).share_with_link_id;
+    let sharedWithProfessional = false;
+    if (typeof shareLinkId === "string" && shareLinkId) {
+      sharedWithProfessional = await shareIncidentWithLink(shareLinkId, userId, incident.id);
+    }
+
+    return { ok: true as const, incident_id: incident.id, shared: sharedWithProfessional };
   });
 
 /** Deny a proposal — it will not be auto-reproposed. */
