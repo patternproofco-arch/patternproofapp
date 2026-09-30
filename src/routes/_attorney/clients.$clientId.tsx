@@ -39,6 +39,9 @@ import {
   listAttorneyNotes,
   upsertAttorneyNote,
   createDocRequest,
+} from "@/lib/attorney-portal.functions";
+import { EvidenceRequestsPanel } from "@/components/attorney/EvidenceRequestsPanel";
+import {
   getCaseNote,
   saveCaseNote,
   listClientThreads,
@@ -2075,6 +2078,7 @@ function GapsTab({ data }: { data: CaseData }) {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
+      <EvidenceRequestsPanel clientId={clientId} />
       <div
         className="att-card"
         style={{ background: "var(--pp-card)", borderColor: "rgba(26,18,36,0.14)" }}
