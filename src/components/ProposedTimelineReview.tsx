@@ -3,8 +3,10 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   acceptProposedIncident,
   denyProposedIncident,
+  listDraftSourceMaterials,
   listProposedIncidents,
   proposeTimelineFromEvidence,
+  saveDraftSourceText,
 } from "@/lib/propose-timeline.functions";
 import { toast } from "sonner";
 import { Check, Pencil, Sparkles, Trash2, X } from "lucide-react";
@@ -35,6 +37,15 @@ type Proposal = {
   created_at: string;
 };
 
+type SourceMaterial = {
+  evidence_id: string;
+  title: string;
+  kind: "audio" | "video" | "photo" | "file";
+  field: "transcript" | "extracted_text";
+  text: string;
+  status: string | null;
+};
+
 /**
  * Review queue for AI-proposed timeline entries.
  * Nothing becomes a real incident until the survivor accepts (optionally after editing).
@@ -44,6 +55,8 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
   const proposeFn = useServerFn(proposeTimelineFromEvidence);
   const acceptFn = useServerFn(acceptProposedIncident);
   const denyFn = useServerFn(denyProposedIncident);
+  const sourceFn = useServerFn(listDraftSourceMaterials);
+  const saveSourceFn = useServerFn(saveDraftSourceText);
 
   const [items, setItems] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +64,8 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Draft | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [sourceItems, setSourceItems] = useState<SourceMaterial[]>([]);
+  const [sourceLoading, setSourceLoading] = useState(false);
 
   const reload = useCallback(async () => {
     try {
@@ -99,16 +114,38 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
   const startEdit = (p: Proposal) => {
     setEditingId(p.id);
     setEditDraft({ ...(p.draft ?? {}) });
+    setSourceItems([]);
+    if ((p.source_evidence_ids?.length ?? 0) > 0) {
+      setSourceLoading(true);
+      void sourceFn({ data: { proposal_id: p.id } })
+        .then((r) => setSourceItems((r.items as SourceMaterial[]) ?? []))
+        .catch(() => setSourceItems([]))
+        .finally(() => setSourceLoading(false));
+    }
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditDraft(null);
+    setSourceItems([]);
+    setSourceLoading(false);
   };
 
   const onAccept = async (p: Proposal, withEdits?: Draft) => {
     setBusyId(p.id);
     try {
+      // Persist survivor-edited transcript / OCR before the entry joins the timeline.
+      if (withEdits && sourceItems.length > 0) {
+        for (const src of sourceItems) {
+          await saveSourceFn({
+            data: {
+              evidence_id: src.evidence_id,
+              field: src.field,
+              text: src.text,
+            },
+          });
+        }
+      }
       const r = await acceptFn({
         data: {
           proposal_id: p.id,
@@ -122,6 +159,7 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
       );
       setEditingId(null);
       setEditDraft(null);
+      setSourceItems([]);
       setItems((prev) => prev.filter((x) => x.id !== p.id));
       onAccepted?.();
     } catch (e) {
@@ -193,7 +231,7 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
         </p>
       ) : items.length === 0 ? (
         <p className="mt-4 text-[13px]" style={{ color: "var(--pp-muted)" }}>
-          No pending drafts. Upload evidence, then use Organize uploads to generate suggestions.
+          No pending drafts. Upload a photo, audio, or video — or use Organize uploads — then review here before anything joins your timeline.
         </p>
       ) : (
         <div className="mt-4 space-y-3">
@@ -264,6 +302,59 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
                         />
                       </div>
                     </div>
+                    {(sourceLoading || sourceItems.length > 0) && (
+                      <div
+                        className="mt-3 rounded-xl p-3"
+                        style={{
+                          background: "var(--pp-paper)",
+                          boxShadow: "var(--pp-shadow-sm)",
+                        }}
+                      >
+                        <div className="label-eyebrow">Source text to review</div>
+                        <p
+                          className="mt-1 text-[12px] leading-relaxed"
+                          style={{ color: "var(--pp-muted)" }}
+                        >
+                          Check the transcript or photo text before this joins your timeline. Soft
+                          claims only — edit what is wrong; nothing is shared until you already
+                          chose to share.
+                        </p>
+                        {sourceLoading ? (
+                          <p className="mt-2 text-[12px]" style={{ color: "var(--pp-muted)" }}>
+                            Loading source text…
+                          </p>
+                        ) : (
+                          <div className="mt-2 space-y-3">
+                            {sourceItems.map((src) => (
+                              <div key={src.evidence_id}>
+                                <label className="label-eyebrow">
+                                  {src.kind === "audio" || src.kind === "video"
+                                    ? "Transcript"
+                                    : src.kind === "photo"
+                                      ? "Photo text (OCR)"
+                                      : "Extracted text"}{" "}
+                                  · {src.title}
+                                </label>
+                                <textarea
+                                  className="input-pp mt-1"
+                                  rows={4}
+                                  value={src.text}
+                                  onChange={(e) =>
+                                    setSourceItems((prev) =>
+                                      prev.map((row) =>
+                                        row.evidence_id === src.evidence_id
+                                          ? { ...row, text: e.target.value }
+                                          : row,
+                                      ),
+                                    )
+                                  }
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>

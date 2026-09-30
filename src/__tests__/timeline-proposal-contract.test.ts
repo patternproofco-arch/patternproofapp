@@ -27,12 +27,15 @@ const ALLOWED_PRECISIONS = [
 
 describe("accepting an AI-drafted entry matches the database contract", () => {
   it("only ever writes a source value the incidents trigger accepts", () => {
-    const written = [...proposals.matchAll(/source:\s*"([a-z_]+)"/g)]
-      .map((m) => m[1]!)
-      // incident_evidence_links.source is a free-text provenance column.
-      .filter((v) => !v.startsWith("ai_proposed_survivor_confirmed"));
+    // Soft (model-null) drafts → survivor; AI drafts → ai_extracted.
+    expect(proposals).toMatch(
+      /source:\s*proposal\.model\s*\?\s*"ai_extracted"\s*:\s*"survivor"/,
+    );
+    const written = [...proposals.matchAll(/"(survivor|ai_extracted)"/g)].map((m) => m[1]!);
     expect(written.length).toBeGreaterThan(0);
     for (const value of written) expect(ALLOWED_SOURCES).toContain(value);
+    // incident_evidence_links provenance stays free-text and is not an incidents.source.
+    expect(proposals).toContain('source: "ai_proposed_survivor_confirmed"');
   });
 
   it("stamps a human confirmation time so the entry counts toward recurrence", () => {
