@@ -34,6 +34,10 @@ describe("auth soft-claim empty-config UX", () => {
     const src = readFileSync("src/lib/auth-context.tsx", "utf8");
     expect(src).toMatch(/isClientSupabaseConfigured/);
     expect(src).toMatch(/data-testid="supabase-config-unavailable"/);
+    expect(src).toContain("<h1>This app isn’t ready right now.</h1>");
+    expect(src).toContain("This is a problem on our side, not something you did.");
+    expect(src).toMatch(/this version/i);
+    expect(src).not.toMatch(/this deployment/i);
     expect(src).toMatch(/isn.?t configured/i);
     expect(src).toMatch(/try again later/i);
     expect(src).toMatch(/contact support/i);

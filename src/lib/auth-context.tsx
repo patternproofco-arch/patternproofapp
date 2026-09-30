@@ -24,10 +24,12 @@ function ConfigUnavailable() {
       role="alert"
       data-testid="supabase-config-unavailable"
     >
-      <p>This app isn’t ready right now.</p>
+      <h1>This app isn’t ready right now.</h1>
       <p>
-        It isn’t configured on this deployment. Please try again later, or contact support if you
-        need help.
+        This is a problem on our side, not something you did. Please try again in a little while.
+      </p>
+      <p>
+        This version isn’t configured. Please try again later, or contact support if you need help.
       </p>
     </div>
   );
