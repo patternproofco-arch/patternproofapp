@@ -12,3 +12,8 @@
 - [ ] Pre-existing failing check: landing page missing "Sample · demo data · not a real record" folio preview (media-timeline-flow.test.ts)
 - [x] Confirm Lovable Cloud/Supabase is enabled and healthy for this project
 - [ ] Track .env (6 publishable Supabase names only) so published builds get sign-in values; update conflicting tests; add loud prod build warning; auth bootstrap failure state; verify with typecheck/tests/build. Do not publish, no DB changes.
+- [x] Org grant report (counts only, <5 bucketed) in partner dashboard
+- [x] Structured evidence requests: attorney panel + survivor Requests tray (draft/send/pass; staged until send)
+- [x] Drafts to review page for AI-transcribed/extracted text
+- [x] Invite portal: already complete (create/list/resend/revoke, survivor picks items)
+- [ ] Live two-account privacy check on pattern-proof.tech (needs confirmed survivor + subscribed attorney test pair)
