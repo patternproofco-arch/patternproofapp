@@ -76,7 +76,7 @@ export const listSurvivorInvites = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabaseAdmin = await admin();
-    const { data, error } = await supabaseAdmin.from("attorney_survivor_invites").select("id,survivor_email,survivor_name,personal_note,invite_token,status,expires_at,accepted_at,created_at").eq("attorney_user_id", context.userId).order("created_at", { ascending: false });
+    const { data, error } = await supabaseAdmin.from("attorney_survivor_invites").select("id,survivor_email,survivor_name,personal_note,invite_token,status,expires_at,accepted_at,opened_at,created_at").eq("attorney_user_id", context.userId).order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     const now = Date.now();
     return { invites: (data ?? []).map((i) => ({ ...i, effective_status: i.status === "pending" && i.expires_at && new Date(i.expires_at).getTime() < now ? ("expired" as const) : (i.status as "pending" | "accepted" | "revoked" | "expired") })) };

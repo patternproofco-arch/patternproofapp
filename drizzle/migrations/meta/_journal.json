@@ -29,6 +29,13 @@
       "when": 1790735615375,
       "tag": "0003_evidence_request_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790793348798,
+      "tag": "0004_freeze_legacy_share_all_and_invite_opened",
+      "breakpoints": true
     }
   ]
 }

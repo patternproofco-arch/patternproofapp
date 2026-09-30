@@ -940,6 +940,7 @@ export type Database = {
           expires_at: string
           id: string
           invite_token: string
+          opened_at: string | null
           personal_note: string | null
           status: string
           survivor_email: string
@@ -954,6 +955,7 @@ export type Database = {
           expires_at?: string
           id?: string
           invite_token?: string
+          opened_at?: string | null
           personal_note?: string | null
           status?: string
           survivor_email: string
@@ -968,6 +970,7 @@ export type Database = {
           expires_at?: string
           id?: string
           invite_token?: string
+          opened_at?: string | null
           personal_note?: string | null
           status?: string
           survivor_email?: string
