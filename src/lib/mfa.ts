@@ -49,14 +49,8 @@ async function probeFactorsOverNetwork(): Promise<FactorProbe> {
       };
       const body = user.factors ?? [];
 
-      // GoTrue may return { totp, phone, ... } or a flat factor array.
-      if (Array.isArray(body)) {
-        const totp = body.filter(
-          (f) => !f.factor_type || f.factor_type === "totp",
-        ) as Array<{ id: string; status: string }>;
-        return { ok: true, totp };
-      }
-      return { ok: true, totp: body.totp ?? [] };
+      const totp = body.filter((f) => !f.factor_type || f.factor_type === "totp");
+      return { ok: true, totp };
     } finally {
       clearTimeout(timer);
     }
