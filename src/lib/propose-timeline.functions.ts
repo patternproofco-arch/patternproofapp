@@ -171,6 +171,7 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
         evidence_ids: z.array(z.string().uuid()).max(40).optional(),
         include_threads: z.boolean().optional().default(true),
         include_voice_notes: z.boolean().optional().default(true),
+        voice_note_ids: z.array(z.string().uuid()).max(10).optional(),
         date_range: z
           .object({
             from: z.string().optional(),
@@ -192,7 +193,7 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
     let evidenceQuery = supabase
       .from("evidence")
       .select(
-        "id, title, file_type, mime, description, date, event_at, event_timestamp_kind, exif_captured_at, in_image_timestamp_text, transcript, transcript_status, ingested_at, created_at, linked_incident_id, original_filename",
+        "id, title, file_type, mime, description, date, event_at, event_timestamp_kind, exif_captured_at, in_image_timestamp_text, transcript, transcript_status, extracted_text, extraction_status, ingested_at, created_at, linked_incident_id, original_filename",
       )
       .eq("user_id", userId)
       .is("deleted_at", null)
@@ -206,8 +207,13 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
       evidenceQuery = evidenceQuery.is("linked_incident_id", null);
     }
 
-    const { data: evidenceRows, error: evidenceError } = await evidenceQuery;
+    // A voice-note-only request must not sweep in unrelated uploads.
+    const voiceOnly = Boolean(data.voice_note_ids?.length) && !data.evidence_ids?.length;
+    const { data: fetchedRows, error: evidenceError } = voiceOnly
+      ? { data: [], error: null }
+      : await evidenceQuery;
     if (evidenceError) throw new Error(evidenceError.message);
+    const evidenceRows = fetchedRows as NonNullable<Awaited<typeof evidenceQuery>["data"]>;
 
     // Do not create repeated drafts for uploads that are already waiting for
     // survivor review. Accepted uploads are excluded by linked_incident_id.
@@ -266,6 +272,12 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
       if (row.transcript && row.transcript_status === "ready") {
         text = [text, "--- Transcript ---", row.transcript].filter(Boolean).join("\n");
       }
+      // Words read out of a photo, screenshot or document are material too.
+      if (row.extracted_text && row.extraction_status === "ready") {
+        text = [text, "--- Text read from the file ---", row.extracted_text]
+          .filter(Boolean)
+          .join("\n");
+      }
       materials.push({
         evidence_id: row.id,
         kind: row.mime?.startsWith("video/")
@@ -316,14 +328,22 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
     }
 
     // ---- Optional: voice notes ----
-    if (data.include_voice_notes) {
-      const { data: notes } = await supabase
+    if (data.include_voice_notes || data.voice_note_ids?.length) {
+      let notesQuery = supabase
         .from("voice_notes")
         .select("id, title, date, transcript, transcription_status, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(10);
+      if (data.voice_note_ids?.length) notesQuery = notesQuery.in("id", data.voice_note_ids);
+      const { data: notes } = await notesQuery;
       for (const n of notes ?? []) {
+        // A recording with no finished transcript has nothing to draft from,
+        // and one already waiting in Drafts should not be queued twice.
+        if (data.voice_note_ids?.length) {
+          if (n.transcription_status !== "ready" || !n.transcript) continue;
+          if (alreadyProposed.has(n.id)) continue;
+        }
         materials.push({
           evidence_id: n.id,
           kind: "voice_note",
