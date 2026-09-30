@@ -1,59 +1,42 @@
-# Investigation findings: published build missing sign-in values
+# Plan: Grant report, invite portal finish, evidence requests, draft review tray
 
-Read-only investigation. No files were edited, nothing was published, and no migrations were run. No secret values are shown here.
+Several of these already partly exist. This plan builds on what is there rather than duplicating it, in the order you listed.
 
-## 1. Root .env in the sandbox
-The file exists, written Sep 29 at 13:43 UTC. It holds these names:
-- SUPABASE_PROJECT_ID: filled in (yes)
-- SUPABASE_PUBLISHABLE_KEY: filled in (yes)
-- SUPABASE_URL: filled in (yes)
-- VITE_SUPABASE_PROJECT_ID: filled in (yes)
-- VITE_SUPABASE_PUBLISHABLE_KEY: filled in (yes)
-- VITE_SUPABASE_URL: filled in (yes)
+## What already exists
+- Attorney invites a survivor by link (survivor-invite page) and the survivor chooses what to share (Share with attorney page, now item-level and private-by-default).
+- Attorney can ask for documents (basic request list) and the organization has a follow-up list.
+- An evidence review page and "proposed timeline" drafts exist for AI-extracted entries.
 
-`.env.production` and `.env.development` each hold only VITE_PAYMENTS_CLIENT_TOKEN, and it is filled in.
+## 1. Organization grant report page
+- New page in the organization/attorney portal: "Grant report".
+- Pick a date range; shows counts only: people served, cases opened/closed, follow-ups made and completed, referrals, and average days to first follow-up.
+- No names, no entry contents, no survivor details — aggregate numbers only, with small numbers (under 5) shown as "fewer than 5".
+- Download as a printable page and a spreadsheet file.
+- Neutral wording: "Documented entries", never severity or outcomes.
 
-## 2. Is .env tracked in git, and what does publish read?
-- Git tracks only `.env.example`. `.gitignore` lines 35–37 (`.env`, `.env.*`, `!.env.example`) exclude `.env`, `.env.production` and `.env.development`.
-- Publish can only see what gets committed. The platform writes the managed `.env` into the sandbox, and `.gitignore` then keeps that file out of the commit the publish build uses. So the published build has no VITE_SUPABASE_* values.
-- This matches the regression history: the security fix (issue #59) deleted `.env` and `.env.production` from git and removed the fallback values in `vite.config.ts`. After that, published builds came out with empty values.
-- Two things are inferred, not directly seen: that the publish builder uses only committed files, and that it does not add these values on its own. The evidence supports both: the sandbox has the values, and the live bundle doesn't.
+## 2. Invite portal (finish end to end)
+- Attorney side: one "Invite a client" form (name, safe contact, optional note) with expiring single-use link and a list of pending/accepted/expired invites with resend and cancel.
+- Survivor side: open link, create account (or sign in), then a step that lists their incidents and evidence with checkboxes — nothing pre-checked — then confirm.
+- Same flow for advocates.
 
-## 3. Connected backend
-- The connected Lovable Cloud backend is **muynotmkcmehxnkhffzl**. It is the only project ref in `.env`, where it appears 4 times.
-- It is not obljoemiijkryjlxihic and not xislyfqrcfpwtzonyhcr.
-- A mismatch to note: `supabase/config.toml` says `obljoemiijkryjlxihic`. That file is generated and is not what the app connects to. The test `supabase-production-env.test.ts` only checks that the file has some ref. Do not point the app at obljoe.
+## 3. Structured evidence request engine
+- Professional creates a request: title, what is needed (e.g. "files from previous court appearances"), optional due date, suggested type (document, photo, recording, note).
+- Survivor sees a quiet "Requests" tray: can upload/answer, save as draft, submit, or decline with no reason required.
+- Nothing is visible to the professional until the survivor presses Submit. Submitted items create a draft entry that the survivor must approve before it appears on the timeline.
+- Professional sees status only: open, submitted, declined.
 
-## 4. Are VITE_* values passed into the publish build?
-- In the sandbox, yes: `vite.config.ts` runs `loadEnv(...)` and `Object.assign(process.env, ...)`, which read `.env` from disk.
-- In publish, no: `.env` is git-ignored, so it is missing from the build, and `requiredBuildEnv()` returns nothing, so no values get set.
-- The supported Lovable Cloud setup is a committed `.env` holding only the URL, the project ID and the publishable key. These values are designed to be public and end up inside the site's scripts anyway. Private keys stay in Secrets. The reserved SUPABASE_* names can't be set by hand in Secrets, which confirms that the committed `.env` is how they get in.
+## 4. Draft review tray
+- One tray listing every AI draft: voice/video transcripts and text read from photos and files.
+- Each draft shows the source, the extracted text, suggested date (clearly labeled event / capture / upload time), and a suggested description.
+- Survivor can edit, approve (adds to timeline, marked "User-reviewed"), or discard. Nothing reaches the timeline without approval.
 
-## 5. Smallest change (proposal only)
-Change `.gitignore` so the managed `.env` is committed and every other env file stays ignored:
+## 5. Publish and verify
+- Publish after the above build and tests pass.
+- Live check with two test accounts: survivor shares only some entries; invited attorney confirms unshared entries, files, and counts do not appear anywhere in their portal.
+- Note: this needs two real test accounts. The existing fictional QA accounts will be used unless you say otherwise.
 
-```text
-# replace lines 35-37
-.env.*
-!.env.example
-```
-In short: remove the bare `.env` line and keep `.env.*` and `!.env.example`. `.env.production` and `.env.development` stay ignored. They hold only the payment token meant for the browser, but per #59 they should stay out of git unless you decide otherwise.
-
-These tests conflict with that change and would need updating:
-- `src/__tests__/supabase-production-env.test.ts` currently requires that `.env` does not exist. Change it so `.env` may exist but may hold only VITE_SUPABASE_URL, VITE_SUPABASE_PROJECT_ID, VITE_SUPABASE_PUBLISHABLE_KEY and the matching non-VITE names. Nothing with a SERVICE_ROLE or SECRET name is allowed.
-- `src/__tests__/no-hardcoded-credentials.test.ts` and the gitleaks tip scan should be checked. A publishable key in `.env` may be flagged, and would need an allow rule limited to publishable keys in `.env`.
-
-`vite.config.ts` needs no change. Once `.env` reaches the build, `loadEnv` plus `requiredBuildEnv` set the values correctly. An optional extra guard: when `NODE_ENV=production` and VITE_SUPABASE_URL is missing, print a loud build warning so this can't slip through silently again.
-
-Other option if you want to keep `.env` out of git: ask Lovable support to supply these values in the publish build. That depends on the platform, not the code.
-
-## Rate-limit (ip_hash) migration status on the connected backend
-- `support_requests.ip_hash`: exists
-- `ai_chat_requests.ip_hash`: exists
-- Signed-in users can run `record_audit_event`: yes
-- The contents of `drizzle/migrations/0001_rate_limit_columns_and_audit_grant.sql` and `supabase/migrations/20260924161000_guide_chat_support_rate_limit_columns.sql` are both live on muynotmkcmehxnkhffzl. The changes are in place, which is what matters. Neither version number appears in the migration history table, because the changes were applied through the managed migration path under a different name.
-
-## After approval (build mode)
-1. Apply the `.gitignore` change and update the two tests.
-2. Run the test suite and a production build without the sandbox env loaded, to confirm the values come only from `.env`.
-3. Publish only when you say so, then confirm the live bundle contains the backend address and that sign-in finishes.
+## Technical details
+- New tables: `evidence_requests` (professional_id, client_user_id, link_id, title, details, kind, due_at, status draft/open/submitted/declined) and `evidence_request_responses`; reuse `proposed_incidents` / `evidence_incident_drafts` for drafts. GRANTs + RLS scoped to client or linked professional; server functions via `requireSupabaseAuth`.
+- Grant report: server function aggregating `org_follow_ups`, `advocate_client_links`, `referral_engagements` with org-member check; k-anonymity floor of 5.
+- All professional reads keep the existing item-scope checks (`applyCaseScope`, `resolveAdvocateGrant`).
+- Draft tray route under `_authenticated/drafts`; approve writes incident with `source = user_reviewed`.
