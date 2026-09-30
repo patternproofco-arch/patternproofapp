@@ -118,6 +118,51 @@ const DraftIncidentSchema = z.object({
 
 type DraftIncident = z.infer<typeof DraftIncidentSchema>;
 
+/**
+ * Add one approved entry to the exact sharing link the survivor answered.
+ *
+ * Fails closed: the link must belong to this survivor, still be active, not
+ * revoked and not expired. Legacy "share everything" links are frozen first
+ * so this never widens an old grant. Returns whether the entry was shared.
+ */
+async function shareIncidentWithLink(
+  linkId: string,
+  userId: string,
+  incidentId: string,
+): Promise<boolean> {
+  try {
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    const { freezeLegacyBlanketScope } = await import("@/lib/grant-snapshot.server");
+    const { data: link } = await db
+      .from("attorney_client_links")
+      .select(
+        "id,status,revoked_at,expires_at,created_at,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence",
+      )
+      .eq("id", linkId)
+      .eq("client_user_id", userId)
+      .maybeSingle();
+    if (!link || link.status !== "active" || link.revoked_at) return false;
+    if (link.expires_at && new Date(link.expires_at).getTime() < Date.now()) return false;
+
+    await freezeLegacyBlanketScope(db, "attorney_client_links", link, userId);
+    const { data: fresh } = await db
+      .from("attorney_client_links")
+      .select("scope_incidents")
+      .eq("id", linkId)
+      .single();
+    const current = (fresh?.scope_incidents ?? link.scope_incidents ?? []) as string[];
+    if (current.includes(incidentId)) return true;
+    const { error } = await db
+      .from("attorney_client_links")
+      .update({ scope_incidents: [...current, incidentId] })
+      .eq("id", linkId)
+      .eq("client_user_id", userId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
