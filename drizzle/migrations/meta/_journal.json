@@ -43,6 +43,13 @@
       "when": 1790796426211,
       "tag": "0005_extend_practice_attorney_subscription",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790807067433,
+      "tag": "0006_grant_harbor_legal_group_pilot_trial",
+      "breakpoints": true
     }
   ]
 }
