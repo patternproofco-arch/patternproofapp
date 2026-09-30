@@ -171,6 +171,7 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
         evidence_ids: z.array(z.string().uuid()).max(40).optional(),
         include_threads: z.boolean().optional().default(true),
         include_voice_notes: z.boolean().optional().default(true),
+        voice_note_ids: z.array(z.string().uuid()).max(10).optional(),
         date_range: z
           .object({
             from: z.string().optional(),
@@ -206,8 +207,13 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
       evidenceQuery = evidenceQuery.is("linked_incident_id", null);
     }
 
-    const { data: evidenceRows, error: evidenceError } = await evidenceQuery;
+    // A voice-note-only request must not sweep in unrelated uploads.
+    const voiceOnly = Boolean(data.voice_note_ids?.length) && !data.evidence_ids?.length;
+    const { data: fetchedRows, error: evidenceError } = voiceOnly
+      ? { data: [], error: null }
+      : await evidenceQuery;
     if (evidenceError) throw new Error(evidenceError.message);
+    const evidenceRows = fetchedRows as NonNullable<Awaited<typeof evidenceQuery>["data"]>;
 
     // Do not create repeated drafts for uploads that are already waiting for
     // survivor review. Accepted uploads are excluded by linked_incident_id.
