@@ -4893,3 +4893,12 @@ function CrossReferenceSection({ clientId }: { clientId: string }) {
     </div>
   );
 }
+
+function BinderLink() {
+  const { clientId } = useParams({ from: "/_attorney/clients/$clientId" });
+  return (
+    <Link to="/binder/$clientId" params={{ clientId }} className="att-btn-secondary">
+      <FileText size={13} /> Exhibit binder (by date)
+    </Link>
+  );
+}
