@@ -160,11 +160,13 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
             .in("id", access.shared_evidence_ids)
             .is("deleted_at", null)
         : Promise.resolve({ data: [] }),
-      access.include_escalation
+      // Flags only for shared entries — otherwise they reveal unshared ones.
+      access.include_escalation && wantIncidents && access.shared_incident_ids.length
         ? supabaseAdmin
             .from("escalation_flags")
             .select("id,flag_type,severity_tier,details,created_at")
             .eq("user_id", userId)
+            .in("incident_id", access.shared_incident_ids)
             .is("dismissed_at", null)
             .order("created_at", { ascending: false })
         : Promise.resolve({ data: [] }),
@@ -196,6 +198,7 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
       linked_incident_id: string | null;
       file_url: string;
     }>;
+    const sharedIncidentSet = new Set(filteredIncidents.map((i) => i.id));
     const evWithUrls = await Promise.all(
       evRows.map(async (e) => {
         const { data: signed } = await supabaseAdmin.storage
@@ -207,7 +210,11 @@ export const fetchSharedBundle = createServerFn({ method: "POST" })
           date: e.date,
           description: e.description,
           file_type: e.file_type,
-          linked_incident_id: e.linked_incident_id,
+          // Don't point at an entry that wasn't shared.
+          linked_incident_id:
+            e.linked_incident_id && sharedIncidentSet.has(e.linked_incident_id)
+              ? e.linked_incident_id
+              : null,
           signed_url: signed?.signedUrl ?? null,
         };
       }),

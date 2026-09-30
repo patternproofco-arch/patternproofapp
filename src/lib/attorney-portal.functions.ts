@@ -1698,7 +1698,7 @@ export const syncMissingEvidenceChecklistFromGaps = createServerFn({ method: "PO
 
     // Gaps are derived from the whole vault; hide unless everything is shared.
     if (!(await access.patternsVisibleToProfessional(supabaseAdmin, link, data.clientId))) {
-      return { gaps: [] };
+      return { added: 0, skipped: 0 };
     }
     const { data: pat } = await supabaseAdmin
       .from("pattern_analyses")
