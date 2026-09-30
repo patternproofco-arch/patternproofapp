@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { isClientSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 
 // Supabase's auth.oauth namespace is beta — narrow the surface we use so
@@ -22,7 +22,10 @@ type OAuthApi = {
     id: string,
   ) => Promise<{ data: OAuthDetails | null; error: { message: string } | null }>;
 };
-const oauth = (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
+function getOAuthApi(): OAuthApi {
+  // Lazy: module-level supabase.auth access would throw on empty bake before AuthProvider.
+  return (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
+}
 
 export const Route = createFileRoute("/.lovable/oauth/consent")({
   ssr: false,
@@ -31,6 +34,9 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   }),
   beforeLoad: async ({ search, location }) => {
     if (!search.authorization_id) throw new Error("Missing authorization_id");
+    if (!isClientSupabaseConfigured()) {
+      throw new Error("This version isn’t configured.");
+    }
     const { data } = await supabase.auth.getSession();
     const next = location.pathname + location.searchStr;
     if (!data.session) {
@@ -39,7 +45,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   },
   loader: async ({ location }) => {
     const authorizationId = new URLSearchParams(location.search).get("authorization_id")!;
-    const { data, error } = await oauth.getAuthorizationDetails(authorizationId);
+    const { data, error } = await getOAuthApi().getAuthorizationDetails(authorizationId);
     if (error) throw new Error(error.message);
     const immediate = data?.redirect_url ?? data?.redirect_to;
     if (immediate && !data?.client) throw redirect({ href: immediate });
@@ -71,6 +77,7 @@ function ConsentPage() {
   async function decide(approve: boolean) {
     setBusy(true);
     setErrorMsg(null);
+    const oauth = getOAuthApi();
     const { data, error } = approve
       ? await oauth.approveAuthorization(authorization_id)
       : await oauth.denyAuthorization(authorization_id);
