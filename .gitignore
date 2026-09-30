@@ -32,9 +32,9 @@ dist-ssr
 *.sw?
 
 # Environment variables — never commit secrets
-# Lovable Cloud may inject a local .env at Publish time; do NOT track filled values
-# (Guardian 2026-09-29: #59 class — filled .env must not stay on public main).
-.env
+# .env is tracked on purpose: it holds ONLY the six public Supabase values
+# (URL, project id, publishable/anon key) the published build needs. Publish
+# does not inject them. Never put secret keys in it; secrets stay in .env.*.
 .env.*
 !.env.example
 
