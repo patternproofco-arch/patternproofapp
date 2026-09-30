@@ -7,6 +7,7 @@ interface AuthCtx {
   session: Session | null;
   loading: boolean;
   configError: boolean;
+  connectError: boolean;
 }
 
 const Ctx = createContext<AuthCtx>({
@@ -14,6 +15,7 @@ const Ctx = createContext<AuthCtx>({
   session: null,
   loading: true,
   configError: false,
+  connectError: false,
 });
 
 /** Calm soft-claim UI when client Supabase config is missing — never hang on loading. */
@@ -35,11 +37,31 @@ function ConfigUnavailable() {
   );
 }
 
+/** Soft connect-failure UI — wording must stay distinct from empty-config copy. */
+function ConnectUnavailable() {
+  return (
+    <div
+      className="flex min-h-screen flex-col items-center justify-center gap-3 px-6 text-center"
+      role="alert"
+      data-testid="supabase-connect-unavailable"
+    >
+      <h1>This app isn’t ready right now.</h1>
+      <p>
+        This is a problem on our side, not something you did. Please try again in a little while.
+      </p>
+      <p>
+        We couldn’t connect right now. Please try again later, or contact support if you need help.
+      </p>
+    </div>
+  );
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const configured = isClientSupabaseConfigured();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(configured);
   const [configError, setConfigError] = useState(!configured);
+  const [connectError, setConnectError] = useState(false);
 
   useEffect(() => {
     // Empty / missing VITE_SUPABASE_* must fail closed before any auth call.
@@ -61,14 +83,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setLoading(false);
         })
         .catch(() => {
-          setConfigError(true);
+          // Network / session failures are not empty-config — keep copy separate.
+          setConnectError(true);
           setLoading(false);
         });
       return () => sub.subscription.unsubscribe();
     } catch {
-      // The Supabase client throws when its configuration is missing.
-      // Show a clear failure state instead of an endless loading screen.
-      setConfigError(true);
+      // Client construction threw unexpectedly after a configured check.
+      // Treat as connect failure, not empty-bake, so wording stays accurate.
+      setConnectError(true);
       setLoading(false);
       return undefined;
     }
@@ -78,8 +101,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return <ConfigUnavailable />;
   }
 
+  if (connectError) {
+    return <ConnectUnavailable />;
+  }
+
   return (
-    <Ctx.Provider value={{ user: session?.user ?? null, session, loading, configError }}>
+    <Ctx.Provider
+      value={{ user: session?.user ?? null, session, loading, configError, connectError }}
+    >
       {children}
     </Ctx.Provider>
   );

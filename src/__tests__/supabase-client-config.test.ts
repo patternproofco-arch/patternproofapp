@@ -46,10 +46,33 @@ describe("auth soft-claim empty-config UX", () => {
     expect(src).not.toMatch(/end-to-end encrypt|zero[- ]knowledge|tamper[- ]proof/i);
   });
 
+  it("getSession network catch uses connect-failure copy, not empty-config", () => {
+    const src = readFileSync("src/lib/auth-context.tsx", "utf8");
+    expect(src).toMatch(/data-testid="supabase-connect-unavailable"/);
+    expect(src).toMatch(/We couldn.?t connect right now/i);
+    // Catch path must set connectError, not configError.
+    expect(src).toMatch(/\.catch\(\(\)\s*=>\s*\{[\s\S]*?setConnectError\(true\)/);
+    expect(src).not.toMatch(/\.catch\(\(\)\s*=>\s*\{[\s\S]*?setConfigError\(true\)/);
+    // Connect UI must not reuse empty-bake "isn't configured" wording.
+    const connectBlock = src.slice(
+      src.indexOf("function ConnectUnavailable"),
+      src.indexOf("export function AuthProvider"),
+    );
+    expect(connectBlock).not.toMatch(/isn.?t configured/i);
+  });
+
   it("client.createSupabaseClient reads via fail-closed helper (no host fallback)", () => {
     const src = readFileSync("src/integrations/supabase/client.ts", "utf8");
     expect(src).toMatch(/readClientSupabaseConfig/);
     expect(src).not.toMatch(/https:\/\/[a-z0-9]+\.supabase\.co/);
     expect(src).not.toMatch(/eyJ[A-Za-z0-9_-]{10,}/);
+  });
+
+  it("oauth consent does not touch supabase.auth at module top-level", () => {
+    const src = readFileSync("src/routes/[.]lovable.oauth.consent.tsx", "utf8");
+    expect(src).toMatch(/function getOAuthApi/);
+    expect(src).toMatch(/isClientSupabaseConfigured/);
+    // No eager module-scope supabase.auth property access.
+    expect(src).not.toMatch(/^const oauth = \(supabase\.auth/m);
   });
 });
