@@ -421,25 +421,38 @@ export async function buildSurvivorExportZip(
             "was extracted automatically or corrected by hand; corrections.json keeps the",
             "original extracted value alongside every correction — nothing is overwritten.",
             "The original screenshots are in the screenshots/ folder, hashed in manifest.json.",
+            "Conversations added from an exported chat file (.txt/.zip) keep that file, unchanged,",
+            "in original-exports/. Its .meta.json shows the fingerprint recorded when it was saved",
+            "and whether the stored file still matches it. That proves the file is unchanged since",
+            "it was added — not that the chat was untouched before it was exported.",
           ].join("\n"),
         );
 
         const shotsFolder = mtFolder.folder("screenshots");
+        const originalsFolder = mtFolder.folder("original-exports");
         await Promise.all(
           docs.map(async (d) => {
-            if (!shotsFolder) return;
-            const buf = await downloadFile("evidence-files", d.storage_path);
+            // An exported chat file (.txt/.zip) lives in message-exports, not evidence-files.
+            const isOriginalExport = d.kind === "chat_export";
+            const folder = isOriginalExport ? originalsFolder : shotsFolder;
+            const folderName = isOriginalExport ? "original-exports" : "screenshots";
+            if (!folder) return;
+            const buf = await downloadFile(
+              isOriginalExport ? "message-exports" : "evidence-files",
+              d.storage_path,
+            );
             if (!buf) return;
-            const ext = String(d.storage_path).split(".").pop() || "png";
+            const ext =
+              String(d.storage_path).split(".").pop() || (isOriginalExport ? "txt" : "png");
             const safeName = `${String(d.upload_index).padStart(3, "0")}_${String(d.id).slice(0, 8)}.${ext}`;
-            shotsFolder.file(safeName, buf);
+            folder.file(safeName, buf);
             const hash = sha256(buf);
             fileHashes.push({
-              path: `message-threads/screenshots/${safeName}`,
+              path: `message-threads/${folderName}/${safeName}`,
               sha256: hash,
               bytes: buf.byteLength,
             });
-            shotsFolder.file(
+            folder.file(
               `${safeName}.meta.json`,
               JSON.stringify(
                 {
@@ -451,6 +464,14 @@ export async function buildSurvivorExportZip(
                   ocr_confidence: d.ocr_confidence,
                   sha256: hash,
                   original_path: d.storage_path,
+                  // For an exported chat file: the fingerprint recorded when it was
+                  // first saved, and whether the stored bytes still match it.
+                  ...(isOriginalExport
+                    ? {
+                        recorded_sha256: d.sha256 ?? null,
+                        matches_recorded_hash: d.sha256 ? d.sha256 === hash : null,
+                      }
+                    : {}),
                 },
                 null,
                 2,

@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { ChatExportImporter } from "@/components/messages/ChatExportImporter";
 import { ImportIntro } from "@/components/messages/ImportIntro";
 import { OcrProgress } from "@/components/messages/OcrProgress";
 import { ReviewThread, type ImportThread } from "@/components/messages/ReviewThread";
@@ -75,7 +76,7 @@ function ImportMessagesPage() {
       .from("message_threads")
       .select("id,conversation_participant,created_at,import_status,message_count,screenshot_count")
       .eq("user_id", user.id)
-      .in("capture_method", ["multi_screenshot", "screen_recording"])
+      .in("capture_method", ["multi_screenshot", "screen_recording", "backup_export"])
       .order("created_at", { ascending: false });
     setThreads((data as ImportThread[] | null) ?? []);
   }, [user]);
@@ -309,6 +310,13 @@ function ImportMessagesPage() {
       />
 
       <div className="mt-8 space-y-6">
+        <ChatExportImporter
+          onImported={(id) => {
+            setActiveThread(id);
+            loadThreads();
+          }}
+        />
+
         {phase === "working" ? (
           <>
             {stage && (
@@ -373,21 +381,10 @@ function ImportMessagesPage() {
           <ReviewThread userId={user.id} threads={threads} initialThreadId={activeThread} />
         </section>
 
-        <section
-          style={{
-            background: "var(--pp-ground)",
-            boxShadow: "var(--pp-shadow-sm)",
-            borderRadius: 18,
-            padding: 16,
-          }}
-        >
-          <span className="exhibit-tag">COMING LATER</span>
-          <p className="mt-2 text-[13.5px]" style={{ color: "rgba(26,18,36,0.65)" }}>
-            Later we&apos;ll add importing exported chat files and pasted text. Screenshots and
-            screen recordings are read entirely on your device — nothing on this page is sent to an
-            AI.
-          </p>
-        </section>
+        <p className="text-[13.5px]" style={{ color: "rgba(26,18,36,0.65)" }}>
+          Screenshots and screen recordings are read entirely on your device — nothing on this page
+          is sent to an AI.
+        </p>
       </div>
     </div>
   );

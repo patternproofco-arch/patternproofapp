@@ -191,3 +191,74 @@ describe("survivor archive export", () => {
     expect(scopeless).toEqual([]);
   });
 });
+
+describe("survivor archive export — imported chat files", () => {
+  const CHAT = new TextEncoder().encode("[1/5/24, 4:32:10 PM] A: hi\n[1/5/24, 4:33:00 PM] B: yo");
+  const CHAT_SHA = createHash("sha256").update(Buffer.from(CHAT)).digest("hex");
+  const CHAT_PATH = `${SURV_A}/message-imports/th-1/original-export.txt`;
+
+  function withChat(recordedSha: string): Tables {
+    const t = world();
+    t.message_threads = [
+      { id: "th-1", user_id: SURV_A, source_type: "txt", capture_method: "backup_export" },
+    ];
+    t.thread_messages = [];
+    t.thread_message_corrections = [];
+    t.thread_source_documents = [
+      {
+        id: "doc-chat-1",
+        user_id: SURV_A,
+        thread_id: "th-1",
+        storage_path: CHAT_PATH,
+        original_filename: "WhatsApp Chat.txt",
+        upload_index: 0,
+        kind: "chat_export",
+        sha256: recordedSha,
+      },
+    ];
+    return t;
+  }
+
+  async function build(t: Tables) {
+    // Keyed by bucket: the file only resolves from message-exports, as in production.
+    const db = fakeAdmin(t, { [`message-exports:${CHAT_PATH}`]: CHAT });
+    const built = await buildSurvivorExportZip(db, { userId: SURV_A, caseId: null });
+    if (!built.ok) throw new Error(built.reason);
+    return { db, zip: await JSZip.loadAsync(built.zipBuf) };
+  }
+
+  it("keeps the original chat file, read from the bucket it was stored in", async () => {
+    const { db, zip } = await build(withChat(CHAT_SHA));
+    expect(db.downloadsByBucket).toContainEqual(["message-exports", CHAT_PATH]);
+
+    const names = Object.keys(zip.files).filter(
+      (n) => n.startsWith("message-threads/original-exports/") && !n.endsWith("/"),
+    );
+    const file = names.find((n) => !n.endsWith(".meta.json"));
+    expect(file).toBeDefined();
+    const stored = await zip.file(file!)!.async("uint8array");
+    expect(createHash("sha256").update(Buffer.from(stored)).digest("hex")).toBe(CHAT_SHA);
+
+    const manifest = JSON.parse(await zip.file("manifest.json")!.async("string"));
+    expect(manifest.file_hashes.map((f: { path: string }) => f.path)).toContain(file);
+  });
+
+  it("reports that the stored file still matches the hash recorded at import", async () => {
+    const { zip } = await build(withChat(CHAT_SHA));
+    const metaName = Object.keys(zip.files).find(
+      (n) => n.endsWith(".meta.json") && n.includes("original-exports"),
+    )!;
+    const meta = JSON.parse(await zip.file(metaName)!.async("string"));
+    expect(meta.recorded_sha256).toBe(CHAT_SHA);
+    expect(meta.matches_recorded_hash).toBe(true);
+  });
+
+  it("reports a mismatch instead of hiding it when the stored file differs", async () => {
+    const { zip } = await build(withChat("0".repeat(64)));
+    const metaName = Object.keys(zip.files).find(
+      (n) => n.endsWith(".meta.json") && n.includes("original-exports"),
+    )!;
+    const meta = JSON.parse(await zip.file(metaName)!.async("string"));
+    expect(meta.matches_recorded_hash).toBe(false);
+  });
+});

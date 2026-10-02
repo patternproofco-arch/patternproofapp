@@ -35,7 +35,12 @@ export const startMessageImport = createServerFn({ method: "POST" })
       .object({
         participant: z.string().max(200).optional(),
         notes: z.string().max(500).optional(),
-        captureMethod: z.enum(["multi_screenshot", "screen_recording"]).default("multi_screenshot"),
+        captureMethod: z
+          .enum(["multi_screenshot", "screen_recording", "backup_export"])
+          .default("multi_screenshot"),
+        /** For exported chat files: what the survivor picked. */
+        sourceType: z.enum(["txt", "zip"]).optional(),
+        sourceFilename: z.string().max(260).optional(),
         /** Storage path of the original recording, when this import came from video. */
         videoPath: z.string().max(500).optional(),
         videoDurationSec: z.number().int().min(0).optional(),
@@ -50,8 +55,10 @@ export const startMessageImport = createServerFn({ method: "POST" })
       .from("message_threads")
       .insert({
         user_id: userId,
-        source_type: "txt",
-        source_filename: `${isVideo ? "Screen recording" : "Screenshot"} import · ${new Date().toLocaleDateString()}`,
+        source_type: data.sourceType ?? "txt",
+        source_filename:
+          data.sourceFilename ??
+          `${isVideo ? "Screen recording" : "Screenshot"} import · ${new Date().toLocaleDateString()}`,
         file_url: data.videoPath ?? "",
         parse_status: "pending",
         capture_method: data.captureMethod,
@@ -84,8 +91,13 @@ export const addSourceDocument = createServerFn({ method: "POST" })
         uploadIndex: z.number().int().min(0).max(500),
         bytes: z.number().int().min(0).optional(),
         mime: z.string().max(120).optional(),
-        kind: z.enum(["screenshot", "video_frame"]).default("screenshot"),
+        kind: z.enum(["screenshot", "video_frame", "chat_export"]).default("screenshot"),
         frameTimeSec: z.number().min(0).optional(),
+        /** SHA-256 (hex) of the original bytes, computed in the browser before parsing. */
+        sha256: z
+          .string()
+          .regex(/^[a-f0-9]{64}$/)
+          .optional(),
       })
       .parse(i),
   )
@@ -103,7 +115,9 @@ export const addSourceDocument = createServerFn({ method: "POST" })
         mime: data.mime ?? null,
         kind: data.kind,
         frame_time_sec: data.frameTimeSec ?? null,
-        ocr_status: "pending",
+        sha256: data.sha256 ?? null,
+        // Text exports are read exactly, not OCR'd.
+        ocr_status: data.kind === "chat_export" ? "not_applicable" : "pending",
       })
       .select("id")
       .single();
@@ -224,6 +238,136 @@ export const saveExtractedMessages = createServerFn({ method: "POST" })
     return { saved: rows.length };
   });
 
+const chatMessageSchema = z.object({
+  sender: z.string().max(200),
+  sender_side: sideEnum,
+  sent_on: z.string().max(10).nullable(),
+  sent_at_time: z.string().max(8).nullable(),
+  // Never truncated: a long message is still the message.
+  body: z.string().max(70000),
+  has_attachment_marker: z.boolean(),
+  attachment_marker_text: z.string().max(120).nullable(),
+});
+
+/** Throws unless the thread and source document both belong to this survivor. */
+async function assertOwnsThread(supabase: Sb, userId: string, threadId: string, docId?: string) {
+  const { data: thread } = await supabase
+    .from("message_threads")
+    .select("id")
+    .eq("id", threadId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!thread) throw new Error("We couldn't find that import.");
+  if (docId) {
+    const { data: doc } = await supabase
+      .from("thread_source_documents")
+      .select("id")
+      .eq("id", docId)
+      .eq("thread_id", threadId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!doc) throw new Error("We couldn't find that file record.");
+  }
+}
+
+/**
+ * Appends one chunk of an exported chat. Unlike screenshot imports this never
+ * replaces earlier rows: text is read exactly, so chunks are simply added in
+ * order. A failed import is cleaned up by the caller with deleteMessageImport.
+ */
+export const appendChatExportMessages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z
+      .object({
+        threadId: z.string().uuid(),
+        sourceDocumentId: z.string().uuid(),
+        startPosition: z.number().int().min(1),
+        messages: z.array(chatMessageSchema).min(1).max(500),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertOwnsThread(supabase, userId, data.threadId, data.sourceDocumentId);
+
+    const rows = data.messages.map((m, idx) => ({
+      thread_id: data.threadId,
+      user_id: userId,
+      position: data.startPosition + idx,
+      sender: m.sender,
+      recipient: null,
+      sent_on: m.sent_on,
+      sent_at_time: m.sent_at_time,
+      body: m.body,
+      attachment_name: m.attachment_marker_text,
+      flags: {},
+      source_document_id: data.sourceDocumentId,
+      source_document_ids: [data.sourceDocumentId],
+      sender_side: m.sender_side,
+      date_confidence: m.sent_on ? ("explicit_date" as const) : ("none" as const),
+      has_attachment_marker: m.has_attachment_marker,
+      attachment_marker_text: m.attachment_marker_text,
+      // Exact text, not OCR: there is no reading confidence to report.
+      ocr_confidence: null,
+      field_provenance: {
+        body: "extracted",
+        sender_side: "extracted",
+        sent_on: "extracted",
+        sent_at_time: "extracted",
+      },
+    }));
+    const { error } = await supabase.from("thread_messages").insert(rows);
+    if (error) throw new Error("We couldn't save those messages. Try again in a moment.");
+    return { saved: rows.length };
+  });
+
+/** Marks an exported-chat import complete once every chunk is saved. */
+export const finishChatExportImport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z
+      .object({
+        threadId: z.string().uuid(),
+        storagePath: z.string().min(1).max(500),
+        messageCount: z.number().int().min(0),
+        participant: z.string().max(200).nullable().optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertOwnsThread(supabase, userId, data.threadId);
+
+    // The server's own count must match what the browser says it sent.
+    const { count } = await supabase
+      .from("thread_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("thread_id", data.threadId)
+      .eq("user_id", userId);
+    if (count !== data.messageCount) {
+      throw new Error("Some messages didn't save, so we didn't finish this import.");
+    }
+
+    const { error } = await supabase
+      .from("message_threads")
+      .update({
+        message_count: data.messageCount,
+        processed_count: data.messageCount,
+        screenshot_count: 0,
+        primary_artifact_urls: [data.storagePath],
+        file_url: data.storagePath,
+        import_status: "complete",
+        parse_status: data.messageCount ? "parsed" : "partial",
+        ...(data.participant !== undefined ? { conversation_participant: data.participant } : {}),
+      })
+      .eq("id", data.threadId)
+      .eq("user_id", userId);
+    if (error) throw new Error("We couldn't finish that import. Try again in a moment.");
+    await writeAudit(supabase, userId, "chat_export_import_completed", data.threadId);
+    return { ok: true };
+  });
+
 /** Corrections ADD a value — the original OCR guess is never overwritten. */
 export const correctMessageField = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -284,12 +428,20 @@ export const deleteMessageImport = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: docs } = await supabase
       .from("thread_source_documents")
-      .select("storage_path")
+      .select("storage_path,kind")
       .eq("thread_id", data.threadId)
       .eq("user_id", userId);
-    const paths = (docs ?? []).map((d) => d.storage_path as string).filter(Boolean);
+    const rows = (docs ?? []).filter((d) => !!d.storage_path);
+    // Exported chat files live in their own bucket; screenshots and frames in evidence-files.
+    const exportPaths = rows
+      .filter((d) => d.kind === "chat_export")
+      .map((d) => d.storage_path as string);
+    const paths = rows.filter((d) => d.kind !== "chat_export").map((d) => d.storage_path as string);
     if (paths.length) {
       await supabase.storage.from("evidence-files").remove(paths);
+    }
+    if (exportPaths.length) {
+      await supabase.storage.from("message-exports").remove(exportPaths);
     }
     await supabase
       .from("thread_messages")
@@ -308,5 +460,5 @@ export const deleteMessageImport = createServerFn({ method: "POST" })
       .eq("user_id", userId);
     if (error) throw new Error("We couldn't delete that import. Try again in a moment.");
     await writeAudit(supabase, userId, "message_import_deleted", data.threadId);
-    return { ok: true, filesRemoved: paths.length };
+    return { ok: true, filesRemoved: paths.length + exportPaths.length };
   });

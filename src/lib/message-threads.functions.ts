@@ -135,73 +135,11 @@ function parseTxt(text: string): ParsedMessage[] {
   return out;
 }
 
-// ---------- AI flagging ----------
-const FLAG_SYSTEM = `You are a domestic-violence documentation assistant analyzing a conversation export. Read the messages and return STRICT JSON only — no markdown, no preamble.
-
-Schema:
-{
-  "summary": "2-4 sentence plain-language summary for the survivor.",
-  "attorney_summary": "3-6 sentence neutral, fact-based summary for an attorney. No legal conclusions.",
-  "flags": [
-    { "type": "threat" | "harassment" | "escalation" | "custody_interference" | "coercive_control" | "financial_abuse" | "pattern", "label": "short label", "evidence": "short quote or paraphrase", "severity": "low" | "medium" | "high" }
-  ],
-  "exhibit_label": "Exhibit A — short descriptive label"
-}
-
-Be conservative. If nothing concerning is present, return flags: []. Never invent quotes.`;
-
-async function runAiAnalysis(messages: ParsedMessage[]): Promise<{
-  summary: string | null;
-  attorney_summary: string | null;
-  flags: Array<{ type: string; label: string; evidence: string; severity: string }>;
-  exhibit_label: string | null;
-} | null> {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key || messages.length === 0) return null;
-  const sample = messages
-    .slice(0, 200)
-    .map((m, i) => {
-      const when = [m.sent_on, m.sent_at_time].filter(Boolean).join(" ");
-      return `${i + 1}. [${when || "?"}] ${m.sender || "?"}: ${(m.body || "").slice(0, 600)}`;
-    })
-    .join("\n");
-
-  try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: FLAG_SYSTEM },
-          {
-            role: "user",
-            content: `Conversation export (${messages.length} messages, showing up to 200):\n\n${sample}`,
-          },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
-    if (!res.ok) return null;
-    const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    const content = j.choices?.[0]?.message?.content;
-    if (!content) return null;
-    const parsed = JSON.parse(content) as {
-      summary?: string;
-      attorney_summary?: string;
-      flags?: Array<{ type: string; label: string; evidence: string; severity: string }>;
-      exhibit_label?: string;
-    };
-    return {
-      summary: parsed.summary ?? null,
-      attorney_summary: parsed.attorney_summary ?? null,
-      flags: Array.isArray(parsed.flags) ? parsed.flags.slice(0, 30) : [],
-      exhibit_label: parsed.exhibit_label ?? null,
-    };
-  } catch {
-    return null;
-  }
-}
+// No AI analysis of survivor messages. Content is never sent to a model and no
+// behavior is labelled ("harassment", "coercive_control"): courts discard
+// software that characterises people, and a survivor's words stay between the
+// survivor and whoever they choose to share them with. Summaries, flags and
+// exhibit labels are therefore always empty for new imports.
 
 // ---------- Server functions ----------
 export const parseMessageThread = createServerFn({ method: "POST" })
@@ -289,17 +227,14 @@ export const parseMessageThread = createServerFn({ method: "POST" })
       }
     }
 
-    // AI analysis (best-effort)
-    const ai = parsed.length > 0 ? await runAiAnalysis(parsed) : null;
-
     const update = {
       parse_status: status,
       parse_error: parseError,
       message_count: parsed.length,
-      summary: ai?.summary ?? null,
-      attorney_summary: ai?.attorney_summary ?? null,
-      flags: ai?.flags ?? [],
-      exhibit_label: ai?.exhibit_label ?? null,
+      summary: null,
+      attorney_summary: null,
+      flags: [],
+      exhibit_label: null,
     };
     const { error: updErr } = await supabase
       .from("message_threads")
@@ -542,27 +477,16 @@ export const stitchScreenshotThread = createServerFn({ method: "POST" })
     }
 
     // Best-effort AI summary/flags — reuse the same conversation-analysis pipeline
-    const asParsed = merged.map((b, i) => ({
-      position: i + 1,
-      sender: b.sender ?? null,
-      recipient: null,
-      sent_on: null,
-      sent_at_time: null,
-      body: b.text,
-      attachment_name: null,
-    }));
-    const ai = asParsed.length > 0 ? await runAiAnalysis(asParsed) : null;
-
     await supabase
       .from("message_threads")
       .update({
         parse_status: status,
         parse_error: parseError,
         message_count: merged.length,
-        summary: ai?.summary ?? null,
-        attorney_summary: ai?.attorney_summary ?? null,
-        flags: ai?.flags ?? [],
-        exhibit_label: ai?.exhibit_label ?? null,
+        summary: null,
+        attorney_summary: null,
+        flags: [],
+        exhibit_label: null,
       })
       .eq("id", threadId);
 
