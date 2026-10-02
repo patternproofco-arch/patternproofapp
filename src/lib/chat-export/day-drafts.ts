@@ -76,7 +76,7 @@ export interface PlannedDraftRow {
   sort_key_kind: "message_sent_at";
   date_certainty: "confirmed";
   draft: { date: string; time: string | null; description: string; abuse_types: never[] };
-  source_evidence_ids: never[];
+  source_evidence_ids: string[];
   source_summary: string;
   confidence_notes: string[];
   status: "pending";
