@@ -157,6 +157,8 @@ describe("clio server surface", () => {
       "getClioStatus",
       "disconnectClio",
       "listMyClioMatters",
+      "pushPacketToClio",
+      "pushBinderToClio",
     ]) {
       const block = fns.slice(
         fns.indexOf(`export const ${name}`),

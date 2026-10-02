@@ -121,6 +121,31 @@ export const pushPacketToClio = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { assertClioAvailable } = await import("@/lib/clio.server");
     assertClioAvailable();
+    const { resolveCallerRole } = await import("@/lib/conflict-check.server");
+    const role = await resolveCallerRole(context.userId);
+    if (role !== "attorney" && role !== "collaborator") {
+      throw new Error("This area is for attorney accounts.");
+    }
     const { pushLatestPacketToClio } = await import("@/lib/clio-documents.server");
     return pushLatestPacketToClio(context.userId, data.attorney_client_link_id);
+  });
+
+/**
+ * Build the Exhibit Binder ZIP (Exhibit N naming) from shared items and upload
+ * it to the linked Clio matter. Consent and matter link are re-checked
+ * server-side. Soft claims only — nothing is generated or sent automatically.
+ */
+export const pushBinderToClio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ attorney_client_link_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { assertClioAvailable } = await import("@/lib/clio.server");
+    assertClioAvailable();
+    const { resolveCallerRole } = await import("@/lib/conflict-check.server");
+    const role = await resolveCallerRole(context.userId);
+    if (role !== "attorney" && role !== "collaborator") {
+      throw new Error("This area is for attorney accounts.");
+    }
+    const { pushBinderZipToClio } = await import("@/lib/clio-documents.server");
+    return pushBinderZipToClio(context.userId, data.attorney_client_link_id);
   });

@@ -1,14 +1,18 @@
 /**
- * Server-only: push an already-generated professional-review packet into Clio
- * as a Document on a linked matter.
+ * Server-only: push PatternProof archives into Clio as Documents on a linked
+ * matter.
  *
- * Nothing is generated here. We upload only a packet the attorney already
- * produced in PatternProof, and only for a client who has approved Clio
- * sharing. Clio's upload is a three-step contract: create the document record
- * (which returns a signed PUT target), upload the bytes, then mark the version
- * fully uploaded.
+ * Two paths:
+ *  - pushLatestPacketToClio: uploads an already-generated professional-review
+ *    packet from storage (nothing is generated here).
+ *  - pushBinderZipToClio: builds an Exhibit Binder ZIP (Exhibit N naming) from
+ *    shared items, then uploads it via the same Clio document contract.
+ *
+ * Consent and matter link are re-checked server-side. Soft claims only.
  */
 import { getValidClioAccessToken } from "@/lib/clio.server";
+import { buildBinderEntries } from "@/lib/binder";
+import { buildExhibitBinderZip } from "@/lib/binder-zip.server";
 
 const CLIO_API_BASE = "https://app.clio.com/api/v4";
 
@@ -87,14 +91,19 @@ async function markFullyUploaded(token: string, documentId: string, versionUuid:
   }
 }
 
-/**
- * Uploads the most recent professional-review packet the attorney generated
- * for this client. Returns a plain reason string on any expected failure.
- */
-export async function pushLatestPacketToClio(
+type GuardOk = {
+  ok: true;
+  link: { id: string; client_user_id: string };
+  matterId: string;
+  token: string;
+};
+type GuardFail = { ok: false; reason: string };
+
+/** Shared consent + matter + token gates used by every Clio upload path. */
+async function assertClioUploadGuards(
   attorneyUserId: string,
   attorneyClientLinkId: string,
-): Promise<PushResult> {
+): Promise<GuardOk | GuardFail> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const { data: link } = await supabaseAdmin
@@ -120,8 +129,120 @@ export async function pushLatestPacketToClio(
   const token = await getValidClioAccessToken(attorneyUserId);
   if (!token) return { ok: false, reason: "Clio isn't connected. Reconnect and try again." };
 
+  return {
+    ok: true,
+    link: { id: link.id, client_user_id: link.client_user_id },
+    matterId: matterLink.clio_matter_id,
+    token,
+  };
+}
+
+async function uploadBytesToClioMatter(args: {
+  attorneyUserId: string;
+  attorneyClientLinkId: string;
+  clientUserId: string;
+  matterId: string;
+  token: string;
+  documentName: string;
+  bytes: Uint8Array;
+  auditEvent: string;
+}): Promise<PushResult> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const { data: logRow } = await supabaseAdmin
+    .from("clio_document_exports")
+    .insert({
+      attorney_user_id: args.attorneyUserId,
+      attorney_client_link_id: args.attorneyClientLinkId,
+      clio_matter_id: args.matterId,
+      document_name: args.documentName,
+      byte_size: args.bytes.byteLength,
+      status: "pending",
+    })
+    .select("id")
+    .maybeSingle();
+
+  const fail = async (reason: string, code: string): Promise<PushResult> => {
+    if (logRow?.id) {
+      await supabaseAdmin
+        .from("clio_document_exports")
+        .update({ status: "failed", error_code: code })
+        .eq("id", logRow.id);
+    }
+    return { ok: false, reason };
+  };
+
+  try {
+    const doc = await createClioDocument(args.token, args.matterId, args.documentName);
+    if (!doc.id || !doc.putUrl || !doc.versionUuid) {
+      return await fail("Clio didn't return an upload target for that document.", "no_put_url");
+    }
+
+    const put = await fetch(doc.putUrl, {
+      method: "PUT",
+      headers: doc.putHeaders,
+      body: Buffer.from(args.bytes),
+    });
+    if (!put.ok) {
+      console.error("[clio] document bytes upload failed with status", put.status);
+      return await fail("Clio didn't accept the file contents.", `put_${put.status}`);
+    }
+
+    await markFullyUploaded(args.token, doc.id, doc.versionUuid);
+
+    if (logRow?.id) {
+      await supabaseAdmin
+        .from("clio_document_exports")
+        .update({
+          status: "confirmed",
+          clio_document_id: doc.id,
+          confirmed_at: new Date().toISOString(),
+        })
+        .eq("id", logRow.id);
+    }
+
+    await supabaseAdmin
+      .rpc("record_audit_event", {
+        p_user_id: args.clientUserId,
+        p_event_type: args.auditEvent,
+        p_subject_kind: "export",
+        p_actor_kind: "attorney",
+        p_actor_id: args.attorneyUserId,
+      })
+      .then(
+        () => undefined,
+        (e: unknown) => console.error("[audit] clio push log failed", e),
+      );
+
+    return {
+      ok: true,
+      clio_document_id: doc.id,
+      document_name: args.documentName,
+      bytes: args.bytes.byteLength,
+    };
+  } catch (e) {
+    return await fail(
+      e instanceof Error ? e.message : "We couldn't finish sending that file to Clio.",
+      "exception",
+    );
+  }
+}
+
+/**
+ * Uploads the most recent professional-review packet the attorney generated
+ * for this client. Returns a plain reason string on any expected failure.
+ */
+export async function pushLatestPacketToClio(
+  attorneyUserId: string,
+  attorneyClientLinkId: string,
+): Promise<PushResult> {
+  const guards = await assertClioUploadGuards(attorneyUserId, attorneyClientLinkId);
+  if (!guards.ok) return guards;
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
   // Only ever send a packet the attorney already generated in PatternProof.
-  const prefix = `professional-review-packet-${link.client_user_id}-`;
+  const prefix = `professional-review-packet-${guards.link.client_user_id}-`;
   const { data: objects } = await supabaseAdmin.storage
     .from("exports")
     .list(attorneyUserId, { limit: 100, sortBy: { column: "name", order: "desc" } });
@@ -143,77 +264,171 @@ export async function pushLatestPacketToClio(
     return { ok: false, reason: "We couldn't read that packet. Try generating it again." };
   const bytes = new Uint8Array(await dl.data.arrayBuffer());
 
-  const { data: logRow } = await supabaseAdmin
-    .from("clio_document_exports")
-    .insert({
-      attorney_user_id: attorneyUserId,
-      attorney_client_link_id: attorneyClientLinkId,
-      clio_matter_id: matterLink.clio_matter_id,
-      document_name: latest.name,
-      byte_size: bytes.byteLength,
-      status: "pending",
-    })
-    .select("id")
+  return uploadBytesToClioMatter({
+    attorneyUserId,
+    attorneyClientLinkId,
+    clientUserId: guards.link.client_user_id,
+    matterId: guards.matterId,
+    token: guards.token,
+    documentName: latest.name,
+    bytes,
+    auditEvent: "clio.document_pushed",
+  });
+}
+
+/**
+ * Builds the Exhibit Binder ZIP (Exhibit N naming) from items the client
+ * shared on this link, then uploads it to the linked Clio matter.
+ * Soft claims only — nothing is sent without consent + matter link.
+ */
+export async function pushBinderZipToClio(
+  attorneyUserId: string,
+  attorneyClientLinkId: string,
+): Promise<PushResult> {
+  const guards = await assertClioUploadGuards(attorneyUserId, attorneyClientLinkId);
+  if (!guards.ok) return guards;
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const access = await import("@/lib/attorney-access.server");
+
+  // Load the exact relationship the attorney asked to push (multi-case caseload).
+  const { data: specific } = await supabaseAdmin
+    .from("attorney_client_links")
+    .select(access.LINK_COLUMNS)
+    .eq("id", attorneyClientLinkId)
+    .eq("attorney_user_id", attorneyUserId)
     .maybeSingle();
-
-  const fail = async (reason: string, code: string): Promise<PushResult> => {
-    if (logRow?.id) {
-      await supabaseAdmin
-        .from("clio_document_exports")
-        .update({ status: "failed", error_code: code })
-        .eq("id", logRow.id);
-    }
-    return { ok: false, reason };
-  };
-
-  try {
-    const doc = await createClioDocument(token, matterLink.clio_matter_id, latest.name);
-    if (!doc.id || !doc.putUrl || !doc.versionUuid) {
-      return await fail("Clio didn't return an upload target for that document.", "no_put_url");
-    }
-
-    const put = await fetch(doc.putUrl, { method: "PUT", headers: doc.putHeaders, body: bytes });
-    if (!put.ok) {
-      console.error("[clio] document bytes upload failed with status", put.status);
-      return await fail("Clio didn't accept the file contents.", `put_${put.status}`);
-    }
-
-    await markFullyUploaded(token, doc.id, doc.versionUuid);
-
-    if (logRow?.id) {
-      await supabaseAdmin
-        .from("clio_document_exports")
-        .update({
-          status: "confirmed",
-          clio_document_id: doc.id,
-          confirmed_at: new Date().toISOString(),
-        })
-        .eq("id", logRow.id);
-    }
-
-    await supabaseAdmin
-      .rpc("record_audit_event", {
-        p_user_id: link.client_user_id,
-        p_event_type: "clio.document_pushed",
-        p_subject_kind: "export",
-        p_actor_kind: "attorney",
-        p_actor_id: attorneyUserId,
-      })
-      .then(
-        () => undefined,
-        (e: unknown) => console.error("[audit] clio push log failed", e),
-      );
-
-    return {
-      ok: true,
-      clio_document_id: doc.id,
-      document_name: latest.name,
-      bytes: bytes.byteLength,
-    };
-  } catch (e) {
-    return await fail(
-      e instanceof Error ? e.message : "We couldn't finish sending that packet to Clio.",
-      "exception",
-    );
+  if (!specific || !access.isActiveShareLink(specific)) {
+    return { ok: false, reason: "That case file isn't active for your account." };
   }
+  const link = specific as Awaited<ReturnType<typeof access.assertLink>>;
+  const clientId = guards.link.client_user_id;
+  await access.applyCaseScope(supabaseAdmin, link, clientId);
+  const scopeIncidents = (link.scope_incidents as string[] | null) ?? [];
+  const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];
+  const includeAllIncidents = link.include_all_incidents === true;
+  const includeAllEvidence = link.include_all_evidence === true;
+
+  const incidentsQuery = includeAllIncidents
+    ? supabaseAdmin
+        .from("incidents")
+        .select("*")
+        .eq("user_id", clientId)
+        .is("deleted_at", null)
+        .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+        .order("date", { ascending: true })
+    : scopeIncidents.length
+      ? supabaseAdmin
+          .from("incidents")
+          .select("*")
+          .eq("user_id", clientId)
+          .in("id", scopeIncidents)
+          .is("deleted_at", null)
+          .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+          .order("date", { ascending: true })
+      : Promise.resolve({ data: [] as unknown[] });
+
+  const evidenceQuery = includeAllEvidence
+    ? supabaseAdmin
+        .from("evidence")
+        .select("*")
+        .eq("user_id", clientId)
+        .is("deleted_at", null)
+        .neq("review_status", "suggested")
+        .order("date", { ascending: true })
+    : scopeEvidence.length
+      ? supabaseAdmin
+          .from("evidence")
+          .select("*")
+          .eq("user_id", clientId)
+          .in("id", scopeEvidence)
+          .is("deleted_at", null)
+          .neq("review_status", "suggested")
+          .order("date", { ascending: true })
+      : Promise.resolve({ data: [] as unknown[] });
+
+  const requestsQuery = supabaseAdmin
+    .from("attorney_document_requests")
+    .select(
+      "id,title,details,kind,due_at,status,created_at,submitted_at,declined_at,response_note,response_evidence_ids",
+    )
+    .eq("link_id", attorneyClientLinkId)
+    .eq("attorney_user_id", attorneyUserId)
+    .order("created_at", { ascending: false });
+
+  const [incRes, evRes, reqRes] = await Promise.all([
+    incidentsQuery,
+    evidenceQuery,
+    requestsQuery,
+  ]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const incidents = (incRes.data ?? []) as any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const evidence = ((evRes.data ?? []) as any[]).map((e) => {
+    const clone = { ...(e as Record<string, unknown>) };
+    delete clone.gps_lat;
+    delete clone.gps_lon;
+    delete clone.gps_reveal_opt_in;
+    return clone;
+  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const requests = (reqRes.data ?? []) as any[];
+
+  const entries = buildBinderEntries(incidents, evidence, requests);
+  if (entries.length === 0) {
+    return {
+      ok: false,
+      reason:
+        "Nothing to send yet. The exhibit binder is empty for this client — shared entries or files need to be on the binder first.",
+    };
+  }
+
+  const evidenceFiles = new Map<
+    string,
+    { bytes: Uint8Array; extension?: string; contentType?: string }
+  >();
+  await Promise.all(
+    evidence.map(async (raw) => {
+      const e = raw as { id: string; file_url?: string | null };
+      if (!e.file_url || /^https?:\/\//i.test(e.file_url)) return;
+      const { data: blob } = await supabaseAdmin.storage
+        .from("evidence-files")
+        .download(e.file_url);
+      if (!blob) return;
+      const buf = new Uint8Array(await blob.arrayBuffer());
+      const ext = String(e.file_url).split(".").pop() || "bin";
+      evidenceFiles.set(e.id, { bytes: buf, extension: ext });
+    }),
+  );
+
+  const built = await buildExhibitBinderZip({
+    entries,
+    evidenceFiles,
+    clientRef: clientId,
+  });
+
+  // Keep a copy in exports so attorneys can re-send without regenerating (mirrors packets).
+  const objectPath = `${attorneyUserId}/${built.documentName}`;
+  await supabaseAdmin.storage
+    .from("exports")
+    .upload(objectPath, built.zipBuf, {
+      contentType: "application/zip",
+      upsert: false,
+    })
+    .then(
+      () => undefined,
+      (e: unknown) => console.error("[clio] binder zip storage mirror failed", e),
+    );
+
+  return uploadBytesToClioMatter({
+    attorneyUserId,
+    attorneyClientLinkId,
+    clientUserId: clientId,
+    matterId: guards.matterId,
+    token: guards.token,
+    documentName: built.documentName,
+    bytes: built.zipBuf,
+    auditEvent: "clio.binder_pushed",
+  });
 }
