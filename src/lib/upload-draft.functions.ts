@@ -195,7 +195,7 @@ export const ensureMediaUploadDrafts = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        evidence_ids: z.array(z.string().uuid()).min(1).max(40),
+        evidence_ids: z.array(z.string().uuid()).min(1).max(50),
       })
       .parse(input),
   )
