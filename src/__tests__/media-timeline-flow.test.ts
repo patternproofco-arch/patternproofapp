@@ -91,6 +91,12 @@ describe("upload auto soft drafts for /drafts", () => {
     expect(evidencePage).toContain("A draft is waiting in Drafts to review.");
   });
 
+  it("accepts every file the batch uploader allows, so no batch silently skips drafts", () => {
+    const maxFiles = Number(batchDropzone.match(/const MAX_FILES = (\d+)/)?.[1]);
+    expect(maxFiles).toBeGreaterThan(0);
+    expect(uploadDrafts).toContain(`evidence_ids: z.array(z.string().uuid()).min(1).max(${maxFiles})`);
+  });
+
   it("wires batch upload soft-draft ensure after AI propose, before photo OCR", () => {
     expect(batchDropzone).toContain("ensureMediaUploadDrafts");
     expect(batchDropzone).toContain("ensureDrafts({ data: { evidence_ids: evidenceIds } })");
