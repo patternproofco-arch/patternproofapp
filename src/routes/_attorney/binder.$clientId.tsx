@@ -7,6 +7,7 @@ import { listClientEvidenceRequests } from "@/lib/evidence-requests.functions";
 import { buildBinderEntries } from "@/lib/binder";
 import { CourtTimeline } from "@/components/CourtTimeline";
 import { BinderExhibits } from "@/components/BinderExhibits";
+import { PleadingIndex } from "@/components/PleadingIndex";
 import { AttorneyBinderEmpty } from "@/components/attorney/AttorneyBinderEmpty";
 
 export const Route = createFileRoute("/_attorney/binder/$clientId")({
@@ -110,6 +111,7 @@ function BinderPage() {
         <h2 className="mb-3 font-display text-lg">Court timeline</h2>
         <CourtTimeline entries={entries} />
       </section>
+      <PleadingIndex entries={entries} />
       <BinderExhibits entries={entries} />
     </div>
   );
