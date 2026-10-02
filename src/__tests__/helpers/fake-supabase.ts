@@ -39,7 +39,9 @@ class Query implements PromiseLike<{ data: unknown; error: null }> {
     return this;
   }
   is(col: string, val: unknown) {
-    this.filters.push((r) => (val === null ? r[col] === null || r[col] === undefined : r[col] === val));
+    this.filters.push((r) =>
+      val === null ? r[col] === null || r[col] === undefined : r[col] === val,
+    );
     return this;
   }
   lte(col: string, val: unknown) {
@@ -70,7 +72,8 @@ class Query implements PromiseLike<{ data: unknown; error: null }> {
     return this;
   }
   update(patch: Record<string, unknown>) {
-    for (const r of this.rows.filter((r) => this.filters.every((f) => f(r)))) Object.assign(r, patch);
+    for (const r of this.rows.filter((r) => this.filters.every((f) => f(r))))
+      Object.assign(r, patch);
     return this;
   }
 
@@ -92,10 +95,13 @@ export function fakeAdmin(tables: Tables, files: Record<string, Uint8Array> = {}
   const queries: Array<{ table: string; ops: string[] }> = [];
   const audits: Array<Record<string, unknown>> = [];
   const downloads: string[] = [];
+  /** [bucket, path] per download, so a test can prove the right bucket was used. */
+  const downloadsByBucket: Array<[string, string]> = [];
   return {
     queries,
     audits,
     downloads,
+    downloadsByBucket,
     from(table: string) {
       const log = { table, ops: [] as string[] };
       queries.push(log);
@@ -106,11 +112,13 @@ export function fakeAdmin(tables: Tables, files: Record<string, Uint8Array> = {}
       return { data: null, error: null };
     },
     storage: {
-      from() {
+      from(bucket = "") {
         return {
           async download(path: string) {
             downloads.push(path);
-            const bytes = files[path];
+            downloadsByBucket.push([bucket, path]);
+            // A "bucket:path" key only resolves from that bucket; a plain path from any.
+            const bytes = files[`${bucket}:${path}`] ?? files[path];
             return bytes
               ? { data: { arrayBuffer: async () => bytes.buffer.slice(0) }, error: null }
               : { data: null, error: { message: "not found" } };
