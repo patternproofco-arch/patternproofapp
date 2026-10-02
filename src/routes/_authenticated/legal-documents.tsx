@@ -154,6 +154,8 @@ function LegalDocumentsPage() {
     Array<{ id: string; name: string; mimeType: string; modifiedTime?: string }>
   >([]);
   const [driveError, setDriveError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<Extracted>(emptyExtracted());
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -364,6 +366,64 @@ function LegalDocumentsPage() {
     setExtracted((prev) => ({ ...prev, [k]: v || null }));
   };
 
+  const startEdit = (d: LegalDoc) => {
+    setEditingId(d.id);
+    setEditValues({
+      suggested_title: d.title,
+      case_number: d.case_number,
+      court_name: d.court_name,
+      judge_name: d.judge_name,
+      effective_date: d.effective_date,
+      expiration_date: d.expiration_date,
+      protected_party: d.protected_party,
+      restrained_party: d.restrained_party,
+      issuing_officer: d.issuing_officer,
+      incident_date: d.incident_date,
+      key_terms: d.key_terms,
+      document_type_confirmed: null,
+      cross_reference_note: null,
+    });
+  };
+
+  const updateEditField = (k: keyof Extracted, v: string) => {
+    setEditValues((prev) => ({ ...prev, [k]: v || null }));
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValues(emptyExtracted());
+  };
+
+  const saveEdit = async () => {
+    if (!user || !editingId) return;
+    const title = (editValues.suggested_title || "Untitled").slice(0, 200);
+    const upd = await supabase
+      .from("legal_documents")
+      .update({
+        title,
+        case_number: editValues.case_number || null,
+        court_name: editValues.court_name || null,
+        judge_name: editValues.judge_name || null,
+        effective_date: editValues.effective_date || null,
+        expiration_date: editValues.expiration_date || null,
+        protected_party: editValues.protected_party || null,
+        restrained_party: editValues.restrained_party || null,
+        issuing_officer: editValues.issuing_officer || null,
+        incident_date: editValues.incident_date || null,
+        key_terms: editValues.key_terms || null,
+      })
+      .eq("id", editingId)
+      .eq("user_id", user.id);
+    if (upd.error) {
+      toast("We couldn't save those changes. Try again in a moment.");
+      return;
+    }
+    await log({ data: { action_type: "legal_document_edited", record_reference: editingId } });
+    toast("Document updated.");
+    cancelEdit();
+    load();
+  };
+
   const today = new Date().toISOString().slice(0, 10);
   const in30 = new Date(Date.now() + 30 * 86400_000).toISOString().slice(0, 10);
 
@@ -503,6 +563,24 @@ function LegalDocumentsPage() {
                       const soon = d.expiration_date && !expired && d.expiration_date <= in30;
                       const keyDate = d.effective_date || d.incident_date;
                       const firstSentence = (d.key_terms ?? "").split(/(?<=[.!?])\s/)[0] ?? "";
+                      if (editingId === d.id) {
+                        return (
+                          <div
+                            key={d.id}
+                            className="card-pp"
+                            style={{ borderLeft: `3px solid ${b.bg}` }}
+                          >
+                            <ConfirmationCard
+                              phase="edit"
+                              extracted={editValues}
+                              update={updateEditField}
+                              incidents={incidents}
+                              onSave={saveEdit}
+                              onCancel={cancelEdit}
+                            />
+                          </div>
+                        );
+                      }
                       return (
                         <div
                           key={d.id}
@@ -584,13 +662,8 @@ function LegalDocumentsPage() {
                               </div>
                             </details>
                             <button
-                              onClick={() =>
-                                toast(
-                                  "Editing legal documents is coming soon. For now, delete and re-add if you need changes.",
-                                )
-                              }
+                              onClick={() => startEdit(d)}
                               className="btn-ghost inline-flex items-center gap-1 text-[12px]"
-                              title="Coming soon"
                             >
                               <Pencil size={13} /> Edit
                             </button>
@@ -654,7 +727,7 @@ function ConfirmationCard({
   onSave,
   onCancel,
 }: {
-  phase: "confirm" | "manual";
+  phase: "confirm" | "manual" | "edit";
   extracted: Extracted;
   update: (k: keyof Extracted, v: string) => void;
   incidents: Incident[];
@@ -666,7 +739,9 @@ function ConfirmationCard({
       <h3 className="font-serif text-[18px]">
         {phase === "confirm"
           ? "Here's what I found. Does this look right?"
-          : "Fill in what you know — it's okay to leave fields blank."}
+          : phase === "edit"
+            ? "Edit this document's details."
+            : "Fill in what you know — it's okay to leave fields blank."}
       </h3>
       {phase === "manual" && (
         <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
@@ -751,7 +826,7 @@ function ConfirmationCard({
       )}
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <button onClick={onSave} className="btn-primary">
-          Save This Document
+          {phase === "edit" ? "Save changes" : "Save This Document"}
         </button>
         <button onClick={onCancel} className="btn-ghost">
           Cancel
