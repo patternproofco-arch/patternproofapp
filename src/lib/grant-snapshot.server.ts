@@ -11,6 +11,8 @@
  * is enforced on the server, not in a screen.
  */
 
+import { isGrantSnapshotEligible } from "@/lib/sharing/share-readiness";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Admin = any;
 
@@ -31,7 +33,14 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
   return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
 }
 
-/** Ids marked OK to share later — fail-closed eligibility for new grant snapshots. */
+/**
+ * Ids eligible for new grant snapshots.
+ * - ok_to_share → in
+ * - private / undecided → out (fail-closed; never invent share)
+ * - NULL / missing field → grandfathered in (pre-migration rows / column not applied yet)
+ *   so live tip binders are not emptied before Grace applies the migration.
+ * Column-missing query errors fall back to ownedIds (same as pre-#135).
+ */
 async function shareEligibleIds(
   admin: Admin,
   table: "incidents" | "evidence",
@@ -39,15 +48,16 @@ async function shareEligibleIds(
 ) {
   const { data, error } = await admin
     .from(table)
-    .select("id")
+    .select("id, share_readiness")
     .eq("user_id", clientUserId)
-    .is("deleted_at", null)
-    .eq("share_readiness", "ok_to_share");
+    .is("deleted_at", null);
   if (error) {
-    // Column missing (migration not applied yet): fail closed — empty eligibility.
-    return [] as string[];
+    // Column missing (migration not applied yet): grandfather — pre-#135 owned list.
+    return ownedIds(admin, table, clientUserId);
   }
-  return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
+  return ((data ?? []) as Array<{ id: string; share_readiness?: string | null }>)
+    .filter((r) => isGrantSnapshotEligible(r.share_readiness))
+    .map((r) => r.id);
 }
 
 function uniq(ids: Array<string | null | undefined>) {
@@ -63,8 +73,9 @@ export async function snapshotShareScope<T extends ShareScope>(
   clientUserId: string,
   scope: T,
 ): Promise<T & Required<Pick<ShareScope, "include_all_incidents" | "include_all_evidence">>> {
-  // Fail-closed: only share_readiness = ok_to_share is eligible.
+  // Fail-closed for explicit private/undecided; NULL grandfathered (pre-migration).
   // Explicit picks are intersected with eligible ids so private/undecided never widen.
+  // Never invents a share from readiness alone; does not weaken revoke.
   const eligibleIncidents = new Set(await shareEligibleIds(admin, "incidents", clientUserId));
   const eligibleEvidence = new Set(await shareEligibleIds(admin, "evidence", clientUserId));
   const incidents = scope.include_all_incidents

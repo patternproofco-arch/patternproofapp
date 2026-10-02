@@ -106,7 +106,7 @@ describe("upload auto soft drafts for /drafts", () => {
 
   it("keeps the survivor drafts review page as the approval gate", () => {
     expect(draftsPage).toContain("ProposedTimelineReview");
-    expect(draftsPage).toContain("trust hinge");
+    expect(draftsPage).toContain("Accept is when you decide");
     expect(draftsPage).toContain("timeline until you approve it");
   });
 });

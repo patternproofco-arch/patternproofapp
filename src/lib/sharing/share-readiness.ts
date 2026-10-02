@@ -13,9 +13,19 @@ export function normalizeShareReadiness(value: unknown): ShareReadiness {
   return "private";
 }
 
-/** Eligible to appear in share pickers / "share all" snapshots. */
+/** Eligible for UI share pickers after an explicit choice (not NULL). */
 export function isShareEligible(value: unknown): boolean {
   return normalizeShareReadiness(value) === "ok_to_share";
+}
+
+/**
+ * Grant-snapshot eligibility (server).
+ * NULL/missing is grandfathered (pre-migration) so live tip is not emptied
+ * before Grace applies the column. Explicit private/undecided stay out.
+ */
+export function isGrantSnapshotEligible(value: unknown): boolean {
+  if (value == null || value === "") return true;
+  return value === "ok_to_share";
 }
 
 /** Maps readiness (+ live grant state) to one primary chip label. Soft CLEAR. */

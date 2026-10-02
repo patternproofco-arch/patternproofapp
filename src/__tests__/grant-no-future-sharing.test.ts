@@ -97,4 +97,58 @@ describe("sharing never reaches forward in time", () => {
     expect(frozen.scope_incidents?.sort()).toEqual(["inc-1", "inc-2"]);
     expect(frozen.scope_incidents).not.toContain("inc-private");
   });
+
+  it("grandfathers NULL share_readiness into new share-all snapshots (pre-migration)", async () => {
+    const db = fakeAdmin({
+      incidents: [
+        { id: "inc-null", user_id: SURV, deleted_at: null, created_at: "2026-01-01T00:00:00Z" },
+        {
+          id: "inc-private",
+          user_id: SURV,
+          deleted_at: null,
+          created_at: "2026-01-01T00:00:00Z",
+          share_readiness: "private",
+        },
+        {
+          id: "inc-undecided",
+          user_id: SURV,
+          deleted_at: null,
+          created_at: "2026-01-01T00:00:00Z",
+          share_readiness: "undecided",
+        },
+        {
+          id: "inc-ok",
+          user_id: SURV,
+          deleted_at: null,
+          created_at: "2026-01-01T00:00:00Z",
+          share_readiness: "ok_to_share",
+        },
+      ],
+      evidence: [
+        { id: "ev-null", user_id: SURV, deleted_at: null, created_at: "2026-01-01T00:00:00Z" },
+      ],
+    });
+    const frozen = await snapshotShareScope(db, SURV, {
+      include_all_incidents: true,
+      include_all_evidence: true,
+      scope_incidents: [],
+      scope_evidence: [],
+    });
+    expect(frozen.scope_incidents?.sort()).toEqual(["inc-null", "inc-ok"].sort());
+    expect(frozen.scope_incidents).not.toContain("inc-private");
+    expect(frozen.scope_incidents).not.toContain("inc-undecided");
+    expect(frozen.scope_evidence).toEqual(["ev-null"]);
+  });
+
+  it("does not invent share from readiness on explicit picks — private stays out", async () => {
+    const db = fakeAdmin(world());
+    const frozen = await snapshotShareScope(db, SURV, {
+      include_all_incidents: false,
+      include_all_evidence: false,
+      scope_incidents: ["inc-1", "inc-private"],
+      scope_evidence: ["ev-1"],
+    });
+    expect(frozen.scope_incidents?.sort()).toEqual(["inc-1"]);
+    expect(frozen.scope_evidence).toEqual(["ev-1"]);
+  });
 });

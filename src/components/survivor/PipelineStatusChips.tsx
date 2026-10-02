@@ -54,13 +54,22 @@ export function draftPipelineChips(opts: {
 }
 
 /** Build chip states for an evidence request on the survivor Requests tray. */
-export function requestPipelineChips(status: string): PipelineChipModel[] {
+export function requestPipelineChips(
+  status: string,
+  opts?: { binderKnown?: boolean },
+): PipelineChipModel[] {
   if (status === "submitted") {
+    // Soft CLEAR: only claim "In their binder" when grant+items are known; else stop at Sent.
+    const binderDone = opts?.binderKnown === true;
     return [
       { stage: "request", label: DEFAULT_LABELS.request, state: "done" },
       { stage: "draft", label: DEFAULT_LABELS.draft, state: "done" },
       { stage: "timeline", label: "Sent", state: "done" },
-      { stage: "binder", label: "In their binder", state: "done" },
+      {
+        stage: "binder",
+        label: DEFAULT_LABELS.binder,
+        state: binderDone ? "done" : "idle",
+      },
     ];
   }
   if (status === "declined" || status === "passed") {

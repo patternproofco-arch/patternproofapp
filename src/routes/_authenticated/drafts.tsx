@@ -29,9 +29,9 @@ function DraftsPage() {
       </h1>
       <p className="mt-2 max-w-2xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
         Soft uploads, request answers, and Organize suggestions show up here as drafts. Edit
-        anything that&apos;s wrong, approve what&apos;s right, or discard it. Accept is the{" "}
-        <strong>trust hinge</strong>: nothing goes on your timeline until you approve it, and
-        accept does not newly share unless the draft already came from a share you chose.
+        anything that&apos;s wrong, approve what&apos;s right, or discard it. Accept is when you decide:
+        nothing goes on your timeline until you approve it, and accept does not newly share unless
+        the draft already came from a share you chose.
       </p>
       <p className="mt-2 max-w-2xl text-[13px]" style={{ color: "var(--muted-foreground)" }}>
         Dates are suggestions. Check whether a date is when something happened, when the photo was

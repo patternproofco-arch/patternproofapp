@@ -7,6 +7,7 @@ import {
 } from "@/components/survivor/PipelineStatusChips";
 import {
   entryShareChip,
+  isGrantSnapshotEligible,
   isShareEligible,
   normalizeShareReadiness,
 } from "@/lib/sharing/share-readiness";
@@ -49,9 +50,14 @@ describe("draft pipeline chip helpers (request → draft → binder)", () => {
     const open = requestPipelineChips("open");
     expect(open.find((c) => c.stage === "draft")?.label).toMatch(/Private/i);
     expect(open.find((c) => c.stage === "binder")?.state).toBe("idle");
+    // Soft CLEAR: without grant+items known, stop at Sent (binder idle).
     expect(requestPipelineChips("submitted").find((c) => c.stage === "binder")?.state).toBe(
-      "done",
+      "idle",
     );
+    expect(
+      requestPipelineChips("submitted", { binderKnown: true }).find((c) => c.stage === "binder")
+        ?.state,
+    ).toBe("done");
   });
 });
 
@@ -62,10 +68,19 @@ describe("Soft CLEAR share readiness (fail-closed)", () => {
     expect(normalizeShareReadiness("ok_to_share")).toBe("ok_to_share");
   });
 
-  it("only ok_to_share is share-eligible", () => {
+  it("only ok_to_share is share-eligible in UI pickers", () => {
     expect(isShareEligible("ok_to_share")).toBe(true);
     expect(isShareEligible("private")).toBe(false);
     expect(isShareEligible("undecided")).toBe(false);
+    expect(isShareEligible(null)).toBe(false);
+  });
+
+  it("grant snapshots grandfather NULL; private/undecided stay out", () => {
+    expect(isGrantSnapshotEligible(null)).toBe(true);
+    expect(isGrantSnapshotEligible(undefined)).toBe(true);
+    expect(isGrantSnapshotEligible("ok_to_share")).toBe(true);
+    expect(isGrantSnapshotEligible("private")).toBe(false);
+    expect(isGrantSnapshotEligible("undecided")).toBe(false);
   });
 
   it("maps readiness + grant state to status chips", () => {
@@ -84,9 +99,11 @@ describe("Soft CLEAR share readiness (fail-closed)", () => {
     expect(migration).toContain("ok_to_share");
   });
 
-  it("grant snapshots intersect with ok_to_share only (fail closed if column missing)", () => {
-    expect(grantSnap).toContain('eq("share_readiness", "ok_to_share")');
-    expect(grantSnap).toContain("fail closed");
+  it("grant snapshots grandfather NULL / column-missing; private/undecided out", () => {
+    expect(grantSnap).toContain("share_readiness");
+    expect(grantSnap).toContain("grandfather");
+    expect(grantSnap).toContain("ok_to_share");
+    expect(grantSnap).toContain("ownedIds");
   });
 });
 
@@ -116,7 +133,8 @@ describe("draft-trust hinge UI (Experience Soft CLEAR · PR A)", () => {
     expect(review).toContain("DraftTrustHingeInline");
     expect(review).toContain("share_readiness");
     expect(review).toContain("PipelineStatusChips");
-    expect(draftsPage).toContain("trust hinge");
+    expect(draftsPage).toContain("Accept is when you decide");
+    expect(draftsPage).not.toContain("trust hinge");
   });
 
   it("accept persists share_readiness and never invents a share from readiness alone", () => {
