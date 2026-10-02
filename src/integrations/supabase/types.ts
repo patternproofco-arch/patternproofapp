@@ -1820,6 +1820,7 @@ export type Database = {
           review_status: string
           sealed_at: string | null
           sha256: string | null
+          share_readiness: string
           suggested_incident_id: string | null
           title: string
           transcript: string | null
@@ -1883,6 +1884,7 @@ export type Database = {
           review_status?: string
           sealed_at?: string | null
           sha256?: string | null
+          share_readiness?: string
           suggested_incident_id?: string | null
           title: string
           transcript?: string | null
@@ -1946,6 +1948,7 @@ export type Database = {
           review_status?: string
           sealed_at?: string | null
           sha256?: string | null
+          share_readiness?: string
           suggested_incident_id?: string | null
           title?: string
           transcript?: string | null
@@ -2375,6 +2378,7 @@ export type Database = {
           record_kind: string
           sealed_at: string | null
           severity_level: number | null
+          share_readiness: string
           source: string
           source_evidence_id: string | null
           source_type: string | null
@@ -2414,6 +2418,7 @@ export type Database = {
           record_kind?: string
           sealed_at?: string | null
           severity_level?: number | null
+          share_readiness?: string
           source?: string
           source_evidence_id?: string | null
           source_type?: string | null
@@ -2453,6 +2458,7 @@ export type Database = {
           record_kind?: string
           sealed_at?: string | null
           severity_level?: number | null
+          share_readiness?: string
           source?: string
           source_evidence_id?: string | null
           source_type?: string | null
