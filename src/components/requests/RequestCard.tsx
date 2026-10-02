@@ -7,6 +7,10 @@ import {
   submitEvidenceRequest,
   type SurvivorRequest,
 } from "@/lib/evidence-requests.functions";
+import {
+  PipelineStatusChips,
+  requestPipelineChips,
+} from "@/components/survivor/PipelineStatusChips";
 
 interface EvidenceOption {
   id: string;
@@ -49,6 +53,8 @@ export function RequestCard({ request, evidence, onChanged }: RequestCardProps) 
   };
   const payload = { id: request.id, note, evidence_ids: [...picked] };
 
+  const chips = requestPipelineChips(request.status);
+
   return (
     <li className="card" style={{ padding: 16, borderLeft: "3px solid var(--primary)" }}>
       <div className="label-eyebrow">
@@ -56,7 +62,13 @@ export function RequestCard({ request, evidence, onChanged }: RequestCardProps) 
         {request.from_name ? ` · from ${request.from_name}` : ""}
         {request.due_at ? ` · by ${new Date(request.due_at).toLocaleDateString()}` : ""}
       </div>
-      <h3 className="mt-1 font-serif text-[18px]">{request.title}</h3>
+      <div className="mt-2">
+        <PipelineStatusChips
+          chips={chips}
+          aria-label="Request to draft to binder status"
+        />
+      </div>
+      <h3 className="mt-2 font-serif text-[18px]">{request.title}</h3>
       {request.details && <p className="mt-1 text-[14px]">{request.details}</p>}
 
       {!open && (
@@ -103,7 +115,9 @@ export function RequestCard({ request, evidence, onChanged }: RequestCardProps) 
             </fieldset>
           )}
           <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-            Nothing is visible to them until you press Send. Saved drafts stay private.
+            Nothing is visible to them until you press Send. Saved drafts stay private. After Send,
+            a soft draft may appear under Drafts to review for your timeline — accepting that draft
+            is separate from what you already sent.
           </p>
           <div className="flex flex-wrap gap-2">
             <button

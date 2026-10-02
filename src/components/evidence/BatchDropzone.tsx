@@ -473,18 +473,33 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           // Preservation succeeded. Soft drafts below still run.
         }
         let softQueued = 0;
+        let softReason: string | undefined;
         try {
           const soft = await ensureDrafts({ data: { evidence_ids: evidenceIds } });
-          if (soft.ok) softQueued = soft.queued;
+          if (soft.ok) {
+            softQueued = soft.queued;
+            softReason = soft.reason;
+          }
         } catch {
-          /* convenience only */
+          softReason = "thrown";
         }
         const total = aiCount + softQueued;
         if (total > 0) {
           toast(
             `${total} draft${total === 1 ? " is" : "s are"} ready in Drafts to review. Nothing becomes a journal entry until accepted.`,
           );
+        } else if (
+          softReason === "insert_failed" ||
+          softReason === "thrown" ||
+          softReason === "evidence_lookup_failed"
+        ) {
+          // Soft CLEAR honesty — preserve already succeeded; drafts are convenience.
+          toast("Couldn’t refresh your drafts", {
+            description:
+              "Your notes are still here. Try again in a moment — nothing was deleted.",
+          });
         }
+        // already_pending / not_media / empty: stay quiet — nothing wrong for the survivor.
       }
 
       // Photo/PDF/Word text extraction after drafts are queued — never a gate.

@@ -372,10 +372,22 @@ function EvidencePage() {
         .then((soft) => {
           if (soft.ok && soft.queued > 0) {
             toast("A draft is waiting in Drafts to review.");
+          } else if (
+            soft.reason === "insert_failed" ||
+            soft.reason === "thrown" ||
+            soft.reason === "evidence_lookup_failed"
+          ) {
+            toast("Couldn’t refresh your drafts", {
+              description:
+                "Your notes are still here. Try again in a moment — nothing was deleted.",
+            });
           }
         })
         .catch(() => {
-          /* upload already succeeded */
+          toast("Couldn’t refresh your drafts", {
+            description:
+              "Your notes are still here. Try again in a moment — nothing was deleted.",
+          });
         });
     }
 

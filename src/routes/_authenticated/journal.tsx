@@ -28,6 +28,8 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { checkUploadSize } from "@/lib/upload-limits";
 import { FocusRegion } from "@/components/survivor/focus-mode";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
+import { DraftTrustHinge } from "@/components/sharing/DraftTrustHinge";
+import type { ShareReadiness } from "@/lib/sharing/share-readiness";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -126,13 +128,17 @@ function JournalPage() {
   const [logOpen, setLogOpen] = useState(false);
   const [listOpen, setListOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [trustHingeOpen, setTrustHingeOpen] = useState(false);
+  const [trustHingeMode, setTrustHingeMode] = useState<"save" | "edit">("save");
+  const [trustEditId, setTrustEditId] = useState<string | null>(null);
+  const [pendingShareReadiness, setPendingShareReadiness] = useState<ShareReadiness>("private");
 
   const load = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from("incidents")
       .select(
-        "id,date,time,location,description,abuse_types,witnesses,emotional_impact,source,confirmed_at,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label",
+        "id,date,time,location,description,abuse_types,witnesses,emotional_impact,source,confirmed_at,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label,share_readiness",
       )
       .eq("user_id", user.id)
       .is("deleted_at", null)
@@ -260,6 +266,18 @@ function JournalPage() {
       return;
     }
     setFormFeedback(null);
+    // Trust hinge before timeline commit — default Keep private (fail-closed).
+    const existing = editingId ? list.find((i) => i.id === editingId) : null;
+    setPendingShareReadiness(
+      (existing?.share_readiness as ShareReadiness | undefined) ?? "private",
+    );
+    setTrustHingeMode("save");
+    setTrustEditId(null);
+    setTrustHingeOpen(true);
+  };
+
+  const commitMark = async (shareReadiness: ShareReadiness) => {
+    if (!user) return;
     setBusy(true);
     try {
       // Anchor incident lookup: if the user picked an existing incident, capture
@@ -284,6 +302,7 @@ function JournalPage() {
         abuse_types: form.abuse_types,
         witnesses: sanitizeLine(form.witnesses) || null,
         emotional_impact: form.emotional_impact || null,
+        share_readiness: shareReadiness,
         date_precision: form.date_precision,
         date_range_start: form.date_precision === "range" ? form.date_range_start || null : null,
         date_range_end: form.date_precision === "range" ? form.date_range_end || null : null,
@@ -1032,6 +1051,14 @@ function JournalPage() {
                       incident={i}
                       evidenceCount={evidenceCounts[i.id] ?? 0}
                       onConfirm={confirmRecord}
+                      onEditReadiness={() => {
+                        setTrustEditId(i.id);
+                        setPendingShareReadiness(
+                          (i.share_readiness as ShareReadiness | undefined) ?? "private",
+                        );
+                        setTrustHingeMode("edit");
+                        setTrustHingeOpen(true);
+                      }}
                       actions={
                         <>
                           <button
@@ -1068,6 +1095,30 @@ function JournalPage() {
         onSaved={load}
       />
       <BulkPastIncidentsModal open={bulkOpen} onClose={() => setBulkOpen(false)} onSaved={load} />
+      <DraftTrustHinge
+        open={trustHingeOpen}
+        onOpenChange={setTrustHingeOpen}
+        initial={pendingShareReadiness}
+        mode={trustHingeMode}
+        onConfirm={async (readiness) => {
+          if (trustHingeMode === "edit" && trustEditId) {
+            if (!user) return;
+            const { error } = await supabase
+              .from("incidents")
+              .update({ share_readiness: readiness })
+              .eq("id", trustEditId)
+              .eq("user_id", user.id);
+            if (error) {
+              toast("We couldn't update sharing readiness. Try again in a moment.");
+              throw error;
+            }
+            await load();
+            return;
+          }
+          await commitMark(readiness);
+        }}
+      />
+
       <ConfirmDialog
         open={!!confirmDelete}
         title="Remove this record?"
