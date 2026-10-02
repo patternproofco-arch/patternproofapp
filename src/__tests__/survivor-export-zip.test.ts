@@ -231,8 +231,8 @@ describe("survivor archive export — imported chat files", () => {
     const { db, zip } = await build(withChat(CHAT_SHA));
     expect(db.downloadsByBucket).toContainEqual(["message-exports", CHAT_PATH]);
 
-    const names = Object.keys(zip.files).filter((n) =>
-      n.startsWith("message-threads/original-exports/"),
+    const names = Object.keys(zip.files).filter(
+      (n) => n.startsWith("message-threads/original-exports/") && !n.endsWith("/"),
     );
     const file = names.find((n) => !n.endsWith(".meta.json"));
     expect(file).toBeDefined();
