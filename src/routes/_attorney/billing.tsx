@@ -12,6 +12,7 @@ import {
   disconnectClio,
   listMyClioMatters,
   pushPacketToClio,
+  pushBinderToClio,
 } from "@/lib/clio.functions";
 import {
   listClioConsentedClients,
@@ -489,6 +490,7 @@ function ClioMattersBrowser() {
   const linkFn = useServerFn(linkClioMatter);
   const matterLinksFn = useServerFn(listClioMatterLinks);
   const pushFn = useServerFn(pushPacketToClio);
+  const pushBinderFn = useServerFn(pushBinderToClio);
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<ClioMatterRow[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -506,6 +508,7 @@ function ClioMattersBrowser() {
     }>
   >([]);
   const [pushing, setPushing] = useState<string | null>(null);
+  const [pushingBinder, setPushingBinder] = useState<string | null>(null);
 
   const loadConsented = useCallback(async () => {
     try {
@@ -542,6 +545,24 @@ function ClioMattersBrowser() {
       toast(e instanceof Error ? e.message : "We couldn't send that packet to Clio just now.");
     } finally {
       setPushing(null);
+    }
+  };
+
+  const doPushBinder = async (linkId: string) => {
+    setPushingBinder(linkId);
+    try {
+      const r = await pushBinderFn({ data: { attorney_client_link_id: linkId } });
+      if (r.ok)
+        toast(
+          "Exhibit binder ZIP sent to Clio. Soft claims only — user-reviewed, not court-verified.",
+        );
+      else toast(r.reason);
+    } catch (e) {
+      toast(
+        e instanceof Error ? e.message : "We couldn't send that exhibit binder to Clio just now.",
+      );
+    } finally {
+      setPushingBinder(null);
     }
   };
 
@@ -696,10 +717,12 @@ function ClioMattersBrowser() {
 
       {matterLinks.length > 0 ? (
         <div style={{ marginTop: 18, borderTop: "1px solid var(--att-border)", paddingTop: 16 }}>
-          <div className="att-eyebrow">Send a packet to Clio</div>
+          <div className="att-eyebrow">Send to Clio</div>
           <div style={{ fontSize: 12, color: "var(--att-text-2)", margin: "4px 0 10px" }}>
-            Sends the most recent professional-review packet you generated for that client into the
-            linked matter. Nothing is generated or sent automatically.
+            Send the latest professional-review packet you already generated, or build an exhibit
+            binder ZIP (files named Exhibit 1, Exhibit 2, …) and place it on the linked matter.
+            Consent and a matter link are required. Soft claims only — nothing is sent
+            automatically. Live Clio delivery depends on your Clio app credentials and connection.
           </div>
           <div style={{ display: "grid", gap: 6 }}>
             {matterLinks.map((ml) => {
@@ -722,13 +745,25 @@ function ClioMattersBrowser() {
                       → {ml.clio_matter_display_number ?? ml.clio_matter_id}
                     </span>
                   </div>
-                  <button
-                    className="att-btn-secondary"
-                    disabled={pushing === ml.attorney_client_link_id}
-                    onClick={() => void doPush(ml.attorney_client_link_id)}
-                  >
-                    {pushing === ml.attorney_client_link_id ? "Sending…" : "Send latest packet"}
-                  </button>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button
+                      className="att-btn-secondary"
+                      disabled={pushing === ml.attorney_client_link_id}
+                      onClick={() => void doPush(ml.attorney_client_link_id)}
+                    >
+                      {pushing === ml.attorney_client_link_id ? "Sending…" : "Send latest packet"}
+                    </button>
+                    <button
+                      className="att-btn-secondary"
+                      disabled={pushingBinder === ml.attorney_client_link_id}
+                      onClick={() => void doPushBinder(ml.attorney_client_link_id)}
+                      title="Builds an Exhibit N ZIP from the binder and uploads it to the linked matter"
+                    >
+                      {pushingBinder === ml.attorney_client_link_id
+                        ? "Sending binder…"
+                        : "Send exhibit binder ZIP"}
+                    </button>
+                  </div>
                 </div>
               );
             })}
