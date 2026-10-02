@@ -10,7 +10,6 @@ import {
   FileArchive,
   FileType2,
   Shield,
-  Sparkles,
   AlertTriangle,
   MessageSquare,
   Loader2,
@@ -698,83 +697,6 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
           />
           {t.parse_error}
         </p>
-      )}
-
-      {t.summary && (
-        <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "var(--pp-accent)", marginBottom: 6 }}>
-            Summary
-          </div>
-          <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--pp-ink)" }}>{t.summary}</p>
-        </div>
-      )}
-
-      {t.attorney_summary && (
-        <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "var(--pp-accent)", marginBottom: 6 }}>
-            Summary for professional review
-          </div>
-          <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "var(--pp-muted)" }}>
-            {t.attorney_summary}
-          </p>
-        </div>
-      )}
-
-      {Array.isArray(t.flags) && t.flags.length > 0 && (
-        <div style={{ marginBottom: 12 }}>
-          <div className="label-eyebrow" style={{ color: "var(--pp-urgent)", marginBottom: 8 }}>
-            Flags & patterns
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {t.flags.map((f, i) => (
-              <span
-                key={i}
-                title={f.evidence}
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  padding: "5px 10px",
-                  borderRadius: "var(--pp-r-lg)",
-                  background:
-                    f.severity === "high"
-                      ? "#F7DDE3"
-                      : f.severity === "medium"
-                        ? "#FAEAD3"
-                        : "#E4F3EE",
-                  color:
-                    f.severity === "high"
-                      ? "var(--pp-urgent)"
-                      : f.severity === "medium"
-                        ? "var(--pp-urgent)"
-                        : "var(--pp-confirmed)",
-                }}
-              >
-                {f.label}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {t.exhibit_label && (
-        <div
-          style={{
-            marginTop: 14,
-            padding: "10px 14px",
-            borderRadius: "var(--pp-r-lg)",
-            background: "var(--pp-ground)",
-            boxShadow: "var(--pp-shadow-in-sm)",
-            fontSize: 12.5,
-            color: "var(--pp-accent)",
-            fontWeight: 600,
-            letterSpacing: "0.02em",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <Sparkles size={13} /> {t.exhibit_label}
-        </div>
       )}
     </article>
   );
