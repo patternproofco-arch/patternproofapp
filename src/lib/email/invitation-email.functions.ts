@@ -86,7 +86,8 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
     }
 
     const recipient = data.recipientEmail.toLowerCase();
-    const origin = new URL(request.url).origin;
+    const { getEmailSiteOrigin } = await import("@/lib/email/site-origin.server");
+    const origin = getEmailSiteOrigin();
     let templateData: Record<string, unknown>;
 
     if (data.templateName === "advocate-survivor-invitation") {

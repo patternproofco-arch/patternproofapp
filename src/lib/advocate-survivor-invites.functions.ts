@@ -51,7 +51,8 @@ async function sendAdvocateSurvivorInviteEmail(input: {
   resend?: boolean;
 }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const origin = process.env.PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://pattern-proof.tech";
+  const { getEmailSiteOrigin } = await import("@/lib/email/site-origin.server");
+  const origin = getEmailSiteOrigin();
   const { data: prof } = await supabaseAdmin
     .from("advocate_profiles")
     .select("full_name,org_name")

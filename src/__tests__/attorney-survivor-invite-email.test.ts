@@ -24,6 +24,8 @@ describe("attorney → survivor invite email delivery", () => {
     expect(send).toContain('.from("attorney_survivor_invites")');
     expect(send).toContain(".eq(\"attorney_user_id\", userId)");
     expect(send).toContain("`${origin}/survivor-invite/${inv.invite_token}`");
+    expect(send).toContain("getEmailSiteOrigin");
+    expect(send).not.toContain("new URL(request.url).origin");
   });
 
   it("keeps discreet mode soft (no firm/app/note in discreet branch)", () => {
