@@ -20,7 +20,12 @@ export interface DayDigest {
 
 const OVERNIGHT_END_HOUR = 6;
 
-export function buildDayDigest(messages: ChatMessage[]): DayDigest[] {
+export type DigestMessage = Pick<
+  ChatMessage,
+  "sender" | "kind" | "sent_on" | "sent_at_time" | "has_attachment_marker"
+>;
+
+export function buildDayDigest(messages: DigestMessage[]): DayDigest[] {
   const days = new Map<string, DayDigest & { _s: Map<string, number> }>();
   for (const m of messages) {
     if (!m.sent_on) continue;

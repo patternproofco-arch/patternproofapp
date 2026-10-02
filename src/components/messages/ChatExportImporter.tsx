@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { FileText, ShieldCheck } from "lucide-react";
@@ -19,6 +20,7 @@ import {
   sha256Hex,
   type ChatExportFile,
 } from "@/lib/chat-export/read-file";
+import { createDraftsFromChatDays } from "@/lib/chat-day-drafts.functions";
 import { checkUploadSize } from "@/lib/upload-limits";
 
 const CHUNK = 500;
@@ -37,6 +39,7 @@ export function ChatExportImporter({ onImported }: Props) {
   const append = useServerFn(appendChatExportMessages);
   const finish = useServerFn(finishChatExportImport);
   const removeImport = useServerFn(deleteMessageImport);
+  const makeDrafts = useServerFn(createDraftsFromChatDays);
 
   const input = useRef<HTMLInputElement | null>(null);
   const [stage, setStage] = useState<Stage>("idle");
@@ -48,6 +51,10 @@ export function ChatExportImporter({ onImported }: Props) {
   const [saved, setSaved] = useState(0);
   const [onlyOvernight, setOnlyOvernight] = useState(false);
   const [shown, setShown] = useState(60);
+  const [threadId, setThreadId] = useState<string | null>(null);
+  const [pickedDays, setPickedDays] = useState<Set<string>>(new Set());
+  const [drafting, setDrafting] = useState(false);
+  const [draftsMade, setDraftsMade] = useState(0);
 
   const reparse = (f: ChatExportFile, order?: DateOrder) =>
     setParsed(parseChatExport(f.text, { dateOrder: order }));
@@ -168,6 +175,9 @@ export function ChatExportImporter({ onImported }: Props) {
       await finish({
         data: { threadId, storagePath: path, messageCount: rows.length, participant: other },
       });
+      setThreadId(threadId);
+      setPickedDays(new Set());
+      setDraftsMade(0);
       setStage("done");
       toast("Saved. Your original file is kept exactly as you gave it.");
       onImported(threadId);
@@ -178,6 +188,40 @@ export function ChatExportImporter({ onImported }: Props) {
         "We couldn't finish that import, so nothing was kept. Your file is untouched — try again.",
       );
       setStage("preview");
+    }
+  };
+
+  const toggleDay = (date: string) =>
+    setPickedDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
+      return next;
+    });
+
+  const draftSelected = async () => {
+    if (!threadId || pickedDays.size === 0) return;
+    setDrafting(true);
+    try {
+      const days = [...pickedDays].sort();
+      let created = 0;
+      let existing = 0;
+      for (let i = 0; i < days.length; i += 100) {
+        const r = await makeDrafts({ data: { threadId, days: days.slice(i, i + 100) } });
+        created += r.created;
+        existing += r.skippedExisting;
+      }
+      setDraftsMade((n) => n + created);
+      setPickedDays(new Set());
+      toast(
+        created > 0
+          ? `${created} draft${created === 1 ? "" : "s"} added to Drafts to review. Nothing is on your timeline until you approve it.${existing ? ` ${existing} day${existing === 1 ? " was" : "s were"} already drafted.` : ""}`
+          : "Those days already have drafts waiting.",
+      );
+    } catch {
+      toast("We couldn't create those drafts. Try again in a moment.");
+    } finally {
+      setDrafting(false);
     }
   };
 
@@ -372,13 +416,47 @@ export function ChatExportImporter({ onImported }: Props) {
             />
             Only days with messages between midnight and 6 AM
           </label>
+          <p className="mt-3" style={{ fontSize: 13, color: MUTED }}>
+            Tick the days you want to work with. Each becomes a draft that quotes that day&apos;s
+            messages exactly — you read and approve it before it reaches your timeline, and it stays
+            private until you decide to share it.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="pp-btn-secondary"
+              style={{ padding: "6px 12px" }}
+              onClick={() => setPickedDays(new Set(visibleDays.map((d) => d.date)))}
+            >
+              Tick all {visibleDays.length} shown
+            </button>
+            <button
+              type="button"
+              className="pp-btn-secondary"
+              style={{ padding: "6px 12px" }}
+              disabled={pickedDays.size === 0}
+              onClick={() => setPickedDays(new Set())}
+            >
+              Clear
+            </button>
+          </div>
           <ul className="mt-3 space-y-1.5">
             {visibleDays.slice(0, shown).map((d) => (
               <li key={d.date} style={{ fontSize: 13.5 }}>
-                <span className="mono-meta" style={{ marginRight: 8 }}>
-                  {d.date}
-                </span>
-                {describeDay(d, me)}
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    style={{ marginTop: 3 }}
+                    checked={pickedDays.has(d.date)}
+                    onChange={() => toggleDay(d.date)}
+                  />
+                  <span>
+                    <span className="mono-meta" style={{ marginRight: 8 }}>
+                      {d.date}
+                    </span>
+                    {describeDay(d, me)}
+                  </span>
+                </label>
               </li>
             ))}
           </ul>
@@ -392,6 +470,33 @@ export function ChatExportImporter({ onImported }: Props) {
               Show more days ({visibleDays.length - shown} left)
             </button>
           )}
+          <div
+            className="mt-4 flex flex-wrap items-center gap-3"
+            style={{ position: "sticky", bottom: 8 }}
+          >
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={pickedDays.size === 0 || drafting}
+              onClick={draftSelected}
+              style={{
+                padding: "12px 18px",
+                fontSize: 14.5,
+                opacity: pickedDays.size === 0 || drafting ? 0.6 : 1,
+              }}
+            >
+              {drafting
+                ? "Creating drafts…"
+                : pickedDays.size === 0
+                  ? "Tick days to make drafts"
+                  : `Make ${pickedDays.size} draft${pickedDays.size === 1 ? "" : "s"} to review`}
+            </button>
+            {draftsMade > 0 && (
+              <Link to="/drafts" style={{ fontSize: 14, textDecoration: "underline" }}>
+                Review {draftsMade} draft{draftsMade === 1 ? "" : "s"}
+              </Link>
+            )}
+          </div>
         </div>
       )}
     </div>
