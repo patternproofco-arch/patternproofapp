@@ -5,6 +5,7 @@ import { Printer } from "lucide-react";
 import { getMyCourtTimeline } from "@/lib/court-timeline.functions";
 import { CourtTimeline } from "@/components/CourtTimeline";
 import { BinderExhibits } from "@/components/BinderExhibits";
+import { PleadingIndex } from "@/components/PleadingIndex";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 
 export const Route = createFileRoute("/_authenticated/court-timeline")({
@@ -75,6 +76,7 @@ function CourtTimelinePage() {
               <h3 className="mb-3 font-serif text-[15px]">Court timeline</h3>
               <CourtTimeline entries={t.entries} />
             </div>
+            <PleadingIndex entries={t.entries} />
             <BinderExhibits entries={t.entries} />
           </section>
         ))}
