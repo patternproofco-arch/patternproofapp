@@ -72,6 +72,13 @@ describe("upload auto soft drafts for /drafts", () => {
     expect(uploadDrafts).not.toContain("LOVABLE_API_KEY");
   });
 
+  it("falls back to filename when mime is missing or octet-stream", () => {
+    expect(uploadDrafts).toContain("kindFromFilename");
+    expect(uploadDrafts).toContain("evidence_lookup_failed");
+    expect(uploadDrafts).toContain("already_pending");
+    expect(uploadDrafts).toContain("insert_failed");
+  });
+
   it("skips evidence already waiting as a pending proposed draft", () => {
     expect(uploadDrafts).toContain('eq("status", "pending")');
     expect(uploadDrafts).toContain("alreadyProposed.has(row.id)");
@@ -84,10 +91,17 @@ describe("upload auto soft drafts for /drafts", () => {
     expect(evidencePage).toContain("A draft is waiting in Drafts to review.");
   });
 
-  it("wires batch upload soft-draft ensure after AI propose", () => {
+  it("wires batch upload soft-draft ensure after AI propose, before photo OCR", () => {
     expect(batchDropzone).toContain("ensureMediaUploadDrafts");
     expect(batchDropzone).toContain("ensureDrafts({ data: { evidence_ids: evidenceIds } })");
     expect(batchDropzone).toContain("Nothing becomes a journal entry until accepted");
+    // Soft drafts must not wait on extractDoc (images → needs_ocr → AI hang).
+    const softIdx = batchDropzone.indexOf("ensureDrafts({ data: { evidence_ids: evidenceIds } })");
+    const ocrAfter = batchDropzone.indexOf(
+      "Photo/PDF/Word text extraction after drafts are queued",
+    );
+    expect(softIdx).toBeGreaterThan(0);
+    expect(ocrAfter).toBeGreaterThan(softIdx);
   });
 
   it("keeps the survivor drafts review page as the approval gate", () => {

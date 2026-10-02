@@ -25,12 +25,26 @@ type EvidenceRow = {
   original_filename: string | null;
 };
 
-function isMediaMime(mime: string | null, fileType: string | null): "photo" | "audio" | "video" | null {
+/** When browser File.type is empty, ingest may store application/octet-stream. */
+function kindFromFilename(name: string | null): "photo" | "audio" | "video" | null {
+  const n = (name ?? "").toLowerCase();
+  if (/\.(jpe?g|png|gif|webp|heic|heif|bmp|tiff?)$/.test(n)) return "photo";
+  if (/\.(mp3|m4a|aac|wav|ogg|flac|opus)$/.test(n)) return "audio";
+  if (/\.(mp4|mov|webm|mkv|m4v|avi)$/.test(n)) return "video";
+  return null;
+}
+
+function isMediaMime(
+  mime: string | null,
+  fileType: string | null,
+  filename?: string | null,
+): "photo" | "audio" | "video" | null {
   const m = (mime ?? "").toLowerCase();
   if (m.startsWith("image/") || fileType === "image") return "photo";
   if (m.startsWith("audio/") || fileType === "audio") return "audio";
   if (m.startsWith("video/") || fileType === "video") return "video";
-  return null;
+  // Fallback when mime was lost (octet-stream / null) but the filename is clear.
+  return kindFromFilename(filename ?? null);
 }
 
 function softLabel(kind: "photo" | "audio" | "video"): string {
@@ -62,6 +76,19 @@ function buildDescription(row: EvidenceRow, kind: "photo" | "audio" | "video"): 
   return parts.join("\n\n").slice(0, 4000);
 }
 
+export type SoftDraftEnsureResult = {
+  queued: number;
+  skipped: number;
+  /** Discriminator when queued is 0 — for logs / soft-check, not survivor UI. */
+  reason?:
+    | "empty_ids"
+    | "evidence_lookup_failed"
+    | "not_media"
+    | "already_pending"
+    | "insert_failed"
+    | "thrown";
+};
+
 /**
  * Insert one pending draft per media file that is not already waiting in
  * Drafts to review. Safe to call repeatedly; failures never throw to the
@@ -70,9 +97,9 @@ function buildDescription(row: EvidenceRow, kind: "photo" | "audio" | "video"): 
 export async function ensureSoftMediaDraftsForEvidence(
   userId: string,
   evidenceIds: string[],
-): Promise<{ queued: number; skipped: number }> {
+): Promise<SoftDraftEnsureResult> {
   const ids = [...new Set(evidenceIds.filter(Boolean))];
-  if (!ids.length) return { queued: 0, skipped: 0 };
+  if (!ids.length) return { queued: 0, skipped: 0, reason: "empty_ids" };
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -85,10 +112,14 @@ export async function ensureSoftMediaDraftsForEvidence(
     .is("deleted_at", null)
     .in("id", ids);
 
-  if (filesError || !files?.length) return { queued: 0, skipped: 0 };
+  if (filesError || !files?.length) {
+    return { queued: 0, skipped: 0, reason: "evidence_lookup_failed" };
+  }
 
-  const mediaRows = (files as EvidenceRow[]).filter((row) => isMediaMime(row.mime, row.file_type));
-  if (!mediaRows.length) return { queued: 0, skipped: ids.length };
+  const mediaRows = (files as EvidenceRow[]).filter((row) =>
+    isMediaMime(row.mime, row.file_type, row.original_filename),
+  );
+  if (!mediaRows.length) return { queued: 0, skipped: ids.length, reason: "not_media" };
 
   const { data: pending } = await supabaseAdmin
     .from("proposed_incidents")
@@ -102,14 +133,17 @@ export async function ensureSoftMediaDraftsForEvidence(
 
   let queued = 0;
   let skipped = 0;
+  let sawAlreadyPending = false;
+  let sawInsertFailed = false;
   const batchId = crypto.randomUUID();
 
   for (const row of mediaRows) {
     if (alreadyProposed.has(row.id)) {
       skipped += 1;
+      sawAlreadyPending = true;
       continue;
     }
-    const kind = isMediaMime(row.mime, row.file_type);
+    const kind = isMediaMime(row.mime, row.file_type, row.original_filename);
     if (!kind) {
       skipped += 1;
       continue;
@@ -133,13 +167,23 @@ export async function ensureSoftMediaDraftsForEvidence(
     });
     if (error) {
       skipped += 1;
+      sawInsertFailed = true;
       continue;
     }
     alreadyProposed.add(row.id);
     queued += 1;
   }
 
-  return { queued, skipped };
+  const reason =
+    queued > 0
+      ? undefined
+      : sawInsertFailed
+        ? "insert_failed"
+        : sawAlreadyPending
+          ? "already_pending"
+          : "not_media";
+
+  return { queued, skipped, ...(reason ? { reason } : {}) };
 }
 
 /**
@@ -161,6 +205,11 @@ export const ensureMediaUploadDrafts = createServerFn({ method: "POST" })
       return { ok: true as const, ...result };
     } catch {
       // Upload already succeeded; drafts are a convenience.
-      return { ok: true as const, queued: 0, skipped: data.evidence_ids.length };
+      return {
+        ok: true as const,
+        queued: 0,
+        skipped: data.evidence_ids.length,
+        reason: "thrown" as const,
+      };
     }
   });
