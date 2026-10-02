@@ -3,8 +3,7 @@ import { render } from "@react-email/render";
 import TeamInvitationEmail from "@/lib/email-templates/team-invitation";
 import { teamInvitationSubject } from "@/lib/email-templates/team-invitation.config";
 import type { Json } from "@/integrations/supabase/types";
-
-const SITE_ORIGIN = process.env.SITE_URL || "https://pattern-proof.tech";
+import { getEmailSiteOrigin } from "@/lib/email/site-origin.server";
 
 export type TeamInvitationInput = {
   invitationId: string;
@@ -18,7 +17,7 @@ export type TeamInvitationInput = {
 
 export async function buildTeamInvitationMessage(
   input: TeamInvitationInput,
-  siteOrigin = SITE_ORIGIN,
+  siteOrigin = getEmailSiteOrigin(),
 ) {
   const fragmentKey = input.teamKind === "firm" ? "firm" : "org";
   const acceptUrl = `${siteOrigin.replace(/\/$/, "")}/team-invite#${fragmentKey}=${encodeURIComponent(input.token)}`;
