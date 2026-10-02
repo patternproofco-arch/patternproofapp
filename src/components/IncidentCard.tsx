@@ -1,6 +1,8 @@
 import { MapPin, Paperclip } from "lucide-react";
 import { typeColor, typeLabel } from "@/lib/abuse-types";
 import { formatIncidentDate, dateConfidence } from "@/lib/dates";
+import { EntryStatusChip } from "@/components/sharing/EntryStatusChip";
+import type { ShareReadiness } from "@/lib/sharing/share-readiness";
 
 export interface IncidentLite {
   id: string;
@@ -19,6 +21,7 @@ export interface IncidentLite {
   time?: string | null;
   witnesses?: string | null;
   emotional_impact?: string | null;
+  share_readiness?: ShareReadiness | string | null;
 }
 
 const CONFIDENCE_LABEL: Record<string, string> = {
@@ -64,11 +67,17 @@ export function IncidentCard({
   actions,
   onConfirm,
   evidenceCount = 0,
+  inActiveGrant,
+  wasWithdrawn,
+  onEditReadiness,
 }: {
   incident: IncidentLite;
   actions?: React.ReactNode;
   onConfirm?: (id: string) => void;
   evidenceCount?: number;
+  inActiveGrant?: boolean;
+  wasWithdrawn?: boolean;
+  onEditReadiness?: () => void;
 }) {
   const rail = typeColor(mostSevere(incident.abuse_types));
   const confidence = dateConfidence(incident.date_precision);
@@ -114,6 +123,14 @@ export function IncidentCard({
             )}
           </div>
 
+          <div className="mb-2">
+            <EntryStatusChip
+              readiness={incident.share_readiness}
+              inActiveGrant={inActiveGrant}
+              wasWithdrawn={wasWithdrawn}
+              onEditReadiness={onEditReadiness}
+            />
+          </div>
           {/* 4 · Categories — carved pill, coloured text + dot, never a tinted fill */}
           <div className="mb-2 flex flex-wrap items-center gap-2">
             {incident.abuse_types.slice(0, 4).map((t) => (

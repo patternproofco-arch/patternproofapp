@@ -1769,6 +1769,7 @@ export type Database = {
       }
       evidence: {
         Row: {
+          share_readiness: string
           ai_permission: string
           anchor_label: string | null
           bytes: number | null
@@ -1832,6 +1833,7 @@ export type Database = {
           voice_caption_audio_url: string | null
         }
         Insert: {
+          share_readiness?: string
           ai_permission?: string
           anchor_label?: string | null
           bytes?: number | null
@@ -1895,6 +1897,7 @@ export type Database = {
           voice_caption_audio_url?: string | null
         }
         Update: {
+          share_readiness?: string
           ai_permission?: string
           anchor_label?: string | null
           bytes?: number | null
@@ -2345,6 +2348,7 @@ export type Database = {
       }
       incidents: {
         Row: {
+          share_readiness: string
           abuse_types: string[]
           actual_outcome: string | null
           actual_outcome_date: string | null
@@ -2384,6 +2388,7 @@ export type Database = {
           witnesses: string | null
         }
         Insert: {
+          share_readiness?: string
           abuse_types?: string[]
           actual_outcome?: string | null
           actual_outcome_date?: string | null
@@ -2423,6 +2428,7 @@ export type Database = {
           witnesses?: string | null
         }
         Update: {
+          share_readiness?: string
           abuse_types?: string[]
           actual_outcome?: string | null
           actual_outcome_date?: string | null

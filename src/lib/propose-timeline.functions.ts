@@ -507,7 +507,7 @@ export const listProposedIncidents = createServerFn({ method: "GET" })
     const { data, error } = await supabase
       .from("proposed_incidents")
       .select(
-        "id, batch_id, sort_key, date_certainty, draft, source_evidence_ids, source_summary, confidence_notes, status, created_at",
+        "id, batch_id, sort_key, date_certainty, draft, source_evidence_ids, source_summary, confidence_notes, status, created_at, model",
       )
       .eq("user_id", userId)
       .eq("status", "pending")
@@ -525,6 +525,8 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
       .object({
         proposal_id: z.string().uuid(),
         edits: DraftIncidentSchema.partial().optional(),
+        /** Soft CLEAR: default private. Never widens access by itself. */
+        share_readiness: z.enum(["private", "ok_to_share", "undecided"]).optional(),
       })
       .parse(input),
   )
@@ -554,6 +556,10 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
           ? "approximate_month"
           : "unknown";
 
+    // Soft CLEAR: fail-closed default private. OK-to-share only marks eligibility
+    // for future invite pickers — never invents a grant on accept.
+    const shareReadiness = data.share_readiness ?? "private";
+
     const { data: incident, error: incError } = await supabase
       .from("incidents")
       .insert({
@@ -570,6 +576,7 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
         // AI proposals keep ai_extracted + confirmed_at for recurrence counting.
         source: proposal.model ? "ai_extracted" : "survivor",
         confirmed_at: new Date().toISOString(),
+        share_readiness: shareReadiness,
       })
       .select("id")
       .single();

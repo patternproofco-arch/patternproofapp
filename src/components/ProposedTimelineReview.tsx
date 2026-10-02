@@ -10,6 +10,17 @@ import {
 } from "@/lib/propose-timeline.functions";
 import { toast } from "sonner";
 import { Check, Pencil, Sparkles, Trash2, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import {
+  PipelineStatusChips,
+  draftPipelineChips,
+  originChipLabel,
+} from "@/components/survivor/PipelineStatusChips";
+import { DraftTrustHingeInline } from "@/components/sharing/DraftTrustHinge";
+import {
+  normalizeShareReadiness,
+  type ShareReadiness,
+} from "@/lib/sharing/share-readiness";
 
 type Draft = {
   date?: string | null;
@@ -35,6 +46,8 @@ type Proposal = {
   confidence_notes: string[];
   status: string;
   created_at: string;
+  /** Null on soft upload / request drafts; set when Organize uploads used a model. */
+  model?: string | null;
 };
 
 type SourceMaterial = {
@@ -47,8 +60,9 @@ type SourceMaterial = {
 };
 
 /**
- * Review queue for AI-proposed timeline entries.
+ * Review queue for soft upload drafts, request-answer drafts, and AI Organize suggestions.
  * Nothing becomes a real incident until the survivor accepts (optionally after editing).
+ * Accept never invents a share — binder only when the draft already carried a share link.
  */
 export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void }) {
   const listFn = useServerFn(listProposedIncidents);
@@ -67,6 +81,8 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
   const [sourceItems, setSourceItems] = useState<SourceMaterial[]>([]);
   const [sourceLoading, setSourceLoading] = useState(false);
   const [listError, setListError] = useState(false);
+  /** Soft CLEAR readiness chosen at the accept hinge. Default private. */
+  const [readinessById, setReadinessById] = useState<Record<string, ShareReadiness>>({});
 
   const reload = useCallback(async () => {
     try {
@@ -149,9 +165,11 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
           });
         }
       }
+      const share_readiness = normalizeShareReadiness(readinessById[p.id]);
       const r = await acceptFn({
         data: {
           proposal_id: p.id,
+          share_readiness,
           ...(withEdits ? { edits: withEdits } : {}),
         },
       });
@@ -200,8 +218,8 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-baseline gap-3">
-            <span className="exhibit-tag">AI DRAFTS</span>
-            <span className="mono-meta mono-meta--muted">Review before anything is saved</span>
+            <span className="exhibit-tag">DRAFTS TO REVIEW</span>
+            <span className="mono-meta mono-meta--muted">You decide before anything is saved</span>
           </div>
           <p
             style={{
@@ -212,9 +230,10 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
               lineHeight: 1.5,
             }}
           >
-            Your uploads can be organized into chronological draft entries. Each draft is a
-            suggestion only — accept, edit, or delete. Nothing joins your timeline until you accept
-            it.
+            Soft uploads, answers to requests, and Organize suggestions land here as drafts. Each
+            is a suggestion only — accept, edit, or delete. Nothing joins your timeline until you
+            accept it, and nothing is newly shared unless this draft already came from a share you
+            chose.
           </p>
         </div>
         <button
@@ -237,15 +256,49 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
           We couldn&apos;t load drafts right now. Try refreshing — nothing was discarded.
         </p>
       ) : items.length === 0 ? (
-        <p className="mt-4 text-[13px]" style={{ color: "var(--pp-muted)" }}>
-          No pending drafts. Upload a photo, audio, or video — or use Organize uploads — then review here before anything joins your timeline.
-        </p>
+        <div className="pp-draft-empty-honesty" data-testid="drafts-empty-honesty">
+          <div className="label-eyebrow">Nothing in drafts right now</div>
+          <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--pp-ink)" }}>
+            When you save a draft, it&apos;ll show up here. Empty here does not mean your files are
+            gone.
+          </p>
+          <ul
+            className="mt-2 space-y-1 text-[12px] leading-relaxed"
+            style={{ color: "var(--pp-muted)" }}
+          >
+            <li>
+              · Soft drafts appear after you preserve a photo, audio, or video on{" "}
+              <Link to="/evidence" style={{ textDecoration: "underline" }}>
+                Evidence
+              </Link>
+              .
+            </li>
+            <li>· Organize uploads can suggest chronological entries from what you already saved.</li>
+            <li>
+              · Answers you send to a professional can also queue a draft here for your timeline —
+              soft claims only; you still approve.
+            </li>
+          </ul>
+          <p className="mt-3 text-[12px]" style={{ color: "var(--pp-muted)" }}>
+            Nothing is on your timeline or newly shared until you accept a draft.
+          </p>
+          <div className="mt-3">
+            <PipelineStatusChips
+              chips={draftPipelineChips({ fromRequest: false, willJoinBinder: false })}
+              aria-label="Pipeline when you have a draft"
+            />
+          </div>
+        </div>
       ) : (
         <div className="mt-4 space-y-3">
           {items.map((p) => {
             const isEditing = editingId === p.id;
             const draft = isEditing && editDraft ? editDraft : p.draft;
             const busy = busyId === p.id;
+            const fromRequest = Boolean(draft?.share_with_link_id);
+            const willJoinBinder = fromRequest;
+            const origin = originChipLabel({ fromRequest, model: p.model });
+            const chips = draftPipelineChips({ fromRequest, willJoinBinder });
             return (
               <div
                 key={p.id}
@@ -256,6 +309,13 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
                   borderLeft: "3px solid var(--pp-accent)",
                 }}
               >
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <span className="exhibit-tag">{origin}</span>
+                  <PipelineStatusChips
+                    chips={chips}
+                    aria-label="Request, draft, timeline, and binder status"
+                  />
+                </div>
                 <div
                   className="flex flex-wrap items-center gap-2 text-[11px]"
                   style={{ color: "var(--pp-muted)" }}
@@ -391,6 +451,23 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
                     ))}
                   </ul>
                 )}
+
+                <div className="pp-draft-trust-hinge" data-testid="draft-accept-pipeline-cue">
+                  <p className="mb-3 text-[12px] leading-relaxed" style={{ color: "var(--pp-muted)" }}>
+                    {willJoinBinder
+                      ? "Accept adds this to your timeline and to the binder for the professional share this draft already belongs to. Soft claims only."
+                      : "Accept adds this to your timeline. It does not newly share with an attorney or advocate unless you already chose a share for this draft."}
+                  </p>
+                  <DraftTrustHingeInline
+                    value={normalizeShareReadiness(readinessById[p.id])}
+                    onChange={(v) =>
+                      setReadinessById((prev) => ({
+                        ...prev,
+                        [p.id]: v,
+                      }))
+                    }
+                  />
+                </div>
 
                 <div className="mt-3 flex flex-wrap gap-2">
                   {isEditing ? (

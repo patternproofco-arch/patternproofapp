@@ -1858,3 +1858,60 @@ textarea.input-pp {
 .pp-app-shell[data-persona="survivor"] .rounded-full {
   border-radius: 3px !important;
 }
+
+/* Survivor pipeline status chips (Request → Draft → Timeline → Binder) */
+.pp-pipeline-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.pp-pipeline-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid rgba(90, 90, 106, 0.28);
+  background: transparent;
+  color: var(--pp-muted);
+  border-radius: 0;
+  line-height: 1.3;
+}
+.pp-pipeline-chip[data-state="active"] {
+  color: var(--pp-ink);
+  border-color: rgba(90, 90, 106, 0.55);
+  background: color-mix(in srgb, var(--pp-paper) 80%, var(--pp-accent) 20%);
+}
+.pp-pipeline-chip[data-state="next"] {
+  color: var(--pp-ink);
+  border-color: var(--pp-accent);
+  border-style: dashed;
+}
+.pp-pipeline-chip[data-state="done"] {
+  color: var(--pp-ink);
+  border-color: rgba(90, 90, 106, 0.4);
+  opacity: 0.85;
+}
+.pp-pipeline-sep {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--pp-muted);
+  opacity: 0.7;
+}
+.pp-draft-trust-hinge {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--pp-card);
+  box-shadow: var(--pp-shadow-sm);
+  border-left: 3px solid var(--pp-accent);
+}
+.pp-draft-empty-honesty {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: var(--pp-card);
+  box-shadow: var(--pp-shadow-sm);
+}

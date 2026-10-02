@@ -47,7 +47,7 @@ export function PrivateSinceSharing({ kind }: PrivateSinceSharingProps) {
   return (
     <div className="card-pp mt-6" style={{ padding: 16, borderLeft: "3px solid var(--safe)" }}>
       <div className="flex items-center gap-2" style={{ fontSize: 13.5, fontWeight: 700 }}>
-        <Lock size={14} /> Kept private since you shared
+        <Lock size={14} /> Kept private — not in this share
       </div>
       <p style={{ fontSize: 12.5, lineHeight: 1.6, color: "var(--muted-foreground)", marginTop: 6 }}>
         Anything you've added since you set up this access stays in your own space. It is not

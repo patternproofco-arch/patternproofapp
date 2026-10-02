@@ -11,6 +11,8 @@
  * is enforced on the server, not in a screen.
  */
 
+import { isGrantSnapshotEligible } from "@/lib/sharing/share-readiness";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Admin = any;
 
@@ -31,6 +33,33 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
   return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
 }
 
+/**
+ * Ids eligible for new grant snapshots.
+ * - ok_to_share → in
+ * - private / undecided → out (fail-closed; never invent share)
+ * - NULL / missing field → grandfathered in (pre-migration rows / column not applied yet)
+ *   so live tip binders are not emptied before Grace applies the migration.
+ * Column-missing query errors fall back to ownedIds (same as pre-#135).
+ */
+async function shareEligibleIds(
+  admin: Admin,
+  table: "incidents" | "evidence",
+  clientUserId: string,
+) {
+  const { data, error } = await admin
+    .from(table)
+    .select("id, share_readiness")
+    .eq("user_id", clientUserId)
+    .is("deleted_at", null);
+  if (error) {
+    // Column missing (migration not applied yet): grandfather — pre-#135 owned list.
+    return ownedIds(admin, table, clientUserId);
+  }
+  return ((data ?? []) as Array<{ id: string; share_readiness?: string | null }>)
+    .filter((r) => isGrantSnapshotEligible(r.share_readiness))
+    .map((r) => r.id);
+}
+
 function uniq(ids: Array<string | null | undefined>) {
   return Array.from(new Set(ids.filter((id): id is string => typeof id === "string" && !!id)));
 }
@@ -44,12 +73,17 @@ export async function snapshotShareScope<T extends ShareScope>(
   clientUserId: string,
   scope: T,
 ): Promise<T & Required<Pick<ShareScope, "include_all_incidents" | "include_all_evidence">>> {
+  // Fail-closed for explicit private/undecided; NULL grandfathered (pre-migration).
+  // Explicit picks are intersected with eligible ids so private/undecided never widen.
+  // Never invents a share from readiness alone; does not weaken revoke.
+  const eligibleIncidents = new Set(await shareEligibleIds(admin, "incidents", clientUserId));
+  const eligibleEvidence = new Set(await shareEligibleIds(admin, "evidence", clientUserId));
   const incidents = scope.include_all_incidents
-    ? await ownedIds(admin, "incidents", clientUserId)
-    : uniq(scope.scope_incidents ?? []);
+    ? Array.from(eligibleIncidents)
+    : uniq(scope.scope_incidents ?? []).filter((id) => eligibleIncidents.has(id));
   const evidence = scope.include_all_evidence
-    ? await ownedIds(admin, "evidence", clientUserId)
-    : uniq(scope.scope_evidence ?? []);
+    ? Array.from(eligibleEvidence)
+    : uniq(scope.scope_evidence ?? []).filter((id) => eligibleEvidence.has(id));
 
   return {
     ...scope,
