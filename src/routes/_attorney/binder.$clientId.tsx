@@ -7,6 +7,7 @@ import { listClientEvidenceRequests } from "@/lib/evidence-requests.functions";
 import { buildBinderEntries } from "@/lib/binder";
 import { CourtTimeline } from "@/components/CourtTimeline";
 import { BinderExhibits } from "@/components/BinderExhibits";
+import { AttorneyBinderEmpty } from "@/components/attorney/AttorneyBinderEmpty";
 
 export const Route = createFileRoute("/_attorney/binder/$clientId")({
   head: () => ({
@@ -40,18 +41,41 @@ function BinderPage() {
     return <p className="p-8 text-muted-foreground">Putting the binder together…</p>;
   }
   if (caseQ.error || !caseQ.data) {
+    const msg = caseQ.error instanceof Error ? caseQ.error.message : "";
+    const ended =
+      /no active|revok|expir|ended|withdraw/i.test(msg) ||
+      /sharing may have ended/i.test(msg);
     return (
-      <p className="p-8 text-muted-foreground">
-        We couldn't open this binder. Sharing may have ended — try again from the client page.
-      </p>
+      <div className="mx-auto max-w-3xl p-6">
+        <AttorneyBinderEmpty
+          variant={ended ? "access_ended" : "nothing_shared"}
+          clientId={clientId}
+          hasMessaging
+        />
+      </div>
     );
   }
 
-  const entries = buildBinderEntries(
-    caseQ.data.incidents ?? [],
-    caseQ.data.evidence ?? [],
-    reqQ.data?.items ?? [],
-  );
+  const incidents = caseQ.data.incidents ?? [];
+  const evidence = caseQ.data.evidence ?? [];
+  const entries = buildBinderEntries(incidents, evidence, reqQ.data?.items ?? []);
+
+  if (incidents.length === 0 && evidence.length === 0) {
+    return (
+      <div className="mx-auto max-w-3xl p-6">
+        <div className="mb-6 print:hidden">
+          <Link
+            to="/clients/$clientId"
+            params={{ clientId }}
+            className="inline-flex items-center gap-1 text-sm text-primary"
+          >
+            <ArrowLeft size={14} /> Back to client
+          </Link>
+        </div>
+        <AttorneyBinderEmpty variant="nothing_shared" clientId={clientId} hasMessaging />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl p-6 print:p-0">
@@ -77,6 +101,11 @@ function BinderPage() {
           Generated {new Date().toLocaleDateString()}
         </p>
       </header>
+      {incidents.length > 0 && evidence.length === 0 ? (
+        <div className="mb-6 print:hidden">
+          <AttorneyBinderEmpty variant="notes_not_files" clientId={clientId} hasMessaging />
+        </div>
+      ) : null}
       <section className="mb-8 break-after-page">
         <h2 className="mb-3 font-display text-lg">Court timeline</h2>
         <CourtTimeline entries={entries} />
