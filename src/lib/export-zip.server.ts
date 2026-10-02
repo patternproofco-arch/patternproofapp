@@ -370,8 +370,12 @@ export async function buildSurvivorExportZip(
         : Promise.resolve({ data: [] as unknown[] })
       : db.from("message_threads").select("*").eq("user_id", userId);
     const { data: thData } = await thQ;
+    // Earlier imports stored AI summaries / flags / exhibit labels on the thread.
+    // They are unverified characterisations, so they never leave in an export.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const threads = (thData ?? []) as any[];
+    const threads = ((thData ?? []) as any[]).map(
+      ({ summary: _s, attorney_summary: _a, flags: _f, exhibit_label: _e, ...rest }) => rest,
+    );
     const threadIds = threads.map((t) => t.id as string);
     if (threadIds.length) {
       const [msgRes, docRes] = await Promise.all([

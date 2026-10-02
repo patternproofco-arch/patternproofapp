@@ -1532,7 +1532,7 @@ export const listClientThreads = createServerFn({ method: "POST" })
     let query = supabaseAdmin
       .from("message_threads")
       .select(
-        "id,source_filename,source_type,conversation_participant,exhibit_label,parse_status,message_count,summary,attorney_summary,flags,created_at",
+        "id,source_filename,source_type,conversation_participant,parse_status,message_count,created_at",
       )
       .eq("user_id", data.clientId);
     if (link.case_id) {

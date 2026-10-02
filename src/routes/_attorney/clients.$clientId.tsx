@@ -1625,7 +1625,6 @@ function Overview({ data }: { data: CaseData }) {
               <Printer size={13} /> Print case file
             </button>
             <BinderLink />
-
           </div>
         </div>
       </div>
@@ -3781,12 +3780,8 @@ type ThreadRow = {
   source_filename: string;
   source_type: string;
   conversation_participant: string | null;
-  exhibit_label: string | null;
   parse_status: string;
   message_count: number;
-  summary: string | null;
-  attorney_summary: string | null;
-  flags: unknown;
   created_at: string;
 };
 
@@ -3801,12 +3796,6 @@ type ThreadMessage = {
   attachment_name: string | null;
   flags: unknown;
 };
-
-type ThreadFlag = { type?: string; label?: string; evidence?: string; severity?: string };
-
-function toFlags(v: unknown): ThreadFlag[] {
-  return Array.isArray(v) ? (v as ThreadFlag[]) : [];
-}
 
 function ThreadsTab({ clientId }: { clientId: string }) {
   const listFn = useServerFn(listClientThreads);
@@ -3865,8 +3854,6 @@ function ThreadsTab({ clientId }: { clientId: string }) {
     >
       <div style={{ display: "grid", gap: 10 }}>
         {threads.map((t) => {
-          const flags = toFlags(t.flags);
-          const high = flags.filter((f) => f.severity === "high").length;
           const active = openId === t.id;
           return (
             <button
@@ -3901,21 +3888,13 @@ function ThreadsTab({ clientId }: { clientId: string }) {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {t.exhibit_label || t.conversation_participant || t.source_filename}
+                    {t.conversation_participant || t.source_filename}
                   </div>
                   <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 2 }}>
                     {t.source_type.toUpperCase()} · {t.message_count} msgs ·{" "}
                     {new Date(t.created_at).toLocaleDateString()}
                   </div>
                 </div>
-                {high > 0 && (
-                  <span
-                    className="att-tag"
-                    style={{ background: "var(--pp-card)", color: "var(--att-navy)", fontSize: 10 }}
-                  >
-                    {high} high
-                  </span>
-                )}
               </div>
               {t.parse_status !== "parsed" && (
                 <div
@@ -3957,9 +3936,6 @@ function ThreadsTab({ clientId }: { clientId: string }) {
 }
 
 function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[] }) {
-  const flags = toFlags(t.flags);
-  const sevColor = (s?: string) =>
-    s === "high" ? "var(--att-navy)" : s === "medium" ? "var(--att-navy)" : "#0F2547";
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div>
@@ -3971,85 +3947,12 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
             fontFamily: "var(--font-sans)",
           }}
         >
-          {t.exhibit_label || t.conversation_participant || t.source_filename}
+          {t.conversation_participant || t.source_filename}
         </h3>
         <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 2 }}>
           Source: {t.source_filename} · {t.source_type.toUpperCase()} · {t.message_count} messages
         </div>
       </div>
-
-      {t.attorney_summary && (
-        <div
-          style={{
-            padding: 14,
-            background: "var(--att-surface-2)",
-            borderLeft: "3px solid var(--att-navy)",
-            borderRadius: 16,
-          }}
-        >
-          <div className="att-eyebrow" style={{ marginBottom: 6 }}>
-            Attorney summary
-          </div>
-          <p style={{ fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap", margin: 0 }}>
-            {t.attorney_summary}
-          </p>
-        </div>
-      )}
-
-      {flags.length > 0 && (
-        <div>
-          <div className="att-eyebrow" style={{ marginBottom: 8 }}>
-            Flagged passages ({flags.length})
-          </div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {flags.map((f, i) => (
-              <div
-                key={i}
-                style={{
-                  padding: 10,
-                  borderLeft: `3px solid ${sevColor(f.severity)}`,
-                  background: "var(--att-surface-2)",
-                  borderRadius: 16,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    marginBottom: 4,
-                  }}
-                >
-                  <span>{f.label || f.type}</span>
-                  <span
-                    className="att-mono"
-                    style={{
-                      color: sevColor(f.severity),
-                      textTransform: "uppercase",
-                      fontSize: 10,
-                    }}
-                  >
-                    {f.severity}
-                  </span>
-                </div>
-                {f.evidence && (
-                  <p
-                    style={{
-                      fontSize: 12,
-                      color: "var(--att-text-2)",
-                      margin: 0,
-                      fontStyle: "italic",
-                    }}
-                  >
-                    "{f.evidence}"
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div>
         <div className="att-eyebrow" style={{ marginBottom: 8 }}>
