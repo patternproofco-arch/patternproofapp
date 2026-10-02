@@ -52,7 +52,7 @@ export function ReviewThread({ userId, threads, initialThreadId }: Props) {
         .order("position", { ascending: true }),
       supabase
         .from("thread_source_documents")
-        .select("id,storage_path")
+        .select("id,storage_path,kind")
         .eq("user_id", userId)
         .in("thread_id", threadIds),
     ]);
@@ -74,12 +74,18 @@ export function ReviewThread({ userId, threads, initialThreadId }: Props) {
 
     const map: Record<string, string> = {};
     await Promise.all(
-      ((docRes.data as Array<{ id: string; storage_path: string }> | null) ?? []).map(async (d) => {
-        const { data: signed } = await supabase.storage
-          .from("evidence-files")
-          .createSignedUrl(d.storage_path, 3600);
-        if (signed?.signedUrl) map[d.id] = signed.signedUrl;
-      }),
+      (
+        (docRes.data as Array<{ id: string; storage_path: string; kind: string | null }> | null) ??
+        []
+      )
+        // An exported chat file is text, not a picture to show beside a message.
+        .filter((d) => d.kind !== "chat_export")
+        .map(async (d) => {
+          const { data: signed } = await supabase.storage
+            .from("evidence-files")
+            .createSignedUrl(d.storage_path, 3600);
+          if (signed?.signedUrl) map[d.id] = signed.signedUrl;
+        }),
     );
     setThumbs(map);
     setLoading(false);
