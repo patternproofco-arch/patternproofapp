@@ -33,6 +33,11 @@ import {
 } from "@/lib/attorney-survivor-invites.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useConfirm } from "@/components/ConfirmDialog";
+import {
+  AttorneyWorkQueue,
+  buildAttorneyWorkQueueCards,
+  summarizeSinceLastVisit,
+} from "@/components/attorney/AttorneyWorkQueue";
 
 export const Route = createFileRoute("/_attorney/clients/")({
   component: ClientsIndex,
@@ -106,6 +111,62 @@ function ClientsIndex() {
       <DiagnosisCard clientCount={clients?.length ?? null} tier={sub.tier} />
 
       <InvitePanel invites={invites} onChange={reloadInvites} />
+
+      {clients !== null && invites !== null
+        ? (() => {
+            const cards = buildAttorneyWorkQueueCards({
+              clients,
+              invites: invites.map((inv) => ({
+                id: inv.id,
+                invite_token: inv.invite_token,
+                effective_status: inv.effective_status,
+                survivor_email: inv.survivor_email ?? null,
+              })),
+              lastOpenedByClient: (() => {
+                try {
+                  return JSON.parse(localStorage.getItem("pp.attorney.lastOpened") || "{}") as Record<
+                    string,
+                    string
+                  >;
+                } catch {
+                  return {};
+                }
+              })(),
+              lastIncidentByClient: Object.fromEntries(
+                clients.map((c) => [c.client_user_id, c.last_incident_date]),
+              ),
+            });
+            const since = summarizeSinceLastVisit(cards);
+            const sinceBits = [
+              since.newSince > 0 ? `${since.newSince} new since you looked` : null,
+              since.unanswered > 0 ? `${since.unanswered} unanswered ask` : null,
+              since.expiring > 0 ? `${since.expiring} expiring soon` : null,
+            ].filter(Boolean);
+            return (
+              <>
+                {sinceBits.length > 0 ? (
+                  <div
+                    className="att-card"
+                    data-testid="attorney-since-last-visit"
+                    style={{
+                      marginBottom: 12,
+                      padding: "10px 14px",
+                      fontSize: 12.5,
+                      color: "var(--att-text-2)",
+                      borderLeft: "3px solid var(--att-navy)",
+                    }}
+                  >
+                    <span className="att-eyebrow" style={{ marginRight: 8 }}>
+                      Since last visit
+                    </span>
+                    {sinceBits.join(" · ")} — from what you already have access to. Soft signals only.
+                  </div>
+                ) : null}
+                <AttorneyWorkQueue cards={cards} />
+              </>
+            );
+          })()
+        : null}
 
       {clients === null && <ClientTable clients={null} />}
 

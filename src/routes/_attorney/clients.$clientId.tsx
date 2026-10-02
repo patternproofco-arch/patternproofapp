@@ -126,6 +126,19 @@ type Tab = (typeof TABS)[number];
 
 function ClientCaseView() {
   const { clientId } = useParams({ from: "/_attorney/clients/$clientId" });
+
+  useEffect(() => {
+    if (!clientId || typeof window === "undefined") return;
+    try {
+      const key = "pp.attorney.lastOpened";
+      const prev = JSON.parse(localStorage.getItem(key) || "{}") as Record<string, string>;
+      prev[clientId] = new Date().toISOString();
+      localStorage.setItem(key, JSON.stringify(prev));
+    } catch {
+      /* ignore */
+    }
+  }, [clientId]);
+
   const fetcher = useServerFn(getClientCase);
   const depoFn = useServerFn(generateDepositionPrep);
   const notesFn = useServerFn(listAttorneyNotes);

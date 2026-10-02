@@ -231,7 +231,7 @@ export const listMyClients = createServerFn({ method: "GET" })
     const ownerQ = supabaseAdmin
       .from("attorney_client_links")
       .select(
-        "id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id",
+        "id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,expires_at,revoked_at",
       )
       .eq("attorney_user_id", context.userId)
       .eq("status", "active");
@@ -269,7 +269,7 @@ export const listMyClients = createServerFn({ method: "GET" })
       const { data } = await supabaseAdmin
         .from("attorney_client_links")
         .select(
-          "id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id",
+          "id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,expires_at,revoked_at",
         )
         .in("id", sharedLinkIds)
         .eq("status", "active");
@@ -409,6 +409,9 @@ export const listMyClients = createServerFn({ method: "GET" })
             : grantedSet.has(l.id)
               ? ("granted" as const)
               : ("collaborator" as const),
+          expires_at: (l as { expires_at?: string | null }).expires_at ?? null,
+          revoked_at: (l as { revoked_at?: string | null }).revoked_at ?? null,
+          status: l.status ?? null,
         };
       }),
     );
@@ -430,7 +433,7 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("attorney_client_links")
         .select(
-          "id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id",
+          "id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,expires_at,revoked_at",
         )
         .eq("attorney_user_id", context.userId)
         .eq("status", "active"),
@@ -460,7 +463,7 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
       const { data } = await supabaseAdmin
         .from("attorney_client_links")
         .select(
-          "id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id",
+          "id,client_user_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,scope_incidents,scope_evidence,case_id,expires_at,revoked_at",
         )
         .in("id", sharedLinkIds)
         .eq("status", "active");
