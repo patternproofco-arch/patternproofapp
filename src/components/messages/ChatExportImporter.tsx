@@ -21,6 +21,12 @@ import {
   type ChatExportFile,
 } from "@/lib/chat-export/read-file";
 import { createDraftsFromChatDays } from "@/lib/chat-day-drafts.functions";
+import { createDraftsFromChatMessages } from "@/lib/chat-message-drafts.functions";
+import { extractChatExportMedia } from "@/lib/chat-export/zip-media";
+import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
+import { ensureMediaUploadDrafts } from "@/lib/upload-draft.functions";
+import { extractEvidenceDocument } from "@/lib/document-extract.functions";
+import { isReadableDocument } from "@/lib/readable-documents";
 import { checkUploadSize } from "@/lib/upload-limits";
 
 const CHUNK = 500;
@@ -39,7 +45,11 @@ export function ChatExportImporter({ onImported }: Props) {
   const append = useServerFn(appendChatExportMessages);
   const finish = useServerFn(finishChatExportImport);
   const removeImport = useServerFn(deleteMessageImport);
-  const makeDrafts = useServerFn(createDraftsFromChatDays);
+  const makeDayDrafts = useServerFn(createDraftsFromChatDays);
+  const makeMessageDrafts = useServerFn(createDraftsFromChatMessages);
+  const ingest = useServerFn(ingestEvidenceBatch);
+  const ensureDrafts = useServerFn(ensureMediaUploadDrafts);
+  const extractDoc = useServerFn(extractEvidenceDocument);
 
   const input = useRef<HTMLInputElement | null>(null);
   const [stage, setStage] = useState<Stage>("idle");
@@ -55,6 +65,10 @@ export function ChatExportImporter({ onImported }: Props) {
   const [pickedDays, setPickedDays] = useState<Set<string>>(new Set());
   const [drafting, setDrafting] = useState(false);
   const [draftsMade, setDraftsMade] = useState(0);
+  const [mediaDraftsMade, setMediaDraftsMade] = useState(0);
+  const [preservingMedia, setPreservingMedia] = useState(false);
+  /** one_per_message is the Grace path; one_per_day kept as the shorter list. */
+  const [draftMode, setDraftMode] = useState<"one_per_message" | "one_per_day">("one_per_message");
 
   const reparse = (f: ChatExportFile, order?: DateOrder) =>
     setParsed(parseChatExport(f.text, { dateOrder: order }));
@@ -199,6 +213,88 @@ export function ChatExportImporter({ onImported }: Props) {
       return next;
     });
 
+  const countSelectedMessages = useMemo(() => {
+    if (!parsed || pickedDays.size === 0) return 0;
+    return parsed.messages.filter((m) => m.sent_on && pickedDays.has(m.sent_on)).length;
+  }, [parsed, pickedDays]);
+
+  /** Soft drafts for photos inside an export zip — same path as Evidence uploads. */
+  const preserveZipPhotos = async () => {
+    if (!user || !picked || !file || file.sourceType !== "zip" || preservingMedia) return;
+    setPreservingMedia(true);
+    try {
+      const extracted = await extractChatExportMedia(picked, { maxItems: 40, imagesOnly: true });
+      if (extracted.items.length === 0) {
+        toast(
+          extracted.skipped > 0
+            ? "Those photos were too large to add from the zip. Add them from Evidence if you need them."
+            : "No photos were found inside that zip.",
+        );
+        return;
+      }
+      const toIngest: Array<{
+        storage_key: string;
+        original_filename: string;
+        mime: string;
+        bytes: number;
+      }> = [];
+      for (const item of extracted.items) {
+        const ext = (item.filename.match(/\.([^.]+)$/)?.[1] ?? "bin").replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) || "bin";
+        const key = `${user.id}/chat-export-media/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const up = await supabase.storage.from("evidence-files").upload(key, item.blob, {
+          contentType: item.mime,
+          upsert: false,
+        });
+        if (up.error) continue;
+        toIngest.push({
+          storage_key: key,
+          original_filename: item.filename,
+          mime: item.mime,
+          bytes: item.bytes,
+        });
+      }
+      if (toIngest.length === 0) {
+        toast("We couldn't preserve those photos. Try adding them from Evidence.");
+        return;
+      }
+      const receipt = await ingest({ data: { files: toIngest } });
+      const evidenceIds = receipt.items
+        .map((it) => it.evidence_id)
+        .filter((id): id is string => Boolean(id));
+      let softQueued = 0;
+      if (evidenceIds.length > 0) {
+        try {
+          const soft = await ensureDrafts({ data: { evidence_ids: evidenceIds } });
+          if (soft.ok) softQueued = soft.queued;
+        } catch {
+          /* drafts are a convenience */
+        }
+        // OCR after soft drafts are queued — never a gate (same as #134).
+        await Promise.all(
+          receipt.items.map(async (it) => {
+            if (!it.evidence_id) return;
+            if (!isReadableDocument(it.mime, it.original_filename)) return;
+            try {
+              await extractDoc({ data: { evidence_id: it.evidence_id } });
+            } catch {
+              /* extraction_status stays failed server-side */
+            }
+          }),
+        );
+      }
+      setMediaDraftsMade((n) => n + softQueued);
+      toast(
+        softQueued > 0
+          ? `${softQueued} photo draft${softQueued === 1 ? "" : "s"} added to Drafts to review. Reading text in the photos runs in the background — nothing is on your timeline until you approve.`
+          : `Preserved ${evidenceIds.length} photo${evidenceIds.length === 1 ? "" : "s"} from the zip. Check Drafts to review if any are waiting.`,
+      );
+    } catch {
+      toast("We couldn't add those photos from the zip. Your chat import is still saved.");
+    } finally {
+      setPreservingMedia(false);
+    }
+  };
+
   const draftSelected = async () => {
     if (!threadId || pickedDays.size === 0) return;
     setDrafting(true);
@@ -206,18 +302,44 @@ export function ChatExportImporter({ onImported }: Props) {
       const days = [...pickedDays].sort();
       let created = 0;
       let existing = 0;
-      for (let i = 0; i < days.length; i += 100) {
-        const r = await makeDrafts({ data: { threadId, days: days.slice(i, i + 100) } });
-        created += r.created;
-        existing += r.skippedExisting;
+      if (draftMode === "one_per_day") {
+        for (let i = 0; i < days.length; i += 100) {
+          const r = await makeDayDrafts({ data: { threadId, days: days.slice(i, i + 100) } });
+          created += r.created;
+          existing += r.skippedExisting;
+        }
+        setDraftsMade((n) => n + created);
+        setPickedDays(new Set());
+        toast(
+          created > 0
+            ? `${created} draft${created === 1 ? "" : "s"} added to Drafts to review (one per day). Nothing is on your timeline until you approve it.${existing ? ` ${existing} day${existing === 1 ? " was" : "s were"} already drafted.` : ""}`
+            : "Those days already have drafts waiting.",
+        );
+      } else {
+        // Per-message: chunk by day batches, then offset through long days.
+        for (let i = 0; i < days.length; i += 20) {
+          const dayChunk = days.slice(i, i + 20);
+          let offset = 0;
+          let guard = 0;
+          while (guard < 200) {
+            guard++;
+            const r = await makeMessageDrafts({
+              data: { threadId, days: dayChunk, offset, limit: 100 },
+            });
+            created += r.created;
+            existing += r.skippedExisting;
+            if (!r.hasMore) break;
+            offset = r.nextOffset;
+          }
+        }
+        setDraftsMade((n) => n + created);
+        setPickedDays(new Set());
+        toast(
+          created > 0
+            ? `${created} draft${created === 1 ? "" : "s"} added to Drafts to review (one per message). Nothing is on your timeline until you approve it.${existing ? ` ${existing} already had a draft.` : ""}`
+            : "Those messages already have drafts waiting.",
+        );
       }
-      setDraftsMade((n) => n + created);
-      setPickedDays(new Set());
-      toast(
-        created > 0
-          ? `${created} draft${created === 1 ? "" : "s"} added to Drafts to review. Nothing is on your timeline until you approve it.${existing ? ` ${existing} day${existing === 1 ? " was" : "s were"} already drafted.` : ""}`
-          : "Those days already have drafts waiting.",
-      );
     } catch {
       toast("We couldn't create those drafts. Try again in a moment.");
     } finally {
@@ -238,9 +360,10 @@ export function ChatExportImporter({ onImported }: Props) {
         Add a whole conversation <em>in one go.</em>
       </h2>
       <p className="mt-2" style={{ fontSize: 14, lineHeight: 1.6, color: MUTED }}>
-        In WhatsApp, open the chat → ⋮ / contact name → <strong>Export chat</strong> →{" "}
-        <strong>Without media</strong>. Add the .txt (or .zip) file here. We read it on your device,
-        put every message on its date, and keep your original file exactly as it was.
+        In WhatsApp, open the chat → ⋮ / contact name → <strong>Export chat</strong>. Prefer{" "}
+        <strong>Without media</strong> for a small file, or <strong>Include media</strong> when you
+        want photos from the zip kept as evidence drafts too. We read it on your device, put every
+        message on its date, and keep your original file exactly as it was.
       </p>
 
       <input
@@ -400,10 +523,11 @@ export function ChatExportImporter({ onImported }: Props) {
       {stage === "done" && parsed && digest.length > 0 && (
         <div className="mt-5">
           <h3 className="font-serif" style={{ fontSize: 18 }}>
-            Day by day
+            Turn messages into drafts
           </h3>
           <p className="mt-1" style={{ fontSize: 13, color: MUTED }}>
-            Counts and times only — exactly what the file says.
+            Counts and times only — exactly what the file says. Soft drafts only: nothing reaches
+            your timeline until you approve it, and it stays private until you share.
           </p>
           <label className="mt-2 flex items-center gap-2" style={{ fontSize: 13.5 }}>
             <input
@@ -416,11 +540,78 @@ export function ChatExportImporter({ onImported }: Props) {
             />
             Only days with messages between midnight and 6 AM
           </label>
+          <fieldset className="mt-3">
+            <legend className="label-eyebrow">How should drafts be made?</legend>
+            <div className="mt-2 space-y-1.5" style={{ fontSize: 13.5 }}>
+              <label className="flex items-start gap-2">
+                <input
+                  type="radio"
+                  name="chat-draft-mode"
+                  style={{ marginTop: 3 }}
+                  checked={draftMode === "one_per_message"}
+                  onChange={() => setDraftMode("one_per_message")}
+                />
+                <span>
+                  <strong>One draft per message</strong> — each message becomes its own draft with
+                  its transcript text so you can review and copy what you need.
+                </span>
+              </label>
+              <label className="flex items-start gap-2">
+                <input
+                  type="radio"
+                  name="chat-draft-mode"
+                  style={{ marginTop: 3 }}
+                  checked={draftMode === "one_per_day"}
+                  onChange={() => setDraftMode("one_per_day")}
+                />
+                <span>
+                  <strong>One draft per day</strong> — shorter list; quotes that day&apos;s messages
+                  together.
+                </span>
+              </label>
+            </div>
+          </fieldset>
           <p className="mt-3" style={{ fontSize: 13, color: MUTED }}>
-            Tick the days you want to work with. Each becomes a draft that quotes that day&apos;s
-            messages exactly — you read and approve it before it reaches your timeline, and it stays
-            private until you decide to share it.
+            Tick the days you want to work with
+            {draftMode === "one_per_message" && countSelectedMessages > 0
+              ? ` (${countSelectedMessages.toLocaleString()} messages on selected days)`
+              : ""}
+            .
           </p>
+          {file?.sourceType === "zip" && (file.skippedMediaCount ?? 0) > 0 && (
+            <div
+              className="mt-3"
+              style={{
+                background: "var(--pp-ground)",
+                borderRadius: 14,
+                padding: 12,
+                fontSize: 13.5,
+              }}
+            >
+              <p style={{ margin: 0 }}>
+                This zip also has about {file.skippedMediaCount} photo/video/audio file
+                {file.skippedMediaCount === 1 ? "" : "s"}. You can preserve the photos as evidence
+                drafts the same way other photo uploads work — reading text in them runs after the
+                draft is queued.
+              </p>
+              <button
+                type="button"
+                className="pp-btn-secondary mt-2"
+                style={{ padding: "8px 14px" }}
+                disabled={preservingMedia}
+                onClick={preserveZipPhotos}
+              >
+                {preservingMedia
+                  ? "Preserving photos…"
+                  : "Keep photos from this zip as drafts to review"}
+              </button>
+              {mediaDraftsMade > 0 && (
+                <p className="mt-2" style={{ fontSize: 13, color: MUTED, margin: 0 }}>
+                  {mediaDraftsMade} photo draft{mediaDraftsMade === 1 ? "" : "s"} queued.
+                </p>
+              )}
+            </div>
+          )}
           <div className="mt-2 flex flex-wrap gap-2">
             <button
               type="button"
@@ -489,7 +680,9 @@ export function ChatExportImporter({ onImported }: Props) {
                 ? "Creating drafts…"
                 : pickedDays.size === 0
                   ? "Tick days to make drafts"
-                  : `Make ${pickedDays.size} draft${pickedDays.size === 1 ? "" : "s"} to review`}
+                  : draftMode === "one_per_message"
+                    ? `Make ${countSelectedMessages.toLocaleString()} message draft${countSelectedMessages === 1 ? "" : "s"} to review`
+                    : `Make ${pickedDays.size} day draft${pickedDays.size === 1 ? "" : "s"} to review`}
             </button>
             {draftsMade > 0 && (
               <Link to="/drafts" style={{ fontSize: 14, textDecoration: "underline" }}>
