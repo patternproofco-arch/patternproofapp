@@ -66,13 +66,16 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
   const [busyId, setBusyId] = useState<string | null>(null);
   const [sourceItems, setSourceItems] = useState<SourceMaterial[]>([]);
   const [sourceLoading, setSourceLoading] = useState(false);
+  const [listError, setListError] = useState(false);
 
   const reload = useCallback(async () => {
     try {
       const r = await listFn({});
       setItems((r.items as Proposal[]) ?? []);
+      setListError(false);
     } catch {
-      /* silent — empty state is fine */
+      // Distinguish "couldn't load" from true empty — soft drafts may exist.
+      setListError(true);
     } finally {
       setLoading(false);
     }
@@ -228,6 +231,10 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
       {loading ? (
         <p className="mt-4 text-[13px]" style={{ color: "var(--pp-muted)" }}>
           Checking for drafts…
+        </p>
+      ) : listError ? (
+        <p className="mt-4 text-[13px]" style={{ color: "var(--pp-muted)" }}>
+          We couldn&apos;t load drafts right now. Try refreshing — nothing was discarded.
         </p>
       ) : items.length === 0 ? (
         <p className="mt-4 text-[13px]" style={{ color: "var(--pp-muted)" }}>

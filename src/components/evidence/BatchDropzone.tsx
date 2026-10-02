@@ -61,6 +61,22 @@ type FileState = {
 
 const MAX_FILES = 50;
 
+/** Prefer browser File.type; fall back to extension so soft drafts see image/*. */
+function guessUploadMime(file: File): string {
+  if (file.type && file.type !== "application/octet-stream") return file.type;
+  const n = file.name.toLowerCase();
+  if (/\.(jpe?g)$/.test(n)) return "image/jpeg";
+  if (n.endsWith(".png")) return "image/png";
+  if (n.endsWith(".gif")) return "image/gif";
+  if (n.endsWith(".webp")) return "image/webp";
+  if (n.endsWith(".heic") || n.endsWith(".heif")) return "image/heic";
+  if (/\.(mp3|m4a|aac|wav|ogg)$/.test(n)) return "audio/mpeg";
+  if (/\.(mp4|m4v)$/.test(n)) return "video/mp4";
+  if (n.endsWith(".mov")) return "video/quicktime";
+  if (n.endsWith(".webm")) return "video/webm";
+  return file.type || "application/octet-stream";
+}
+
 function StatusChip({ item }: { item: PreservationReceiptItem }) {
   const map: Record<string, { label: string; bg: string; fg: string; Icon: typeof Check }> = {
     preserved: {
@@ -359,7 +375,7 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       toIngest.push({
         storage_key: key,
         original_filename: item.file.name,
-        mime: outgoing.type || "application/octet-stream",
+        mime: guessUploadMime(outgoing),
         bytes: outgoing.size,
         exif_choice: choice,
         ...dateFields,
@@ -399,9 +415,15 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
       );
       onDone?.();
 
-      // Background: extract EXIF/GPS (quarantined), propose incident matches,
-      // and transcribe any audio/video. Never blocks; failures leave the
-      // preserved file untouched.
+      // Background enrichment: EXIF/GPS, A/V transcription, and document/photo
+      // text extraction. Failures leave the preserved file untouched.
+      //
+      // Soft drafts must NOT wait on photo OCR: isReadableDocument includes
+      // images, extractDoc returns needs_ocr → AI read-aloud with no timeout.
+      // That gate left /drafts empty after a successful preserve toast (live
+      // soft-check). Soft drafts only need the evidence row; OCR text is
+      // optional. A/V still transcribes before AI propose so the model can
+      // use a ready transcript when one exists.
       const preserved = result.items.filter((it) => it.evidence_id);
       let suggested = 0;
       await Promise.all(
@@ -421,21 +443,15 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
             } catch {
               /* transcript_status stays 'failed' server-side */
             }
-          } else if (isReadableDocument(mime, it.original_filename)) {
-            // PDFs, Word files and plain text get read the same way here as
-            // they do when a file is added one at a time.
-            try {
-              await extractDoc({ data: { evidence_id: it.evidence_id! } });
-            } catch {
-              /* extraction_status stays 'failed' server-side */
-            }
           }
         }),
       );
       setSuggestionCount(suggested);
 
-      // Build review-only timeline drafts after media transcription and file
-      // enrichment finish. Nothing becomes a journal entry until accepted.
+      // AI propose first (may insert pending rows); soft fallback for any
+      // photo/audio/video not already waiting in /drafts. Soft claims only.
+      // Do this before document/photo OCR so a hung read-aloud cannot
+      // swallow soft drafts after a successful preserve.
       const evidenceIds = preserved
         .map((it) => it.evidence_id)
         .filter((id): id is string => Boolean(id));
@@ -454,10 +470,8 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
             aiCount = proposed.proposed_timeline.length;
           }
         } catch {
-          // Preservation and transcription succeeded. Soft drafts below still run.
+          // Preservation succeeded. Soft drafts below still run.
         }
-        // Soft drafts for any photo/audio/video not already pending in /drafts.
-        // Skips IDs the AI path already queued. Soft claims only.
         let softQueued = 0;
         try {
           const soft = await ensureDrafts({ data: { evidence_ids: evidenceIds } });
@@ -472,6 +486,20 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           );
         }
       }
+
+      // Photo/PDF/Word text extraction after drafts are queued — never a gate.
+      await Promise.all(
+        preserved.map(async (it) => {
+          const mime = it.mime ?? "";
+          if (mime.startsWith("audio/") || mime.startsWith("video/")) return;
+          if (!isReadableDocument(mime, it.original_filename)) return;
+          try {
+            await extractDoc({ data: { evidence_id: it.evidence_id! } });
+          } catch {
+            /* extraction_status stays 'failed' server-side */
+          }
+        }),
+      );
     } catch (err) {
       toast(err instanceof Error ? err.message : "We couldn't finish preserving these files.");
       setFiles((prev) =>
