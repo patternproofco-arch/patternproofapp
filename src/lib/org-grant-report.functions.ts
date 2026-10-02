@@ -1,6 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  mapGrantReportToDvCategories,
+  type DvFunderCategoryRow,
+} from "@/lib/org-grant-report-categories";
 
 /**
  * Funding / grant report for DV organizations.
@@ -23,6 +27,8 @@ export type GrantReport = {
   referrals: Bucketed;
   avg_days_to_first_follow_up: number | null;
   advocates: number;
+  /** Pre-labeled VOCA / VAWA / FVPSA / STOP-style rows for funder submissions. */
+  dv_categories: DvFunderCategoryRow[];
 };
 
 export function bucket(n: number): Bucketed {
@@ -127,7 +133,7 @@ export const getOrgGrantReport = createServerFn({ method: "POST" })
       /* audit is best-effort */
     }
 
-    return {
+    const base = {
       org_name: org?.name ?? null,
       from: data.from,
       to: data.to,
@@ -140,5 +146,8 @@ export const getOrgGrantReport = createServerFn({ method: "POST" })
       referrals: bucket(referrals),
       avg_days_to_first_follow_up: avg,
       advocates: ids.length,
+      dv_categories: [] as DvFunderCategoryRow[],
     };
+    base.dv_categories = mapGrantReportToDvCategories(base);
+    return base;
   });
