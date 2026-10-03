@@ -34,29 +34,19 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
 }
 
 /**
- * Ids eligible for new grant snapshots.
- * - ok_to_share → in
- * - private / undecided → out (fail-closed; never invent share)
- * - NULL / missing field → grandfathered in (pre-migration rows / column not applied yet)
- *   so live tip binders are not emptied before Grace applies the migration.
- * Column-missing query errors fall back to ownedIds (same as pre-#135).
+ * Ids "share all" may sweep in. Every row defaults to share_readiness='private'
+ * and files have no readiness control, so readiness cannot gate grants without
+ * silently emptying them. Only an explicit "still deciding" choice is held back.
  */
-async function shareEligibleIds(
-  admin: Admin,
-  table: "incidents" | "evidence",
-  clientUserId: string,
-) {
+async function shareAllIds(admin: Admin, table: "incidents" | "evidence", clientUserId: string) {
   const { data, error } = await admin
     .from(table)
     .select("id, share_readiness")
     .eq("user_id", clientUserId)
     .is("deleted_at", null);
-  if (error) {
-    // Column missing (migration not applied yet): grandfather — pre-#135 owned list.
-    return ownedIds(admin, table, clientUserId);
-  }
+  if (error) return ownedIds(admin, table, clientUserId);
   return ((data ?? []) as Array<{ id: string; share_readiness?: string | null }>)
-    .filter((r) => isGrantSnapshotEligible(r.share_readiness))
+    .filter((r) => r.share_readiness !== "undecided")
     .map((r) => r.id);
 }
 
@@ -66,24 +56,26 @@ function uniq(ids: Array<string | null | undefined>) {
 
 /**
  * Replace include_all_* with the concrete ids that exist right now.
- * Fails closed: an unreadable list becomes an empty selection, never "all".
+ * Explicit picks are the survivor's own consent on this screen: they are kept
+ * as long as she owns the item and it isn't deleted. Never widens beyond that.
  */
 export async function snapshotShareScope<T extends ShareScope>(
   admin: Admin,
   clientUserId: string,
   scope: T,
 ): Promise<T & Required<Pick<ShareScope, "include_all_incidents" | "include_all_evidence">>> {
-  // Fail-closed for explicit private/undecided; NULL grandfathered (pre-migration).
-  // Explicit picks are intersected with eligible ids so private/undecided never widen.
-  // Never invents a share from readiness alone; does not weaken revoke.
-  const eligibleIncidents = new Set(await shareEligibleIds(admin, "incidents", clientUserId));
-  const eligibleEvidence = new Set(await shareEligibleIds(admin, "evidence", clientUserId));
+  const [ownedInc, ownedEv] = await Promise.all([
+    ownedIds(admin, "incidents", clientUserId),
+    ownedIds(admin, "evidence", clientUserId),
+  ]);
+  const ownInc = new Set(ownedInc);
+  const ownEv = new Set(ownedEv);
   const incidents = scope.include_all_incidents
-    ? Array.from(eligibleIncidents)
-    : uniq(scope.scope_incidents ?? []).filter((id) => eligibleIncidents.has(id));
+    ? await shareAllIds(admin, "incidents", clientUserId)
+    : uniq(scope.scope_incidents ?? []).filter((id) => ownInc.has(id));
   const evidence = scope.include_all_evidence
-    ? Array.from(eligibleEvidence)
-    : uniq(scope.scope_evidence ?? []).filter((id) => eligibleEvidence.has(id));
+    ? await shareAllIds(admin, "evidence", clientUserId)
+    : uniq(scope.scope_evidence ?? []).filter((id) => ownEv.has(id));
 
   return {
     ...scope,
