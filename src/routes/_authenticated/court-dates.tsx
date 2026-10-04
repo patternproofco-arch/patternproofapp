@@ -15,6 +15,7 @@ import { listCourtDates, upsertCourtDate, deleteCourtDate } from "@/lib/court-da
 import { syncCourtDateToGoogle } from "@/lib/google-calendar.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
+import { FormField } from "@/components/FormField";
 
 export const Route = createFileRoute("/_authenticated/court-dates")({
   component: CourtDatesPage,
@@ -567,10 +568,5 @@ function DateRow({
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="label-eyebrow mb-1 block">{label}</label>
-      {children}
-    </div>
-  );
+  return <FormField label={label}>{children}</FormField>;
 }

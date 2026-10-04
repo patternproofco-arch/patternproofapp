@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
  * Many older screens were written without them. This counts the fields that still have none and
  * fails if the number goes UP, so the gap can only shrink. When you fix some, lower the number.
  */
-const REMAINING_UNNAMED_FIELDS = 89;
+const REMAINING_UNNAMED_FIELDS = 67;
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -30,6 +30,8 @@ function unnamed(file: string): number {
     if (/\b(id=|aria-label=|aria-labelledby=)/.test(attrs) || attrs.includes("{...")) continue;
     const before = s.slice(0, m.index);
     if (before.lastIndexOf("<label") > before.lastIndexOf("</label>")) continue;
+    // Inside <Field label="..."> / <FormField>, which tie the label to the control.
+    if (Math.max(before.lastIndexOf("<Field "), before.lastIndexOf("<FormField")) > Math.max(before.lastIndexOf("</Field>"), before.lastIndexOf("</FormField>"))) continue;
     n++;
   }
   return n;

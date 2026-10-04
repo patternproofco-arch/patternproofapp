@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { FormField } from "@/components/FormField";
 
 export const Route = createFileRoute("/_authenticated/feedback")({
   head: () => ({
@@ -223,21 +224,20 @@ function SurvivorFeedbackPage() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <label
-        style={{
-          display: "block",
-          fontSize: 14,
-          fontWeight: 700,
-          color: "var(--pp-ink)",
-          marginBottom: 10,
-          lineHeight: 1.4,
-        }}
-      >
-        {label}
-      </label>
+    <FormField
+      label={label}
+      labelClassName=""
+      labelStyle={{
+        display: "block",
+        fontSize: 14,
+        fontWeight: 700,
+        color: "var(--pp-ink)",
+        marginBottom: 10,
+        lineHeight: 1.4,
+      }}
+    >
       {children}
-    </div>
+    </FormField>
   );
 }
 

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useId } from "react";
 import {
   Upload,
   FileText,
@@ -633,10 +633,14 @@ function Field({
   onChange: (v: string) => void;
   type?: string;
 }) {
+  const id = useId();
   return (
     <div className="grid grid-cols-1 gap-1 md:grid-cols-[180px_1fr] md:items-center md:gap-3">
-      <div className="label-eyebrow">{label}</div>
+      <label htmlFor={id} className="label-eyebrow">
+        {label}
+      </label>
       <input
+        id={id}
         type={type}
         className="input-pp"
         value={value ?? ""}

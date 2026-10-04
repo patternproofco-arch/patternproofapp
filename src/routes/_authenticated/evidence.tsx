@@ -37,6 +37,7 @@ import { ContentTypeSuggestions } from "@/components/evidence/ContentTypeSuggest
 import { ABUSE_TYPES } from "@/lib/abuse-types";
 import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
+import { FormField } from "@/components/FormField";
 
 export const Route = createFileRoute("/_authenticated/evidence")({
   component: EvidencePage,
@@ -1210,10 +1211,5 @@ function EvidencePage() {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="label-eyebrow mb-1 block">{label}</label>
-      {children}
-    </div>
-  );
+  return <FormField label={label}>{children}</FormField>;
 }
