@@ -1,13 +1,21 @@
-# Extends the default gitleaks rules. Only exception: the two Supabase
-# publishable (anon) key lines in the tracked root .env. These are public by
-# design (they ship in the browser bundle). Private keys never live in .env —
-# src/__tests__/supabase-production-env.test.ts enforces the 6 allowed names.
+# Extends the default gitleaks rules. The only exception is the Supabase
+# publishable (anon) key lines in the tracked root .env: public by design, they
+# ship in the browser bundle. Private keys never live in .env —
+# src/__tests__/supabase-production-env.test.ts enforces the 6 allowed names and
+# src/__tests__/no-jwt-outside-env.test.ts enforces that no other file carries a
+# JWT-shaped value and that the .env ones really are anon-role.
 [extend]
 useDefault = true
 
 [allowlist]
-description = "Supabase publishable (anon) key lines in tracked .env only"
+description = "Supabase publishable (anon-role) key lines in tracked .env only"
 regexTarget = "line"
+# Why `^\s*` and `\s*$`: gitleaks hands the allowlist the matched line WITH its
+# leading newline (and any trailing CR), so a bare `^...$` never matched and the
+# check stayed red on every push. Why the middle group: the payload must contain
+# base64 of `"role":"anon"` (three alignments), so a service-role key pasted under
+# the public variable name is NOT allowed. Do not use `paths` + `condition` here:
+# in gitleaks 8.21.x that combination silently allows every finding in the file.
 regexes = [
-  '''^(VITE_)?SUPABASE_PUBLISHABLE_KEY="?eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"?$''',
+  '''^\s*(VITE_)?SUPABASE_PUBLISHABLE_KEY="?eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*(?:InJvbGUiOiJhbm9u|Jyb2xlIjoiYW5vb|icm9sZSI6ImFub2)[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+"?\s*$''',
 ]
