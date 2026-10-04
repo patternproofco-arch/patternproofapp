@@ -22,8 +22,9 @@ describe("share-all honours Keep private on the screens that start a share", () 
     expect(attorneyInvite).toContain("Share all incidents (${shareableIncidents.length})");
     expect(attorneyInvite).toContain("you kept private");
     expect(attorneyInvite).toContain("None of your entries are marked OK to share yet");
-    // never pre-tick an entry that would not be shared
-    expect(attorneyInvite).toMatch(/setSelectedIncidents\( incidents\.filter\(/);
+    // Nothing starts selected. A private entry must not be pre-ticked either.
+    expect(attorneyInvite).not.toMatch(/setSelectedIncidents\(\s*incidents\.map/);
+    expect(attorneyInvite).not.toMatch(/setSelectedEvidence\(\s*evidence\.map/);
   });
 
   it("attorney invite falls back to the old query if the readiness column is missing", () => {
