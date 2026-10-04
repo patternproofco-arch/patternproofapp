@@ -1921,3 +1921,21 @@ textarea.input-pp {
   background: var(--pp-card);
   box-shadow: var(--pp-shadow-sm);
 }
+
+
+/* Keyboard and screen-reader users can jump past the navigation on every page. */
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -64px;
+  z-index: 10000;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--primary, #1f2937);
+  color: var(--primary-foreground, #fff);
+  font-weight: 600;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 8px;
+}

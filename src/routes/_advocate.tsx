@@ -82,6 +82,7 @@ function AdvocateLayout() {
       data-pp-paper=""
       style={{ minHeight: "100vh", background: "var(--paper)", color: "var(--ink)" }}
     >
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <header
         className="pp-portal-header pp-app-chrome"
         style={{
@@ -120,6 +121,8 @@ function AdvocateLayout() {
       </header>
       <AccessDisclaimerBar persona="org" />
       <main
+        id="main-content"
+        tabIndex={-1}
         className="pp-portal-main"
         style={{ maxWidth: 1000, margin: "0 auto", padding: "28px 20px 64px" }}
       >

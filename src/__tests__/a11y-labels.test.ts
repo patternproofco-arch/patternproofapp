@@ -52,3 +52,18 @@ describe("form fields have accessible names", () => {
     expect(readFileSync(join(root, "routes/accept-invite.$token.tsx"), "utf8")).toMatch(/new-password/);
   });
 });
+
+describe("keyboard users can skip the navigation", () => {
+  const root = new URL("../", import.meta.url).pathname;
+  for (const [file, label] of [
+    ["components/AppShell.tsx", "survivor app"],
+    ["routes/_attorney.tsx", "attorney portal"],
+    ["routes/_advocate.tsx", "advocate portal"],
+  ] as const) {
+    it(`the ${label} has a skip link and a main target`, () => {
+      const src = readFileSync(join(root, file), "utf8");
+      expect(src).toMatch(/href="#main-content" className="skip-link"/);
+      expect(src).toMatch(/id="main-content"/);
+    });
+  }
+});

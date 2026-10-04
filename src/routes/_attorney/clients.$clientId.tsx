@@ -148,6 +148,8 @@ function ClientCaseView() {
   const [depo, setDepo] = useState<DepoResult | null>(null);
   const [depoLoading, setDepoLoading] = useState(false);
   const [notes, setNotes] = useState<NoteRow[]>([]);
+  // If your private notes didn't load, typing a new one would overwrite the one that exists.
+  const [notesFailed, setNotesFailed] = useState(false);
   const [ent, setEnt] = useState<{ entitled: boolean; reason: string } | null>(null);
   const [accessEnded, setAccessEnded] = useState(false);
 
@@ -170,8 +172,11 @@ function ClientCaseView() {
         setAccessEnded(true);
       });
     notesFn({ data: { clientId } })
-      .then((r) => setNotes(r.notes))
-      .catch(() => {});
+      .then((r) => {
+        setNotes(r.notes);
+        setNotesFailed(false);
+      })
+      .catch(() => setNotesFailed(true));
   }, [fetcher, notesFn, clientId, ent]);
 
   const runDepo = async () => {
@@ -1783,8 +1788,15 @@ function TimelineTab({
                       >
                         Attorney note {n?.note ? "·" : ""} {n?.note ? "saved" : "(private)"}
                       </summary>
+                      {notesFailed && (
+                        <p role="alert" style={{ fontSize: 12 }}>
+                          Your private notes didn't load, so they can't be edited right now. Reload the page.
+                        </p>
+                      )}
                       <textarea
                         className="att-textarea"
+                        aria-label="Private note"
+                        disabled={notesFailed}
                         defaultValue={n?.note ?? ""}
                         placeholder="Private note — never visible to the client."
                         onBlur={(e) => {
