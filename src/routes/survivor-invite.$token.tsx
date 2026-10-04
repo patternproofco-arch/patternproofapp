@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { isGrantSnapshotEligible } from "@/lib/sharing/share-readiness";
+import { isGrantSnapshotEligible, isMissingReadinessColumn } from "@/lib/sharing/share-readiness";
 import { formatEvidenceDate } from "@/lib/dates";
 import { useEffect, useState } from "react";
 import { ShieldCheck, Lock, Heart, CheckCircle2, FileText, Paperclip } from "lucide-react";
@@ -45,10 +45,11 @@ function SurvivorInvitePage() {
   const [sharePatterns, setSharePatterns] = useState(true);
   const [scopeItemsLoaded, setScopeItemsLoaded] = useState(false);
   const [scopeItemsLoading, setScopeItemsLoading] = useState(false);
+  const [scopeLoadFailed, setScopeLoadFailed] = useState(false);
   const [incidentOptions, setIncidentOptions] = useState<
     Array<{
       id: string;
-      date: string;
+      date: string | null;
       description: string | null;
       abuse_types?: string[] | null;
       share_readiness?: string | null;
@@ -78,7 +79,7 @@ function SurvivorInvitePage() {
   }, [peeked, email]);
 
   useEffect(() => {
-    if (!user || step !== "scope" || scopeItemsLoaded || scopeItemsLoading) return;
+    if (!user || step !== "scope" || scopeItemsLoaded || scopeItemsLoading || scopeLoadFailed) return;
     setScopeItemsLoading(true);
     // share_readiness may not exist yet on a database that hasn't had the
     // migration applied; fall back to the old query so the screen never goes blank.
@@ -97,6 +98,9 @@ function SurvivorInvitePage() {
         .is("deleted_at", null)
         .order("date", { ascending: false });
       if (!withReadiness.error) return { data: withReadiness.data as unknown as IncidentRow[] };
+      // Only a missing column may fall back. A transient failure must not turn into
+      // "every entry looks shareable", so it stops and the screen says so.
+      if (!isMissingReadinessColumn(withReadiness.error)) throw withReadiness.error;
       const plain = await supabase
         .from("incidents")
         .select("id,date,description,abuse_types")
@@ -115,9 +119,10 @@ function SurvivorInvitePage() {
         .order("created_at", { ascending: false }),
     ])
       .then(([inc, ev]) => {
-        const incidents = (inc.data ?? []).filter(
-          (r): r is typeof r & { date: string } => !!r.date,
-        );
+        if (ev.error) throw ev.error;
+        // Entries with an unknown date stay in the list: dropping them would leave out
+        // entries she may want to share, with no sign anything was missing.
+        const incidents = inc.data ?? [];
         const evidence = ev.data ?? [];
         setIncidentOptions(incidents);
         setEvidenceOptions(evidence);
@@ -128,9 +133,12 @@ function SurvivorInvitePage() {
         setSelectedEvidence(evidence.map((e) => e.id));
         setScopeItemsLoaded(true);
       })
-      .catch(() => toast("Couldn't load your incidents and evidence for scope selection."))
+      .catch(() => {
+        setScopeLoadFailed(true);
+        toast("Couldn't load your entries and files, so nothing is selected. Try again before you share.");
+      })
       .finally(() => setScopeItemsLoading(false));
-  }, [user, step, scopeItemsLoaded, scopeItemsLoading]);
+  }, [user, step, scopeItemsLoaded, scopeItemsLoading, scopeLoadFailed]);
 
   // What "Share all incidents" will really include: entries she kept private (or is
   // still deciding about) are left out, and the screen says so instead of implying
@@ -492,7 +500,7 @@ function SurvivorInvitePage() {
                           : prev.filter((id) => id !== item.id),
                       )
                     }
-                    title={new Date(item.date).toLocaleDateString()}
+                    title={item.date ? new Date(item.date).toLocaleDateString() : "Date not known"}
                     subtitle={item.description || "No description added"}
                   />
                 ))}

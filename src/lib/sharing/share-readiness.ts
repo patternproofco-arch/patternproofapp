@@ -81,3 +81,13 @@ export const ENTRY_SHARE_CHIP_COPY: Record<
     explainer: "Kept private while you decide. You can change this anytime.",
   },
 };
+
+/**
+ * True only when a read failed because the readiness column doesn't exist yet (the migration
+ * hasn't been applied). Any other failure is NOT that: callers must stop, not fall back to
+ * treating every record as shareable.
+ */
+export function isMissingReadinessColumn(error: { message?: string; code?: string } | null | undefined): boolean {
+  if (!error) return false;
+  return /share_readiness|42703|does not exist/i.test(`${error.code ?? ""} ${error.message ?? ""}`);
+}

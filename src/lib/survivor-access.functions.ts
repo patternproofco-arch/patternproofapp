@@ -20,9 +20,8 @@ export const listMyAccessAudit = createServerFn({ method: "GET" })
       ])
       .order("created_at", { ascending: false })
       .limit(50);
-    if (error) {
-      return { events: [] as Array<{ id: string; event_type: string; actor_kind: string | null; created_at: string }> };
-    }
+    // A failed read is not "nobody looked". Say it failed so she isn't falsely reassured.
+    if (error) throw new Error("We couldn't load who has viewed your records.");
     return { events: data ?? [] };
   });
 

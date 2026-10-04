@@ -54,12 +54,18 @@ function AccessPage() {
   const [pendingAtt, setPendingAtt] = useState<Awaited<ReturnType<typeof listPendingAttorneyInvitesForMe>>["invites"]>([]);
   const [grants, setGrants] = useState<Awaited<ReturnType<typeof listMyAdvocateAccess>> | null>(null);
   const [audit, setAudit] = useState<Awaited<ReturnType<typeof listMyAccessAudit>>["events"]>([]);
+  const [auditFailed, setAuditFailed] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const load = useCallback(() => {
     pendingFn().then((r) => setPending(r.invites)).catch(() => setPending([]));
     pendingAttFn().then((r) => setPendingAtt(r.invites)).catch(() => setPendingAtt([]));
     listFn().then(setGrants).catch(() => setGrants(null));
-    auditFn().then((r) => setAudit(r.events)).catch(() => setAudit([]));
+    auditFn()
+      .then((r) => {
+        setAudit(r.events);
+        setAuditFailed(false);
+      })
+      .catch(() => setAuditFailed(true));
   }, [pendingFn, pendingAttFn, listFn, auditFn]);
   useEffect(load, [load]);
   const activeLinks = (grants?.links ?? []).filter((link) => link.status === "active");
@@ -123,7 +129,7 @@ function AccessPage() {
                   } catch { toast("We couldn't build that packet."); }
                 }}>Download packet</button>
                 <button type="button" onClick={async () => {
-                  try { await revokeFn({ data: { id: link.id } }); toast("Access revoked for future views."); load(); }
+                  try { await revokeFn({ data: { id: link.id } }); toast("Access revoked. They can no longer open your records here. Anything they already saved or downloaded stays with them."); load(); }
                   catch { toast("We couldn't revoke that grant."); }
                 }}>Revoke</button>
               </div>
@@ -134,7 +140,11 @@ function AccessPage() {
       </section>
       <section className="card-pp" style={{ display: "grid", gap: 8 }}>
         <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, margin: 0 }}>Who viewed what</h2>
-        {audit.length === 0 ? (
+        {auditFailed ? (
+          <p role="alert" style={{ fontSize: 13 }}>
+            We couldn&apos;t load this list, so we can&apos;t tell you whether anyone has viewed your records. Reload the page to try again.
+          </p>
+        ) : audit.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>No recorded professional views yet.</p>
         ) : (
           audit.map((e) => (

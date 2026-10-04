@@ -11,7 +11,7 @@
  * is enforced on the server, not in a screen.
  */
 
-import { isGrantSnapshotEligible } from "@/lib/sharing/share-readiness";
+import { isGrantSnapshotEligible, isMissingReadinessColumn } from "@/lib/sharing/share-readiness";
 import { selectAllPages } from "@/lib/in-chunks.server";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,9 +61,9 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
  * "Still deciding") and the screen promises that a kept-private entry "won't
  * show up when you share with someone". So for entries only ok_to_share is in;
  * private and undecided stay out (fail-closed). NULL or a missing column is
- * grandfathered in (rows from before the column existed), and a query error
- * falls back to every owned entry so a live app is not emptied before the
- * migration is applied.
+ * grandfathered in (rows from before the column existed). Only a MISSING readiness
+ * column (migration not applied yet) falls back to every owned entry; any other
+ * query error stops the share.
  *
  * Files have NO readiness control anywhere in the app, so their "private" is
  * only the column default, never a choice. Holding them back would leave a
@@ -100,7 +100,7 @@ async function shareableIds(
           .order("id", { ascending: true })
           .range(from, to)
           .then((r: { data: unknown; error: { message: string } | null }) => {
-            if (r.error && /share_readiness|42703|does not exist/i.test(r.error.message)) {
+            if (isMissingReadinessColumn(r.error)) {
               columnMissing = true;
             }
             return r;
