@@ -34,11 +34,22 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
 }
 
 /**
- * Ids "share all" may sweep in. Every row defaults to share_readiness='private'
- * and files have no readiness control, so readiness cannot gate grants without
- * silently emptying them. Only an explicit "still deciding" choice is held back.
+ * Ids that "share all" may sweep in, and that explicit picks must also pass.
+ *
+ * Journal entries have a real control ("Keep private" / "OK to share later" /
+ * "Still deciding") and the screen promises that a kept-private entry "won't
+ * show up when you share with someone". So for entries only ok_to_share is in;
+ * private and undecided stay out (fail-closed). NULL or a missing column is
+ * grandfathered in (rows from before the column existed), and a query error
+ * falls back to every owned entry so a live app is not emptied before the
+ * migration is applied.
+ *
+ * Files have NO readiness control anywhere in the app, so their "private" is
+ * only the column default, never a choice. Holding them back would leave a
+ * survivor's "share everything" with no exhibits and no way to fix it, so for
+ * files only an explicit "still deciding" is held back.
  */
-async function shareAllIds(admin: Admin, table: "incidents" | "evidence", clientUserId: string) {
+async function shareableIds(admin: Admin, table: "incidents" | "evidence", clientUserId: string) {
   const { data, error } = await admin
     .from(table)
     .select("id, share_readiness")
@@ -46,7 +57,11 @@ async function shareAllIds(admin: Admin, table: "incidents" | "evidence", client
     .is("deleted_at", null);
   if (error) return ownedIds(admin, table, clientUserId);
   return ((data ?? []) as Array<{ id: string; share_readiness?: string | null }>)
-    .filter((r) => r.share_readiness !== "undecided")
+    .filter((r) =>
+      table === "incidents"
+        ? isGrantSnapshotEligible(r.share_readiness)
+        : r.share_readiness !== "undecided",
+    )
     .map((r) => r.id);
 }
 
@@ -56,8 +71,11 @@ function uniq(ids: Array<string | null | undefined>) {
 
 /**
  * Replace include_all_* with the concrete ids that exist right now.
- * Explicit picks are the survivor's own consent on this screen: they are kept
- * as long as she owns the item and it isn't deleted. Never widens beyond that.
+ * Fails closed for journal entries: a private or still-deciding entry is never
+ * swept in by "share everything" and never added by an explicit pick either.
+ * (The invite screen only offers shareable entries, so a pick of one means a
+ * stale page, and the safe outcome is to leave it out.) Files are owned-only
+ * for explicit picks. Never widens beyond what she owns and hasn't deleted.
  */
 export async function snapshotShareScope<T extends ShareScope>(
   admin: Admin,
@@ -68,13 +86,14 @@ export async function snapshotShareScope<T extends ShareScope>(
     ownedIds(admin, "incidents", clientUserId),
     ownedIds(admin, "evidence", clientUserId),
   ]);
-  const ownInc = new Set(ownedInc);
   const ownEv = new Set(ownedEv);
+  const ownInc = new Set(ownedInc);
+  const shareableInc = new Set(await shareableIds(admin, "incidents", clientUserId));
   const incidents = scope.include_all_incidents
-    ? await shareAllIds(admin, "incidents", clientUserId)
-    : uniq(scope.scope_incidents ?? []).filter((id) => ownInc.has(id));
+    ? Array.from(shareableInc)
+    : uniq(scope.scope_incidents ?? []).filter((id) => ownInc.has(id) && shareableInc.has(id));
   const evidence = scope.include_all_evidence
-    ? await shareAllIds(admin, "evidence", clientUserId)
+    ? await shareableIds(admin, "evidence", clientUserId)
     : uniq(scope.scope_evidence ?? []).filter((id) => ownEv.has(id));
 
   return {

@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { isGrantSnapshotEligible } from "@/lib/sharing/share-readiness";
 import { formatEvidenceDate } from "@/lib/dates";
 import { useEffect, useState } from "react";
 import { ShieldCheck, Lock, Heart, CheckCircle2, FileText, Paperclip } from "lucide-react";
@@ -45,7 +46,13 @@ function SurvivorInvitePage() {
   const [scopeItemsLoaded, setScopeItemsLoaded] = useState(false);
   const [scopeItemsLoading, setScopeItemsLoading] = useState(false);
   const [incidentOptions, setIncidentOptions] = useState<
-    Array<{ id: string; date: string; description: string | null; abuse_types?: string[] | null }>
+    Array<{
+      id: string;
+      date: string;
+      description: string | null;
+      abuse_types?: string[] | null;
+      share_readiness?: string | null;
+    }>
   >([]);
   const [evidenceOptions, setEvidenceOptions] = useState<
     Array<{ id: string; title: string; date: string | null; file_type: string }>
@@ -73,13 +80,33 @@ function SurvivorInvitePage() {
   useEffect(() => {
     if (!user || step !== "scope" || scopeItemsLoaded || scopeItemsLoading) return;
     setScopeItemsLoading(true);
-    Promise.all([
-      supabase
+    // share_readiness may not exist yet on a database that hasn't had the
+    // migration applied; fall back to the old query so the screen never goes blank.
+    type IncidentRow = {
+      id: string;
+      date: string | null;
+      description: string | null;
+      abuse_types: string[] | null;
+      share_readiness?: string | null;
+    };
+    const loadIncidents = async (): Promise<{ data: IncidentRow[] | null }> => {
+      const withReadiness = await supabase
+        .from("incidents")
+        .select("id,date,description,abuse_types,share_readiness")
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .order("date", { ascending: false });
+      if (!withReadiness.error) return { data: withReadiness.data as unknown as IncidentRow[] };
+      const plain = await supabase
         .from("incidents")
         .select("id,date,description,abuse_types")
         .eq("user_id", user.id)
         .is("deleted_at", null)
-        .order("date", { ascending: false }),
+        .order("date", { ascending: false });
+      return { data: plain.data as unknown as IncidentRow[] | null };
+    };
+    Promise.all([
+      loadIncidents(),
       supabase
         .from("evidence")
         .select("id,title,date,file_type")
@@ -94,13 +121,28 @@ function SurvivorInvitePage() {
         const evidence = ev.data ?? [];
         setIncidentOptions(incidents);
         setEvidenceOptions(evidence);
-        setSelectedIncidents(incidents.map((i) => i.id));
+        // Entries she kept private are never pre-ticked: they would not be shared anyway.
+        setSelectedIncidents(
+          incidents.filter((i) => isGrantSnapshotEligible(i.share_readiness)).map((i) => i.id),
+        );
         setSelectedEvidence(evidence.map((e) => e.id));
         setScopeItemsLoaded(true);
       })
       .catch(() => toast("Couldn't load your incidents and evidence for scope selection."))
       .finally(() => setScopeItemsLoading(false));
   }, [user, step, scopeItemsLoaded, scopeItemsLoading]);
+
+  // What "Share all incidents" will really include: entries she kept private (or is
+  // still deciding about) are left out, and the screen says so instead of implying
+  // every entry goes.
+  const shareableIncidents = incidentOptions.filter((i) =>
+    isGrantSnapshotEligible(i.share_readiness),
+  );
+  const keptPrivateCount = incidentOptions.length - shareableIncidents.length;
+  const keptPrivateNote =
+    keptPrivateCount > 0
+      ? `${keptPrivateCount} ${keptPrivateCount === 1 ? "entry" : "entries"} you kept private ${keptPrivateCount === 1 ? "isn't" : "aren't"} included. To include ${keptPrivateCount === 1 ? "it" : "them"}, mark ${keptPrivateCount === 1 ? "it" : "them"} "OK to share later" in your journal first.`
+      : null;
 
   const submitAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -401,8 +443,10 @@ function SurvivorInvitePage() {
               name="incidents-mode"
               checked={incidentMode === "all"}
               onChange={() => setIncidentMode("all")}
-              title={`Share all incidents (${incidentOptions.length})`}
-              helper="Recommended if you want your attorney to see the full timeline."
+              title={`Share all incidents (${shareableIncidents.length})`}
+              helper={
+                keptPrivateNote ?? "Recommended if you want your attorney to see the full timeline."
+              }
             />
             <ScopeModeCard
               name="incidents-mode"
@@ -416,8 +460,14 @@ function SurvivorInvitePage() {
               }
             />
             {incidentMode === "specific" && (
-              <SelectionList empty="No incidents found in your account yet.">
-                {incidentOptions.map((item) => (
+              <SelectionList
+                empty={
+                  keptPrivateCount > 0
+                    ? "None of your entries are marked OK to share yet. Mark the ones you want to include in your journal first."
+                    : "No incidents found in your account yet."
+                }
+              >
+                {shareableIncidents.map((item) => (
                   <SelectableItem
                     key={item.id}
                     checked={selectedIncidents.includes(item.id)}
