@@ -19,7 +19,7 @@ const FULL_DERIVED: Derived = {
   clients_with_activity: 40,
   clients_who_shared_records: 30,
   access_grants_started: 33,
-  access_ended_by_survivor: 12,
+  access_ended: 12,
   follow_ups_created: 90,
   follow_ups_completed: 70,
   clients_with_follow_up: 25,
@@ -216,9 +216,10 @@ describe("incidents and services are not the same thing", () => {
   });
 
   it("survivor withdrawal is never worded as a closed case", () => {
-    const row = DEFAULT_TEMPLATE.rows.find((r) => r.derivedKey === "access_ended_by_survivor")!;
+    const row = DEFAULT_TEMPLATE.rows.find((r) => r.derivedKey === "access_ended")!;
     expect(row.label.toLowerCase()).not.toContain("closed");
     expect(row.definition).toMatch(/does not mean the case is closed/i);
+    expect(row.label.toLowerCase()).not.toContain("survivor withdrew");
   });
 
   it("every row says whether it counts people or events", () => {

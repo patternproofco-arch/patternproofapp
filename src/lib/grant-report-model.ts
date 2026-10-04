@@ -71,7 +71,7 @@ export type DerivedKey =
   | "clients_with_activity"
   | "clients_who_shared_records"
   | "access_grants_started"
-  | "access_ended_by_survivor"
+  | "access_ended"
   | "follow_ups_created"
   | "follow_ups_completed"
   | "clients_with_follow_up"
@@ -209,11 +209,11 @@ export const DEFAULT_TEMPLATE: FunderTemplate = {
     {
       id: "access_ended",
       section: "outcomes",
-      label: "Survivors who ended sharing",
+      label: "Survivors whose sharing ended",
       unit: "unique_clients",
       definition:
-        "Unique survivors who withdrew your team's access in the period. This is the survivor's choice to stop sharing. It does not mean the case is closed or resolved.",
-      derivedKey: "access_ended_by_survivor",
+        "Unique survivors whose sharing with your team ended in the period, whether the survivor withdrew it or your team ended it. It does not mean the case is closed or resolved.",
+      derivedKey: "access_ended",
     },
     {
       id: "outcomes_text",
