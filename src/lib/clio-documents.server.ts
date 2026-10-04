@@ -13,6 +13,7 @@
 import { getValidClioAccessToken } from "@/lib/clio.server";
 import { buildBinderEntries } from "@/lib/binder";
 import { buildExhibitBinderZip } from "@/lib/binder-zip.server";
+import { byDateAscNullsLast, ChunkedReadError, selectInChunks } from "@/lib/in-chunks.server";
 
 const CLIO_API_BASE = "https://app.clio.com/api/v4";
 
@@ -309,6 +310,8 @@ export async function pushBinderZipToClio(
   const includeAllIncidents = link.include_all_incidents === true;
   const includeAllEvidence = link.include_all_evidence === true;
 
+  // Read the shared items in batches and fail loudly: a binder missing some of the
+  // selected items must never be sent to a matter as if it were complete.
   const incidentsQuery = includeAllIncidents
     ? supabaseAdmin
         .from("incidents")
@@ -317,16 +320,23 @@ export async function pushBinderZipToClio(
         .is("deleted_at", null)
         .or("source.neq.ai_extracted,confirmed_at.not.is.null")
         .order("date", { ascending: true })
-    : scopeIncidents.length
-      ? supabaseAdmin
-          .from("incidents")
-          .select("*")
-          .eq("user_id", clientId)
-          .in("id", scopeIncidents)
-          .is("deleted_at", null)
-          .or("source.neq.ai_extracted,confirmed_at.not.is.null")
-          .order("date", { ascending: true })
-      : Promise.resolve({ data: [] as unknown[] });
+        .then((r) => {
+          if (r.error) throw new ChunkedReadError("shared incident", r.error.message);
+          return r.data ?? [];
+        })
+    : selectInChunks(
+        scopeIncidents,
+        (chunk) =>
+          supabaseAdmin
+            .from("incidents")
+            .select("*")
+            .eq("user_id", clientId)
+            .in("id", chunk)
+            .is("deleted_at", null)
+            .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+            .order("date", { ascending: true }),
+        { sort: byDateAscNullsLast, what: "shared incident" },
+      );
 
   const evidenceQuery = includeAllEvidence
     ? supabaseAdmin
@@ -336,16 +346,23 @@ export async function pushBinderZipToClio(
         .is("deleted_at", null)
         .neq("review_status", "suggested")
         .order("date", { ascending: true })
-    : scopeEvidence.length
-      ? supabaseAdmin
-          .from("evidence")
-          .select("*")
-          .eq("user_id", clientId)
-          .in("id", scopeEvidence)
-          .is("deleted_at", null)
-          .neq("review_status", "suggested")
-          .order("date", { ascending: true })
-      : Promise.resolve({ data: [] as unknown[] });
+        .then((r) => {
+          if (r.error) throw new ChunkedReadError("shared file", r.error.message);
+          return r.data ?? [];
+        })
+    : selectInChunks(
+        scopeEvidence,
+        (chunk) =>
+          supabaseAdmin
+            .from("evidence")
+            .select("*")
+            .eq("user_id", clientId)
+            .in("id", chunk)
+            .is("deleted_at", null)
+            .neq("review_status", "suggested")
+            .order("date", { ascending: true }),
+        { sort: byDateAscNullsLast, what: "shared file" },
+      );
 
   const requestsQuery = supabaseAdmin
     .from("attorney_document_requests")
@@ -356,16 +373,20 @@ export async function pushBinderZipToClio(
     .eq("attorney_user_id", attorneyUserId)
     .order("created_at", { ascending: false });
 
-  const [incRes, evRes, reqRes] = await Promise.all([
-    incidentsQuery,
-    evidenceQuery,
-    requestsQuery,
-  ]);
+  let incRows: unknown[];
+  let evRows: unknown[];
+  let reqRes: Awaited<typeof requestsQuery>;
+  try {
+    [incRows, evRows, reqRes] = await Promise.all([incidentsQuery, evidenceQuery, requestsQuery]);
+  } catch (e) {
+    if (e instanceof ChunkedReadError) return { ok: false, reason: e.message };
+    throw e;
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const incidents = (incRes.data ?? []) as any[];
+  const incidents = incRows as any[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const evidence = ((evRes.data ?? []) as any[]).map((e) => {
+  const evidence = (evRows as any[]).map((e) => {
     const clone = { ...(e as Record<string, unknown>) };
     delete clone.gps_lat;
     delete clone.gps_lon;

@@ -2,6 +2,7 @@ import { toSafeCsv } from "@/lib/csv-safe";
 import JSZip from "jszip";
 import { createHash } from "crypto";
 import { buildPatternExport } from "@/lib/pattern-export";
+import { byDateAscNullsLast, selectAllPages, selectInChunks } from "@/lib/in-chunks.server";
 
 /**
  * Builds the survivor's full archive as ZIP bytes.
@@ -81,40 +82,65 @@ export async function buildSurvivorExportZip(
     ? ((scopedCase.attached_thread_ids as string[] | null) ?? [])
     : null;
 
-  const incQ = scopedIncidentIds
-    ? scopedIncidentIds.length
-      ? db
-          .from("incidents")
-          .select("*")
-          .eq("user_id", userId)
-          .in("id", scopedIncidentIds)
-          .is("deleted_at", null)
-          .order("date", { ascending: true })
-      : Promise.resolve({ data: [] as unknown[] })
-    : db
-        .from("incidents")
-        .select("*")
-        .eq("user_id", userId)
-        .is("deleted_at", null)
-        .order("date", { ascending: true });
-  const evQ = scopedEvidenceIds
-    ? scopedEvidenceIds.length
-      ? db
-          .from("evidence")
-          .select("*")
-          .eq("user_id", userId)
-          .in("id", scopedEvidenceIds)
-          .is("deleted_at", null)
-          .neq("review_status", "suggested")
-          .order("date", { ascending: true })
-      : Promise.resolve({ data: [] as unknown[] })
-    : db
-        .from("evidence")
-        .select("*")
-        .eq("user_id", userId)
-        .is("deleted_at", null)
-        .neq("review_status", "suggested")
-        .order("date", { ascending: true });
+  // Long id lists are read in batches and unscoped reads are paged: the API silently
+  // caps one request at 1,000 rows and rejects very long id lists, so a plain select
+  // exported a case short without any error. These throw instead of dropping rows.
+  const incQ = (
+    scopedIncidentIds
+      ? selectInChunks(
+          scopedIncidentIds,
+          (chunk) =>
+            db
+              .from("incidents")
+              .select("*")
+              .eq("user_id", userId)
+              .in("id", chunk)
+              .is("deleted_at", null)
+              .order("date", { ascending: true }),
+          { sort: byDateAscNullsLast, what: "incident" },
+        )
+      : selectAllPages(
+          (from, to) =>
+            db
+              .from("incidents")
+              .select("*")
+              .eq("user_id", userId)
+              .is("deleted_at", null)
+              .order("date", { ascending: true })
+              .order("id", { ascending: true })
+              .range(from, to),
+          { what: "incident" },
+        )
+  ).then((rows) => ({ data: rows as unknown[] }));
+  const evQ = (
+    scopedEvidenceIds
+      ? selectInChunks(
+          scopedEvidenceIds,
+          (chunk) =>
+            db
+              .from("evidence")
+              .select("*")
+              .eq("user_id", userId)
+              .in("id", chunk)
+              .is("deleted_at", null)
+              .neq("review_status", "suggested")
+              .order("date", { ascending: true }),
+          { sort: byDateAscNullsLast, what: "file" },
+        )
+      : selectAllPages(
+          (from, to) =>
+            db
+              .from("evidence")
+              .select("*")
+              .eq("user_id", userId)
+              .is("deleted_at", null)
+              .neq("review_status", "suggested")
+              .order("date", { ascending: true })
+              .order("id", { ascending: true })
+              .range(from, to),
+          { what: "file" },
+        )
+  ).then((rows) => ({ data: rows as unknown[] }));
   const ldQ = scopedLegalIds
     ? scopedLegalIds.length
       ? db.from("legal_documents").select("*").eq("user_id", userId).in("id", scopedLegalIds)
@@ -378,13 +404,21 @@ export async function buildSurvivorExportZip(
     );
     const threadIds = threads.map((t) => t.id as string);
     if (threadIds.length) {
-      const [msgRes, docRes] = await Promise.all([
-        db
-          .from("thread_messages")
-          .select("*")
-          .eq("user_id", userId)
-          .in("thread_id", threadIds)
-          .order("position", { ascending: true }),
+      const [messagesAll, docRes] = await Promise.all([
+        // A long chat is far more than one page: read every message, in order.
+        selectAllPages(
+          (from, to) =>
+            db
+              .from("thread_messages")
+              .select("*")
+              .eq("user_id", userId)
+              .in("thread_id", threadIds)
+              .order("thread_id", { ascending: true })
+              .order("position", { ascending: true })
+              .order("id", { ascending: true })
+              .range(from, to),
+          { what: "message" },
+        ),
         db
           .from("thread_source_documents")
           .select("*")
@@ -393,20 +427,28 @@ export async function buildSurvivorExportZip(
           .order("upload_index", { ascending: true }),
       ]);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const messages = (msgRes.data ?? []) as any[];
+      const messages = messagesAll as any[];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const docs = (docRes.data ?? []) as any[];
       const messageIds = messages.map((m) => m.id as string);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let corrections: any[] = [];
       if (messageIds.length) {
-        const { data: corrData } = await db
-          .from("thread_message_corrections")
-          .select("*")
-          .eq("user_id", userId)
-          .in("message_id", messageIds)
-          .order("created_at", { ascending: true });
-        corrections = corrData ?? [];
+        // Thousands of message ids cannot go in one request; read the history in batches.
+        corrections = await selectInChunks(
+          messageIds,
+          (chunk) =>
+            db
+              .from("thread_message_corrections")
+              .select("*")
+              .eq("user_id", userId)
+              .in("message_id", chunk)
+              .order("created_at", { ascending: true }),
+          { what: "correction" },
+        );
+        corrections.sort((a, b) =>
+          String(a.created_at ?? "").localeCompare(String(b.created_at ?? "")),
+        );
       }
 
       const mtFolder = zip.folder("message-threads");

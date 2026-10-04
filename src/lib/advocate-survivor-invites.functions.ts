@@ -366,25 +366,40 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
 
     const scope = data.scope;
     assertScopeChosen(scope);
-    if (!scope.include_all_incidents && (scope.scope_incidents ?? []).length) {
-      const { data: ownedIncidents } = await supabaseAdmin
-        .from("incidents")
-        .select("id")
-        .eq("user_id", context.userId)
-        .is("deleted_at", null)
-        .in("id", scope.scope_incidents ?? []);
-      if ((ownedIncidents ?? []).length !== (scope.scope_incidents ?? []).length) {
+    // Count in batches: one request with hundreds of ids is rejected, which used to
+    // surface as a misleading "couldn't be shared" for any large selection.
+    const { countInChunks } = await import("@/lib/in-chunks.server");
+    const pickedIncidents = Array.from(new Set(scope.scope_incidents ?? []));
+    if (!scope.include_all_incidents && pickedIncidents.length) {
+      const owned = await countInChunks(
+        pickedIncidents,
+        (chunk) =>
+          supabaseAdmin
+            .from("incidents")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", context.userId)
+            .is("deleted_at", null)
+            .in("id", chunk),
+        { what: "selected incident" },
+      );
+      if (owned !== pickedIncidents.length) {
         throw new Error("One or more selected incidents couldn't be shared.");
       }
     }
-    if (!scope.include_all_evidence && (scope.scope_evidence ?? []).length) {
-      const { data: ownedEvidence } = await supabaseAdmin
-        .from("evidence")
-        .select("id")
-        .eq("user_id", context.userId)
-        .is("deleted_at", null)
-        .in("id", scope.scope_evidence ?? []);
-      if ((ownedEvidence ?? []).length !== (scope.scope_evidence ?? []).length) {
+    const pickedEvidence = Array.from(new Set(scope.scope_evidence ?? []));
+    if (!scope.include_all_evidence && pickedEvidence.length) {
+      const owned = await countInChunks(
+        pickedEvidence,
+        (chunk) =>
+          supabaseAdmin
+            .from("evidence")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", context.userId)
+            .is("deleted_at", null)
+            .in("id", chunk),
+        { what: "selected file" },
+      );
+      if (owned !== pickedEvidence.length) {
         throw new Error("One or more selected evidence files couldn't be shared.");
       }
     }
@@ -451,5 +466,12 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
       },
     });
 
-    return { ok: true };
+    return {
+      ok: true,
+      shared: {
+        incidents: (frozenScope.scope_incidents ?? []).length,
+        files: (frozenScope.scope_evidence ?? []).length,
+      },
+      excluded: frozenScope.excluded,
+    };
   });

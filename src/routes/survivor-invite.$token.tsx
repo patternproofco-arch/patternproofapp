@@ -182,10 +182,24 @@ function SurvivorInvitePage() {
         scope_incidents: incidentMode === "all" ? [] : selectedIncidents,
         scope_evidence: evidenceMode === "all" ? [] : selectedEvidence,
       };
-      await accept({ data: { token, scope } });
+      const res = await accept({ data: { token, scope } });
       setDone(true);
-      toast("Connected. Your attorney now has access to your case.");
-      setTimeout(() => navigate({ to: "/dashboard", replace: true }), 1500);
+      const left = res.excluded.length;
+      const keptPrivate = res.excluded.filter((x) => x.reason === "kept_private").length;
+      const parts = [
+        `Connected. Your attorney can see ${res.shared.incidents} ${res.shared.incidents === 1 ? "entry" : "entries"} and ${res.shared.files} ${res.shared.files === 1 ? "file" : "files"}.`,
+      ];
+      if (left > 0) {
+        parts.push(
+          `${left} you picked ${left === 1 ? "was" : "were"} not shared` +
+            (keptPrivate > 0
+              ? ` (${keptPrivate} you kept private; ${left - keptPrivate} no longer available).`
+              : " (no longer available)."),
+        );
+      }
+      // Stay long enough to read it: it says exactly what the recipient will and won't see.
+      toast(parts.join(" "), { duration: left > 0 ? 12000 : 6000 });
+      setTimeout(() => navigate({ to: "/dashboard", replace: true }), left > 0 ? 12000 : 2500);
     } catch (err) {
       toast(err instanceof Error ? err.message : "Couldn't accept the invite.");
     } finally {

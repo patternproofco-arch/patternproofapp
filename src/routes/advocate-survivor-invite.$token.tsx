@@ -122,7 +122,7 @@ function AdvocateSurvivorInvitePage() {
     }
     setBusy(true);
     try {
-      await accept({
+      const res = await accept({
         data: {
           token,
           acknowledgements: { who: true, scope: true, revoke: true },
@@ -142,7 +142,9 @@ function AdvocateSurvivorInvitePage() {
             ? `${peeked.invite.advocate_name}${peeked.invite.org_name ? ` · ${peeked.invite.org_name}` : ""}`
             : peeked.invite.org_name || "your advocate"
           : "your advocate";
-      toast(`Shared with ${name} · Revoke in Settings`);
+      toast(
+        `Shared with ${name}: ${res.shared.incidents} ${res.shared.incidents === 1 ? "entry" : "entries"} and ${res.shared.files} ${res.shared.files === 1 ? "file" : "files"}. Revoke in Settings.`,
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : "Couldn't accept the invite.";
       if (/onboarding/i.test(message)) {

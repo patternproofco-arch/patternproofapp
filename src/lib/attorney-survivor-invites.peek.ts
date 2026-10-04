@@ -93,5 +93,11 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
       accepted_at: new Date().toISOString(),
       accepted_by: context.userId,
     }).eq("id", inv.id);
-    return { ok: true };
+    // Say exactly what the recipient got and what was left out, so a selected item is
+    // never missing without the survivor knowing.
+    return {
+      ok: true,
+      shared: { incidents: frozen.scope_incidents.length, files: frozen.scope_evidence.length },
+      excluded: frozen.excluded,
+    };
   });

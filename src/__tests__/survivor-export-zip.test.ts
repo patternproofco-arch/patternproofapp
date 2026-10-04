@@ -262,3 +262,79 @@ describe("survivor archive export — imported chat files", () => {
     expect(meta.matches_recorded_hash).toBe(false);
   });
 });
+
+describe("survivor archive export — a large case loses nothing", () => {
+  // The API silently returns at most 1,000 rows per request and rejects very long
+  // id lists. A case made of hundreds of entries and a long chat hit both limits.
+  const LIMITS = { maxRows: 1000, maxInIds: 250 };
+  const N_INC = 450;
+  const N_MSG = 2500;
+  const incIds = Array.from({ length: N_INC }, (_, i) => `inc-${i}`);
+
+  function bigWorld(): Tables {
+    return {
+      cases: [
+        {
+          id: "case-big",
+          user_id: SURV_A,
+          case_name: "Fictional Large Matter",
+          other_party: "Sample",
+          highlighted_incident_ids: incIds,
+          attached_evidence_ids: [],
+          legal_document_ids: [],
+          attached_thread_ids: ["th-big"],
+          updated_at: "2026-05-01T00:00:00Z",
+        },
+      ],
+      incidents: incIds.map((id, i) => ({
+        id,
+        user_id: SURV_A,
+        date: `2026-01-${String((i % 28) + 1).padStart(2, "0")}`,
+        description: `Entry ${i}`,
+        abuse_types: [],
+        deleted_at: null,
+      })),
+      evidence: [],
+      communications: [],
+      voice_notes: [],
+      legal_documents: [],
+      pattern_analyses: [],
+      evidence_families: [],
+      message_threads: [{ id: "th-big", user_id: SURV_A, capture_method: "backup_export" }],
+      thread_messages: Array.from({ length: N_MSG }, (_, i) => ({
+        id: `m-${i}`,
+        thread_id: "th-big",
+        user_id: SURV_A,
+        position: i + 1,
+        body: `message ${i}`,
+        sender: "A",
+        sent_on: "2026-01-05",
+        sent_at_time: "10:00:00",
+      })),
+      thread_source_documents: [],
+      thread_message_corrections: Array.from({ length: N_MSG }, (_, i) => ({
+        id: `c-${i}`,
+        user_id: SURV_A,
+        message_id: `m-${i}`,
+        field: "body",
+        created_at: "2026-02-01T00:00:00Z",
+      })),
+    };
+  }
+
+  it("exports every selected incident, every message and every correction", async () => {
+    const db = fakeAdmin(bigWorld(), {}, LIMITS);
+    const built = await buildSurvivorExportZip(db, { userId: SURV_A, caseId: "case-big" });
+    if (!built.ok) throw new Error(built.reason);
+
+    expect(built.counts.incidents).toBe(N_INC);
+    const zip = await JSZip.loadAsync(built.zipBuf);
+    const messages = JSON.parse(await zip.file("message-threads/messages.json")!.async("string"));
+    const corrections = JSON.parse(
+      await zip.file("message-threads/corrections.json")!.async("string"),
+    );
+    expect(messages).toHaveLength(N_MSG);
+    expect(new Set(messages.map((m: { id: string }) => m.id)).size).toBe(N_MSG);
+    expect(corrections).toHaveLength(N_MSG);
+  });
+});
