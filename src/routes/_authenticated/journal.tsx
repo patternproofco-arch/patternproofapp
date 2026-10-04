@@ -675,7 +675,7 @@ function JournalPage() {
           className="btn-primary inline-flex items-center gap-2 px-6 py-3.5 text-[15px]"
         >
           <PenLine size={17} />
-          {editingId ? "Edit Mark" : "Add a Mark"}
+          {editingId ? "Edit entry" : "Add an entry"}
           <ChevronDown
             size={16}
             style={{
@@ -691,7 +691,7 @@ function JournalPage() {
           className="btn-ghost inline-flex items-center gap-2 px-6 py-3.5 text-[15px]"
         >
           <List size={17} />
-          All Marks {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
+          All entries {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
           <ChevronDown
             size={16}
             style={{

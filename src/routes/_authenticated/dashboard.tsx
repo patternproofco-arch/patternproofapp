@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Plus, Paperclip, BookOpen, Waves, CalendarClock, ShieldCheck } from "lucide-react";
+import { Plus, Paperclip, BookOpen, CalendarClock, Share2, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard.functions";
@@ -16,19 +16,19 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Home — PatternProof" },
-      { name: "description", content: "Add a Mark and see your recent activity." },
+      { name: "description", content: "Add an entry and see your recent activity." },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: Dashboard,
 });
 
+// Familiar words, and few of them. Safety stays here, always visible.
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: "Log a Mark", icon: Plus, to: "/journal" },
-  { label: "Evidence", icon: Paperclip, to: "/evidence" },
-  { label: "Archive", icon: BookOpen, to: "/journal" },
-  { label: "Recurline", icon: Waves, to: "/patterns" },
+  { label: "Entries", icon: BookOpen, to: "/journal" },
   { label: "Timeline", icon: CalendarClock, to: "/timeline" },
+  { label: "Files", icon: Paperclip, to: "/evidence" },
+  { label: "Sharing", icon: Share2, to: "/access" },
   { label: "Safety", icon: ShieldCheck, to: "/safety" },
 ];
 
@@ -80,7 +80,7 @@ function Dashboard() {
           kind: "mark" as const,
           at: r.created_at,
           date: r.date,
-          label: (r.description ?? "").slice(0, 110) || "A Mark you saved",
+          label: (r.description ?? "").slice(0, 110) || "An entry you saved",
         })),
         ...(ev.data ?? []).map((r) => ({
           id: r.id,
@@ -103,7 +103,7 @@ function Dashboard() {
       setThread(
         (inc.data ?? []).slice(0, 3).map((r) => ({
           id: r.id,
-          description: r.description ?? "A Mark you saved",
+          description: r.description ?? "An entry you saved",
           date: r.date,
           date_precision: r.date_precision,
           date_range_start: r.date_range_start,
@@ -137,7 +137,7 @@ function Dashboard() {
             </>
           ) : (
             <>
-              Add a Mark, <em>then rest.</em>
+              Add an entry, <em>then rest.</em>
             </>
           )}
         </h1>
@@ -162,7 +162,8 @@ function Dashboard() {
           ))}
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-5">
+        {/* One main action. A note, a recording or a file can all be where an entry starts. */}
+        <div className="mt-5">
           <Link
             to="/journal"
             className="btn-pp"
@@ -170,19 +171,24 @@ function Dashboard() {
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              padding: "10px 18px",
-              fontSize: 13.5,
+              padding: "12px 22px",
+              fontSize: 15,
               textDecoration: "none",
             }}
           >
-            <Plus size={16} /> Add a Mark
+            <Plus size={16} /> Add an entry
           </Link>
-          <Link
-            to="/voice-notes"
-            style={{ fontSize: 13.5, color: "var(--ink)", textDecoration: "underline" }}
-          >
-            Say it out loud
-          </Link>
+          <p className="mt-3 text-[13px]" style={{ color: t.muted }}>
+            Start with a note, or{" "}
+            <Link to="/voice-notes" style={{ color: "var(--ink)", textDecoration: "underline" }}>
+              a recording
+            </Link>
+            , or{" "}
+            <Link to="/evidence" style={{ color: "var(--ink)", textDecoration: "underline" }}>
+              a file
+            </Link>
+            . Nothing is shared unless you choose to.
+          </p>
         </div>
       </FocusRegion>
 
@@ -253,7 +259,7 @@ function Dashboard() {
                 Recently
               </h2>
               <Link to="/journal" style={{ fontSize: 12.5, color: "var(--ink)" }}>
-                Open your Archive →
+                Open your entries →
               </Link>
             </div>
             <RecentActivityFeed items={activity} />

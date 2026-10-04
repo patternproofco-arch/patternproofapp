@@ -35,7 +35,7 @@ function Intake() {
             Create a private account
           </Link>
           <Link to="/capture" style={btn(true)}>
-            Record 60 seconds first
+            Record privately (in your account)
           </Link>
           <Link to="/how-it-works" style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             See how it works first

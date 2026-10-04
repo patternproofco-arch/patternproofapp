@@ -8,8 +8,8 @@ import {
 
 describe("stripGuideAnswerMarkdown", () => {
   it("removes bold and italic markdown markers", () => {
-    expect(stripGuideAnswerMarkdown("Use **Add a Mark** to log it.")).toBe(
-      "Use Add a Mark to log it.",
+    expect(stripGuideAnswerMarkdown("Use **Add an entry** to log it.")).toBe(
+      "Use Add an entry to log it.",
     );
     expect(stripGuideAnswerMarkdown("Tap *Archive* when you are ready.")).toBe(
       "Tap Archive when you are ready.",
@@ -22,26 +22,26 @@ describe("stripGuideAnswerMarkdown", () => {
   });
 
   it("turns markdown bullet asterisks into plain bullets", () => {
-    expect(stripGuideAnswerMarkdown("* Open Archive\n* Add a Mark")).toBe(
-      "• Open Archive\n• Add a Mark",
+    expect(stripGuideAnswerMarkdown("* Open Archive\n* Add an entry")).toBe(
+      "• Open Archive\n• Add an entry",
     );
   });
 });
 
 describe("preferFeatureNames", () => {
-  it("replaces + / plus button wording with Add a Mark", () => {
-    expect(preferFeatureNames("Tap the + button to start.")).toBe("Tap Add a Mark to start.");
+  it("replaces + / plus button wording with Add an entry", () => {
+    expect(preferFeatureNames("Tap the + button to start.")).toBe("Tap Add an entry to start.");
     expect(preferFeatureNames("Use the plus button on the dashboard.")).toBe(
-      "Use Add a Mark on the dashboard.",
+      "Use Add an entry on the dashboard.",
     );
-    expect(preferFeatureNames("Click the + near the top.")).toBe("Click Add a Mark near the top.");
+    expect(preferFeatureNames("Click the + near the top.")).toBe("Click Add an entry near the top.");
   });
 });
 
 describe("cleanGuideAnswer", () => {
   it("applies both markdown strip and feature naming", () => {
     expect(cleanGuideAnswer("Tap the **+ button** to log an incident.")).toBe(
-      "Tap Add a Mark to log an incident.",
+      "Tap Add an entry to log an incident.",
     );
   });
 });
@@ -49,8 +49,8 @@ describe("cleanGuideAnswer", () => {
 describe("guideChat system prompt copy", () => {
   const guide = readFileSync("src/lib/guide-chat.functions.ts", "utf8");
 
-  it("names Add a Mark and forbids + button / markdown asterisks", () => {
-    expect(guide).toContain("Add a Mark");
+  it("names Add an entry and forbids + button / markdown asterisks", () => {
+    expect(guide).toContain("Add an entry");
     expect(guide).toMatch(/never ["']the \+ button/i);
     expect(guide).toContain("plain text only");
     expect(guide).toContain("Do not use asterisks");
