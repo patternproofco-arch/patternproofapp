@@ -14,10 +14,17 @@ export interface BinderEntry {
 
 const str = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v : null);
 
+/**
+ * `exhibitLabels` (item key -> printed label) switches numbering from "position in date
+ * order" to the attorney's frozen exhibit package, so adding an earlier-dated item no
+ * longer renumbers everything after it. An item missing from the map prints as
+ * "Not yet numbered". Without it, behavior is unchanged.
+ */
 export function buildBinderEntries(
   incidents: Row[],
   evidence: Row[],
   requests: Row[],
+  exhibitLabels?: ReadonlyMap<string, string>,
 ): BinderEntry[] {
   const out: Omit<BinderEntry, "exhibit">[] = [];
   for (const i of incidents) {
@@ -56,5 +63,10 @@ export function buildBinderEntries(
     if (!b.date) return -1;
     return a.date.localeCompare(b.date);
   });
-  return out.map((e, n) => ({ ...e, exhibit: `Exhibit ${n + 1}` }));
+  return out.map((e, n) => ({
+    ...e,
+    exhibit: exhibitLabels
+      ? (exhibitLabels.get(`${e.kind}:${e.id}`) ?? "Not yet numbered")
+      : `Exhibit ${n + 1}`,
+  }));
 }
