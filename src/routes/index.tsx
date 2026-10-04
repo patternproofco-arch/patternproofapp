@@ -1,8 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { BrandMark } from "@/components/BrandMark";
-import { ChronologyThread } from "@/components/ChronologyThread";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { ref?: string } =>
@@ -41,28 +39,61 @@ const SAMPLE_BEADS = [
   {
     id: "s1",
     title: "Text message",
-    happenedLabel: "3 Oct · exact",
-    certainty: "exact" as const,
-    kind: "text" as const,
-    body: "Kept with its source.",
+    kindLabel: "Message",
+    happenedLabel: "03 Oct",
+    certainty: "exact",
+    original: "Sample text message, kept with its source.",
+    context: "Kept with its source.",
   },
   {
     id: "s2",
     title: "Voice note",
-    happenedLabel: "about 7 Oct · approximate",
-    certainty: "approximate" as const,
-    kind: "audio" as const,
-    body: "Date can stay approximate.",
+    kindLabel: "Voice note",
+    happenedLabel: "about 07 Oct",
+    certainty: "approximate",
+    original: "Sample voice note. The date can stay approximate.",
+    context: "Date can stay approximate.",
   },
   {
     id: "s3",
     title: "Photo",
-    happenedLabel: "12 Oct · exact",
-    certainty: "exact" as const,
-    kind: "photo" as const,
-    body: "Location held back until you release it.",
+    kindLabel: "Photo",
+    happenedLabel: "12 Oct",
+    certainty: "exact",
+    original: "Sample photo, saved as the original file.",
+    context: "Location held back until you release it.",
   },
 ];
+
+const DOTS: { x: number; y: number; r: number }[] = [
+  [168, 36, 3], [214, 28, 5], [262, 44, 7], [312, 22, 4], [358, 48, 9], [398, 30, 3],
+  [154, 86, 5], [206, 96, 8], [258, 78, 4], [308, 102, 11], [360, 84, 6], [404, 108, 4],
+  [176, 148, 7], [228, 138, 4], [274, 156, 10], [328, 142, 5], [372, 164, 8], [412, 136, 3],
+  [190, 204, 4], [242, 214, 9], [292, 196, 6], [340, 220, 12], [388, 198, 5],
+  [210, 268, 6], [258, 258, 4], [306, 278, 8], [354, 252, 5], [396, 272, 10],
+  [228, 324, 5], [276, 338, 9], [326, 318, 4], [370, 344, 7], [408, 322, 3],
+  [248, 388, 4], [296, 402, 8], [346, 378, 6], [392, 408, 11],
+  [268, 448, 3], [318, 436, 6], [366, 452, 4],
+].map(([x, y, r]) => ({ x, y, r }));
+
+function DotConstellation() {
+  return (
+    <svg className="ed-mark" viewBox="0 0 440 480" aria-hidden="true">
+      <defs>
+        <radialGradient id="ed-wash" cx="70%" cy="42%" r="58%">
+          <stop offset="0%" stopColor="#e7d4ea" stopOpacity="0.85" />
+          <stop offset="42%" stopColor="#f6dccb" stopOpacity="0.55" />
+          <stop offset="78%" stopColor="#d5e3cf" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#f4efe6" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect x="120" y="8" width="312" height="464" fill="url(#ed-wash)" />
+      {DOTS.map((dot) => (
+        <circle key={`${dot.x}-${dot.y}`} cx={dot.x} cy={dot.y} r={dot.r} fill="#111111" />
+      ))}
+    </svg>
+  );
+}
 
 function Index() {
   const { user, loading } = useAuth();
@@ -75,143 +106,120 @@ function Index() {
   }, [user, loading, navigate]);
 
   return (
-    <div className="folio-shell" style={{ minHeight: "100vh" }}>
-      <div className="folio-stitch" aria-hidden="true" />
-
-      <section className="landing-hero" style={{ paddingTop: "clamp(40px, 6vw, 72px)" }}>
-        <BrandMark size={36} variant="ink" onDark />
-        <p className="folio-kicker" style={{ marginTop: 22 }}>
-          Private chronology
-        </p>
-        <h1 style={{ marginTop: 14, marginBottom: 0, maxWidth: 640 }}>
-          {attorneyMode ? (
-            <>
-              A shoebox of screenshots is not a chronology.
-              <br />
-              <em>A source-linked timeline is.</em>
-            </>
-          ) : (
-            <>
-              One private timeline.
-              <br />
-              <em>Everything in the right order.</em>
-            </>
-          )}
-        </h1>
-
-        {attorneyMode ? (
-          <>
-            <p style={{ marginTop: 20, maxWidth: 620 }}>
-              Review a structured, source-linked chronology on day one — not a folder of
-              screenshots. Hearing prep starts with strategy, not sorting.
-            </p>
-            <div style={{ marginTop: 28, display: "flex", flexWrap: "wrap", gap: 12 }}>
-              <Link to="/demo" className="btn-primary" style={{ textDecoration: "none" }}>
-                View the sample
+    <div className="editorial-home">
+      <section className="ed-hero">
+        <div className="ed-hero-copy">
+          <p className="ed-kicker">Private chronology</p>
+          <h1>
+            {attorneyMode ? (
+              <>
+                A shoebox of screenshots is not a chronology.{" "}
+                <em>A source-linked timeline is.</em>
+              </>
+            ) : (
+              <>The truth is in the pattern.</>
+            )}
+          </h1>
+          <p className="ed-sub">
+            {attorneyMode
+              ? "Review a structured, source-linked chronology on day one, not a folder of screenshots."
+              : "Turn scattered records into one source-linked timeline."}
+          </p>
+          <div className="ed-actions">
+            {attorneyMode ? (
+              <Link to="/demo" className="ed-primary">
+                Explore a sample timeline
               </Link>
-              <Link to="/" search={{ ref: undefined }} className="btn-ghost" style={{ textDecoration: "none" }}>
+            ) : (
+              <a href="#sample" className="ed-primary">
+                Explore a sample timeline
+              </a>
+            )}
+          </div>
+          {attorneyMode ? (
+            <p className="ed-quiet">
+              <Link to="/" search={{ ref: undefined }}>
                 Not an attorney?
               </Link>
-            </div>
-          </>
-        ) : (
-          <>
-            <p style={{ marginTop: 18, maxWidth: 620 }}>
-              PatternProof organizes your photos, messages, voice notes, and written entries into
-              one source-linked timeline. You decide what to add, what to share, and who can see
-              it. Survivor accounts are free, with no trial or credit card.
             </p>
-            <div style={{ marginTop: 28, display: "flex", flexWrap: "wrap", gap: 12 }}>
-              <Link to="/signup" className="btn-primary" style={{ textDecoration: "none" }}>
-                Start a private record
-              </Link>
-              <Link to="/demo" className="btn-ghost" style={{ textDecoration: "none" }}>
-                View the sample
-              </Link>
-            </div>
-          </>
-        )}
+          ) : (
+            <p className="ed-quiet">
+              <Link to="/signup">Start a private record</Link>
+              <span> Survivor accounts are free. No trial and no credit card.</span>
+            </p>
+          )}
+        </div>
+        <DotConstellation />
       </section>
 
       {!attorneyMode && (
         <>
-          <section style={{ marginTop: 56 }}>
-            <ChronologyThread beads={SAMPLE_BEADS} />
-          </section>
-
-          <section style={{ marginTop: 56 }}>
-            <p className="folio-kicker">Who it is for</p>
-            <div style={{ marginTop: 16, display: "grid", gap: 0 }}>
-              <div className="docket">
-                <div className="docket-tab">Exhibit · Survivors</div>
-                <div className="docket-body">
-                  <h2 style={{ margin: 0, fontSize: "1.45rem" }}>Free. Private by default.</h2>
-                  <p style={{ margin: "8px 0 14px" }}>Nothing is required.</p>
-                  <Link to="/signup" style={{ color: "var(--indigo)" }}>
-                    Start a private record
-                  </Link>
-                </div>
-              </div>
-              <div className="docket">
-                <div className="docket-tab">Exhibit · Attorneys</div>
-                <div className="docket-body">
-                  <h2 style={{ margin: 0, fontSize: "1.45rem" }}>Review starts the day the file arrives.</h2>
-                  <p style={{ margin: "8px 0 14px" }}>
-                    A source-linked chronology instead of a folder of screenshots.
-                  </p>
-                  <Link to="/for-attorneys" style={{ color: "var(--indigo)" }}>
-                    For attorneys
-                  </Link>
-                </div>
-              </div>
-              <div className="docket">
-                <div className="docket-tab">Exhibit · Organizations</div>
-                <div className="docket-body">
-                  <h2 style={{ margin: 0, fontSize: "1.45rem" }}>The intake can begin already in order.</h2>
-                  <p style={{ margin: "8px 0 14px" }}>
-                    Refer survivors at no cost to you or to them.
-                  </p>
-                  <Link to="/for-organizations" style={{ color: "var(--indigo)" }}>
-                    For organizations
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section style={{ marginTop: 56 }}>
-            <p className="folio-kicker">Safety</p>
-            <div style={{ marginTop: 16, display: "grid", gap: 10 }}>
-              <p>Exit safely, on every page.</p>
-              <p>Uploads finish after a dropped connection.</p>
-              <p>Photo location data is held back until you choose.</p>
-            </div>
-            <p style={{ marginTop: 14 }}>
-              <Link to="/safety" style={{ color: "var(--indigo)" }}>
-                Read survivor safety
-              </Link>
-            </p>
-            <p style={{ marginTop: 18, fontSize: 14 }}>
-              Documentation is encrypted in transit and protected by per-user access controls. At-rest
-              encryption is a property of our infrastructure host that we have not independently
-              audited.
-            </p>
-          </section>
-
-          <section className="gloss-block" style={{ marginTop: 64, paddingBottom: 48 }}>
-            <p className="line">The file is not the story.</p>
-            <p className="between">a screenshot without a date is only a file</p>
-            <p className="line">The pattern is.</p>
-            <p className="between">order, source, and context — together</p>
-            <p style={{ marginTop: 16, maxWidth: 560 }}>
+          <section id="sample" className="ed-sample" aria-labelledby="sample-heading">
+            <p className="ed-kicker">Sample · not a real record</p>
+            <h2 id="sample-heading">starts the day the file arrives.</h2>
+            <p className="ed-sample-lead">
               Keep the original. Add the context. Share only if you choose.
             </p>
-            <div style={{ marginTop: 24 }}>
-              <Link to="/signup" className="btn-primary" style={{ textDecoration: "none" }}>
-                Start a private record
-              </Link>
+            <div className="ed-rail" role="table" aria-label="Sample chronology">
+              <div className="ed-rail-head" role="row">
+                <span role="columnheader">Date</span>
+                <span role="columnheader">Original</span>
+                <span role="columnheader">Context</span>
+              </div>
+              {SAMPLE_BEADS.map((bead) => (
+                <div className="ed-rail-row" role="row" key={bead.id}>
+                  <div role="cell" className="ed-date">
+                    <span>{bead.happenedLabel}</span>
+                    <span className="ed-certainty">{bead.certainty}</span>
+                  </div>
+                  <div role="cell">
+                    <p className="ed-kind">{bead.kindLabel}</p>
+                    <p>{bead.original}</p>
+                  </div>
+                  <div role="cell">
+                    <p className="ed-kind">Added note</p>
+                    <p>{bead.context}</p>
+                  </div>
+                </div>
+              ))}
             </div>
+            <p className="ed-gloss">Context is addition, not replacement.</p>
+            <p className="ed-quiet">
+              <Link to="/demo">Open the longer sample</Link>
+            </p>
           </section>
+
+          <section className="ed-paths">
+            <p className="ed-kicker">Who it is for</p>
+            <ul>
+              <li>
+                <strong>Survivors.</strong> Free. Private by default.{" "}
+                <Link to="/signup">Start a private record</Link>
+              </li>
+              <li>
+                <strong>Attorneys.</strong> A source-linked chronology instead of a folder of screenshots.{" "}
+                <Link to="/for-attorneys">For attorneys</Link>
+              </li>
+              <li>
+                <strong>Organizations.</strong> Refer survivors at no cost to you or to them.{" "}
+                <Link to="/for-organizations">For organizations</Link>
+              </li>
+            </ul>
+          </section>
+
+          <section className="ed-safety">
+            <p className="ed-kicker">Safety</p>
+            <p>Exit safely, on every page.</p>
+            <p>
+              <Link to="/safety">Read survivor safety</Link>
+            </p>
+            <p className="ed-disclaimer">
+              See the pattern. See the proof. PatternProof does not make legal decisions and does not
+              guarantee outcomes.
+            </p>
+          </section>
+
+          <p className="ed-choice">Your record. Your choice.</p>
         </>
       )}
     </div>
