@@ -193,15 +193,15 @@ function Index() {
             <p className="ed-kicker">Who it is for</p>
             <ul>
               <li>
-                <strong>Survivors.</strong> Free. Private by default.{" "}
+                <strong>Survivors.</strong> Start with what you have. Add context when you're ready.{" "}
                 <Link to="/signup">Start a private record</Link>
               </li>
               <li>
-                <strong>Attorneys.</strong> A source-linked chronology instead of a folder of screenshots.{" "}
+                <strong>Attorneys.</strong> Know where the case stands. Know what comes next.{" "}
                 <Link to="/for-attorneys">For attorneys</Link>
               </li>
               <li>
-                <strong>Organizations.</strong> Refer survivors at no cost to you or to them.{" "}
+                <strong>Organizations.</strong> Help someone prepare without taking control away.{" "}
                 <Link to="/for-organizations">For organizations</Link>
               </li>
             </ul>

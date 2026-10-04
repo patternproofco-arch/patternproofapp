@@ -86,43 +86,12 @@ function HowItWorks() {
           Here is what actually happens.
         </h1>
         <p style={{ marginTop: 20, fontSize: 17, lineHeight: 1.6, color: SUBTEXT, maxWidth: 620 }}>
-          Choose your role to see the three steps that matter to you.
+          {aud === "attorney"
+            ? "Know where the case stands. Know what comes next."
+            : aud === "org"
+              ? "Help someone prepare without taking control away."
+              : "Start with what you have. Add context when you're ready."}
         </p>
-      </section>
-
-      <section style={{ maxWidth: 780, margin: "0 auto", padding: "8px 24px 12px" }}>
-        <div
-          role="tablist"
-          aria-label="Audience"
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 6,
-            padding: 8,
-            borderRadius: "var(--pp-r-lg)",
-            background: "var(--pp-ground)",
-            boxShadow: "var(--pp-shadow-in-sm)",
-          }}
-        >
-          <Picker
-            label="I'm a survivor"
-            active={aud === "survivor"}
-            accent={INK}
-            onClick={() => setAud("survivor")}
-          />
-          <Picker
-            label="I'm an attorney"
-            active={aud === "attorney"}
-            accent={NAVY}
-            onClick={() => setAud("attorney")}
-          />
-          <Picker
-            label="I'm with a DV organization"
-            active={aud === "org"}
-            accent={SAGE}
-            onClick={() => setAud("org")}
-          />
-        </div>
       </section>
 
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "24px 24px 32px" }}>
@@ -146,66 +115,39 @@ function HowItWorks() {
           }}
         >
           <div style={{ fontSize: 14, color: SUBTEXT, maxWidth: 420, lineHeight: 1.6 }}>
-            Ready to try it, or want to see the audience page?
+            {aud === "survivor"
+              ? "One next step. You can add more later."
+              : aud === "attorney"
+                ? "Invitation-only. Paying does not unlock access. Verification does."
+                : "Organizations do not get automatic access. The account belongs to the survivor."}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             {aud === "survivor" && (
-              <PrimaryLink to="/signup" accent={INK} label="Start documenting →" />
+              <PrimaryLink to="/signup" accent={INK} label="Start a private record" />
             )}
             {aud === "attorney" && (
-              <>
-                <PrimaryLink to="/lawyer-signup" accent={NAVY} label="Request access →" />
-                <GhostLink to="/for-attorneys" label="Attorney overview" />
-              </>
+              <PrimaryLink to="/lawyer-signup" accent={NAVY} label="Request invitation-only access" />
             )}
             {aud === "org" && (
-              <>
-                <PrimaryLink to="/org-signup" accent={SAGE} label="Request access →" />
-                <GhostLink to="/for-organizations" label="Organization overview" />
-              </>
+              <PrimaryLink to="/org-signup" accent={SAGE} label="Request invitation-only partner review" />
             )}
           </div>
+          <p style={{ width: "100%", margin: 0, fontSize: 13, color: MUTED, lineHeight: 1.6 }}>
+            {aud !== "survivor" && (
+              <QuietSwitch label="Survivors" onClick={() => setAud("survivor")} />
+            )}
+            {aud !== "attorney" && (
+              <QuietSwitch label="Attorneys" onClick={() => setAud("attorney")} />
+            )}
+            {aud !== "org" && (
+              <QuietSwitch label="Advocates and organizations" onClick={() => setAud("org")} />
+            )}
+          </p>
         </div>
       </section>
 
       <Foot />
     </div>
-  );
-}
-
-function Picker({
-  label,
-  active,
-  accent,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  accent: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      role="tab"
-      aria-selected={active}
-      onClick={onClick}
-      style={{
-        background: active ? "var(--pp-card)" : "transparent",
-        boxShadow: active ? "var(--pp-shadow-sm)" : "none",
-        border: 0,
-        borderRadius: "var(--pp-r-pill)",
-        padding: "10px 16px",
-        cursor: "pointer",
-        color: active ? accent : MUTED,
-        fontFamily: MONO,
-        fontSize: 12,
-        fontWeight: active ? 700 : 500,
-        letterSpacing: "0.1em",
-        textTransform: "uppercase",
-      }}
-    >
-      {label}
-    </button>
   );
 }
 
@@ -361,6 +303,30 @@ function Eyebrow({ text, accent }: { text: string; accent: string }) {
   );
 }
 
+function QuietSwitch({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        background: "none",
+        border: "none",
+        padding: "0 14px 0 0",
+        fontFamily: MONO,
+        fontSize: 11,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        color: MUTED,
+        textDecoration: "underline",
+        textUnderlineOffset: 3,
+        cursor: "pointer",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 function PrimaryLink({ to, accent, label }: { to: string; accent: string; label: string }) {
   return (
     <Link
@@ -377,27 +343,6 @@ function PrimaryLink({ to, accent, label }: { to: string; accent: string; label:
         textTransform: "uppercase",
         textDecoration: "none",
         borderRadius: "var(--pp-r-pill)",
-      }}
-    >
-      {label}
-    </Link>
-  );
-}
-
-function GhostLink({ to, label }: { to: string; label: string }) {
-  return (
-    <Link
-      to={to}
-      style={{
-        display: "inline-block",
-        padding: "12px 18px",
-        fontFamily: MONO,
-        fontSize: 12,
-        letterSpacing: "0.1em",
-        textTransform: "uppercase",
-        color: INK,
-        textDecoration: "underline",
-        textUnderlineOffset: 4,
       }}
     >
       {label}
