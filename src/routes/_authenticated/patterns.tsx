@@ -184,7 +184,7 @@ function PatternsPage() {
             Add at least two Marks and try again. Patterns need a little ground to stand on.
           </p>
           <Link to="/journal" className="btn-primary mt-3 inline-block">
-            Add a Mark
+            Add an entry
           </Link>
         </div>
       )}
@@ -374,7 +374,7 @@ function PatternsPage() {
                 ))}
               </div>
               <Link to="/journal" className="btn-primary mt-4 inline-block">
-                Add a Mark
+                Add an entry
               </Link>
             </div>
           )}

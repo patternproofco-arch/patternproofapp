@@ -30,6 +30,11 @@ import { FocusRegion } from "@/components/survivor/focus-mode";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 import { DraftTrustHinge } from "@/components/sharing/DraftTrustHinge";
 import type { ShareReadiness } from "@/lib/sharing/share-readiness";
+import { EMPTY_DATE_FORM, dateFormFromRow, isoDaysAgo, resolveIncidentDate } from "@/lib/incident-date";
+import { useEntryDraft } from "@/hooks/use-entry-draft";
+import { draftStatusText, type EntryDraft } from "@/lib/entry-draft";
+import { uploadAndPreserve, type IntakeDeps } from "@/lib/evidence-intake";
+import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
 
 interface FullIncident extends IncidentLite {
   time: string | null;
@@ -42,8 +47,6 @@ interface FullIncident extends IncidentLite {
 export const Route = createFileRoute("/_authenticated/journal")({
   component: JournalPage,
 });
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 type Precision =
   | "exact"
@@ -71,27 +74,6 @@ const PRECISION_HELP: Record<Precision, string> = {
   unknown: "Log it undated. Recorded as Unknown — you can add a date later.",
 };
 
-// Best-effort sortable date derived from a non-exact entry, so timeline
-// ordering still works. Never displayed as a bare date — UI always uses the
-// precision-aware label.
-function deriveSortDate(
-  p: Precision,
-  form: {
-    date: string;
-    date_range_start: string;
-    date_range_end: string;
-    approx_month: string;
-    anchor_date: string;
-  },
-): string | null {
-  if (p === "exact") return form.date || null;
-  if (p === "approximate_month") return form.approx_month ? `${form.approx_month}-15` : null;
-  if (p === "range") return form.date_range_start || form.date_range_end || null;
-  if (p === "before_anchor") return form.anchor_date ? form.anchor_date : null;
-  if (p === "after_anchor") return form.anchor_date ? form.anchor_date : null;
-  return null;
-}
-
 function JournalPage() {
   const { user } = useAuth();
   const extractIncident = useServerFn(extractIncidentFromImage);
@@ -103,14 +85,15 @@ function JournalPage() {
   const [aiBusy, setAiBusy] = useState(false);
   const [aiFilled, setAiFilled] = useState(false);
   const [form, setForm] = useState({
-    date: today(),
+    // Starts with no date: nothing is guessed. She picks Today, another date, or leaves it.
+    date: EMPTY_DATE_FORM.date,
     time: "",
     location: "",
     description: "",
     abuse_types: [] as string[],
     witnesses: "",
     emotional_impact: "",
-    date_precision: "exact" as Precision,
+    date_precision: EMPTY_DATE_FORM.date_precision as Precision,
     approx_month: "",
     date_range_start: "",
     date_range_end: "",
@@ -132,10 +115,31 @@ function JournalPage() {
   const [trustHingeMode, setTrustHingeMode] = useState<"save" | "edit">("save");
   const [trustEditId, setTrustEditId] = useState<string | null>(null);
   const [pendingShareReadiness, setPendingShareReadiness] = useState<ShareReadiness>("private");
+  const [loadError, setLoadError] = useState(false);
+  const ingestFn = useServerFn(ingestEvidenceBatch);
+
+  // Unfinished entries are kept privately in her own account row as she types, so locking,
+  // leaving the page or a refresh doesn't lose them. Nothing sensitive goes to local storage.
+  const draftForm: EntryDraft = {
+    description: form.description,
+    time: form.time,
+    location: form.location,
+    witnesses: form.witnesses,
+    emotional_impact: form.emotional_impact,
+    abuse_types: form.abuse_types,
+    date_precision: form.date_precision,
+    date: form.date,
+    approx_month: form.approx_month,
+    date_range_start: form.date_range_start,
+    date_range_end: form.date_range_end,
+    anchor_incident_id: form.anchor_incident_id,
+    anchor_label: form.anchor_label,
+  };
+  const entryDraft = useEntryDraft(user?.id, draftForm, !editingId);
 
   const load = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
+    const { data, error: listErr } = await supabase
       .from("incidents")
       .select(
         "id,date,time,location,description,abuse_types,witnesses,emotional_impact,source,confirmed_at,date_precision,date_range_start,date_range_end,anchor_incident_id,anchor_label,share_readiness",
@@ -143,6 +147,12 @@ function JournalPage() {
       .eq("user_id", user.id)
       .is("deleted_at", null)
       .order("date", { ascending: false, nullsFirst: false });
+    // A failed read is not an empty journal. Say so instead of showing "nothing here yet".
+    if (listErr) {
+      setLoadError(true);
+      return;
+    }
+    setLoadError(false);
     const rows = (data as FullIncident[] | null) ?? [];
     setList(rows);
     findContradictions()
@@ -193,43 +203,63 @@ function JournalPage() {
     setAttachments((p) => [...p, ...next]);
   };
 
-  const uploadAttachments = async (incidentId: string): Promise<string | null> => {
-    if (!user || attachments.length === 0) return null;
-    let ok = 0;
+  // Resume keys for files whose outcome came back unconfirmed, so a retry reuses the same
+  // stored name and can't create a second record.
+  const [resumeKeys, setResumeKeys] = useState<Record<string, string>>({});
+
+  const intakeDeps: IntakeDeps = {
+    upload: async (key, blob) => {
+      const { error } = await supabase.storage.from("evidence-files").upload(key, blob);
+      return { error: error ? { message: error.message, statusCode: String((error as { statusCode?: string }).statusCode ?? "") } : null };
+    },
+    remove: async (keys) => {
+      const { error } = await supabase.storage.from("evidence-files").remove(keys);
+      if (error) throw error;
+    },
+    ingest: async (file) =>
+      (await ingestFn({ data: { files: [file] } })) as unknown as Awaited<ReturnType<IntakeDeps["ingest"]>>,
+    sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
+    newKey: (userId, name) => `${userId}/${crypto.randomUUID()}-${name}`,
+  };
+
+  /** Attach files to a saved entry. Returns the files that did NOT save, with why. */
+  const uploadAttachments = async (
+    incidentId: string,
+  ): Promise<{ saved: number; failed: Array<{ file: File; message: string }> }> => {
+    if (!user || attachments.length === 0) return { saved: 0, failed: [] };
+    let saved = 0;
+    const failed: Array<{ file: File; message: string }> = [];
+    const keys: Record<string, string> = { ...resumeKeys };
     for (const f of attachments) {
-      const key = `${user.id}/${crypto.randomUUID()}-${f.name.replace(/[^\w.-]/g, "_")}`;
-      const { error: upErr } = await supabase.storage.from("evidence-files").upload(key, f);
-      if (upErr) continue;
-      const { error: rowErr } = await supabase.from("evidence").insert({
-        user_id: user.id,
-        title: f.name,
-        date: form.date || today(),
-        file_url: key,
-        file_type: f.type || "application/octet-stream",
-        original_filename: f.name,
-        bytes: f.size,
-        mime: f.type || null,
-        linked_incident_id: incidentId,
-        review_status: "confirmed",
+      const id = `${f.name}:${f.size}:${f.lastModified}`;
+      const r = await uploadAndPreserve(intakeDeps, {
+        userId: user.id,
+        file: { name: f.name, type: f.type, size: f.size, blob: f },
+        linkedIncidentId: incidentId,
+        resumeKey: keys[id],
       });
-      if (!rowErr) ok += 1;
+      if (r.ok) {
+        saved += 1;
+        delete keys[id];
+      } else {
+        failed.push({ file: f, message: r.message });
+        if (r.stage === "unconfirmed") keys[id] = r.storageKey;
+      }
     }
-    if (ok === attachments.length) {
-      return `Saved. Your record and ${ok} file${ok === 1 ? "" : "s"} are safe.`;
-    }
-    return `Saved. ${ok} of ${attachments.length} files attached — you can add the rest from Evidence.`;
+    setResumeKeys(keys);
+    return { saved, failed };
   };
 
   const reset = () => {
     setForm({
-      date: today(),
+      date: EMPTY_DATE_FORM.date,
       time: "",
       location: "",
       description: "",
       abuse_types: [],
       witnesses: "",
       emotional_impact: "",
-      date_precision: "exact",
+      date_precision: EMPTY_DATE_FORM.date_precision,
       approx_month: "",
       date_range_start: "",
       date_range_end: "",
@@ -239,6 +269,7 @@ function JournalPage() {
     setEditingId(null);
     setAiFilled(false);
     setAttachments([]);
+    setResumeKeys({});
     setAttachError(null);
   };
 
@@ -259,8 +290,9 @@ function JournalPage() {
       toast(msg);
       return;
     }
-    if (!form.description.trim() || form.abuse_types.length === 0) {
-      const msg = "Add a description and at least one type.";
+    // Only the words are needed. A date, a type and the details can all come later.
+    if (!form.description.trim() && attachments.length === 0) {
+      const msg = "Write a few words, or attach a file, to save an entry.";
       setFormFeedback({ kind: "error", message: msg });
       toast(msg);
       return;
@@ -285,17 +317,20 @@ function JournalPage() {
       const anchor = form.anchor_incident_id
         ? list.find((i) => i.id === form.anchor_incident_id)
         : null;
-      const anchorDate = anchor?.date ?? "";
-      const sortDate = deriveSortDate(form.date_precision, {
+      // What she knows is what is stored: no date stays no date, never today.
+      const stored = resolveIncidentDate({
+        date_precision: form.date_precision,
         date: form.date,
+        approx_month: form.approx_month,
         date_range_start: form.date_range_start,
         date_range_end: form.date_range_end,
-        approx_month: form.approx_month,
-        anchor_date: anchorDate,
+        anchor_date: anchor?.date ?? "",
       });
+      const anchored =
+        stored.date_precision === "before_anchor" || stored.date_precision === "after_anchor";
       const payload = {
         user_id: user.id,
-        date: sortDate, // sort helper; UI renders precision-aware label instead
+        date: stored.date, // sort helper; UI renders precision-aware label instead
         time: form.time || null,
         location: sanitizeLine(form.location) || null,
         description: form.description,
@@ -303,17 +338,11 @@ function JournalPage() {
         witnesses: sanitizeLine(form.witnesses) || null,
         emotional_impact: form.emotional_impact || null,
         share_readiness: shareReadiness,
-        date_precision: form.date_precision,
-        date_range_start: form.date_precision === "range" ? form.date_range_start || null : null,
-        date_range_end: form.date_precision === "range" ? form.date_range_end || null : null,
-        anchor_incident_id:
-          form.date_precision === "before_anchor" || form.date_precision === "after_anchor"
-            ? form.anchor_incident_id || null
-            : null,
-        anchor_label:
-          form.date_precision === "before_anchor" || form.date_precision === "after_anchor"
-            ? sanitizeLine(form.anchor_label) || null
-            : null,
+        date_precision: stored.date_precision,
+        date_range_start: stored.date_range_start,
+        date_range_end: stored.date_range_end,
+        anchor_incident_id: anchored ? form.anchor_incident_id || null : null,
+        anchor_label: anchored ? sanitizeLine(form.anchor_label) || null : null,
       };
       const insertPayload = {
         ...payload,
@@ -353,17 +382,35 @@ function JournalPage() {
         toast(msg);
         return;
       }
-      // The incident row is already saved at this point — an attachment upload
-      // failure (e.g. a thrown network error, not just a returned {error})
-      // must never leave the button stuck on "Saving…" with no confirmation,
-      // which could otherwise read as data loss and prompt a duplicate entry.
-      let attachMsg: string | null = null;
+      // The entry itself is saved. Files are attached next, and each one is checked: the
+      // message below only says "saved" for what was confirmed.
+      let outcome: { saved: number; failed: Array<{ file: File; message: string }> } = { saved: 0, failed: [] };
       try {
-        attachMsg = savedId && attachments.length ? await uploadAttachments(savedId) : null;
+        outcome = savedId && attachments.length ? await uploadAttachments(savedId) : outcome;
       } catch {
-        attachMsg = "Saved — but one or more attachments failed to upload. Add them from Evidence.";
+        outcome = {
+          saved: 0,
+          failed: attachments.map((file) => ({ file, message: "We couldn't confirm that this saved." })),
+        };
       }
-      const okMsg = attachMsg ?? "Saved. Your record is in your Marks list.";
+      if (outcome.failed.length > 0) {
+        // Keep her on this entry with only the files that didn't save. Trying again updates the
+        // same entry (it won't make a second one) and each file can be retried safely.
+        setEditingId(savedId);
+        setAttachments(outcome.failed.map((f) => f.file));
+        const detail = outcome.failed.map((f) => `${f.file.name}: ${f.message}`).join(" ");
+        const msg = `Your entry is saved${outcome.saved ? `, with ${outcome.saved} file${outcome.saved === 1 ? "" : "s"}` : ""}. ${outcome.failed.length} file${outcome.failed.length === 1 ? "" : "s"} did NOT save. ${detail} Press Save again to retry just those.`;
+        setFormFeedback({ kind: "error", message: msg });
+        toast(msg);
+        await entryDraft.clear();
+        await load();
+        return;
+      }
+      const okMsg = outcome.saved
+        ? `Saved privately. Your entry and ${outcome.saved} file${outcome.saved === 1 ? "" : "s"} are in your account.`
+        : "Saved privately. Nothing is shared unless you choose to share it.";
+      // Only now is the unfinished-entry copy removed.
+      await entryDraft.clear();
       setFormFeedback({ kind: "success", message: okMsg });
       toast(okMsg);
       reset();
@@ -385,19 +432,20 @@ function JournalPage() {
   const edit = (i: FullIncident) => {
     setEditingId(i.id);
     setLogOpen(true);
-    const p = (i.date_precision as Precision | null | undefined) ?? "exact";
+    // An undated entry opens undated. It used to open as today, and saving then dated it today.
+    const d = dateFormFromRow(i);
     setForm({
-      date: i.date ?? today(),
+      date: d.date,
       time: i.time ?? "",
       location: i.location ?? "",
       description: i.description,
       abuse_types: i.abuse_types,
       witnesses: i.witnesses ?? "",
       emotional_impact: i.emotional_impact ?? "",
-      date_precision: p,
-      approx_month: p === "approximate_month" && i.date ? i.date.slice(0, 7) : "",
-      date_range_start: i.date_range_start ?? "",
-      date_range_end: i.date_range_end ?? "",
+      date_precision: d.date_precision,
+      approx_month: d.approx_month,
+      date_range_start: d.date_range_start,
+      date_range_end: d.date_range_end,
       anchor_incident_id: i.anchor_incident_id ?? "",
       anchor_label: i.anchor_label ?? "",
     });
@@ -627,7 +675,7 @@ function JournalPage() {
           className="btn-primary inline-flex items-center gap-2 px-6 py-3.5 text-[15px]"
         >
           <PenLine size={17} />
-          {editingId ? "Edit Mark" : "Add a Mark"}
+          {editingId ? "Edit entry" : "Add an entry"}
           <ChevronDown
             size={16}
             style={{
@@ -643,7 +691,7 @@ function JournalPage() {
           className="btn-ghost inline-flex items-center gap-2 px-6 py-3.5 text-[15px]"
         >
           <List size={17} />
-          All Marks {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
+          All entries {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
           <ChevronDown
             size={16}
             style={{
@@ -661,7 +709,354 @@ function JournalPage() {
               className="card-pp"
               style={{ background: "var(--linen)", borderLeft: "4px solid var(--primary)" }}
             >
-              <form onSubmit={submit} className="space-y-3">
+              {entryDraft.restored && !editingId && (
+                <div
+                  role="status"
+                  className="mb-3 rounded-2xl p-3 text-[13px]"
+                  style={{ background: "rgba(106,146,214,0.15)", border: "1px solid rgba(106,146,214,0.35)" }}
+                >
+                  <p className="font-semibold">You have an unfinished entry.</p>
+                  <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                    Saved privately to your account on{" "}
+                    {new Date(entryDraft.restored.savedAt).toLocaleString()}. It stays hidden until you choose to continue.
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => {
+                        const d = entryDraft.restored!.draft;
+                        setForm({
+                          date: d.date,
+                          time: d.time,
+                          location: d.location,
+                          description: d.description,
+                          abuse_types: d.abuse_types,
+                          witnesses: d.witnesses,
+                          emotional_impact: d.emotional_impact,
+                          date_precision: (d.date_precision as Precision) || "unknown",
+                          approx_month: d.approx_month,
+                          date_range_start: d.date_range_start,
+                          date_range_end: d.date_range_end,
+                          anchor_incident_id: d.anchor_incident_id,
+                          anchor_label: d.anchor_label,
+                        });
+                        entryDraft.acceptRestored();
+                      }}
+                    >
+                      Continue it
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      onClick={async () => {
+                        const ok = await entryDraft.clear();
+                        if (!ok) toast("We couldn't delete the draft. Try again.");
+                      }}
+                    >
+                      Discard it
+                    </button>
+                  </div>
+                </div>
+              )}
+              <form onSubmit={submit} className="space-y-4">
+                <div>
+                  <label htmlFor="entry-what" className="label-eyebrow">
+                    What happened
+                  </label>
+                  <textarea
+                    id="entry-what"
+                    name="what-happened"
+                    autoComplete="off"
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    className="input-pp mt-1"
+                    rows={5}
+                    placeholder="Write it in your own words. A few words is enough. You can add more later."
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="entry-files" className="label-eyebrow">
+                    Or start from a photo, recording or file
+                  </label>
+                  <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                    The original is kept exactly as you add it and saved with this entry.
+                  </p>
+                  <input
+                    id="entry-files"
+                    type="file"
+                    multiple
+                    accept="image/*,audio/*,video/*,application/pdf"
+                    className="input-pp mt-2 text-[12px]"
+                    onChange={(e) => {
+                      addAttachments(e.target.files);
+                      e.currentTarget.value = "";
+                    }}
+                  />
+                  {attachError && (
+                    <p className="mt-1 text-[11.5px]" style={{ color: "var(--accent)" }}>
+                      {attachError}
+                    </p>
+                  )}
+                  {attachments.length > 0 && (
+                    <ul className="mt-2 space-y-1">
+                      {attachments.map((f, idx) => (
+                        <li key={`${f.name}-${idx}`} className="flex items-center justify-between text-[12px]">
+                          <span className="truncate">{f.name}</span>
+                          <button
+                            type="button"
+                            className="text-[11px] underline"
+                            onClick={() => setAttachments((p) => p.filter((_, i) => i !== idx))}
+                          >
+                            Remove
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <fieldset>
+                  <legend className="label-eyebrow">When did this happen?</legend>
+                  <p className="mt-1 mb-2 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                    Optional. If you're not sure, leave it. It will be saved without a date and you can add one later.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { id: "today", label: "Today", on: form.date_precision === "exact" && form.date === isoDaysAgo(0), set: () => setForm({ ...form, date_precision: "exact", date: isoDaysAgo(0) }) },
+                      { id: "yesterday", label: "Yesterday", on: form.date_precision === "exact" && form.date === isoDaysAgo(1), set: () => setForm({ ...form, date_precision: "exact", date: isoDaysAgo(1) }) },
+                      { id: "pick", label: "Pick a date", on: form.date_precision === "exact" && !!form.date && form.date !== isoDaysAgo(0) && form.date !== isoDaysAgo(1), set: () => setForm({ ...form, date_precision: "exact", date: form.date_precision === "exact" ? form.date : "" }) },
+                      { id: "unsure", label: "Not sure yet", on: form.date_precision === "unknown", set: () => setForm({ ...form, date_precision: "unknown", date: "" }) },
+                    ].map((o) => (
+                      <button
+                        key={o.id}
+                        type="button"
+                        aria-pressed={o.on}
+                        onClick={o.set}
+                        className="rounded-2xl px-3 py-1.5 text-[13px] font-semibold"
+                        style={{
+                          background: o.on ? "var(--primary)" : "transparent",
+                          color: o.on ? "#fff" : "var(--foreground)",
+                          border: "1.5px solid var(--primary)",
+                        }}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                  {form.date_precision === "exact" && (
+                    <div className="mt-2">
+                      <label htmlFor="entry-date" className="label-eyebrow">
+                        Date
+                      </label>
+                      <input
+                        id="entry-date"
+                        type="date"
+                        value={form.date}
+                        onChange={(e) => setForm({ ...form, date: e.target.value })}
+                        className="input-pp mt-1"
+                      />
+                      <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                        Leave this blank and the entry is saved without a date.
+                      </p>
+                    </div>
+                  )}
+                  {form.date_precision === "unknown" && (
+                    <p className="mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                      Saved without a date. Nothing is filled in for you.
+                    </p>
+                  )}
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-[13px] font-semibold">
+                      More ways to say when
+                    </summary>
+                    <div className="mt-2">
+                      {PRECISION_OPTIONS.filter((o) => o.value !== "exact" && o.value !== "unknown").map((o) => (
+                        <button
+                          key={o.value}
+                          type="button"
+                          className="pp-option"
+                          aria-pressed={form.date_precision === o.value}
+                          onClick={() => setForm({ ...form, date_precision: o.value })}
+                        >
+                          <span className="pp-option-radio" />
+                          <span>
+                            <span className="pp-option-title">{o.label}</span>
+                            <span className="pp-option-desc">{PRECISION_HELP[o.value]}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    {form.date_precision === "approximate_month" && (
+                      <div className="mt-2">
+                        <label htmlFor="entry-month" className="label-eyebrow">
+                          Month
+                        </label>
+                        <input
+                          id="entry-month"
+                          type="month"
+                          value={form.approx_month}
+                          onChange={(e) => setForm({ ...form, approx_month: e.target.value })}
+                          className="input-pp mt-1"
+                        />
+                      </div>
+                    )}
+                    {form.date_precision === "range" && (
+                      <div className="mt-2 grid grid-cols-2 gap-3">
+                        <div>
+                          <label htmlFor="entry-from" className="label-eyebrow">
+                            From
+                          </label>
+                          <input
+                            id="entry-from"
+                            type="date"
+                            value={form.date_range_start}
+                            onChange={(e) => setForm({ ...form, date_range_start: e.target.value })}
+                            className="input-pp mt-1"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="entry-to" className="label-eyebrow">
+                            To
+                          </label>
+                          <input
+                            id="entry-to"
+                            type="date"
+                            value={form.date_range_end}
+                            onChange={(e) => setForm({ ...form, date_range_end: e.target.value })}
+                            className="input-pp mt-1"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {(form.date_precision === "before_anchor" || form.date_precision === "after_anchor") && (
+                      <div className="mt-2 space-y-3">
+                        <div>
+                          <label htmlFor="entry-anchor" className="label-eyebrow">
+                            {form.date_precision === "before_anchor" ? "Before which event?" : "After which event?"}
+                          </label>
+                          <select
+                            id="entry-anchor"
+                            value={form.anchor_incident_id}
+                            onChange={(e) => setForm({ ...form, anchor_incident_id: e.target.value })}
+                            className="input-pp mt-1"
+                          >
+                            <option value="">— pick one of your entries —</option>
+                            {list
+                              .filter((i) => i.id !== editingId && i.date)
+                              .map((i) => (
+                                <option key={i.id} value={i.id}>
+                                  {i.date} — {i.description.slice(0, 60)}
+                                  {i.description.length > 60 ? "…" : ""}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="entry-anchor-text" className="label-eyebrow">
+                            Or describe it in your own words
+                          </label>
+                          <input
+                            id="entry-anchor-text"
+                            type="text"
+                            value={form.anchor_label}
+                            onChange={(e) => setForm({ ...form, anchor_label: e.target.value })}
+                            className="input-pp mt-1"
+                            placeholder={`e.g. "before my son's second birthday" or "after the move"`}
+                          />
+                          <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                            This is labelled approximate. The app never invents a date for you.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </details>
+                </fieldset>
+
+                <details className="rounded-2xl border p-3" style={{ borderColor: "var(--border)" }}>
+                  <summary className="cursor-pointer text-[13px] font-semibold">Add details later</summary>
+                  <div className="mt-3 space-y-3">
+                    <div>
+                      <label htmlFor="entry-time" className="label-eyebrow">
+                        Time
+                      </label>
+                      <input
+                        id="entry-time"
+                        type="time"
+                        value={form.time}
+                        onChange={(e) => setForm({ ...form, time: e.target.value })}
+                        className="input-pp mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="entry-location" className="label-eyebrow">
+                        Location
+                      </label>
+                      <input
+                        id="entry-location"
+                        type="text"
+                        value={form.location}
+                        onChange={(e) => setForm({ ...form, location: e.target.value })}
+                        className="input-pp mt-1"
+                        placeholder="Where it happened"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="entry-witnesses" className="label-eyebrow">
+                        Witnesses
+                      </label>
+                      <input
+                        id="entry-witnesses"
+                        type="text"
+                        value={form.witnesses}
+                        onChange={(e) => setForm({ ...form, witnesses: e.target.value })}
+                        className="input-pp mt-1"
+                        placeholder="Anyone who was present or nearby"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="entry-impact" className="label-eyebrow">
+                        How did this affect you
+                      </label>
+                      <textarea
+                        id="entry-impact"
+                        value={form.emotional_impact}
+                        onChange={(e) => setForm({ ...form, emotional_impact: e.target.value })}
+                        className="input-pp mt-1"
+                        placeholder="Only if you want to"
+                      />
+                    </div>
+                    <div>
+                      <span className="label-eyebrow">Type (optional)</span>
+                      <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                        Skip this if you're not sure. You can label it later.
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {ABUSE_TYPES.map((t) => {
+                          const on = form.abuse_types.includes(t.value);
+                          return (
+                            <button
+                              type="button"
+                              key={t.value}
+                              aria-pressed={on}
+                              onClick={() => toggleType(t.value)}
+                              className="rounded-2xl px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                              style={{
+                                background: on ? t.color : "transparent",
+                                color: on ? "#fff" : "var(--foreground)",
+                                border: `1.5px solid ${t.color}`,
+                              }}
+                            >
+                              {t.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
                 <label
                   className="flex cursor-pointer items-center gap-2 rounded-2xl border border-dashed p-3 text-[12px]"
                   style={{ borderColor: "var(--border)" }}
@@ -670,7 +1065,7 @@ function JournalPage() {
                   <span className="flex-1">
                     {aiBusy
                       ? "Reading your image…"
-                      : "Upload a screenshot (text, email, photo) and I'll draft the fields for you to review."}
+                      : "Optional: upload a screenshot and a draft of the fields will be suggested for you to check."}
                   </span>
                   <input
                     type="file"
@@ -689,303 +1084,9 @@ function JournalPage() {
                     className="rounded-2xl p-2 text-[11px]"
                     style={{ background: "rgba(106,146,214,0.15)", color: "var(--foreground)" }}
                   >
-                    AI-drafted — please edit anything that isn't quite right.
+                    Suggested by software. Please check it and edit anything that isn't right.
                   </div>
                 )}
-
-                <div>
-                  <label className="label-eyebrow">Attach photos, audio or files</label>
-                  <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>
-                    Anything you attach here is saved with this Mark. You can add more later.
-                  </p>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*,audio/*,video/*,application/pdf"
-                    className="input-pp mt-2 text-[12px]"
-                    onChange={(e) => {
-                      addAttachments(e.target.files);
-                      e.currentTarget.value = "";
-                    }}
-                  />
-                  {attachError && (
-                    <p className="text-[11.5px] mt-1" style={{ color: "var(--accent)" }}>
-                      {attachError}
-                    </p>
-                  )}
-                  {attachments.length > 0 && (
-                    <ul className="mt-2 space-y-1">
-                      {attachments.map((f, idx) => (
-                        <li
-                          key={`${f.name}-${idx}`}
-                          className="flex items-center justify-between text-[12px]"
-                        >
-                          <span className="truncate">{f.name}</span>
-                          <button
-                            type="button"
-                            className="text-[11px] underline"
-                            onClick={() => setAttachments((p) => p.filter((_, i) => i !== idx))}
-                          >
-                            Remove
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div>
-                  <label className="label-eyebrow">When did this happen?</label>
-                  <p className="mt-1 mb-2 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                    Pick the honest answer. The confidence level travels with the record — and
-                    shapes how the thread is drawn.
-                  </p>
-                  <div>
-                    {PRECISION_OPTIONS.map((o) => (
-                      <button
-                        key={o.value}
-                        type="button"
-                        className="pp-option"
-                        aria-pressed={form.date_precision === o.value}
-                        onClick={() => setForm({ ...form, date_precision: o.value })}
-                      >
-                        <span className="pp-option-radio" />
-                        <span>
-                          <span className="pp-option-title">{o.label}</span>
-                          <span className="pp-option-desc">{PRECISION_HELP[o.value]}</span>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {form.date_precision === "exact" && (
-                    <div>
-                      <label className="label-eyebrow">Date</label>
-                      <input
-                        type="date"
-                        value={form.date}
-                        onChange={(e) => setForm({ ...form, date: e.target.value })}
-                        className="input-pp mt-1"
-                      />
-                    </div>
-                  )}
-                  {form.date_precision === "approximate_month" && (
-                    <div>
-                      <label className="label-eyebrow">Month</label>
-                      <input
-                        type="month"
-                        value={form.approx_month}
-                        onChange={(e) => setForm({ ...form, approx_month: e.target.value })}
-                        className="input-pp mt-1"
-                      />
-                    </div>
-                  )}
-                  {form.date_precision === "range" && (
-                    <>
-                      <div>
-                        <label className="label-eyebrow">From</label>
-                        <input
-                          type="date"
-                          value={form.date_range_start}
-                          onChange={(e) => setForm({ ...form, date_range_start: e.target.value })}
-                          className="input-pp mt-1"
-                        />
-                      </div>
-                      <div>
-                        <label className="label-eyebrow">To</label>
-                        <input
-                          type="date"
-                          value={form.date_range_end}
-                          onChange={(e) => setForm({ ...form, date_range_end: e.target.value })}
-                          className="input-pp mt-1"
-                        />
-                      </div>
-                    </>
-                  )}
-                  <div>
-                    <label className="label-eyebrow">Time</label>
-                    <input
-                      type="time"
-                      value={form.time}
-                      onChange={(e) => setForm({ ...form, time: e.target.value })}
-                      className="input-pp mt-1"
-                    />
-                  </div>
-                </div>
-
-                {(form.date_precision === "before_anchor" ||
-                  form.date_precision === "after_anchor") && (
-                  <div
-                    className="space-y-3"
-                    style={{
-                      background: "var(--pp-card)",
-                      borderRadius: 18,
-                      boxShadow: "var(--pp-shadow-in-sm)",
-                      padding: 16,
-                    }}
-                  >
-                    <div>
-                      <label className="label-eyebrow">
-                        {form.date_precision === "before_anchor"
-                          ? "Before which event?"
-                          : "After which event?"}
-                      </label>
-                      <select
-                        value={form.anchor_incident_id}
-                        onChange={(e) => setForm({ ...form, anchor_incident_id: e.target.value })}
-                        className="input-pp mt-1"
-                      >
-                        <option value="">— pick one of your Marks —</option>
-                        {list
-                          .filter((i) => i.id !== editingId && i.date)
-                          .map((i) => (
-                            <option key={i.id} value={i.id}>
-                              {i.date} — {i.description.slice(0, 60)}
-                              {i.description.length > 60 ? "…" : ""}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="label-eyebrow">
-                        Or describe the anchor in your own words
-                      </label>
-                      <input
-                        type="text"
-                        value={form.anchor_label}
-                        onChange={(e) => setForm({ ...form, anchor_label: e.target.value })}
-                        className="input-pp mt-1"
-                        placeholder={`e.g. "before my son's second birthday" or "after the move"`}
-                      />
-                      <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                        Use either a Mark above, this description, or both.
-                      </p>
-                    </div>
-                    <div
-                      className="pp-note"
-                      style={{ boxShadow: "var(--pp-shadow-sm)", padding: 0 }}
-                    >
-                      <span
-                        className="pp-note-icon"
-                        style={{
-                          boxShadow: "var(--pp-shadow-sm)",
-                          background: "transparent",
-                          padding: 0,
-                          width: "auto",
-                          height: "auto",
-                        }}
-                      >
-                        <ShieldCheck size={18} />
-                      </span>
-                      <span>
-                        <span className="pp-note-title">This will be labelled Approximate</span>
-                        <span className="pp-note-desc">
-                          Your attorney sees the anchor and the reasoning, never a date the app
-                          invented for you.
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {form.date_precision === "unknown" && (
-                  <div className="pp-note">
-                    <span className="pp-note-icon">
-                      <Clock size={16} />
-                    </span>
-                    <span>
-                      <span className="pp-note-title">That's okay</span>
-                      <span className="pp-note-desc">
-                        Save it now — you can come back and add a date if it comes to you later.
-                      </span>
-                    </span>
-                  </div>
-                )}
-
-                <div>
-                  <label className="label-eyebrow">Location</label>
-                  <input
-                    type="text"
-                    value={form.location}
-                    onChange={(e) => setForm({ ...form, location: e.target.value })}
-                    className="input-pp mt-1"
-                    placeholder="Where it happened"
-                  />
-                </div>
-
-                <div>
-                  <label className="label-eyebrow">What happened</label>
-                  <textarea
-                    required
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    className="input-pp mt-1"
-                    placeholder="Describe what happened in your own words. There is no wrong way to write this."
-                  />
-                </div>
-
-                <div>
-                  <label className="label-eyebrow">Type</label>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {ABUSE_TYPES.map((t) => {
-                      const on = form.abuse_types.includes(t.value);
-                      return (
-                        <button
-                          type="button"
-                          key={t.value}
-                          onClick={() => toggleType(t.value)}
-                          className="rounded-2xl px-3 py-1.5 text-[12px] font-semibold transition-colors"
-                          style={{
-                            background: on ? t.color : "transparent",
-                            color: on ? "#fff" : "var(--foreground)",
-                            border: `1.5px solid ${t.color}`,
-                          }}
-                        >
-                          {t.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {form.abuse_types.length > 0 && (
-                    <ul className="mt-2 space-y-1">
-                      {ABUSE_TYPES.filter((t) => form.abuse_types.includes(t.value)).map((t) => (
-                        <li
-                          key={t.value}
-                          className="text-[11px] leading-snug"
-                          style={{ color: "var(--muted-foreground)" }}
-                        >
-                          <span className="font-semibold" style={{ color: t.color }}>
-                            {t.label}:
-                          </span>{" "}
-                          {t.helper}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div>
-                  <label className="label-eyebrow">Witnesses</label>
-                  <input
-                    type="text"
-                    value={form.witnesses}
-                    onChange={(e) => setForm({ ...form, witnesses: e.target.value })}
-                    className="input-pp mt-1"
-                    placeholder="Names of anyone who was present or nearby"
-                  />
-                </div>
-
-                <div>
-                  <label className="label-eyebrow">How did this affect you</label>
-                  <textarea
-                    value={form.emotional_impact}
-                    onChange={(e) => setForm({ ...form, emotional_impact: e.target.value })}
-                    className="input-pp mt-1"
-                    placeholder="Optional — your emotional state, physical impact, or anything else that felt important"
-                  />
-                </div>
 
                 {formFeedback && (
                   <p
@@ -1011,9 +1112,18 @@ function JournalPage() {
                   </p>
                 )}
 
-                <div className="flex items-center gap-2 pt-2">
+                <p
+                  aria-live="polite"
+                  data-testid="journal-draft-status"
+                  className="text-[12px]"
+                  style={{ color: entryDraft.status === "failed" ? "#9B2C3E" : "var(--muted-foreground)" }}
+                >
+                  {draftStatusText(entryDraft.status)}
+                </p>
+
+                <div className="flex items-center gap-2 pt-1">
                   <button type="submit" disabled={busy} className="btn-primary">
-                    {busy ? "Saving…" : editingId ? "Save changes" : "Save This Record"}
+                    {busy ? "Saving…" : editingId ? "Save changes" : "Save privately"}
                   </button>
                   {editingId && (
                     <button type="button" onClick={reset} className="btn-ghost">
@@ -1021,6 +1131,9 @@ function JournalPage() {
                     </button>
                   )}
                 </div>
+                <p className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                  Saving keeps this private. Sharing with anyone is a separate step you choose.
+                </p>
               </form>
             </section>
           </div>
@@ -1037,7 +1150,13 @@ function JournalPage() {
                 borderLeft: "4px solid var(--accent-powder-ink)",
               }}
             >
-              {list.length === 0 ? (
+              {loadError ? (
+                <div className="card-pp" role="alert">
+                  <p className="text-[14px]">
+                    We couldn&apos;t load your entries. They are not gone. Reload the page to try again.
+                  </p>
+                </div>
+              ) : list.length === 0 ? (
                 <div className="card-pp">
                   <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
                     Nothing here yet — when you're ready, this is a safe place to start.

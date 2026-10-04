@@ -33,20 +33,20 @@ export function stripGuideAnswerMarkdown(text: string): string {
 
 /**
  * Prefer PatternProof feature names over UI chrome descriptions.
- * "Add a Mark" is the product name for creating a journal/incident entry —
+ * "Add an entry" is the product name for creating a journal/incident entry —
  * never "the + button" / "the plus button".
  *
- * Note for Experience glance: product copy should say "Add a Mark", not
+ * Note for Experience glance: product copy should say "Add an entry", not
  * describe the control as a plus / + button.
  */
 export function preferFeatureNames(text: string): string {
   return text
-    .replace(/\bthe\s*\+\s*button\b/gi, "Add a Mark")
-    .replace(/\bthe\s+plus\s+button\b/gi, "Add a Mark")
-    .replace(/\bplus\s+button\b/gi, "Add a Mark")
-    .replace(/\b\+\s*button\b/gi, "Add a Mark")
-    .replace(/\b(tap|click|press|use)\s+the\s*\+(?!\w)/gi, "$1 Add a Mark")
-    .replace(/\bthe\s*\+(?!\w)/gi, "Add a Mark");
+    .replace(/\bthe\s*\+\s*button\b/gi, "Add an entry")
+    .replace(/\bthe\s+plus\s+button\b/gi, "Add an entry")
+    .replace(/\bplus\s+button\b/gi, "Add an entry")
+    .replace(/\b\+\s*button\b/gi, "Add an entry")
+    .replace(/\b(tap|click|press|use)\s+the\s*\+(?!\w)/gi, "$1 Add an entry")
+    .replace(/\bthe\s*\+(?!\w)/gi, "Add an entry");
 }
 
 /** Full post-process for a Guide reply before it reaches the UI. */

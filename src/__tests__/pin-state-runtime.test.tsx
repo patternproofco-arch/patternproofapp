@@ -10,8 +10,11 @@ vi.mock("@/lib/pin-lock.functions", () => ({
   setPinServer: vi.fn(),
   clearPinServer: vi.fn(),
   verifyPinServer: vi.fn(),
-  setBiometricEnabled: vi.fn(),
-  issueUnlockToken: vi.fn(),
+  beginBiometricEnroll: vi.fn(),
+  finishBiometricEnroll: vi.fn(),
+  beginBiometricUnlock: vi.fn(),
+  finishBiometricUnlock: vi.fn(),
+  removeBiometricServer: vi.fn(),
 }));
 import { PinLockProvider, usePinLock } from "@/lib/pin-lock";
 let host: HTMLDivElement, root: Root;

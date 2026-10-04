@@ -5,15 +5,17 @@ import {
   setPinServer,
   clearPinServer,
   verifyPinServer,
-  setBiometricEnabled,
-  issueUnlockToken,
+  beginBiometricEnroll,
+  finishBiometricEnroll,
+  beginBiometricUnlock,
+  finishBiometricUnlock,
+  removeBiometricServer,
   checkUnlockToken,
 } from "@/lib/pin-lock.functions";
 
 import { withAccessTimeout } from "@/lib/portal-access";
 
 const UNLOCK_TOKEN_KEY = "pp_unlock_token_v2";
-const BIO_CRED_KEY = "pp_biometric_cred_v1";
 
 interface Ctx {
   appLockEnabled: boolean;
@@ -25,11 +27,11 @@ interface Ctx {
   /** True once we've asked the server whether a stored unlock token is still valid. */
   ready: boolean;
   setRealPin: (pin: string) => Promise<void>;
-  clearPin: () => void;
+  clearPin: () => Promise<boolean>;
   unlock: (pin: string) => Promise<"real" | "wrong" | "locked-out" | "no-pin">;
   enableBiometric: () => Promise<{ ok: true } | { ok: false; reason: string }>;
   unlockBiometric: () => Promise<"ok" | "failed" | "unsupported">;
-  disableBiometric: () => void;
+  disableBiometric: () => Promise<boolean>;
   lock: () => void;
 }
 
@@ -53,7 +55,6 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     setReady(false);
     setIsLocked(true);
     setLoadError(false);
-    const bio = !!localStorage.getItem(BIO_CRED_KEY);
     setBiometricSupported(
       typeof window.PublicKeyCredential !== "undefined" &&
         typeof navigator.credentials?.create === "function",
@@ -64,7 +65,8 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       setAppLockEnabled(state.app_lock_enabled);
       const serverHasPin = !!state?.has_pin;
-      const serverBiometric = !!state?.biometric_enabled && bio;
+      // Enrolled keys are held by the server; this device's storage decides nothing.
+      const serverBiometric = !!state?.biometric_enabled;
       setHasPin(serverHasPin);
       setHasBiometric(serverBiometric);
 
@@ -107,19 +109,28 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     sessionStorage.setItem(UNLOCK_TOKEN_KEY, token);
   };
 
+  const proof = () => sessionStorage.getItem(UNLOCK_TOKEN_KEY) ?? undefined;
+
   const setRealPin = async (pin: string) => {
-    const r = await setPinServer({ data: { pin } });
+    // Replacing a lock that exists needs the token from unlocking this session.
+    const r = await setPinServer({ data: { pin, unlockToken: proof() } });
     storeToken(r.token);
     setHasPin(true);
     setIsLocked(false);
   };
 
-  const clearPin = () => {
-    void clearPinServer().catch(() => undefined);
+  /** Only reports done once the server has actually removed it. */
+  const clearPin = async (): Promise<boolean> => {
+    try {
+      await clearPinServer({ data: { unlockToken: proof() } });
+    } catch {
+      return false;
+    }
     setHasPin(false);
     if (!hasBiometric) {
       sessionStorage.removeItem(UNLOCK_TOKEN_KEY);
     }
+    return true;
   };
 
   const unlock = async (pin: string): Promise<"real" | "wrong" | "locked-out" | "no-pin"> => {
@@ -154,17 +165,22 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     if (!biometricSupported)
       return { ok: false, reason: "Your device doesn't support biometric unlock." };
     try {
-      const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const webauthnUserId = crypto.getRandomValues(new Uint8Array(16));
+      // The server issues the challenge and later checks the device's signature against it.
+      const start = await beginBiometricEnroll({ data: { unlockToken: proof() } });
       const cred = (await navigator.credentials.create({
         publicKey: {
-          challenge,
-          rp: { name: "PatternProof" },
-          user: { id: webauthnUserId, name: "patternproof-user", displayName: "PatternProof" },
-          pubKeyCredParams: [
-            { type: "public-key", alg: -7 },
-            { type: "public-key", alg: -257 },
-          ],
+          challenge: fromB64url(start.challenge),
+          rp: { id: start.rpId, name: "PatternProof" },
+          user: {
+            id: fromB64url(start.userHandle),
+            name: "patternproof-user",
+            displayName: "PatternProof",
+          },
+          pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+          excludeCredentials: start.excludeCredentialIds.map((id) => ({
+            id: fromB64url(id),
+            type: "public-key" as const,
+          })),
           authenticatorSelection: {
             authenticatorAttachment: "platform",
             userVerification: "required",
@@ -175,9 +191,13 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
         },
       })) as PublicKeyCredential | null;
       if (!cred) return { ok: false, reason: "Couldn't enroll. Try again." };
-      localStorage.setItem(BIO_CRED_KEY, b64url(cred.rawId));
-      await setBiometricEnabled({ data: { enabled: true } });
-      const r = await issueUnlockToken();
+      const att = cred.response as AuthenticatorAttestationResponse;
+      const r = await finishBiometricEnroll({
+        data: {
+          clientDataJSON: b64url(att.clientDataJSON),
+          attestationObject: b64url(att.attestationObject),
+        },
+      });
       storeToken(r.token);
       setHasBiometric(true);
       setIsLocked(false);
@@ -189,20 +209,31 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
 
   const unlockBiometric = async (): Promise<"ok" | "failed" | "unsupported"> => {
     if (!biometricSupported) return "unsupported";
-    const credId = localStorage.getItem(BIO_CRED_KEY);
-    if (!credId) return "unsupported";
     try {
-      const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const assertion = await navigator.credentials.get({
+      const start = await beginBiometricUnlock();
+      const assertion = (await navigator.credentials.get({
         publicKey: {
-          challenge,
-          allowCredentials: [{ id: fromB64url(credId), type: "public-key" }],
+          challenge: fromB64url(start.challenge),
+          rpId: start.rpId,
+          allowCredentials: start.allowCredentialIds.map((id) => ({
+            id: fromB64url(id),
+            type: "public-key" as const,
+          })),
           userVerification: "required",
           timeout: 60000,
         },
-      });
+      })) as PublicKeyCredential | null;
       if (!assertion) return "failed";
-      const r = await issueUnlockToken().catch(() => null);
+      const res = assertion.response as AuthenticatorAssertionResponse;
+      // A token comes back only if the server verified the device's signature.
+      const r = await finishBiometricUnlock({
+        data: {
+          credentialId: b64url(assertion.rawId),
+          clientDataJSON: b64url(res.clientDataJSON),
+          authenticatorData: b64url(res.authenticatorData),
+          signature: b64url(res.signature),
+        },
+      }).catch(() => null);
       if (!r) return "failed";
       storeToken(r.token);
       setIsLocked(false);
@@ -212,11 +243,15 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const disableBiometric = () => {
-    localStorage.removeItem(BIO_CRED_KEY);
-    void setBiometricEnabled({ data: { enabled: false } }).catch(() => undefined);
+  const disableBiometric = async (): Promise<boolean> => {
+    try {
+      await removeBiometricServer({ data: { unlockToken: proof() } });
+    } catch {
+      return false;
+    }
     setHasBiometric(false);
     if (!hasPin) sessionStorage.removeItem(UNLOCK_TOKEN_KEY);
+    return true;
   };
 
   return (

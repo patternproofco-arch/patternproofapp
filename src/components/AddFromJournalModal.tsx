@@ -21,15 +21,14 @@ interface DraftIncident {
   selected: boolean;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
-
 function normalize(raw: unknown): DraftIncident {
   const r = (raw ?? {}) as Record<string, unknown>;
   const types = Array.isArray(r.abuse_types)
     ? (r.abuse_types as string[]).filter((t) => ABUSE_TYPES.some((a) => a.value === t))
     : [];
   return {
-    date: typeof r.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? r.date : today(),
+    // No date found stays no date. It is never replaced with today.
+    date: typeof r.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? r.date : "",
     time: typeof r.time === "string" ? r.time : "",
     location: typeof r.location === "string" ? r.location : "",
     description: typeof r.description === "string" ? r.description : "",
@@ -149,7 +148,11 @@ export function AddFromJournalModal({
     setStep("saving");
     const rows = selected.map((d) => ({
       user_id: user.id,
-      date: d.date,
+      date: d.date || null,
+      date_precision: d.date ? "exact" : "unknown",
+      // Drafted by software from her journal, then checked and saved by her: keep that on the record.
+      source: "ai_extracted",
+      confirmed_at: new Date().toISOString(),
       time: d.time || null,
       location: sanitizeLine(d.location) || null,
       description: d.description,
@@ -385,7 +388,7 @@ export function AddFromJournalModal({
                         className="mt-1 ml-6 text-[12px]"
                         style={{ color: "var(--muted-foreground)" }}
                       >
-                        {d.date} — {d.description.slice(0, 100)}
+                        {d.date || "Date not added"} — {d.description.slice(0, 100)}
                         {d.description.length > 100 ? "…" : ""}
                       </div>
                     )}
