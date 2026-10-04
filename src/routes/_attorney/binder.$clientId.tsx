@@ -9,6 +9,7 @@ import { CourtTimeline } from "@/components/CourtTimeline";
 import { BinderExhibits } from "@/components/BinderExhibits";
 import { PleadingIndex } from "@/components/PleadingIndex";
 import { AttorneyBinderEmpty } from "@/components/attorney/AttorneyBinderEmpty";
+import { ChronologyWorkspace, useChronologyWorkspace } from "@/components/attorney/ChronologyWorkspace";
 
 export const Route = createFileRoute("/_attorney/binder/$clientId")({
   head: () => ({
@@ -37,6 +38,9 @@ function BinderPage() {
     queryKey: ["binder-requests", clientId],
     queryFn: () => fetchRequests({ data: { clientId } }),
   });
+  // Frozen exhibit numbers, when the attorney has fixed them. Without a package the
+  // numbers below are only the order of dates and can change as items are added.
+  const wsQ = useChronologyWorkspace(clientId);
 
   if (caseQ.isLoading || reqQ.isLoading) {
     return <p className="p-8 text-muted-foreground">Putting the binder together…</p>;
@@ -59,7 +63,9 @@ function BinderPage() {
 
   const incidents = caseQ.data.incidents ?? [];
   const evidence = caseQ.data.evidence ?? [];
-  const entries = buildBinderEntries(incidents, evidence, reqQ.data?.items ?? []);
+  const frozen = wsQ.data?.package ? wsQ.data : null;
+  const exhibitLabels = frozen ? new Map(frozen.rows.map((r) => [r.key, r.exhibit.label])) : undefined;
+  const entries = buildBinderEntries(incidents, evidence, reqQ.data?.items ?? [], exhibitLabels);
 
   if (incidents.length === 0 && evidence.length === 0) {
     return (
@@ -101,6 +107,11 @@ function BinderPage() {
           Exhibit binder · only items the client chose to share · User-reviewed, not court-verified ·
           Generated {new Date().toLocaleDateString()}
         </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {frozen?.package
+            ? `Exhibit numbers are fixed (package v${frozen.package.version}). Items shared since then show as "Not yet numbered".`
+            : "Exhibit numbers are provisional (date order) and can change if items are added. Fix them below before citing them."}
+        </p>
       </header>
       {incidents.length > 0 && evidence.length === 0 ? (
         <div className="mb-6 print:hidden">
@@ -112,6 +123,7 @@ function BinderPage() {
         <CourtTimeline entries={entries} />
       </section>
       <PleadingIndex entries={entries} />
+      <ChronologyWorkspace clientId={clientId} />
       <BinderExhibits entries={entries} />
     </div>
   );
