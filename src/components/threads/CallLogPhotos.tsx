@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { parseCallLogPhotos } from "@/lib/message-threads.functions";
+import { AiReadNotice } from "./AiReadNotice";
 
 interface Props {
   onDone: () => void;
@@ -24,6 +25,7 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
   const [participant, setParticipant] = useState("");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
+  const [accepted, setAccepted] = useState(false);
   const inp = useRef<HTMLInputElement | null>(null);
 
   const addFiles = (files: FileList | null) => {
@@ -47,7 +49,7 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
   const remove = (idx: number) => setShots((s) => s.filter((_, i) => i !== idx));
 
   const save = async () => {
-    if (!user || shots.length === 0) return;
+    if (!user || shots.length === 0 || !accepted) return;
     setBusy(true);
     try {
       const paths: string[] = [];
@@ -123,6 +125,8 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
         go. Works the same on iPhone and Android. The photos are your evidence; the extracted call
         rows are labeled <em>AI-extracted — unverified</em>.
       </p>
+
+      <AiReadNotice kind="call log photos" accepted={accepted} onChange={setAccepted} />
 
       <div className="grid gap-3 mb-3" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
         <div>
@@ -241,7 +245,7 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
         <button
           type="button"
           onClick={save}
-          disabled={busy || shots.length === 0}
+          disabled={busy || shots.length === 0 || !accepted}
           style={{
             display: "inline-flex",
             alignItems: "center",

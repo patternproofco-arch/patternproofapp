@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ingestRecordedThread, transcribeRecordedThread } from "@/lib/message-threads.functions";
 import { checkUploadSize } from "@/lib/upload-limits";
+import { AiReadNotice } from "./AiReadNotice";
 
 interface Props {
   onDone: () => void;
@@ -21,10 +22,11 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [aiAccepted, setAiAccepted] = useState(false);
   const inp = useRef<HTMLInputElement | null>(null);
 
   const save = async () => {
-    if (!user || !file) return;
+    if (!user || !file || !aiAccepted) return;
     const sizeProblem = checkUploadSize(file);
     if (sizeProblem) {
       toast.error(sizeProblem);
@@ -147,6 +149,8 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
         </div>
       </div>
 
+      <AiReadNotice kind="recording" accepted={aiAccepted} onChange={setAiAccepted} />
+
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
           <label className="label-eyebrow">Who is this conversation with?</label>
@@ -179,7 +183,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
         <button
           type="button"
           onClick={() => inp.current?.click()}
-          disabled={!acknowledged}
+          disabled={!acknowledged || !aiAccepted}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -206,7 +210,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
         <button
           type="button"
           onClick={save}
-          disabled={busy || !file || !acknowledged}
+          disabled={busy || !file || !acknowledged || !aiAccepted}
           style={{
             display: "inline-flex",
             alignItems: "center",
