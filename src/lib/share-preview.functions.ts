@@ -28,8 +28,10 @@ export const previewShare = createServerFn({ method: "POST" })
     });
     // "Share all" sweeps in whatever is eligible and doesn't list the rest as picked-and-left-out,
     // so what was held back is everything she has minus what is going.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db: any = supabaseAdmin; // a table name chosen at run time can't be typed per table
     const total = async (table: "incidents" | "evidence") => {
-      const { count, error } = await supabaseAdmin
+      const { count, error } = await db
         .from(table)
         .select("id", { count: "exact", head: true })
         .eq("user_id", context.userId)
