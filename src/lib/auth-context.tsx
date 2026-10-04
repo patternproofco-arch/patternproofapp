@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { isClientSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 
@@ -62,6 +63,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(configured);
   const [configError, setConfigError] = useState(!configured);
   const [connectError, setConnectError] = useState(false);
+  // Everything cached in memory belongs to one account. When the signed-in account changes or
+  // signs out, drop it, so the next person on this screen can't be shown the last one's data.
+  let queryClient: QueryClient | null = null;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    queryClient = null; // rendered without a query provider (isolated tests)
+  }
+  const lastUserId = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     // Empty / missing VITE_SUPABASE_* must fail closed before any auth call.
@@ -73,12 +83,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+        const nextId = s?.user?.id ?? null;
+        if (lastUserId.current !== undefined && lastUserId.current !== nextId) queryClient?.clear();
+        lastUserId.current = nextId;
         setSession(s);
         setLoading(false);
       });
       supabase.auth
         .getSession()
         .then(({ data }) => {
+          if (lastUserId.current === undefined) lastUserId.current = data.session?.user?.id ?? null;
           setSession(data.session);
           setLoading(false);
         })
@@ -95,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return undefined;
     }
-  }, []);
+  }, [queryClient]);
 
   if (configError) {
     return <ConfigUnavailable />;
