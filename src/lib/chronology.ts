@@ -604,22 +604,28 @@ export function renderDeclarationText(
   return lines.join("\n");
 }
 
+/** One row as plain text (also used for the text page of a non-file exhibit). */
+export function renderChronologyRow(r: ChronologyRow, index?: number): string[] {
+  const lines: string[] = [];
+  lines.push(
+    `${index !== undefined ? `${index}. ` : ""}${r.date.text}${r.timeText ? `, ${r.timeText} (time as entered; time zone not recorded)` : ""} | ${BASIS_LABEL[r.basis]} | ${r.exhibit.label}`,
+  );
+  lines.push(`   Title as entered: ${q(r.title)}`);
+  if (r.quote) lines.push(`   Text as entered: ${q(r.quote)}`);
+  if (r.location) lines.push(`   Location as entered: ${q(r.location)}`);
+  if (r.witnesses) lines.push(`   Witnesses as entered: ${q(r.witnesses)}`);
+  if (r.enteredOn) lines.push(`   Entered by the client on ${formatDay(r.enteredOn) ?? r.enteredOn} (not the date of the event)`);
+  for (const f of r.flags) lines.push(`   Note: ${f}`);
+  return lines;
+}
+
 export function renderChronologyText(rows: readonly ChronologyRow[]): string {
   const lines = [
     "FACTUAL CHRONOLOGY. Restates what the client recorded, in date order. For attorney review. Not verified, not a finding, and not a declaration.",
     "",
   ];
   rows.forEach((r, i) => {
-    lines.push(
-      `${i + 1}. ${r.date.text}${r.timeText ? `, ${r.timeText} (time as entered; time zone not recorded)` : ""} | ${BASIS_LABEL[r.basis]} | ${r.exhibit.label}`,
-    );
-    lines.push(`   Title as entered: ${q(r.title)}`);
-    if (r.quote) lines.push(`   Text as entered: ${q(r.quote)}`);
-    if (r.location) lines.push(`   Location as entered: ${q(r.location)}`);
-    if (r.witnesses) lines.push(`   Witnesses as entered: ${q(r.witnesses)}`);
-    if (r.enteredOn) lines.push(`   Entered by the client on ${formatDay(r.enteredOn) ?? r.enteredOn} (not the date of the event)`);
-    for (const f of r.flags) lines.push(`   Note: ${f}`);
-    lines.push("");
+    lines.push(...renderChronologyRow(r, i + 1), "");
   });
   return lines.join("\n");
 }

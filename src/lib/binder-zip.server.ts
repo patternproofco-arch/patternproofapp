@@ -128,6 +128,8 @@ export async function buildExhibitBinderZip(args: {
   >;
   clientRef?: string;
   generatedAt?: string;
+  /** Chronology text to include instead of the short summary form (full quotes, dates as recorded). */
+  chronologyText?: string;
 }): Promise<BuiltBinderZip> {
   const generatedAt = args.generatedAt ?? new Date().toISOString();
   const entries = args.entries;
@@ -137,7 +139,7 @@ export async function buildExhibitBinderZip(args: {
 
   zip.file("README.txt", readmeText(entries.length, generatedAt));
   zip.file("index.md", indexMarkdown(entries));
-  zip.file("factual-chronology.txt", buildPleadingText(entries));
+  zip.file("factual-chronology.txt", args.chronologyText ?? buildPleadingText(entries));
 
   const exhibitsFolder = zip.folder("exhibits");
   for (const entry of entries) {

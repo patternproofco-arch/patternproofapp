@@ -409,19 +409,34 @@ export async function pushBinderZipToClio(
     string,
     { bytes: Uint8Array; extension?: string; contentType?: string }
   >();
+  // A file that can't be read must never be left out quietly: a binder that is missing
+  // an exhibit's file would otherwise be sent to the matter as if it were complete.
+  const unreadable: string[] = [];
   await Promise.all(
     evidence.map(async (raw) => {
-      const e = raw as { id: string; file_url?: string | null };
-      if (!e.file_url || /^https?:\/\//i.test(e.file_url)) return;
+      const e = raw as { id: string; title?: string | null; file_url?: string | null };
+      if (!e.file_url || /^https?:\/\//i.test(e.file_url)) {
+        unreadable.push(e.title || e.id);
+        return;
+      }
       const { data: blob } = await supabaseAdmin.storage
         .from("evidence-files")
         .download(e.file_url);
-      if (!blob) return;
+      if (!blob) {
+        unreadable.push(e.title || e.id);
+        return;
+      }
       const buf = new Uint8Array(await blob.arrayBuffer());
       const ext = String(e.file_url).split(".").pop() || "bin";
       evidenceFiles.set(e.id, { bytes: buf, extension: ext });
     }),
   );
+  if (unreadable.length > 0) {
+    return {
+      ok: false,
+      reason: `${unreadable.length} shared file(s) couldn't be read from storage, so the binder was NOT sent. Nothing was left out silently. Re-upload them or send the exhibits one by one.`,
+    };
+  }
 
   const built = await buildExhibitBinderZip({
     entries,
