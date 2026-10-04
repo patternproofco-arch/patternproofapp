@@ -55,3 +55,13 @@ export const askAboutEntryQuestion = createServerFn({ method: "POST" })
     await entitled(context.userId, data.clientId);
     return (await import("@/lib/entry-review.server")).askAboutEntry(await admin(), context.userId, data);
   });
+
+/** Across all of the attorney's active clients: where something new or unanswered is waiting. */
+export const getReviewSummary = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { getReviewSummary: summarize } = await import("@/lib/entry-review.server");
+    return summarize(await admin(), context.userId, {
+      entitled: async (clientId) => (await isAttorneyEntitled(context.userId, clientId)).entitled,
+    });
+  });
