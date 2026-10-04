@@ -381,7 +381,7 @@ describe("forgot PIN", () => {
     const saveFails = db(withPin());
     const o2 = saveFails.from;
     saveFails.from = ((n: string) => {
-      const t = o2(n) as Record<string, unknown>;
+      const t = o2(n) as unknown as Record<string, unknown>;
       return n === "user_security_settings"
         ? (Object.assign(Object.create(t), { upsert: async () => ({ error: { message: "down" } }) }) as never)
         : (t as never);
