@@ -371,7 +371,7 @@ describe("a draft never changes by itself", () => {
 
 describe("change markers follow what a reader would see", () => {
   it("same content gives the same marker; any visible edit changes it", () => {
-    const m = (o: object) => buildChronology([inc("a", o)], [], [], null)[0]!.marker;
+    const m = (o: Record<string, unknown>) => buildChronology([inc("a", o)], [], [], null)[0]!.marker;
     expect(m({})).toBe(m({}));
     expect(m({})).not.toBe(m({ description: "different" }));
     expect(m({})).not.toBe(m({ date: "2026-03-04" }));
