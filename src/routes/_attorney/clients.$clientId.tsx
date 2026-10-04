@@ -330,7 +330,7 @@ function ClientCaseView() {
         {tab === "Intake" && <IntakeTab data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
         {tab === "Timeline" && (
-          <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} />
+          <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} notesFailed={notesFailed} />
         )}
         {tab === "Patterns" && <Patterns data={data} clientId={clientId} />}
         {tab === "Checklist" && <ChecklistTab data={data} />}
@@ -1653,11 +1653,14 @@ function TimelineTab({
   clientId,
   notes,
   onNotes,
+  notesFailed = false,
 }: {
   data: CaseData;
   clientId: string;
   notes: NoteRow[];
   onNotes: (n: NoteRow[]) => void;
+  /** Private notes didn't load: editing is switched off so a new note can't overwrite one that exists. */
+  notesFailed?: boolean;
 }) {
   const upsert = useServerFn(upsertAttorneyNote);
 

@@ -527,7 +527,7 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
     // locations are stripped too: the advocate view is metadata-only.
     const { evidenceForProfessional, incidentForProfessional } = await import("@/lib/professional-view");
     const evidence = (evQ.data ?? []).map((e) => ({
-      ...evidenceForProfessional(e as Record<string, unknown>),
+      ...evidenceForProfessional(e),
       gps_lat: null,
       gps_lon: null,
       gps_reveal_opt_in: false,
@@ -588,7 +588,7 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
 
     return {
       case: caseQ.data ?? null,
-      incidents: (incQ.data ?? []).map((i) => incidentForProfessional(i as Record<string, unknown>)),
+      incidents: (incQ.data ?? []).map((i) => incidentForProfessional(i)),
       evidence,
       pattern_analysis: patternForAdvocate,
       consent: {

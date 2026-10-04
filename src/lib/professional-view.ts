@@ -30,14 +30,16 @@ const EVIDENCE_HIDDEN = [
 
 const INCIDENT_HIDDEN = ["ai_permission", "share_readiness", "template_key"] as const;
 
-function without<T extends Record<string, unknown>>(row: T, keys: readonly string[]): T {
+function without<T extends object>(row: T, keys: readonly string[]): T {
   const out: Record<string, unknown> = { ...row };
   for (const k of keys) delete out[k];
   return out as T;
 }
 
-export const evidenceForProfessional = <T extends Record<string, unknown>>(row: T): T => without(row, EVIDENCE_HIDDEN);
-export const incidentForProfessional = <T extends Record<string, unknown>>(row: T): T => without(row, INCIDENT_HIDDEN);
+// Generic over the row type so a caller keeps its own typed row; casting to Record<string, unknown>
+// at a call site makes the response fail the server-function serialization check.
+export const evidenceForProfessional = <T extends object>(row: T): T => without(row, EVIDENCE_HIDDEN);
+export const incidentForProfessional = <T extends object>(row: T): T => without(row, INCIDENT_HIDDEN);
 
 export const HIDDEN_EVIDENCE_COLUMNS: readonly string[] = EVIDENCE_HIDDEN;
 export const HIDDEN_INCIDENT_COLUMNS: readonly string[] = INCIDENT_HIDDEN;
