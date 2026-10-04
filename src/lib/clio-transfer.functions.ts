@@ -15,7 +15,9 @@ export type { JobView, TransferPreview };
 const linkId = z.string().uuid();
 const jobId = z.string().uuid();
 
-async function admin() {
+// The transfer tables are newer than the generated database types, so this client is untyped.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function admin(): Promise<any> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
 }

@@ -46,7 +46,7 @@ export const itemKey = (kind: ExhibitKind, id: string) => `${kind}:${id}`;
  * an item changed since a package was made. It is a change detector, not a proof
  * of authenticity or integrity.
  */
-export function changeMarker(parts: Array<string | number | null | undefined>): string {
+export function changeMarker(parts: unknown[]): string {
   const s = parts.map((p) => (p === null || p === undefined ? "" : String(p))).join("␟");
   // cyrb53: small, fast, well-distributed, synchronous.
   let h1 = 0xdeadbeef;

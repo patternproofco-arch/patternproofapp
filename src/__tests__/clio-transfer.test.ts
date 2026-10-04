@@ -136,7 +136,7 @@ function deps(clio: ReturnType<typeof fakeClio>, over: Partial<TransferDeps> = {
     downloadEvidence: async () => FILE_BYTES,
     buildZip: async () => new Uint8Array([80, 75]),
     sha256: async (b) =>
-      Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", b)))
+      Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", b as unknown as BufferSource)))
         .map((x) => x.toString(16).padStart(2, "0"))
         .join(""),
     now: () => new Date(clock.t),
