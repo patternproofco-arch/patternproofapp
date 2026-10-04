@@ -144,6 +144,9 @@ export async function snapshotShareScope<T extends ShareScope>(
 ): Promise<
   T &
     Required<Pick<ShareScope, "include_all_incidents" | "include_all_evidence">> & {
+      /** Exactly the ids now shared. Always present, whatever shape went in. */
+      scope_incidents: string[];
+      scope_evidence: string[];
       /** Items the survivor explicitly picked that were NOT shared, and why. */
       excluded: ExcludedItem[];
     }

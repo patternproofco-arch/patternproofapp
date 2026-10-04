@@ -93,9 +93,9 @@ export async function uploadAndPreserve(
   // 1. Upload the original. A retry that finds it already there is a success.
   let uploaded = false;
   for (let attempt = 0; attempt < INTAKE_ATTEMPTS && !uploaded; attempt++) {
-    const res = await deps.upload(key, args.file.blob).catch((e: unknown) => ({
-      error: { message: e instanceof Error ? e.message : "network" },
-    }));
+    const res: Awaited<ReturnType<IntakeDeps["upload"]>> = await deps
+      .upload(key, args.file.blob)
+      .catch((e: unknown) => ({ error: { message: e instanceof Error ? e.message : "network" } }));
     if (!res.error || ALREADY_THERE.test(`${res.error.statusCode ?? ""} ${res.error.message}`)) {
       uploaded = true;
     } else if (attempt < INTAKE_ATTEMPTS - 1) {
