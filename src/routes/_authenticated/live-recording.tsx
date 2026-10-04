@@ -284,13 +284,13 @@ function LiveRecording() {
               </div>
             )}
             <audio src={URL.createObjectURL(item.blob)} controls className="w-full" />
-            <input
+            <input aria-label="Title (optional)"
               className="input-pp"
               placeholder="Title (optional)"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            <input
+            <input aria-label="State where recorded"
               className="input-pp"
               placeholder="State where recorded"
               value={state}

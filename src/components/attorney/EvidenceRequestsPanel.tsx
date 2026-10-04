@@ -74,7 +74,7 @@ export function EvidenceRequestsPanel({ clientId }: EvidenceRequestsPanelProps) 
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        <textarea
+        <textarea aria-label="Details (optional)"
           className="att-input"
           rows={2}
           placeholder="Details (optional)"

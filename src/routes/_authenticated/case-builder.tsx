@@ -405,16 +405,16 @@ function CaseBuilder() {
                 />
               </div>
               <div>
-                <label className="label-eyebrow">Other party (name or initials)</label>
-                <input
+                <label className="label-eyebrow" htmlFor="case-builder-other-party-name-or-initials">Other party (name or initials)</label>
+                <input id="case-builder-other-party-name-or-initials"
                   className="input-pp mt-1"
                   value={other}
                   onChange={(e) => setOther(e.target.value)}
                 />
               </div>
               <div>
-                <label className="label-eyebrow">Your relationship</label>
-                <select
+                <label className="label-eyebrow" htmlFor="case-builder-your-relationship">Your relationship</label>
+                <select id="case-builder-your-relationship"
                   className="input-pp mt-1"
                   value={rel}
                   onChange={(e) => setRel(e.target.value)}
@@ -451,8 +451,8 @@ function CaseBuilder() {
                 </div>
               </div>
               <div className="md:col-span-2">
-                <label className="label-eyebrow">State / jurisdiction</label>
-                <input
+                <label className="label-eyebrow" htmlFor="case-builder-state-jurisdiction">State / jurisdiction</label>
+                <input id="case-builder-state-jurisdiction"
                   className="input-pp mt-1"
                   value={jurisdiction}
                   onChange={(e) => setJurisdiction(e.target.value)}
@@ -480,8 +480,8 @@ function CaseBuilder() {
               </div>
             </div>
             <div>
-              <label className="label-eyebrow">Pattern</label>
-              <textarea
+              <label className="label-eyebrow" htmlFor="case-builder-pattern">Pattern</label>
+              <textarea id="case-builder-pattern"
                 className="input-pp mt-1 min-h-[180px]"
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}

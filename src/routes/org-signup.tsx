@@ -143,7 +143,7 @@ function OrgSignup() {
               Already invited?
             </div>
             <form onSubmit={auth} className="mt-4 space-y-3">
-              <input
+              <input autoComplete="email" aria-label="Work email"
                 className="input-pp"
                 type="email"
                 required
@@ -151,7 +151,7 @@ function OrgSignup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <input
+              <input autoComplete={"new-password"} aria-label="Password"
                 className="input-pp"
                 type="password"
                 required
@@ -189,7 +189,7 @@ function OrgSignup() {
 
             <h2 className="font-serif text-[20px]">Tell us about your organization</h2>
             <form onSubmit={saveOrg} className="mt-4 space-y-3">
-              <input
+              <input aria-label="Organization name"
                 className="input-pp"
                 required
                 minLength={2}
@@ -197,14 +197,14 @@ function OrgSignup() {
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
               />
-              <input
+              <input aria-label="Your name"
                 className="input-pp"
                 required
                 placeholder="Your name"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
               />
-              <input
+              <input aria-label="Your role (optional)"
                 className="input-pp"
                 placeholder="Your role (optional)"
                 value={contactRole}

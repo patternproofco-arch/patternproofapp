@@ -162,8 +162,8 @@ function CollaboratorInvitePage() {
           <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
             {mode === "signup" && (
               <div>
-                <label className="att-eyebrow">Full name</label>
-                <input
+                <label className="att-eyebrow" htmlFor="collaborator-invite-full-name">Full name</label>
+                <input id="collaborator-invite-full-name"
                   className="att-input"
                   required
                   value={fullName}
@@ -173,8 +173,8 @@ function CollaboratorInvitePage() {
               </div>
             )}
             <div>
-              <label className="att-eyebrow">Work email</label>
-              <input
+              <label className="att-eyebrow" htmlFor="collaborator-invite-work-email">Work email</label>
+              <input autoComplete="email" id="collaborator-invite-work-email"
                 className="att-input"
                 type="email"
                 required
@@ -184,8 +184,8 @@ function CollaboratorInvitePage() {
               />
             </div>
             <div>
-              <label className="att-eyebrow">Password</label>
-              <input
+              <label className="att-eyebrow" htmlFor="collaborator-invite-password">Password</label>
+              <input autoComplete={mode === "signup" ? "new-password" : "current-password"} id="collaborator-invite-password"
                 className="att-input"
                 type="password"
                 required

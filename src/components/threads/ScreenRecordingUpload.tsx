@@ -153,8 +153,8 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
 
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
-          <label className="label-eyebrow">Who is this conversation with?</label>
-          <input
+          <label className="label-eyebrow" htmlFor="screenrecordingupload-who-is-this-conversation-with">Who is this conversation with?</label>
+          <input id="screenrecordingupload-who-is-this-conversation-with"
             value={participant}
             onChange={(e) => setParticipant(e.target.value)}
             className="input-pp mt-1"
@@ -162,8 +162,8 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
           />
         </div>
         <div>
-          <label className="label-eyebrow">Anything to remember?</label>
-          <input
+          <label className="label-eyebrow" htmlFor="screenrecordingupload-anything-to-remember">Anything to remember?</label>
+          <input id="screenrecordingupload-anything-to-remember"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="input-pp mt-1"

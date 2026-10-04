@@ -419,8 +419,8 @@ function LegalDocumentsPage() {
         {pending && phase === "idle" && (
           <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
             <div>
-              <label className="label-eyebrow">Document type</label>
-              <select
+              <label className="label-eyebrow" htmlFor="legal-documents-document-type">Document type</label>
+              <select id="legal-documents-document-type"
                 className="input-pp mt-1"
                 value={docType}
                 onChange={(e) => setDocType(e.target.value as DocType)}
@@ -729,7 +729,7 @@ function ConfirmationCard({
         />
         <div className="grid grid-cols-1 gap-1 md:grid-cols-[180px_1fr] md:items-start md:gap-3">
           <div className="label-eyebrow pt-2">Key terms</div>
-          <textarea
+          <textarea aria-label="Key terms"
             className="input-pp min-h-[90px]"
             value={extracted.key_terms ?? ""}
             placeholder={extracted.key_terms == null ? "Not found — add manually" : ""}

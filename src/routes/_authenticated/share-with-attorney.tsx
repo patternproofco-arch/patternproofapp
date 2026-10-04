@@ -259,8 +259,8 @@ function ShareWithAttorney() {
             <div className="grid gap-3 md:grid-cols-2">
               {cases.length > 0 && (
                 <div className="md:col-span-2">
-                  <label className="label-eyebrow">Which case are you sharing?</label>
-                  <select
+                  <label className="label-eyebrow" htmlFor="share-with-attorney-which-case-are-you-sharing">Which case are you sharing?</label>
+                  <select id="share-with-attorney-which-case-are-you-sharing"
                     className="input-pp mt-1"
                     value={caseId}
                     onChange={(e) => setCaseId(e.target.value)}
@@ -296,8 +296,8 @@ function ShareWithAttorney() {
                 </div>
               )}
               <div>
-                <label className="label-eyebrow">Attorney email</label>
-                <input
+                <label className="label-eyebrow" htmlFor="share-with-attorney-attorney-email">Attorney email</label>
+                <input id="share-with-attorney-attorney-email"
                   className="input-pp mt-1"
                   type="email"
                   value={email}
@@ -305,24 +305,24 @@ function ShareWithAttorney() {
                 />
               </div>
               <div>
-                <label className="label-eyebrow">Attorney's name (optional)</label>
-                <input
+                <label className="label-eyebrow" htmlFor="share-with-attorney-attorney-s-name-optional">Attorney's name (optional)</label>
+                <input id="share-with-attorney-attorney-s-name-optional"
                   className="input-pp mt-1"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
               <div>
-                <label className="label-eyebrow">Law firm (optional)</label>
-                <input
+                <label className="label-eyebrow" htmlFor="share-with-attorney-law-firm-optional">Law firm (optional)</label>
+                <input id="share-with-attorney-law-firm-optional"
                   className="input-pp mt-1"
                   value={firm}
                   onChange={(e) => setFirm(e.target.value)}
                 />
               </div>
               <div>
-                <label className="label-eyebrow">Expires in</label>
-                <select
+                <label className="label-eyebrow" htmlFor="share-with-attorney-expires-in">Expires in</label>
+                <select id="share-with-attorney-expires-in"
                   className="input-pp mt-1"
                   value={days}
                   onChange={(e) => setDays(Number(e.target.value))}
@@ -382,8 +382,8 @@ function ShareWithAttorney() {
             </div>
 
             <div>
-              <label className="label-eyebrow">Personal note to attorney (private, optional)</label>
-              <textarea
+              <label className="label-eyebrow" htmlFor="share-with-attorney-personal-note-to-attorney-priv">Personal note to attorney (private, optional)</label>
+              <textarea id="share-with-attorney-personal-note-to-attorney-priv"
                 className="input-pp mt-1"
                 rows={3}
                 value={personalNote}

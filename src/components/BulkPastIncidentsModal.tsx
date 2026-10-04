@@ -305,8 +305,8 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
               Before we start, let me help jog your memory.
             </h2>
             <div>
-              <label className="label-eyebrow">When did the relationship start?</label>
-              <input
+              <label className="label-eyebrow" htmlFor="bulkpastincidentsmodal-when-did-the-relationship-star">When did the relationship start?</label>
+              <input id="bulkpastincidentsmodal-when-did-the-relationship-star"
                 type="date"
                 value={relStart}
                 onChange={(e) => setRelStart(e.target.value)}
@@ -314,8 +314,8 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
               />
             </div>
             <div>
-              <label className="label-eyebrow">When did you leave, or when is "now"?</label>
-              <input
+              <label className="label-eyebrow" htmlFor="bulkpastincidentsmodal-when-did-you-leave-or-when-is-">When did you leave, or when is "now"?</label>
+              <input id="bulkpastincidentsmodal-when-did-you-leave-or-when-is-"
                 type="date"
                 value={relEnd}
                 onChange={(e) => setRelEnd(e.target.value)}

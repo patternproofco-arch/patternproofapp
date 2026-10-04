@@ -332,8 +332,8 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
 
                 {isEditing ? (
                   <div className="mt-3 grid gap-2">
-                    <label className="label-eyebrow">Description</label>
-                    <textarea
+                    <label className="label-eyebrow" htmlFor="proposedtimelinereview-description">Description</label>
+                    <textarea id="proposedtimelinereview-description"
                       className="input-pp"
                       rows={4}
                       value={draft?.description ?? ""}
@@ -341,8 +341,8 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
                     />
                     <div className="grid gap-2 sm:grid-cols-3">
                       <div>
-                        <label className="label-eyebrow">Date</label>
-                        <input
+                        <label className="label-eyebrow" htmlFor="proposedtimelinereview-date">Date</label>
+                        <input id="proposedtimelinereview-date"
                           type="date"
                           className="input-pp mt-1"
                           value={draft?.date ?? ""}
@@ -350,8 +350,8 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
                         />
                       </div>
                       <div>
-                        <label className="label-eyebrow">Time</label>
-                        <input
+                        <label className="label-eyebrow" htmlFor="proposedtimelinereview-time">Time</label>
+                        <input id="proposedtimelinereview-time"
                           type="time"
                           className="input-pp mt-1"
                           value={draft?.time ?? ""}
@@ -359,8 +359,8 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
                         />
                       </div>
                       <div>
-                        <label className="label-eyebrow">Location</label>
-                        <input
+                        <label className="label-eyebrow" htmlFor="proposedtimelinereview-location">Location</label>
+                        <input id="proposedtimelinereview-location"
                           className="input-pp mt-1"
                           value={draft?.location ?? ""}
                           onChange={(e) =>

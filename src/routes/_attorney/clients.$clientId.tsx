@@ -2790,7 +2790,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
                         </option>
                       ))}
                     </select>
-                    <input
+                    <input aria-label="Exhibit label (e.g. Exhibit A)"
                       type="text"
                       placeholder="Exhibit label (e.g. Exhibit A)"
                       defaultValue={r?.exhibit_label ?? ""}
@@ -4345,8 +4345,8 @@ function TimeTab({ clientId }: { clientId: string }) {
           }}
         >
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Date</label>
-            <input
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-date">Date</label>
+            <input id="clients-date"
               className="att-input"
               type="date"
               value={entryDate}
@@ -4354,8 +4354,8 @@ function TimeTab({ clientId }: { clientId: string }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Hours</label>
-            <input
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-hours">Hours</label>
+            <input id="clients-hours"
               className="att-input"
               type="number"
               min={0}
@@ -4365,8 +4365,8 @@ function TimeTab({ clientId }: { clientId: string }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Minutes</label>
-            <input
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-minutes">Minutes</label>
+            <input id="clients-minutes"
               className="att-input"
               type="number"
               min={0}
@@ -4376,8 +4376,8 @@ function TimeTab({ clientId }: { clientId: string }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Description</label>
-            <input
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-description">Description</label>
+            <input id="clients-description"
               className="att-input"
               value={description}
               onChange={(e) => setDescription(e.target.value)}

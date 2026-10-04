@@ -363,7 +363,7 @@ function TimelinePage() {
           </div>
           <div>
             <div className="label-eyebrow mb-1">From</div>
-            <input
+            <input aria-label="From"
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
@@ -372,7 +372,7 @@ function TimelinePage() {
           </div>
           <div>
             <div className="label-eyebrow mb-1">To</div>
-            <input
+            <input aria-label="To"
               type="date"
               value={to}
               onChange={(e) => setTo(e.target.value)}

@@ -321,8 +321,8 @@ export function AddFromJournalModal({
                       <div className="mt-3 space-y-2">
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="label-eyebrow">Date</label>
-                            <input
+                            <label className="label-eyebrow" htmlFor="addfromjournalmodal-date">Date</label>
+                            <input id="addfromjournalmodal-date"
                               type="date"
                               value={d.date}
                               onChange={(e) => updateDraft(i, { date: e.target.value })}
@@ -330,8 +330,8 @@ export function AddFromJournalModal({
                             />
                           </div>
                           <div>
-                            <label className="label-eyebrow">Time</label>
-                            <input
+                            <label className="label-eyebrow" htmlFor="addfromjournalmodal-time">Time</label>
+                            <input id="addfromjournalmodal-time"
                               type="time"
                               value={d.time}
                               onChange={(e) => updateDraft(i, { time: e.target.value })}
@@ -340,8 +340,8 @@ export function AddFromJournalModal({
                           </div>
                         </div>
                         <div>
-                          <label className="label-eyebrow">Location</label>
-                          <input
+                          <label className="label-eyebrow" htmlFor="addfromjournalmodal-location">Location</label>
+                          <input id="addfromjournalmodal-location"
                             type="text"
                             value={d.location}
                             onChange={(e) => updateDraft(i, { location: e.target.value })}
@@ -350,8 +350,8 @@ export function AddFromJournalModal({
                           />
                         </div>
                         <div>
-                          <label className="label-eyebrow">What happened</label>
-                          <textarea
+                          <label className="label-eyebrow" htmlFor="addfromjournalmodal-what-happened">What happened</label>
+                          <textarea id="addfromjournalmodal-what-happened"
                             value={d.description}
                             onChange={(e) => updateDraft(i, { description: e.target.value })}
                             rows={3}

@@ -127,8 +127,8 @@ export function DateCertaintyField({
 
       {value.date_precision === "exact" && (
         <div>
-          <label className="label-eyebrow">Date</label>
-          <input
+          <label className="label-eyebrow" htmlFor="datecertaintyfield-date">Date</label>
+          <input id="datecertaintyfield-date"
             type="date"
             value={value.date}
             onChange={handle("date")}
@@ -139,8 +139,8 @@ export function DateCertaintyField({
 
       {value.date_precision === "approximate_month" && (
         <div>
-          <label className="label-eyebrow">Month</label>
-          <input
+          <label className="label-eyebrow" htmlFor="datecertaintyfield-month">Month</label>
+          <input id="datecertaintyfield-month"
             type="month"
             value={value.approx_month}
             onChange={handle("approx_month")}
@@ -152,8 +152,8 @@ export function DateCertaintyField({
       {value.date_precision === "range" && (
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label-eyebrow">From</label>
-            <input
+            <label className="label-eyebrow" htmlFor="datecertaintyfield-from">From</label>
+            <input id="datecertaintyfield-from"
               type="date"
               value={value.date_range_start}
               onChange={handle("date_range_start")}
@@ -161,8 +161,8 @@ export function DateCertaintyField({
             />
           </div>
           <div>
-            <label className="label-eyebrow">To</label>
-            <input
+            <label className="label-eyebrow" htmlFor="datecertaintyfield-to">To</label>
+            <input id="datecertaintyfield-to"
               type="date"
               value={value.date_range_end}
               onChange={handle("date_range_end")}

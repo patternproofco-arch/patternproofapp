@@ -423,8 +423,8 @@ function MessageThreadsPage() {
           </div>
           <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 1fr" }}>
             <div>
-              <label className="label-eyebrow">Who is this conversation with?</label>
-              <input
+              <label className="label-eyebrow" htmlFor="message-threads-who-is-this-conversation-with">Who is this conversation with?</label>
+              <input id="message-threads-who-is-this-conversation-with"
                 value={tier2Participant}
                 onChange={(e) => setTier2Participant(e.target.value)}
                 className="input-pp mt-1"
@@ -432,8 +432,8 @@ function MessageThreadsPage() {
               />
             </div>
             <div>
-              <label className="label-eyebrow">Anything to remember?</label>
-              <input
+              <label className="label-eyebrow" htmlFor="message-threads-anything-to-remember">Anything to remember?</label>
+              <input id="message-threads-anything-to-remember"
                 value={tier2Notes}
                 onChange={(e) => setTier2Notes(e.target.value)}
                 className="input-pp mt-1"

@@ -234,7 +234,7 @@ export function AuthPage({
           </div>
 
           <form onSubmit={submit} className="space-y-3">
-            <input
+            <input aria-label="Email"
               type="email"
               required
               autoComplete="email"
@@ -248,7 +248,7 @@ export function AuthPage({
               aria-describedby={authError ? "auth-error-msg" : undefined}
               className="input-pp"
             />
-            <input
+            <input aria-label="Password"
               type="password"
               required
               minLength={8}

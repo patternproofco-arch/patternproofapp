@@ -354,7 +354,7 @@ function SettingsPage() {
           </div>
           <div className="mt-5">
             <div className="label-eyebrow">Quick-exit destination</div>
-            <input className="input-pp mt-1" value={settings.exitUrl} onChange={(e) => update({ exitUrl: e.target.value })} />
+            <input aria-label="Quick-exit destination" className="input-pp mt-1" value={settings.exitUrl} onChange={(e) => update({ exitUrl: e.target.value })} />
           </div>
         </div>
 

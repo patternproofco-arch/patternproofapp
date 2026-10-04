@@ -681,8 +681,8 @@ function EvidencePage() {
           {pending && (
             <div className="grid gap-3 md:grid-cols-2">
               <div>
-                <label className="label-eyebrow">Title</label>
-                <input
+                <label className="label-eyebrow" htmlFor="evidence-title">Title</label>
+                <input id="evidence-title"
                   className="input-pp mt-1"
                   required
                   value={title}
@@ -704,8 +704,8 @@ function EvidencePage() {
                 </p>
               </div>
               <div className="md:col-span-2">
-                <label className="label-eyebrow">Description</label>
-                <textarea
+                <label className="label-eyebrow" htmlFor="evidence-description">Description</label>
+                <textarea id="evidence-description"
                   className="input-pp mt-1"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -713,8 +713,8 @@ function EvidencePage() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="label-eyebrow">Link to incident (optional)</label>
-                <select
+                <label className="label-eyebrow" htmlFor="evidence-link-to-incident-optional">Link to incident (optional)</label>
+                <select id="evidence-link-to-incident-optional"
                   className="input-pp mt-1"
                   value={linkedId}
                   onChange={(e) => setLinkedId(e.target.value)}

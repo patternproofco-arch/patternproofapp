@@ -456,7 +456,7 @@ function CourtDatesPage() {
                 />
               </Field>
               <Field label="Location (optional)">
-                <input
+                <input aria-label="Room or address"
                   className="input-pp"
                   placeholder="Room or address"
                   value={form.location}

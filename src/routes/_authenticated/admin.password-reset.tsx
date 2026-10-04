@@ -50,10 +50,10 @@ function AdminPasswordReset() {
       </div>
 
       <form onSubmit={submit} className="card-pp" style={{ display: "grid", gap: 10 }}>
-        <label className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+        <label className="text-[13px]" style={{ color: "var(--muted-foreground)" }} htmlFor="admin-account-email">
           Account email
         </label>
-        <input
+        <input id="admin-account-email"
           className="input-pp"
           type="email"
           required
