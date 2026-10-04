@@ -86,8 +86,12 @@ export async function lockState(admin: Admin, userId: string) {
     .from("user_webauthn_credentials")
     .select("credential_id")
     .eq("user_id", userId);
-  if (cErr) throw new Error("Could not verify app lock settings.");
-  const credentialCount = (creds ?? []).length;
+  // Before the credentials table exists, no key can be enrolled, so there are none. Any OTHER
+  // failure is not "no keys": it stops the check instead of reading as an unlocked account.
+  if (cErr && !/42P01|PGRST205|does not exist|schema cache/i.test(`${cErr.code ?? ""} ${cErr.message ?? ""}`)) {
+    throw new Error("Could not verify app lock settings.");
+  }
+  const credentialCount = cErr ? 0 : (creds ?? []).length;
   return {
     appLockEnabled: !!settings?.app_lock_enabled,
     hasPin: !!settings?.pin_hash,

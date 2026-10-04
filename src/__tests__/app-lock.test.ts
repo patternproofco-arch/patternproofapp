@@ -88,6 +88,29 @@ describe("changing the lock needs proof when a lock exists", () => {
   });
 });
 
+describe("before the database update is applied", () => {
+  const brokenCreds = (admin: ReturnType<typeof db>, error: { code?: string; message: string }) => {
+    const orig = admin.from;
+    admin.from = ((n: string) =>
+      n === "user_webauthn_credentials"
+        ? ({ select: () => ({ eq: async () => ({ data: null, error }) }) } as never)
+        : orig(n)) as typeof admin.from;
+  };
+
+  it("a PIN user is not locked out just because the credentials table doesn't exist yet", async () => {
+    const admin = db(withPin());
+    brokenCreds(admin, { code: "42P01", message: 'relation "user_webauthn_credentials" does not exist' });
+    const s = await lockState(admin, USER);
+    expect(s).toMatchObject({ hasPin: true, credentialCount: 0, hasLock: true });
+  });
+
+  it("any other failure reading the credentials stops the check", async () => {
+    const admin = db(withPin());
+    brokenCreds(admin, { message: "connection reset" });
+    await expect(lockState(admin, USER)).rejects.toThrow(/Could not verify/);
+  });
+});
+
 describe("enrolling a device", () => {
   it("stores the public key the device proved it holds, and marks the lock on", async () => {
     const admin = db();
