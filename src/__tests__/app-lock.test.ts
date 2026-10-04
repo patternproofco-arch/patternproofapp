@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
@@ -9,8 +10,12 @@ import {
   finishUnlock,
   issueToken,
   lockState,
+  FRESH_SIGN_IN_MS,
+  RESET_MAX_ATTEMPTS,
   removeBiometric,
   requireUnlockProof,
+  resetPin,
+  type Reauth,
   signToken,
   verifyToken,
 } from "@/lib/app-lock.server";
@@ -274,5 +279,158 @@ describe("no way to get a token without proof", () => {
 
   it("origin and site come from the request the server saw, not from the page", () => {
     expect(src).toContain("getRequest().url");
+  });
+});
+
+
+describe("forgot PIN", () => {
+  const PASSWORD = "correct horse";
+  const reauth = (over: Partial<Reauth> = {}): Reauth => ({
+    hasPassword: true,
+    lastSignInAt: null,
+    checkPassword: async (p) => p === PASSWORD,
+    ...over,
+  });
+  const forgot = (admin: ReturnType<typeof db>, password: string | undefined, over: Partial<Reauth> = {}, at = NOW) =>
+    resetPin(admin, USER, { pin: "2468", password, reauth: reauth(over), secret: SECRET, now: at });
+  const row = (admin: ReturnType<typeof db>) => admin.tables.user_security_settings![0]!;
+  const withLockedPin = () => ({
+    user_security_settings: [
+      { user_id: USER, pin_hash: "old-hash", pin_salt: "old-salt", pin_failed_attempts: 5, pin_locked_until: "2026-10-04T12:20:00Z", app_lock_enabled: true },
+    ],
+  });
+
+  it("with the right password, replaces the PIN, clears the PIN lockout and unlocks", async () => {
+    const admin = db(withLockedPin());
+    const r = await forgot(admin, PASSWORD);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(verifyToken(r.token, USER, SECRET, NOW + 1)).toBe(true);
+    expect(row(admin).pin_hash).not.toBe("old-hash");
+    expect(row(admin).pin_salt).not.toBe("old-salt");
+    expect(row(admin).pin_failed_attempts).toBe(0);
+    expect(row(admin).pin_locked_until).toBeNull();
+    expect(JSON.stringify(row(admin))).not.toContain("2468");
+  });
+
+  it("works while the PIN is locked out, which is when people need it most", async () => {
+    const admin = db(withLockedPin());
+    expect((await forgot(admin, PASSWORD)).ok).toBe(true);
+  });
+
+  it("a wrong or missing password changes nothing and returns no token", async () => {
+    const admin = db(withLockedPin());
+    for (const pw of ["nope", "", undefined]) {
+      const r = await forgot(admin, pw);
+      expect(r).toEqual({ ok: false, result: "wrong" });
+    }
+    expect(row(admin).pin_hash).toBe("old-hash");
+    expect(row(admin).reset_failed_attempts).toBe(3);
+  });
+
+  it("locks the reset out after repeated wrong passwords, even for the right one, then lets it through", async () => {
+    const admin = db(withPin());
+    let last: Awaited<ReturnType<typeof forgot>> = { ok: false, result: "wrong" };
+    for (let i = 0; i < RESET_MAX_ATTEMPTS; i++) last = await forgot(admin, "nope");
+    expect(last).toEqual({ ok: false, result: "locked-out" });
+    expect(await forgot(admin, PASSWORD, {}, NOW + 60_000)).toEqual({ ok: false, result: "locked-out" });
+    expect(row(admin).pin_hash).toBe("x");
+    const later = await forgot(admin, PASSWORD, {}, NOW + 31 * 60_000);
+    expect(later.ok).toBe(true);
+    expect(row(admin).reset_failed_attempts).toBe(0);
+  });
+
+  it("an account with no password needs a sign-in from the last few minutes", async () => {
+    const admin = db(withPin());
+    const none = { hasPassword: false, checkPassword: async () => true };
+    expect(await forgot(admin, undefined, { ...none, lastSignInAt: NOW - FRESH_SIGN_IN_MS - 1 })).toEqual({
+      ok: false,
+      result: "needs-fresh-sign-in",
+    });
+    expect(await forgot(admin, undefined, { ...none, lastSignInAt: null })).toEqual({
+      ok: false,
+      result: "needs-fresh-sign-in",
+    });
+    expect(row(admin).pin_hash).toBe("x");
+    expect((await forgot(admin, undefined, { ...none, lastSignInAt: NOW - 60_000 })).ok).toBe(true);
+  });
+
+  it("a password-account can't skip the password by claiming a fresh sign-in", async () => {
+    const admin = db(withPin());
+    expect(await forgot(admin, undefined, { hasPassword: true, lastSignInAt: NOW })).toEqual({ ok: false, result: "wrong" });
+  });
+
+  it("refuses, changing nothing, when the counter can't be read, the password check is down, or the save fails", async () => {
+    const readFails = db(withPin());
+    const orig = readFails.from;
+    readFails.from = ((n: string) =>
+      n === "user_security_settings"
+        ? ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: { message: "no such column" } }) }) }) } as never)
+        : orig(n)) as typeof readFails.from;
+    expect(await forgot(readFails, PASSWORD)).toEqual({ ok: false, result: "unavailable" });
+
+    const checkDown = db(withPin());
+    expect(
+      await forgot(checkDown, PASSWORD, {
+        checkPassword: async () => {
+          throw new Error("auth service down");
+        },
+      }),
+    ).toEqual({ ok: false, result: "unavailable" });
+    expect(row(checkDown).pin_hash).toBe("x");
+
+    const saveFails = db(withPin());
+    const o2 = saveFails.from;
+    saveFails.from = ((n: string) => {
+      const t = o2(n) as Record<string, unknown>;
+      return n === "user_security_settings"
+        ? (Object.assign(Object.create(t), { upsert: async () => ({ error: { message: "down" } }) }) as never)
+        : (t as never);
+    }) as typeof saveFails.from;
+    expect(await forgot(saveFails, PASSWORD)).toEqual({ ok: false, result: "unavailable" });
+  });
+
+  it("keeps enrolled devices: only the PIN is replaced", async () => {
+    const admin = db(withPin());
+    await enroll(admin, issueToken(USER, SECRET, NOW).token);
+    expect((await forgot(admin, PASSWORD)).ok).toBe(true);
+    expect((await lockState(admin, USER)).credentialCount).toBe(1);
+  });
+});
+
+describe("reset wiring and settings lockdown (source contract)", () => {
+  const read = (p: string) => readFileSync(new URL(`../../${p}`, import.meta.url), "utf8");
+
+  it("the PIN screen offers the reset, including while locked out, and the form labels its fields", () => {
+    const screen = read("src/components/PinScreen.tsx");
+    expect(screen).toMatch(/ForgotPinPanel/);
+    expect(screen).toMatch(/Forgot your PIN\?/);
+    const panel = read("src/components/ForgotPinPanel.tsx");
+    expect(panel).toMatch(/htmlFor="reset-password"/);
+    expect(panel).toMatch(/autoComplete="current-password"/);
+    expect(panel).toMatch(/nothing was changed|Nothing was changed/i);
+  });
+
+  it("the reset is a server function that needs the account password, not just a session", () => {
+    const fns = read("src/lib/pin-lock.functions.ts");
+    expect(fns).toMatch(/resetPinServer/);
+    expect(fns).toMatch(/signInWithPassword/);
+    expect(fns).toMatch(/persistSession: false/);
+  });
+
+  it("the migration takes away direct browser access to the PIN hash and the lockout counters", () => {
+    const sql = read("supabase/migrations/20261004250000_lock_reset_and_settings_lockdown.sql");
+    expect(sql).toMatch(/DROP POLICY IF EXISTS "own security settings update"/);
+    expect(sql).toMatch(/REVOKE ALL ON public\.user_security_settings FROM anon, authenticated/);
+    expect(sql).toMatch(/reset_failed_attempts/);
+  });
+
+  it("no browser code reads or writes the settings table directly", () => {
+    const hits = execSync(`grep -rln "user_security_settings" src --include=*.ts --include=*.tsx || true`, {
+      cwd: new URL("../../", import.meta.url).pathname,
+    })
+      .toString()
+      .split("\n")
+      .filter((f) => f && !/__tests__|integrations\/supabase\/types|\.server\.ts$|\.functions\.ts$/.test(f));
+    expect(hits).toEqual([]);
   });
 });

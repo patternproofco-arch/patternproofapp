@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { scryptSync, timingSafeEqual } from "node:crypto";
 
 /**
  * Server-verifiable app lock.
@@ -71,8 +71,7 @@ export const setPinServer = createServerFn({ method: "POST" })
     const lock = await lockServer();
     // Setting the first PIN is open. Replacing a lock that exists needs proof you unlocked it.
     await lock.requireUnlockProof(admin, context.userId, data.unlockToken, tokenSecret());
-    const salt = randomBytes(16).toString("hex");
-    const hash = scryptSync(data.pin, salt, 64).toString("hex");
+    const { hash, salt } = lock.hashPin(data.pin);
     const { error } = await admin.from("user_security_settings").upsert(
       {
         user_id: context.userId,
@@ -87,6 +86,46 @@ export const setPinServer = createServerFn({ method: "POST" })
     );
     if (error) throw new Error(error.message);
     return { ok: true as const, ...lock.issueToken(context.userId, tokenSecret()) };
+  });
+
+/** Everything the server needs to re-check who is asking, read from the auth service. */
+async function reauthFor(userId: string) {
+  const admin = await adminClient();
+  const { data, error } = await admin.auth.admin.getUserById(userId);
+  const user = data?.user;
+  if (error || !user) throw new Error("We couldn't check your account. Try again in a moment.");
+  const email = user.email ?? "";
+  const hasPassword = !!email && (user.identities ?? []).some((i) => i.provider === "email");
+  return {
+    hasPassword,
+    lastSignInAt: user.last_sign_in_at ? Date.parse(user.last_sign_in_at) : null,
+    checkPassword: async (password: string) => {
+      const url = process.env.SUPABASE_URL;
+      const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+      if (!url || !key) throw new Error("Server misconfigured.");
+      const { createClient } = await import("@supabase/supabase-js");
+      // A throwaway client: it checks the password and keeps nothing.
+      const c = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, storage: undefined } });
+      const { error: e } = await c.auth.signInWithPassword({ email, password });
+      return !e;
+    },
+  };
+}
+
+/** Forgot PIN: needs the account password again, so an open session alone can't replace the lock. */
+export const resetPinServer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ pin: z.string().regex(/^\d{4,8}$/), password: z.string().max(200).optional() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const lock = await lockServer();
+    return lock.resetPin(await adminClient(), context.userId, {
+      pin: data.pin,
+      password: data.password,
+      reauth: await reauthFor(context.userId),
+      secret: tokenSecret(),
+    });
   });
 
 export const clearPinServer = createServerFn({ method: "POST" })

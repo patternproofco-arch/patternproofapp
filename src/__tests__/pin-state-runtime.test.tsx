@@ -8,6 +8,7 @@ vi.mock("@/lib/pin-lock.functions", () => ({
   getPinLockState: mocks.read,
   checkUnlockToken: mocks.check,
   setPinServer: vi.fn(),
+  resetPinServer: vi.fn(),
   clearPinServer: vi.fn(),
   verifyPinServer: vi.fn(),
   beginBiometricEnroll: vi.fn(),

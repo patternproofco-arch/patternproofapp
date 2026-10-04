@@ -3,6 +3,7 @@ import { useAuth } from "@/lib/auth-context";
 import {
   getPinLockState,
   setPinServer,
+  resetPinServer,
   clearPinServer,
   verifyPinServer,
   beginBiometricEnroll,
@@ -28,6 +29,11 @@ interface Ctx {
   ready: boolean;
   setRealPin: (pin: string) => Promise<void>;
   clearPin: () => Promise<boolean>;
+  /** Forgot PIN: the account password (or a fresh sign-in) replaces the PIN. */
+  resetPin: (
+    pin: string,
+    password?: string,
+  ) => Promise<"ok" | "wrong" | "locked-out" | "needs-fresh-sign-in" | "unavailable">;
   unlock: (pin: string) => Promise<"real" | "wrong" | "locked-out" | "no-pin">;
   enableBiometric: () => Promise<{ ok: true } | { ok: false; reason: string }>;
   unlockBiometric: () => Promise<"ok" | "failed" | "unsupported">;
@@ -117,6 +123,19 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     storeToken(r.token);
     setHasPin(true);
     setIsLocked(false);
+  };
+
+  const resetPin = async (pin: string, password?: string) => {
+    try {
+      const r = await resetPinServer({ data: { pin, password } });
+      if (!r.ok) return r.result;
+      storeToken(r.token);
+      setHasPin(true);
+      setIsLocked(false);
+      return "ok" as const;
+    } catch {
+      return "unavailable" as const;
+    }
   };
 
   /** Only reports done once the server has actually removed it. */
@@ -266,6 +285,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
         ready,
         setRealPin,
         clearPin,
+        resetPin,
         unlock,
         enableBiometric,
         unlockBiometric,

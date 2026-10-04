@@ -11,7 +11,7 @@
  *  - tries are rate-limited per account.
  */
 
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import {
   WebAuthnError,
   b64urlDecode,
@@ -277,6 +277,96 @@ export async function removeBiometric(
     .update({ biometric_enabled: false, updated_at: new Date().toISOString() })
     .eq("user_id", userId);
   return { ok: true as const };
+}
+
+// ---------------------------------------------------------------------------
+// Forgot PIN
+// ---------------------------------------------------------------------------
+
+export const RESET_MAX_ATTEMPTS = 5;
+export const RESET_LOCKOUT_MS = 30 * 60 * 1000;
+/** For accounts with no password (Google sign-in), proof is a sign-in this recent. */
+export const FRESH_SIGN_IN_MS = 5 * 60 * 1000;
+
+export function hashPin(pin: string) {
+  const salt = randomBytes(16).toString("hex");
+  return { salt, hash: scryptSync(pin, salt, 64).toString("hex") };
+}
+
+export type Reauth = {
+  hasPassword: boolean;
+  /** When the account last signed in, from the auth service. Not a token refresh. */
+  lastSignInAt: number | null;
+  checkPassword: (password: string) => Promise<boolean>;
+};
+
+export type ResetResult =
+  | { ok: true; token: string; expiresAt: number }
+  | { ok: false; result: "wrong" | "locked-out" | "needs-fresh-sign-in" | "unavailable" };
+
+/**
+ * Replaces a forgotten PIN. A signed-in session alone is NOT enough: the lock exists to keep out
+ * someone who picks up an open session, so this asks for the account password again (or, for
+ * accounts that have none, a sign-in from the last few minutes). Tries are counted apart from
+ * PIN tries and lock out for 30 minutes. If the counter can't be read or written, this refuses.
+ * Enrolled devices stay; the PIN and its lockout are replaced.
+ */
+export async function resetPin(
+  admin: Admin,
+  userId: string,
+  input: { pin: string; password?: string; reauth: Reauth; secret: string; now?: number },
+): Promise<ResetResult> {
+  const now = input.now ?? Date.now();
+  const { data: row, error } = await admin
+    .from("user_security_settings")
+    .select("reset_failed_attempts,reset_locked_until")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) return { ok: false, result: "unavailable" };
+  if (row?.reset_locked_until && Date.parse(row.reset_locked_until as string) > now) {
+    return { ok: false, result: "locked-out" };
+  }
+
+  if (input.reauth.hasPassword) {
+    let good = false;
+    if (input.password) {
+      try {
+        good = await input.reauth.checkPassword(input.password);
+      } catch {
+        return { ok: false, result: "unavailable" };
+      }
+    }
+    if (!good) {
+      const fails = Number(row?.reset_failed_attempts ?? 0) + 1;
+      const lockedUntil = fails >= RESET_MAX_ATTEMPTS ? new Date(now + RESET_LOCKOUT_MS).toISOString() : null;
+      const { error: wErr } = await admin.from("user_security_settings").upsert(
+        { user_id: userId, reset_failed_attempts: fails, reset_locked_until: lockedUntil },
+        { onConflict: "user_id" },
+      );
+      if (wErr) return { ok: false, result: "unavailable" };
+      return { ok: false, result: lockedUntil ? "locked-out" : "wrong" };
+    }
+  } else if (input.reauth.lastSignInAt == null || now - input.reauth.lastSignInAt > FRESH_SIGN_IN_MS) {
+    return { ok: false, result: "needs-fresh-sign-in" };
+  }
+
+  const { hash, salt } = hashPin(input.pin);
+  const { error: sErr } = await admin.from("user_security_settings").upsert(
+    {
+      user_id: userId,
+      pin_hash: hash,
+      pin_salt: salt,
+      pin_failed_attempts: 0,
+      pin_locked_until: null,
+      reset_failed_attempts: 0,
+      reset_locked_until: null,
+      app_lock_enabled: true,
+      updated_at: new Date(now).toISOString(),
+    },
+    { onConflict: "user_id" },
+  );
+  if (sErr) return { ok: false, result: "unavailable" };
+  return { ok: true, ...issueToken(userId, input.secret, now) };
 }
 
 export { b64urlDecode };

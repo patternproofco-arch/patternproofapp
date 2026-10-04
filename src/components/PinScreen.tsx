@@ -3,6 +3,7 @@ import { Fingerprint } from "lucide-react";
 import { useSettings } from "@/lib/settings-context";
 import { usePinLock } from "@/lib/pin-lock";
 import { QuickExitButton } from "@/components/QuickExitButton";
+import { ForgotPinPanel } from "@/components/ForgotPinPanel";
 
 export function PinScreen() {
   const { settings } = useSettings();
@@ -10,6 +11,7 @@ export function PinScreen() {
   const [pin, setPin] = useState("");
   const [msg, setMsg] = useState("");
   const [locked, setLocked] = useState(false);
+  const [forgot, setForgot] = useState(false);
 
   // Auto-prompt biometric on mount if it's the only method set up.
   useEffect(() => {
@@ -47,10 +49,19 @@ export function PinScreen() {
       <QuickExitButton />
       <div className="w-full max-w-sm">
         <h1 className="font-serif text-[28px] text-center">{settings.disguiseName}</h1>
-        {locked ? (
-          <p className="mt-8 text-center text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            {msg}
-          </p>
+        {forgot ? (
+          <div className="mt-8">
+            <ForgotPinPanel onCancel={() => setForgot(false)} />
+          </div>
+        ) : locked ? (
+          <div className="mt-8 space-y-3 text-center">
+            <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+              {msg}
+            </p>
+            <button type="button" className="underline text-[13px]" onClick={() => setForgot(true)}>
+              Forgot your PIN? Reset it
+            </button>
+          </div>
         ) : (
           <div className="mt-8 space-y-4">
             {hasBiometric && (
@@ -94,6 +105,15 @@ export function PinScreen() {
               <p className="text-center text-[13px]" style={{ color: "var(--muted-foreground)" }}>
                 {msg}
               </p>
+            )}
+            {hasPin && (
+              <button
+                type="button"
+                className="block w-full text-center text-[13px] underline"
+                onClick={() => setForgot(true)}
+              >
+                Forgot your PIN?
+              </button>
             )}
           </div>
         )}
