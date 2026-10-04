@@ -852,7 +852,8 @@ export const getClientCase = createServerFn({ method: "POST" })
             .maybeSingle(),
     ]);
 
-    const incidents = incQ.data ?? [];
+    const { evidenceForProfessional, incidentForProfessional } = await import("@/lib/professional-view");
+    const incidents = (incQ.data ?? []).map((i) => incidentForProfessional(i as Record<string, unknown>) as typeof i);
     // The attorney should be able to see the exact terms they hold access
     // under, not just the data itself.
     const { data: grantInv } = link.id
@@ -883,13 +884,7 @@ export const getClientCase = createServerFn({ method: "POST" })
     }
     // Quarantined GPS fields must never reach the attorney UI — the survivor
     // opts in per-item in their own view, and even then it's not shared.
-    const evidence = (evQ.data ?? []).map((e) => {
-      const clone = { ...(e as Record<string, unknown>) };
-      delete clone.gps_lat;
-      delete clone.gps_lon;
-      delete clone.gps_reveal_opt_in;
-      return clone as typeof e;
-    });
+    const evidence = (evQ.data ?? []).map((e) => evidenceForProfessional(e as Record<string, unknown>) as typeof e);
     const flags = escQ.data ?? [];
     const rawPattern = (patQ.data ?? null) as {
       analysis: AnyJson;

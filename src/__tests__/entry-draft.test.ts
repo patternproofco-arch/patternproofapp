@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   DRAFT_KIND,
+  DRAFT_MAX_AGE_DAYS,
   draftIsEmpty,
   draftStatusText,
   loadDraft,
@@ -143,5 +144,25 @@ describe("sensitive text is not kept in the browser", () => {
       expect(src).not.toMatch(/localStorage|sessionStorage|indexedDB/);
     }
     expect(DRAFT_KIND).toBe("journal_entry");
+  });
+});
+
+
+describe("old drafts are not kept", () => {
+  it("a draft untouched for 30+ days is not restored and is removed", async () => {
+    const admin = makeRwAdmin({ entry_drafts: [] });
+    const t0 = new Date("2026-09-01T10:00:00Z");
+    await saveDraft(admin, A, draft(), t0);
+    const day = 86_400_000;
+    expect((await loadDraft(admin, A, new Date(t0.getTime() + (DRAFT_MAX_AGE_DAYS - 1) * day)))?.draft.description).toMatch(/keys/);
+    expect(await loadDraft(admin, A, new Date(t0.getTime() + (DRAFT_MAX_AGE_DAYS + 1) * day))).toBeNull();
+    expect(admin.tables.entry_drafts).toHaveLength(0);
+  });
+
+  it("the database purge job is in the migration and can't fail the migration", () => {
+    const sql = readFileSync(new URL("../../supabase/migrations/20261004260000_entry_draft_purge.sql", import.meta.url), "utf8");
+    expect(sql).toMatch(/purge-old-entry-drafts/);
+    expect(sql).toMatch(/interval '30 days'/);
+    expect(sql).toMatch(/EXCEPTION WHEN OTHERS/);
   });
 });
