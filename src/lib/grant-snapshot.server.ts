@@ -12,9 +12,22 @@
  */
 
 import { isGrantSnapshotEligible } from "@/lib/sharing/share-readiness";
+import { selectAllPages } from "@/lib/in-chunks.server";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Admin = any;
+
+/**
+ * A selected item that did not make it into a grant. Never dropped silently: the
+ * caller shows this to the survivor so she knows exactly what the recipient will
+ * not see, and why.
+ */
+export type ExcludedItem = {
+  kind: "incident" | "file";
+  id: string;
+  /** kept_private: she marked it private. not_available: deleted or not hers. */
+  reason: "kept_private" | "not_available";
+};
 
 export type ShareScope = {
   include_all_incidents?: boolean;
@@ -23,14 +36,22 @@ export type ShareScope = {
   scope_evidence?: string[] | null;
 };
 
+// Every read below pages: the API silently caps one request at 1,000 rows, and a
+// survivor can now hold thousands of entries. An unpaged read left everything past
+// the first 1,000 out of the grant with no error.
 async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUserId: string) {
-  const { data, error } = await admin
-    .from(table)
-    .select("id")
-    .eq("user_id", clientUserId)
-    .is("deleted_at", null);
-  if (error) throw new Error(error.message);
-  return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
+  const rows = await selectAllPages<{ id: string }>(
+    (from, to) =>
+      admin
+        .from(table)
+        .select("id")
+        .eq("user_id", clientUserId)
+        .is("deleted_at", null)
+        .order("id", { ascending: true })
+        .range(from, to),
+    { what: table === "incidents" ? "incident" : "file" },
+  );
+  return rows.map((r) => r.id);
 }
 
 /**
@@ -50,13 +71,34 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
  * files only an explicit "still deciding" is held back.
  */
 async function shareableIds(admin: Admin, table: "incidents" | "evidence", clientUserId: string) {
-  const { data, error } = await admin
-    .from(table)
-    .select("id, share_readiness")
-    .eq("user_id", clientUserId)
-    .is("deleted_at", null);
-  if (error) return ownedIds(admin, table, clientUserId);
-  return ((data ?? []) as Array<{ id: string; share_readiness?: string | null }>)
+  // Only a missing readiness column (migration not applied yet) may fall back to
+  // every owned item. Any other failure must stop the share: falling back to
+  // "everything" on a transient error would sweep in entries kept private.
+  let columnMissing = false;
+  let rows: Array<{ id: string; share_readiness?: string | null }>;
+  try {
+    rows = await selectAllPages<{ id: string; share_readiness?: string | null }>(
+      (from, to) =>
+        admin
+          .from(table)
+          .select("id, share_readiness")
+          .eq("user_id", clientUserId)
+          .is("deleted_at", null)
+          .order("id", { ascending: true })
+          .range(from, to)
+          .then((r: { data: unknown; error: { message: string } | null }) => {
+            if (r.error && /share_readiness|42703|does not exist/i.test(r.error.message)) {
+              columnMissing = true;
+            }
+            return r;
+          }),
+      { what: table === "incidents" ? "incident" : "file" },
+    );
+  } catch (e) {
+    if (columnMissing) return ownedIds(admin, table, clientUserId);
+    throw e;
+  }
+  return rows
     .filter((r) =>
       table === "incidents"
         ? isGrantSnapshotEligible(r.share_readiness)
@@ -81,7 +123,13 @@ export async function snapshotShareScope<T extends ShareScope>(
   admin: Admin,
   clientUserId: string,
   scope: T,
-): Promise<T & Required<Pick<ShareScope, "include_all_incidents" | "include_all_evidence">>> {
+): Promise<
+  T &
+    Required<Pick<ShareScope, "include_all_incidents" | "include_all_evidence">> & {
+      /** Items the survivor explicitly picked that were NOT shared, and why. */
+      excluded: ExcludedItem[];
+    }
+> {
   const [ownedInc, ownedEv] = await Promise.all([
     ownedIds(admin, "incidents", clientUserId),
     ownedIds(admin, "evidence", clientUserId),
@@ -89,12 +137,34 @@ export async function snapshotShareScope<T extends ShareScope>(
   const ownEv = new Set(ownedEv);
   const ownInc = new Set(ownedInc);
   const shareableInc = new Set(await shareableIds(admin, "incidents", clientUserId));
-  const incidents = scope.include_all_incidents
-    ? Array.from(shareableInc)
-    : uniq(scope.scope_incidents ?? []).filter((id) => ownInc.has(id) && shareableInc.has(id));
-  const evidence = scope.include_all_evidence
-    ? await shareableIds(admin, "evidence", clientUserId)
-    : uniq(scope.scope_evidence ?? []).filter((id) => ownEv.has(id));
+  const excluded: ExcludedItem[] = [];
+
+  let incidents: string[];
+  if (scope.include_all_incidents) {
+    incidents = Array.from(shareableInc);
+  } else {
+    incidents = [];
+    for (const id of uniq(scope.scope_incidents ?? [])) {
+      if (ownInc.has(id) && shareableInc.has(id)) incidents.push(id);
+      else
+        excluded.push({
+          kind: "incident",
+          id,
+          reason: ownInc.has(id) ? "kept_private" : "not_available",
+        });
+    }
+  }
+
+  let evidence: string[];
+  if (scope.include_all_evidence) {
+    evidence = await shareableIds(admin, "evidence", clientUserId);
+  } else {
+    evidence = [];
+    for (const id of uniq(scope.scope_evidence ?? [])) {
+      if (ownEv.has(id)) evidence.push(id);
+      else excluded.push({ kind: "file", id, reason: "not_available" });
+    }
+  }
 
   return {
     ...scope,
@@ -102,6 +172,7 @@ export async function snapshotShareScope<T extends ShareScope>(
     include_all_evidence: false,
     scope_incidents: incidents,
     scope_evidence: evidence,
+    excluded,
   };
 }
 
@@ -151,14 +222,19 @@ export async function freezeLegacyBlanketScope(
   const cutoff = link.created_at ?? new Date().toISOString();
 
   const asOf = async (t: "incidents" | "evidence") => {
-    const { data, error } = await admin
-      .from(t)
-      .select("id")
-      .eq("user_id", clientUserId)
-      .is("deleted_at", null)
-      .lte("created_at", cutoff);
-    if (error) throw new Error(error.message);
-    return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
+    const rows = await selectAllPages<{ id: string }>(
+      (from, to) =>
+        admin
+          .from(t)
+          .select("id")
+          .eq("user_id", clientUserId)
+          .is("deleted_at", null)
+          .lte("created_at", cutoff)
+          .order("id", { ascending: true })
+          .range(from, to),
+      { what: t === "incidents" ? "incident" : "file" },
+    );
+    return rows.map((r) => r.id);
   };
 
   const incidents = link.include_all_incidents
