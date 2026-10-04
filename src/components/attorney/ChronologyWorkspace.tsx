@@ -21,6 +21,12 @@ import {
   type DeclarationContent,
 } from "@/lib/chronology";
 import type { ExhibitPackage } from "@/lib/exhibit-numbering";
+import {
+  askAboutEntryQuestion,
+  getReviewQueue,
+  setEntryReview,
+  type Queue,
+} from "@/lib/entry-review.functions";
 
 /**
  * Factual chronology and unsigned declaration draft for the attorney.
@@ -31,6 +37,14 @@ import type { ExhibitPackage } from "@/lib/exhibit-numbering";
 type SaveState = "idle" | "saving" | "saved" | "failed";
 
 const workspaceKey = (clientId: string) => ["chronology", clientId] as const;
+const queueKey = (clientId: string) => ["review-queue", clientId] as const;
+
+type QueueFilter = "all" | "new" | "needs_clarification" | "reviewed";
+const QUEUE_LABEL: Record<Exclude<QueueFilter, "all">, string> = {
+  new: "New",
+  needs_clarification: "Needs clarification",
+  reviewed: "Reviewed",
+};
 
 export function useChronologyWorkspace(clientId: string) {
   const fetchWs = useServerFn(getChronologyWorkspace);
@@ -64,6 +78,17 @@ function Loaded({ clientId, ws }: { clientId: string; ws: Workspace }) {
   const makePackage = useServerFn(createExhibitPackage);
   const saveDraft = useServerFn(saveDeclarationDraft);
   const logExport = useServerFn(logChronologyExport);
+  const fetchQueue = useServerFn(getReviewQueue);
+  const saveReview = useServerFn(setEntryReview);
+  const askQuestion = useServerFn(askAboutEntryQuestion);
+  const queueQ = useQuery({
+    queryKey: queueKey(clientId),
+    queryFn: () => fetchQueue({ data: { clientId } }),
+    retry: false,
+  });
+  const [filter, setFilter] = useState<QueueFilter>("all");
+  const [questionFor, setQuestionFor] = useState<string | null>(null);
+  const [questionText, setQuestionText] = useState("");
 
   const [content, setContent] = useState<DeclarationContent>(ws.draft.content);
   const [notes, setNotes] = useState(ws.draft.notes);
@@ -184,6 +209,35 @@ function Loaded({ clientId, ws }: { clientId: string; ws: Workspace }) {
   const p = ws.package;
   const unresolved = analysis.needsDecision.length;
 
+  const queue: Queue | undefined = queueQ.data;
+  const queueByKey = new Map((queue?.rows ?? []).map((r) => [r.key, r]));
+  const visibleRows = ws.rows.filter((r) => {
+    if (filter === "all") return true;
+    const q = queueByKey.get(r.key);
+    return (q?.status ?? "new") === filter;
+  });
+
+  const markReview = async (key: string, status: "new" | "needs_clarification" | "reviewed", note?: string) => {
+    try {
+      await saveReview({ data: { clientId, itemKey: key, status, note } });
+      await qc.invalidateQueries({ queryKey: queueKey(clientId) });
+    } catch (e) {
+      setError(msg(e, "We couldn't save that. Try again in a moment."));
+    }
+  };
+
+  const sendQuestion = async (key: string) => {
+    try {
+      await askQuestion({ data: { clientId, itemKey: key, question: questionText } });
+      setQuestionFor(null);
+      setQuestionText("");
+      toast("Question sent. It appears in the client's requests. They see only the entry's date, and nothing is emailed or sent to their phone.");
+      await qc.invalidateQueries({ queryKey: queueKey(clientId) });
+    } catch (e) {
+      setError(msg(e, "We couldn't send that question. Try again in a moment."));
+    }
+  };
+
   return (
     <section className="mb-10 print:hidden">
       <div className="mb-2 flex items-center justify-between gap-3">
@@ -302,8 +356,28 @@ function Loaded({ clientId, ws }: { clientId: string; ws: Workspace }) {
 
       {/* Chronology */}
       <h3 className="mb-2 font-display text-base">Chronology</h3>
+      {queueQ.error ? (
+        <p role="alert" className="mb-2 text-xs">
+          We couldn&apos;t load your review queue, so statuses below may be missing. Reload to try again.
+        </p>
+      ) : queue ? (
+        <div className="mb-3 flex flex-wrap gap-2 text-xs" role="group" aria-label="Review queue">
+          {(["all", "new", "needs_clarification", "reviewed"] as QueueFilter[]).map((f) => (
+            <button
+              key={f}
+              type="button"
+              aria-pressed={filter === f}
+              onClick={() => setFilter(f)}
+              className="rounded-full border border-border px-3 py-1"
+              style={filter === f ? { background: "var(--primary)", color: "var(--primary-foreground)" } : undefined}
+            >
+              {f === "all" ? `All ${ws.rows.length}` : `${QUEUE_LABEL[f]} ${queue.counts[f]}`}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <ol className="mb-6 space-y-3">
-        {ws.rows.map((r, i) => (
+        {visibleRows.map((r, i) => (
           <li key={r.key} className="rounded-lg border border-border p-3 text-sm">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <div>
@@ -345,6 +419,69 @@ function Loaded({ clientId, ws }: { clientId: string; ws: Workspace }) {
             {r.exhibit.changedSinceVersion && (
               <div className="mt-1 text-xs">Changed since exhibit package v{p?.version}. The number is the same.</div>
             )}
+            {(() => {
+              const q = queueByKey.get(r.key);
+              if (!queue) return null;
+              const st = q?.status ?? "new";
+              return (
+                <div className="mt-2 border-t border-border/60 pt-2 text-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold">{QUEUE_LABEL[st]}</span>
+                    {q?.changedSinceReview && <span>The client changed this after you reviewed it.</span>}
+                    {q?.question && (
+                      <span>
+                        Question {q.question.status === "answered" ? "answered" : q.question.status === "declined" ? "declined" : "waiting for an answer"}.
+                      </span>
+                    )}
+                    {(["new", "needs_clarification", "reviewed"] as const)
+                      .filter((s) => s !== st)
+                      .map((s) => (
+                        <button key={s} className="underline" onClick={() => markReview(r.key, s)}>
+                          Mark {QUEUE_LABEL[s].toLowerCase()}
+                        </button>
+                      ))}
+                    <button className="underline" onClick={() => setQuestionFor(questionFor === r.key ? null : r.key)}>
+                      Ask a question
+                    </button>
+                  </div>
+                  {questionFor === r.key && (
+                    <div className="mt-2">
+                      <label className="block text-xs" htmlFor={`q-${r.key}`}>
+                        Question for the client (the client sees only this entry&apos;s date, not its text)
+                      </label>
+                      <textarea
+                        id={`q-${r.key}`}
+                        className="mt-1 w-full rounded-lg border border-border px-2 py-1.5 text-sm"
+                        rows={3}
+                        maxLength={1000}
+                        value={questionText}
+                        onChange={(e) => setQuestionText(e.target.value)}
+                      />
+                      <button
+                        className="mt-1 rounded-lg bg-primary px-3 py-1 text-primary-foreground disabled:opacity-50"
+                        disabled={!questionText.trim()}
+                        onClick={() => sendQuestion(r.key)}
+                      >
+                        Send question
+                      </button>
+                    </div>
+                  )}
+                  <details className="mt-2">
+                    <summary className="cursor-pointer">Private note (only you; never copied or exported)</summary>
+                    <textarea
+                      className="mt-1 w-full rounded-lg border border-border px-2 py-1.5 text-sm"
+                      rows={2}
+                      maxLength={5000}
+                      defaultValue={q?.note ?? ""}
+                      aria-label="Private note"
+                      onBlur={(e) => {
+                        if (e.target.value !== (q?.note ?? "")) void markReview(r.key, st, e.target.value);
+                      }}
+                    />
+                  </details>
+                </div>
+              );
+            })()}
             <div className="mt-2 text-xs">
               {content.included.includes(r.key) ? (
                 <span>
