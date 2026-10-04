@@ -31,9 +31,9 @@ const EVIDENCE_HIDDEN = [
 const INCIDENT_HIDDEN = ["ai_permission", "share_readiness", "template_key"] as const;
 
 function without<T extends object>(row: T, keys: readonly string[]): T {
-  const out: Record<string, unknown> = { ...row };
+  const out = { ...(row as unknown as Record<string, unknown>) };
   for (const k of keys) delete out[k];
-  return out as T;
+  return out as unknown as T;
 }
 
 // Generic over the row type so a caller keeps its own typed row; casting to Record<string, unknown>
