@@ -47,14 +47,16 @@ function world(overrides: Partial<Tables> = {}): Tables {
         attorney_user_id: ATTY_A,
         client_user_id: SURV_A,
         status: "active",
-        include_all_incidents: true,
-        include_all_evidence: true,
+        created_at: "2026-09-01T10:00:00Z",
+        // The ids she approved when she shared the case. The case's own list can only narrow them.
+        include_all_incidents: false,
+        include_all_evidence: false,
         include_patterns: true,
         include_voice_notes: false,
         include_communications: false,
         include_legal_documents: false,
-        scope_incidents: [],
-        scope_evidence: [],
+        scope_incidents: ["inc-1"],
+        scope_evidence: ["ev-1"],
         case_id: CASE_A,
         expires_at: null,
         revoked_at: null,
@@ -125,23 +127,41 @@ describe("attorney access — the owning attorney", () => {
 });
 
 describe("attorney access — widening and narrowing scope", () => {
-  it("reflects what the survivor adds and drops what she removes", async () => {
+  it("drops what she removes from the case, but does not absorb what she adds later without a new approval", async () => {
     const t = world();
     const db = fakeAdmin(t);
 
     let link = await assertLink(db, ATTY_A, SURV_A);
     expect(idInScope(link, "evidence", "ev-2")).toBe(false);
 
-    // Survivor widens: attaches a second file to the case.
+    // She attaches a second file to the case after the attorney was given access.
+    // That file was never part of what she approved, so it is NOT shared.
     t["cases"]![0]!["attached_evidence_ids"] = ["ev-1", "ev-2"];
     link = await assertLink(db, ATTY_A, SURV_A);
-    expect(idInScope(link, "evidence", "ev-2")).toBe(true);
+    expect(idInScope(link, "evidence", "ev-2")).toBe(false);
+    expect(link.scope_evidence).toEqual(["ev-1"]);
 
-    // Survivor narrows: removes the first file again.
+    // She removes the first file from the case: the attorney loses it.
     t["cases"]![0]!["attached_evidence_ids"] = ["ev-2"];
     link = await assertLink(db, ATTY_A, SURV_A);
     expect(idInScope(link, "evidence", "ev-1")).toBe(false);
-    expect(link.scope_evidence).toEqual(["ev-2"]);
+    expect(link.scope_evidence).toEqual([]);
+  });
+
+  it("an older case link with no recorded ids is limited to records that existed when it began", async () => {
+    const t = world({
+      incidents: [
+        { id: "inc-1", user_id: SURV_A, created_at: "2026-08-01T00:00:00Z", deleted_at: null },
+        { id: "inc-late", user_id: SURV_A, created_at: "2026-09-10T00:00:00Z", deleted_at: null },
+      ],
+      evidence: [{ id: "ev-1", user_id: SURV_A, created_at: "2026-08-01T00:00:00Z", deleted_at: null }],
+    });
+    t["attorney_client_links"]![0]!["scope_incidents"] = [];
+    t["attorney_client_links"]![0]!["scope_evidence"] = [];
+    t["cases"]![0]!["highlighted_incident_ids"] = ["inc-1", "inc-late"];
+    const link = await assertLink(fakeAdmin(t), ATTY_A, SURV_A);
+    expect(link.scope_incidents).toEqual(["inc-1"]);
+    expect(idInScope(link, "incident", "inc-late")).toBe(false);
   });
 
   it("re-reads scope on every check, so a stale copy cannot be replayed", async () => {

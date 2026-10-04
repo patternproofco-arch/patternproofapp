@@ -38,6 +38,8 @@ interface Ctx {
   enableBiometric: () => Promise<{ ok: true } | { ok: false; reason: string }>;
   unlockBiometric: () => Promise<"ok" | "failed" | "unsupported">;
   disableBiometric: () => Promise<boolean>;
+  /** Turn the screen lock off entirely (needs this session to be unlocked). True only once done. */
+  turnOffLock: () => Promise<boolean>;
   lock: () => void;
 }
 
@@ -122,6 +124,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     const r = await setPinServer({ data: { pin, unlockToken: proof() } });
     storeToken(r.token);
     setHasPin(true);
+    setAppLockEnabled(true);
     setIsLocked(false);
   };
 
@@ -131,6 +134,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
       if (!r.ok) return r.result;
       storeToken(r.token);
       setHasPin(true);
+      setAppLockEnabled(true);
       setIsLocked(false);
       return "ok" as const;
     } catch {
@@ -148,6 +152,8 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
     setHasPin(false);
     if (!hasBiometric) {
       sessionStorage.removeItem(UNLOCK_TOKEN_KEY);
+      // Nothing left to unlock with: the lock is off, not "lost".
+      setAppLockEnabled(false);
     }
     return true;
   };
@@ -219,6 +225,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
       });
       storeToken(r.token);
       setHasBiometric(true);
+      setAppLockEnabled(true);
       setIsLocked(false);
       return { ok: true };
     } catch (e) {
@@ -269,7 +276,24 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
       return false;
     }
     setHasBiometric(false);
-    if (!hasPin) sessionStorage.removeItem(UNLOCK_TOKEN_KEY);
+    if (!hasPin) {
+      sessionStorage.removeItem(UNLOCK_TOKEN_KEY);
+      setAppLockEnabled(false);
+    }
+    return true;
+  };
+
+  const turnOffLock = async (): Promise<boolean> => {
+    try {
+      if (hasBiometric) await removeBiometricServer({ data: { unlockToken: proof() } });
+      if (hasPin) await clearPinServer({ data: { unlockToken: proof() } });
+    } catch {
+      return false;
+    }
+    sessionStorage.removeItem(UNLOCK_TOKEN_KEY);
+    setHasBiometric(false);
+    setHasPin(false);
+    setAppLockEnabled(false);
     return true;
   };
 
@@ -290,6 +314,7 @@ export function PinLockProvider({ children }: { children: ReactNode }) {
         enableBiometric,
         unlockBiometric,
         disableBiometric,
+        turnOffLock,
         lock,
       }}
     >

@@ -15,6 +15,7 @@ import {
   removeBiometric,
   requireUnlockProof,
   resetPin,
+  settleLockFlag,
   type Reauth,
   signToken,
   verifyToken,
@@ -432,5 +433,78 @@ describe("reset wiring and settings lockdown (source contract)", () => {
       .split("\n")
       .filter((f) => f && !/__tests__|integrations\/supabase\/types|\.server\.ts$|\.functions\.ts$/.test(f));
     expect(hits).toEqual([]);
+  });
+});
+
+
+describe("an orphaned lock, and turning the lock off on purpose", () => {
+  const orphan = () => ({ user_security_settings: [{ user_id: USER, app_lock_enabled: true, biometric_enabled: true }] });
+
+  it("a lock that is on but has nothing to unlock it still counts as locked", async () => {
+    const admin = db(orphan());
+    const s = await lockState(admin, USER);
+    expect(s).toMatchObject({ hasPin: false, credentialCount: 0, usable: false, hasLock: true });
+    // So an open session can't just set its own PIN here: it takes the password-checked reset.
+    await expect(requireUnlockProof(admin, USER, undefined, SECRET, NOW)).rejects.toThrow(LOCKED_MESSAGE);
+  });
+
+  it("the reset repairs it: a PIN is saved after the password is checked", async () => {
+    const admin = db(orphan());
+    const r = await resetPin(admin, USER, {
+      pin: "1357",
+      password: "pw",
+      reauth: { hasPassword: true, lastSignInAt: null, checkPassword: async (p) => p === "pw" },
+      secret: SECRET,
+      now: NOW,
+    });
+    expect(r.ok).toBe(true);
+    expect((await lockState(admin, USER)).usable).toBe(true);
+  });
+
+  it("removing the last enrolled device turns the lock off instead of stranding the account", async () => {
+    const admin = db();
+    const { done } = await enroll(admin);
+    await removeBiometric(admin, USER, { token: done.token, secret: SECRET, now: NOW + 1 });
+    const row = admin.tables.user_security_settings![0]!;
+    expect(row.app_lock_enabled).toBe(false);
+    expect(row.biometric_enabled).toBe(false);
+    expect((await lockState(admin, USER)).hasLock).toBe(false);
+  });
+
+  it("removing the device keeps the lock on while a PIN remains", async () => {
+    const admin = db(withPin());
+    const { done } = await enroll(admin, issueToken(USER, SECRET, NOW).token);
+    await removeBiometric(admin, USER, { token: done.token, secret: SECRET, now: NOW + 1 });
+    expect(admin.tables.user_security_settings![0]!.app_lock_enabled).toBe(true);
+    expect((await lockState(admin, USER)).hasPin).toBe(true);
+  });
+
+  it("settling does nothing while something can still unlock, and does nothing when the lock is already off", async () => {
+    const withPinRow = db(withPin());
+    await settleLockFlag(withPinRow, USER);
+    expect(withPinRow.tables.user_security_settings![0]!.app_lock_enabled).toBe(true);
+    const off = db({ user_security_settings: [{ user_id: USER, app_lock_enabled: false }] });
+    await settleLockFlag(off, USER);
+    expect(off.tables.user_security_settings![0]!.app_lock_enabled).toBe(false);
+  });
+});
+
+describe("the unlock signing secret", () => {
+  const read = (p: string) => readFileSync(new URL(`../../${p}`, import.meta.url), "utf8");
+  it("prefers a dedicated secret of 32+ characters and falls back to the service key", () => {
+    const src = read("src/lib/pin-lock.functions.ts");
+    expect(src).toMatch(/APP_LOCK_SIGNING_SECRET/);
+    expect(src).toMatch(/dedicated\.length >= 32/);
+    expect(src).toMatch(/SUPABASE_SERVICE_ROLE_KEY/);
+  });
+});
+
+describe("recovery screen is not a way past the lock (source contract)", () => {
+  const read = (p: string) => readFileSync(new URL(`../../${p}`, import.meta.url), "utf8");
+  it("uses the server-checked reset, with no client-only password gate", () => {
+    const src = read("src/components/LockRecoveryScreen.tsx");
+    expect(src).toMatch(/ForgotPinPanel/);
+    expect(src).not.toMatch(/signInWithPassword/);
+    expect(src).not.toMatch(/setRealPin/);
   });
 });

@@ -155,18 +155,15 @@ export async function applyCaseScope(
     );
   }
   if (!link.case_id) return;
-  const { data: c } = await admin
-    .from("cases")
-    .select("highlighted_incident_ids,attached_evidence_ids,legal_document_ids,attached_thread_ids")
-    .eq("id", link.case_id)
-    .eq("user_id", clientUserId)
-    .maybeSingle();
+  // The grant's recorded ids narrowed by the case's current lists. Never wider than the grant.
+  const { effectiveCaseScope } = await import("@/lib/case-scope.server");
+  const eff = await effectiveCaseScope(admin, link, clientUserId);
   link.include_all_incidents = false;
   link.include_all_evidence = false;
-  link.scope_incidents = (c?.highlighted_incident_ids ?? []) as string[];
-  link.scope_evidence = (c?.attached_evidence_ids ?? []) as string[];
-  link.scope_legal_documents = (c?.legal_document_ids ?? []) as string[];
-  link.scope_threads = (c?.attached_thread_ids ?? []) as string[];
+  link.scope_incidents = eff.incidents;
+  link.scope_evidence = eff.evidence;
+  link.scope_legal_documents = eff.legalDocuments;
+  link.scope_threads = eff.threads;
 }
 
 export async function assertLink(

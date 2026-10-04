@@ -22,6 +22,8 @@ export type InvitationScopeInput = {
   include_all_evidence?: boolean;
   scope_incidents?: string[] | null;
   scope_evidence?: string[] | null;
+  /** When she shares a case, the case's records at this moment are what she is approving. */
+  case_id?: string | null;
 };
 
 export type FrozenInvitationScope = {
@@ -36,11 +38,25 @@ export async function freezeInvitationScope(
   clientUserId: string,
   input: InvitationScopeInput,
 ): Promise<FrozenInvitationScope> {
+  let caseIncidents: string[] = [];
+  let caseEvidence: string[] = [];
+  if (input.case_id) {
+    const { data: c, error } = await admin
+      .from("cases")
+      .select("highlighted_incident_ids,attached_evidence_ids")
+      .eq("id", input.case_id)
+      .eq("user_id", clientUserId)
+      .maybeSingle();
+    // Not being able to read the case must not quietly share less or more than she saw.
+    if (error || !c) throw new Error("We couldn't read that case, so nothing was shared. Try again.");
+    caseIncidents = (c.highlighted_incident_ids ?? []) as string[];
+    caseEvidence = (c.attached_evidence_ids ?? []) as string[];
+  }
   const f = await snapshotShareScope(admin, clientUserId, {
     include_all_incidents: input.include_all_incidents ?? false,
     include_all_evidence: input.include_all_evidence ?? false,
-    scope_incidents: input.scope_incidents ?? [],
-    scope_evidence: input.scope_evidence ?? [],
+    scope_incidents: [...new Set([...(input.scope_incidents ?? []), ...caseIncidents])],
+    scope_evidence: [...new Set([...(input.scope_evidence ?? []), ...caseEvidence])],
   });
   return { scope_incidents: f.scope_incidents ?? [], scope_evidence: f.scope_evidence ?? [], excluded: f.excluded };
 }

@@ -192,6 +192,7 @@ function SettingsPage() {
     biometricSupported,
     enableBiometric,
     disableBiometric,
+    turnOffLock,
   } = usePinLock();
   const [newPin, setNewPin] = useState("");
   const [audit, setAudit] = useState<AuditRow[]>([]);
@@ -245,6 +246,11 @@ function SettingsPage() {
     }
     setNewPin("");
     toast("New PIN saved.");
+  };
+
+  const turnLockOff = async () => {
+    const ok = await turnOffLock();
+    toast(ok ? "Screen lock is off." : "We couldn't turn that off. Nothing was changed. Try again in a moment.");
   };
 
   const toggleBiometric = async () => {
@@ -357,11 +363,19 @@ function SettingsPage() {
             <KeyRound size={18} style={{ color: "var(--primary)" }} />
             <h2 className="font-serif text-[19px]">{hasPin ? "Change PIN" : "Set PIN"}</h2>
           </div>
-          <input className="input-pp mt-3" inputMode="numeric" maxLength={4} value={newPin} onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" />
+          <label htmlFor="settings-new-pin" className="label-eyebrow mt-3 block">
+            {hasPin ? "New PIN (4 digits)" : "PIN (4 digits)"}
+          </label>
+          <input id="settings-new-pin" className="input-pp mt-1" type="password" inputMode="numeric" autoComplete="new-password" maxLength={4} value={newPin} onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" />
           <button onClick={savePin} className="btn-primary mt-3">Save PIN</button>
           {biometricSupported ? (
             <button onClick={toggleBiometric} className={hasBiometric ? "btn-ghost mt-3" : "btn-primary mt-3"}>
               {hasBiometric ? "Turn off device unlock" : "Turn on device unlock"}
+            </button>
+          ) : null}
+          {hasPin || hasBiometric ? (
+            <button onClick={turnLockOff} className="btn-ghost mt-3">
+              Turn off screen lock
             </button>
           ) : null}
         </div>

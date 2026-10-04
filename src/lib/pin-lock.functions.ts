@@ -24,7 +24,15 @@ import { scryptSync, timingSafeEqual } from "node:crypto";
 const PIN_MAX_ATTEMPTS = 5;
 const PIN_LOCKOUT_MS = 30 * 60 * 1000;
 
+/**
+ * Unlock tokens are signed with APP_LOCK_SIGNING_SECRET (32+ characters) when it is set, so a
+ * leak of the database service key doesn't also let anyone forge an unlock. Until that is set it
+ * falls back to the service key, which is how it worked before. Changing the value signs everyone
+ * out of the lock once; they unlock again.
+ */
 function tokenSecret(): string {
+  const dedicated = process.env.APP_LOCK_SIGNING_SECRET;
+  if (dedicated && dedicated.length >= 32) return dedicated;
   const s = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!s) throw new Error("Server misconfigured: no signing secret available.");
   return s;
@@ -133,7 +141,8 @@ export const clearPinServer = createServerFn({ method: "POST" })
   .inputValidator((input) => unlockProof.parse(input ?? {}))
   .handler(async ({ data, context }) => {
     const admin = await adminClient();
-    await (await lockServer()).requireUnlockProof(admin, context.userId, data.unlockToken, tokenSecret());
+    const lock = await lockServer();
+    await lock.requireUnlockProof(admin, context.userId, data.unlockToken, tokenSecret());
     const { error } = await admin
       .from("user_security_settings")
       .update({
@@ -145,6 +154,8 @@ export const clearPinServer = createServerFn({ method: "POST" })
       })
       .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
+    // Removing the last way to unlock turns the lock off, so the person isn't sent to recovery.
+    await lock.settleLockFlag(admin, context.userId);
     return { ok: true as const };
   });
 
