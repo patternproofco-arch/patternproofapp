@@ -93,6 +93,16 @@ const COLUMNS =
 export const CONFLICT_MESSAGE =
   "This report was changed somewhere else. Reload it to see the latest, then try again.";
 
+
+export const NOT_SET_UP =
+  "Grant reports need a one-time database update that hasn't been applied yet. Ask the PatternProof administrator to apply it. Nothing was lost.";
+
+/** A missing table is a setup problem, not a transient failure. Say which. */
+function failure(error: { message?: string; code?: string } | null | undefined, fallback: string): Error {
+  const m = `${error?.code ?? ""} ${error?.message ?? ""}`;
+  return new Error(/42P01|PGRST205|does not exist|schema cache/i.test(m) ? NOT_SET_UP : fallback);
+}
+
 // ---------------------------------------------------------------------------
 
 export async function requireOrgAdmin(admin: Admin, userId: string) {
@@ -233,7 +243,7 @@ async function loadOwned(admin: Admin, orgId: string, id: string): Promise<Draft
     .eq("id", id)
     .eq("org_id", orgId)
     .maybeSingle();
-  if (error) throw new Error("We couldn't open that report. Try again in a moment.");
+  if (error) throw failure(error, "We couldn't open that report. Try again in a moment.");
   // Same message for "not yours" and "doesn't exist": no probing other orgs' ids.
   if (!data) throw new Error("That report wasn't found.");
   return data as DraftRecord;
@@ -270,7 +280,7 @@ export async function listDrafts(admin: Admin, userId: string) {
     .select("id,template_id,period_from,period_to,status,version,updated_at")
     .eq("org_id", orgId)
     .order("updated_at", { ascending: false });
-  if (error) throw new Error("We couldn't load your reports. Try again in a moment.");
+  if (error) throw failure(error, "We couldn't load your reports. Try again in a moment.");
   return (data ?? []) as Array<{
     id: string;
     template_id: string;
@@ -305,7 +315,7 @@ export async function createDraft(
     })
     .select(COLUMNS)
     .single();
-  if (error || !data) throw new Error("We couldn't start the report. Try again in a moment.");
+  if (error || !data) throw failure(error, "We couldn't start the report. Try again in a moment.");
   return toView(data as DraftRecord, orgName);
 }
 

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   CONFLICT_MESSAGE,
+  NOT_SET_UP,
   approveDraft,
   createDraft,
   getDraft,
@@ -410,5 +411,26 @@ describe("approval, edits, export and receipt", () => {
     const res = await approveDraft(admin, ADMIN, saved.id);
     if (!res.ok) throw new Error(res.issues.map((i) => i.message).join("; "));
     expect(res.view.rows.find((r) => r.id === "referral_events")!.count).toBe(9);
+  });
+});
+
+describe("before the database update is applied", () => {
+  it("says so plainly instead of a generic failure", async () => {
+    const admin = seed();
+    const orig = admin.from;
+    admin.from = ((n: string) =>
+      n === "org_grant_report_drafts"
+        ? ({
+            select: () => ({
+              eq: () => ({
+                order: async () => ({
+                  data: null,
+                  error: { code: "42P01", message: 'relation "org_grant_report_drafts" does not exist' },
+                }),
+              }),
+            }),
+          } as never)
+        : orig(n)) as typeof admin.from;
+    await expect(listDrafts(admin, ADMIN)).rejects.toThrow(NOT_SET_UP);
   });
 });
