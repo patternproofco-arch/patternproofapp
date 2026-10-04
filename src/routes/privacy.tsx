@@ -173,9 +173,11 @@ function PrivacyPage() {
               AI requests to underlying model providers)
             </li>
             <li>
-              <strong>Google (Gemini models)</strong> — AI pattern analysis and voice note
-              transcription, via Lovable's AI Gateway. Processed per-request; PatternProof does not
-              control Google's retention terms independently of Lovable's gateway agreement.
+              <strong>Google (Gemini models)</strong> — AI pattern analysis, voice note
+              transcription, and reading the text in screenshots and call log photos you add on the
+              Message threads page, via Lovable's AI Gateway. Processed per-request; PatternProof
+              does not control Google's retention terms independently of Lovable's gateway
+              agreement.
             </li>
             <li>
               <strong>Supabase</strong> — database and file storage
@@ -201,7 +203,11 @@ function PrivacyPage() {
             Several features rely on third-party AI providers reached through the Lovable AI
             Gateway: Google (Gemini models) and OpenAI (GPT-4o transcription). Features that use
             them include Recurline pattern grouping, the Co-Pilot assistant, evidence content-type
-            suggestions, and voice/recording transcription.
+            suggestions, voice/recording transcription, and reading text from the screenshots, call
+            log photos and screen recordings you add on the Message threads page. Each of those
+            screens tells you this and asks you to agree before anything is sent. The on-device
+            import (Import Messages) reads screenshots and recordings in your own browser and sends
+            nothing to an AI provider.
           </p>
           <p>
             When you use those features, the content involved — your entry text, message text, file
