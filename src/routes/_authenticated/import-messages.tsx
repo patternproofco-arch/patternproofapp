@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { ChatExportImporter } from "@/components/messages/ChatExportImporter";
+import { SavedChatDays } from "@/components/messages/SavedChatDays";
 import { ImportIntro } from "@/components/messages/ImportIntro";
 import { OcrProgress } from "@/components/messages/OcrProgress";
 import { ReviewThread, type ImportThread } from "@/components/messages/ReviewThread";
@@ -24,6 +25,9 @@ import {
   type DraftMessage,
 } from "@/lib/ocr/parse";
 import { checkUploadSize } from "@/lib/upload-limits";
+
+/** A conversation in the list. capture_method tells imported chat files apart. */
+type ListedThread = ImportThread & { capture_method: string | null };
 
 /** One thing to read: either a screenshot she picked, or a frame we pulled from her recording. */
 type Page = { file: File; kind: "screenshot" | "video_frame"; frameTimeSec?: number };
@@ -58,7 +62,8 @@ function ImportMessagesPage() {
   const saveMsgs = useServerFn(saveExtractedMessages);
   const removeImport = useServerFn(deleteMessageImport);
 
-  const [threads, setThreads] = useState<ImportThread[]>([]);
+  const [threads, setThreads] = useState<ListedThread[]>([]);
+  const [openDaysFor, setOpenDaysFor] = useState<string | null>(null);
   const [participant, setParticipant] = useState("");
   const [notes, setNotes] = useState("");
   const [phase, setPhase] = useState<"intro" | "working">("intro");
@@ -74,11 +79,13 @@ function ImportMessagesPage() {
     if (!user) return;
     const { data } = await supabase
       .from("message_threads")
-      .select("id,conversation_participant,created_at,import_status,message_count,screenshot_count")
+      .select(
+        "id,conversation_participant,created_at,import_status,message_count,screenshot_count,capture_method",
+      )
       .eq("user_id", user.id)
       .in("capture_method", ["multi_screenshot", "screen_recording", "backup_export"])
       .order("created_at", { ascending: false });
-    setThreads((data as ImportThread[] | null) ?? []);
+    setThreads((data as ListedThread[] | null) ?? []);
   }, [user]);
 
   useEffect(() => {
@@ -276,6 +283,7 @@ function ImportMessagesPage() {
       await removeImport({ data: { threadId: id } });
       toast("Deleted. Nothing from that import is left.");
       if (activeThread === id) setActiveThread(undefined);
+      if (openDaysFor === id) setOpenDaysFor(null);
       loadThreads();
     } catch {
       toast("We couldn't delete that. Try again in a moment.");
@@ -344,7 +352,6 @@ function ImportMessagesPage() {
               {threads.map((t) => (
                 <div
                   key={t.id}
-                  className="flex items-center justify-between gap-3"
                   style={{
                     background: "var(--pp-card)",
                     boxShadow: "var(--pp-shadow-sm)",
@@ -352,20 +359,38 @@ function ImportMessagesPage() {
                     padding: "10px 12px",
                   }}
                 >
-                  <span style={{ fontSize: 14 }}>
-                    {t.conversation_participant || "Untitled conversation"}
-                    <span className="mono-meta mono-meta--muted" style={{ marginLeft: 8 }}>
-                      {new Date(t.created_at).toLocaleDateString()}
+                  <div className="flex items-center justify-between gap-3">
+                    <span style={{ fontSize: 14 }}>
+                      {t.conversation_participant || "Untitled conversation"}
+                      <span className="mono-meta mono-meta--muted" style={{ marginLeft: 8 }}>
+                        {new Date(t.created_at).toLocaleDateString()}
+                      </span>
                     </span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(t.id)}
-                    aria-label="Permanently delete this import"
-                    style={{ padding: 8, color: "rgba(26,18,36,0.6)" }}
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                    <span className="flex items-center gap-1">
+                      {t.capture_method === "backup_export" && (
+                        <button
+                          type="button"
+                          className="pp-btn-secondary"
+                          style={{ padding: "6px 12px", fontSize: 13 }}
+                          aria-expanded={openDaysFor === t.id}
+                          onClick={() => setOpenDaysFor(openDaysFor === t.id ? null : t.id)}
+                        >
+                          {openDaysFor === t.id ? "Hide days" : "Make drafts from days"}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => onDelete(t.id)}
+                        aria-label="Permanently delete this import"
+                        style={{ padding: 8, color: "rgba(26,18,36,0.6)" }}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </span>
+                  </div>
+                  {openDaysFor === t.id && t.capture_method === "backup_export" && (
+                    <SavedChatDays threadId={t.id} />
+                  )}
                 </div>
               ))}
             </div>

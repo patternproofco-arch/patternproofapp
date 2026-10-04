@@ -4,6 +4,7 @@ import { createHash } from "crypto";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CALL_RECORD_SENDER } from "@/lib/chat-export/parse";
 import { planChatDayDrafts, type DraftableMessage } from "@/lib/chat-export/day-drafts";
+import { buildDayDigest, findMyName, type DigestMessage } from "@/lib/chat-export/digest";
 
 /**
  * Draft entries from days of an imported chat file.
@@ -135,5 +136,65 @@ export const createDraftsFromChatDays = createServerFn({ method: "POST" })
       created: plan.rows.length,
       skippedExisting: plan.skippedExisting,
       skippedNoMessages: plan.skippedNoMessages,
+    };
+  });
+
+/**
+ * Day-by-day counts for an already-imported chat, so the survivor can come back
+ * later and turn days into drafts without re-adding the file. Counts and times
+ * only: message text is never read here.
+ */
+export const getChatDayDigest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ threadId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: thread } = await supabase
+      .from("message_threads")
+      .select("id,capture_method")
+      .eq("id", data.threadId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!thread) throw new Error("We couldn't find that import.");
+    if (thread.capture_method !== "backup_export") {
+      throw new Error(
+        "Only conversations added from an exported chat file have a day-by-day view.",
+      );
+    }
+
+    const rows: Array<{
+      sender: string | null;
+      sender_side: string;
+      sent_on: string | null;
+      sent_at_time: string | null;
+      has_attachment_marker: boolean;
+    }> = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data: page, error } = await supabase
+        .from("thread_messages")
+        .select("sender,sender_side,sent_on,sent_at_time,has_attachment_marker")
+        .eq("thread_id", data.threadId)
+        .eq("user_id", userId)
+        .order("position", { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (error) throw new Error("We couldn't read that conversation. Try again in a moment.");
+      rows.push(...(page ?? []));
+      if (!page || page.length < PAGE) break;
+    }
+
+    const messages: DigestMessage[] = rows.map((r) => ({
+      sender: r.sender ?? "Unknown",
+      kind: r.sender === CALL_RECORD_SENDER ? "call_record" : "text",
+      sent_on: r.sent_on,
+      sent_at_time: r.sent_at_time,
+      has_attachment_marker: !!r.has_attachment_marker,
+    }));
+
+    return {
+      days: buildDayDigest(messages),
+      meName: findMyName(rows),
+      messageCount: rows.length,
+      undatedCount: rows.filter((r) => !r.sent_on).length,
     };
   });

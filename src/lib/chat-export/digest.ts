@@ -100,4 +100,28 @@ export function describeDay(day: DayDigest, meName?: string | null): string {
   return `${sentence}.`;
 }
 
+/** Total messages (incl. call records) on the given days. */
+export function countMessagesOnDays(
+  days: readonly DayDigest[],
+  picked: ReadonlySet<string>,
+): number {
+  let n = 0;
+  for (const d of days) if (picked.has(d.date)) n += d.total;
+  return n;
+}
+
+/**
+ * The survivor's own name in a chat: the sender of her outgoing messages (the
+ * one she marked as herself at import). Null when there are none.
+ */
+export function findMyName(
+  rows: ReadonlyArray<{ sender: string | null; sender_side: string }>,
+): string | null {
+  const mine = new Map<string, number>();
+  for (const r of rows) {
+    if (r.sender_side === "outgoing" && r.sender) mine.set(r.sender, (mine.get(r.sender) ?? 0) + 1);
+  }
+  return [...mine.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+}
+
 export { CALL_RECORD_SENDER };
