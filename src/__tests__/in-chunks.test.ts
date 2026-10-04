@@ -6,6 +6,7 @@ import {
   countInChunks,
   selectAllPages,
   selectInChunks,
+  selectInChunksPaged,
 } from "@/lib/in-chunks.server";
 
 /**
@@ -129,5 +130,34 @@ describe("reading every row of a long query", () => {
       return { data: rows(1000).slice(0, to - from + 1), error: null };
     };
     await expect(selectAllPages(flaky)).rejects.toBeInstanceOf(ChunkedReadError);
+  });
+});
+
+describe("long id list where each batch also returns many rows", () => {
+  // 300 owners x 30 rows each. A batch of 100 owners returns 3,000 rows, which
+  // one request would cut off at 1,000 without any error.
+  const owners = Array.from({ length: 300 }, (_, i) => `o-${String(i).padStart(3, "0")}`);
+  const rows = owners.flatMap((o) =>
+    Array.from({ length: 30 }, (_, j) => ({ id: `${o}-${String(j).padStart(2, "0")}`, owner: o })),
+  );
+  const run = (cap: number) => async (chunk: string[], from: number, to: number) => {
+    const set = new Set(chunk);
+    const mine = rows.filter((r) => set.has(r.owner)).sort((a, b) => (a.id < b.id ? -1 : 1));
+    return { data: mine.slice(from, Math.min(to + 1, from + cap)), error: null };
+  };
+
+  it("returns every row from every batch and page", async () => {
+    const got = await selectInChunksPaged(owners, run(1000));
+    expect(got).toHaveLength(9000);
+    expect(new Set(got.map((r) => r.id)).size).toBe(9000);
+  });
+
+  it("is loud if a page fails", async () => {
+    let n = 0;
+    const flaky = async (chunk: string[], from: number, to: number) => {
+      if (++n === 3) return { data: null, error: { message: "boom" } };
+      return run(1000)(chunk, from, to);
+    };
+    await expect(selectInChunksPaged(owners, flaky)).rejects.toBeInstanceOf(ChunkedReadError);
   });
 });

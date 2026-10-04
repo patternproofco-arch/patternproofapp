@@ -373,6 +373,48 @@ export function resolveDraft(
 }
 
 // ---------------------------------------------------------------------------
+// Input hygiene
+// ---------------------------------------------------------------------------
+
+export const MAX_TEXT = 4000;
+export const MAX_NOTE = 500;
+
+const STAFF_STATES = new Set(["staff_entered", "not_collected", "not_applicable", "unknown"]);
+
+/**
+ * Keep only what a template row can hold. Unknown row ids and entries on
+ * record-supported rows are dropped (staff cannot override records), counts must
+ * be whole numbers, and text is trimmed and length-limited.
+ */
+export function sanitizeEntries(
+  template: FunderTemplate,
+  raw: Record<string, unknown> | null | undefined,
+): Record<string, StaffEntry> {
+  const out: Record<string, StaffEntry> = {};
+  for (const spec of template.rows) {
+    if (spec.derivedKey) continue;
+    const e = raw?.[spec.id] as Record<string, unknown> | undefined;
+    if (!e || typeof e !== "object") continue;
+    const state = String(e.state ?? "");
+    if (!STAFF_STATES.has(state)) continue;
+    const entry: StaffEntry = { state: state as StaffEntry["state"] };
+    if (state === "staff_entered") {
+      if (spec.unit === "text") {
+        const t = typeof e.text === "string" ? e.text.trim().slice(0, MAX_TEXT) : "";
+        entry.text = t || null;
+      } else if (typeof e.count === "number" && Number.isFinite(e.count)) {
+        entry.count = e.count;
+      } else {
+        entry.count = null;
+      }
+    }
+    if (typeof e.note === "string" && e.note.trim()) entry.note = e.note.trim().slice(0, MAX_NOTE);
+    out[spec.id] = entry;
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // Validation
 // ---------------------------------------------------------------------------
 

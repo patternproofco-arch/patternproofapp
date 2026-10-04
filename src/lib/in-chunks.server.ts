@@ -101,3 +101,26 @@ export async function selectAllPages<T>(
   }
   throw new ChunkedReadError(opts.what ?? "record", `more than ${maxRows} rows`);
 }
+
+/**
+ * Both limits at once: a long id list (read in batches) where each batch can itself
+ * return more than one page of rows (read page by page). Throws if anything fails.
+ * `run` must order by a unique key so pages never overlap.
+ */
+export async function selectInChunksPaged<T>(
+  ids: readonly string[],
+  run: (chunk: string[], from: number, to: number) => PromiseLike<RowsResult<T>>,
+  opts: { what?: string; chunkSize?: number; pageSize?: number } = {},
+): Promise<T[]> {
+  const chunks = toChunks(ids, opts.chunkSize ?? IN_CHUNK_SIZE);
+  const rows: T[] = [];
+  for (const chunk of chunks) {
+    rows.push(
+      ...(await selectAllPages<T>((from, to) => run(chunk, from, to), {
+        what: opts.what,
+        pageSize: opts.pageSize,
+      })),
+    );
+  }
+  return rows;
+}

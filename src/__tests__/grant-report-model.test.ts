@@ -7,6 +7,7 @@ import {
   displayCount,
   resolveDraft,
   resolveRow,
+  sanitizeEntries,
   toCsvRows,
   validateDraft,
   validateReceipt,
@@ -319,5 +320,32 @@ describe("export", () => {
     const rows = resolveDraft(DEFAULT_TEMPLATE, content({ entries: completeEntries() }), FULL_DERIVED);
     const text = toCsvRows(header, rows).flat().join(" ");
     expect(text).not.toMatch(/advocate_client_links|org_follow_ups|referral_engagements|user_id/);
+  });
+});
+
+describe("input hygiene", () => {
+  it("drops unknown rows and any attempt to override a record-supported row", () => {
+    const out = sanitizeEntries(DEFAULT_TEMPLATE, {
+      referral_events: { state: "staff_entered", count: 999 },
+      made_up_row: { state: "staff_entered", count: 1 },
+      housing_events: { state: "staff_entered", count: 4 },
+    });
+    expect(Object.keys(out)).toEqual(["housing_events"]);
+  });
+
+  it("ignores states staff cannot set and keeps counts whole-number checked later", () => {
+    const out = sanitizeEntries(DEFAULT_TEMPLATE, {
+      po_events: { state: "record_supported", count: 5 },
+      housing_clients: { state: "staff_entered", count: "7" },
+    });
+    expect(out.po_events).toBeUndefined();
+    expect(out.housing_clients!.count).toBeNull();
+  });
+
+  it("trims text and limits its length", () => {
+    const out = sanitizeEntries(DEFAULT_TEMPLATE, {
+      narrative: { state: "staff_entered", text: "  " + "a".repeat(9000) + "  " },
+    });
+    expect(out.narrative!.text!.length).toBe(4000);
   });
 });
