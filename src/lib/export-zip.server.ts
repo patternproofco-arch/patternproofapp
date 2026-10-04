@@ -87,7 +87,7 @@ export async function buildSurvivorExportZip(
   // exported a case short without any error. These throw instead of dropping rows.
   const incQ = (
     scopedIncidentIds
-      ? selectInChunks(
+      ? selectInChunks<{ date?: string | null }>(
           scopedIncidentIds,
           (chunk) =>
             db
@@ -114,7 +114,7 @@ export async function buildSurvivorExportZip(
   ).then((rows) => ({ data: rows as unknown[] }));
   const evQ = (
     scopedEvidenceIds
-      ? selectInChunks(
+      ? selectInChunks<{ date?: string | null }>(
           scopedEvidenceIds,
           (chunk) =>
             db
