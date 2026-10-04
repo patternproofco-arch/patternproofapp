@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createHash } from "crypto";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { findExistingIngest, ownsIncident } from "@/lib/evidence-ingest.helpers";
 
 type IngestFileInput = {
   storage_key: string;
@@ -21,6 +22,8 @@ type IngestFileInput = {
   /** Optional spoken caption, already transcribed client-side or later. */
   voice_caption?: string | null;
   voice_caption_audio_url?: string | null;
+  /** Ties the file to the entry it was added to (verified to be the caller's). */
+  linked_incident_id?: string | null;
 };
 
 type IngestInput = {
@@ -199,6 +202,39 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
 
     for (const f of data.files) {
       try {
+        // Retries and double-submits must never make a second record for the same stored file.
+        const already = await findExistingIngest(supabase, userId, f.storage_key);
+        if (already) {
+          items.push({
+            storage_key: f.storage_key,
+            original_filename: f.original_filename,
+            evidence_id: already.id,
+            status: (already.preservation_status as PreservationStatus | null) ?? "preserved",
+            sha256: already.sha256,
+            bytes: already.bytes,
+            mime: already.mime,
+            family_id: already.family_id,
+            message: "Already saved. Nothing was duplicated.",
+          });
+          continue;
+        }
+        let linkedIncidentId: string | null = null;
+        if (f.linked_incident_id) {
+          if (!(await ownsIncident(supabase, userId, f.linked_incident_id))) {
+            items.push({
+              storage_key: f.storage_key,
+              original_filename: f.original_filename,
+              evidence_id: null,
+              status: "failed",
+              sha256: null,
+              bytes: null,
+              mime: null,
+              message: "That entry isn't on your account, so the file was not attached.",
+            });
+            continue;
+          }
+          linkedIncidentId = f.linked_incident_id;
+        }
         const dl = await supabase.storage.from("evidence-files").download(f.storage_key);
         if (dl.error || !dl.data) {
           items.push({
@@ -312,6 +348,7 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
             preserved_at: nowIso,
             integrity_verified_at: nowIso,
             import_batch_id: batchId,
+            linked_incident_id: linkedIncidentId,
             family_id: familyId,
             perceptual_hash: perceptualHash,
             near_duplicate_of: nearDupId,

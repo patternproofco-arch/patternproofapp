@@ -117,7 +117,8 @@ export function makeRwAdmin(tables: Tables, limits: Limits = {}) {
         rows = [row];
       } else if (this.ups) {
         const { row, conflict } = this.ups;
-        const existing = t.find((r) => r[conflict] === row[conflict]);
+        const cols = conflict.split(",").map((c) => c.trim());
+        const existing = t.find((r) => cols.every((c) => r[c] === row[c]));
         if (existing) Object.assign(existing, row);
         else t.push({ id: `row-${++seq}`, ...row });
         rows = [existing ?? t[t.length - 1]!];

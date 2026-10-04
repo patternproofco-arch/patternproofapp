@@ -20,6 +20,7 @@ import { CognitiveClose } from "@/components/CognitiveClose";
 import { useServerFn } from "@tanstack/react-start";
 import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
+import { uploadAndPreserve, type IntakeDeps } from "@/lib/evidence-intake";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
 import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
 import { ensureMediaUploadDrafts } from "@/lib/upload-draft.functions";
@@ -101,8 +102,6 @@ type ExtractedDraft = {
   emotional_impact: string | null;
 };
 
-const today = () => new Date().toISOString().slice(0, 10);
-
 // Files whose words we can read out and show back for review — shared with the
 // batch uploader so both paths handle exactly the same formats.
 
@@ -119,6 +118,25 @@ function EvidencePage() {
   const { user } = useAuth();
   const extractFn = useServerFn(extractIncidentFromImage);
   const ingestFn = useServerFn(ingestEvidenceBatch);
+  const [resumeKey, setResumeKey] = useState<string | null>(null);
+  const intakeDeps: IntakeDeps = {
+    upload: async (key, blob) => {
+      const { error } = await supabase.storage.from("evidence-files").upload(key, blob);
+      return {
+        error: error
+          ? { message: error.message, statusCode: String((error as { statusCode?: string }).statusCode ?? "") }
+          : null,
+      };
+    },
+    remove: async (keys) => {
+      const { error } = await supabase.storage.from("evidence-files").remove(keys);
+      if (error) throw error;
+    },
+    ingest: async (file) =>
+      (await ingestFn({ data: { files: [file] } })) as unknown as Awaited<ReturnType<IntakeDeps["ingest"]>>,
+    sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
+    newKey: (userId, name) => `${userId}/${crypto.randomUUID()}-${name}`,
+  };
   const transcribeFn = useServerFn(transcribeEvidence);
   const proposeTimelineFn = useServerFn(proposeTimelineFromEvidence);
   const ensureDraftsFn = useServerFn(ensureMediaUploadDrafts);
@@ -130,7 +148,8 @@ function EvidencePage() {
   const [pending, setPending] = useState<File | null>(null);
   const [sizeError, setSizeError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
-  const [date, setDate] = useState(today());
+  // Optional. A file is not given a date she did not give it: upload time is recorded separately.
+  const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [linkedId, setLinkedId] = useState<string>("");
   const [busy, setBusy] = useState(false);
@@ -164,6 +183,11 @@ function EvidencePage() {
         .is("deleted_at", null)
         .order("date", { ascending: false }),
     ]);
+    // A failed read is not an empty vault. Keep what is on screen and say so.
+    if (ev.error) {
+      toast("We couldn't load your files just now. They are not gone. Reload to try again.");
+      return;
+    }
     const rows = (ev.data as EvidenceRow[] | null) ?? [];
     setItems(rows);
     setIncidents((inc.data as IncOption[] | null) ?? []);
@@ -206,46 +230,34 @@ function EvidencePage() {
     e.preventDefault();
     if (!user || !pending || !title.trim()) return;
     setBusy(true);
-    const ext = pending.name.split(".").pop() ?? "bin";
-    const key = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const up = await supabase.storage.from("evidence-files").upload(key, pending);
-    if (up.error) {
+    // One intake for every file: upload, have the server preserve and record it, and only
+    // report success when a record exists. A retry can't make a second record.
+    const intake = await uploadAndPreserve(intakeDeps, {
+      userId: user.id,
+      file: { name: pending.name, type: pending.type, size: pending.size, blob: pending },
+      dating: date
+        ? { date, date_precision: "exact" }
+        : { date: null, date_precision: "unknown" },
+      resumeKey: resumeKey ?? undefined,
+    });
+    if (!intake.ok) {
       setBusy(false);
-      toast("We couldn't upload that. Try again in a moment.");
+      // Unknown outcome: keep the same storage name so trying again can't duplicate it.
+      setResumeKey(intake.stage === "unconfirmed" ? intake.storageKey : null);
+      toast(intake.message);
       return;
     }
-
-    let receiptItem;
-    try {
-      const receipt = await ingestFn({
-        data: {
-          files: [
-            {
-              storage_key: key,
-              original_filename: pending.name,
-              mime: pending.type || "application/octet-stream",
-              bytes: pending.size,
-            },
-          ],
-        },
-      });
-      receiptItem = receipt.items[0];
-    } catch {
-      setBusy(false);
-      toast("Saved the file but couldn't record the details.");
-      return;
-    }
-    if (!receiptItem || !receiptItem.evidence_id) {
-      setBusy(false);
-      toast(receiptItem?.message ?? "Saved the file but couldn't record the details.");
-      return;
-    }
+    setResumeKey(null);
+    const receiptItem = {
+      evidence_id: intake.evidenceId,
+      duplicate_of: intake.duplicateOf,
+      duplicate_of_title: intake.duplicateOfTitle,
+    };
     // Apply form-supplied fields on top of the freshly-preserved row.
     const upd = await supabase
       .from("evidence")
       .update({
         title: title.trim(),
-        date,
         description: description || null,
         linked_incident_id: linkedId || null,
       })
@@ -273,7 +285,7 @@ function EvidencePage() {
     const fileMime = pending.type;
     setPending(null);
     setTitle("");
-    setDate(today());
+    setDate("");
     setDescription("");
     setLinkedId("");
     if (inputRef.current) inputRef.current.value = "";
@@ -471,7 +483,9 @@ function EvidencePage() {
       .from("incidents")
       .insert({
         user_id: user.id,
-        date: draft.date ?? today(),
+        // No date found means no date: never today's.
+        date: draft.date ?? null,
+        date_precision: draft.date ? "exact" : "unknown",
         time: draft.time,
         location: draft.location,
         description: draft.description.trim(),
@@ -489,13 +503,20 @@ function EvidencePage() {
       toast("We couldn't save that as an incident.");
       return;
     }
-    await supabase
+    const link = await supabase
       .from("evidence")
       .update({ linked_incident_id: ins.data.id })
       .eq("id", reviewFor.id)
       .eq("user_id", user.id);
     setSavingIncident(false);
-    toast("Mark saved and linked to this evidence.");
+    if (link.error) {
+      // The entry exists; only the link to the file failed. Don't claim it is linked.
+      toast("The entry was saved, but we couldn't link it to this file. It is in your entries; try linking it again.");
+      closeReview();
+      load();
+      return;
+    }
+    toast("Saved to your entries and linked to this file.");
     closeReview();
     load();
   };
@@ -669,14 +690,18 @@ function EvidencePage() {
                 />
               </div>
               <div>
-                <label className="label-eyebrow">Date</label>
+                <label htmlFor="evidence-date" className="label-eyebrow">Date (optional)</label>
                 <input
+                  id="evidence-date"
                   type="date"
                   className="input-pp mt-1"
-                  required
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                 />
+                <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                  When it happened or what it shows. Leave blank if you&apos;re not sure. The time you
+                  uploaded it is recorded separately and is never used as this date.
+                </p>
               </div>
               <div className="md:col-span-2">
                 <label className="label-eyebrow">Description</label>

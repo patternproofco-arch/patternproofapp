@@ -74,7 +74,7 @@ describe("auth + journal surface contracts", () => {
 
   it("journal Save This Record shows accessible feedback", () => {
     const src = readFileSync("src/routes/_authenticated/journal.tsx", "utf8");
-    expect(src).toMatch(/Save This Record/);
+    expect(src).toMatch(/Save privately/);
     expect(src).toMatch(/data-testid="journal-save-feedback"/);
     expect(src).toMatch(/role="alert"/);
     expect(src).toMatch(/setListOpen\(true\)/);

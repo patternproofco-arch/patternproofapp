@@ -30,12 +30,13 @@ type Step =
   | "done";
 type Mode = "biggest" | "season" | "location" | "lifeevents";
 
+// Only the default end of the "which period are you remembering?" picker. Never stored as an entry date.
+const today = () => new Date().toISOString().slice(0, 10);
+
 interface SavedIncident {
   date: string;
   description: string;
 }
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 const PROMPTS = [
   "What's ONE incident you'll never forget?",
@@ -148,8 +149,9 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
       emotional_impact?: string;
       clarifying_question?: string;
     };
+    // No date found stays no date. It is never replaced with today.
     const date =
-      typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) ? e.date : today();
+      typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) ? e.date : null;
     const types = Array.isArray(e.abuse_types)
       ? e.abuse_types.filter((t) => ABUSE_TYPES.some((a) => a.value === t))
       : [];
@@ -159,6 +161,10 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
     const { error } = await supabase.from("incidents").insert({
       user_id: user.id,
       date,
+      date_precision: date ? "exact" : "unknown",
+      // Structured by software from what she wrote, then checked and saved by her.
+      source: "ai_extracted",
+      confirmed_at: new Date().toISOString(),
       time: e.time || null,
       location: sanitizeLine(e.location || locationFromMode || "") || null,
       description,
@@ -171,7 +177,7 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
       toast("We couldn't save that. Try again in a moment.");
       return;
     }
-    const next = [...saved, { date, description }];
+    const next = [...saved, { date: date ?? "Date not added", description }];
     setSaved(next);
     setClarifying(e.clarifying_question?.trim() ? e.clarifying_question.trim() : null);
     setMemory("");
