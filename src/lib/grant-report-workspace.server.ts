@@ -28,7 +28,12 @@ import {
   type ReportStatus,
   type ResolvedRow,
 } from "@/lib/grant-report-model";
-import { deriveGrantMetrics } from "@/lib/grant-report-derive";
+import {
+  deriveGrantMetrics,
+  type FollowUpRow,
+  type LinkRow,
+  type ReferralRow,
+} from "@/lib/grant-report-derive";
 import { selectAllPages, selectInChunksPaged } from "@/lib/in-chunks.server";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -140,7 +145,7 @@ export async function loadDerived(
   if (!ids.length) throw new Error("Your organization has no members yet.");
 
   const [links, followUps, referrals] = await Promise.all([
-    selectInChunksPaged(
+    selectInChunksPaged<LinkRow>(
       ids,
       (chunk, a, b) =>
         admin
@@ -151,7 +156,7 @@ export async function loadDerived(
           .range(a, b),
       { what: "sharing record" },
     ),
-    selectInChunksPaged(
+    selectInChunksPaged<FollowUpRow>(
       ids,
       (chunk, a, b) =>
         admin
@@ -162,7 +167,7 @@ export async function loadDerived(
           .range(a, b),
       { what: "follow-up" },
     ),
-    selectInChunksPaged(
+    selectInChunksPaged<ReferralRow>(
       ids,
       (chunk, a, b) =>
         admin
