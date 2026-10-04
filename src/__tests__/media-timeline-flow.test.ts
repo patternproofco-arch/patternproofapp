@@ -122,14 +122,14 @@ describe("public cleanup merge blockers", () => {
     expect(landing).toContain('to="/for-attorneys"');
   });
 
-  it("uses the approved landing promise and keeps the timeline preview", () => {
-    expect(landing).toContain("One private timeline.");
-    expect(landing).toContain("Everything in the right order.");
-    // Inline chronology sample must stay labeled as demo / not a real record.
-    expect(landing).toContain("<ChronologyThread");
+  it("uses the editorial landing promise and keeps the sample labeled", () => {
+    expect(landing).toContain("The truth is in the pattern.");
+    expect(landing).toContain("Your record. Your choice.");
+    // Inline sample must stay labeled as not a real record.
+    expect(landing).toContain("not a real record");
     expect(landing).toContain("SAMPLE_BEADS");
-    const thread = readFileSync("src/components/ChronologyThread.tsx", "utf8");
-    expect(thread).toContain("Demo · not a real record");
+    expect(landing).toContain("Original");
+    expect(landing).toContain("Context");
   });
 
   it("does not globally shrink mobile pages with CSS zoom", () => {

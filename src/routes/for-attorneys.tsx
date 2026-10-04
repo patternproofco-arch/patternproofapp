@@ -56,6 +56,9 @@ function ForAttorneys() {
         <h1 style={{ fontFamily: SERIF, fontWeight: 700, fontSize: "clamp(2.2rem,5.2vw,3.8rem)", lineHeight: 1.05, letterSpacing: "-0.02em", margin: 0 }}>
           Review an organized case timeline,<br /><em>without rebuilding it yourself.</em>
         </h1>
+        <p style={{ marginTop: 16, fontSize: 16, lineHeight: 1.5, maxWidth: 560 }}>
+          Know where the case stands. Know what comes next.
+        </p>
         <p style={{ marginTop: 28, fontSize: 16, lineHeight: 1.55, maxWidth: 560 }}>
           Invitation-only. Request access through G. BURNS COMPANY LLC. Paying does not unlock
           access — verification does.
@@ -64,7 +67,7 @@ function ForAttorneys() {
           href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20attorney%20access%20via%20G.%20BURNS%20COMPANY%20LLC"
           style={{ display: "inline-block", marginTop: 28, background: NAVY, color: "#F4F6FB", padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none", borderRadius: "var(--pp-r-pill)" }}
         >
-          Request invitation-only access →
+          Request invitation-only access
         </a>
         <div
           style={{
@@ -79,21 +82,17 @@ function ForAttorneys() {
         >
           Invitation-only · G. BURNS COMPANY LLC · verification required
         </div>
-        <div style={{ marginTop: 14 }}>
-          <Link to="/demo" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: INK, textTransform: "uppercase" }}>
+        <p style={{ marginTop: 18, fontFamily: MONO, fontSize: 12, letterSpacing: "0.04em", color: MUTED, lineHeight: 1.7 }}>
+          <Link to="/demo" style={{ color: MUTED }}>
             View the attorney demo
           </Link>
-        </div>
+          <span> · </span>
+          <a href="mailto:pattern@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough" style={{ color: MUTED }}>
+            Request a walkthrough
+          </a>
+        </p>
         <div style={{ marginTop: 16, fontFamily: MONO, fontSize: 11, color: MUTED, maxWidth: 560, lineHeight: 1.6 }}>{startsAt}</div>
-      </section>
-      <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
-        <a
-          href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20attorney%20access%20via%20G.%20BURNS%20COMPANY%20LLC"
-          style={{ display: "inline-block", fontFamily: MONO, fontSize: 12, letterSpacing: "0.1em", color: INK, textDecoration: "underline", textTransform: "uppercase" }}
-        >
-          Request access through G. BURNS COMPANY LLC
-        </a>
-        <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, maxWidth: 640, lineHeight: 1.6 }}>
+        <div style={{ marginTop: 16, fontFamily: MONO, fontSize: 11, color: MUTED, maxWidth: 640, lineHeight: 1.6 }}>
           Access stays invitation-only. A paid workspace does not bypass verification. You choose
           what client material to review after a survivor shares it with you.
         </div>
@@ -107,7 +106,6 @@ function TopBar() {
     <header style={{ boxShadow: "inset 0 -1px 0 var(--pp-shadow-dark)" }}>
       <div style={{ maxWidth: 1040, margin: "0 auto", padding: "18px 24px", display: "flex", justifyContent: "space-between" }}>
         <Link to="/" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.14em", color: INK, textDecoration: "none", textTransform: "uppercase" }}>← PatternProof</Link>
-        <a href="mailto:pattern@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.14em", color: INK, textDecoration: "underline", textTransform: "uppercase" }}>Request a walkthrough</a>
       </div>
     </header>
   );

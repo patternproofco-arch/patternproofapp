@@ -1,13 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Plus, Paperclip, BookOpen, Waves, CalendarClock, ShieldCheck } from "lucide-react";
+import { Plus, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard.functions";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { RecentActivityFeed, type ActivityItem } from "@/components/RecentActivityFeed";
-import { type QuickAction } from "@/components/shared/QuickActionGrid";
 import { portalTheme } from "@/components/shared/portal-theme";
 import { ThreadPreview, type ThreadItem } from "@/components/shared/ThreadPreview";
 import { FocusRegion } from "@/components/survivor/focus-mode";
@@ -23,13 +22,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-const QUICK_ACTIONS: QuickAction[] = [
-  { label: "Log a Mark", icon: Plus, to: "/journal" },
-  { label: "Evidence", icon: Paperclip, to: "/evidence" },
-  { label: "Archive", icon: BookOpen, to: "/journal" },
-  { label: "Recurline", icon: Waves, to: "/patterns" },
-  { label: "Timeline", icon: CalendarClock, to: "/timeline" },
-  { label: "Safety", icon: ShieldCheck, to: "/safety" },
+const MORE_TOOLS: { label: string; to: "/evidence" | "/journal" | "/patterns" | "/timeline" | "/voice-notes" }[] = [
+  { label: "Evidence", to: "/evidence" },
+  { label: "Archive", to: "/journal" },
+  { label: "Recurline", to: "/patterns" },
+  { label: "Timeline", to: "/timeline" },
+  { label: "Say it out loud", to: "/voice-notes" },
 ];
 
 function Dashboard() {
@@ -142,7 +140,8 @@ function Dashboard() {
           )}
         </h1>
         <p className="mt-3 max-w-[640px] text-[14px]" style={{ color: t.muted }}>
-          One thing at a time. Everything you save stays private to you.
+          Start with what you have. Add context when you're ready. Everything you save stays
+          private to you.
         </p>
 
         <div
@@ -178,30 +177,50 @@ function Dashboard() {
             <Plus size={16} /> Add a Mark
           </Link>
           <Link
-            to="/voice-notes"
-            style={{ fontSize: 13.5, color: "var(--ink)", textDecoration: "underline" }}
+            to="/safety"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 13.5,
+              color: "var(--ink)",
+              textDecoration: "underline",
+            }}
           >
-            Say it out loud
+            <ShieldCheck size={16} /> Safety
           </Link>
         </div>
       </FocusRegion>
 
-      {/* Holds the Safety link — never dimmed. */}
       <FocusRegion id="quick-actions" neverDim>
-        <nav
-          className="flex flex-wrap gap-x-6 gap-y-2"
-          style={{ borderTop: "1px solid var(--rule)", paddingTop: 12 }}
-        >
-          {QUICK_ACTIONS.map((a) => (
-            <Link
-              key={a.label}
-              to={a.to}
-              style={{ fontSize: 13, color: "var(--ink)", textDecoration: "none" }}
-            >
-              {a.label}
-            </Link>
-          ))}
-        </nav>
+        <details style={{ borderTop: "1px solid var(--rule)", paddingTop: 12 }}>
+          <summary style={{ cursor: "pointer", fontSize: 13, color: t.muted }}>
+            More tools
+          </summary>
+          <nav className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+            {MORE_TOOLS.map((a) => (
+              <Link
+                key={a.label}
+                to={a.to}
+                style={{ fontSize: 13, color: t.muted, textDecoration: "underline" }}
+              >
+                {a.label}
+              </Link>
+            ))}
+          </nav>
+          {isFirstTime && (
+            <div className="mt-4">
+              <OnboardingChecklist
+                counts={{
+                  incidents: stats?.incident_count ?? 0,
+                  evidence: stats?.evidence_count ?? 0,
+                  voiceNotes: stats?.voice_note_count ?? 0,
+                  hasCase: stats?.has_case ?? false,
+                }}
+              />
+            </div>
+          )}
+        </details>
       </FocusRegion>
 
       {thread && thread.length > 0 && (
@@ -222,16 +241,7 @@ function Dashboard() {
       )}
 
       <FocusRegion id="main">
-        {isFirstTime ? (
-          <OnboardingChecklist
-            counts={{
-              incidents: stats?.incident_count ?? 0,
-              evidence: stats?.evidence_count ?? 0,
-              voiceNotes: stats?.voice_note_count ?? 0,
-              hasCase: stats?.has_case ?? false,
-            }}
-          />
-        ) : (
+        {isFirstTime ? null : (
           <section style={{ display: "grid", gap: 10 }}>
             <div
               style={{

@@ -100,6 +100,16 @@ function ForOrganizations() {
         </h1>
         <p
           style={{
+            marginTop: 18,
+            fontSize: 18,
+            lineHeight: 1.5,
+            maxWidth: 560,
+          }}
+        >
+          Help someone prepare without taking control away.
+        </p>
+        <p
+          style={{
             marginTop: 24,
             fontSize: 18,
             lineHeight: 1.6,
@@ -126,7 +136,7 @@ function ForOrganizations() {
             borderRadius: "var(--pp-r-pill)",
           }}
         >
-          Request invitation-only partner review →
+          Request invitation-only partner review
         </a>
         <p
           style={{
@@ -181,33 +191,19 @@ function ForOrganizations() {
             margin: 0,
           }}
         >
-          Every record stays under the survivor's control. PatternProof does not replace advocate
-          judgment, safety planning, or your organization's intake process.
+          Every record stays under the survivor's control. Your organization has no automatic
+          access. Survivor accounts are free and belong to the survivor. PatternProof does not
+          replace advocate judgment, safety planning, or your organization's intake process.
         </p>
 
         <div style={{ marginTop: 32, display: "grid", gap: 10 }}>
-          <a
-            href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20organization%20partner%20review%20via%20G.%20BURNS%20COMPANY%20LLC"
-            style={{
-              fontFamily: MONO,
-              fontSize: 12,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: INK,
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-            }}
-          >
-            Request invitation-only access via G. BURNS COMPANY LLC →
-          </a>
           <Link
             to="/org-feedback"
             style={{
               fontFamily: MONO,
               fontSize: 12,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: INK,
+              letterSpacing: "0.06em",
+              color: MUTED,
               textDecoration: "underline",
               textUnderlineOffset: 4,
             }}
@@ -219,9 +215,8 @@ function ForOrganizations() {
             style={{
               fontFamily: MONO,
               fontSize: 12,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: INK,
+              letterSpacing: "0.06em",
+              color: MUTED,
               textDecoration: "underline",
               textUnderlineOffset: 4,
             }}
