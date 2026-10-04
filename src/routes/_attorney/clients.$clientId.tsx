@@ -2549,8 +2549,10 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
       const r = await signedFn({ data: { clientId, evidenceId: id } });
       if (r.url) window.open(r.url, "_blank", "noopener");
       else toast("Couldn't generate signed URL.");
-    } catch {
-      toast("Couldn't open file.");
+    } catch (e) {
+      // The server says why in plain words (removed by the survivor, missing from
+      // storage, not shared); show that instead of a generic failure.
+      toast(e instanceof Error && e.message ? e.message : "Couldn't open file.");
     } finally {
       setOpeningId(null);
     }

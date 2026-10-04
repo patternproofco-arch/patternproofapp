@@ -691,6 +691,9 @@ export const getClientCase = createServerFn({ method: "POST" })
     const { link } = await assertCaseAccess(context.userId, data.clientId);
     await assertEntitled(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Long id lists are read in batches and fail loudly: a selected item is returned or an
+    // error is shown, never silently dropped (see in-chunks.server.ts).
+    const { selectInChunks, byDateAscNullsLast } = await import("@/lib/in-chunks.server");
     // Provenance: record that this professional opened the case file.
     await supabaseAdmin
       .rpc("record_audit_event", {
@@ -721,14 +724,19 @@ export const getClientCase = createServerFn({ method: "POST" })
             .or("source.neq.ai_extracted,confirmed_at.not.is.null")
             .order("date", { ascending: true })
         : scopedIncidentIds.length
-          ? supabaseAdmin
-              .from("incidents")
-              .select("*")
-              .eq("user_id", data.clientId)
-              .in("id", scopedIncidentIds)
-              .is("deleted_at", null)
-              .or("source.neq.ai_extracted,confirmed_at.not.is.null")
-              .order("date", { ascending: true })
+          ? selectInChunks(
+              scopedIncidentIds,
+              (chunk) =>
+                supabaseAdmin
+                  .from("incidents")
+                  .select("*")
+                  .eq("user_id", data.clientId)
+                  .in("id", chunk)
+                  .is("deleted_at", null)
+                  .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+                  .order("date", { ascending: true }),
+              { sort: byDateAscNullsLast, what: "shared incident" },
+            ).then((rows) => ({ data: rows }))
           : Promise.resolve({ data: [] }),
       link.include_all_evidence
         ? supabaseAdmin
@@ -739,14 +747,19 @@ export const getClientCase = createServerFn({ method: "POST" })
             .neq("review_status", "suggested")
             .order("date", { ascending: true })
         : scopedEvidenceIds.length
-          ? supabaseAdmin
-              .from("evidence")
-              .select("*")
-              .eq("user_id", data.clientId)
-              .in("id", scopedEvidenceIds)
-              .is("deleted_at", null)
-              .neq("review_status", "suggested")
-              .order("date", { ascending: true })
+          ? selectInChunks(
+              scopedEvidenceIds,
+              (chunk) =>
+                supabaseAdmin
+                  .from("evidence")
+                  .select("*")
+                  .eq("user_id", data.clientId)
+                  .in("id", chunk)
+                  .is("deleted_at", null)
+                  .neq("review_status", "suggested")
+                  .order("date", { ascending: true }),
+              { sort: byDateAscNullsLast, what: "shared file" },
+            ).then((rows) => ({ data: rows }))
           : Promise.resolve({ data: [] }),
       (await access.patternsVisibleToProfessional(supabaseAdmin, link, data.clientId))
         ? supabaseAdmin
@@ -1081,6 +1094,7 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
     const link = await assertLink(context.userId, data.clientId);
     await assertEntitled(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { selectInChunks, byDateAscNullsLast } = await import("@/lib/in-chunks.server");
 
     // Survivor-controlled consent to have their own words AI-rephrased into
     // "court-safe" language. Off by default; the rest of deposition prep
@@ -1103,16 +1117,21 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
             .or("source.neq.ai_extracted,confirmed_at.not.is.null")
             .order("date")
         : (link.scope_incidents ?? []).length
-          ? supabaseAdmin
-              .from("incidents")
-              .select(
-                "id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at",
-              )
-              .eq("user_id", data.clientId)
-              .in("id", link.scope_incidents ?? [])
-              .is("deleted_at", null)
-              .or("source.neq.ai_extracted,confirmed_at.not.is.null")
-              .order("date")
+          ? selectInChunks(
+              link.scope_incidents ?? [],
+              (chunk) =>
+                supabaseAdmin
+                  .from("incidents")
+                  .select(
+                    "id,date,description,abuse_types,severity_level,witnesses,source,confirmed_at",
+                  )
+                  .eq("user_id", data.clientId)
+                  .in("id", chunk)
+                  .is("deleted_at", null)
+                  .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+                  .order("date"),
+              { sort: byDateAscNullsLast, what: "shared incident" },
+            ).then((rows) => ({ data: rows }))
           : Promise.resolve({ data: [] }),
       link.include_all_evidence
         ? supabaseAdmin
@@ -1122,13 +1141,18 @@ export const generateDepositionPrep = createServerFn({ method: "POST" })
             .is("deleted_at", null)
             .neq("review_status", "suggested")
         : (link.scope_evidence ?? []).length
-          ? supabaseAdmin
-              .from("evidence")
-              .select("id,title,date,file_type,linked_incident_id")
-              .eq("user_id", data.clientId)
-              .in("id", link.scope_evidence ?? [])
-              .is("deleted_at", null)
-              .neq("review_status", "suggested")
+          ? selectInChunks(
+              link.scope_evidence ?? [],
+              (chunk) =>
+                supabaseAdmin
+                  .from("evidence")
+                  .select("id,title,date,file_type,linked_incident_id")
+                  .eq("user_id", data.clientId)
+                  .in("id", chunk)
+                  .is("deleted_at", null)
+                  .neq("review_status", "suggested"),
+              { what: "shared file" },
+            ).then((rows) => ({ data: rows }))
           : Promise.resolve({ data: [] }),
       (await access.patternsVisibleToProfessional(supabaseAdmin, link, data.clientId))
         ? supabaseAdmin
@@ -1479,17 +1503,19 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { link } = await assertCaseAccess(context.userId, data.clientId);
     await assertEntitled(context.userId, data.clientId);
-    if (!link.include_all_evidence && !(link.scope_evidence ?? []).includes(data.evidenceId)) {
-      throw new Error("Evidence not shared for this case");
-    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: ev } = await supabaseAdmin
-      .from("evidence")
-      .select("file_url,file_type,title")
-      .eq("id", data.evidenceId)
-      .eq("user_id", data.clientId)
-      .maybeSingle();
-    if (!ev) throw new Error("Evidence not found");
+    const { authorizeEvidenceDownload } = await import("@/lib/evidence-download.server");
+    const decision = await authorizeEvidenceDownload({
+      admin: supabaseAdmin,
+      link,
+      clientId: data.clientId,
+      evidenceId: data.evidenceId,
+      ttlSeconds: PROFESSIONAL_LINK_TTL_SECONDS,
+    });
+    // Say no in words. Never hand back an empty link that looks like success.
+    if (!decision.ok) throw new Error(decision.message);
+    // Log only a download that actually happened, so the survivor's record is not
+    // padded with attempts that were refused.
     await supabaseAdmin
       .rpc("record_audit_event", {
         p_user_id: data.clientId,
@@ -1504,20 +1530,7 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
         () => undefined,
         (e: unknown) => console.error("[audit] evidence download log failed", e),
       );
-    // Only sign objects inside the evidence owner's own storage folder. Never
-    // follow absolute URLs or paths that point at another user's files.
-    const path = String(ev.file_url ?? "");
-    if (
-      /^https?:\/\//i.test(path) ||
-      !path.startsWith(`${data.clientId}/`) ||
-      path.includes("..")
-    ) {
-      throw new Error("This file can't be opened from here.");
-    }
-    const { data: signed } = await supabaseAdmin.storage
-      .from("evidence-files")
-      .createSignedUrl(ev.file_url, PROFESSIONAL_LINK_TTL_SECONDS);
-    return { url: signed?.signedUrl ?? null, file_type: ev.file_type, title: ev.title };
+    return { url: decision.url, file_type: decision.file_type, title: decision.title };
   });
 
 /* ------------------------- message threads (attorney view) ------------------------- */

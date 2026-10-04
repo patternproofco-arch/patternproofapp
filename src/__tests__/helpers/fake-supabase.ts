@@ -8,14 +8,27 @@ export type Tables = Record<string, Array<Record<string, unknown>>>;
 
 type Filter = (row: Record<string, unknown>) => boolean;
 
-class Query implements PromiseLike<{ data: unknown; error: null }> {
+/**
+ * Optional realism for tests that must prove nothing is silently dropped:
+ *  - maxRows: the API returns at most this many rows per request, silently.
+ *  - maxInIds: an `in()` with more ids than this is rejected, like a URL that is too long.
+ */
+export type FakeLimits = { maxRows?: number; maxInIds?: number };
+
+type Result = { data: unknown; error: { message: string } | null };
+
+class Query implements PromiseLike<Result> {
   private filters: Filter[] = [];
   private single = false;
   private limitN: number | null = null;
+  private rangeFrom: number | null = null;
+  private rangeTo: number | null = null;
+  private failure: string | null = null;
 
   constructor(
     private rows: Array<Record<string, unknown>>,
     private log: { table: string; ops: string[] },
+    private limits: FakeLimits = {},
   ) {}
 
   select() {
@@ -35,6 +48,9 @@ class Query implements PromiseLike<{ data: unknown; error: null }> {
   }
   in(col: string, vals: unknown[]) {
     this.log.ops.push(`in:${col}`);
+    if (this.limits.maxInIds !== undefined && vals.length > this.limits.maxInIds) {
+      this.failure = "414 Request-URI Too Large";
+    }
     this.filters.push((r) => vals.includes(r[col]));
     return this;
   }
@@ -67,6 +83,11 @@ class Query implements PromiseLike<{ data: unknown; error: null }> {
     this.limitN = n;
     return this;
   }
+  range(from: number, to: number) {
+    this.rangeFrom = from;
+    this.rangeTo = to;
+    return this;
+  }
   maybeSingle() {
     this.single = true;
     return this;
@@ -77,21 +98,30 @@ class Query implements PromiseLike<{ data: unknown; error: null }> {
     return this;
   }
 
-  private run() {
+  private run(): Result {
+    if (this.failure) return { data: null, error: { message: this.failure } };
     let out = this.rows.filter((r) => this.filters.every((f) => f(r)));
+    if (this.rangeFrom !== null && this.rangeTo !== null) {
+      out = out.slice(this.rangeFrom, this.rangeTo + 1);
+    }
     if (this.limitN !== null) out = out.slice(0, this.limitN);
+    if (this.limits.maxRows !== undefined) out = out.slice(0, this.limits.maxRows);
     return { data: this.single ? (out[0] ?? null) : out, error: null };
   }
 
-  then<R1 = { data: unknown; error: null }, R2 = never>(
-    onfulfilled?: ((v: { data: unknown; error: null }) => R1 | PromiseLike<R1>) | null,
+  then<R1 = Result, R2 = never>(
+    onfulfilled?: ((v: Result) => R1 | PromiseLike<R1>) | null,
     onrejected?: ((reason: unknown) => R2 | PromiseLike<R2>) | null,
   ): PromiseLike<R1 | R2> {
     return Promise.resolve(this.run()).then(onfulfilled, onrejected);
   }
 }
 
-export function fakeAdmin(tables: Tables, files: Record<string, Uint8Array> = {}) {
+export function fakeAdmin(
+  tables: Tables,
+  files: Record<string, Uint8Array> = {},
+  limits: FakeLimits = {},
+) {
   const queries: Array<{ table: string; ops: string[] }> = [];
   const audits: Array<Record<string, unknown>> = [];
   const downloads: string[] = [];
@@ -105,7 +135,7 @@ export function fakeAdmin(tables: Tables, files: Record<string, Uint8Array> = {}
     from(table: string) {
       const log = { table, ops: [] as string[] };
       queries.push(log);
-      return new Query((tables[table] ??= []), log);
+      return new Query((tables[table] ??= []), log, limits);
     },
     async rpc(_name: string, args: Record<string, unknown>) {
       audits.push(args);
