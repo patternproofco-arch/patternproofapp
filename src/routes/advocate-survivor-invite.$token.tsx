@@ -439,6 +439,10 @@ function AdvocateSurvivorInvitePage() {
                 <Toggle checked={shareIncidents} onChange={setShareIncidents} label="Share incidents" />
                 <Toggle checked={shareEvidence} onChange={setShareEvidence} label="Share evidence metadata" />
                 <Toggle checked={sharePatterns} onChange={setSharePatterns} label="Share pattern analysis" />
+                <p style={{ fontSize: 12.5, color: "var(--pp-muted)", margin: 0, lineHeight: 1.5 }}>
+                  Journal entries you kept private are not included, even if you share incidents.
+                  To include one, mark it &quot;OK to share later&quot; in your journal first.
+                </p>
               </div>
 
               <button
