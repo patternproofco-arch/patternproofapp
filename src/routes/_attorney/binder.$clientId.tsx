@@ -63,8 +63,10 @@ function BinderPage() {
 
   const incidents = caseQ.data.incidents ?? [];
   const evidence = caseQ.data.evidence ?? [];
-  const frozen = wsQ.data?.package ? wsQ.data : null;
-  const exhibitLabels = frozen ? new Map(frozen.rows.map((r) => [r.key, r.exhibit.label])) : undefined;
+  const fixedPackage = wsQ.data?.package ?? null;
+  const exhibitLabels = fixedPackage
+    ? new Map((wsQ.data?.rows ?? []).map((r) => [r.key, r.exhibit.label] as [string, string]))
+    : undefined;
   const entries = buildBinderEntries(incidents, evidence, reqQ.data?.items ?? [], exhibitLabels);
 
   if (incidents.length === 0 && evidence.length === 0) {
@@ -108,8 +110,8 @@ function BinderPage() {
           Generated {new Date().toLocaleDateString()}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          {frozen?.package
-            ? `Exhibit numbers are fixed (package v${frozen.package.version}). Items shared since then show as "Not yet numbered".`
+          {fixedPackage
+            ? `Exhibit numbers are fixed (package v${fixedPackage.version}). Items shared since then show as "Not yet numbered".`
             : "Exhibit numbers are provisional (date order) and can change if items are added. Fix them below before citing them."}
         </p>
       </header>
