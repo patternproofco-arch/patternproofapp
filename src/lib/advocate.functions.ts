@@ -37,6 +37,9 @@ export const createAdvocateInvitation = createServerFn({ method: "POST" })
         date_range_end: z.string().optional().nullable(),
         include_all_incidents: z.boolean().default(true),
         include_all_evidence: z.boolean().default(true),
+        // Exact ids the survivor reviewed. When given, "include all" is ignored for that category.
+        scope_incidents: z.array(z.string().uuid()).max(20000).optional(),
+        scope_evidence: z.array(z.string().uuid()).max(20000).optional(),
         include_patterns: z.boolean().default(true),
         expires_days: z.number().int().min(1).max(365).default(30),
         case_id: z.string().uuid().optional().nullable(),
@@ -59,6 +62,14 @@ export const createAdvocateInvitation = createServerFn({ method: "POST" })
       if (!c) throw new Error("That case isn't on your account.");
       scopedCaseId = c.id;
     }
+    // The survivor's consent is given NOW. Fix the exact records at this moment.
+    const { freezeInvitationScope } = await import("@/lib/invitation-scope.server");
+    const frozen = await freezeInvitationScope(supabaseAdmin, context.userId, {
+      include_all_incidents: data.scope_incidents ? false : data.include_all_incidents,
+      include_all_evidence: data.scope_evidence ? false : data.include_all_evidence,
+      scope_incidents: data.scope_incidents,
+      scope_evidence: data.scope_evidence,
+    });
     const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
     const { data: row, error } = await supabaseAdmin
       .from("advocate_invitations")
@@ -70,8 +81,10 @@ export const createAdvocateInvitation = createServerFn({ method: "POST" })
         personal_note: data.personal_note ?? null,
         date_range_start: data.date_range_start || null,
         date_range_end: data.date_range_end || null,
-        include_all_incidents: data.include_all_incidents,
-        include_all_evidence: data.include_all_evidence,
+        include_all_incidents: false,
+        include_all_evidence: false,
+        scope_incidents: frozen.scope_incidents,
+        scope_evidence: frozen.scope_evidence,
         include_patterns: data.include_patterns,
         expires_at: expires,
         case_id: scopedCaseId,
@@ -79,7 +92,11 @@ export const createAdvocateInvitation = createServerFn({ method: "POST" })
       .select("id,invite_token,expires_at")
       .single();
     if (error) throw new Error(error.message);
-    return { invitation: row };
+    return {
+      invitation: row,
+      shared: { incidents: frozen.scope_incidents.length, files: frozen.scope_evidence.length },
+      excluded: frozen.excluded,
+    };
   });
 
 export const listMyAdvocateAccess = createServerFn({ method: "GET" })
@@ -278,13 +295,9 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
       .maybeSingle();
 
     // Freeze "all entries" to what exists now — later entries stay private.
-    const { snapshotShareScope } = await import("@/lib/grant-snapshot.server");
-    const frozen = await snapshotShareScope(supabaseAdmin, inv.client_user_id, {
-      include_all_incidents: inv.include_all_incidents,
-      include_all_evidence: inv.include_all_evidence,
-      scope_incidents: inv.scope_incidents,
-      scope_evidence: inv.scope_evidence,
-    });
+    // The scope was fixed when the survivor created the invitation. This only narrows it.
+    const { scopeForAcceptance } = await import("@/lib/invitation-scope.server");
+    const frozen = await scopeForAcceptance(supabaseAdmin, inv);
 
     let linkId = existing?.id ?? null;
     if (linkId) {

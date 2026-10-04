@@ -237,15 +237,24 @@ function SettingsPage() {
       toast("PIN should be 4 digits.");
       return;
     }
-    await setRealPin(newPin);
+    try {
+      await setRealPin(newPin);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "We couldn't save the new PIN. Try again.");
+      return;
+    }
     setNewPin("");
     toast("New PIN saved.");
   };
 
   const toggleBiometric = async () => {
     if (hasBiometric) {
-      disableBiometric();
-      toast("Face ID / fingerprint unlock turned off.");
+      const ok = await disableBiometric();
+      toast(
+        ok
+          ? "Face ID / fingerprint unlock turned off."
+          : "We couldn't turn that off. Unlock the app and try again.",
+      );
       return;
     }
     const r = await enableBiometric();

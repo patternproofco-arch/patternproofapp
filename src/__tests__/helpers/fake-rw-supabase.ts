@@ -22,6 +22,8 @@ export function makeRwAdmin(tables: Tables, limits: Limits = {}) {
   class Q implements PromiseLike<Result> {
     private filters: Array<(r: Row) => boolean> = [];
     private patch: Row | null = null;
+    private del = false;
+    private ups: { row: Row; conflict: string } | null = null;
     private ins: Row | null = null;
     private mode: "list" | "maybeSingle" | "single" = "list";
     private from_: number | null = null;
@@ -61,6 +63,14 @@ export function makeRwAdmin(tables: Tables, limits: Limits = {}) {
       this.filters.push((r) => vs.includes(r[c]));
       return this;
     }
+    lte(c: string, v: unknown) {
+      this.filters.push((r) => r[c] == null || String(r[c]) <= String(v));
+      return this;
+    }
+    gte(c: string, v: unknown) {
+      this.filters.push((r) => r[c] != null && String(r[c]) >= String(v));
+      return this;
+    }
     or() {
       return this; // not modelled: callers must not rely on it for correctness
     }
@@ -81,6 +91,14 @@ export function makeRwAdmin(tables: Tables, limits: Limits = {}) {
       this.ins = row;
       return this;
     }
+    upsert(row: Row, opts?: { onConflict?: string }) {
+      this.ups = { row, conflict: opts?.onConflict ?? "id" };
+      return this;
+    }
+    delete() {
+      this.del = true;
+      return this;
+    }
     update(p: Row) {
       this.patch = p;
       return this;
@@ -97,6 +115,15 @@ export function makeRwAdmin(tables: Tables, limits: Limits = {}) {
         const row = { id: `row-${++seq}`, ...this.ins };
         t.push(row);
         rows = [row];
+      } else if (this.ups) {
+        const { row, conflict } = this.ups;
+        const existing = t.find((r) => r[conflict] === row[conflict]);
+        if (existing) Object.assign(existing, row);
+        else t.push({ id: `row-${++seq}`, ...row });
+        rows = [existing ?? t[t.length - 1]!];
+      } else if (this.del) {
+        rows = t.filter((r) => this.filters.every((f) => f(r)));
+        tables[this.name] = t.filter((r) => !rows.includes(r));
       } else if (this.patch) {
         rows = t.filter((r) => this.filters.every((f) => f(r)));
         for (const r of rows) Object.assign(r, this.patch);

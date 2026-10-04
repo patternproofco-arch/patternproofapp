@@ -1,32 +1,28 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { randomBytes, scryptSync, timingSafeEqual, createHmac } from "node:crypto";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 /**
  * Server-verifiable app lock.
  *
- * Unlocking used to be a bare `sessionStorage` flag the client set after a
- * local hash comparison — anyone with a few seconds of devtools access to an
- * already-signed-in session could set that flag directly and skip PIN entry
- * entirely. Verification now happens here: the PIN hash lives server-side,
- * comparisons are timing-safe, and a successful check mints a short-lived
- * HMAC-signed token the client must present (and this module re-verifies)
- * before the lock screen is allowed to drop.
+ * Unlocking is proved to the SERVER, never by a flag the browser sets:
+ *  - PIN: the hash lives server-side, comparisons are timing-safe, tries are limited;
+ *  - biometrics: a real WebAuthn signature from a key enrolled on this account, checked
+ *    against a one-time server challenge (see app-lock.server.ts and webauthn.server.ts).
+ * Success returns a short-lived HMAC-signed token the client presents, and that this module
+ * re-verifies, before the lock screen drops.
  *
- * Biometric unlock still runs its WebAuthn ceremony entirely client-side (a
- * real platform authenticator prompt, which can't be scripted from the page
- * the way a stored flag can) and then calls issueUnlockToken to mint the same
- * kind of proof. That endpoint does not itself re-verify a WebAuthn
- * assertion — full server-side WebAuthn verification is a larger follow-up —
- * so it is gated on the account having biometric enrollment on record, not on
- * cryptographic proof of this specific unlock. Documented as a known
- * residual gap, not claimed as fully closed.
+ * Changing the lock while one exists (new PIN, remove PIN, enroll or remove biometrics)
+ * needs a valid unlock token, so a signed-in session alone can't replace someone's lock.
+ *
+ * Not covered: a person who knows the PIN, or who can pass the device's own biometric check,
+ * can unlock. The lock keeps a casual or curious person out of the app; it does not defeat
+ * device monitoring or someone with full control of the device.
  */
 
 const PIN_MAX_ATTEMPTS = 5;
 const PIN_LOCKOUT_MS = 30 * 60 * 1000;
-const TOKEN_TTL_MS = 12 * 60 * 60 * 1000;
 
 function tokenSecret(): string {
   const s = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -34,66 +30,50 @@ function tokenSecret(): string {
   return s;
 }
 
-function signToken(userId: string, expiresAt: number): string {
-  const payload = `${userId}.${expiresAt}`;
-  const mac = createHmac("sha256", tokenSecret()).update(payload).digest("hex");
-  return `${Buffer.from(payload, "utf8").toString("base64url")}.${mac}`;
+async function lockServer() {
+  return import("@/lib/app-lock.server");
 }
 
-function verifyToken(token: string, userId: string): boolean {
-  const parts = token.split(".");
-  if (parts.length !== 2) return false;
-  const [payloadB64, mac] = parts;
-  let payload: string;
-  try {
-    payload = Buffer.from(payloadB64, "base64url").toString("utf8");
-  } catch {
-    return false;
-  }
-  const dot = payload.indexOf(".");
-  if (dot < 0) return false;
-  const uid = payload.slice(0, dot);
-  const expStr = payload.slice(dot + 1);
-  const exp = Number(expStr);
-  if (!uid || uid !== userId || !Number.isFinite(exp) || exp < Date.now()) return false;
-  const expectedMac = createHmac("sha256", tokenSecret()).update(payload).digest("hex");
-  const a = Buffer.from(mac, "hex");
-  const b = Buffer.from(expectedMac, "hex");
-  if (a.length !== b.length || a.length === 0) return false;
-  return timingSafeEqual(a, b);
+/** The site the browser is on, as the server sees it. The page can't pick this. */
+async function rpContext() {
+  const { getRequest } = await import("@tanstack/react-start/server");
+  const url = new URL(getRequest().url);
+  return { origin: url.origin, rpId: url.hostname };
 }
 
-function issuedToken(userId: string) {
-  const expiresAt = Date.now() + TOKEN_TTL_MS;
-  return { token: signToken(userId, expiresAt), expiresAt };
+async function adminClient() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
 }
+
+const unlockProof = z.object({ unlockToken: z.string().max(500).optional() });
 
 /** hasPin / biometric_enabled / app_lock_enabled, all server-recorded. */
 export const getPinLockState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("user_security_settings")
-      .select("app_lock_enabled,biometric_enabled,pin_hash")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (error) throw new Error("Could not verify app lock settings.");
+    const s = await (await lockServer()).lockState(await adminClient(), context.userId);
     return {
-      app_lock_enabled: !!data?.app_lock_enabled,
-      has_pin: !!data?.pin_hash,
-      biometric_enabled: !!data?.biometric_enabled,
+      app_lock_enabled: s.appLockEnabled,
+      has_pin: s.hasPin,
+      // Only a key enrolled on this account counts. The old database flag alone proves nothing.
+      biometric_enabled: s.credentialCount > 0,
     };
   });
 
 export const setPinServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ pin: z.string().regex(/^\d{4,8}$/) }).parse(input))
+  .inputValidator((input) =>
+    unlockProof.extend({ pin: z.string().regex(/^\d{4,8}$/) }).parse(input),
+  )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = await adminClient();
+    const lock = await lockServer();
+    // Setting the first PIN is open. Replacing a lock that exists needs proof you unlocked it.
+    await lock.requireUnlockProof(admin, context.userId, data.unlockToken, tokenSecret());
     const salt = randomBytes(16).toString("hex");
     const hash = scryptSync(data.pin, salt, 64).toString("hex");
-    const { error } = await supabaseAdmin.from("user_security_settings").upsert(
+    const { error } = await admin.from("user_security_settings").upsert(
       {
         user_id: context.userId,
         pin_hash: hash,
@@ -106,14 +86,16 @@ export const setPinServer = createServerFn({ method: "POST" })
       { onConflict: "user_id" },
     );
     if (error) throw new Error(error.message);
-    return { ok: true as const, ...issuedToken(context.userId) };
+    return { ok: true as const, ...lock.issueToken(context.userId, tokenSecret()) };
   });
 
 export const clearPinServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+  .inputValidator((input) => unlockProof.parse(input ?? {}))
+  .handler(async ({ data, context }) => {
+    const admin = await adminClient();
+    await (await lockServer()).requireUnlockProof(admin, context.userId, data.unlockToken, tokenSecret());
+    const { error } = await admin
       .from("user_security_settings")
       .update({
         pin_hash: null,
@@ -131,7 +113,7 @@ export const verifyPinServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ pin: z.string().min(1).max(16) }).parse(input))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await adminClient();
     const { data: row } = await supabaseAdmin
       .from("user_security_settings")
       .select("pin_hash,pin_salt,pin_failed_attempts,pin_locked_until")
@@ -149,7 +131,7 @@ export const verifyPinServer = createServerFn({ method: "POST" })
         .from("user_security_settings")
         .update({ pin_failed_attempts: 0, pin_locked_until: null })
         .eq("user_id", context.userId);
-      return { result: "real" as const, ...issuedToken(context.userId) };
+      return { result: "real" as const, ...(await lockServer()).issueToken(context.userId, tokenSecret()) };
     }
     const fails = (row.pin_failed_attempts ?? 0) + 1;
     const lockedUntil =
@@ -161,41 +143,76 @@ export const verifyPinServer = createServerFn({ method: "POST" })
     return { result: lockedUntil ? ("locked-out" as const) : ("wrong" as const) };
   });
 
-export const setBiometricEnabled = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ enabled: z.boolean() }).parse(input))
-  .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("user_security_settings").upsert(
-      {
-        user_id: context.userId,
-        biometric_enabled: data.enabled,
-        app_lock_enabled: data.enabled ? true : undefined,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" },
-    );
-    if (error) throw new Error(error.message);
-    return { ok: true as const };
-  });
+/* ------------------------- biometric (WebAuthn) ------------------------- */
 
-/** Mints an unlock token after a client-side WebAuthn ceremony succeeds. */
-export const issueUnlockToken = createServerFn({ method: "POST" })
+export const beginBiometricEnroll = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin
-      .from("user_security_settings")
-      .select("biometric_enabled")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (!data?.biometric_enabled) throw new Error("Biometric unlock is not enrolled.");
-    return { ok: true as const, ...issuedToken(context.userId) };
-  });
+  .inputValidator((input) => unlockProof.parse(input ?? {}))
+  .handler(async ({ data, context }) =>
+    (await lockServer()).beginEnroll(await adminClient(), context.userId, {
+      token: data.unlockToken,
+      rp: await rpContext(),
+      secret: tokenSecret(),
+    }),
+  );
+
+export const finishBiometricEnroll = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        clientDataJSON: z.string().min(1).max(4000),
+        attestationObject: z.string().min(1).max(20000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) =>
+    (await lockServer()).finishEnroll(await adminClient(), context.userId, {
+      response: data,
+      rp: await rpContext(),
+      secret: tokenSecret(),
+    }),
+  );
+
+export const beginBiometricUnlock = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) =>
+    (await lockServer()).beginUnlock(await adminClient(), context.userId, { rp: await rpContext() }),
+  );
+
+export const finishBiometricUnlock = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        credentialId: z.string().min(1).max(1400),
+        clientDataJSON: z.string().min(1).max(4000),
+        authenticatorData: z.string().min(1).max(4000),
+        signature: z.string().min(1).max(2000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) =>
+    (await lockServer()).finishUnlock(await adminClient(), context.userId, {
+      response: data,
+      rp: await rpContext(),
+      secret: tokenSecret(),
+    }),
+  );
+
+export const removeBiometricServer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => unlockProof.parse(input ?? {}))
+  .handler(async ({ data, context }) =>
+    (await lockServer()).removeBiometric(await adminClient(), context.userId, {
+      token: data.unlockToken,
+      secret: tokenSecret(),
+    }),
+  );
 
 export const checkUnlockToken = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ token: z.string().min(1).max(500) }).parse(input))
   .handler(async ({ data, context }) => {
-    return { valid: verifyToken(data.token, context.userId) };
+    return { valid: (await lockServer()).verifyToken(data.token, context.userId, tokenSecret()) };
   });

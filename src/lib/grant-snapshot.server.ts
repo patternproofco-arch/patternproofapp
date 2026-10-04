@@ -70,7 +70,12 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
  * survivor's "share everything" with no exhibits and no way to fix it, so for
  * files only an explicit "still deciding" is held back.
  */
-async function shareableIds(admin: Admin, table: "incidents" | "evidence", clientUserId: string) {
+async function shareableIds(
+  admin: Admin,
+  table: "incidents" | "evidence",
+  clientUserId: string,
+  createdAtOrBefore?: string,
+) {
   // Only a missing readiness column (migration not applied yet) may fall back to
   // every owned item. Any other failure must stop the share: falling back to
   // "everything" on a transient error would sweep in entries kept private.
@@ -79,11 +84,19 @@ async function shareableIds(admin: Admin, table: "incidents" | "evidence", clien
   try {
     rows = await selectAllPages<{ id: string; share_readiness?: string | null }>(
       (from, to) =>
-        admin
-          .from(table)
-          .select("id, share_readiness")
-          .eq("user_id", clientUserId)
-          .is("deleted_at", null)
+        (createdAtOrBefore
+          ? admin
+              .from(table)
+              .select("id, share_readiness")
+              .eq("user_id", clientUserId)
+              .is("deleted_at", null)
+              .lte("created_at", createdAtOrBefore)
+          : admin
+              .from(table)
+              .select("id, share_readiness")
+              .eq("user_id", clientUserId)
+              .is("deleted_at", null)
+        )
           .order("id", { ascending: true })
           .range(from, to)
           .then((r: { data: unknown; error: { message: string } | null }) => {
@@ -123,6 +136,11 @@ export async function snapshotShareScope<T extends ShareScope>(
   admin: Admin,
   clientUserId: string,
   scope: T,
+  /**
+   * Only for grants made before scope freezing existed: "share all" is limited to items
+   * that existed when the survivor made the invitation, never what was added after.
+   */
+  opts: { createdAtOrBefore?: string } = {},
 ): Promise<
   T &
     Required<Pick<ShareScope, "include_all_incidents" | "include_all_evidence">> & {
@@ -136,7 +154,9 @@ export async function snapshotShareScope<T extends ShareScope>(
   ]);
   const ownEv = new Set(ownedEv);
   const ownInc = new Set(ownedInc);
-  const shareableInc = new Set(await shareableIds(admin, "incidents", clientUserId));
+  const shareableInc = new Set(
+    await shareableIds(admin, "incidents", clientUserId, opts.createdAtOrBefore),
+  );
   const excluded: ExcludedItem[] = [];
 
   let incidents: string[];
@@ -157,7 +177,7 @@ export async function snapshotShareScope<T extends ShareScope>(
 
   let evidence: string[];
   if (scope.include_all_evidence) {
-    evidence = await shareableIds(admin, "evidence", clientUserId);
+    evidence = await shareableIds(admin, "evidence", clientUserId, opts.createdAtOrBefore);
   } else {
     evidence = [];
     for (const id of uniq(scope.scope_evidence ?? [])) {
