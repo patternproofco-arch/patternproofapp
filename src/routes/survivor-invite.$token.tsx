@@ -40,9 +40,10 @@ function SurvivorInvitePage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [step, setStep] = useState<"auth" | "scope">("auth");
-  const [incidentMode, setIncidentMode] = useState<"all" | "specific">("all");
-  const [evidenceMode, setEvidenceMode] = useState<"all" | "specific">("all");
-  const [sharePatterns, setSharePatterns] = useState(true);
+  // Nothing is shared until the survivor opts in. Same idea as the advocate invite.
+  const [incidentMode, setIncidentMode] = useState<"all" | "specific" | "none">("none");
+  const [evidenceMode, setEvidenceMode] = useState<"all" | "specific" | "none">("none");
+  const [sharePatterns, setSharePatterns] = useState(false);
   const [scopeItemsLoaded, setScopeItemsLoaded] = useState(false);
   const [scopeItemsLoading, setScopeItemsLoading] = useState(false);
   const [incidentOptions, setIncidentOptions] = useState<
@@ -121,11 +122,6 @@ function SurvivorInvitePage() {
         const evidence = ev.data ?? [];
         setIncidentOptions(incidents);
         setEvidenceOptions(evidence);
-        // Entries she kept private are never pre-ticked: they would not be shared anyway.
-        setSelectedIncidents(
-          incidents.filter((i) => isGrantSnapshotEligible(i.share_readiness)).map((i) => i.id),
-        );
-        setSelectedEvidence(evidence.map((e) => e.id));
         setScopeItemsLoaded(true);
       })
       .catch(() => toast("Couldn't load your incidents and evidence for scope selection."))
@@ -172,15 +168,26 @@ function SurvivorInvitePage() {
     }
   };
 
+  const nothingShared =
+    incidentMode !== "all" &&
+    evidenceMode !== "all" &&
+    !sharePatterns &&
+    !(incidentMode === "specific" && selectedIncidents.length > 0) &&
+    !(evidenceMode === "specific" && selectedEvidence.length > 0);
+
   const confirmScope = async () => {
+    if (nothingShared) {
+      toast("Choose at least one thing to share before accepting.");
+      return;
+    }
     setBusy(true);
     try {
       const scope = {
         include_all_incidents: incidentMode === "all",
         include_all_evidence: evidenceMode === "all",
         include_patterns: sharePatterns,
-        scope_incidents: incidentMode === "all" ? [] : selectedIncidents,
-        scope_evidence: evidenceMode === "all" ? [] : selectedEvidence,
+        scope_incidents: incidentMode === "specific" ? selectedIncidents : [],
+        scope_evidence: evidenceMode === "specific" ? selectedEvidence : [],
       };
       const res = await accept({ data: { token, scope } });
       setDone(true);
@@ -443,8 +450,7 @@ function SurvivorInvitePage() {
               What would you like to share?
             </h2>
             <p style={{ fontSize: 13, color: "var(--pp-muted)", marginTop: 6 }}>
-              Everything is selected by default so you can continue in one click, but you can narrow
-              what this attorney sees before accepting.
+              Nothing is shared until you turn it on.
             </p>
           </div>
 
@@ -564,7 +570,7 @@ function SurvivorInvitePage() {
           <button
             type="button"
             onClick={confirmScope}
-            disabled={busy}
+            disabled={busy || nothingShared}
             style={{
               padding: "12px 18px",
               background: "var(--pp-accent)",
@@ -572,8 +578,8 @@ function SurvivorInvitePage() {
               border: 0,
               borderRadius: "var(--pp-r-pill, 18px)",
               fontWeight: 600,
-              cursor: busy ? "not-allowed" : "pointer",
-              opacity: busy ? 0.6 : 1,
+              cursor: busy || nothingShared ? "not-allowed" : "pointer",
+              opacity: busy || nothingShared ? 0.6 : 1,
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -591,7 +597,9 @@ function SurvivorInvitePage() {
               gap: 6,
             }}
           >
-            <Lock size={11} /> You can revoke or change scope any time from Settings.
+            <Lock size={11} /> You can revoke or change scope any time from Settings. Revoking
+            stops future access, but anything already downloaded or printed stays on their
+            computer.
           </div>
         </div>
       )}
