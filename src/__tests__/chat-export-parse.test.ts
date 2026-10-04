@@ -177,6 +177,24 @@ describe("not a chat export", () => {
     expect(r.warnings[0]).toMatch(/couldn't find any messages/);
   });
 
+  it("does not guess at an iMessage-style export (date line, name line, text)", () => {
+    // Formats we cannot verify are rejected, never half-read: a wrong guess would
+    // put a survivor's messages on the wrong dates or under the wrong sender.
+    const r = parseChatExport(
+      [
+        "Jan 05, 2024  4:32:10 PM",
+        "Me",
+        "where are you",
+        "",
+        "Jan 05, 2024  4:33:00 PM",
+        "Alex",
+        "home",
+      ].join("\n"),
+    );
+    expect(r.format).toBe("unrecognized");
+    expect(r.messages).toHaveLength(0);
+  });
+
   it("does not cap or truncate large exports", () => {
     const lines = Array.from(
       { length: 12000 },

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { parseChatExport } from "@/lib/chat-export/parse";
-import { buildDayDigest, describeDay, formatClock } from "@/lib/chat-export/digest";
+import {
+  buildDayDigest,
+  countMessagesOnDays,
+  describeDay,
+  findMyName,
+  formatClock,
+} from "@/lib/chat-export/digest";
 
 const SAMPLE = [
   "[1/15/24, 1:07:00 AM] Alex: where are you",
@@ -61,5 +67,32 @@ describe("formatClock", () => {
     expect(formatClock("00:05:00")).toBe("12:05 AM");
     expect(formatClock("12:00:00")).toBe("12:00 PM");
     expect(formatClock("15:30:00")).toBe("3:30 PM");
+  });
+});
+
+describe("countMessagesOnDays", () => {
+  const days = buildDayDigest(parseChatExport(SAMPLE).messages);
+  it("sums every message, call records included, on the picked days only", () => {
+    expect(countMessagesOnDays(days, new Set(["2024-01-15"]))).toBe(5);
+    expect(countMessagesOnDays(days, new Set(["2024-01-15", "2024-01-16"]))).toBe(6);
+    expect(countMessagesOnDays(days, new Set(["2030-01-01"]))).toBe(0);
+    expect(countMessagesOnDays(days, new Set())).toBe(0);
+  });
+});
+
+describe("findMyName", () => {
+  it("is the most common sender of outgoing messages", () => {
+    expect(
+      findMyName([
+        { sender: "Sam", sender_side: "outgoing" },
+        { sender: "Sam", sender_side: "outgoing" },
+        { sender: "Alex", sender_side: "incoming" },
+        { sender: "Sam2", sender_side: "outgoing" },
+      ]),
+    ).toBe("Sam");
+  });
+  it("is null with no outgoing messages", () => {
+    expect(findMyName([{ sender: "Alex", sender_side: "incoming" }])).toBeNull();
+    expect(findMyName([])).toBeNull();
   });
 });
