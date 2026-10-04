@@ -837,6 +837,9 @@ textarea.input-pp {
   min-height: 0;
 }
 
+.print-only {
+  display: none;
+}
 @media print {
   body {
     background: #fff !important;
@@ -844,6 +847,9 @@ textarea.input-pp {
   }
   .no-print {
     display: none !important;
+  }
+  .print-only {
+    display: block !important;
   }
   .print-page {
     padding: 0 !important;
