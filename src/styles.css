@@ -1939,3 +1939,16 @@ textarea.input-pp {
 .skip-link:focus {
   top: 8px;
 }
+
+
+@media print {
+  .prep-print-guide .print-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .prep-print-guide h2,
+  .prep-print-guide h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+}

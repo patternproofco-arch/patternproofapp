@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Weather">
+  <rect width="64" height="64" rx="12" fill="#87CEEB"/>
+  <circle cx="22" cy="22" r="10" fill="#FDB813"/>
+  <ellipse cx="38" cy="36" rx="18" ry="12" fill="#FFFFFF"/>
+  <ellipse cx="28" cy="40" rx="12" ry="9" fill="#F5F5F5"/>
+</svg>

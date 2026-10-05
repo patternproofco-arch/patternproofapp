@@ -97,6 +97,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedOpraHelperRouteImport } from './routes/_authenticated/opra-helper'
 import { Route as AuthenticatedPasswordRouteImport } from './routes/_authenticated/password'
 import { Route as AuthenticatedPatternsRouteImport } from './routes/_authenticated/patterns'
+import { Route as AuthenticatedPrepRouteImport } from './routes/_authenticated/prep'
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
@@ -131,9 +132,15 @@ import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authent
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
 import { Route as AuthenticatedFrequencyMatrixThreadIdRouteImport } from './routes/_authenticated/frequency-matrix.$threadId'
+import { Route as AuthenticatedPrepIndexRouteImport } from './routes/_authenticated/prep.index'
+import { Route as AuthenticatedPrepGuideRouteImport } from './routes/_authenticated/prep.guide'
+import { Route as AuthenticatedPrepIntakeRouteImport } from './routes/_authenticated/prep.intake'
+import { Route as AuthenticatedPrepModulesRouteImport } from './routes/_authenticated/prep.modules'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integrations.clio.deauthorize'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
+import { Route as AuthenticatedPrepModulesIndexRouteImport } from './routes/_authenticated/prep.modules.index'
+import { Route as AuthenticatedPrepModulesModuleIdRouteImport } from './routes/_authenticated/prep.modules.$moduleId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -594,6 +601,11 @@ const AuthenticatedPatternsRoute = AuthenticatedPatternsRouteImport.update({
   path: '/patterns',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPrepRoute = AuthenticatedPrepRouteImport.update({
+  id: '/prep',
+  path: '/prep',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedRequestsRoute = AuthenticatedRequestsRouteImport.update({
   id: '/requests',
   path: '/requests',
@@ -776,6 +788,27 @@ const AuthenticatedFrequencyMatrixThreadIdRoute =
     path: '/frequency-matrix/$threadId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedPrepIndexRoute = AuthenticatedPrepIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedPrepRoute,
+} as any)
+const AuthenticatedPrepGuideRoute = AuthenticatedPrepGuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
+  getParentRoute: () => AuthenticatedPrepRoute,
+} as any)
+const AuthenticatedPrepIntakeRoute = AuthenticatedPrepIntakeRouteImport.update({
+  id: '/intake',
+  path: '/intake',
+  getParentRoute: () => AuthenticatedPrepRoute,
+} as any)
+const AuthenticatedPrepModulesRoute =
+  AuthenticatedPrepModulesRouteImport.update({
+    id: '/modules',
+    path: '/modules',
+    getParentRoute: () => AuthenticatedPrepRoute,
+  } as any)
 const IntegrationsClioCallbackRoute =
   IntegrationsClioCallbackRouteImport.update({
     id: '/integrations/clio/callback',
@@ -793,6 +826,18 @@ const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
   path: '/lovable/email/events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPrepModulesIndexRoute =
+  AuthenticatedPrepModulesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedPrepModulesRoute,
+  } as any)
+const AuthenticatedPrepModulesModuleIdRoute =
+  AuthenticatedPrepModulesModuleIdRouteImport.update({
+    id: '/$moduleId',
+    path: '/$moduleId',
+    getParentRoute: () => AuthenticatedPrepModulesRoute,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -908,6 +953,7 @@ export interface FileRoutesByFullPath {
   '/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/password': typeof AuthenticatedPasswordRoute
   '/patterns': typeof AuthenticatedPatternsRoute
+  '/prep': typeof AuthenticatedPrepRouteWithChildren
   '/requests': typeof AuthenticatedRequestsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/security': typeof AuthenticatedSecurityRoute
@@ -938,6 +984,9 @@ export interface FileRoutesByFullPath {
   '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/frequency-matrix/$threadId': typeof AuthenticatedFrequencyMatrixThreadIdRoute
+  '/prep/guide': typeof AuthenticatedPrepGuideRoute
+  '/prep/intake': typeof AuthenticatedPrepIntakeRoute
+  '/prep/modules': typeof AuthenticatedPrepModulesRouteWithChildren
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
@@ -945,10 +994,13 @@ export interface FileRoutesByFullPath {
   '/clients/': typeof AttorneyClientsIndexRoute
   '/matters/': typeof AttorneyMattersIndexRoute
   '/agent/': typeof AuthenticatedAgentIndexRoute
+  '/prep/': typeof AuthenticatedPrepIndexRoute
+  '/prep/modules/$moduleId': typeof AuthenticatedPrepModulesModuleIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/prep/modules/': typeof AuthenticatedPrepModulesIndexRoute
   '/binder/$clientId/frequency/$threadId': typeof AttorneyBinderClientIdFrequencyThreadIdRoute
 }
 export interface FileRoutesByTo {
@@ -1065,6 +1117,8 @@ export interface FileRoutesByTo {
   '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/frequency-matrix/$threadId': typeof AuthenticatedFrequencyMatrixThreadIdRoute
+  '/prep/guide': typeof AuthenticatedPrepGuideRoute
+  '/prep/intake': typeof AuthenticatedPrepIntakeRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
@@ -1072,10 +1126,13 @@ export interface FileRoutesByTo {
   '/clients': typeof AttorneyClientsIndexRoute
   '/matters': typeof AttorneyMattersIndexRoute
   '/agent': typeof AuthenticatedAgentIndexRoute
+  '/prep': typeof AuthenticatedPrepIndexRoute
+  '/prep/modules/$moduleId': typeof AuthenticatedPrepModulesModuleIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/prep/modules': typeof AuthenticatedPrepModulesIndexRoute
   '/binder/$clientId/frequency/$threadId': typeof AttorneyBinderClientIdFrequencyThreadIdRoute
 }
 export interface FileRoutesById {
@@ -1168,6 +1225,7 @@ export interface FileRoutesById {
   '/_authenticated/opra-helper': typeof AuthenticatedOpraHelperRoute
   '/_authenticated/password': typeof AuthenticatedPasswordRoute
   '/_authenticated/patterns': typeof AuthenticatedPatternsRoute
+  '/_authenticated/prep': typeof AuthenticatedPrepRouteWithChildren
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
@@ -1198,6 +1256,9 @@ export interface FileRoutesById {
   '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
   '/_authenticated/frequency-matrix/$threadId': typeof AuthenticatedFrequencyMatrixThreadIdRoute
+  '/_authenticated/prep/guide': typeof AuthenticatedPrepGuideRoute
+  '/_authenticated/prep/intake': typeof AuthenticatedPrepIntakeRoute
+  '/_authenticated/prep/modules': typeof AuthenticatedPrepModulesRouteWithChildren
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
@@ -1205,10 +1266,13 @@ export interface FileRoutesById {
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
   '/_attorney/matters/': typeof AttorneyMattersIndexRoute
   '/_authenticated/agent/': typeof AuthenticatedAgentIndexRoute
+  '/_authenticated/prep/': typeof AuthenticatedPrepIndexRoute
+  '/_authenticated/prep/modules/$moduleId': typeof AuthenticatedPrepModulesModuleIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/_authenticated/prep/modules/': typeof AuthenticatedPrepModulesIndexRoute
   '/_attorney/binder/$clientId_/frequency/$threadId': typeof AttorneyBinderClientIdFrequencyThreadIdRoute
 }
 export interface FileRouteTypes {
@@ -1299,6 +1363,7 @@ export interface FileRouteTypes {
     | '/opra-helper'
     | '/password'
     | '/patterns'
+    | '/prep'
     | '/requests'
     | '/search'
     | '/security'
@@ -1329,6 +1394,9 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/agent/$threadId'
     | '/frequency-matrix/$threadId'
+    | '/prep/guide'
+    | '/prep/intake'
+    | '/prep/modules'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/events'
@@ -1336,10 +1404,13 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/matters/'
     | '/agent/'
+    | '/prep/'
+    | '/prep/modules/$moduleId'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/prep/modules/'
     | '/binder/$clientId/frequency/$threadId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1456,6 +1527,8 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/agent/$threadId'
     | '/frequency-matrix/$threadId'
+    | '/prep/guide'
+    | '/prep/intake'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/events'
@@ -1463,10 +1536,13 @@ export interface FileRouteTypes {
     | '/clients'
     | '/matters'
     | '/agent'
+    | '/prep'
+    | '/prep/modules/$moduleId'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/prep/modules'
     | '/binder/$clientId/frequency/$threadId'
   id:
     | '__root__'
@@ -1558,6 +1634,7 @@ export interface FileRouteTypes {
     | '/_authenticated/opra-helper'
     | '/_authenticated/password'
     | '/_authenticated/patterns'
+    | '/_authenticated/prep'
     | '/_authenticated/requests'
     | '/_authenticated/search'
     | '/_authenticated/security'
@@ -1588,6 +1665,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/support'
     | '/_authenticated/agent/$threadId'
     | '/_authenticated/frequency-matrix/$threadId'
+    | '/_authenticated/prep/guide'
+    | '/_authenticated/prep/intake'
+    | '/_authenticated/prep/modules'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/events'
@@ -1595,10 +1675,13 @@ export interface FileRouteTypes {
     | '/_attorney/clients/'
     | '/_attorney/matters/'
     | '/_authenticated/agent/'
+    | '/_authenticated/prep/'
+    | '/_authenticated/prep/modules/$moduleId'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/_authenticated/prep/modules/'
     | '/_attorney/binder/$clientId_/frequency/$threadId'
   fileRoutesById: FileRoutesById
 }
@@ -2287,6 +2370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPatternsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/prep': {
+      id: '/_authenticated/prep'
+      path: '/prep'
+      fullPath: '/prep'
+      preLoaderRoute: typeof AuthenticatedPrepRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/requests': {
       id: '/_authenticated/requests'
       path: '/requests'
@@ -2525,6 +2615,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFrequencyMatrixThreadIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/prep/': {
+      id: '/_authenticated/prep/'
+      path: '/'
+      fullPath: '/prep/'
+      preLoaderRoute: typeof AuthenticatedPrepIndexRouteImport
+      parentRoute: typeof AuthenticatedPrepRoute
+    }
+    '/_authenticated/prep/guide': {
+      id: '/_authenticated/prep/guide'
+      path: '/guide'
+      fullPath: '/prep/guide'
+      preLoaderRoute: typeof AuthenticatedPrepGuideRouteImport
+      parentRoute: typeof AuthenticatedPrepRoute
+    }
+    '/_authenticated/prep/intake': {
+      id: '/_authenticated/prep/intake'
+      path: '/intake'
+      fullPath: '/prep/intake'
+      preLoaderRoute: typeof AuthenticatedPrepIntakeRouteImport
+      parentRoute: typeof AuthenticatedPrepRoute
+    }
+    '/_authenticated/prep/modules': {
+      id: '/_authenticated/prep/modules'
+      path: '/modules'
+      fullPath: '/prep/modules'
+      preLoaderRoute: typeof AuthenticatedPrepModulesRouteImport
+      parentRoute: typeof AuthenticatedPrepRoute
+    }
     '/integrations/clio/callback': {
       id: '/integrations/clio/callback'
       path: '/integrations/clio/callback'
@@ -2545,6 +2663,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/lovable/email/events'
       preLoaderRoute: typeof LovableEmailEventsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/prep/modules/': {
+      id: '/_authenticated/prep/modules/'
+      path: '/'
+      fullPath: '/prep/modules/'
+      preLoaderRoute: typeof AuthenticatedPrepModulesIndexRouteImport
+      parentRoute: typeof AuthenticatedPrepModulesRoute
+    }
+    '/_authenticated/prep/modules/$moduleId': {
+      id: '/_authenticated/prep/modules/$moduleId'
+      path: '/$moduleId'
+      fullPath: '/prep/modules/$moduleId'
+      preLoaderRoute: typeof AuthenticatedPrepModulesModuleIdRouteImport
+      parentRoute: typeof AuthenticatedPrepModulesRoute
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -2670,6 +2802,40 @@ const AuthenticatedAgentRouteChildren: AuthenticatedAgentRouteChildren = {
 const AuthenticatedAgentRouteWithChildren =
   AuthenticatedAgentRoute._addFileChildren(AuthenticatedAgentRouteChildren)
 
+interface AuthenticatedPrepModulesRouteChildren {
+  AuthenticatedPrepModulesModuleIdRoute: typeof AuthenticatedPrepModulesModuleIdRoute
+  AuthenticatedPrepModulesIndexRoute: typeof AuthenticatedPrepModulesIndexRoute
+}
+
+const AuthenticatedPrepModulesRouteChildren: AuthenticatedPrepModulesRouteChildren =
+  {
+    AuthenticatedPrepModulesModuleIdRoute:
+      AuthenticatedPrepModulesModuleIdRoute,
+    AuthenticatedPrepModulesIndexRoute: AuthenticatedPrepModulesIndexRoute,
+  }
+
+const AuthenticatedPrepModulesRouteWithChildren =
+  AuthenticatedPrepModulesRoute._addFileChildren(
+    AuthenticatedPrepModulesRouteChildren,
+  )
+
+interface AuthenticatedPrepRouteChildren {
+  AuthenticatedPrepGuideRoute: typeof AuthenticatedPrepGuideRoute
+  AuthenticatedPrepIntakeRoute: typeof AuthenticatedPrepIntakeRoute
+  AuthenticatedPrepModulesRoute: typeof AuthenticatedPrepModulesRouteWithChildren
+  AuthenticatedPrepIndexRoute: typeof AuthenticatedPrepIndexRoute
+}
+
+const AuthenticatedPrepRouteChildren: AuthenticatedPrepRouteChildren = {
+  AuthenticatedPrepGuideRoute: AuthenticatedPrepGuideRoute,
+  AuthenticatedPrepIntakeRoute: AuthenticatedPrepIntakeRoute,
+  AuthenticatedPrepModulesRoute: AuthenticatedPrepModulesRouteWithChildren,
+  AuthenticatedPrepIndexRoute: AuthenticatedPrepIndexRoute,
+}
+
+const AuthenticatedPrepRouteWithChildren =
+  AuthenticatedPrepRoute._addFileChildren(AuthenticatedPrepRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedAccessRoute: typeof AuthenticatedAccessRoute
   AuthenticatedAgentRoute: typeof AuthenticatedAgentRouteWithChildren
@@ -2701,6 +2867,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOpraHelperRoute: typeof AuthenticatedOpraHelperRoute
   AuthenticatedPasswordRoute: typeof AuthenticatedPasswordRoute
   AuthenticatedPatternsRoute: typeof AuthenticatedPatternsRoute
+  AuthenticatedPrepRoute: typeof AuthenticatedPrepRouteWithChildren
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
@@ -2747,6 +2914,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOpraHelperRoute: AuthenticatedOpraHelperRoute,
   AuthenticatedPasswordRoute: AuthenticatedPasswordRoute,
   AuthenticatedPatternsRoute: AuthenticatedPatternsRoute,
+  AuthenticatedPrepRoute: AuthenticatedPrepRouteWithChildren,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
@@ -2837,13 +3005,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

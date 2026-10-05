@@ -24,7 +24,12 @@ export function applySecurityHeaders(headers: Headers, url: URL): void {
 
   const type = headers.get("content-type") ?? "";
   const isStatic = url.pathname.startsWith("/assets/") || /\.(?:js|css|woff2?|png|jpe?g|svg|ico|webp|webmanifest)$/i.test(url.pathname);
-  if (type.includes("text/html") && !isStatic && !headers.has("Cache-Control")) {
+  const isPrep =
+    url.pathname === "/prep" || url.pathname.startsWith("/prep/");
+  // Spec v5: intake / study guide must not sit in browser or shared caches.
+  if (isPrep) {
+    headers.set("Cache-Control", "no-store, max-age=0");
+  } else if (type.includes("text/html") && !isStatic && !headers.has("Cache-Control")) {
     headers.set("Cache-Control", "no-store");
   }
 

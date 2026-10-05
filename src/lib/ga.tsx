@@ -22,9 +22,12 @@ declare global {
  * path a pageview reaches GA through.
  */
 export function GoogleAnalyticsRouteTracker() {
-  const routeId = useRouterState({
+  // When the generated route tree widens, useRouterState's select inference
+  // can collapse to RouterState. Normalize to a string before GA filters.
+  const selected = useRouterState({
     select: (s) => s.matches[s.matches.length - 1]?.routeId ?? "/",
   });
+  const routeId = typeof selected === "string" ? selected : "/";
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.gtag !== "function") return;

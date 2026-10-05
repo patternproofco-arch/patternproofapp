@@ -11,6 +11,7 @@ const PRIVATE_FRAGMENTS = [
   "$token",
   "/capture",
   "/intake",
+  "/prep",
   "/mfa",
   "/reset-password",
   "/forgot-password",
