@@ -302,6 +302,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body className="pp-app">
         {children}
+        <script
+          src="https://app.leaveadot.com/dot.js"
+          data-project="proj_ydd514h48rz0"
+          data-link="ymjrs3q"
+        />
         <Scripts />
       </body>
     </html>
