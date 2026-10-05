@@ -77,7 +77,7 @@ function AdvocateSetupPage() {
       </p>
 
       <form onSubmit={onSubmit} className="card-pp space-y-3">
-        <input
+        <input aria-label="Your full name"
           className="input-pp"
           required
           maxLength={120}
@@ -85,14 +85,14 @@ function AdvocateSetupPage() {
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
         />
-        <input
+        <input aria-label="Organization (optional)"
           className="input-pp"
           maxLength={200}
           placeholder="Organization (optional)"
           value={orgName}
           onChange={(e) => setOrgName(e.target.value)}
         />
-        <input
+        <input aria-label="Work email"
           className="input-pp"
           type="email"
           required

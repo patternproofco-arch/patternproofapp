@@ -11,6 +11,7 @@ import {
   Scale,
 } from "lucide-react";
 import { getCaseloadOverview, getFirmConflictFlags } from "@/lib/attorney-portal.functions";
+import { getReviewSummary } from "@/lib/entry-review.functions";
 import { PortalStatHero } from "@/components/shared/PortalStatHero";
 import { RecentActivityList, type ActivityRow } from "@/components/shared/RecentActivityList";
 import { portalTheme } from "@/components/shared/portal-theme";
@@ -41,6 +42,8 @@ function CaseloadPage() {
   const conflictFetcher = useServerFn(getFirmConflictFlags);
   const [data, setData] = useState<Overview | null>(null);
   const [conflicts, setConflicts] = useState<Conflicts | null>(null);
+  const summaryFetcher = useServerFn(getReviewSummary);
+  const [review, setReview] = useState<Awaited<ReturnType<typeof getReviewSummary>> | "failed" | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -50,7 +53,10 @@ function CaseloadPage() {
     conflictFetcher()
       .then(setConflicts)
       .catch(() => setConflicts({ firm_id: null, flags: [] }));
-  }, [fetcher, conflictFetcher]);
+    summaryFetcher()
+      .then(setReview)
+      .catch(() => setReview("failed"));
+  }, [fetcher, conflictFetcher, summaryFetcher]);
 
   if (err)
     return <div style={{ padding: 16, fontSize: 13, color: "var(--att-text-2)" }}>{err}</div>;
@@ -85,6 +91,40 @@ function CaseloadPage() {
       highlight: true,
     })),
   ];
+
+  // Where something new or unanswered is waiting. A failed check says so instead of saying "nothing".
+  if (review === "failed") {
+    attention.push({
+      id: "review-failed",
+      icon: AlertTriangle,
+      title: "We couldn't check what's new across your clients. Open a client to see its review queue.",
+      timestamp: "try again later",
+      highlight: true,
+    });
+  } else if (review) {
+    for (const r of review.rows) {
+      attention.push({
+        id: `review-${r.clientId}`,
+        icon: FileWarning,
+        title: `Client ${r.clientId.slice(0, 8)} — ${r.newCount} new to review${r.clarifyCount ? `, ${r.clarifyCount} waiting on clarification` : ""}`,
+        timestamp: "review queue",
+        to: "/clients/$clientId",
+        params: { clientId: r.clientId },
+        highlight: true,
+      });
+    }
+    if (review.couldNotCheck > 0 || review.capped) {
+      attention.push({
+        id: "review-partial",
+        icon: AlertTriangle,
+        title: review.capped
+          ? "Review counts cover your first 25 clients. Open the others to see their queues."
+          : `We couldn't check ${review.couldNotCheck} client${review.couldNotCheck === 1 ? "" : "s"}. Open them to see their review queues.`,
+        timestamp: "partial",
+        highlight: true,
+      });
+    }
+  }
 
   if (totals.clients_with_unreviewed_severity_indicators > 0) {
     attention.push({

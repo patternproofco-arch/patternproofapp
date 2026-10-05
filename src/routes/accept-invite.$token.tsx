@@ -155,8 +155,8 @@ function AcceptInvite() {
             {mode === "signup" && (
               <>
                 <div>
-                  <label className="att-eyebrow">Full name</label>
-                  <input
+                  <label className="att-eyebrow" htmlFor="accept-invite-full-name">Full name</label>
+                  <input id="accept-invite-full-name"
                     className="att-input"
                     required
                     value={fullName}
@@ -165,8 +165,8 @@ function AcceptInvite() {
                   />
                 </div>
                 <div>
-                  <label className="att-eyebrow">Bar number</label>
-                  <input
+                  <label className="att-eyebrow" htmlFor="accept-invite-bar-number">Bar number</label>
+                  <input id="accept-invite-bar-number"
                     className="att-input"
                     required
                     value={barNumber}
@@ -177,8 +177,8 @@ function AcceptInvite() {
               </>
             )}
             <div>
-              <label className="att-eyebrow">Work email</label>
-              <input
+              <label className="att-eyebrow" htmlFor="accept-invite-work-email">Work email</label>
+              <input autoComplete="email" id="accept-invite-work-email"
                 className="att-input"
                 type="email"
                 required
@@ -188,8 +188,8 @@ function AcceptInvite() {
               />
             </div>
             <div>
-              <label className="att-eyebrow">Password</label>
-              <input
+              <label className="att-eyebrow" htmlFor="accept-invite-password">Password</label>
+              <input autoComplete={mode === "signup" ? "new-password" : "current-password"} id="accept-invite-password"
                 className="att-input"
                 type="password"
                 required

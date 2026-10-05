@@ -337,7 +337,7 @@ function AdvocateSurvivorInvitePage() {
             <>
               <label style={{ display: "grid", gap: 4 }}>
                 <span style={labelEyebrow}>Email</span>
-                <input
+                <input autoComplete="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -347,7 +347,7 @@ function AdvocateSurvivorInvitePage() {
               </label>
               <label style={{ display: "grid", gap: 4 }}>
                 <span style={labelEyebrow}>Password</span>
-                <input
+                <input autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

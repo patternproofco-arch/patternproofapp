@@ -87,16 +87,12 @@ export async function resolveAdvocateGrant(
   // A case-scoped grant is the intersection of the grant and the case: only
   // the items the survivor attached to that case are ever in range.
   if (link.case_id) {
-    const { data: c } = await admin
-      .from("cases")
-      .select("highlighted_incident_ids,attached_evidence_ids")
-      .eq("id", link.case_id)
-      .eq("user_id", opts.clientUserId)
-      .maybeSingle();
+    const { effectiveCaseScope } = await import("@/lib/case-scope.server");
+    const eff = await effectiveCaseScope(admin, link, opts.clientUserId);
     includeAllIncidents = false;
     includeAllEvidence = false;
-    scopedIncidents = (c?.highlighted_incident_ids ?? []) as string[];
-    scopedEvidence = (c?.attached_evidence_ids ?? []) as string[];
+    scopedIncidents = eff.incidents;
+    scopedEvidence = eff.evidence;
   }
 
   return {

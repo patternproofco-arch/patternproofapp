@@ -148,6 +148,8 @@ function ClientCaseView() {
   const [depo, setDepo] = useState<DepoResult | null>(null);
   const [depoLoading, setDepoLoading] = useState(false);
   const [notes, setNotes] = useState<NoteRow[]>([]);
+  // If your private notes didn't load, typing a new one would overwrite the one that exists.
+  const [notesFailed, setNotesFailed] = useState(false);
   const [ent, setEnt] = useState<{ entitled: boolean; reason: string } | null>(null);
   const [accessEnded, setAccessEnded] = useState(false);
 
@@ -170,8 +172,11 @@ function ClientCaseView() {
         setAccessEnded(true);
       });
     notesFn({ data: { clientId } })
-      .then((r) => setNotes(r.notes))
-      .catch(() => {});
+      .then((r) => {
+        setNotes(r.notes);
+        setNotesFailed(false);
+      })
+      .catch(() => setNotesFailed(true));
   }, [fetcher, notesFn, clientId, ent]);
 
   const runDepo = async () => {
@@ -325,7 +330,7 @@ function ClientCaseView() {
         {tab === "Intake" && <IntakeTab data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
         {tab === "Timeline" && (
-          <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} />
+          <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} notesFailed={notesFailed} />
         )}
         {tab === "Patterns" && <Patterns data={data} clientId={clientId} />}
         {tab === "Checklist" && <ChecklistTab data={data} />}
@@ -1648,11 +1653,14 @@ function TimelineTab({
   clientId,
   notes,
   onNotes,
+  notesFailed = false,
 }: {
   data: CaseData;
   clientId: string;
   notes: NoteRow[];
   onNotes: (n: NoteRow[]) => void;
+  /** Private notes didn't load: editing is switched off so a new note can't overwrite one that exists. */
+  notesFailed?: boolean;
 }) {
   const upsert = useServerFn(upsertAttorneyNote);
 
@@ -1783,8 +1791,15 @@ function TimelineTab({
                       >
                         Attorney note {n?.note ? "·" : ""} {n?.note ? "saved" : "(private)"}
                       </summary>
+                      {notesFailed && (
+                        <p role="alert" style={{ fontSize: 12 }}>
+                          Your private notes didn't load, so they can't be edited right now. Reload the page.
+                        </p>
+                      )}
                       <textarea
                         className="att-textarea"
+                        aria-label="Private note"
+                        disabled={notesFailed}
                         defaultValue={n?.note ?? ""}
                         placeholder="Private note — never visible to the client."
                         onBlur={(e) => {
@@ -2790,7 +2805,7 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
                         </option>
                       ))}
                     </select>
-                    <input
+                    <input aria-label="Exhibit label (e.g. Exhibit A)"
                       type="text"
                       placeholder="Exhibit label (e.g. Exhibit A)"
                       defaultValue={r?.exhibit_label ?? ""}
@@ -4345,8 +4360,8 @@ function TimeTab({ clientId }: { clientId: string }) {
           }}
         >
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Date</label>
-            <input
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-date">Date</label>
+            <input id="clients-date"
               className="att-input"
               type="date"
               value={entryDate}
@@ -4354,8 +4369,8 @@ function TimeTab({ clientId }: { clientId: string }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Hours</label>
-            <input
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-hours">Hours</label>
+            <input id="clients-hours"
               className="att-input"
               type="number"
               min={0}
@@ -4365,8 +4380,8 @@ function TimeTab({ clientId }: { clientId: string }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Minutes</label>
-            <input
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-minutes">Minutes</label>
+            <input id="clients-minutes"
               className="att-input"
               type="number"
               min={0}
@@ -4376,8 +4391,8 @@ function TimeTab({ clientId }: { clientId: string }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }}>Description</label>
-            <input
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-description">Description</label>
+            <input id="clients-description"
               className="att-input"
               value={description}
               onChange={(e) => setDescription(e.target.value)}

@@ -92,12 +92,33 @@ export async function lockState(admin: Admin, userId: string) {
     throw new Error("Could not verify app lock settings.");
   }
   const credentialCount = cErr ? 0 : (creds ?? []).length;
+  const hasPin = !!settings?.pin_hash;
+  const appLockEnabled = !!settings?.app_lock_enabled;
   return {
-    appLockEnabled: !!settings?.app_lock_enabled,
-    hasPin: !!settings?.pin_hash,
+    appLockEnabled,
+    hasPin,
     credentialCount,
-    hasLock: !!settings?.pin_hash || credentialCount > 0,
+    /** A way to unlock exists: a PIN or an enrolled device. */
+    usable: hasPin || credentialCount > 0,
+    /**
+     * The lock is on, even if nothing can open it any more (the old browser-only biometric flag).
+     * That state is still locked: replacing it takes the password-checked reset, not an open call.
+     */
+    hasLock: hasPin || credentialCount > 0 || appLockEnabled,
   };
+}
+
+/**
+ * After the last way to unlock is removed on purpose, the lock is off. Without this the account
+ * stays flagged "locked" with nothing to unlock it and the person lands on the recovery screen.
+ */
+export async function settleLockFlag(admin: Admin, userId: string) {
+  const s = await lockState(admin, userId);
+  if (s.usable || !s.appLockEnabled) return;
+  await admin
+    .from("user_security_settings")
+    .update({ app_lock_enabled: false, biometric_enabled: false, updated_at: new Date().toISOString() })
+    .eq("user_id", userId);
 }
 
 /**
@@ -276,6 +297,7 @@ export async function removeBiometric(
     .from("user_security_settings")
     .update({ biometric_enabled: false, updated_at: new Date().toISOString() })
     .eq("user_id", userId);
+  await settleLockFlag(admin, userId);
   return { ok: true as const };
 }
 

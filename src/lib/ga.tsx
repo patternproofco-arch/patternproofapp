@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useRouterState } from "@tanstack/react-router";
+import { isReportableRoute } from "@/lib/ga-routes";
 
 export const GA_MEASUREMENT_ID = "G-PXNVVNXEV5";
 
@@ -27,6 +28,8 @@ export function GoogleAnalyticsRouteTracker() {
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.gtag !== "function") return;
+    // Only the public site is counted. See ga-routes.ts.
+    if (!isReportableRoute(routeId)) return;
     window.gtag("event", "page_view", {
       page_path: routeId,
       page_location: `${window.location.origin}${routeId}`,

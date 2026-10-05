@@ -140,8 +140,8 @@ Respectfully,
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <div className="card-pp space-y-4">
           <div>
-            <label className="label-eyebrow">Agency</label>
-            <input
+            <label className="label-eyebrow" htmlFor="opra-helper-agency">Agency</label>
+            <input id="opra-helper-agency"
               className="input-pp mt-1"
               value={agency}
               onChange={(e) => setAgency(e.target.value)}
@@ -149,16 +149,16 @@ Respectfully,
             />
           </div>
           <div>
-            <label className="label-eyebrow">Agency address</label>
-            <textarea
+            <label className="label-eyebrow" htmlFor="opra-helper-agency-address">Agency address</label>
+            <textarea id="opra-helper-agency-address"
               className="input-pp mt-1"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
             />
           </div>
           <div>
-            <label className="label-eyebrow">Custodian title</label>
-            <input
+            <label className="label-eyebrow" htmlFor="opra-helper-custodian-title">Custodian title</label>
+            <input id="opra-helper-custodian-title"
               className="input-pp mt-1"
               value={custodian}
               onChange={(e) => setCustodian(e.target.value)}
@@ -189,8 +189,8 @@ Respectfully,
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label-eyebrow">From</label>
-              <input
+              <label className="label-eyebrow" htmlFor="opra-helper-from">From</label>
+              <input id="opra-helper-from"
                 type="date"
                 className="input-pp mt-1"
                 value={start}
@@ -198,8 +198,8 @@ Respectfully,
               />
             </div>
             <div>
-              <label className="label-eyebrow">To</label>
-              <input
+              <label className="label-eyebrow" htmlFor="opra-helper-to">To</label>
+              <input id="opra-helper-to"
                 type="date"
                 className="input-pp mt-1"
                 value={end}
@@ -208,8 +208,8 @@ Respectfully,
             </div>
           </div>
           <div>
-            <label className="label-eyebrow">Anything else they should know? (optional)</label>
-            <textarea
+            <label className="label-eyebrow" htmlFor="opra-helper-anything-else-they-should-know">Anything else they should know? (optional)</label>
+            <textarea id="opra-helper-anything-else-they-should-know"
               className="input-pp mt-1"
               value={details}
               onChange={(e) => setDetails(e.target.value)}

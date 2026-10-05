@@ -1,15 +1,30 @@
-const CACHE_VERSION = "v5-offline-shell";
+// Offline shell for the installed app.
+//
+// PRIVACY RULE: this worker never stores anything that belongs to a signed-in person. Pages,
+// server-function responses and API data are NOT cached. Anything cached here could still be read
+// after sign-out, after Quick Exit, or by someone using the device while offline. Only public files
+// are kept: the app's static assets (scripts, styles, fonts, images) and the public sign-in/home
+// shell, so the installed app can still open and show the sign-in screen with no connection.
+const CACHE_VERSION = "v6-public-shell-only";
 const CACHE_NAME = `patternproof-${CACHE_VERSION}`;
 
-const ASSETS_TO_CACHE = ["/", "/index.html", "/signin", "/manifest.webmanifest", "/favicon.svg", "/icons/icon-192.png"];
+const SHELL = ["/", "/signin", "/manifest.webmanifest", "/favicon.svg", "/icons/icon-192.png"];
+
+// Static, public, identical for everyone.
+const STATIC_FILE = /\.(?:js|css|woff2?|ttf|otf|png|jpe?g|gif|svg|ico|webp|webmanifest)$/i;
+
+function isCacheableStatic(url) {
+  if (url.pathname.startsWith("/_serverFn") || url.pathname.startsWith("/api/")) return false;
+  return url.pathname.startsWith("/assets/") || STATIC_FILE.test(url.pathname);
+}
 
 self.addEventListener("install", (event) => {
   // Cache each entry on its own so one missing file can't block the install.
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
       Promise.all(
-        ASSETS_TO_CACHE.map((url) =>
-          fetch(url, { cache: "reload" })
+        SHELL.map((url) =>
+          fetch(url, { cache: "reload", credentials: "omit" })
             .then((res) => (res.ok ? cache.put(url, res) : undefined))
             .catch(() => undefined),
         ),
@@ -20,53 +35,47 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
+  // Removes every older cache, including earlier versions of this worker that stored pages and
+  // data from signed-in sessions.
   event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))),
-    ),
+    caches
+      .keys()
+      .then((names) => Promise.all(names.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name)))),
   );
   self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
-  if (!event.request.url.startsWith(self.location.origin)) return;
-  if (event.request.method !== "GET") return;
+  const request = event.request;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+  if (request.method !== "GET") return;
 
-  // Navigations and auth pages always hit the network so sign-in errors and
-  // new deploys are not hidden behind a cached shell.
-  if (event.request.mode === "navigate") {
-    // Network first; offline, fall back to a cached copy of this page, then
-    // the cached sign-in or home shell so the installed app still opens.
+  // Pages: always the network. Never stored. Offline, fall back to the PUBLIC shell only.
+  if (request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === "basic") {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
-        })
-        .catch(async () =>
-          (await caches.match(event.request)) ||
-          (await caches.match("/index.html")) ||
-          (await caches.match("/signin")) ||
-          (await caches.match("/")) ||
-          Response.error(),
-        ),
+      fetch(request).catch(
+        async () => (await caches.match("/signin")) || (await caches.match("/")) || Response.error(),
+      ),
     );
     return;
   }
 
+  // Server functions and API calls carry private data: straight to the network, never cached.
+  if (!isCacheableStatic(url)) return;
+
+  // Static files: network first, keep a copy for offline. Nothing here varies by person.
   event.respondWith(
-    fetch(event.request)
+    fetch(request)
       .then((response) => {
-        if (response && response.status === 200 && response.type === "basic") {
+        const noStore = (response.headers.get("cache-control") || "").includes("no-store");
+        if (response && response.status === 200 && response.type === "basic" && !noStore) {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
         return response;
       })
-      .catch(() => caches.match(event.request)),
+      .catch(() => caches.match(request)),
   );
 });
 

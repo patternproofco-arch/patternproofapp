@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { askAboutEntry, getQueue, setReview } from "@/lib/entry-review.server";
+import { askAboutEntry, getQueue, getReviewSummary, setReview } from "@/lib/entry-review.server";
 import { makeRwAdmin, type Tables } from "./helpers/fake-rw-supabase";
 
 const ATTY = "atty-1";
@@ -196,5 +196,53 @@ describe("focused questions", () => {
   it("sends no notification: nothing here emails or messages the survivor", () => {
     const src = readFileSync("src/lib/entry-review.server.ts", "utf8");
     expect(src).not.toMatch(/sendEmail|resend|notify|push|sms/i);
+  });
+});
+
+
+describe("the summary across clients", () => {
+  const yes = async () => true;
+
+  it("lists only clients with something new or waiting, and leaves finished ones out", async () => {
+    const admin = seed();
+    const s = await getReviewSummary(admin, ATTY, { entitled: yes });
+    expect(s.rows).toEqual([{ clientId: CLIENT, newCount: 2, clarifyCount: 0 }]);
+    await setReview(admin, ATTY, { clientId: CLIENT, itemKey: "incident:a", status: "reviewed" });
+    await setReview(admin, ATTY, { clientId: CLIENT, itemKey: "incident:b", status: "reviewed" });
+    expect((await getReviewSummary(admin, ATTY, { entitled: yes })).rows).toEqual([]);
+  });
+
+  it("counts clarifications that are still open", async () => {
+    const admin = seed();
+    await setReview(admin, ATTY, { clientId: CLIENT, itemKey: "incident:a", status: "needs_clarification" });
+    expect((await getReviewSummary(admin, ATTY, { entitled: yes })).rows).toEqual([
+      { clientId: CLIENT, newCount: 1, clarifyCount: 1 },
+    ]);
+  });
+
+  it("another attorney sees only their own clients and their own statuses", async () => {
+    const admin = seed();
+    await setReview(admin, ATTY, { clientId: CLIENT, itemKey: "incident:a", status: "reviewed" });
+    expect((await getReviewSummary(admin, "stranger", { entitled: yes })).rows).toEqual([]);
+  });
+
+  it("a client that can't be checked is counted as such, never as 'nothing new'", async () => {
+    const admin = seed();
+    const s = await getReviewSummary(admin, ATTY, {
+      entitled: async () => {
+        throw new Error("billing check failed");
+      },
+    });
+    expect(s.rows).toEqual([]);
+    expect(s.couldNotCheck).toBe(1);
+  });
+
+  it("a client whose subscription isn't active is skipped, and a revoked link isn't listed", async () => {
+    expect((await getReviewSummary(seed(), ATTY, { entitled: async () => false })).rows).toEqual([]);
+    const revoked = seed();
+    revoked.tables.attorney_client_links![0]!.revoked_at = "2026-01-01T00:00:00Z";
+    const s = await getReviewSummary(revoked, ATTY, { entitled: yes });
+    expect(s.rows).toEqual([]);
+    expect(s.checked).toBe(0);
   });
 });

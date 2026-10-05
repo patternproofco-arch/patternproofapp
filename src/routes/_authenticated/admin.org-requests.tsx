@@ -103,7 +103,7 @@ function OrgRequestsAdmin() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <input
+        <input aria-label="Organization name"
           className="input-pp"
           required
           minLength={2}
@@ -111,7 +111,7 @@ function OrgRequestsAdmin() {
           value={orgName}
           onChange={(e) => setOrgName(e.target.value)}
         />
-        <input
+        <input aria-label="Contact name"
           className="input-pp"
           required
           placeholder="Contact name"

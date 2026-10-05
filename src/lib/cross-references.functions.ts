@@ -411,7 +411,7 @@ export const findClientCrossReferences = createServerFn({ method: "POST" })
     const { data: owner } = await supabaseAdmin
       .from("attorney_client_links")
       .select(
-        "id,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id",
+        "id,created_at,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id",
       )
       .eq("attorney_user_id", userId)
       .eq("client_user_id", data.clientId)
@@ -436,7 +436,7 @@ export const findClientCrossReferences = createServerFn({ method: "POST" })
       const { data: l } = await supabaseAdmin
         .from("attorney_client_links")
         .select(
-          "id,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id",
+          "id,created_at,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id",
         )
         .in("id", ids)
         .eq("client_user_id", data.clientId)
@@ -451,14 +451,10 @@ export const findClientCrossReferences = createServerFn({ method: "POST" })
     let scopeIncIds: string[] | null = null;
     let scopeEvIds: string[] | null = null;
     if (link.case_id) {
-      const { data: c } = await supabaseAdmin
-        .from("cases")
-        .select("highlighted_incident_ids,attached_evidence_ids")
-        .eq("id", link.case_id)
-        .eq("user_id", data.clientId)
-        .maybeSingle();
-      scopeIncIds = (c?.highlighted_incident_ids ?? []) as string[];
-      scopeEvIds = (c?.attached_evidence_ids ?? []) as string[];
+      const { effectiveCaseScope } = await import("@/lib/case-scope.server");
+      const eff = await effectiveCaseScope(supabaseAdmin, link, data.clientId);
+      scopeIncIds = eff.incidents;
+      scopeEvIds = eff.evidence;
     } else {
       if (!link.include_all_incidents) scopeIncIds = (link.scope_incidents ?? []) as string[];
       if (!link.include_all_evidence) scopeEvIds = (link.scope_evidence ?? []) as string[];

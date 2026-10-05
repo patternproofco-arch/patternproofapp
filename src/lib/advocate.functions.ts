@@ -69,6 +69,7 @@ export const createAdvocateInvitation = createServerFn({ method: "POST" })
       include_all_evidence: data.scope_evidence ? false : data.include_all_evidence,
       scope_incidents: data.scope_incidents,
       scope_evidence: data.scope_evidence,
+      case_id: scopedCaseId,
     });
     const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
     const { data: row, error } = await supabaseAdmin
@@ -458,16 +459,12 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
     let scopedEvidence = (link.scope_evidence ?? []) as string[];
 
     if (link.case_id) {
-      const { data: c } = await supabaseAdmin
-        .from("cases")
-        .select("highlighted_incident_ids,attached_evidence_ids")
-        .eq("id", link.case_id)
-        .eq("user_id", data.clientId)
-        .maybeSingle();
+      const { effectiveCaseScope } = await import("@/lib/case-scope.server");
+      const eff = await effectiveCaseScope(supabaseAdmin, link, data.clientId);
       includeAllIncidents = false;
       includeAllEvidence = false;
-      scopedIncidents = (c?.highlighted_incident_ids ?? []) as string[];
-      scopedEvidence = (c?.attached_evidence_ids ?? []) as string[];
+      scopedIncidents = eff.incidents;
+      scopedEvidence = eff.evidence;
     }
 
     const [incQ, evQ, patQ, caseQ] = await Promise.all([
@@ -528,8 +525,9 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
 
     // GPS stays quarantined — it never leaves the survivor's own view. File
     // locations are stripped too: the advocate view is metadata-only.
+    const { evidenceForProfessional, incidentForProfessional } = await import("@/lib/professional-view");
     const evidence = (evQ.data ?? []).map((e) => ({
-      ...e,
+      ...evidenceForProfessional(e),
       gps_lat: null,
       gps_lon: null,
       gps_reveal_opt_in: false,
@@ -590,7 +588,7 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
 
     return {
       case: caseQ.data ?? null,
-      incidents: incQ.data ?? [],
+      incidents: (incQ.data ?? []).map((i) => incidentForProfessional(i)),
       evidence,
       pattern_analysis: patternForAdvocate,
       consent: {

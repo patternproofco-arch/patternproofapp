@@ -73,7 +73,7 @@ export function ChangePasswordCard({
         Change the password you use to sign in. This is separate from the app PIN.
       </p>
       <form onSubmit={submit} className="mt-4 space-y-3">
-        <input
+        <input aria-label="Current password"
           className="input-pp"
           type="password"
           autoComplete="current-password"
@@ -92,7 +92,7 @@ export function ChangePasswordCard({
           value={next}
           onChange={(e) => setNext(e.target.value)}
         />
-        <input
+        <input aria-label="Confirm new password"
           className="input-pp"
           type="password"
           autoComplete="new-password"
