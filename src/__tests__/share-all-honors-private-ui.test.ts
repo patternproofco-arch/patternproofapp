@@ -19,9 +19,13 @@ describe("share-all honours Keep private on the screens that start a share", () 
 
   it("attorney invite counts and lists only what will be shared, and says what is left out", () => {
     expect(attorneyInvite).toContain("isGrantSnapshotEligible(i.share_readiness)");
+    expect(attorneyInvite).toContain("isGrantSnapshotEligible(e.share_readiness)");
     expect(attorneyInvite).toContain("Share all incidents (${shareableIncidents.length})");
+    expect(attorneyInvite).toContain("Share all evidence (${shareableEvidence.length})");
     expect(attorneyInvite).toContain("you kept private");
     expect(attorneyInvite).toContain("None of your entries are marked OK to share yet");
+    expect(attorneyInvite).toContain("None of your files are marked OK to share yet");
+    expect(attorneyInvite).toContain("on Evidence first");
     // Nothing starts selected. A private entry must not be pre-ticked either.
     expect(attorneyInvite).not.toMatch(/setSelectedIncidents\(\s*incidents\.map/);
     expect(attorneyInvite).not.toMatch(/setSelectedEvidence\(\s*evidence\.map/);
@@ -30,6 +34,8 @@ describe("share-all honours Keep private on the screens that start a share", () 
   it("attorney invite falls back to the old query if the readiness column is missing", () => {
     expect(attorneyInvite).toContain('.select("id,date,description,abuse_types,share_readiness")');
     expect(attorneyInvite).toContain('.select("id,date,description,abuse_types")');
+    expect(attorneyInvite).toContain('.select("id,title,date,file_type,share_readiness")');
+    expect(attorneyInvite).toContain('.select("id,title,date,file_type")');
     expect(attorneyInvite).toContain("if (!withReadiness.error)");
   });
 

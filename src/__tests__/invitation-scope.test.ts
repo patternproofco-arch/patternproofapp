@@ -22,7 +22,7 @@ const ev = (id: string, over: Record<string, unknown> = {}) => ({
   user_id: CLIENT,
   created_at: BEFORE,
   deleted_at: null,
-  share_readiness: "private", // files have no readiness control; the column default must not block them
+  share_readiness: "ok_to_share", // same readiness model as journal entries
   ...over,
 });
 

@@ -37,7 +37,13 @@ describe("the invitation screen does not widen on a read error", () => {
   });
 
   it("a failed file read stops the screen too", () => {
-    expect(src).toContain("if (ev.error) throw ev.error");
+    expect(src).toContain("const loadEvidence");
+    expect(src).toContain('.select("id,title,date,file_type,share_readiness")');
+    // Only a missing readiness column may fall back; any other failure throws.
+    const evLoader = src.slice(src.indexOf("const loadEvidence"), src.indexOf("Promise.all([loadIncidents(), loadEvidence()]"));
+    expect(evLoader).toContain("isMissingReadinessColumn(withReadiness.error)");
+    expect(evLoader.indexOf("throw withReadiness.error")).toBeGreaterThan(-1);
+    expect(evLoader.indexOf("throw withReadiness.error")).toBeLessThan(evLoader.indexOf("const plain"));
   });
 });
 

@@ -57,7 +57,13 @@ function SurvivorInvitePage() {
     }>
   >([]);
   const [evidenceOptions, setEvidenceOptions] = useState<
-    Array<{ id: string; title: string; date: string | null; file_type: string }>
+    Array<{
+      id: string;
+      title: string;
+      date: string | null;
+      file_type: string;
+      share_readiness?: string | null;
+    }>
   >([]);
   const [selectedIncidents, setSelectedIncidents] = useState<string[]>([]);
   const [selectedEvidence, setSelectedEvidence] = useState<string[]>([]);
@@ -110,17 +116,32 @@ function SurvivorInvitePage() {
         .order("date", { ascending: false });
       return { data: plain.data as unknown as IncidentRow[] | null };
     };
-    Promise.all([
-      loadIncidents(),
-      supabase
+    type EvidenceRow = {
+      id: string;
+      title: string;
+      date: string | null;
+      file_type: string;
+      share_readiness?: string | null;
+    };
+    const loadEvidence = async (): Promise<{ data: EvidenceRow[] | null }> => {
+      const withReadiness = await supabase
+        .from("evidence")
+        .select("id,title,date,file_type,share_readiness")
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+      if (!withReadiness.error) return { data: withReadiness.data as unknown as EvidenceRow[] };
+      if (!isMissingReadinessColumn(withReadiness.error)) throw withReadiness.error;
+      const plain = await supabase
         .from("evidence")
         .select("id,title,date,file_type")
         .eq("user_id", user.id)
         .is("deleted_at", null)
-        .order("created_at", { ascending: false }),
-    ])
+        .order("created_at", { ascending: false });
+      return { data: plain.data as unknown as EvidenceRow[] | null };
+    };
+    Promise.all([loadIncidents(), loadEvidence()])
       .then(([inc, ev]) => {
-        if (ev.error) throw ev.error;
         // Entries with an unknown date stay in the list: dropping them would leave out
         // entries she may want to share, with no sign anything was missing.
         const incidents = inc.data ?? [];
@@ -146,6 +167,15 @@ function SurvivorInvitePage() {
   const keptPrivateNote =
     keptPrivateCount > 0
       ? `${keptPrivateCount} ${keptPrivateCount === 1 ? "entry" : "entries"} you kept private ${keptPrivateCount === 1 ? "isn't" : "aren't"} included. To include ${keptPrivateCount === 1 ? "it" : "them"}, mark ${keptPrivateCount === 1 ? "it" : "them"} "OK to share later" in your journal first.`
+      : null;
+
+  const shareableEvidence = evidenceOptions.filter((e) =>
+    isGrantSnapshotEligible(e.share_readiness),
+  );
+  const keptPrivateFilesCount = evidenceOptions.length - shareableEvidence.length;
+  const keptPrivateFilesNote =
+    keptPrivateFilesCount > 0
+      ? `${keptPrivateFilesCount} ${keptPrivateFilesCount === 1 ? "file" : "files"} you kept private ${keptPrivateFilesCount === 1 ? "isn't" : "aren't"} included. To include ${keptPrivateFilesCount === 1 ? "it" : "them"}, mark ${keptPrivateFilesCount === 1 ? "it" : "them"} "OK to share later" on Evidence first.`
       : null;
 
   const submitAuth = async (e: React.FormEvent) => {
@@ -523,8 +553,11 @@ function SurvivorInvitePage() {
               name="evidence-mode"
               checked={evidenceMode === "all"}
               onChange={() => setEvidenceMode("all")}
-              title={`Share all evidence (${evidenceOptions.length})`}
-              helper="Recommended so important exhibits are not missed."
+              title={`Share all evidence (${shareableEvidence.length})`}
+              helper={
+                keptPrivateFilesNote ??
+                "Recommended so important exhibits are not missed."
+              }
             />
             <ScopeModeCard
               name="evidence-mode"
@@ -536,8 +569,14 @@ function SurvivorInvitePage() {
               }
             />
             {evidenceMode === "specific" && (
-              <SelectionList empty="No evidence files found in your account yet.">
-                {evidenceOptions.map((item) => (
+              <SelectionList
+                empty={
+                  keptPrivateFilesCount > 0
+                    ? "None of your files are marked OK to share yet. Mark the ones you want to include on Evidence first."
+                    : "No evidence files found in your account yet."
+                }
+              >
+                {shareableEvidence.map((item) => (
                   <SelectableItem
                     key={item.id}
                     checked={selectedEvidence.includes(item.id)}

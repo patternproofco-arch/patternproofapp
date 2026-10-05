@@ -57,18 +57,13 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
 /**
  * Ids that "share all" may sweep in, and that explicit picks must also pass.
  *
- * Journal entries have a real control ("Keep private" / "OK to share later" /
- * "Still deciding") and the screen promises that a kept-private entry "won't
- * show up when you share with someone". So for entries only ok_to_share is in;
- * private and undecided stay out (fail-closed). NULL or a missing column is
- * grandfathered in (rows from before the column existed). Only a MISSING readiness
- * column (migration not applied yet) falls back to every owned entry; any other
- * query error stops the share.
- *
- * Files have NO readiness control anywhere in the app, so their "private" is
- * only the column default, never a choice. Holding them back would leave a
- * survivor's "share everything" with no exhibits and no way to fix it, so for
- * files only an explicit "still deciding" is held back.
+ * Journal entries and files both have a real control ("Keep private" /
+ * "OK to share later" / "Still deciding") on the Journal and Evidence screens.
+ * A kept-private item "won't show up when you share with someone". So only
+ * ok_to_share is in; private and undecided stay out (fail-closed). NULL or a
+ * missing readiness value is grandfathered in (rows from before the column
+ * existed). Only a MISSING readiness column (migration not applied yet) falls
+ * back to every owned item; any other query error stops the share.
  */
 async function shareableIds(
   admin: Admin,
@@ -112,11 +107,7 @@ async function shareableIds(
     throw e;
   }
   return rows
-    .filter((r) =>
-      table === "incidents"
-        ? isGrantSnapshotEligible(r.share_readiness)
-        : r.share_readiness !== "undecided",
-    )
+    .filter((r) => isGrantSnapshotEligible(r.share_readiness))
     .map((r) => r.id);
 }
 
@@ -126,11 +117,11 @@ function uniq(ids: Array<string | null | undefined>) {
 
 /**
  * Replace include_all_* with the concrete ids that exist right now.
- * Fails closed for journal entries: a private or still-deciding entry is never
- * swept in by "share everything" and never added by an explicit pick either.
- * (The invite screen only offers shareable entries, so a pick of one means a
- * stale page, and the safe outcome is to leave it out.) Files are owned-only
- * for explicit picks. Never widens beyond what she owns and hasn't deleted.
+ * Fails closed for journal entries and files: a private or still-deciding item
+ * is never swept in by "share everything" and never added by an explicit pick
+ * either. (The invite screen only offers shareable items, so a pick of one means
+ * a stale page, and the safe outcome is to leave it out.) Never widens beyond
+ * what she owns and hasn't deleted.
  */
 export async function snapshotShareScope<T extends ShareScope>(
   admin: Admin,
@@ -157,9 +148,12 @@ export async function snapshotShareScope<T extends ShareScope>(
   ]);
   const ownEv = new Set(ownedEv);
   const ownInc = new Set(ownedInc);
-  const shareableInc = new Set(
-    await shareableIds(admin, "incidents", clientUserId, opts.createdAtOrBefore),
-  );
+  const [shareableIncList, shareableEvList] = await Promise.all([
+    shareableIds(admin, "incidents", clientUserId, opts.createdAtOrBefore),
+    shareableIds(admin, "evidence", clientUserId, opts.createdAtOrBefore),
+  ]);
+  const shareableInc = new Set(shareableIncList);
+  const shareableEv = new Set(shareableEvList);
   const excluded: ExcludedItem[] = [];
 
   let incidents: string[];
@@ -180,12 +174,17 @@ export async function snapshotShareScope<T extends ShareScope>(
 
   let evidence: string[];
   if (scope.include_all_evidence) {
-    evidence = await shareableIds(admin, "evidence", clientUserId, opts.createdAtOrBefore);
+    evidence = Array.from(shareableEv);
   } else {
     evidence = [];
     for (const id of uniq(scope.scope_evidence ?? [])) {
-      if (ownEv.has(id)) evidence.push(id);
-      else excluded.push({ kind: "file", id, reason: "not_available" });
+      if (ownEv.has(id) && shareableEv.has(id)) evidence.push(id);
+      else
+        excluded.push({
+          kind: "file",
+          id,
+          reason: ownEv.has(id) ? "kept_private" : "not_available",
+        });
     }
   }
 
