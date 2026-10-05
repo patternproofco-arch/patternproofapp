@@ -56,7 +56,7 @@ const TABS: Tab[] = [
   {
     to: "/resources",
     label: "Resources",
-    match: ["/resources", "/opra-helper", "/court-systems", "/support"],
+    match: ["/resources", "/opra-helper", "/court-systems", "/support", "/prep"],
     render: (c) => <BookOpen size={20} strokeWidth={1.75} color={c} />,
   },
 ];

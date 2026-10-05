@@ -27,7 +27,7 @@ describe("service worker keeps nothing private", () => {
   });
 
   it("removes caches left by earlier versions, which stored pages and data", () => {
-    expect(sw).toMatch(/CACHE_VERSION = "v6/);
+    expect(sw).toMatch(/CACHE_VERSION = "v7/);
     expect(sw).toMatch(/caches\.delete\(name\)/);
   });
 });

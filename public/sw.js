@@ -5,7 +5,7 @@
 // after sign-out, after Quick Exit, or by someone using the device while offline. Only public files
 // are kept: the app's static assets (scripts, styles, fonts, images) and the public sign-in/home
 // shell, so the installed app can still open and show the sign-in screen with no connection.
-const CACHE_VERSION = "v6-public-shell-only";
+const CACHE_VERSION = "v7-prep-no-store";
 const CACHE_NAME = `patternproof-${CACHE_VERSION}`;
 
 const SHELL = ["/", "/signin", "/manifest.webmanifest", "/favicon.svg", "/icons/icon-192.png"];
@@ -13,8 +13,14 @@ const SHELL = ["/", "/signin", "/manifest.webmanifest", "/favicon.svg", "/icons/
 // Static, public, identical for everyone.
 const STATIC_FILE = /\.(?:js|css|woff2?|ttf|otf|png|jpe?g|gif|svg|ico|webp|webmanifest)$/i;
 
+function isPrepPath(pathname) {
+  // Court-prep intake/study routes: never offline-cached (spec v5).
+  return pathname === "/prep" || pathname.startsWith("/prep/");
+}
+
 function isCacheableStatic(url) {
   if (url.pathname.startsWith("/_serverFn") || url.pathname.startsWith("/api/")) return false;
+  if (isPrepPath(url.pathname)) return false;
   return url.pathname.startsWith("/assets/") || STATIC_FILE.test(url.pathname);
 }
 
@@ -52,7 +58,12 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
 
   // Pages: always the network. Never stored. Offline, fall back to the PUBLIC shell only.
+  // /prep/* must never be served from cache (intake / study guide privacy).
   if (request.mode === "navigate") {
+    if (isPrepPath(url.pathname)) {
+      event.respondWith(fetch(request));
+      return;
+    }
     event.respondWith(
       fetch(request).catch(
         async () => (await caches.match("/signin")) || (await caches.match("/")) || Response.error(),

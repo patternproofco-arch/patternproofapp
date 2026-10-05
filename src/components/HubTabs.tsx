@@ -52,4 +52,5 @@ export const RESOURCE_TABS: HubTab[] = [
   { to: "/resources", label: "Resources" },
   { to: "/opra-helper", label: "Records requests" },
   { to: "/court-systems", label: "Court systems guide" },
+  { to: "/prep", label: "Court prep" },
 ];
