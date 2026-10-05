@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -27,7 +27,7 @@ import {
 import { checkUploadSize } from "@/lib/upload-limits";
 
 /** A conversation in the list. capture_method tells imported chat files apart. */
-type ListedThread = ImportThread & { capture_method: string | null };
+type ListedThread = ImportThread & { capture_method: string | null; message_count: number | null };
 
 /** One thing to read: either a screenshot she picked, or a frame we pulled from her recording. */
 type Page = { file: File; kind: "screenshot" | "video_frame"; frameTimeSec?: number };
@@ -367,6 +367,16 @@ function ImportMessagesPage() {
                       </span>
                     </span>
                     <span className="flex items-center gap-1">
+                      {(t.message_count ?? 0) > 0 && (
+                        <Link
+                          to="/frequency-matrix/$threadId"
+                          params={{ threadId: t.id }}
+                          className="pp-btn-secondary"
+                          style={{ padding: "6px 12px", fontSize: 13 }}
+                        >
+                          1-page counts
+                        </Link>
+                      )}
                       {t.capture_method === "backup_export" && (
                         <button
                           type="button"

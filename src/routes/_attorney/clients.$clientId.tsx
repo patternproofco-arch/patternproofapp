@@ -3945,14 +3945,26 @@ function ThreadsTab({ clientId }: { clientId: string }) {
         )}
         {openId && loadingOpen && <div style={{ fontSize: 13 }}>Loading conversation…</div>}
         {openId && !loadingOpen && openThread && (
-          <ThreadViewer t={openThread.thread} messages={openThread.messages} />
+          <ThreadViewer
+            t={openThread.thread}
+            messages={openThread.messages}
+            clientId={clientId}
+          />
         )}
       </div>
     </div>
   );
 }
 
-function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[] }) {
+function ThreadViewer({
+  t,
+  messages,
+  clientId,
+}: {
+  t: ThreadRow;
+  messages: ThreadMessage[];
+  clientId: string;
+}) {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div>
@@ -3969,6 +3981,14 @@ function ThreadViewer({ t, messages }: { t: ThreadRow; messages: ThreadMessage[]
         <div style={{ fontSize: 11, color: "var(--att-text-2)", marginTop: 2 }}>
           Source: {t.source_filename} · {t.source_type.toUpperCase()} · {t.message_count} messages
         </div>
+        <Link
+          to="/binder/$clientId/frequency/$threadId"
+          params={{ clientId, threadId: t.id }}
+          className="att-btn att-btn-ghost"
+          style={{ marginTop: 8, display: "inline-flex", fontSize: 12 }}
+        >
+          1-page frequency matrix (counts only)
+        </Link>
       </div>
 
       <div>
