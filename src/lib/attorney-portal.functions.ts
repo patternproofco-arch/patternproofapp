@@ -1309,12 +1309,16 @@ export const getMyUnreadCounts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Match listMyAttorneyBilling / assertLink: half-state (active + revoked_at)
+    // and expired shares must not surface unread badges.
+    const { isActiveShareLink } = await import("@/lib/attorney-access.server");
     const { data: links } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id")
+      .select("id,status,revoked_at,expires_at")
       .eq("client_user_id", context.userId)
-      .eq("status", "active");
-    const ids = (links ?? []).map((l) => l.id);
+      .eq("status", "active")
+      .is("revoked_at", null);
+    const ids = (links ?? []).filter((l) => isActiveShareLink(l)).map((l) => l.id);
     if (!ids.length) return { counts: {} as Record<string, number> };
     const counts: Record<string, number> = {};
     await Promise.all(
