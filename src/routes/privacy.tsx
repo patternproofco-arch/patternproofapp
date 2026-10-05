@@ -52,8 +52,8 @@ function PrivacyPage() {
 
         <Prose>
           <p>
-            PatternProof, operated by G. BURNS COMPANY LLC ("PatternProof," "we," "us," or "our"), is
-            committed to protecting the privacy and safety of our users. This Privacy Policy
+            PatternProof, operated by G. BURNS COMPANY LLC ("PatternProof," "we," "us," or "our"),
+            is committed to protecting the privacy and safety of our users. This Privacy Policy
             explains how we collect, use, store, and protect your information when you use our
             platform and associated services (collectively, the "Services").
           </p>
@@ -201,21 +201,22 @@ function PrivacyPage() {
           <H3>AI providers and subprocessors</H3>
           <p>
             Several features rely on third-party AI providers reached through the Lovable AI
-            Gateway: Google (Gemini models) and OpenAI (GPT-4o transcription). Features that use
-            them include Recurline pattern grouping, the Co-Pilot assistant, evidence content-type
-            suggestions, voice/recording transcription, and reading text from the screenshots, call
-            log photos and screen recordings you add on the Message threads page. Each of those
-            screens tells you this and asks you to agree before anything is sent. The on-device
-            import (Import Messages) reads screenshots and recordings in your own browser and sends
-            nothing to an AI provider.
+            Gateway: Google (Gemini models) and OpenAI (document text recognition and audio
+            transcription). Features that use them include Recurline pattern grouping, the Co-Pilot
+            assistant, evidence content-type suggestions, voice/recording transcription, document
+            text recognition, and reading text from the screenshots, call log photos and screen
+            recordings you add on the Message threads page. The Message threads upload screens ask
+            for agreement before AI reading. Scanned document text recognition asks for separate
+            agreement before sending the file. The on-device import (Import Messages) reads
+            screenshots and recordings in your own browser and sends nothing to an AI provider.
           </p>
           <p>
             When you use those features, the content involved — your entry text, message text, file
             names and extracted text, or audio — is transmitted to and processed by those providers.
             PatternProof does not independently contract with Google or OpenAI; processing is
-            governed by Lovable's agreements with those providers and by each provider's own
-            published API terms, which are the authoritative source for how that content is retained
-            and handled. Their own published policies are the authoritative source (
+            governed by the terms applicable to Lovable's gateway service. General API policies
+            alone do not establish the retention or training settings for PatternProof's gateway
+            account. General provider information is available from (
             <a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noreferrer">
               Google
             </a>{" "}

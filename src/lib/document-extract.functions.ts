@@ -21,7 +21,14 @@ Rules:
 
 export const extractEvidenceDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ evidence_id: z.string().uuid() }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({
+        evidence_id: z.string().uuid(),
+        allowThirdPartyAi: z.boolean().optional().default(false),
+      })
+      .parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { extractDocumentText } = await import("@/lib/document-extract.server");
@@ -75,9 +82,10 @@ export const extractEvidenceDocument = createServerFn({ method: "POST" })
       return { ok: false as const, status: "failed" as const, chars: 0 };
     }
 
-    // Scanned pages: fall back to a machine reading pass, unless the survivor
-    // has withheld AI permission for this item.
-    const aiAllowed = row.ai_permission !== "none" && row.ai_permission !== "denied";
+    // A normal upload or retry only reads the file locally on our server.
+    // Sending a scan to a third party requires fresh, explicit request consent.
+    // Existing item restrictions still take precedence over request consent.
+    const aiAllowed = data.allowThirdPartyAi === true && row.ai_permission === "ask";
     if (result.status === "needs_ocr" && aiAllowed) {
       const readBack = await readScannedDocument(bytes, row.mime ?? "application/pdf");
       if (readBack) {

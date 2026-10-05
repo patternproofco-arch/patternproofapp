@@ -42,7 +42,9 @@ export const LINK_COLUMNS =
 
 /** True once a grant's expiry has passed. Expired access is treated the same as revoked. */
 export function isExpired(expiresAt: string | null | undefined): boolean {
-  return !!expiresAt && new Date(expiresAt).getTime() < Date.now();
+  if (expiresAt == null) return false;
+  const expiry = new Date(expiresAt).getTime();
+  return !Number.isFinite(expiry) || expiry <= Date.now();
 }
 
 /** True when revoked_at is set (half-state: status may still read 'active'). Match SQL has_attorney_access. */
