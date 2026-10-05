@@ -218,8 +218,8 @@ function VoiceNotesPage() {
           <audio controls src={pendingUrl} className="w-full" />
           <div className="grid gap-3 md:grid-cols-2">
             <div>
-              <label className="label-eyebrow">Title</label>
-              <input
+              <label className="label-eyebrow" htmlFor="voice-notes-title">Title</label>
+              <input id="voice-notes-title"
                 className="input-pp mt-1"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -227,8 +227,8 @@ function VoiceNotesPage() {
               />
             </div>
             <div>
-              <label className="label-eyebrow">Date</label>
-              <input
+              <label className="label-eyebrow" htmlFor="voice-notes-date">Date</label>
+              <input id="voice-notes-date"
                 type="date"
                 className="input-pp mt-1"
                 value={date}

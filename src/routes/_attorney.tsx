@@ -213,13 +213,14 @@ function AttorneyLayout() {
 
   return (
     <div className="att-root att-cockpit att-shell" data-persona="attorney">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <AttorneySidebar />
       <div style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <AttorneyTopBar firmName={firmName} />
         <SecurityBanner />
         <LegalDisclaimerBar />
         <AttorneyBreadcrumb />
-        <main className="att-content">
+        <main id="main-content" tabIndex={-1} className="att-content">
           <FocusModeProvider accentColor="var(--att-navy)">
             <Outlet />
           </FocusModeProvider>

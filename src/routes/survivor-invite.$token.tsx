@@ -380,7 +380,7 @@ function SurvivorInvitePage() {
                 >
                   Email
                 </span>
-                <input
+                <input autoComplete="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -400,7 +400,7 @@ function SurvivorInvitePage() {
                 >
                   Password
                 </span>
-                <input
+                <input autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

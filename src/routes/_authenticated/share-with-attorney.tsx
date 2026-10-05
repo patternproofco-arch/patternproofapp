@@ -35,6 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 import { PrivateSinceSharing } from "@/components/sharing/PrivateSinceSharing";
+import { SharePreview } from "@/components/sharing/SharePreview";
 
 export const Route = createFileRoute("/_authenticated/share-with-attorney")({
   component: ShareWithAttorney,
@@ -59,9 +60,10 @@ function ShareWithAttorney() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [firm, setFirm] = useState("");
-  const [incIncidents, setIncIncidents] = useState(true);
-  const [incEvidence, setIncEvidence] = useState(true);
-  const [incPatterns, setIncPatterns] = useState(true);
+  // Nothing is pre-selected: sharing starts only when she chooses what to share.
+  const [incIncidents, setIncIncidents] = useState(false);
+  const [incEvidence, setIncEvidence] = useState(false);
+  const [incPatterns, setIncPatterns] = useState(false);
   const [incVoiceNotes, setIncVoiceNotes] = useState(false);
   const [incCommunications, setIncCommunications] = useState(false);
   const [incLegalDocuments, setIncLegalDocuments] = useState(false);
@@ -74,6 +76,8 @@ function ShareWithAttorney() {
     url: string;
     email: string;
     sent: boolean;
+    shared?: { incidents: number; files: number };
+    heldBack?: number;
   } | null>(null);
   const [cases, setCases] = useState<
     Array<{
@@ -154,7 +158,7 @@ function ShareWithAttorney() {
           expiresLabel: `${days} days`,
         },
       });
-      setJustCreated({ url, email: recipient, sent });
+      setJustCreated({ url, email: recipient, sent, shared: r.shared, heldBack: r.excluded?.length ?? 0 });
       setOpen(false);
       setEmail("");
       setName("");
@@ -213,6 +217,13 @@ function ShareWithAttorney() {
               ? `We emailed the link to ${justCreated.email}. You can also copy it below.`
               : `We couldn't send the email just now — copy the link below and send it to ${justCreated.email} yourself.`}
           </p>
+          {justCreated.shared && (
+            <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+              Shared: {justCreated.shared.incidents} {justCreated.shared.incidents === 1 ? "entry" : "entries"} and{" "}
+              {justCreated.shared.files} {justCreated.shared.files === 1 ? "file" : "files"}.
+              {justCreated.heldBack ? ` ${justCreated.heldBack} you picked were left out (private or undecided).` : ""}
+            </p>
+          )}
           <div
             className="mt-2 break-all rounded-2xl px-3 py-2 text-[12px]"
             style={{ background: "var(--input)", fontFamily: "monospace" }}
@@ -259,8 +270,8 @@ function ShareWithAttorney() {
             <div className="grid gap-3 md:grid-cols-2">
               {cases.length > 0 && (
                 <div className="md:col-span-2">
-                  <label className="label-eyebrow">Which case are you sharing?</label>
-                  <select
+                  <label className="label-eyebrow" htmlFor="share-with-attorney-which-case-are-you-sharing">Which case are you sharing?</label>
+                  <select id="share-with-attorney-which-case-are-you-sharing"
                     className="input-pp mt-1"
                     value={caseId}
                     onChange={(e) => setCaseId(e.target.value)}
@@ -296,8 +307,8 @@ function ShareWithAttorney() {
                 </div>
               )}
               <div>
-                <label className="label-eyebrow">Attorney email</label>
-                <input
+                <label className="label-eyebrow" htmlFor="share-with-attorney-attorney-email">Attorney email</label>
+                <input id="share-with-attorney-attorney-email"
                   className="input-pp mt-1"
                   type="email"
                   value={email}
@@ -305,24 +316,24 @@ function ShareWithAttorney() {
                 />
               </div>
               <div>
-                <label className="label-eyebrow">Attorney's name (optional)</label>
-                <input
+                <label className="label-eyebrow" htmlFor="share-with-attorney-attorney-s-name-optional">Attorney's name (optional)</label>
+                <input id="share-with-attorney-attorney-s-name-optional"
                   className="input-pp mt-1"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
               <div>
-                <label className="label-eyebrow">Law firm (optional)</label>
-                <input
+                <label className="label-eyebrow" htmlFor="share-with-attorney-law-firm-optional">Law firm (optional)</label>
+                <input id="share-with-attorney-law-firm-optional"
                   className="input-pp mt-1"
                   value={firm}
                   onChange={(e) => setFirm(e.target.value)}
                 />
               </div>
               <div>
-                <label className="label-eyebrow">Expires in</label>
-                <select
+                <label className="label-eyebrow" htmlFor="share-with-attorney-expires-in">Expires in</label>
+                <select id="share-with-attorney-expires-in"
                   className="input-pp mt-1"
                   value={days}
                   onChange={(e) => setDays(Number(e.target.value))}
@@ -382,8 +393,8 @@ function ShareWithAttorney() {
             </div>
 
             <div>
-              <label className="label-eyebrow">Personal note to attorney (private, optional)</label>
-              <textarea
+              <label className="label-eyebrow" htmlFor="share-with-attorney-personal-note-to-attorney-priv">Personal note to attorney (private, optional)</label>
+              <textarea id="share-with-attorney-personal-note-to-attorney-priv"
                 className="input-pp mt-1"
                 rows={3}
                 value={personalNote}
@@ -392,8 +403,14 @@ function ShareWithAttorney() {
               />
             </div>
 
+            <SharePreview includeIncidents={incIncidents} includeEvidence={incEvidence} caseId={caseId} />
+
             <div className="flex gap-2">
-              <button onClick={submit} disabled={busy} className="btn-primary">
+              <button
+                onClick={submit}
+                disabled={busy || !(incIncidents || incEvidence || incPatterns || incVoiceNotes || incCommunications || incLegalDocuments || caseId)}
+                className="btn-primary"
+              >
                 {busy ? "Creating…" : "Generate Secure Access Link"}
               </button>
               <button onClick={() => setOpen(false)} className="btn-ghost">

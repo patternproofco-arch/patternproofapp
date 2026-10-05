@@ -89,7 +89,7 @@ function ForgotPasswordPage() {
               </p>
 
               <form onSubmit={submit} className="space-y-3" noValidate>
-                <input
+                <input aria-label="Email"
                   type="email"
                   required
                   autoComplete="email"

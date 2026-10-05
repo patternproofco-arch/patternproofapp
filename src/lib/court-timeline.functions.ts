@@ -18,6 +18,7 @@ type Link = {
   scope_incidents: string[] | null;
   scope_evidence: string[] | null;
   attorney_user_id: string | null;
+  case_id?: string | null;
 };
 
 export const getMyCourtTimeline = createServerFn({ method: "GET" })
@@ -25,10 +26,12 @@ export const getMyCourtTimeline = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const { freezeLegacyBlanketScope } = await import("@/lib/grant-snapshot.server");
+    const { effectiveCaseScope } = await import("@/lib/case-scope.server");
+    const { selectInChunks } = await import("@/lib/in-chunks.server");
     const { data: links } = await db
       .from("attorney_client_links")
       .select(
-        "id,status,revoked_at,expires_at,created_at,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,attorney_user_id",
+        "id,status,revoked_at,expires_at,created_at,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,attorney_user_id,case_id",
       )
       .eq("client_user_id", context.userId);
 
@@ -44,29 +47,42 @@ export const getMyCourtTimeline = createServerFn({ method: "GET" })
         .eq("id", l.id)
         .single();
       l = { ...l, ...(fresh ?? {}) };
-      const incIds = l.scope_incidents ?? [];
-      const evIds = l.scope_evidence ?? [];
+      let incIds = l.scope_incidents ?? [];
+      let evIds = l.scope_evidence ?? [];
+      // Shows what the attorney really sees, so a case-scoped link uses the same rule as theirs.
+      if (l.case_id) {
+        const eff = await effectiveCaseScope(db, l, context.userId);
+        incIds = eff.incidents;
+        evIds = eff.evidence;
+      }
       const [inc, ev, req, prof] = await Promise.all([
-        incIds.length
-          ? db
+        // Long lists are read in batches; a failed batch stops this rather than showing a short list.
+        selectInChunks(
+          incIds,
+          (chunk) =>
+            db
               .from("incidents")
               .select("*")
               .eq("user_id", context.userId)
-              .in("id", incIds)
+              .in("id", chunk)
               .is("deleted_at", null)
               // Same rule as the attorney's binder: machine-read entries the
               // survivor never confirmed are not shown to the attorney.
-              .or("source.neq.ai_extracted,confirmed_at.not.is.null")
-          : Promise.resolve({ data: [] }),
-        evIds.length
-          ? db
+              .or("source.neq.ai_extracted,confirmed_at.not.is.null"),
+          { what: "shared entry" },
+        ).then((rows) => ({ data: rows })),
+        selectInChunks(
+          evIds,
+          (chunk) =>
+            db
               .from("evidence")
               .select("*")
               .eq("user_id", context.userId)
-              .in("id", evIds)
+              .in("id", chunk)
               .is("deleted_at", null)
-              .neq("review_status", "suggested")
-          : Promise.resolve({ data: [] }),
+              .neq("review_status", "suggested"),
+          { what: "shared file" },
+        ).then((rows) => ({ data: rows })),
         db
           .from("attorney_document_requests")
           .select("id,title,status,submitted_at,response_note")

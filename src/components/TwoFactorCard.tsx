@@ -202,7 +202,7 @@ export function TwoFactorCard({
           </div>
           {!required ? (
             <form onSubmit={disable} className="space-y-3">
-              <input
+              <input aria-label="Code to turn off"
                 className="input-pp text-center tracking-[0.4em]"
                 inputMode="numeric"
                 autoComplete="one-time-code"

@@ -87,6 +87,8 @@ export function PinScreen() {
                 )}
                 <input
                   type="password"
+                  autoComplete="off"
+                  aria-label="PIN"
                   inputMode="numeric"
                   pattern="[0-9]*"
                   maxLength={4}

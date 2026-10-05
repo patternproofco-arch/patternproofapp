@@ -207,7 +207,7 @@ function ResetPasswordPage() {
                   aria-describedby={error ? "reset-password-error" : undefined}
                   className="input-pp"
                 />
-                <input
+                <input aria-label="Confirm new password"
                   type="password"
                   required
                   minLength={MIN_LEN}

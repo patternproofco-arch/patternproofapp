@@ -15,6 +15,7 @@ import { listCourtDates, upsertCourtDate, deleteCourtDate } from "@/lib/court-da
 import { syncCourtDateToGoogle } from "@/lib/google-calendar.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
+import { FormField } from "@/components/FormField";
 
 export const Route = createFileRoute("/_authenticated/court-dates")({
   component: CourtDatesPage,
@@ -85,10 +86,15 @@ function CourtDatesPage() {
   const [editing, setEditing] = useState(false);
   const [syncing, setSyncing] = useState<string | null>(null);
 
+  // A calendar that failed to load must not look like a calendar with nothing on it.
+  const [loadFailed, setLoadFailed] = useState(false);
   const refresh = () =>
     listFn()
-      .then((r) => setRows((r.dates ?? []) as Row[]))
-      .catch(() => {});
+      .then((r) => {
+        setRows((r.dates ?? []) as Row[]);
+        setLoadFailed(false);
+      })
+      .catch(() => setLoadFailed(true));
 
   useEffect(() => {
     void refresh(); /* eslint-disable-next-line */
@@ -223,6 +229,15 @@ function CourtDatesPage() {
         <div>
           <span className="label-eyebrow">Court calendar</span>
           <h1 className="font-serif text-[32px]">Court dates &amp; deadlines</h1>
+          {loadFailed && (
+            <div role="alert" className="card-pp mt-3 text-[13px]" style={{ borderLeft: "3px solid var(--primary)" }}>
+              We couldn't load your court dates, so this calendar may be missing hearings. Don't rely on it
+              until it loads.{" "}
+              <button type="button" className="underline" onClick={() => void refresh()}>
+                Try again
+              </button>
+            </div>
+          )}
           <p className="mt-1 max-w-xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
             Tap a day to add a hearing. Sync any date to your Google Calendar so reminders show up
             alongside the rest of your week.
@@ -456,7 +471,7 @@ function CourtDatesPage() {
                 />
               </Field>
               <Field label="Location (optional)">
-                <input
+                <input aria-label="Room or address"
                   className="input-pp"
                   placeholder="Room or address"
                   value={form.location}
@@ -553,10 +568,5 @@ function DateRow({
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="label-eyebrow mb-1 block">{label}</label>
-      {children}
-    </div>
-  );
+  return <FormField label={label}>{children}</FormField>;
 }

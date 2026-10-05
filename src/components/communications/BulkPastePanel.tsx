@@ -149,8 +149,8 @@ export function BulkPastePanel({ userId, onSaved, onClose }: Props) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="label-eyebrow">Channel</label>
-          <select
+          <label className="label-eyebrow" htmlFor="bulkpastepanel-channel">Channel</label>
+          <select id="bulkpastepanel-channel"
             value={channel}
             onChange={(e) => setChannel(e.target.value as Channel)}
             className="input-pp mt-1"
@@ -163,8 +163,8 @@ export function BulkPastePanel({ userId, onSaved, onClose }: Props) {
           </select>
         </div>
         <div>
-          <label className="label-eyebrow">Your label in thread</label>
-          <input
+          <label className="label-eyebrow" htmlFor="bulkpastepanel-your-label-in-thread">Your label in thread</label>
+          <input id="bulkpastepanel-your-label-in-thread"
             value={meLabel}
             onChange={(e) => setMeLabel(e.target.value)}
             className="input-pp mt-1"
@@ -173,8 +173,8 @@ export function BulkPastePanel({ userId, onSaved, onClose }: Props) {
         </div>
       </div>
       <div>
-        <label className="label-eyebrow">Default date (for lines without one)</label>
-        <input
+        <label className="label-eyebrow" htmlFor="bulkpastepanel-default-date-for-lines-without">Default date (for lines without one)</label>
+        <input id="bulkpastepanel-default-date-for-lines-without"
           type="date"
           value={fallbackDate}
           onChange={(e) => setFallbackDate(e.target.value)}

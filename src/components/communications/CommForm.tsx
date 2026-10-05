@@ -99,8 +99,8 @@ export function CommForm({ userId, incidents, onSaved }: Props) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="label-eyebrow">Date</label>
-          <input
+          <label className="label-eyebrow" htmlFor="commform-date">Date</label>
+          <input id="commform-date"
             type="date"
             required
             value={form.date}
@@ -109,8 +109,8 @@ export function CommForm({ userId, incidents, onSaved }: Props) {
           />
         </div>
         <div>
-          <label className="label-eyebrow">Time</label>
-          <input
+          <label className="label-eyebrow" htmlFor="commform-time">Time</label>
+          <input id="commform-time"
             type="time"
             value={form.time}
             onChange={(e) => setForm({ ...form, time: e.target.value })}
@@ -168,8 +168,8 @@ export function CommForm({ userId, incidents, onSaved }: Props) {
       </div>
 
       <div>
-        <label className="label-eyebrow">From / who</label>
-        <input
+        <label className="label-eyebrow" htmlFor="commform-from-who">From / who</label>
+        <input id="commform-from-who"
           type="text"
           value={form.from_party}
           onChange={(e) => setForm({ ...form, from_party: e.target.value })}
@@ -179,8 +179,8 @@ export function CommForm({ userId, incidents, onSaved }: Props) {
       </div>
 
       <div>
-        <label className="label-eyebrow">What was said / what happened</label>
-        <textarea
+        <label className="label-eyebrow" htmlFor="commform-what-was-said-what-happened">What was said / what happened</label>
+        <textarea id="commform-what-was-said-what-happened"
           value={form.content}
           onChange={(e) => setForm({ ...form, content: e.target.value })}
           className="input-pp mt-1"
@@ -189,8 +189,8 @@ export function CommForm({ userId, incidents, onSaved }: Props) {
       </div>
 
       <div>
-        <label className="label-eyebrow">Link to an incident (optional)</label>
-        <select
+        <label className="label-eyebrow" htmlFor="commform-link-to-an-incident-optional">Link to an incident (optional)</label>
+        <select id="commform-link-to-an-incident-optional"
           value={form.linked_incident_id}
           onChange={(e) => setForm({ ...form, linked_incident_id: e.target.value })}
           className="input-pp mt-1"
@@ -234,8 +234,8 @@ export function CommForm({ userId, incidents, onSaved }: Props) {
       </label>
 
       <div>
-        <label className="label-eyebrow">Notes (optional)</label>
-        <textarea
+        <label className="label-eyebrow" htmlFor="commform-notes-optional">Notes (optional)</label>
+        <textarea id="commform-notes-optional"
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
           className="input-pp mt-1"

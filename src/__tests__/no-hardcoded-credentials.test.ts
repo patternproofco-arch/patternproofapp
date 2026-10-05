@@ -9,6 +9,9 @@ const viteConfig = readFileSync("vite.config.ts", "utf8");
 const mockSession = readFileSync("scripts/qa/mock-session.mjs", "utf8");
 const mcpManifest = readFileSync(".lovable/mcp/manifest.json", "utf8");
 
+/** Approved live auth host for PatternProof (muy). OAuth issuer URLs are public. */
+const APPROVED_MCP_ISSUER = "https://muynotmkcmehxnkhffzl.supabase.co/auth/v1";
+
 describe("no hardcoded production credentials in tip", () => {
   it("vite.config.ts fails closed via requiredBuildEnv (no OR-fallbacks)", () => {
     expect(viteConfig).toMatch(/function requiredBuildEnv/);
@@ -23,8 +26,11 @@ describe("no hardcoded production credentials in tip", () => {
     expect(mockSession).toMatch(/ci-placeholder/);
   });
 
-  it("Lovable MCP manifest issuer is not a live project host", () => {
-    expect(mcpManifest).toMatch(/example\.supabase\.co/);
-    expect(mcpManifest).not.toMatch(/https:\/\/[a-z0-9]{15,}\.supabase\.co/);
+  it("Lovable MCP manifest issuer is placeholder or the approved muy host only", () => {
+    const issuer = (JSON.parse(mcpManifest) as { auth?: { issuer?: string } }).auth?.issuer ?? "";
+    const ok = issuer === "https://example.supabase.co/auth/v1" || issuer === APPROVED_MCP_ISSUER;
+    expect(ok).toBe(true);
+    // Reject other live project hosts (obljoe, preview, etc.).
+    expect(issuer).not.toMatch(/obljoe|xislyfqrcfpwtzonyhcr/);
   });
 });

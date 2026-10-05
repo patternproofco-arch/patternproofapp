@@ -38,6 +38,7 @@ export function AppShell() {
       data-pp-paper=""
       style={{ background: "var(--paper)" }}
     >
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <AmbientBackground />
 
       <header className="pp-shell-header pp-app-chrome no-print app-surface mx-auto flex w-full max-w-[430px] items-center justify-between gap-3 px-4 pt-3">
@@ -50,6 +51,8 @@ export function AppShell() {
 
       <FocusModeProvider>
         <main
+          id="main-content"
+          tabIndex={-1}
           className="pp-app-main app-surface print-page mx-auto w-full max-w-[430px] px-4"
           style={{
             paddingTop: 20,

@@ -2,7 +2,7 @@
 
 Decision: HOLD for real survivor data. This is a targeted source and schema review, not whole product certification or legal clearance.
 
-Reviewed October 5, 2026. Source baseline: f1723b9f on patternproofco-arch/patternproofapp. The configured database project was matched against supabase/config.toml. Only schema metadata and storage configuration were queried. No survivor records were read. The deployed application commit has not been matched to this source baseline.
+Reviewed October 5, 2026. Initial source baseline: f1723b9f on patternproofco-arch/patternproofapp. Reconciled with main f1de5aea after PRs 154 and 180 merged during this review. The configured database project was matched against supabase/config.toml. Only schema metadata and storage configuration were queried. No survivor records were read. The deployed application commit has not been matched to this source baseline.
 
 ## Changes prepared
 
@@ -50,7 +50,7 @@ The earlier briefing's phrase "prelaunch requirement" described a recommended ap
 | Blocker | Evidence | Closure evidence |
 | --- | --- | --- |
 | Source and live schema disagree | Production metadata has none of the extraction fields or `ai_permission` / `is_sealed` used by the route | Test the migration on a disposable database and staging, review it, deploy in coordination with this consent change, then verify the deployed synthetic document flow. Never bypass failed queries. |
-| External script on sensitive pages | Baseline root shell loads Leave a Dot globally. Existing [PR 180](https://github.com/patternproofco-arch/patternproofapp/pull/180) addresses scope | Verify no script or retained listener can read private content after direct navigation or public to private SPA navigation. Removing a script element alone does not unload code already executed. Keep the widget disabled if that isolation cannot be shown. |
+| External script on sensitive pages | Original baseline loaded Leave a Dot globally. [PR 180](https://github.com/patternproofco-arch/patternproofapp/pull/180) has now merged a public route allowlist and DOM removal; executed listeners still require verification | Verify no script or retained listener can read private content after direct navigation or public to private SPA navigation. Removing a script element alone does not unload code already executed. Keep the widget disabled if that isolation cannot be shown. |
 | AI confidentiality terms are unverified | Gateway calls are confirmed; executed account agreements and actual retention settings were not available in this review | Record applicable DPA, subprocessors, training use, human access, retention, deletion and incident duties for runtime requests. General provider policies are insufficient. |
 | AI permission is not uniformly enforced | This patch covers document recognition; evidence transcription, signed URL extraction, classification and timeline routes still need end to end authorization and consent review | Synthetic tests must show denied material is never sent, direct endpoints cannot bypass the choice, and failures do not widen access. Disable unverified AI routes before a restricted beta. |
 | Access and suspension need deployed proof | Private buckets and RLS enabled on public ordinary tables are verified metadata, not policy effectiveness | Use synthetic survivor A/B, attorney and advocate accounts to prove cross account denial, scoped sharing, revocation, exact expiry, suspension, verification and exports. Include retained signed URLs and already downloaded copies in the limits. |
@@ -65,7 +65,7 @@ The California launch remains on hold until the blocking rows above have evidenc
 
 ## Local verification results
 
-1. 65 tests passed across seven files covering the real document handler with synthetic I/O, consent UI, expiry boundaries, attorney authorization, existing extraction, existing AI notices and professional access handlers.
+1. 78 tests passed across eight files after reconciliation with main covering the real document handler with synthetic I/O, consent UI, expiry boundaries, attorney authorization, existing extraction, existing AI notices and professional access handlers.
 2. TypeScript check passed.
 3. Production bundle completed successfully. This is a local build, not a deployed browser test.
 4. Migration passed on embedded PostgreSQL using synthetic rows: defaults for existing records, repeated application, preservation of denied/sealed values and extraction result writes. No live migration was applied.

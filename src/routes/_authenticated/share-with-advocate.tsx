@@ -20,6 +20,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 import { PrivateSinceSharing } from "@/components/sharing/PrivateSinceSharing";
+import { SharePreview } from "@/components/sharing/SharePreview";
 
 export const Route = createFileRoute("/_authenticated/share-with-advocate")({
   component: ShareWithAdvocate,
@@ -59,7 +60,12 @@ function ShareWithAdvocate() {
     Array<{ id: string; case_name: string | null; other_party: string | null }>
   >([]);
   const [busy, setBusy] = useState(false);
-  const [justCreated, setJustCreated] = useState<{ url: string; email: string } | null>(null);
+  const [justCreated, setJustCreated] = useState<{
+    url: string;
+    email: string;
+    shared?: { incidents: number; files: number };
+    heldBack?: number;
+  } | null>(null);
 
   const load = useCallback(() => {
     listFn()
@@ -85,13 +91,13 @@ function ShareWithAdvocate() {
       toast("Add the advocate's email first.");
       return;
     }
-    if (!incIncidents && !incEvidence && !incPatterns) {
+    if (!incIncidents && !incEvidence && !incPatterns && !caseId) {
       toast("Choose at least one thing to share before sending this invite.");
       return;
     }
     setBusy(true);
     try {
-      const { invitation } = await createFn({
+      const { invitation, shared, excluded } = await createFn({
         data: {
           advocate_email: email.trim(),
           advocate_name: name.trim() || undefined,
@@ -105,7 +111,7 @@ function ShareWithAdvocate() {
         },
       });
       const url = `${window.location.origin}/advocate-invite/${invitation.invite_token}`;
-      setJustCreated({ url, email: email.trim() });
+      setJustCreated({ url, email: email.trim(), shared, heldBack: excluded?.length ?? 0 });
       setOpen(false);
       setEmail("");
       setName("");
@@ -160,6 +166,13 @@ function ShareWithAdvocate() {
           <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 4 }}>
             Send this to them however feels safest. Only that email address can open it.
           </p>
+          {justCreated.shared && (
+            <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 4 }}>
+              Shared: {justCreated.shared.incidents} {justCreated.shared.incidents === 1 ? "entry" : "entries"} and{" "}
+              {justCreated.shared.files} {justCreated.shared.files === 1 ? "file" : "files"}.
+              {justCreated.heldBack ? ` ${justCreated.heldBack} you picked were left out (private or undecided).` : ""}
+            </p>
+          )}
           <div
             style={{
               display: "flex",
@@ -300,8 +313,13 @@ function ShareWithAdvocate() {
               <option value={365}>1 year</option>
             </select>
           </label>
+          <SharePreview includeIncidents={incIncidents} includeEvidence={incEvidence} caseId={caseId} />
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={submit} disabled={busy} className="btn-pp">
+            <button
+              onClick={submit}
+              disabled={busy || !(incIncidents || incEvidence || incPatterns || caseId)}
+              className="btn-pp"
+            >
               {busy ? "Creating…" : "Create invite link"}
             </button>
             <button onClick={() => setOpen(false)} className="btn-ghost text-[13px]">

@@ -65,6 +65,7 @@ export const createInvitation = createServerFn({ method: "POST" })
       include_all_evidence: data.scope_evidence ? false : data.include_all_evidence,
       scope_incidents: data.scope_incidents,
       scope_evidence: data.scope_evidence,
+      case_id: scopedCaseId,
     });
     const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
     const { data: row, error } = await supabaseAdmin

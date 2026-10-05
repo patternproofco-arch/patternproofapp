@@ -117,7 +117,7 @@ function LawyerSignup() {
               Already invited?
             </div>
             <form onSubmit={auth} className="mt-4 space-y-3">
-              <input
+              <input autoComplete="email" aria-label="Work email"
                 className="input-pp"
                 type="email"
                 required
@@ -125,7 +125,7 @@ function LawyerSignup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <input
+              <input autoComplete={"new-password"} aria-label="Password"
                 className="input-pp"
                 type="password"
                 required
@@ -143,27 +143,27 @@ function LawyerSignup() {
           <div className="card-pp">
             <h2 className="font-serif text-[20px]">Tell clients who they're working with</h2>
             <form onSubmit={saveProfile} className="mt-4 space-y-3">
-              <input
+              <input aria-label="Full name"
                 className="input-pp"
                 required
                 placeholder="Full name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
-              <input
+              <input aria-label="Firm name (optional)"
                 className="input-pp"
                 placeholder="Firm name (optional)"
                 value={firm}
                 onChange={(e) => setFirm(e.target.value)}
               />
               <div className="grid grid-cols-2 gap-3">
-                <input
+                <input aria-label="Bar #"
                   className="input-pp"
                   placeholder="Bar #"
                   value={bar}
                   onChange={(e) => setBar(e.target.value)}
                 />
-                <input
+                <input aria-label="Jurisdiction"
                   className="input-pp"
                   placeholder="Jurisdiction"
                   value={jur}

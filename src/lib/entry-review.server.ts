@@ -179,3 +179,62 @@ export async function askAboutEntry(
   if (rErr) throw new Error("The question was sent, but we couldn't mark this entry. Reload to see it.");
   return { requestId };
 }
+
+export type ReviewSummaryRow = { clientId: string; newCount: number; clarifyCount: number };
+export type ReviewSummary = { rows: ReviewSummaryRow[]; checked: number; couldNotCheck: number; capped: boolean };
+
+export const SUMMARY_MAX_CLIENTS = 25;
+
+/**
+ * Across the attorney's active clients: where is there something new to read or an open
+ * clarification. Each client goes through getQueue, so access, sharing scope and the
+ * subscription check are the same as opening that client. A client that can't be checked is
+ * counted as "couldn't check", never as "nothing new".
+ */
+export async function getReviewSummary(
+  admin: Admin,
+  userId: string,
+  opts: { entitled: (clientId: string) => Promise<boolean> },
+): Promise<ReviewSummary> {
+  const { isRevoked, isExpired } = await import("@/lib/attorney-access.server");
+  const links = await selectAllPages<{
+    client_user_id: string;
+    status: string;
+    revoked_at: string | null;
+    expires_at: string | null;
+  }>(
+    (a, b) =>
+      admin
+        .from("attorney_client_links")
+        .select("client_user_id,status,revoked_at,expires_at")
+        .eq("attorney_user_id", userId)
+        .eq("status", "active")
+        .order("client_user_id", { ascending: true })
+        .range(a, b),
+    { what: "client" },
+  );
+  const clients = Array.from(
+    new Set(links.filter((l) => !isRevoked(l.revoked_at) && !isExpired(l.expires_at)).map((l) => l.client_user_id)),
+  );
+  const capped = clients.length > SUMMARY_MAX_CLIENTS;
+  const batch = clients.slice(0, SUMMARY_MAX_CLIENTS);
+
+  let rows: ReviewSummaryRow[] = [];
+  let couldNotCheck = 0;
+  for (let i = 0; i < batch.length; i += 5) {
+    const results = await Promise.all(
+      batch.slice(i, i + 5).map(async (clientId) => {
+        try {
+          if (!(await opts.entitled(clientId))) return null;
+          const q = await getQueue(admin, userId, clientId);
+          return { clientId, newCount: q.counts.new, clarifyCount: q.counts.needs_clarification };
+        } catch {
+          couldNotCheck++;
+          return null;
+        }
+      }),
+    );
+    rows = rows.concat(results.filter((r): r is ReviewSummaryRow => !!r && (r.newCount > 0 || r.clarifyCount > 0)));
+  }
+  return { rows, checked: batch.length - couldNotCheck, couldNotCheck, capped };
+}

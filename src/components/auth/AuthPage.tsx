@@ -55,6 +55,7 @@ export function AuthPage({
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const consentBlocked = mode === "signup" && !agreed;
 
@@ -234,7 +235,11 @@ export function AuthPage({
           </div>
 
           <form onSubmit={submit} className="space-y-3">
+            <label htmlFor="auth-email" className="label-eyebrow block">
+              Email
+            </label>
             <input
+              id="auth-email"
               type="email"
               required
               autoComplete="email"
@@ -248,8 +253,12 @@ export function AuthPage({
               aria-describedby={authError ? "auth-error-msg" : undefined}
               className="input-pp"
             />
+            <label htmlFor="auth-password" className="label-eyebrow block">
+              Password
+            </label>
             <input
-              type="password"
+              id="auth-password"
+              type={showPassword ? "text" : "password"}
               required
               minLength={8}
               autoComplete={mode === "login" ? "current-password" : "new-password"}
@@ -263,6 +272,10 @@ export function AuthPage({
               aria-describedby={authError ? "auth-error-msg" : undefined}
               className="input-pp"
             />
+            <label className="flex items-center gap-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              <input type="checkbox" checked={showPassword} onChange={(e) => setShowPassword(e.target.checked)} />
+              Show what I'm typing
+            </label>
             {authError && (
               <p
                 role="alert"

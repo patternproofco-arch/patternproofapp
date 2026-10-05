@@ -10,7 +10,16 @@ const MUTED = { color: "var(--muted-foreground)" } as const;
  * alone can't replace the PIN: it takes the account password again, or, for an account with no
  * password (Google sign-in), a sign-in from the last few minutes. Checked on the server.
  */
-export function ForgotPinPanel({ onCancel }: { onCancel: () => void }) {
+export function ForgotPinPanel({
+  onCancel,
+  title = "Reset your PIN",
+  intro,
+}: {
+  onCancel?: () => void;
+  title?: string;
+  /** Replaces the default explanation, e.g. on the recovery screen. */
+  intro?: string;
+}) {
   const { user } = useAuth();
   const { resetPin } = usePinLock();
   const providers = ((user?.app_metadata as { providers?: string[] } | undefined)?.providers ?? []) as string[];
@@ -48,20 +57,23 @@ export function ForgotPinPanel({ onCancel }: { onCancel: () => void }) {
         <button type="button" className="btn-primary w-full" onClick={() => void supabase.auth.signOut()}>
           Sign out
         </button>
-        <button type="button" className="btn-ghost w-full" onClick={onCancel}>
-          Back
-        </button>
+        {onCancel && (
+          <button type="button" className="btn-ghost w-full" onClick={onCancel}>
+            Back
+          </button>
+        )}
       </div>
     );
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" aria-label="Reset your PIN">
-      <h2 className="font-serif text-[20px]">Reset your PIN</h2>
+      <h2 className="font-serif text-[20px]">{title}</h2>
       <p className="text-[13px]" style={MUTED}>
-        {usesPassword
-          ? "Enter your account password to confirm it's you, then choose a new PIN. Your entries aren't affected."
-          : "You sign in with Google, so we'll check you signed in just now, then you can choose a new PIN. Your entries aren't affected."}
+        {intro ??
+          (usesPassword
+            ? "Enter your account password to confirm it's you, then choose a new PIN. Your entries aren't affected."
+            : "You sign in with Google, so we'll check you signed in just now, then you can choose a new PIN. Your entries aren't affected.")}
       </p>
       {usesPassword && (
         <>
@@ -109,9 +121,11 @@ export function ForgotPinPanel({ onCancel }: { onCancel: () => void }) {
       <button type="submit" className="btn-primary w-full" disabled={busy}>
         {busy ? "Checking…" : "Reset PIN"}
       </button>
-      <button type="button" className="btn-ghost w-full" onClick={onCancel}>
-        Back
-      </button>
+      {onCancel && (
+        <button type="button" className="btn-ghost w-full" onClick={onCancel}>
+          Back
+        </button>
+      )}
       {note && (
         <p role="alert" className="text-[13px]" style={MUTED}>
           {note}

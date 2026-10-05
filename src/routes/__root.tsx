@@ -17,6 +17,7 @@ import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
 import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
 import { GlobalHeader } from "@/components/GlobalHeader";
 import { GlobalFooter } from "@/components/GlobalFooter";
+import { LeaveADotLoader } from "@/components/LeaveADotLoader";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "";
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
@@ -257,7 +258,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function gtag(){dataLayer.push(arguments);}
 window.gtag = gtag;
 gtag('js', new Date());
-gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`,
+gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false });`,
       },
       {
         type: "application/ld+json",
@@ -302,11 +303,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body className="pp-app">
         {children}
-        <script
-          src="https://app.leaveadot.com/dot.js"
-          data-project="proj_ydd514h48rz0"
-          data-link="ymjrs3q"
-        />
         <Scripts />
       </body>
     </html>
@@ -349,6 +345,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <GoogleAnalyticsRouteTracker />
+        <LeaveADotLoader />
         <div className="pp-global-layout">
           <GlobalHeader />
           <div className="pp-global-page">

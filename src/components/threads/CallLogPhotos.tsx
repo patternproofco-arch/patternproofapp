@@ -130,8 +130,8 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
 
       <div className="grid gap-3 mb-3" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
         <div>
-          <label className="label-eyebrow">Phone</label>
-          <select
+          <label className="label-eyebrow" htmlFor="calllogphotos-phone">Phone</label>
+          <select id="calllogphotos-phone"
             value={platform}
             onChange={(e) => setPlatform(e.target.value as typeof platform)}
             className="input-pp mt-1"
@@ -142,8 +142,8 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
           </select>
         </div>
         <div>
-          <label className="label-eyebrow">Who is this about?</label>
-          <input
+          <label className="label-eyebrow" htmlFor="calllogphotos-who-is-this-about">Who is this about?</label>
+          <input id="calllogphotos-who-is-this-about"
             value={participant}
             onChange={(e) => setParticipant(e.target.value)}
             className="input-pp mt-1"
@@ -151,8 +151,8 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
           />
         </div>
         <div>
-          <label className="label-eyebrow">Anything to remember?</label>
-          <input
+          <label className="label-eyebrow" htmlFor="calllogphotos-anything-to-remember">Anything to remember?</label>
+          <input id="calllogphotos-anything-to-remember"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="input-pp mt-1"
