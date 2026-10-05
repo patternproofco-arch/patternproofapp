@@ -166,11 +166,9 @@ describe("sharing never reaches forward in time", () => {
     expect(frozen.scope_evidence).toEqual(["ev-1"]);
   });
 
-  // Files have no readiness control anywhere in the app, so "private" on a file is
-  // only the column default, never a choice. Holding them back would leave a
-  // "share everything" grant with no exhibits and no way to fix it. Entries are
-  // different: the survivor is shown "Keep private" and promised it won't be shared.
-  it("files default to private with no control, so share-all keeps them; only 'still deciding' is held back", async () => {
+  // Files now have the same Evidence-screen control as journal entries. A
+  // kept-private or still-deciding file stays out of "share everything".
+  it("excludes private / undecided files from share-all; only ok_to_share (and deleted stay out)", async () => {
     const db = fakeAdmin({
       ...world(),
       evidence: [
@@ -210,7 +208,40 @@ describe("sharing never reaches forward in time", () => {
       scope_incidents: [],
       scope_evidence: [],
     });
-    expect(frozen.scope_evidence?.sort()).toEqual(["ev-default", "ev-ok"]);
+    expect(frozen.scope_evidence).toEqual(["ev-ok"]);
+  });
+
+  it("reports a picked file that was kept private instead of dropping it silently", async () => {
+    const db = fakeAdmin({
+      incidents: [],
+      evidence: [
+        {
+          id: "ev-ok",
+          user_id: SURV,
+          deleted_at: null,
+          created_at: "2026-01-01T00:00:00Z",
+          share_readiness: "ok_to_share",
+        },
+        {
+          id: "ev-priv",
+          user_id: SURV,
+          deleted_at: null,
+          created_at: "2026-01-01T00:00:00Z",
+          share_readiness: "private",
+        },
+      ],
+    });
+    const frozen = await snapshotShareScope(db, SURV, {
+      include_all_incidents: false,
+      include_all_evidence: false,
+      scope_incidents: [],
+      scope_evidence: ["ev-ok", "ev-priv", "ev-gone"],
+    });
+    expect(frozen.scope_evidence).toEqual(["ev-ok"]);
+    expect(frozen.excluded).toEqual([
+      { kind: "file", id: "ev-priv", reason: "kept_private" },
+      { kind: "file", id: "ev-gone", reason: "not_available" },
+    ]);
   });
 
   it("a kept-private entry is out of 'share everything' even when it is the only entry", async () => {

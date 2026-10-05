@@ -31,4 +31,12 @@ describe("the evidence page", () => {
   it("a failed read does not empty the screen", () => {
     expect(src).toMatch(/if \(ev\.error\)/);
   });
+  it("lets survivors mark each file OK to share with the same readiness hinge as journal", () => {
+    expect(src).toContain("DraftTrustHinge");
+    expect(src).toContain("EntryStatusChip");
+    expect(src).toContain("share_readiness");
+    expect(src).toContain("isMissingReadinessColumn");
+    expect(src).toContain('data-testid="evidence-file-card"');
+    expect(src).toMatch(/\.update\(\{ share_readiness: readiness \}\)/);
+  });
 });

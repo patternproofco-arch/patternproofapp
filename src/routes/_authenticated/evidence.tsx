@@ -38,6 +38,13 @@ import { ABUSE_TYPES } from "@/lib/abuse-types";
 import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 import { FormField } from "@/components/FormField";
+import { DraftTrustHinge } from "@/components/sharing/DraftTrustHinge";
+import { EntryStatusChip } from "@/components/sharing/EntryStatusChip";
+import {
+  isMissingReadinessColumn,
+  normalizeShareReadiness,
+  type ShareReadiness,
+} from "@/lib/sharing/share-readiness";
 
 export const Route = createFileRoute("/_authenticated/evidence")({
   component: EvidencePage,
@@ -64,7 +71,7 @@ interface EvidenceRow {
   extraction_pages?: number | null;
   extraction_verified_at?: string | null;
   mime?: string | null;
-
+  share_readiness?: ShareReadiness | string | null;
 }
 // review_status: "suggested" rows are held back from exports/attorney views
 // until the survivor confirms the match on /evidence-review.
@@ -165,18 +172,36 @@ function EvidencePage() {
   const [savingIncident, setSavingIncident] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<EvidenceRow | null>(null);
   const [tab, setTab] = useState<EvidenceTab>("documentation");
+  const [trustHingeOpen, setTrustHingeOpen] = useState(false);
+  const [trustEditId, setTrustEditId] = useState<string | null>(null);
+  const [pendingShareReadiness, setPendingShareReadiness] =
+    useState<ShareReadiness>("private");
 
   const load = useCallback(async () => {
     if (!user) return;
-    const [ev, inc] = await Promise.all([
-      supabase
+    const evidenceSelectWith =
+      "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status,mime,extracted_text,extraction_status,extraction_method,extraction_pages,extraction_verified_at,share_readiness";
+    const evidenceSelectPlain =
+      "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status,mime,extracted_text,extraction_status,extraction_method,extraction_pages,extraction_verified_at";
+    const loadEvidence = async () => {
+      const withReadiness = await supabase
         .from("evidence")
-        .select(
-          "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status,mime,extracted_text,extraction_status,extraction_method,extraction_pages,extraction_verified_at",
-        )
+        .select(evidenceSelectWith)
         .eq("user_id", user.id)
         .is("deleted_at", null)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false });
+      if (!withReadiness.error) return withReadiness;
+      // Only a missing column may fall back. Any other failure must stop.
+      if (!isMissingReadinessColumn(withReadiness.error)) return withReadiness;
+      return supabase
+        .from("evidence")
+        .select(evidenceSelectPlain)
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+    };
+    const [ev, inc] = await Promise.all([
+      loadEvidence(),
       supabase
         .from("incidents")
         .select("id,date,description")
@@ -798,12 +823,24 @@ function EvidencePage() {
                       const url = previewUrls[it.id];
                       const linked = incidents.find((i) => i.id === it.linked_incident_id);
                       return (
-                        <div key={it.id} className="card-pp">
+                        <div key={it.id} className="card-pp" data-testid="evidence-file-card">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2">
                               <KindIcon kind={it.file_type} />
                               <div className="font-serif text-[15px] leading-tight">{it.title}</div>
                             </div>
+                          </div>
+                          <div className="mt-2">
+                            <EntryStatusChip
+                              readiness={it.share_readiness}
+                              onEditReadiness={() => {
+                                setTrustEditId(it.id);
+                                setPendingShareReadiness(
+                                  normalizeShareReadiness(it.share_readiness),
+                                );
+                                setTrustHingeOpen(true);
+                              }}
+                            />
                           </div>
                           <div className="mono-meta mono-meta--muted mt-2">
                             {new Date(it.date).toLocaleDateString()} · {it.file_type} ·{" "}
@@ -1197,6 +1234,32 @@ function EvidencePage() {
         cta="Go to Archive"
         to="/journal"
       />
+      <DraftTrustHinge
+        open={trustHingeOpen}
+        onOpenChange={setTrustHingeOpen}
+        initial={pendingShareReadiness}
+        mode="edit"
+        onConfirm={async (readiness) => {
+          if (!user || !trustEditId) return;
+          const { error } = await supabase
+            .from("evidence")
+            .update({ share_readiness: readiness })
+            .eq("id", trustEditId)
+            .eq("user_id", user.id);
+          if (error) {
+            if (isMissingReadinessColumn(error)) {
+              toast(
+                "Sharing readiness isn't available on this database yet. Ask to apply the share_readiness migration, then try again.",
+              );
+            } else {
+              toast("We couldn't update sharing readiness. Try again in a moment.");
+            }
+            throw error;
+          }
+          await load();
+        }}
+      />
+
       <ConfirmDialog
         open={!!confirmDelete}
         title="Remove this evidence?"
