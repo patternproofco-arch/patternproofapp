@@ -21,7 +21,7 @@ const file = (id: string, created_at = BEFORE) => ({
   user_id: CLIENT,
   created_at,
   deleted_at: null,
-  share_readiness: "private",
+  share_readiness: "ok_to_share",
 });
 const theCase = (over: Record<string, unknown> = {}) => ({
   id: "case-1",
