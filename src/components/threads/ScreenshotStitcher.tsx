@@ -77,6 +77,7 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
       toast("Stitching your screenshots…", { icon: "✨" });
       const res = await stitch({
         data: {
+          allowThirdPartyAi: true,
           screenshotPaths: paths,
           capturedAt: new Date().toISOString(),
           captureNotes: notes || undefined,

@@ -14,7 +14,7 @@ export const Route = createFileRoute("/ai-transparency")({
       {
         property: "og:description",
         content:
-          "Separated AI extraction and interpretation, Confirm / Edit / Reject / Unsure on every suggestion, and full provenance on every AI output.",
+          "How AI assists documentation, how to review its output, and what attorneys should verify.",
       },
       { property: "og:url", content: "https://pattern-proof.tech/ai-transparency" },
       { property: "og:type", content: "article" },
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/ai-transparency")({
       {
         name: "twitter:description",
         content:
-          "Separated AI extraction and interpretation, Confirm / Edit / Reject / Unsure on every suggestion, and full provenance on every AI output.",
+          "How AI assists documentation, how to review its output, and what attorneys should verify.",
       },
     ],
     links: [{ rel: "canonical", href: "https://pattern-proof.tech/ai-transparency" }],
@@ -33,6 +33,9 @@ export const Route = createFileRoute("/ai-transparency")({
       title="AI Transparency"
       subtitle="What our AI does, what it does not do, and how you stay in control."
     >
+      <Callout>Some AI features are paused while privacy and access checks are completed.
+        You can continue saving and organizing records manually. An unavailable AI feature
+        should not be treated as having read or verified a file.</Callout>
       <Section title="Extraction vs. interpretation">
         <p>
           <strong>Extraction</strong> pulls facts out of what you upload: text, names, dates, times,
@@ -46,25 +49,43 @@ export const Route = createFileRoute("/ai-transparency")({
       </Section>
       <Section title="You decide">
         <p>
-          Every AI suggestion supports Confirm, Edit, Reject, Unsure, and Review later. Rejected
-          suggestions never appear in an export.
+          Review AI suggestions against your source material before saving or sharing them. Check
+          the final export too. Available review controls vary by feature.
         </p>
       </Section>
       <Section title="Explanations, not hidden reasoning">
         <p>
-          Every AI output shows what PatternProof did, why, which sources it used, what remains
-          uncertain, and what you can do next. We do not expose private model reasoning or
-          chain-of-thought.
+          AI can misread names, dates, speakers, and context. A fluent answer is not proof that an
+          event occurred. Keep the original source available when reviewing a suggestion.
         </p>
       </Section>
-      <Section title="Provenance we store with each AI output">
-        <ul>
-          <li>Source record IDs the suggestion was drawn from</li>
-          <li>Kind of AI activity (extraction or interpretation)</li>
-          <li>Model identifier and version, and instruction version</li>
-          <li>Structured output, timestamp, and your response</li>
-          <li>Revision and export history</li>
-        </ul>
+      <Section title="Source records and AI processing">
+        <p>
+          Source references and processing details vary by feature. PatternProof does not promise a
+          complete model version, instruction history, or revision record for every AI output. AI
+          text and transcripts are derived material, not authenticated originals.
+        </p>
+        <p>
+          AI features send relevant content to Google or OpenAI through Lovable's AI Gateway. Review
+          our{" "}
+          <a href="/privacy" className="underline">
+            privacy notice
+          </a>{" "}
+          before using them with confidential information. Confirm the applicable provider terms and
+          authorization before entering client material.
+        </p>
+      </Section>
+      <Section title="For attorneys">
+        <p>
+          PatternProof assists documentation and does not replace your legal judgment. Independently
+          check facts, dates, quotations, and any legal citations against their sources before use.
+          A user's confirmation is not an attorney's verification or a guarantee of admissibility.
+        </p>
+        <p>
+          Before submitting a document to a court, identify any AI contribution and check the
+          court's applicable disclosure rules. Sharing through PatternProof does not by itself
+          establish an attorney client relationship or make a record privileged.
+        </p>
       </Section>
       <Section title="What AI does not do">
         <Callout>

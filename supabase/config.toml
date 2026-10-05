@@ -1,1 +1,3 @@
-project_id = "obljoemiijkryjlxihic"
+# Matches the approved live auth host in .lovable/mcp/manifest.json.
+# Never apply migrations until the target and release evidence are rechecked.
+project_id = "muynotmkcmehxnkhffzl"

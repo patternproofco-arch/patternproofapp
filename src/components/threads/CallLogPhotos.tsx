@@ -68,6 +68,7 @@ export function CallLogPhotos({ onDone, onCancel }: Props) {
       toast("Reading your call log…", { icon: "📞" });
       const res = await parseFn({
         data: {
+          allowThirdPartyAi: true,
           photoPaths: paths,
           platform,
           capturedAt: new Date().toISOString(),

@@ -28,6 +28,7 @@ import {
   extractEvidenceDocument,
   verifyExtractedText,
 } from "@/lib/document-extract.functions";
+import { DocumentAiReadConsent } from "@/components/evidence/DocumentAiReadConsent";
 import { isReadableDocument } from "@/lib/readable-documents";
 
 import { FocusRegion } from "@/components/survivor/focus-mode";
@@ -892,7 +893,16 @@ function EvidencePage() {
                                   </p>
                                 </>
                               ) : it.extraction_status === "needs_ocr" ? (
-                                "This looks like a scan. We couldn't read its text yet."
+                                <DocumentAiReadConsent
+                                  key={it.id}
+                                  onRead={async () => {
+                                    const result = await extractDocFn({
+                                      data: { evidence_id: it.id, allowThirdPartyAi: true },
+                                    });
+                                    await load();
+                                    if (!result.ok) throw new Error("Text could not be read.");
+                                  }}
+                                />
                               ) : it.extraction_status === "empty" ? (
                                 "This file has no readable text in it."
                               ) : it.extraction_status === "unsupported" ? (
@@ -958,8 +968,10 @@ function EvidencePage() {
                                 <button
                                   onClick={() => {
                                     void extractDocFn({ data: { evidence_id: it.id } })
-                                      .then(() => {
-                                        toast("Text ready to review.");
+                                      .then((result) => {
+                                        toast(result.ok
+                                          ? "Text ready to review."
+                                          : "No text was extracted. Open the file to review it.");
                                         return load();
                                       })
                                       .catch(() => {

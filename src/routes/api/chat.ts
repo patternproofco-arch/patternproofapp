@@ -3,6 +3,7 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createClient } from "@supabase/supabase-js";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agent-prompt";
+import { AI_PAUSED_MESSAGE, isAiFeatureReleased } from "@/lib/ai-release-policy.server";
 
 type Body = { messages?: UIMessage[]; threadId?: string };
 
@@ -10,6 +11,9 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        if (!isAiFeatureReleased("unreviewed-sdk")) {
+          return new Response(AI_PAUSED_MESSAGE, { status: 503 });
+        }
         const auth = request.headers.get("authorization") ?? "";
         const token = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7) : "";
         if (!token) return new Response("Unauthorized", { status: 401 });

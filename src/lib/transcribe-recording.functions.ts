@@ -1,3 +1,4 @@
+import { fetchAiGateway } from "@/lib/ai-release-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -29,7 +30,7 @@ export const transcribeRecording = createServerFn({ method: "POST" })
     form.append("model", "google/gemini-3.5-transcribe");
     form.append("file", new File([bytes], `recording.${ext}`, { type: baseMime }));
     form.append("response_format", "json");
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+    const res = await fetchAiGateway("transcribe-recording", "audio/transcriptions", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}` },
       body: form,

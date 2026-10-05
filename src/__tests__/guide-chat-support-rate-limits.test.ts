@@ -32,7 +32,7 @@ describe("guideChat auth + rate limits", () => {
       /const \{ error: counterError \} = await db\.from\("ai_chat_requests"\)\.insert/,
     );
     const insertIdx = guide.indexOf('from("ai_chat_requests").insert');
-    const lovableIdx = guide.indexOf("ai.gateway.lovable.dev");
+    const lovableIdx = guide.indexOf('await fetchAiGateway("guide-chat"');
     expect(insertIdx).toBeGreaterThan(-1);
     expect(lovableIdx).toBeGreaterThan(insertIdx);
     const between = guide.slice(insertIdx, lovableIdx);

@@ -78,9 +78,9 @@ describe("Leave a Dot only on public marketing pages", () => {
     }
   });
 
-  it("root uses the path-gated loader and does not inject Leave a Dot in the shell", () => {
+  it("root never loads feedback code in the app document", () => {
     const root = readFileSync(new URL("../routes/__root.tsx", import.meta.url), "utf8");
-    expect(root).toContain("LeaveADotLoader");
+    expect(root).not.toContain("LeaveADotLoader");
     expect(root).not.toMatch(/src=["']https:\/\/app\.leaveadot\.com\/dot\.js["']/);
   });
 

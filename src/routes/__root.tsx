@@ -13,11 +13,9 @@ import appCss from "../styles.css?url";
 import folioLockCss from "../folio-lock.css?url";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
-import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
 import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
 import { GlobalHeader } from "@/components/GlobalHeader";
 import { GlobalFooter } from "@/components/GlobalFooter";
-import { LeaveADotLoader } from "@/components/LeaveADotLoader";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "";
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
@@ -250,17 +248,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: quickExitFallbackScript,
       },
       {
-        async: true,
-        src: `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`,
-      },
-      {
-        children: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-window.gtag = gtag;
-gtag('js', new Date());
-gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false });`,
-      },
-      {
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
@@ -344,8 +331,6 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <GoogleAnalyticsRouteTracker />
-        <LeaveADotLoader />
         <div className="pp-global-layout">
           <GlobalHeader />
           <div className="pp-global-page">
