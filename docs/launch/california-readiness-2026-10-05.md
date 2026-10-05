@@ -2,16 +2,28 @@
 
 Decision: HOLD for real survivor data. This is a targeted source and schema review, not whole product certification or legal clearance.
 
-Reviewed October 5, 2026. Initial source baseline: f1723b9f on patternproofco-arch/patternproofapp. Reconciled with main f1de5aea after PRs 154 and 180 merged during this review. The configured database project was matched against supabase/config.toml. Only schema metadata and storage configuration were queried. No survivor records were read. The deployed application commit has not been matched to this source baseline.
+Reviewed October 5, 2026. Initial source baseline: f1723b9f on patternproofco-arch/patternproofapp. Reconciled with main through 6d381439, including PRs 154, 180, 182 and 183. Lovable reports 6d381439 as its latest project commit; that is not confirmation of the published deployment commit.
+
+## Environment correction
+
+The first metadata queries targeted `obljoemiijkryjlxihic`, the old `supabase/config.toml` target. Those findings did not describe the database attached to the published app. Earlier references to that metadata as production evidence were incorrect.
+
+The approved auth issuer is `muynotmkcmehxnkhffzl`, as recorded by the MCP manifest and credential configuration test. Read only queries through the authenticated Lovable connector for published project `f496a23a-1a8f-408f-b5e0-e96d5947d49c` confirmed that its attached database already has the document extraction, AI permission and sealing fields, plus the two admin OAuth RPCs. This removes the claimed missing schema blocker for that project. The CLI target is corrected in this candidate. No migration should be applied merely because the old project was missing fields.
+
+Only catalog metadata, function definitions, policies and bucket configuration were read. No survivor rows were accessed. Neither metadata inspection nor Lovable's published flag proves working runtime authorization.
 
 ## Changes prepared
 
-1. Ordinary document extraction cannot send scanned files to AI. A separate unchecked consent action names OpenAI and Lovable, explains the private data transfer, and must be repeated for another attempt. The server requires literal boolean consent, owner scope, an unsealed item, and the known `ask` permission state. Denied, missing and unknown permission states do not permit AI reading.
-2. Sharing expiry denies malformed dates and the exact expiry boundary.
-3. AI transparency copy no longer promises complete provenance or identical review controls for every output. It adds attorney verification, confidentiality and court disclosure guidance.
-4. A migration adds the document fields missing from the configured database. `ask` is only eligibility to request permission, never permission to send. Existing values are preserved; no grants or policies are widened.
+1. Document OCR requires a separate unchecked action naming OpenAI and Lovable. The server checks explicit consent, ownership, sealing and the known permission state. Ordinary document extraction remains local to the application where supported.
+2. Runtime AI is paused by default at every inspected gateway call and the shared SDK provider. Provider review alone cannot enable it. Only four named paths with added consent controls can be explicitly enabled after review; other AI paths cannot be enabled through environment configuration. All flags remain off by default.
+3. Screenshot, call photo and recording transcription endpoints require literal request consent. Storage processing checks ownership and exact configured storage origin; redirects are rejected on the updated reads. The release gate is separate from consent and ownership.
+4. Google Analytics and Leave a Dot are no longer mounted in the shared root. The prior public route filtering did not prove previously executed scripts could not observe later private navigation.
+5. Connected apps use Supabase Auth's session bound grant APIs, which revoke sessions and refresh tokens as well as consent. Load failures display an unknown state, not an empty list. Revocation copy explains existing token lifetime and retained copies.
+6. New OAuth approval through the app and all four MCP tools are paused. This does not itself block already issued tokens from Supabase's direct APIs; see the release blocker below.
+7. Sharing expiry denies malformed dates and the exact expiry boundary. AI transparency no longer promises uniform review or full provenance and explains the pause.
+8. The additive, idempotent extraction migration is retained as schema reconciliation for environments missing these fields, not a demonstrated live requirement. Existing values are preserved; no policies or grants are widened.
 
-These changes do not establish consent across every AI feature. The document controls are not a global sealing mechanism or proof of a court sealing order. The migration and application changes have not been deployed.
+These are candidate changes, not deployed controls. The document checks are not a global sealing mechanism or proof of a court sealing order. Pausing AI also makes AI assisted features unavailable; manual workflows still require deployed testing.
 
 ## Observed AI scope
 
@@ -49,11 +61,12 @@ The earlier briefing's phrase "prelaunch requirement" described a recommended ap
 
 | Blocker | Evidence | Closure evidence |
 | --- | --- | --- |
-| Source and live schema disagree | Production metadata has none of the extraction fields or `ai_permission` / `is_sealed` used by the route | Test the migration on a disposable database and staging, review it, deploy in coordination with this consent change, then verify the deployed synthetic document flow. Never bypass failed queries. |
-| External script on sensitive pages | Original baseline loaded Leave a Dot globally. [PR 180](https://github.com/patternproofco-arch/patternproofapp/pull/180) has now merged a public route allowlist and DOM removal; executed listeners still require verification | Verify no script or retained listener can read private content after direct navigation or public to private SPA navigation. Removing a script element alone does not unload code already executed. Keep the widget disabled if that isolation cannot be shown. |
-| AI confidentiality terms are unverified | Gateway calls are confirmed; executed account agreements and actual retention settings were not available in this review | Record applicable DPA, subprocessors, training use, human access, retention, deletion and incident duties for runtime requests. General provider policies are insufficient. |
-| AI permission is not uniformly enforced | This patch covers document recognition; evidence transcription, signed URL extraction, classification and timeline routes still need end to end authorization and consent review | Synthetic tests must show denied material is never sent, direct endpoints cannot bypass the choice, and failures do not widen access. Disable unverified AI routes before a restricted beta. |
-| Access and suspension need deployed proof | Private buckets and RLS enabled on public ordinary tables are verified metadata, not policy effectiveness | Use synthetic survivor A/B, attorney and advocate accounts to prove cross account denial, scoped sharing, revocation, exact expiry, suspension, verification and exports. Include retained signed URLs and already downloaded copies in the limits. |
+| Deployed release identity is unproven | Lovable latest project commit matches main 6d381439; published commit was not returned | Match the published build and database target to the reviewed release, then run synthetic browser and direct API checks. |
+| External script isolation | Candidate removes analytics and feedback loaders from the shared document | Verify a clean browser and public to private navigation have no analytics or widget requests or retained listeners in the deployed candidate. |
+| AI confidentiality terms are unverified | Gateway calls are confirmed; executed processing agreements and actual retention settings were unavailable | Keep runtime AI paused until provider terms, training use, human access, retention, deletion and incident duties are recorded. Test any explicitly enabled path with synthetic inputs. |
+| Existing OAuth tokens may bypass the app pause | Live evidence and incident policies check `auth.uid()` ownership; inspected policy expressions contain no `client_id` restriction. OAuth scopes do not limit Supabase database access. Current admin revoke RPC only updates consent; it does not delete sessions | Confirm issued token/session inventory without disclosing credentials. Implement and test OAuth restrictions across RLS, storage, security definer RPCs and service role backed app routes, or disable OAuth issuance and revoke existing grants with verified expiry. Pausing MCP and the approval screen alone is insufficient. |
+| Professional verification and suspension | PR 94 remains unmerged. The attached database metadata did not show professional verification or suspension columns. This is supporting evidence, not exhaustive proof of absent controls | Finish and reconcile the professional access work. Test survivor A/B, attorney and advocate accounts for cross account denial, verification, suspension, scoped sharing, exact expiry, revocation and exports. Include previously signed URLs and downloaded copies in limits. |
+| Secret scan history gate is red | PR's current tree secret scan passed; history job failed. Existing remediation inventory identifies public client keys and identifiers but does not establish exposure of live privileged credentials | Review the redacted historical findings, classify keys, document any necessary rotation and complete the repository gate. Do not call all hits secret leaks or rewrite history without coordinated review. |
 | Original preservation needs a full round trip | Ingest hashes uploaded bytes; BatchDropzone can strip EXIF before ingest. A hash therefore proves the submitted bytes, not necessarily the original device file | Compare download hashes with upload bytes. Label privacy processed copies accurately, keep originals only with informed safe storage choices, test metadata preservation without exposing GPS to recipients. |
 | Legal and policy scope remains open | AI statutes, CalOPPA, CCPA and partner roles are distinct | Complete the narrow applicability review using this inventory and actual contracts, then align launch claims and privacy terms. Do not promise court admissibility, privilege, California certification or complete provenance. |
 
@@ -65,10 +78,10 @@ The California launch remains on hold until the blocking rows above have evidenc
 
 ## Local verification results
 
-1. 78 tests passed across eight files after reconciliation with main covering the real document handler with synthetic I/O, consent UI, expiry boundaries, attorney authorization, existing extraction, existing AI notices and professional access handlers.
-2. TypeScript check passed.
-3. Production bundle completed successfully. This is a local build, not a deployed browser test.
-4. Migration passed on embedded PostgreSQL using synthetic rows: defaults for existing records, repeated application, preservation of denied/sealed values and extraction result writes. No live migration was applied.
-5. Diff whitespace check passed.
+After reconciliation with main 6d381439: all 986 tests passed across 99 files, TypeScript passed, the production bundle built successfully, and the diff whitespace check passed. New tests cover default AI denial, the fixed provider destination, SDK bypass denial, thread request consent, storage ownership and URL restrictions, OAuth grant errors, revocation messaging and MCP pause. These local tests are not deployed user journey or live RLS tests. The previous targeted extraction migration exercise passed in embedded PostgreSQL with synthetic rows: defaults, repeated application, preserved denied/sealed values and extraction writes. This was not a live migration.
 
-The production metadata check found all five listed storage buckets private and no public ordinary table with RLS disabled. This does not verify individual policies, views, RPCs, signed URLs or runtime suspension enforcement.
+Read only metadata from the database attached to the published Lovable project confirms all five listed buckets are private and no public ordinary table has RLS disabled. The admin OAuth RPCs are executable by service role, not anon or authenticated roles. These checks do not prove policy effectiveness, immediate revocation or runtime professional suspension.
+
+## Auth sources
+
+[Supabase grant revocation](https://supabase.com/docs/reference/javascript/oauth-server-revokegrant) documents consent, active OAuth session and refresh token revocation. [OAuth token security](https://supabase.com/docs/guides/auth/oauth-server/token-security) documents the `client_id` claim and explains that OIDC scopes do not control database access. Remaining access token behavior must be tested against this deployment.

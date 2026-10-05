@@ -1,3 +1,4 @@
+import { fetchAiGateway } from "@/lib/ai-release-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -279,7 +280,7 @@ export const analyzePatterns = createServerFn({ method: "POST" })
       escalation_flags: flagsRes.data ?? [],
     };
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchAiGateway("pattern-analysis", "chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey },
       body: JSON.stringify({

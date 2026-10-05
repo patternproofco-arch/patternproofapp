@@ -37,10 +37,11 @@ describe("analytics only counts the public site", () => {
     }
   });
 
-  it("the tracker uses the filter, and ad personalization signals are off", () => {
+  it("analytics is absent from the shared application root", () => {
     expect(readFileSync(new URL("../lib/ga.tsx", import.meta.url), "utf8")).toMatch(/isReportableRoute\(routeId\)/);
     const root = readFileSync(new URL("../routes/__root.tsx", import.meta.url), "utf8");
-    expect(root).toMatch(/allow_google_signals: false/);
-    expect(root).toMatch(/allow_ad_personalization_signals: false/);
+    expect(root).not.toContain("GoogleAnalyticsRouteTracker");
+    expect(root).not.toContain("googletagmanager.com");
+    expect(root).not.toContain("gtag(");
   });
 });

@@ -1,3 +1,4 @@
+import { fetchAiGateway } from "@/lib/ai-release-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -76,7 +77,7 @@ export const transcribeVoiceNote = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "fetch-failed" };
     }
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchAiGateway("transcribe-voice-note", "chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({

@@ -33,6 +33,9 @@ export const Route = createFileRoute("/ai-transparency")({
       title="AI Transparency"
       subtitle="What our AI does, what it does not do, and how you stay in control."
     >
+      <Callout>Some AI features are paused while privacy and access checks are completed.
+        You can continue saving and organizing records manually. An unavailable AI feature
+        should not be treated as having read or verified a file.</Callout>
       <Section title="Extraction vs. interpretation">
         <p>
           <strong>Extraction</strong> pulls facts out of what you upload: text, names, dates, times,

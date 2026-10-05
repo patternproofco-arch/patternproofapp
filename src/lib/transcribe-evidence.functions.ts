@@ -1,3 +1,4 @@
+import { fetchAiGateway } from "@/lib/ai-release-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -89,7 +90,7 @@ export const transcribeEvidence = createServerFn({ method: "POST" })
       // never read back. Segment timestamps are simply not offered here.
       form.append("response_format", "json");
 
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+      const res = await fetchAiGateway("transcribe-evidence", "audio/transcriptions", {
         method: "POST",
         headers: { Authorization: `Bearer ${key}` },
         body: form,

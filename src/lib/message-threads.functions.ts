@@ -1,7 +1,8 @@
+import { fetchAiGateway, assertAiFeatureReleased } from "@/lib/ai-release-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertSupabaseStorageUrl } from "./safe-fetch.server";
+import { assertSupabaseStorageUrl, assertOwnedStoragePath } from "./safe-fetch.server";
 import { createHash } from "crypto";
 
 type SourceType = "pdf" | "csv" | "excel" | "txt" | "rsmf" | "zip";
@@ -172,8 +173,8 @@ export const parseMessageThread = createServerFn({ method: "POST" })
     let parseError: string | null = null;
 
     try {
-      assertSupabaseStorageUrl(data.signedUrl);
-      const fileRes = await fetch(data.signedUrl);
+      assertSupabaseStorageUrl(data.signedUrl, userId);
+      const fileRes = await fetch(data.signedUrl, { redirect: "error" });
       if (!fileRes.ok) throw new Error("download-failed");
       const buf = Buffer.from(await fileRes.arrayBuffer());
       if (buf.length > 20 * 1024 * 1024) throw new Error("file too large (20MB max)");
@@ -295,12 +296,12 @@ async function extractBubblesFromImage(
 ): Promise<StitchBubble[]> {
   try {
     assertSupabaseStorageUrl(signedUrl);
-    const r = await fetch(signedUrl);
+    const r = await fetch(signedUrl, { redirect: "error" });
     if (!r.ok) return [];
     const buf = Buffer.from(await r.arrayBuffer());
     if (buf.length > 8 * 1024 * 1024) return [];
     const dataUri = `data:${mimeType};base64,${buf.toString("base64")}`;
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchAiGateway("thread-screenshots", "chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({
@@ -384,6 +385,7 @@ export const stitchScreenshotThread = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
+        allowThirdPartyAi: z.literal(true),
         screenshotPaths: z.array(z.string().min(1)).min(1).max(60),
         capturedAt: z.string().datetime().optional(),
         captureNotes: z.string().max(500).optional(),
@@ -393,6 +395,8 @@ export const stitchScreenshotThread = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    assertAiFeatureReleased("thread-screenshots");
+    for (const path of data.screenshotPaths) assertOwnedStoragePath(path, userId);
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("AI is not available right now.");
 
@@ -430,7 +434,7 @@ export const stitchScreenshotThread = createServerFn({ method: "POST" })
       }
       // hash the file for the audit meta
       try {
-        const r = await fetch(signed.signedUrl);
+        const r = await fetch(signed.signedUrl, { redirect: "error" });
         const buf = Buffer.from(await r.arrayBuffer());
         shaList.push(createHash("sha256").update(buf).digest("hex"));
       } catch {
@@ -530,6 +534,7 @@ export const ingestRecordedThread = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    assertOwnedStoragePath(data.videoPath, userId);
 
     // hash the video for audit
     let sha: string | null = null;
@@ -538,7 +543,7 @@ export const ingestRecordedThread = createServerFn({ method: "POST" })
         .from("evidence-files")
         .createSignedUrl(data.videoPath, 600);
       if (signed?.signedUrl) {
-        const r = await fetch(signed.signedUrl);
+        const r = await fetch(signed.signedUrl, { redirect: "error" });
         const buf = Buffer.from(await r.arrayBuffer());
         if (buf.length <= 200 * 1024 * 1024) {
           sha = createHash("sha256").update(buf).digest("hex");
@@ -601,9 +606,10 @@ export const ingestRecordedThread = createServerFn({ method: "POST" })
 
 export const transcribeRecordedThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ threadId: z.string().uuid() }).parse(input))
+  .inputValidator((input) => z.object({ threadId: z.string().uuid(), allowThirdPartyAi: z.literal(true) }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    assertAiFeatureReleased("thread-recording");
     const key = process.env.LOVABLE_API_KEY;
 
     const rowRes = await supabase
@@ -619,6 +625,7 @@ export const transcribeRecordedThread = createServerFn({ method: "POST" })
       source_filename: string | null;
       capture_method: string | null;
     };
+    assertOwnedStoragePath(row.file_url, userId);
     if (row.capture_method !== "screen_recording") {
       throw new Error("Only screen recordings are transcribed here.");
     }
@@ -658,9 +665,9 @@ export const transcribeRecordedThread = createServerFn({ method: "POST" })
       const form = new FormData();
       form.append("file", dl.data, row.source_filename ?? "recording.mp4");
       form.append("model", "openai/gpt-4o-transcribe");
-      form.append("response_format", "verbose_json");
+      form.append("response_format", "json");
 
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+      const res = await fetchAiGateway("thread-recording", "audio/transcriptions", {
         method: "POST",
         headers: { Authorization: `Bearer ${key}` },
         body: form,
@@ -726,12 +733,12 @@ async function extractCallsFromImage(
 ): Promise<CallRow[]> {
   try {
     assertSupabaseStorageUrl(signedUrl);
-    const r = await fetch(signedUrl);
+    const r = await fetch(signedUrl, { redirect: "error" });
     if (!r.ok) return [];
     const buf = Buffer.from(await r.arrayBuffer());
     if (buf.length > 8 * 1024 * 1024) return [];
     const dataUri = `data:${mimeType};base64,${buf.toString("base64")}`;
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchAiGateway("thread-call-photos", "chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({
@@ -801,6 +808,7 @@ export const parseCallLogPhotos = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
+        allowThirdPartyAi: z.literal(true),
         photoPaths: z.array(z.string().min(1)).min(1).max(40),
         platform: z.enum(["iphone", "android", "unknown"]).default("unknown"),
         capturedAt: z.string().datetime().optional(),
@@ -811,6 +819,8 @@ export const parseCallLogPhotos = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    assertAiFeatureReleased("thread-call-photos");
+    for (const path of data.photoPaths) assertOwnedStoragePath(path, userId);
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("AI is not available right now.");
 
@@ -845,7 +855,7 @@ export const parseCallLogPhotos = createServerFn({ method: "POST" })
         continue;
       }
       try {
-        const r = await fetch(signed.signedUrl);
+        const r = await fetch(signed.signedUrl, { redirect: "error" });
         const buf = Buffer.from(await r.arrayBuffer());
         shaList.push(createHash("sha256").update(buf).digest("hex"));
       } catch {

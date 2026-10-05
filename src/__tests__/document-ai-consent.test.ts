@@ -54,6 +54,8 @@ beforeEach(() => {
     },
   };
   vi.stubEnv("LOVABLE_API_KEY", "synthetic-test-key");
+  vi.stubEnv("PATTERNPROOF_AI_PROVIDER_REVIEWED", "true");
+  vi.stubEnv("PATTERNPROOF_AI_ENABLED_FEATURES", "document-text");
   vi.stubGlobal(
     "fetch",
     vi.fn(

@@ -1,3 +1,4 @@
+import { fetchAiGateway } from "@/lib/ai-release-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -127,7 +128,7 @@ async function readScannedDocument(bytes: Uint8Array, mime: string): Promise<str
   if (bytes.byteLength > 8 * 1024 * 1024) return null;
   const dataUri = `data:${mime};base64,${Buffer.from(bytes).toString("base64")}`;
   try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchAiGateway("document-text", "chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
       body: JSON.stringify({

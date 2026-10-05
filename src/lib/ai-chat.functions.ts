@@ -1,3 +1,4 @@
+import { fetchAiGateway } from "@/lib/ai-release-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -96,7 +97,7 @@ export const sidekickChat = createServerFn({ method: "POST" })
         ? " Recent incident snippets: " + data.recentIncidents.map((s) => `"${s}"`).join("; ")
         : ""
     }`;
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchAiGateway("ai-chat", "chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

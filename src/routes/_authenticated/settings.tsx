@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   Mic,
   Trash2,
-  Plug,
   FileText,
   BellOff,
 } from "lucide-react";
@@ -20,7 +19,7 @@ import { usePinLock } from "@/lib/pin-lock";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
-import { listMyOauthConsents, revokeMyOauthConsent } from "@/lib/oauth-consents.functions";
+import { ConnectedApps } from "@/components/ConnectedApps";
 import { generateExportZip } from "@/lib/export-zip.functions";
 import {
   listMyAttorneyCaseNotes,
@@ -40,89 +39,6 @@ interface AuditRow {
   actor: string;
   record_reference: string | null;
   entry_hash: string | null;
-}
-
-interface ConsentRow {
-  id: string;
-  client_id: string;
-  client_name: string | null;
-  client_uri: string | null;
-  scopes: string | null;
-  granted_at: string;
-}
-
-function ConnectedApps() {
-  const [rows, setRows] = useState<ConsentRow[] | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
-
-  const load = async () => {
-    try {
-      const data = await listMyOauthConsents();
-      setRows((data ?? []) as ConsentRow[]);
-    } catch {
-      setRows([]);
-    }
-  };
-
-  useEffect(() => {
-    void load();
-  }, []);
-
-  const revoke = async (id: string) => {
-    setBusyId(id);
-    try {
-      const res = await revokeMyOauthConsent({ data: { consentId: id } });
-      if (!res.revoked) throw new Error("not revoked");
-    } catch {
-      setBusyId(null);
-      toast("We couldn't turn off that connection. Try again in a moment.");
-      return;
-    }
-    setBusyId(null);
-    toast("Access revoked. That app can no longer reach your records.");
-    void load();
-  };
-
-  return (
-    <div id="connected-apps" className="card-pp mt-6 scroll-mt-24">
-      <div className="flex items-center gap-2">
-        <Plug size={18} style={{ color: "var(--accent)" }} />
-        <h2 className="font-serif text-[19px]">Connected apps</h2>
-      </div>
-      <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-        Outside AI assistants and apps you've allowed to act as you.
-      </p>
-      {rows === null ? (
-        <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          Checking…
-        </p>
-      ) : rows.length === 0 ? (
-        <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          Nothing connected right now.
-        </p>
-      ) : (
-        <div className="mt-4 flex flex-col gap-3">
-          {rows.map((r) => (
-            <div
-              key={r.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl p-3"
-              style={{ background: "var(--input)" }}
-            >
-              <div>
-                <div className="text-[14px] font-semibold">{r.client_name ?? "Connected app"}</div>
-                <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                  Connected {new Date(r.granted_at).toLocaleDateString()}
-                </div>
-              </div>
-              <button onClick={() => revoke(r.id)} disabled={busyId === r.id} className="btn-primary">
-                {busyId === r.id ? "One moment…" : "Revoke access"}
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 function NotesFromAttorney() {

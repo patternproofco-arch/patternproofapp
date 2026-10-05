@@ -68,10 +68,10 @@ describe("auth soft-claim empty-config UX", () => {
     expect(src).not.toMatch(/eyJ[A-Za-z0-9_-]{10,}/);
   });
 
-  it("oauth consent does not touch supabase.auth at module top-level", () => {
+  it("paused OAuth consent cannot approve a new connection", () => {
     const src = readFileSync("src/routes/[.]lovable.oauth.consent.tsx", "utf8");
-    expect(src).toMatch(/function getOAuthApi/);
-    expect(src).toMatch(/isClientSupabaseConfigured/);
+    expect(src).toContain("New app connections are paused");
+    expect(src).not.toContain("approveAuthorization");
     // No eager module-scope supabase.auth property access.
     expect(src).not.toMatch(/^const oauth = \(supabase\.auth/m);
   });

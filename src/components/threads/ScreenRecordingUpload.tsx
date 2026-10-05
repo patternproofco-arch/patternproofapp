@@ -71,7 +71,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
       onDone();
       // Fire-and-forget: transcription can take a while and shouldn't block the UI.
       // Failures are handled server-side by writing a friendly parse_error.
-      transcribe({ data: { threadId: ing.threadId } }).catch(() => {
+      transcribe({ data: { threadId: ing.threadId, allowThirdPartyAi: true } }).catch(() => {
         /* server records failure */
       });
     } catch (e) {
