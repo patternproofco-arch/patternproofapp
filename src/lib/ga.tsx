@@ -23,7 +23,7 @@ declare global {
  */
 export function GoogleAnalyticsRouteTracker() {
   const routeId = useRouterState({
-    select: (s) => s.matches[s.matches.length - 1]?.routeId ?? "/",
+    select: (s): string => s.matches[s.matches.length - 1]?.routeId ?? "/",
   });
 
   useEffect(() => {
