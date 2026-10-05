@@ -1602,6 +1602,60 @@ export const getClientThread = createServerFn({ method: "POST" })
       );
     return { thread, messages: messages ?? [] };
   });
+/**
+ * Counts-only view of one shared thread for the 1-page frequency matrix.
+ * Same access rule as getClientThread (active link, entitlement, case scope),
+ * but message text is never selected: only sender, side, date, time and
+ * marker columns come back, and the matrix is computed from those.
+ */
+export const getClientThreadMatrixData = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ clientId: z.string().uuid(), threadId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { link } = await assertCaseAccess(context.userId, data.clientId);
+    await assertEntitled(context.userId, data.clientId);
+    if (link.case_id && !(link.scope_threads ?? []).includes(data.threadId)) {
+      throw new Error("Thread not shared for this case");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { MATRIX_THREAD_COLUMNS, readThreadMatrixRows } = await import(
+      "@/lib/frequency-matrix.server"
+    );
+    const { data: thread } = await supabaseAdmin
+      .from("message_threads")
+      .select(MATRIX_THREAD_COLUMNS)
+      .eq("id", data.threadId)
+      .eq("user_id", data.clientId)
+      .maybeSingle();
+    if (!thread) throw new Error("Thread not found");
+    const { messages, truncated } = await readThreadMatrixRows(
+      supabaseAdmin,
+      data.clientId,
+      data.threadId,
+    );
+    await supabaseAdmin
+      .rpc("record_audit_event", {
+        p_user_id: data.clientId,
+        p_event_type: "thread.counts_viewed_by_professional",
+        p_subject_kind: "message_thread",
+        p_subject_id: data.threadId,
+        p_actor_kind: "attorney",
+        p_actor_id: context.userId,
+        p_meta: { link_id: link.id ?? null },
+      })
+      .then(
+        () => undefined,
+        (e: unknown) => console.error("[audit] thread counts view log failed", e),
+      );
+    return {
+      thread: thread as import("@/lib/frequency-matrix.server").MatrixThread,
+      messages,
+      truncated,
+    };
+  });
+
 /* ------------------------- firm conflict check ------------------------- */
 
 // Surfaces possible same-name overlaps between clients across attorneys in the

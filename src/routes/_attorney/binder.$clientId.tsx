@@ -11,6 +11,7 @@ import { PleadingIndex } from "@/components/PleadingIndex";
 import { AttorneyBinderEmpty } from "@/components/attorney/AttorneyBinderEmpty";
 import { ChronologyWorkspace, useChronologyWorkspace } from "@/components/attorney/ChronologyWorkspace";
 import { ClioTransferPanel } from "@/components/attorney/ClioTransferPanel";
+import { BinderFrequencyMatrixLinks } from "@/components/attorney/BinderFrequencyMatrixLinks";
 
 export const Route = createFileRoute("/_attorney/binder/$clientId")({
   head: () => ({
@@ -127,6 +128,7 @@ function BinderPage() {
       </section>
       <PleadingIndex entries={entries} />
       <ChronologyWorkspace clientId={clientId} />
+      <BinderFrequencyMatrixLinks clientId={clientId} />
       <ClioTransferPanel clientId={clientId} />
       <BinderExhibits entries={entries} />
     </div>

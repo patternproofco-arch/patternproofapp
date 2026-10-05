@@ -130,6 +130,7 @@ import { Route as AuthenticatedAdminSigninsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin.support'
 import { Route as AuthenticatedAgentIndexRouteImport } from './routes/_authenticated/agent.index'
 import { Route as AuthenticatedAgentThreadIdRouteImport } from './routes/_authenticated/agent.$threadId'
+import { Route as AuthenticatedFrequencyMatrixThreadIdRouteImport } from './routes/_authenticated/frequency-matrix.$threadId'
 import { Route as IntegrationsClioCallbackRouteImport } from './routes/integrations.clio.callback'
 import { Route as IntegrationsClioDeauthorizeRouteImport } from './routes/integrations.clio.deauthorize'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
@@ -137,6 +138,7 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as AttorneyBinderClientIdFrequencyThreadIdRouteImport } from './routes/_attorney/binder.$clientId_.frequency.$threadId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -768,6 +770,12 @@ const AuthenticatedAgentThreadIdRoute =
     path: '/$threadId',
     getParentRoute: () => AuthenticatedAgentRoute,
   } as any)
+const AuthenticatedFrequencyMatrixThreadIdRoute =
+  AuthenticatedFrequencyMatrixThreadIdRouteImport.update({
+    id: '/frequency-matrix/$threadId',
+    path: '/frequency-matrix/$threadId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const IntegrationsClioCallbackRoute =
   IntegrationsClioCallbackRouteImport.update({
     id: '/integrations/clio/callback',
@@ -806,6 +814,12 @@ const LovableEmailTransactionalPreviewRoute =
     id: '/lovable/email/transactional/preview',
     path: '/lovable/email/transactional/preview',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AttorneyBinderClientIdFrequencyThreadIdRoute =
+  AttorneyBinderClientIdFrequencyThreadIdRouteImport.update({
+    id: '/binder/$clientId_/frequency/$threadId',
+    path: '/binder/$clientId/frequency/$threadId',
+    getParentRoute: () => AttorneyRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -923,6 +937,7 @@ export interface FileRoutesByFullPath {
   '/admin/signins': typeof AuthenticatedAdminSigninsRoute
   '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
+  '/frequency-matrix/$threadId': typeof AuthenticatedFrequencyMatrixThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
@@ -934,6 +949,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/binder/$clientId/frequency/$threadId': typeof AttorneyBinderClientIdFrequencyThreadIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1048,6 +1064,7 @@ export interface FileRoutesByTo {
   '/admin/signins': typeof AuthenticatedAdminSigninsRoute
   '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
+  '/frequency-matrix/$threadId': typeof AuthenticatedFrequencyMatrixThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
@@ -1059,6 +1076,7 @@ export interface FileRoutesByTo {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/binder/$clientId/frequency/$threadId': typeof AttorneyBinderClientIdFrequencyThreadIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1179,6 +1197,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/signins': typeof AuthenticatedAdminSigninsRoute
   '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/agent/$threadId': typeof AuthenticatedAgentThreadIdRoute
+  '/_authenticated/frequency-matrix/$threadId': typeof AuthenticatedFrequencyMatrixThreadIdRoute
   '/integrations/clio/callback': typeof IntegrationsClioCallbackRoute
   '/integrations/clio/deauthorize': typeof IntegrationsClioDeauthorizeRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
@@ -1190,6 +1209,7 @@ export interface FileRoutesById {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/_attorney/binder/$clientId_/frequency/$threadId': typeof AttorneyBinderClientIdFrequencyThreadIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1308,6 +1328,7 @@ export interface FileRouteTypes {
     | '/admin/signins'
     | '/admin/support'
     | '/agent/$threadId'
+    | '/frequency-matrix/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/events'
@@ -1319,6 +1340,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/binder/$clientId/frequency/$threadId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1433,6 +1455,7 @@ export interface FileRouteTypes {
     | '/admin/signins'
     | '/admin/support'
     | '/agent/$threadId'
+    | '/frequency-matrix/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/events'
@@ -1444,6 +1467,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/binder/$clientId/frequency/$threadId'
   id:
     | '__root__'
     | '/'
@@ -1563,6 +1587,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/signins'
     | '/_authenticated/admin/support'
     | '/_authenticated/agent/$threadId'
+    | '/_authenticated/frequency-matrix/$threadId'
     | '/integrations/clio/callback'
     | '/integrations/clio/deauthorize'
     | '/lovable/email/events'
@@ -1574,6 +1599,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/_attorney/binder/$clientId_/frequency/$threadId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -2492,6 +2518,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentThreadIdRouteImport
       parentRoute: typeof AuthenticatedAgentRoute
     }
+    '/_authenticated/frequency-matrix/$threadId': {
+      id: '/_authenticated/frequency-matrix/$threadId'
+      path: '/frequency-matrix/$threadId'
+      fullPath: '/frequency-matrix/$threadId'
+      preLoaderRoute: typeof AuthenticatedFrequencyMatrixThreadIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/integrations/clio/callback': {
       id: '/integrations/clio/callback'
       path: '/integrations/clio/callback'
@@ -2540,6 +2573,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/lovable/email/transactional/preview'
       preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_attorney/binder/$clientId_/frequency/$threadId': {
+      id: '/_attorney/binder/$clientId_/frequency/$threadId'
+      path: '/binder/$clientId/frequency/$threadId'
+      fullPath: '/binder/$clientId/frequency/$threadId'
+      preLoaderRoute: typeof AttorneyBinderClientIdFrequencyThreadIdRouteImport
+      parentRoute: typeof AttorneyRoute
     }
   }
 }
@@ -2591,6 +2631,7 @@ interface AttorneyRouteChildren {
   AttorneyBinderClientIdRoute: typeof AttorneyBinderClientIdRoute
   AttorneyMattersMatterIdRoute: typeof AttorneyMattersMatterIdRoute
   AttorneyMattersIndexRoute: typeof AttorneyMattersIndexRoute
+  AttorneyBinderClientIdFrequencyThreadIdRoute: typeof AttorneyBinderClientIdFrequencyThreadIdRoute
 }
 
 const AttorneyRouteChildren: AttorneyRouteChildren = {
@@ -2608,6 +2649,8 @@ const AttorneyRouteChildren: AttorneyRouteChildren = {
   AttorneyBinderClientIdRoute: AttorneyBinderClientIdRoute,
   AttorneyMattersMatterIdRoute: AttorneyMattersMatterIdRoute,
   AttorneyMattersIndexRoute: AttorneyMattersIndexRoute,
+  AttorneyBinderClientIdFrequencyThreadIdRoute:
+    AttorneyBinderClientIdFrequencyThreadIdRoute,
 }
 
 const AttorneyRouteWithChildren = AttorneyRoute._addFileChildren(
@@ -2670,6 +2713,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminPasswordResetRoute: typeof AuthenticatedAdminPasswordResetRoute
   AuthenticatedAdminSigninsRoute: typeof AuthenticatedAdminSigninsRoute
   AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
+  AuthenticatedFrequencyMatrixThreadIdRoute: typeof AuthenticatedFrequencyMatrixThreadIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -2715,6 +2759,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminPasswordResetRoute: AuthenticatedAdminPasswordResetRoute,
   AuthenticatedAdminSigninsRoute: AuthenticatedAdminSigninsRoute,
   AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
+  AuthenticatedFrequencyMatrixThreadIdRoute:
+    AuthenticatedFrequencyMatrixThreadIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
