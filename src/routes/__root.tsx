@@ -17,6 +17,7 @@ import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
 import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
 import { GlobalHeader } from "@/components/GlobalHeader";
 import { GlobalFooter } from "@/components/GlobalFooter";
+import { LeaveADotLoader } from "@/components/LeaveADotLoader";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "";
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
@@ -302,11 +303,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body className="pp-app">
         {children}
-        <script
-          src="https://app.leaveadot.com/dot.js"
-          data-project="proj_ydd514h48rz0"
-          data-link="ymjrs3q"
-        />
         <Scripts />
       </body>
     </html>
@@ -349,6 +345,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <GoogleAnalyticsRouteTracker />
+        <LeaveADotLoader />
         <div className="pp-global-layout">
           <GlobalHeader />
           <div className="pp-global-page">
