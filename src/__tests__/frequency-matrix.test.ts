@@ -8,12 +8,19 @@ import {
   MAX_PERIOD_ROWS,
   buildFrequencyMatrix,
   chooseGranularity,
+  coverageLines,
   frequencyMatrixToText,
+  prepareMatrixMessages,
   parseDay,
   parseHour,
   type MatrixInputMessage,
 } from "@/lib/frequency-matrix";
-import { MATRIX_MESSAGE_COLUMNS, toMatrixInput } from "@/lib/frequency-matrix.server";
+import {
+  MATRIX_MAX_MESSAGES,
+  MATRIX_MESSAGE_COLUMNS,
+  incompleteExportNote,
+  toMatrixInput,
+} from "@/lib/frequency-matrix.server";
 
 const msg = (
   sender: string | null,
@@ -54,6 +61,8 @@ describe("buildFrequencyMatrix counts", () => {
       attachments: 1,
       withTime: 6,
       earlyHours: 2,
+      duplicatesSkipped: 0,
+      overlapDuplicatesSkipped: 0,
     });
     expect(m.firstDate).toBe("2025-03-03");
     expect(m.lastDate).toBe("2025-03-09");
@@ -123,12 +132,15 @@ describe("grouping and senders", () => {
     expect(chooseGranularity(d("2000-01-01"), d("2025-06-30"))).toBe("year");
   });
 
-  it("never produces more period rows than fit on the page", () => {
+  it("keeps the summary page to MAX_PERIOD_ROWS and puts the rest in an appendix", () => {
     const many: MatrixInputMessage[] = [];
-    for (let y = 2019; y <= 2025; y++) many.push(msg("A", `${y}-06-15`));
+    for (let y = 1990; y <= 2025; y++) many.push(msg("A", `${y}-06-15`));
     const m = buildFrequencyMatrix(many);
     expect(m.rows.length).toBeLessThanOrEqual(MAX_PERIOD_ROWS);
-    expect(m.rows.reduce((n, r) => n + r.total, 0)).toBe(7);
+    expect(m.rows.length + m.appendixRows.length).toBeGreaterThan(MAX_PERIOD_ROWS);
+    const all = [...m.rows, ...m.appendixRows];
+    expect(all.reduce((n, r) => n + r.total, 0)).toBe(many.length);
+    expect(m.totals.dated).toBe(many.length);
   });
 
   it("weeks start on Monday", () => {
@@ -207,7 +219,7 @@ describe("copy text", () => {
     expect(text).toContain("Exhibit 7");
     expect(text).toContain("Conversation: Chat with J");
     expect(text).toContain("Source file: chat.txt");
-    expect(text).toContain("2 imported messages · 2 with a date · 0 without a date");
+    expect(text).toContain("2 imported messages · 2 counted · 2 with a date · 0 without a date");
     expect(text).toMatch(/Mon Mar 3, 2025\s+\|\s+1 \|\s+0 \|\s+1 \|\s+1 \|\s+1/);
     expect(text).toMatch(/All periods\s+\|\s+1 \|\s+1 \|\s+2 \|\s+1 \|\s+2/);
     expect(text).toContain("Highest single-day count: 1 on Mar 3, 2025");
@@ -216,6 +228,127 @@ describe("copy text", () => {
 
   it("includes every note", () => {
     for (const n of MATRIX_NOTES) expect(text).toContain(n);
+  });
+});
+
+
+describe("duplicate and overlap rules", () => {
+  it("counts identical sender/date/time once and notes duplicates", () => {
+    const m = buildFrequencyMatrix([
+      msg("Alex", "2025-03-03", "01:15:00"),
+      msg("Alex", "2025-03-03", "01:15:00"),
+      msg("Alex", "2025-03-03", "01:15:00"),
+      msg("Sam", "2025-03-03", "09:00:00"),
+    ]);
+    expect(m.totals.imported).toBe(4);
+    expect(m.coverage.countedMessages).toBe(2);
+    expect(m.totals.duplicatesSkipped).toBe(2);
+    expect(m.totals.dated).toBe(2);
+    expect(m.rows[0]!.counts).toEqual([1, 1]);
+  });
+
+  it("counts overlapping imports (same stamp, different source files) once", () => {
+    const prepared = prepareMatrixMessages([
+      { ...msg("Alex", "2025-03-03", "01:15:00"), sourceDocumentId: "doc-a" },
+      { ...msg("Alex", "2025-03-03", "01:15:00"), sourceDocumentId: "doc-b" },
+      { ...msg("Sam", "2025-03-03", "09:00:00"), sourceDocumentId: "doc-a" },
+    ]);
+    expect(prepared.messages).toHaveLength(2);
+    expect(prepared.overlapDuplicatesSkipped).toBe(1);
+    expect(prepared.duplicatesSkipped).toBe(0);
+    const m = buildFrequencyMatrix(prepared.messages.concat([])); // already prepared path via raw
+    // build re-prepares; feed raw with sources:
+    const full = buildFrequencyMatrix([
+      { ...msg("Alex", "2025-03-03", "01:15:00"), sourceDocumentId: "doc-a" },
+      { ...msg("Alex", "2025-03-03", "01:15:00"), sourceDocumentId: "doc-b" },
+      { ...msg("Sam", "2025-03-03", "09:00:00"), sourceDocumentId: "doc-a" },
+    ]);
+    expect(full.totals.overlapDuplicatesSkipped).toBe(1);
+    expect(full.totals.dated).toBe(2);
+  });
+
+  it("lists every group participant in the source index even when columns are capped", () => {
+    const m = buildFrequencyMatrix([
+      ...Array.from({ length: 5 }, () => msg("A", "2025-01-01")),
+      ...Array.from({ length: 4 }, () => msg("B", "2025-01-01")),
+      ...Array.from({ length: 3 }, () => msg("C", "2025-01-01")),
+      msg("D", "2025-01-01"),
+      msg("E", "2025-01-01"),
+    ]);
+    expect(m.columns.some((c) => c.label.startsWith("Other senders"))).toBe(true);
+    expect(m.participants.map((p) => p.label)).toEqual(["A", "B", "C", "D", "E"]);
+  });
+
+  it("keeps call records in their own column and undated out of the grid", () => {
+    const m = buildFrequencyMatrix([
+      msg("(call record)", "2025-01-01", "10:00:00"),
+      msg("Alex", null, "10:00:00"),
+    ]);
+    expect(m.totals.callRecords).toBe(1);
+    expect(m.totals.undated).toBe(1);
+    expect(m.totals.dated).toBe(1);
+    expect(m.columns.map((c) => c.label)).toContain("Call records");
+  });
+});
+
+describe("coverage and incomplete exports", () => {
+  it("discloses the 50,000-message reader limit", () => {
+    const m = buildFrequencyMatrix([msg("A", "2025-01-01")], {
+      truncated: true,
+      storedMessageCount: 60_000,
+    });
+    const lines = coverageLines(m.coverage);
+    expect(lines.some((l) => /COVERAGE:/.test(l))).toBe(true);
+    expect(lines.some((l) => /60,000/.test(l))).toBe(true);
+    const text = frequencyMatrixToText(m, META);
+    expect(text).toMatch(/COVERAGE:/);
+  });
+
+  it("flags incomplete or partial imports", () => {
+    expect(incompleteExportNote({ parse_status: "partial" }).incomplete).toBe(true);
+    expect(incompleteExportNote({ import_status: "in_progress" }).incomplete).toBe(true);
+    expect(incompleteExportNote({ parse_status: "parsed", import_status: "complete" }).incomplete).toBe(
+      false,
+    );
+    const m = buildFrequencyMatrix([msg("A", "2025-01-01")], {
+      incompleteExport: true,
+      incompleteReason: "This import is marked partial.",
+    });
+    expect(coverageLines(m.coverage).join(" ")).toMatch(/partial/);
+  });
+
+  it("marks truncated when the reader hits MATRIX_MAX_MESSAGES", async () => {
+    const { readThreadMatrixRows } = await import("@/lib/frequency-matrix.server");
+    function fakeDb(total: number) {
+      return {
+        from() {
+          const q = {
+            select: () => q,
+            eq: () => q,
+            order: () => q,
+            range: async (from: number, to: number) => {
+              const n = Math.max(0, Math.min(total, to + 1) - from);
+              return {
+                data: Array.from({ length: n }, () => ({
+                  sender: "A",
+                  sender_side: "incoming",
+                  sent_on: "2025-01-01",
+                  sent_at_time: null,
+                  has_attachment_marker: false,
+                  flags: {},
+                  source_document_id: null,
+                })),
+                error: null,
+              };
+            },
+          };
+          return q;
+        },
+      };
+    }
+    const r = await readThreadMatrixRows(fakeDb(MATRIX_MAX_MESSAGES), "o", "t");
+    expect(r.messages).toHaveLength(MATRIX_MAX_MESSAGES);
+    expect(r.truncated).toBe(true);
   });
 });
 
@@ -275,6 +408,7 @@ describe("soft copy", () => {
     });
     expect(Object.keys(built)).not.toContain("body");
     expect(built.is_call_record).toBe(true);
+    expect(built.sourceDocumentId).toBeNull();
     expect(
       toMatrixInput({
         ...built,
