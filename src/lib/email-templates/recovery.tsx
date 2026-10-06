@@ -12,31 +12,36 @@ import {
   Text,
 } from "@react-email/components";
 
-import { button, container, divider, footer, h1, main, text, wordmark } from "./brand";
+import { button, container, divider, footer, h1, main, text } from "./brand";
 
 interface RecoveryEmailProps {
-  siteName: string;
+  /** Kept for template API compatibility; not shown in inbox-safe copy. */
+  siteName?: string;
   confirmationUrl: string;
 }
 
-export const RecoveryEmail = ({ siteName, confirmationUrl }: RecoveryEmailProps) => (
+/**
+ * Inbox-safe password recovery body for shared-device glances.
+ * Avoid product, legal, or case-type labels in visible copy.
+ */
+export const RecoveryEmail = ({ confirmationUrl }: RecoveryEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Choose a new password for {siteName}</Preview>
+    <Preview>A one-time link for your account</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={wordmark}>PatternProof</Text>
-        <Heading style={h1}>Reset your password</Heading>
+        <Heading style={h1}>Account access</Heading>
         <Text style={text}>
-          We received a request to reset the password for your {siteName} account. Choose a new one
-          below — your records stay exactly as you left them.
+          We received a request to update the password for your account. Use the button below to
+          choose a new one. Your saved information stays as you left it.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Choose a new password
+          Continue
         </Button>
         <Hr style={divider} />
         <Text style={footer}>
-          If you didn't request this, you can ignore this email. Your password won't change.
+          If you didn&apos;t request this, you can ignore this email. Nothing changes until you
+          choose a new password.
         </Text>
       </Container>
     </Body>
