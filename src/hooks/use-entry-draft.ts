@@ -54,6 +54,8 @@ export function useEntryDraft(userId: string | undefined, draft: EntryDraft, ena
     const mine = ++seq.current;
     setStatus("saving");
     const t = setTimeout(() => {
+      // A clear() (real save or discard) bumps seq; don't resurrect the row after it.
+      if (seq.current !== mine) return;
       saveDraft(supabase, userId, latest.current)
         .then(() => {
           if (seq.current === mine) setStatus("saved");
