@@ -1649,10 +1649,16 @@ export const getClientThreadMatrixData = createServerFn({ method: "POST" })
         () => undefined,
         (e: unknown) => console.error("[audit] thread counts view log failed", e),
       );
+    const t = thread as import("@/lib/frequency-matrix.server").MatrixThread;
+    const { incompleteExportNote, matrixSourcesFromThread } = await import(
+      "@/lib/frequency-matrix.server"
+    );
     return {
-      thread: thread as import("@/lib/frequency-matrix.server").MatrixThread,
+      thread: t,
       messages,
       truncated,
+      incomplete: incompleteExportNote(t),
+      sources: matrixSourcesFromThread(t),
     };
   });
 

@@ -15,6 +15,11 @@ export interface MatrixInputMessage {
   sent_at_time: string | null;
   has_attachment_marker?: boolean | null;
   is_call_record?: boolean | null;
+  /**
+   * Source file for this row, when known. Used only to detect overlapping
+   * imports (same stamp from more than one file). Never printed as body text.
+   */
+  sourceDocumentId?: string | null;
 }
 
 export type MatrixGranularity = "day" | "week" | "month" | "quarter" | "year";
@@ -45,6 +50,32 @@ export interface WeekGridRow {
   total: number;
 }
 
+export interface MatrixParticipant {
+  label: string;
+  count: number;
+}
+
+export interface MatrixSourceEntry {
+  label: string;
+  detail?: string | null;
+}
+
+export interface MatrixCoverage {
+  /** True when the reader stopped at MATRIX_MAX_MESSAGES. */
+  truncatedAtLimit: boolean;
+  /** Messages used for counts after duplicate/overlap rules. */
+  countedMessages: number;
+  /** Raw rows before duplicate/overlap drop. */
+  rawImported: number;
+  /** Thread.message_count when known; null if unknown. */
+  storedMessageCount: number | null;
+  /** Import/parse marked incomplete or partial. */
+  incompleteExport: boolean;
+  incompleteReason: string | null;
+  duplicatesSkipped: number;
+  overlapDuplicatesSkipped: number;
+}
+
 export interface FrequencyMatrix {
   totals: {
     imported: number;
@@ -54,13 +85,26 @@ export interface FrequencyMatrix {
     attachments: number;
     withTime: number;
     earlyHours: number;
+    duplicatesSkipped: number;
+    overlapDuplicatesSkipped: number;
   };
+  coverage: MatrixCoverage;
+  /** Every named participant (and call records), not capped to page columns. */
+  participants: MatrixParticipant[];
+  /** Supporting source index (files / import notes). */
+  sources: MatrixSourceEntry[];
   firstDate: string | null;
   lastDate: string | null;
   spanDays: number;
   granularity: MatrixGranularity | null;
   columns: MatrixColumn[];
+  /** Period rows shown on the one-page summary. */
   rows: MatrixRow[];
+  /**
+   * Remaining period rows when the full span does not fit the summary page.
+   * Totals still include every dated message; nothing is dropped from counts.
+   */
+  appendixRows: MatrixRow[];
   busiestDay: { date: string; count: number } | null;
   weekGrid: WeekGridRow[];
 }
@@ -82,7 +126,11 @@ export const MATRIX_SUBTITLE = "Observed counts from imported messages";
 export const MATRIX_NOTES: readonly string[] = [
   "Counts only. This sheet does not describe what any message says or means.",
   "Counted from the imported file as stored in PatternProof. Sender names are shown as they appear in that file.",
-  "Times are as shown in the file, with no time zone conversion. The 12:00-5:59 AM column counts messages stamped in that window. Messages without a date are counted in the total but not placed in the grid.",
+  "Duplicate rows with the same sender, date, and time are counted once. When that same stamp appears in more than one imported file, it is counted once and noted as an overlapping import. Rows without a date or time are each counted separately.",
+  "Group chats list every participant in the source index. The period grid shows up to three named senders; additional senders are grouped as Other senders.",
+  "Call records are counted in their own column, not as a person. Messages without a date are counted in the total but not placed in the period grid.",
+  "Times are as shown in the file, with no time zone conversion. The 12:00-5:59 AM column counts messages stamped in that window.",
+  "If an import is incomplete or the conversation is larger than the reader limit, the coverage note above says what was included and what was not.",
   "Prepared from the account holder's own records. Please check counts against the original file before relying on them.",
 ];
 export const MATRIX_EMPTY =
@@ -234,6 +282,131 @@ export function chooseGranularity(first: number, last: number): MatrixGranularit
   return "year";
 }
 
+/* ------------------------------ prepare / dedup ------------------------------ */
+
+export type BuildMatrixOptions = {
+  /** Reader stopped at the 50,000-message limit. */
+  truncated?: boolean;
+  /** message_threads.message_count when known. */
+  storedMessageCount?: number | null;
+  /** Import or parse did not finish cleanly. */
+  incompleteExport?: boolean;
+  incompleteReason?: string | null;
+  /** Supporting source index entries (filenames, capture notes). */
+  sources?: readonly MatrixSourceEntry[];
+};
+
+/**
+ * Fingerprint for count dedup: sender, side, date, and time, plus call/attachment
+ * markers. Message body is never part of this. Rows without both a parseable date
+ * and time are kept individually (index makes the key unique) so undated or
+ * untimed messages are not collapsed. Same stamp from different source files is
+ * an overlapping import (still counted once).
+ */
+export function countFingerprint(m: MatrixInputMessage, index: number): string {
+  const day = (m.sent_on ?? "").trim();
+  const time = (m.sent_at_time ?? "").trim();
+  if (parseDay(day) == null || parseHour(time) == null) {
+    return `row:${index}`;
+  }
+  const sender = (m.sender ?? "").trim();
+  const side = (m.sender_side ?? "").trim() || "unknown";
+  const call = isCall(m) ? "1" : "0";
+  const att = m.has_attachment_marker ? "1" : "0";
+  return `${call}|${sender}|${side}|${day}|${time}|${att}`;
+}
+
+export type PreparedMatrixMessages = {
+  /** Rows kept for counting (first occurrence of each fingerprint). */
+  messages: MatrixInputMessage[];
+  rawImported: number;
+  duplicatesSkipped: number;
+  overlapDuplicatesSkipped: number;
+  participants: MatrixParticipant[];
+};
+
+/**
+ * Deterministic prepare step: drop exact duplicate stamps; when the same stamp
+ * appears under more than one source document, keep one row and note the overlap.
+ * Order is preserved (first wins).
+ */
+export function prepareMatrixMessages(
+  messages: readonly MatrixInputMessage[],
+): PreparedMatrixMessages {
+  const seen = new Map<string, { source: string | null }>();
+  const kept: MatrixInputMessage[] = [];
+  let duplicatesSkipped = 0;
+  let overlapDuplicatesSkipped = 0;
+  messages.forEach((m, index) => {
+    const fp = countFingerprint(m, index);
+    const src = m.sourceDocumentId?.trim() || null;
+    const prior = seen.get(fp);
+    if (!prior) {
+      seen.set(fp, { source: src });
+      kept.push(m);
+      return;
+    }
+    if (src && prior.source && src !== prior.source) {
+      overlapDuplicatesSkipped++;
+    } else {
+      duplicatesSkipped++;
+    }
+  });
+
+  const participantCounts = new Map<string, number>();
+  for (const m of kept) {
+    const s = senderOf(m);
+    participantCounts.set(s.label, (participantCounts.get(s.label) ?? 0) + 1);
+  }
+  const participants = [...participantCounts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+  return {
+    messages: kept,
+    rawImported: messages.length,
+    duplicatesSkipped,
+    overlapDuplicatesSkipped,
+    participants,
+  };
+}
+
+/** Soft coverage lines for the sheet header and plain-text export. */
+export function coverageLines(c: MatrixCoverage): string[] {
+  const lines: string[] = [];
+  const stored = c.storedMessageCount;
+  if (c.truncatedAtLimit || (stored != null && stored > c.rawImported)) {
+    const ofStored =
+      stored != null
+        ? ` of ${stored.toLocaleString()} messages stored for this conversation`
+        : "";
+    lines.push(
+      `COVERAGE: Counts include the first ${c.rawImported.toLocaleString()} imported messages${ofStored}. Messages after that were not read for this sheet.`,
+    );
+  } else if (stored != null && stored > c.countedMessages && c.duplicatesSkipped + c.overlapDuplicatesSkipped > 0) {
+    lines.push(
+      `COVERAGE: ${c.countedMessages.toLocaleString()} distinct stamps counted from ${c.rawImported.toLocaleString()} imported rows (${stored.toLocaleString()} stored on the thread).`,
+    );
+  }
+  if (c.duplicatesSkipped > 0) {
+    lines.push(
+      `${c.duplicatesSkipped.toLocaleString()} duplicate row(s) with the same sender, date, and time were counted once.`,
+    );
+  }
+  if (c.overlapDuplicatesSkipped > 0) {
+    lines.push(
+      `${c.overlapDuplicatesSkipped.toLocaleString()} overlapping import row(s) (same stamp in more than one file) were counted once.`,
+    );
+  }
+  if (c.incompleteExport) {
+    lines.push(
+      c.incompleteReason?.trim() ||
+        "This import is incomplete or partial. Counts cover only messages that were imported.",
+    );
+  }
+  return lines;
+}
+
 /* ------------------------------ senders ------------------------------ */
 
 function isCall(m: MatrixInputMessage): boolean {
@@ -254,20 +427,28 @@ function senderOf(m: MatrixInputMessage): { key: string; label: string } {
 
 /* ------------------------------ builder ------------------------------ */
 
-export function buildFrequencyMatrix(messages: readonly MatrixInputMessage[]): FrequencyMatrix {
+export function buildFrequencyMatrix(
+  messages: readonly MatrixInputMessage[],
+  opts: BuildMatrixOptions = {},
+): FrequencyMatrix {
+  const prepared = prepareMatrixMessages(messages);
+  const working = prepared.messages;
+
   const totals = {
-    imported: messages.length,
+    imported: prepared.rawImported,
     dated: 0,
     undated: 0,
     callRecords: 0,
     attachments: 0,
     withTime: 0,
     earlyHours: 0,
+    duplicatesSkipped: prepared.duplicatesSkipped,
+    overlapDuplicatesSkipped: prepared.overlapDuplicatesSkipped,
   };
 
   // Sender totals decide which names get their own column (all messages, dated or not).
   const senderCounts = new Map<string, { label: string; count: number }>();
-  for (const m of messages) {
+  for (const m of working) {
     const s = senderOf(m);
     const cur = senderCounts.get(s.key) ?? { label: s.label, count: 0 };
     cur.count++;
@@ -299,7 +480,7 @@ export function buildFrequencyMatrix(messages: readonly MatrixInputMessage[]): F
   // Dated messages only from here on.
   type Dated = { t: number; hour: number | null; col: number };
   const dated: Dated[] = [];
-  for (const m of messages) {
+  for (const m of working) {
     const t = parseDay(m.sent_on);
     if (t == null) {
       totals.undated++;
@@ -314,6 +495,19 @@ export function buildFrequencyMatrix(messages: readonly MatrixInputMessage[]): F
     dated.push({ t, hour, col: colIndex(senderOf(m).key) });
   }
 
+  const coverage: MatrixCoverage = {
+    truncatedAtLimit: !!opts.truncated,
+    countedMessages: working.length,
+    rawImported: prepared.rawImported,
+    storedMessageCount: opts.storedMessageCount ?? null,
+    incompleteExport: !!opts.incompleteExport,
+    incompleteReason: opts.incompleteReason ?? null,
+    duplicatesSkipped: prepared.duplicatesSkipped,
+    overlapDuplicatesSkipped: prepared.overlapDuplicatesSkipped,
+  };
+  const sources = [...(opts.sources ?? [])];
+  const participants = prepared.participants;
+
   const weekGrid: WeekGridRow[] = WEEKDAYS.map((day) => ({
     day,
     counts: TIME_BLOCKS.map(() => 0),
@@ -321,19 +515,23 @@ export function buildFrequencyMatrix(messages: readonly MatrixInputMessage[]): F
     total: 0,
   }));
 
-  if (dated.length === 0) {
-    return {
-      totals,
-      firstDate: null,
-      lastDate: null,
-      spanDays: 0,
-      granularity: null,
-      columns,
-      rows: [],
-      busiestDay: null,
-      weekGrid,
-    };
-  }
+  const empty = (): FrequencyMatrix => ({
+    totals,
+    coverage,
+    participants,
+    sources,
+    firstDate: null,
+    lastDate: null,
+    spanDays: 0,
+    granularity: null,
+    columns,
+    rows: [],
+    appendixRows: [],
+    busiestDay: null,
+    weekGrid,
+  });
+
+  if (dated.length === 0) return empty();
 
   let first = Infinity;
   let last = -Infinity;
@@ -345,7 +543,7 @@ export function buildFrequencyMatrix(messages: readonly MatrixInputMessage[]): F
 
   // Every period between the first and last date, including empty ones, so
   // quiet stretches show as zeros rather than disappearing.
-  const rows: MatrixRow[] = [];
+  const allRows: MatrixRow[] = [];
   const rowByStart = new Map<number, { row: MatrixRow; days: Set<number> }>();
   for (let p = periodStart(first, granularity); p <= last; p = nextPeriod(p, granularity)) {
     const row: MatrixRow = {
@@ -356,7 +554,7 @@ export function buildFrequencyMatrix(messages: readonly MatrixInputMessage[]): F
       earlyHours: 0,
       daysWithMessages: 0,
     };
-    rows.push(row);
+    allRows.push(row);
     rowByStart.set(p, { row, days: new Set() });
   }
 
@@ -382,14 +580,23 @@ export function buildFrequencyMatrix(messages: readonly MatrixInputMessage[]): F
     if (!busiestDay || count > busiestDay.count) busiestDay = { date: isoDay(t), count };
   }
 
+  // One-page summary: keep the first MAX_PERIOD_ROWS periods; put the rest in an
+  // appendix rather than shrinking type. Totals still cover every dated message.
+  const rows = allRows.slice(0, MAX_PERIOD_ROWS);
+  const appendixRows = allRows.length > MAX_PERIOD_ROWS ? allRows.slice(MAX_PERIOD_ROWS) : [];
+
   return {
     totals,
+    coverage,
+    participants,
+    sources,
     firstDate: isoDay(first),
     lastDate: isoDay(last),
     spanDays: Math.round((last - first) / DAY_MS) + 1,
     granularity,
     columns,
     rows,
+    appendixRows,
     busiestDay,
     weekGrid,
   };
@@ -416,11 +623,16 @@ function plural(n: number, one: string, many = `${one}s`): string {
 export function summaryLine(m: FrequencyMatrix): string {
   const bits = [
     plural(m.totals.imported, "imported message"),
+    `${m.coverage.countedMessages} counted`,
     `${m.totals.dated} with a date`,
     `${m.totals.undated} without a date`,
   ];
   if (m.totals.callRecords > 0) bits.push(plural(m.totals.callRecords, "call record"));
   if (m.totals.attachments > 0) bits.push(plural(m.totals.attachments, "attachment marker"));
+  if (m.totals.duplicatesSkipped > 0)
+    bits.push(plural(m.totals.duplicatesSkipped, "duplicate skipped", "duplicates skipped"));
+  if (m.totals.overlapDuplicatesSkipped > 0)
+    bits.push(plural(m.totals.overlapDuplicatesSkipped, "overlap skipped", "overlaps skipped"));
   return bits.join(" · ");
 }
 
@@ -460,32 +672,38 @@ export function frequencyMatrixToText(m: FrequencyMatrix, meta: MatrixMeta): str
   if (meta.source) out.push(`Source file: ${meta.source}`);
   if (meta.importedOn) out.push(`Imported: ${meta.importedOn}`);
   out.push(`Prepared: ${meta.generatedOn}`);
+  for (const line of coverageLines(m.coverage)) out.push(line);
   out.push(summaryLine(m));
   const range = rangeLine(m);
   if (range) out.push(`Range: ${range}`);
   out.push("");
 
+  const periodDays = [...m.rows, ...m.appendixRows].reduce((n, r) => n + r.daysWithMessages, 0);
+  const periodBody = (rows: MatrixRow[]) =>
+    rows.map((r) => [
+      r.label,
+      ...r.counts.map(String),
+      String(r.total),
+      String(r.earlyHours),
+      String(r.daysWithMessages),
+    ]);
+  const totalsRow = [
+    "All periods",
+    ...m.columns.map((c) => String(c.total)),
+    String(m.totals.dated),
+    String(m.totals.earlyHours),
+    String(periodDays),
+  ];
+
   if (m.rows.length === 0) {
     out.push(MATRIX_EMPTY);
   } else {
-    out.push(
-      ...table(periodTableHeader(m), [
-        ...m.rows.map((r) => [
-          r.label,
-          ...r.counts.map(String),
-          String(r.total),
-          String(r.earlyHours),
-          String(r.daysWithMessages),
-        ]),
-        [
-          "All periods",
-          ...m.columns.map((c) => String(c.total)),
-          String(m.totals.dated),
-          String(m.totals.earlyHours),
-          String(m.rows.reduce((n, r) => n + r.daysWithMessages, 0)),
-        ],
-      ]),
-    );
+    if (m.appendixRows.length > 0) {
+      out.push(
+        `Summary period grid (${m.rows.length} of ${m.rows.length + m.appendixRows.length} periods). Totals include every dated message. Remaining periods are in the appendix.`,
+      );
+    }
+    out.push(...table(periodTableHeader(m), [...periodBody(m.rows), totalsRow]));
     if (m.busiestDay) {
       out.push("");
       out.push(
@@ -500,7 +718,26 @@ export function frequencyMatrixToText(m: FrequencyMatrix, meta: MatrixMeta): str
         m.weekGrid.map((w) => [w.day, ...w.counts.map(String), String(w.noTime), String(w.total)]),
       ),
     );
+    if (m.appendixRows.length > 0) {
+      out.push("");
+      out.push("Appendix: remaining periods (same columns; not shrunk)");
+      out.push(...table(periodTableHeader(m), periodBody(m.appendixRows)));
+    }
   }
+
+  if (m.participants.length > 0) {
+    out.push("");
+    out.push("Source index — participants (as shown in the file)");
+    for (const p of m.participants) out.push(`- ${p.label}: ${p.count}`);
+  }
+  if (m.sources.length > 0) {
+    out.push("");
+    out.push("Source index — files and import notes");
+    for (const s of m.sources) {
+      out.push(s.detail?.trim() ? `- ${s.label}: ${s.detail}` : `- ${s.label}`);
+    }
+  }
+
   out.push("");
   out.push("Notes");
   for (const n of MATRIX_NOTES) out.push(`- ${n}`);

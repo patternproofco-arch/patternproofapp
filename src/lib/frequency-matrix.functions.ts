@@ -3,6 +3,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   MATRIX_THREAD_COLUMNS,
+  incompleteExportNote,
+  matrixSourcesFromThread,
   readThreadMatrixRows,
   type MatrixThread,
 } from "@/lib/frequency-matrix.server";
@@ -25,5 +27,12 @@ export const getMyThreadMatrixData = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!thread) throw new Error("We couldn't find that conversation.");
     const { messages, truncated } = await readThreadMatrixRows(supabase, userId, data.threadId);
-    return { thread: thread as MatrixThread, messages, truncated };
+    const t = thread as MatrixThread;
+    return {
+      thread: t,
+      messages,
+      truncated,
+      incomplete: incompleteExportNote(t),
+      sources: matrixSourcesFromThread(t),
+    };
   });

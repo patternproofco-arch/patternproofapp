@@ -65,10 +65,15 @@ function AttorneyFrequencyMatrixPage() {
     packageVersion: pkg?.version ?? null,
     packageDiff: pkg?.diff ?? null,
   });
+  const incomplete = q.data.incomplete;
   return (
     <FrequencyMatrixSheet
       messages={q.data.messages}
       truncated={q.data.truncated}
+      storedMessageCount={t.message_count}
+      incompleteExport={incomplete?.incomplete}
+      incompleteReason={incomplete?.reason}
+      sources={q.data.sources}
       conversation={t.conversation_participant || t.source_filename || "Imported conversation"}
       source={t.source_filename}
       importedAt={t.created_at}

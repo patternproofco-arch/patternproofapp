@@ -13,7 +13,7 @@ export const MATRIX_MAX_MESSAGES = 50_000;
  * matrix can be built without the words of any message leaving the database.
  */
 export const MATRIX_MESSAGE_COLUMNS =
-  "sender,sender_side,sent_on,sent_at_time,has_attachment_marker,flags";
+  "sender,sender_side,sent_on,sent_at_time,has_attachment_marker,flags,source_document_id";
 
 type Row = {
   sender: string | null;
@@ -22,6 +22,7 @@ type Row = {
   sent_at_time: string | null;
   has_attachment_marker: boolean | null;
   flags: unknown;
+  source_document_id?: string | null;
 };
 
 export function toMatrixInput(r: Row): MatrixInputMessage {
@@ -35,6 +36,7 @@ export function toMatrixInput(r: Row): MatrixInputMessage {
     is_call_record:
       (r.sender ?? "").trim() === CALL_RECORD_SENDER ||
       (flags as Record<string, unknown>).call_row === true,
+    sourceDocumentId: r.source_document_id ?? null,
   };
 }
 
@@ -69,7 +71,7 @@ export async function readThreadMatrixRows(
 }
 
 export const MATRIX_THREAD_COLUMNS =
-  "id,source_filename,source_type,conversation_participant,capture_method,message_count,created_at";
+  "id,source_filename,source_type,conversation_participant,capture_method,message_count,created_at,parse_status,import_status";
 
 export type MatrixThread = {
   id: string;
@@ -79,4 +81,46 @@ export type MatrixThread = {
   capture_method: string | null;
   message_count: number | null;
   created_at: string;
+  parse_status?: string | null;
+  import_status?: string | null;
 };
+
+/** Soft reason when an import did not finish cleanly. */
+export function incompleteExportNote(thread: {
+  parse_status?: string | null;
+  import_status?: string | null;
+}): { incomplete: boolean; reason: string | null } {
+  const parse = (thread.parse_status ?? "").toLowerCase();
+  const imp = (thread.import_status ?? "").toLowerCase();
+  if (parse === "partial") {
+    return {
+      incomplete: true,
+      reason:
+        "This import is marked partial. Counts cover only messages that were imported; the original export may be incomplete.",
+    };
+  }
+  if (parse === "failed" || parse === "pending" || parse === "queued") {
+    return {
+      incomplete: true,
+      reason: `This conversation's import status is "${parse}". Counts cover only messages that were imported so far.`,
+    };
+  }
+  if (imp && imp !== "complete") {
+    return {
+      incomplete: true,
+      reason: `This import is marked "${imp}". Counts cover only messages that were imported so far.`,
+    };
+  }
+  return { incomplete: false, reason: null };
+}
+
+export function matrixSourcesFromThread(thread: MatrixThread): import("@/lib/frequency-matrix").MatrixSourceEntry[] {
+  const out: import("@/lib/frequency-matrix").MatrixSourceEntry[] = [];
+  if (thread.source_filename) {
+    out.push({
+      label: thread.source_filename,
+      detail: [thread.source_type, thread.capture_method].filter(Boolean).join(" · ") || null,
+    });
+  }
+  return out;
+}

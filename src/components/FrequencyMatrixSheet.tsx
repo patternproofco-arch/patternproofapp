@@ -8,12 +8,14 @@ import {
   MATRIX_TITLE,
   TIME_BLOCKS,
   buildFrequencyMatrix,
+  coverageLines,
   formatDay,
   frequencyMatrixToText,
   periodTableHeader,
   rangeLine,
   summaryLine,
   type MatrixInputMessage,
+  type MatrixSourceEntry,
 } from "@/lib/frequency-matrix";
 
 export interface FrequencyMatrixSheetProps {
@@ -22,6 +24,10 @@ export interface FrequencyMatrixSheetProps {
   source?: string | null;
   importedAt?: string | null;
   truncated?: boolean;
+  storedMessageCount?: number | null;
+  incompleteExport?: boolean;
+  incompleteReason?: string | null;
+  sources?: MatrixSourceEntry[];
   /** Approved exhibit package version when the attorney has fixed numbers. */
   packageVersion?: number | null;
   packageBlockedReason?: string | null;
@@ -33,9 +39,65 @@ const cell = "border border-black/20 px-1.5 py-0.5 text-right tabular-nums";
 const headCell = "border border-black/20 px-1.5 py-0.5 text-right font-semibold align-bottom";
 const firstCell = "border border-black/20 px-1.5 py-0.5 text-left whitespace-nowrap";
 
+function PeriodTable({
+  matrix,
+  rows,
+  showTotals = false,
+}: {
+  matrix: ReturnType<typeof buildFrequencyMatrix>;
+  rows: typeof matrix.rows;
+  showTotals?: boolean;
+}) {
+  const periodDays = [...matrix.rows, ...matrix.appendixRows].reduce(
+    (n, r) => n + r.daysWithMessages,
+    0,
+  );
+  return (
+    <table className="mb-2 w-full border-collapse">
+      <thead>
+        <tr>
+          {periodTableHeader(matrix).map((h, i) => (
+            <th key={`${i}-${h}`} className={i === 0 ? `${firstCell} font-semibold` : headCell}>
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.key}>
+            <td className={firstCell}>{r.label}</td>
+            {r.counts.map((n, i) => (
+              <td key={i} className={cell}>
+                {n}
+              </td>
+            ))}
+            <td className={`${cell} font-semibold`}>{r.total}</td>
+            <td className={cell}>{r.earlyHours}</td>
+            <td className={cell}>{r.daysWithMessages}</td>
+          </tr>
+        ))}
+        {showTotals ? (
+          <tr className="bg-black/5 font-semibold">
+            <td className={firstCell}>All periods</td>
+            {matrix.columns.map((c) => (
+              <td key={c.key} className={cell}>
+                {c.total}
+              </td>
+            ))}
+            <td className={cell}>{matrix.totals.dated}</td>
+            <td className={cell}>{matrix.totals.earlyHours}</td>
+            <td className={cell}>{periodDays}</td>
+          </tr>
+        ) : null}
+      </tbody>
+    </table>
+  );
+}
+
 /**
- * One printed page: period-by-sender counts, a day-of-week by time-of-day
- * grid, and plain notes. Every number comes from buildFrequencyMatrix.
+ * One-page summary of observed counts, with a source index and an appendix when
+ * the full period list does not fit. Every number comes from buildFrequencyMatrix.
  */
 export function FrequencyMatrixSheet({
   messages,
@@ -43,15 +105,38 @@ export function FrequencyMatrixSheet({
   source,
   importedAt,
   truncated,
+  storedMessageCount,
+  incompleteExport,
+  incompleteReason,
+  sources,
   packageVersion,
   packageBlockedReason,
   toolbarStart,
 }: FrequencyMatrixSheetProps) {
-  const matrix = useMemo(() => buildFrequencyMatrix(messages), [messages]);
+  const matrix = useMemo(
+    () =>
+      buildFrequencyMatrix(messages, {
+        truncated,
+        storedMessageCount,
+        incompleteExport,
+        incompleteReason,
+        sources: sources ?? (source ? [{ label: source }] : []),
+      }),
+    [
+      messages,
+      truncated,
+      storedMessageCount,
+      incompleteExport,
+      incompleteReason,
+      sources,
+      source,
+    ],
+  );
   const [exhibitLabel, setExhibitLabel] = useState("");
   const generatedOn = useMemo(() => formatDay(new Date().toISOString().slice(0, 10)), []);
   const importedOn = importedAt ? formatDay(importedAt.slice(0, 10)) : null;
   const range = rangeLine(matrix);
+  const coverage = coverageLines(matrix.coverage);
 
   const copy = async () => {
     if (packageBlockedReason) {
@@ -136,61 +221,31 @@ export function FrequencyMatrixSheet({
           ) : null}
         </header>
 
+        {coverage.length > 0 ? (
+          <div className="mb-2 border border-black/40 bg-black/[0.04] p-2 font-semibold" role="status">
+            {coverage.map((line) => (
+              <p key={line} className="mb-0.5 last:mb-0">
+                {line}
+              </p>
+            ))}
+          </div>
+        ) : null}
+
         <p className="mb-1">{summaryLine(matrix)}</p>
         {range ? <p className="mb-2 text-black/70">Range: {range}</p> : null}
-        {truncated ? (
-          <p className="mb-2 font-semibold">
-            This conversation is larger than one sheet can read. Counts cover the first{" "}
-            {matrix.totals.imported.toLocaleString()} imported messages only.
-          </p>
-        ) : null}
 
         {matrix.rows.length === 0 ? (
           <p className="my-6 text-black/70">{MATRIX_EMPTY}</p>
         ) : (
           <>
-            <table className="mb-2 w-full border-collapse">
-              <thead>
-                <tr>
-                  {periodTableHeader(matrix).map((h, i) => (
-                    <th
-                      key={`${i}-${h}`}
-                      className={i === 0 ? `${firstCell} font-semibold` : headCell}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {matrix.rows.map((r) => (
-                  <tr key={r.key}>
-                    <td className={firstCell}>{r.label}</td>
-                    {r.counts.map((n, i) => (
-                      <td key={i} className={cell}>
-                        {n}
-                      </td>
-                    ))}
-                    <td className={`${cell} font-semibold`}>{r.total}</td>
-                    <td className={cell}>{r.earlyHours}</td>
-                    <td className={cell}>{r.daysWithMessages}</td>
-                  </tr>
-                ))}
-                <tr className="bg-black/5 font-semibold">
-                  <td className={firstCell}>All periods</td>
-                  {matrix.columns.map((c) => (
-                    <td key={c.key} className={cell}>
-                      {c.total}
-                    </td>
-                  ))}
-                  <td className={cell}>{matrix.totals.dated}</td>
-                  <td className={cell}>{matrix.totals.earlyHours}</td>
-                  <td className={cell}>
-                    {matrix.rows.reduce((n, r) => n + r.daysWithMessages, 0)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            {matrix.appendixRows.length > 0 ? (
+              <p className="mb-1 font-semibold">
+                Summary period grid ({matrix.rows.length} of{" "}
+                {matrix.rows.length + matrix.appendixRows.length} periods). Totals include every
+                dated message. Remaining periods are in the appendix — type is not shrunk to fit.
+              </p>
+            ) : null}
+            <PeriodTable matrix={matrix} rows={matrix.rows} showTotals />
             {matrix.busiestDay ? (
               <p className="mb-3">
                 Highest single-day count: {matrix.busiestDay.count} on{" "}
@@ -232,6 +287,46 @@ export function FrequencyMatrixSheet({
           </>
         )}
 
+        {(matrix.participants.length > 0 || matrix.sources.length > 0) && (
+          <section className="mb-3 border-t border-black/20 pt-2">
+            <h2 className="mb-1 text-[12px] font-semibold">Source index</h2>
+            {matrix.participants.length > 0 ? (
+              <div className="mb-2">
+                <p className="font-semibold">Participants (as shown in the file)</p>
+                <ul className="list-disc pl-4">
+                  {matrix.participants.map((p) => (
+                    <li key={p.label}>
+                      {p.label}: {p.count}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {matrix.sources.length > 0 ? (
+              <div>
+                <p className="font-semibold">Files and import notes</p>
+                <ul className="list-disc pl-4">
+                  {matrix.sources.map((s) => (
+                    <li key={`${s.label}-${s.detail ?? ""}`}>
+                      {s.label}
+                      {s.detail ? ` — ${s.detail}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </section>
+        )}
+
+        {matrix.appendixRows.length > 0 ? (
+          <section className="fm-appendix mt-3 border-t border-black/40 pt-2">
+            <h2 className="mb-1 text-[12px] font-semibold">
+              Appendix: remaining periods (same columns; not shrunk)
+            </h2>
+            <PeriodTable matrix={matrix} rows={matrix.appendixRows} />
+          </section>
+        ) : null}
+
         <footer className="border-t border-black/30 pt-2 text-[10px] text-black/75">
           <p className="mb-0.5 font-semibold">Notes</p>
           <ul className="list-disc pl-4">
@@ -245,8 +340,7 @@ export function FrequencyMatrixSheet({
   );
 }
 
-// Letter page, half-inch margins. Survivor and attorney shells both narrow
-// their main column on screen; on paper the sheet uses the full width.
+// Letter page. Prefer a summary + appendix over shrinking type to force-fit.
 const PRINT_CSS = `
 .fm-sheet p, .fm-sheet li, .fm-sheet td, .fm-sheet th { font-size: inherit; line-height: 1.35; }
 .fm-sheet h2 { font-family: inherit; }
@@ -257,10 +351,11 @@ const PRINT_CSS = `
   .pp-app-shell > div[aria-hidden][style*="fixed"] { display: none !important; }
   .pp-app-main, .att-content, .att-main { max-width: none !important; padding: 0 !important; }
   .fm-root { padding: 0 !important; }
-  .fm-sheet { font-size: 9.5px !important; }
-  .fm-sheet p, .fm-sheet li, .fm-sheet td, .fm-sheet th { font-size: 9.5px !important; line-height: 1.25 !important; }
+  .fm-sheet { font-size: 11px !important; }
+  .fm-sheet p, .fm-sheet li, .fm-sheet td, .fm-sheet th { font-size: 11px !important; line-height: 1.3 !important; }
   .fm-sheet h1 { font-size: 16px !important; }
-  .fm-sheet h2 { font-size: 10.5px !important; }
-  .fm-sheet table { page-break-inside: avoid; }
+  .fm-sheet h2 { font-size: 11px !important; }
+  .fm-appendix { page-break-before: always; }
+  .fm-sheet table { page-break-inside: auto; }
 }
 `;
