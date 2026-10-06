@@ -72,6 +72,8 @@ export function useEntryDraft(userId: string | undefined, draft: EntryDraft, ena
   useEffect(() => {
     if (!enabled || (status !== "failed" && status !== "saving")) return;
     const warn = (e: BeforeUnloadEvent) => {
+      // "Exit safely" must never be blocked by a leave-page prompt.
+      if ((window as unknown as { __ppQuickExit?: boolean }).__ppQuickExit) return;
       e.preventDefault();
       e.returnValue = "";
     };

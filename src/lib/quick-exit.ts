@@ -3,6 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 export function quickExit(exitUrl?: string) {
   const url = exitUrl || "https://weather.com";
 
+  // Tell any beforeunload guards (e.g. the journal draft warning) to stand down:
+  // leaving right now is the whole point of this button.
+  try {
+    (window as unknown as { __ppQuickExit?: boolean }).__ppQuickExit = true;
+  } catch {
+    /* ignore */
+  }
+
   let accessToken: string | null = null;
   try {
     for (const k of Object.keys(window.localStorage)) {
