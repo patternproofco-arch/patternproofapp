@@ -178,9 +178,10 @@ export const DEFAULT_TEMPLATE: FunderTemplate = {
     {
       id: "followup_done",
       section: "referrals",
-      label: "Follow-ups marked done",
+      label: "Follow-ups completed",
       unit: "service_events",
-      definition: "Follow-up tasks your team marked done during the period.",
+      definition:
+        "Follow-up tasks whose recorded completion date falls in the period, read in this report's time zone. Editing a task later does not move it into another period. Tasks marked done without a recorded completion date are left out and noted.",
       derivedKey: "follow_ups_completed",
     },
     {
@@ -235,6 +236,14 @@ export const DEFAULT_TEMPLATE: FunderTemplate = {
   ],
 } as const;
 
+/*
+ * TODO(harbor-award): add a Harbor Legal Group template here once Grace supplies
+ * Harbor's award instructions (and, for an OVW award, the progress-report form for
+ * the applicable program). Copy row labels and definitions from that document.
+ * Do not invent funder form field ids, question numbers or category codes; until
+ * the document is in hand, Harbor uses DEFAULT_TEMPLATE, whose rows are generic and
+ * say to check each definition against the funder's own.
+ */
 export const TEMPLATES: Record<string, FunderTemplate> = {
   [DEFAULT_TEMPLATE.id]: DEFAULT_TEMPLATE,
 };
@@ -254,6 +263,11 @@ export type DraftContent = {
   template_id: string;
   period_from: string; // YYYY-MM-DD
   period_to: string;
+  /**
+   * IANA time zone the period's calendar days are read in. Part of what is approved:
+   * the same dates in another zone can give different numbers.
+   */
+  period_timezone: string;
   entries: Record<string, StaffEntry | undefined>;
   /** Row ids whose small counts (1–4) staff reviewed and accepted. */
   small_count_reviewed: string[];
@@ -454,7 +468,7 @@ export function validateDraft(
       issues.push({
         rowId: spec.id,
         severity: "error",
-        message: `${spec.label}: we couldn't read the records for this number. Try again; it is not zero.`,
+        message: `${spec.label}: we couldn't read the records for this number (see the notes above). Try again; it is not zero.`,
       });
       continue;
     }
@@ -534,7 +548,7 @@ export const STATUS_LABEL: Record<ReportStatus, string> = {
   draft: "Draft",
   approved: "Approved",
   exported: "Exported",
-  submitted: "Submitted (staff recorded)",
+  submitted: "Submission confirmed (staff recorded)",
 };
 
 /**
@@ -617,6 +631,8 @@ export type ExportHeader = {
   template_name: string;
   period_from: string;
   period_to: string;
+  /** Time zone the period was read in. */
+  period_timezone?: string | null;
   status: ReportStatus;
   version: number;
   approved_at: string | null;
@@ -629,6 +645,7 @@ export function toCsvRows(header: ExportHeader, rows: ResolvedRow[]): string[][]
     ["Report", header.template_name],
     ["Organization", header.org_name ?? "Your organization"],
     ["Period", `${header.period_from} to ${header.period_to}`],
+    ["Time zone", header.period_timezone || "UTC"],
     ["Status", STATUS_LABEL[header.status]],
     ["Version", String(header.version)],
   ];

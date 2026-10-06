@@ -9,6 +9,10 @@
  *  - 'approved' stores the fingerprint of the exact content and numbers approved;
  *  - 'submitted' only comes from a staff-recorded receipt. There is no code path
  *    here that talks to a funder, so none can claim electronic delivery.
+ *  - approved, exported and submitted (submission confirmed by staff) are separate
+ *    statuses with separate timestamps; none implies the next;
+ *  - the period is read in the report's stored time zone, and "completed" counts
+ *    use each follow-up's recorded completion date, never its last-edit date.
  */
 
 import {
@@ -34,7 +38,8 @@ import {
   type LinkRow,
   type ReferralRow,
 } from "@/lib/grant-report-derive";
-import { selectAllPages, selectInChunksPaged } from "@/lib/in-chunks.server";
+import { selectAllPages, selectInChunksPaged, ChunkedReadError } from "@/lib/in-chunks.server";
+import { DEFAULT_PERIOD_TIMEZONE, isValidTimeZone } from "@/lib/grant-report-period";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Admin = any;
@@ -47,6 +52,7 @@ export type DraftRecord = {
   template_id: string;
   period_from: string;
   period_to: string;
+  period_timezone: string | null;
   content: { entries?: DraftContent["entries"]; small_count_reviewed?: string[] };
   derived: DerivedBlock | Record<string, never>;
   derived_at: string | null;
@@ -71,6 +77,7 @@ export type DraftView = {
   template: Pick<FunderTemplate, "id" | "name" | "description">;
   period_from: string;
   period_to: string;
+  period_timezone: string;
   status: ReportStatus;
   version: number;
   rows: ResolvedRow[];
@@ -88,7 +95,7 @@ export type DraftView = {
 };
 
 const COLUMNS =
-  "id,org_id,template_id,period_from,period_to,content,derived,derived_at,status,version,approved_hash,approved_by,approved_at,exported_at,export_count,receipt,submitted_at,submitted_by,created_by,created_at,updated_at";
+  "id,org_id,template_id,period_from,period_to,period_timezone,content,derived,derived_at,status,version,approved_hash,approved_by,approved_at,exported_at,export_count,receipt,submitted_at,submitted_by,created_by,created_at,updated_at";
 
 export const CONFLICT_MESSAGE =
   "This report was changed somewhere else. Reload it to see the latest, then try again.";
@@ -130,6 +137,27 @@ function templateFor(id: string): FunderTemplate {
   return t;
 }
 
+const MISSING_COLUMN = /42703|PGRST204|column .*does not exist|could not find .*column/i;
+
+/**
+ * Whether org_follow_ups has completed_at yet (added by the
+ * 20261006090000 migration). If it doesn't, completions can't be dated, and the
+ * completed count is reported as unknown rather than guessed from updated_at.
+ * Any other failure throws, like every other read here.
+ */
+export async function followUpsHaveCompletionDate(admin: Admin, someUserId: string): Promise<boolean> {
+  const { error } = await admin
+    .from("org_follow_ups")
+    .select("id,completed_at")
+    .in("org_user_id", [someUserId])
+    .order("id", { ascending: true })
+    .range(0, 0);
+  if (!error) return true;
+  const m = `${error.code ?? ""} ${error.message ?? ""}`;
+  if (MISSING_COLUMN.test(m) && /completed_at/i.test(m)) return false;
+  throw new ChunkedReadError("follow-up", error.message);
+}
+
 /**
  * Read the org's records for the period. Every read is chunked and paged and any
  * failure throws: a number is either right or we say we couldn't compute it. It is
@@ -140,6 +168,7 @@ export async function loadDerived(
   orgId: string,
   from: string,
   to: string,
+  timeZone: string = DEFAULT_PERIOD_TIMEZONE,
 ): Promise<DerivedBlock> {
   const members = await selectAllPages<{ user_id: string }>(
     (a, b) =>
@@ -153,6 +182,10 @@ export async function loadDerived(
   );
   const ids = members.map((m) => m.user_id);
   if (!ids.length) throw new Error("Your organization has no members yet.");
+  const hasCompletedAt = await followUpsHaveCompletionDate(admin, ids[0]!);
+  const followUpColumns = hasCompletedAt
+    ? "id,survivor_user_id,status,created_at,updated_at,completed_at"
+    : "id,survivor_user_id,status,created_at,updated_at";
 
   const [links, followUps, referrals] = await Promise.all([
     selectInChunksPaged<LinkRow>(
@@ -171,7 +204,7 @@ export async function loadDerived(
       (chunk, a, b) =>
         admin
           .from("org_follow_ups")
-          .select("id,survivor_user_id,status,created_at,updated_at")
+          .select(followUpColumns)
           .in("org_user_id", chunk)
           .order("id", { ascending: true })
           .range(a, b),
@@ -190,8 +223,21 @@ export async function loadDerived(
     ),
   ]);
 
-  const { derived, caveats } = deriveGrantMetrics({ links, followUps, referrals, from, to });
+  const { derived, caveats } = deriveGrantMetrics({
+    links,
+    followUps,
+    referrals,
+    from,
+    to,
+    timeZone,
+    completionDates: hasCompletedAt ? "recorded" : "unavailable",
+  });
   return { values: derived, caveats };
+}
+
+/** Reports made before time zones were stored were read as UTC days. */
+function zoneOf(rec: Pick<DraftRecord, "period_timezone">): string {
+  return rec.period_timezone && isValidTimeZone(rec.period_timezone) ? rec.period_timezone : DEFAULT_PERIOD_TIMEZONE;
 }
 
 function contentOf(rec: DraftRecord): DraftContent {
@@ -199,6 +245,7 @@ function contentOf(rec: DraftRecord): DraftContent {
     template_id: rec.template_id,
     period_from: rec.period_from,
     period_to: rec.period_to,
+    period_timezone: zoneOf(rec),
     entries: rec.content?.entries ?? {},
     small_count_reviewed: rec.content?.small_count_reviewed ?? [],
   };
@@ -219,6 +266,7 @@ export function toView(rec: DraftRecord, orgName: string | null): DraftView {
     template: { id: template.id, name: template.name, description: template.description },
     period_from: rec.period_from,
     period_to: rec.period_to,
+    period_timezone: zoneOf(rec),
     status: rec.status,
     version: rec.version,
     rows: resolveDraft(template, content, derived.values),
@@ -277,7 +325,7 @@ export async function listDrafts(admin: Admin, userId: string) {
   const { orgId } = await requireOrgAdmin(admin, userId);
   const { data, error } = await admin
     .from("org_grant_report_drafts")
-    .select("id,template_id,period_from,period_to,status,version,updated_at")
+    .select("id,template_id,period_from,period_to,period_timezone,status,version,updated_at")
     .eq("org_id", orgId)
     .order("updated_at", { ascending: false });
   if (error) throw failure(error, "We couldn't load your reports. Try again in a moment.");
@@ -286,6 +334,7 @@ export async function listDrafts(admin: Admin, userId: string) {
     template_id: string;
     period_from: string;
     period_to: string;
+    period_timezone: string | null;
     status: ReportStatus;
     version: number;
     updated_at: string;
@@ -295,12 +344,14 @@ export async function listDrafts(admin: Admin, userId: string) {
 export async function createDraft(
   admin: Admin,
   userId: string,
-  input: { templateId: string; from: string; to: string },
+  input: { templateId: string; from: string; to: string; timeZone?: string },
 ): Promise<DraftView> {
   const { orgId, orgName } = await requireOrgAdmin(admin, userId);
   templateFor(input.templateId);
   if (input.from > input.to) throw new Error("The period starts after it ends.");
-  const derived = await loadDerived(admin, orgId, input.from, input.to);
+  const timeZone = input.timeZone ?? DEFAULT_PERIOD_TIMEZONE;
+  if (!isValidTimeZone(timeZone)) throw new Error("Choose a valid time zone for the reporting period.");
+  const derived = await loadDerived(admin, orgId, input.from, input.to, timeZone);
   const { data, error } = await admin
     .from("org_grant_report_drafts")
     .insert({
@@ -308,6 +359,7 @@ export async function createDraft(
       template_id: input.templateId,
       period_from: input.from,
       period_to: input.to,
+      period_timezone: timeZone,
       content: { entries: {}, small_count_reviewed: [] },
       derived,
       derived_at: new Date().toISOString(),
@@ -350,7 +402,7 @@ export async function saveDraft(
   let derived = derivedOf(rec);
   let derivedAt = rec.derived_at;
   if (input.refreshNumbers) {
-    derived = await loadDerived(admin, orgId, rec.period_from, rec.period_to);
+    derived = await loadDerived(admin, orgId, rec.period_from, rec.period_to, zoneOf(rec));
     derivedAt = new Date().toISOString();
   }
 
@@ -358,6 +410,7 @@ export async function saveDraft(
     template_id: rec.template_id,
     period_from: rec.period_from,
     period_to: rec.period_to,
+    period_timezone: zoneOf(rec),
     entries,
     small_count_reviewed: reviewed,
   };
@@ -406,7 +459,7 @@ export async function approveDraft(admin: Admin, userId: string, id: string): Pr
   }
   const template = templateFor(rec.template_id);
   // Approve against numbers read right now, so an approved report is never based on stale ones.
-  const derived = await loadDerived(admin, orgId, rec.period_from, rec.period_to);
+  const derived = await loadDerived(admin, orgId, rec.period_from, rec.period_to, zoneOf(rec));
   const content = contentOf(rec);
   const issues = validateDraft(template, content, derived.values);
   const fresh: DraftRecord = { ...rec, derived, derived_at: new Date().toISOString() };

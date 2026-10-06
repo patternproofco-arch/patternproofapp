@@ -35,6 +35,7 @@ function content(over: Partial<DraftContent> = {}): DraftContent {
     template_id: DEFAULT_TEMPLATE.id,
     period_from: "2026-01-01",
     period_to: "2026-06-30",
+    period_timezone: "UTC",
     entries: {},
     small_count_reviewed: [],
     ...over,
@@ -273,6 +274,7 @@ describe("content hash", () => {
       entries: { narrative: { text: "x", state: "staff_entered" } },
       period_to: "2026-06-30",
       period_from: "2026-01-01",
+      period_timezone: "UTC",
       template_id: DEFAULT_TEMPLATE.id,
     };
     expect(await contentHash(a, FULL_DERIVED)).toBe(await contentHash(b, FULL_DERIVED));

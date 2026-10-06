@@ -6,6 +6,14 @@
  * funder-recognizable headings. They are not certified program outcomes,
  * not a guarantee of funding eligibility, and never include names or case
  * contents. Count fields keep the existing fewer-than-5 bucketing.
+ *
+ * TODO(harbor-award): Harbor's exact reporting categories must come from its own
+ * award instructions (and, for OVW awards, the progress-report form for the
+ * applicable program). Those aren't in the repo yet. Until they are, these are
+ * generic, soft program-style headings: they are NOT funder form field ids or
+ * question numbers, and none should be added here without the source document.
+ * When Grace supplies the award PDF, add a Harbor template (grant-report-model
+ * TEMPLATES) with rows copied from it, rather than renaming these.
  */
 
 import type { Bucketed, GrantReport } from "@/lib/org-grant-report.functions";
@@ -58,7 +66,7 @@ export type DvFunderCategoryRow = {
 };
 
 const SOFT =
-  "Mapped from PatternProof activity totals for this period. Not a certified program outcome or funding decision.";
+  "Mapped from PatternProof activity totals for this period. Generic heading, not a funder form field. Check it against your award instructions. Not a certified program outcome or funding decision.";
 
 type Spec = {
   id: DvFunderCategoryId;
@@ -88,7 +96,7 @@ export const DV_FUNDER_CATEGORY_SPECS: readonly Spec[] = [
     id: "voca_follow_up_completed",
     funder_program: "VOCA",
     category_label: "VOCA — Follow-up contacts completed",
-    measure_label: "Follow-ups completed",
+    measure_label: "Follow-ups completed (by recorded completion date)",
     source_metric: "follow_ups_completed",
   },
   {

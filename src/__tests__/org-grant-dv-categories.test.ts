@@ -12,6 +12,7 @@ function sample(over: Partial<GrantReport> = {}): Omit<GrantReport, "dv_categori
     org_name: "Harbor Legal Group",
     from: "2026-01-01",
     to: "2026-06-30",
+    time_zone: "UTC",
     people_served: bucket(12),
     cases_opened: bucket(8),
     cases_closed: bucket(3),
