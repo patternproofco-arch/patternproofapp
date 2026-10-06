@@ -7,6 +7,10 @@ import { MagicLinkEmail } from '@/lib/email-templates/magic-link'
 import { RecoveryEmail } from '@/lib/email-templates/recovery'
 import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
+import {
+  AUTH_EMAIL_FROM_DISPLAY,
+  RECOVERY_EMAIL_SUBJECT,
+} from '@/lib/email-templates/recovery.config'
 
 // Configuration
 const SITE_NAME = "Pattern-proof"
@@ -15,6 +19,8 @@ const ROOT_DOMAIN = "pattern-proof.tech"
 const FROM_DOMAIN = "pattern-proof.tech"
 const SITE_URL = `https://${ROOT_DOMAIN}`
 
+// From display is intentionally neutral (Account Notices) so shared-inbox
+// glances do not surface product branding. Domain may still show pattern-proof.tech.
 // The SDK handler owns verification, dispatch, and retry semantics; this file
 // owns only the email decisions: subjects, templates, and per-type props.
 export const Route = createFileRoute("/lovable/email/auth/webhook")({
@@ -23,7 +29,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
       POST: ({ request }) => {
         const handler = createAuthEmailHandler({
           apiKey: process.env['LOVABLE_API_KEY']!,
-          from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+          from: `${AUTH_EMAIL_FROM_DISPLAY} <noreply@${FROM_DOMAIN}>`,
           senderDomain: SENDER_DOMAIN,
           sendUrl: process.env['LOVABLE_SEND_URL'],
           emails: {
@@ -55,7 +61,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
                 }),
             },
             recovery: {
-              subject: 'Reset your password',
+              subject: RECOVERY_EMAIL_SUBJECT,
               render: (data) =>
                 React.createElement(RecoveryEmail, {
                   siteName: SITE_NAME,

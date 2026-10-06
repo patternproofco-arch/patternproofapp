@@ -3,14 +3,17 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { BrandMark } from "@/components/BrandMark";
+import { passwordRecoveryRedirectTo } from "@/lib/password-recovery-redirect";
+import { RECOVERY_EMAIL_INBOX_HINT } from "@/lib/email-templates/recovery.config";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({
     meta: [
-      { title: "PatternProof — Reset your password" },
+      // Quiet tab title — avoid product / court / DV wording in the browser chrome.
+      { title: "Account access" },
       {
         name: "description",
-        content: "Request a link to choose a new password for your PatternProof account.",
+        content: "Request a one-time link to choose a new password for your account.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -20,8 +23,8 @@ export const Route = createFileRoute("/forgot-password")({
 
 /**
  * Enumeration-safe reset request: the success screen is the same whether or not
- * the address has an account. Only transport / rate-limit failures surface as
- * visible role=alert errors (soft-claim copy; no absolute privacy promises).
+ * the address has an account. Only transport / rate-limit / send-config failures
+ * surface as visible role=alert errors (soft-claim copy; no absolute privacy promises).
  */
 function ForgotPasswordPage() {
   const navigate = useNavigate();
@@ -35,8 +38,9 @@ function ForgotPasswordPage() {
     setBusy(true);
     setError(null);
     try {
+      const redirectTo = passwordRecoveryRedirectTo(window.location.origin);
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: window.location.origin + "/reset-password?reason=recovery",
+        redirectTo,
       });
       if (resetError) {
         const lower = resetError.message.toLowerCase();
@@ -47,6 +51,16 @@ function ForgotPasswordPage() {
         }
         if (/failed to fetch|network|timeout|load failed|fetch failed/i.test(lower)) {
           setError("We couldn't reach the reset service. Check your connection and try again.");
+          return;
+        }
+        // Redirect allow-list / SMTP / hook failures used to fall through to the
+        // calm success screen, so survivors thought mail was sent when it was not.
+        if (
+          /redirect|not allowed|invalid.*(url|redirect)|site.?url|unable to send|error sending|smtp|email provider|hook/i.test(
+            lower,
+          )
+        ) {
+          setError("We couldn't send a reset link right now. Try again in a few minutes.");
           return;
         }
         // Other API responses (including unknown-user) still show the calm success path.
@@ -83,9 +97,9 @@ function ForgotPasswordPage() {
             <>
               <h1 className="font-serif text-[22px]">Reset your password.</h1>
               <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-                Enter the email you use with PatternProof. If that address has an account, we&apos;ll
-                send a link to choose a new password. Your records stay as you left them — this only
-                changes how you sign in.
+                Enter the email you use with this account. If that address has an account, we&apos;ll
+                send a one-time link to choose a new password. Your records stay as you left them —
+                this only changes how you sign in.
               </p>
 
               <form onSubmit={submit} className="space-y-3" noValidate>
@@ -131,6 +145,9 @@ function ForgotPasswordPage() {
                 If that email has an account, we&apos;ve sent a link to reset the password. It
                 expires in about 24 hours. The message never contains a password — only a one-time
                 link to set a new one. We do not confirm here whether an account exists.
+              </p>
+              <p className="mt-3 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
+                {RECOVERY_EMAIL_INBOX_HINT}
               </p>
               <button
                 type="button"

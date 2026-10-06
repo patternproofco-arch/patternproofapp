@@ -10,6 +10,8 @@
 2. Supabase Auth recovery emails are enabled for the target environment.
 3. Site URL / redirect allow-list includes `{origin}/reset-password` (and `?reason=recovery`).
 
+See also **`docs/qa/password-recovery-auth-muy.md`** for the exact **muy** Site URL / Redirect URLs list, survivor-safe subject (**Your account access link** / **Account Notices**), and Dashboard template fallback paste.
+
 ## Exact steps (fictional or founder-controlled email)
 
 1. Open `/signin` → **Forgot your password?** (or go directly to `/forgot-password`).

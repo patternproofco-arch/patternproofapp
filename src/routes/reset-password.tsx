@@ -14,8 +14,9 @@ export const Route = createFileRoute("/reset-password")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "PatternProof — Choose a new password" },
-      { name: "description", content: "Set a new password for your PatternProof account." },
+      // Quiet tab title — avoid product / court / DV wording in the browser chrome.
+      { title: "Update account" },
+      { name: "description", content: "Set a new password for your account." },
       { name: "robots", content: "noindex" },
     ],
   }),
