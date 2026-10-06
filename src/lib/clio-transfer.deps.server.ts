@@ -83,7 +83,7 @@ export function realTransferDeps(): TransferDeps {
       const { data } = await supabaseAdmin.storage.from("evidence-files").download(path);
       return data ? new Uint8Array(await data.arrayBuffer()) : null;
     },
-    async buildZip({ rows, files }) {
+    async buildZip({ rows, files, packageVersion }) {
       const built = await buildExhibitBinderZip({
         entries: rows.map((r) => ({
           id: r.id,
@@ -95,7 +95,8 @@ export function realTransferDeps(): TransferDeps {
           body: r.quote,
         })),
         evidenceFiles: files,
-        chronologyText: renderChronologyText(rows),
+        chronologyText: renderChronologyText(rows, { packageVersion }),
+        packageVersion,
       });
       return built.zipBuf;
     },

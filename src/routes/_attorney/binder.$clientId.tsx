@@ -100,7 +100,13 @@ function BinderPage() {
         </Link>
         <button
           onClick={() => window.print()}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
+          disabled={!!fixedPackage && fixedPackage.diff.changed.length > 0}
+          title={
+            fixedPackage && fixedPackage.diff.changed.length > 0
+              ? "Review changed items and save a new package version before printing an updated binder."
+              : undefined
+          }
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50"
         >
           <Printer size={14} /> Download as PDF
         </button>
@@ -113,9 +119,16 @@ function BinderPage() {
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
           {fixedPackage
-            ? `Exhibit numbers are fixed (package v${fixedPackage.version}). Items shared since then show as "Not yet numbered".`
+            ? `Exhibit numbers are fixed (package v${fixedPackage.version}${fixedPackage.createdAt ? ` · approved ${fixedPackage.createdAt.slice(0, 10)}` : ""}). Items shared since then show as "Not yet numbered".`
             : "Exhibit numbers are provisional (date order) and can change if items are added. Fix them below before citing them."}
         </p>
+        {fixedPackage && fixedPackage.diff.changed.length > 0 && (
+          <p className="mt-2 text-xs" role="status">
+            {fixedPackage.diff.changed.length} numbered item(s) changed after package v{fixedPackage.version}.
+            Review them in the chronology and save a new package version before printing or sending an updated binder.
+            Numbers stay the same; the new version records that you reviewed the current wording.
+          </p>
+        )}
       </header>
       {incidents.length > 0 && evidence.length === 0 ? (
         <div className="mb-6 print:hidden">

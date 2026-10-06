@@ -22,6 +22,13 @@ import {
 } from "@/lib/chronology";
 import type { ExhibitPackage } from "@/lib/exhibit-numbering";
 import {
+  buildDeclarationCopyPreview,
+  chronologyRowSourceNotes,
+  gatePacketOutput,
+  packetVersionLabel,
+  type CopyPreviewSection,
+} from "@/lib/packet-output";
+import {
   askAboutEntryQuestion,
   getReviewQueue,
   setEntryReview,
@@ -97,8 +104,15 @@ function Loaded({ clientId, ws }: { clientId: string; ws: Workspace }) {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
+  const [copyPreview, setCopyPreview] = useState<null | {
+    kind: "chronology" | "declaration_draft";
+    text: string;
+    sections: CopyPreviewSection[] | null;
+    chronoNotes: Array<{ key: string; title: string; notes: string[] }> | null;
+  }>(null);
 
   const pkg: ExhibitPackage | null = ws.package ? { version: ws.package.version, entries: [] } : null;
+  const p = ws.package;
   const rowByKey = useMemo(() => new Map(ws.rows.map((r) => [r.key, r])), [ws.rows]);
 
   // What the server will record as reviewed, mirrored here so flags are right before saving.
@@ -176,15 +190,61 @@ function Loaded({ clientId, ws }: { clientId: string; ws: Workspace }) {
     }
   };
 
-  const copy = async (kind: "chronology" | "declaration_draft") => {
+  const packageGate = useMemo(
+    () =>
+      gatePacketOutput({
+        packageVersion: p?.version ?? null,
+        packageDiff: p?.diff ?? null,
+        requirePackage: false,
+      }),
+    [p],
+  );
+  const declarationGate = useMemo(
+    () =>
+      gatePacketOutput({
+        packageVersion: p?.version ?? null,
+        packageDiff: p?.diff ?? null,
+        packageBehind: analysis.packageBehind,
+        changedSinceReview: analysis.changedSinceReview,
+      }),
+    [p, analysis.packageBehind, analysis.changedSinceReview],
+  );
+
+  const openCopyPreview = (kind: "chronology" | "declaration_draft") => {
+    const gate = kind === "chronology" ? packageGate : declarationGate;
+    if (!gate.ok) {
+      setError(gate.reasons[0] ?? "Review changes before copying.");
+      return;
+    }
     const text =
       kind === "chronology"
-        ? renderChronologyText(ws.rows)
-        : renderDeclarationText(view, ws.rows, pkg);
+        ? renderChronologyText(ws.rows, {
+            packageVersion: p?.version ?? null,
+            approvedAt: p?.createdAt ?? null,
+          })
+        : renderDeclarationText(view, ws.rows, pkg, { approvedAt: p?.createdAt ?? null });
+    setCopyPreview({
+      kind,
+      text,
+      sections: kind === "declaration_draft" ? buildDeclarationCopyPreview(view, ws.rows) : null,
+      chronoNotes:
+        kind === "chronology"
+          ? ws.rows.map((r) => ({ key: r.key, title: r.title, notes: chronologyRowSourceNotes(r) }))
+          : null,
+    });
+  };
+
+  const confirmCopy = async () => {
+    if (!copyPreview) return;
     try {
-      await navigator.clipboard.writeText(text);
-      toast(kind === "chronology" ? "Chronology copied." : "Draft copied. It is unsigned and unsworn.");
-      void logExport({ data: { clientId, kind } }).catch(() => undefined);
+      await navigator.clipboard.writeText(copyPreview.text);
+      toast(
+        copyPreview.kind === "chronology"
+          ? "Chronology copied."
+          : "Draft copied. It is unsigned and unsworn.",
+      );
+      void logExport({ data: { clientId, kind: copyPreview.kind } }).catch(() => undefined);
+      setCopyPreview(null);
     } catch {
       toast("We couldn't copy that. Try again in a moment.");
     }
@@ -206,7 +266,6 @@ function Loaded({ clientId, ws }: { clientId: string; ws: Workspace }) {
     setSaveState("idle");
   };
 
-  const p = ws.package;
   const unresolved = analysis.needsDecision.length;
 
   const queue: Queue | undefined = queueQ.data;
@@ -297,17 +356,30 @@ function Loaded({ clientId, ws }: { clientId: string; ws: Workspace }) {
             ) : (
               <span className="text-xs text-muted-foreground"> Nothing has changed since.</span>
             )}
-            {ws.canCreatePackage && p.diff.added.length > 0 && (
+            {ws.canCreatePackage && (p.diff.added.length > 0 || p.diff.changed.length > 0) && (
               <div className="mt-2">
                 <button
                   className="rounded-lg border border-border px-3 py-1.5 disabled:opacity-50"
                   onClick={freeze}
                   disabled={working}
                 >
-                  {working ? "Saving…" : `Number the new items (package v${p.version + 1})`}
+                  {working
+                    ? "Saving…"
+                    : p.diff.changed.length > 0 && p.diff.added.length === 0
+                      ? `Review changes and save package v${p.version + 1}`
+                      : p.diff.changed.length > 0
+                        ? `Number new items and refresh changed ones (package v${p.version + 1})`
+                        : `Number the new items (package v${p.version + 1})`}
                 </button>
-                <span className="ml-2 text-xs text-muted-foreground">Existing numbers stay as they are.</span>
+                <span className="ml-2 text-xs text-muted-foreground">
+                  Existing numbers stay as they are. A new version records that you reviewed the current wording.
+                </span>
               </div>
+            )}
+            {!packageGate.ok && (
+              <p className="mt-2 text-xs" role="status">
+                {packageGate.reasons[0]}
+              </p>
             )}
           </>
         )}
@@ -688,23 +760,106 @@ function Loaded({ clientId, ws }: { clientId: string; ws: Workspace }) {
           Save draft
         </button>
         <button
-          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm"
-          onClick={() => copy("chronology")}
+          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-50"
+          onClick={() => openCopyPreview("chronology")}
+          disabled={!packageGate.ok}
+          title={!packageGate.ok ? packageGate.reasons[0] : undefined}
         >
-          <Copy size={14} /> Copy chronology
+          <Copy size={14} /> Preview &amp; copy chronology
         </button>
         <button
           className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-50"
-          onClick={() => copy("declaration_draft")}
-          disabled={paragraphs.length === 0}
+          onClick={() => openCopyPreview("declaration_draft")}
+          disabled={paragraphs.length === 0 || !declarationGate.ok}
+          title={!declarationGate.ok ? declarationGate.reasons[0] : undefined}
         >
-          <Copy size={14} /> Copy declaration draft
+          <Copy size={14} /> Preview &amp; copy declaration draft
         </button>
       </div>
+      {!declarationGate.ok && paragraphs.length > 0 && (
+        <p className="mt-2 text-xs" role="status">
+          {declarationGate.reasons[0]}
+        </p>
+      )}
       <p className="mt-2 text-xs text-muted-foreground">
-        Once copied, the text is outside PatternProof. If the client later ends sharing, PatternProof can hide it here,
-        but it can&apos;t take back what you have already copied.
+        Copying shows the exact wording first. Once copied, the text is outside PatternProof. If the client later ends
+        sharing, PatternProof can hide it here, but it can&apos;t take back what you have already copied.
       </p>
+
+      {copyPreview && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="copy-preview-title"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+        >
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-xl border border-border bg-background p-4 shadow-lg">
+            <h3 id="copy-preview-title" className="font-display text-base">
+              {copyPreview.kind === "chronology" ? "Chronology copy preview" : "Declaration draft copy preview"}
+            </h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {p
+                ? `${packetVersionLabel(p.version)}. Review the exact wording below before copying.`
+                : "No approved exhibit package yet. Numbers in this text may be provisional."}
+            </p>
+            {copyPreview.sections && (
+              <ul className="mt-3 space-y-2 text-xs">
+                {copyPreview.sections.map((s) => (
+                  <li key={s.n} className="rounded-lg border border-border p-2">
+                    <div className="font-semibold">
+                      ¶{s.n}
+                      {s.exhibit ? ` · ${s.exhibit}` : ""}
+                    </div>
+                    <div className="mt-1 text-muted-foreground">{s.kindLabels.join(" · ")}</div>
+                    <pre className="mt-1 whitespace-pre-wrap font-sans text-sm">{s.text}</pre>
+                    {s.softwareExtracted && (
+                      <details className="mt-1">
+                        <summary>
+                          Software-extracted {s.softwareExtracted.kind}
+                          {s.softwareExtracted.checked ? " (checked)" : " (not checked)"} — not in the draft wording
+                          above unless you typed it in
+                        </summary>
+                        <pre className="mt-1 whitespace-pre-wrap font-sans">{s.softwareExtracted.text}</pre>
+                      </details>
+                    )}
+                    {s.flags.map((f) => (
+                      <div key={f} className="mt-1">
+                        Note: {f}
+                      </div>
+                    ))}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {copyPreview.chronoNotes && (
+              <ul className="mt-3 max-h-40 space-y-1 overflow-auto text-xs text-muted-foreground">
+                {copyPreview.chronoNotes.map((n) => (
+                  <li key={n.key}>
+                    <strong>{n.title}</strong>: {n.notes.join(" ")}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <pre className="mt-3 max-h-56 overflow-auto whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3 font-sans text-xs">
+              {copyPreview.text}
+            </pre>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                className="rounded-lg bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+                onClick={() => void confirmCopy()}
+              >
+                Copy this exact wording
+              </button>
+              <button
+                className="rounded-lg border border-border px-3 py-1.5 text-sm"
+                onClick={() => setCopyPreview(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

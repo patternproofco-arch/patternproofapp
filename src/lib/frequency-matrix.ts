@@ -71,6 +71,8 @@ export interface MatrixMeta {
   importedOn?: string | null;
   exhibitLabel?: string | null;
   generatedOn: string;
+  /** Approved exhibit package version, when the attorney has fixed numbers. */
+  packageVersion?: number | null;
 }
 
 /* ------------------------------ soft copy ------------------------------ */
@@ -452,6 +454,8 @@ export function frequencyMatrixToText(m: FrequencyMatrix, meta: MatrixMeta): str
   const out: string[] = [];
   out.push(`${MATRIX_TITLE.toUpperCase()} (${MATRIX_SUBTITLE.toLowerCase()})`);
   if (meta.exhibitLabel?.trim()) out.push(meta.exhibitLabel.trim());
+  if (meta.packageVersion != null) out.push(`Exhibit package: v${meta.packageVersion}`);
+  else if ("packageVersion" in meta) out.push("Exhibit package: none (provisional labels)");
   out.push(`Conversation: ${meta.conversation}`);
   if (meta.source) out.push(`Source file: ${meta.source}`);
   if (meta.importedOn) out.push(`Imported: ${meta.importedOn}`);

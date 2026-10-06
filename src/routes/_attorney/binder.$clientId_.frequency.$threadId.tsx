@@ -5,6 +5,8 @@ import { ArrowLeft } from "lucide-react";
 import { getClientThreadMatrixData } from "@/lib/attorney-portal.functions";
 import { FrequencyMatrixSheet } from "@/components/FrequencyMatrixSheet";
 import { AttorneyBinderEmpty } from "@/components/attorney/AttorneyBinderEmpty";
+import { useChronologyWorkspace } from "@/components/attorney/ChronologyWorkspace";
+import { gatePacketOutput } from "@/lib/packet-output";
 
 export const Route = createFileRoute("/_attorney/binder/$clientId_/frequency/$threadId")({
   head: () => ({
@@ -25,6 +27,7 @@ function AttorneyFrequencyMatrixPage() {
     from: "/_attorney/binder/$clientId_/frequency/$threadId",
   });
   const fetchData = useServerFn(getClientThreadMatrixData);
+  const wsQ = useChronologyWorkspace(clientId);
   const q = useQuery({
     queryKey: ["binder-frequency-matrix", clientId, threadId],
     queryFn: () => fetchData({ data: { clientId, threadId } }),
@@ -57,6 +60,11 @@ function AttorneyFrequencyMatrixPage() {
   }
 
   const t = q.data.thread;
+  const pkg = wsQ.data?.package ?? null;
+  const gate = gatePacketOutput({
+    packageVersion: pkg?.version ?? null,
+    packageDiff: pkg?.diff ?? null,
+  });
   return (
     <FrequencyMatrixSheet
       messages={q.data.messages}
@@ -64,6 +72,8 @@ function AttorneyFrequencyMatrixPage() {
       conversation={t.conversation_participant || t.source_filename || "Imported conversation"}
       source={t.source_filename}
       importedAt={t.created_at}
+      packageVersion={pkg?.version ?? null}
+      packageBlockedReason={gate.ok ? null : gate.reasons[0] ?? null}
       toolbarStart={back}
     />
   );
