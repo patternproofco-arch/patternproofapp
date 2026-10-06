@@ -50,6 +50,7 @@ export function selectionFingerprint(input: {
   include_all_evidence?: boolean;
   scope_incidents?: string[] | null;
   scope_evidence?: string[] | null;
+  deliberate_evidence?: string[] | null;
   case_id?: string | null;
   merge_mode?: ShareMergeMode | null;
   existing_link_id?: string | null;
@@ -60,6 +61,7 @@ export function selectionFingerprint(input: {
     input.include_all_evidence ? "1" : "0",
     sort(input.scope_incidents),
     sort(input.scope_evidence),
+    sort(input.deliberate_evidence),
     input.case_id ?? "",
     input.merge_mode ?? "",
     input.existing_link_id ?? "",

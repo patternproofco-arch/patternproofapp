@@ -24,6 +24,8 @@ export const previewShare = createServerFn({ method: "POST" })
         include_all_evidence: z.boolean().default(false),
         scope_incidents: z.array(z.string().uuid()).max(20000).optional(),
         scope_evidence: z.array(z.string().uuid()).max(20000).optional(),
+        /** Extra file ids she chose from missing-attachments — always authorized for this invite only. */
+        deliberate_evidence: z.array(z.string().uuid()).max(20000).optional(),
         case_id: z.string().uuid().optional().nullable(),
         /** When inviting someone who already has access, preview Add vs Replace. */
         existing_link_id: z.string().uuid().optional().nullable(),
@@ -125,6 +127,28 @@ export const previewShare = createServerFn({ method: "POST" })
       };
     }
 
+    // Deliberate missing-attachment includes: authorize owned ids for THIS invite only,
+    // without turning off include-all for the rest of the evidence set.
+    const deliberate = data.deliberate_evidence ?? [];
+    if (deliberate.length) {
+      const { snapshotShareScope } = await import("@/lib/grant-snapshot.server");
+      const auth = await snapshotShareScope(
+        supabaseAdmin,
+        context.userId,
+        {
+          include_all_incidents: false,
+          include_all_evidence: false,
+          scope_incidents: [],
+          scope_evidence: deliberate,
+        },
+        { authorizeExplicitPicks: true },
+      );
+      resulting = {
+        incidents: resulting.incidents,
+        evidence: Array.from(new Set([...resulting.evidence, ...auth.scope_evidence])),
+      };
+    }
+
     const fingerprint = selectionFingerprint({
       include_all_incidents: hasExplicitInc ? false : data.include_all_incidents,
       include_all_evidence: hasExplicitEv ? false : data.include_all_evidence,
@@ -133,6 +157,13 @@ export const previewShare = createServerFn({ method: "POST" })
       case_id: data.case_id ?? null,
       merge_mode: data.merge_mode ?? null,
       existing_link_id: data.existing_link_id ?? null,
+      deliberate_evidence: deliberate,
+    });
+
+    const { findMissingAttachments } = await import("@/lib/sharing/referenced-attachments.server");
+    const missing_attachments = await findMissingAttachments(supabaseAdmin, context.userId, {
+      sharedIncidentIds: resulting.incidents,
+      sharedEvidenceIds: resulting.evidence,
     });
 
     return {
@@ -147,6 +178,11 @@ export const previewShare = createServerFn({ method: "POST" })
       heldBackFiles,
       excluded: held,
       merge,
+      /**
+       * Files the shared entries reference that are not in this share.
+       * Listed so she can include them deliberately — never auto-added.
+       */
+      missing_attachments,
     };
   });
 
