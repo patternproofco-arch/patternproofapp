@@ -69,6 +69,7 @@ function ShareWithAdvocate() {
   } | null>(null);
   const [previewStatus, setPreviewStatus] = useState<SharePreviewStatus>({ kind: "idle" });
   const [mergeMode, setMergeMode] = useState<ShareMergeMode | null>(null);
+  const [deliberateEvidenceIds, setDeliberateEvidenceIds] = useState<string[]>([]);
 
   const load = useCallback(() => {
     listFn()
@@ -101,7 +102,13 @@ function ShareWithAdvocate() {
 
   useEffect(() => {
     setMergeMode(null);
+    setDeliberateEvidenceIds([]);
   }, [existingLinkForEmail?.id, email]);
+
+  useEffect(() => {
+    // Switching "include all evidence" on means deliberate extras are rebuilt from a fresh preview.
+    if (incEvidence) setDeliberateEvidenceIds([]);
+  }, [incEvidence]);
 
   const submit = async () => {
     if (!email.trim()) {
@@ -388,7 +395,9 @@ function ShareWithAdvocate() {
             existingLinkId={existingLinkForEmail?.id ?? null}
             mergeMode={existingLinkForEmail ? mergeMode : null}
             linkKind="advocate"
-            onStatusChange={setPreviewStatus}
+            deliberateEvidenceIds={deliberateEvidenceIds}
+              onDeliberateEvidenceChange={setDeliberateEvidenceIds}
+              onStatusChange={setPreviewStatus}
           />
           <div style={{ display: "flex", gap: 8 }}>
             <button

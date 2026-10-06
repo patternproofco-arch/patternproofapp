@@ -92,6 +92,7 @@ function ShareWithAttorney() {
   const [caseId, setCaseId] = useState<string>(""); // "" = all cases (legacy)
   const [previewStatus, setPreviewStatus] = useState<SharePreviewStatus>({ kind: "idle" });
   const [mergeMode, setMergeMode] = useState<ShareMergeMode | null>(null);
+  const [deliberateEvidenceIds, setDeliberateEvidenceIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -135,7 +136,13 @@ function ShareWithAttorney() {
   // Reset merge mode when the matched existing link changes
   useEffect(() => {
     setMergeMode(null);
+    setDeliberateEvidenceIds([]);
   }, [existingLinkForEmail?.id, email]);
+
+  useEffect(() => {
+    // Switching "include all evidence" on means deliberate extras are rebuilt from a fresh preview.
+    if (incEvidence) setDeliberateEvidenceIds([]);
+  }, [incEvidence]);
 
   const submit = async () => {
     if (!email.trim()) {
@@ -482,6 +489,8 @@ function ShareWithAttorney() {
               existingLinkId={existingLinkForEmail?.id ?? null}
               mergeMode={existingLinkForEmail ? mergeMode : null}
               linkKind="attorney"
+              deliberateEvidenceIds={deliberateEvidenceIds}
+              onDeliberateEvidenceChange={setDeliberateEvidenceIds}
               onStatusChange={setPreviewStatus}
             />
 

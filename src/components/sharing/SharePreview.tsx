@@ -11,6 +11,14 @@ type PreviewOk = Extract<SharePreviewResult, { verified: true }>;
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
+const KIND_LABEL: Record<string, string> = {
+  screenshot: "Screenshot",
+  transcript: "Transcript / recording text",
+  recording: "Recording",
+  original: "Original file",
+  file: "File",
+};
+
 export type SharePreviewStatus =
   | { kind: "idle" }
   | { kind: "loading" }
@@ -19,8 +27,8 @@ export type SharePreviewStatus =
 
 /**
  * What this link will share, shown before it is made. Counts what is going and what is being
- * held back and where to change that. A failed check says so and must block create — it never
- * shows a reassuring number it doesn't have, and never invites the user to create anyway.
+ * held back and where to change that. Lists attachments referenced by shared entries that are
+ * not in the file set so she can include them deliberately. A failed check blocks create.
  */
 export function SharePreview({
   includeIncidents,
@@ -31,6 +39,8 @@ export function SharePreview({
   existingLinkId,
   mergeMode,
   linkKind = "attorney",
+  deliberateEvidenceIds = [],
+  onDeliberateEvidenceChange,
   onStatusChange,
 }: {
   includeIncidents: boolean;
@@ -42,6 +52,9 @@ export function SharePreview({
   existingLinkId?: string | null;
   mergeMode?: ShareMergeMode | null;
   linkKind?: "attorney" | "advocate";
+  /** Extra evidence ids she chose from the missing-attachments list. */
+  deliberateEvidenceIds?: string[];
+  onDeliberateEvidenceChange?: (ids: string[]) => void;
   onStatusChange?: (status: SharePreviewStatus) => void;
 }) {
   const preview = useServerFn(previewShare);
@@ -49,11 +62,13 @@ export function SharePreview({
 
   const hasExplicitInc = Array.isArray(scopeIncidents);
   const hasExplicitEv = Array.isArray(scopeEvidence);
+
   const fingerprint = selectionFingerprint({
     include_all_incidents: hasExplicitInc ? false : includeIncidents,
     include_all_evidence: hasExplicitEv ? false : includeEvidence,
     scope_incidents: scopeIncidents,
     scope_evidence: scopeEvidence,
+    deliberate_evidence: deliberateEvidenceIds,
     case_id: caseId || null,
     merge_mode: mergeMode ?? null,
     existing_link_id: existingLinkId ?? null,
@@ -64,7 +79,8 @@ export function SharePreview({
     !includeEvidence &&
     !caseId &&
     !(hasExplicitInc && (scopeIncidents?.length ?? 0) > 0) &&
-    !(hasExplicitEv && (scopeEvidence?.length ?? 0) > 0);
+    !(hasExplicitEv && (scopeEvidence?.length ?? 0) > 0) &&
+    deliberateEvidenceIds.length === 0;
 
   useEffect(() => {
     if (nothingSelected) {
@@ -90,6 +106,7 @@ export function SharePreview({
           include_all_evidence: hasExplicitEv ? false : includeEvidence,
           scope_incidents: hasExplicitInc ? scopeIncidents : undefined,
           scope_evidence: hasExplicitEv ? scopeEvidence : undefined,
+          deliberate_evidence: deliberateEvidenceIds,
           case_id: caseId || null,
           existing_link_id: existingLinkId || null,
           merge_mode: mergeMode ?? null,
@@ -113,9 +130,16 @@ export function SharePreview({
       cancelled = true;
       clearTimeout(t);
     };
-    // fingerprint captures selection; re-run when it changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fingerprint, nothingSelected, linkKind, preview]);
+
+  const toggleMissing = (id: string, checked: boolean) => {
+    if (!onDeliberateEvidenceChange) return;
+    const next = checked
+      ? Array.from(new Set([...deliberateEvidenceIds, id]))
+      : deliberateEvidenceIds.filter((x) => x !== id);
+    onDeliberateEvidenceChange(next);
+  };
 
   if (state.kind === "idle") {
     if (existingLinkId && !mergeMode) {
@@ -150,6 +174,7 @@ export function SharePreview({
   }
   const { preview: p } = state;
   const held = p.heldBackEntries + p.heldBackFiles;
+  const missing = p.missing_attachments ?? [];
   return (
     <div
       className="rounded-2xl p-3 text-[13px]"
@@ -182,11 +207,55 @@ export function SharePreview({
           </p>
         </div>
       )}
+      {missing.length > 0 && (
+        <div
+          className="mt-2 rounded-xl p-2 text-[12px]"
+          style={{ background: "var(--background)" }}
+          data-testid="missing-attachments"
+        >
+          <div className="font-semibold">
+            {plural(missing.length, "attached file is", "attached files are")} referenced by your
+            selected entries but not included yet
+          </div>
+          <p className="mt-1" style={{ color: "var(--muted-foreground)" }}>
+            If you leave {missing.length === 1 ? "it" : "them"} out, the recipient will see the
+            entry but won&apos;t be able to open the source file. Include only what you choose —
+            nothing is added automatically.
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {missing.map((m) => {
+              const checked = deliberateEvidenceIds.includes(m.id);
+              return (
+                <li key={m.id}>
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={checked}
+                      disabled={!onDeliberateEvidenceChange}
+                      onChange={(e) => toggleMissing(m.id, e.target.checked)}
+                      data-testid={`missing-attachment-${m.id}`}
+                    />
+                    <span>
+                      <span className="font-medium">{m.title}</span>
+                      <span style={{ color: "var(--muted-foreground)" }}>
+                        {" "}
+                        · {KIND_LABEL[m.kind] ?? "File"}
+                        {m.kept_private ? " · currently private (include authorizes this invite only)" : ""}
+                      </span>
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
       {held > 0 && (
         <p className="mt-1" style={{ color: "var(--muted-foreground)" }}>
           {plural(p.heldBackEntries, "entry", "entries")} and {plural(p.heldBackFiles, "file", "files")}{" "}
           are left out because they&apos;re marked private or you haven&apos;t decided yet
-          {hasExplicitInc || hasExplicitEv
+          {hasExplicitInc || hasExplicitEv || deliberateEvidenceIds.length > 0
             ? " — unless you explicitly selected them for this invitation"
             : ""}
           .{" "}
@@ -197,7 +266,8 @@ export function SharePreview({
       )}
       <p className="mt-1" style={{ color: "var(--muted-foreground)" }}>
         Only what&apos;s counted here is shared. Anything you add later stays private until you add
-        it. &ldquo;OK to share later&rdquo; alone grants nobody access.
+        it. &ldquo;OK to share later&rdquo; alone grants nobody access. Ending access cannot
+        retrieve copies already downloaded or transferred.
       </p>
     </div>
   );
