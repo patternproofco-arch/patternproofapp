@@ -43,9 +43,14 @@ export function useEntryDraft(userId: string | undefined, draft: EntryDraft, ena
   }, [userId]);
 
   // Save shortly after she stops typing. Nothing is kept for an empty form.
+  // Keyed on the draft's CONTENT, not its object identity: callers build a new
+  // object every render, and depending on that reference made every status update
+  // re-arm the timer, looping saving → saved → saving forever and keeping the
+  // beforeunload warning (which blocks "Exit safely") permanently attached.
+  const draftKey = JSON.stringify(draft);
   useEffect(() => {
     if (!userId || !enabled || !checked || restored) return;
-    if (draftIsEmpty(draft)) return;
+    if (draftIsEmpty(latest.current)) return;
     const mine = ++seq.current;
     setStatus("saving");
     const t = setTimeout(() => {
@@ -58,7 +63,8 @@ export function useEntryDraft(userId: string | undefined, draft: EntryDraft, ena
         });
     }, 1200);
     return () => clearTimeout(t);
-  }, [userId, enabled, checked, restored, draft]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, enabled, checked, restored, draftKey]);
 
   // Warn before leaving with text that isn't safe anywhere.
   useEffect(() => {
