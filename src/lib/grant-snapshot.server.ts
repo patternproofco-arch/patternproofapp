@@ -117,21 +117,25 @@ function uniq(ids: Array<string | null | undefined>) {
 
 /**
  * Replace include_all_* with the concrete ids that exist right now.
- * Fails closed for journal entries and files: a private or still-deciding item
- * is never swept in by "share everything" and never added by an explicit pick
- * either. (The invite screen only offers shareable items, so a pick of one means
- * a stale page, and the safe outcome is to leave it out.) Never widens beyond
- * what she owns and hasn't deleted.
+ *
+ * "Share everything" never sweeps in private / still-deciding items.
+ * Explicit picks: when authorizeExplicitPicks is true (invite consent for this
+ * invitation only), an owned item she selected is included even if still marked
+ * private — "OK to share later" alone still grants nobody. When the flag is off
+ * (default), private / undecided stays out of explicit picks too.
+ * Never widens beyond what she owns and hasn't deleted.
  */
 export async function snapshotShareScope<T extends ShareScope>(
   admin: Admin,
   clientUserId: string,
   scope: T,
   /**
-   * Only for grants made before scope freezing existed: "share all" is limited to items
-   * that existed when the survivor made the invitation, never what was added after.
+   * createdAtOrBefore — legacy blanket grants: limit "share all" to items that
+   * existed when the invitation was made.
+   * authorizeExplicitPicks — invite flow: selecting a private item authorizes
+   * that invitation only (owned + not deleted). Does not change readiness.
    */
-  opts: { createdAtOrBefore?: string } = {},
+  opts: { createdAtOrBefore?: string; authorizeExplicitPicks?: boolean } = {},
 ): Promise<
   T &
     Required<Pick<ShareScope, "include_all_incidents" | "include_all_evidence">> & {
@@ -156,18 +160,24 @@ export async function snapshotShareScope<T extends ShareScope>(
   const shareableEv = new Set(shareableEvList);
   const excluded: ExcludedItem[] = [];
 
+  const authorizePicks = opts.authorizeExplicitPicks === true;
+
   let incidents: string[];
   if (scope.include_all_incidents) {
     incidents = Array.from(shareableInc);
   } else {
     incidents = [];
     for (const id of uniq(scope.scope_incidents ?? [])) {
-      if (ownInc.has(id) && shareableInc.has(id)) incidents.push(id);
+      if (!ownInc.has(id)) {
+        excluded.push({ kind: "incident", id, reason: "not_available" });
+        continue;
+      }
+      if (shareableInc.has(id) || authorizePicks) incidents.push(id);
       else
         excluded.push({
           kind: "incident",
           id,
-          reason: ownInc.has(id) ? "kept_private" : "not_available",
+          reason: "kept_private",
         });
     }
   }
@@ -178,12 +188,16 @@ export async function snapshotShareScope<T extends ShareScope>(
   } else {
     evidence = [];
     for (const id of uniq(scope.scope_evidence ?? [])) {
-      if (ownEv.has(id) && shareableEv.has(id)) evidence.push(id);
+      if (!ownEv.has(id)) {
+        excluded.push({ kind: "file", id, reason: "not_available" });
+        continue;
+      }
+      if (shareableEv.has(id) || authorizePicks) evidence.push(id);
       else
         excluded.push({
           kind: "file",
           id,
-          reason: ownEv.has(id) ? "kept_private" : "not_available",
+          reason: "kept_private",
         });
     }
   }

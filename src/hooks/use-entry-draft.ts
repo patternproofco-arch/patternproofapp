@@ -13,11 +13,13 @@ import {
 /**
  * Keeps an unfinished entry safe in her own private row while she writes.
  * `status` only says "saved" after the database confirmed it.
+ * A failed draft load is surfaced as `loadFailed` — never quietly treated as "no draft".
  */
 export function useEntryDraft(userId: string | undefined, draft: EntryDraft, enabled: boolean) {
   const [status, setStatus] = useState<DraftStatus>("idle");
   const [restored, setRestored] = useState<DraftLoad>(null);
   const [checked, setChecked] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const seq = useRef(0);
   const latest = useRef(draft);
   latest.current = draft;
@@ -26,14 +28,24 @@ export function useEntryDraft(userId: string | undefined, draft: EntryDraft, ena
   useEffect(() => {
     setRestored(null);
     setChecked(false);
+    setLoadFailed(false);
     setStatus("idle");
     if (!userId) return;
     let cancelled = false;
     loadDraft(supabase, userId)
       .then((d) => {
-        if (!cancelled) setRestored(d);
+        if (!cancelled) {
+          setRestored(d);
+          setLoadFailed(false);
+        }
       })
-      .catch(() => undefined)
+      .catch(() => {
+        // Failed read is NOT "no draft" — say so so she doesn't type over text we couldn't check.
+        if (!cancelled) {
+          setRestored(null);
+          setLoadFailed(true);
+        }
+      })
       .finally(() => {
         if (!cancelled) setChecked(true);
       });
@@ -47,9 +59,11 @@ export function useEntryDraft(userId: string | undefined, draft: EntryDraft, ena
   // object every render, and depending on that reference made every status update
   // re-arm the timer, looping saving → saved → saving forever and keeping the
   // beforeunload warning (which blocks "Exit safely") permanently attached.
+  // Do not autosave while a prior draft load failed — we don't know if there's
+  // unfinished text we'd overwrite.
   const draftKey = JSON.stringify(draft);
   useEffect(() => {
-    if (!userId || !enabled || !checked || restored) return;
+    if (!userId || !enabled || !checked || restored || loadFailed) return;
     if (draftIsEmpty(latest.current)) return;
     const mine = ++seq.current;
     setStatus("saving");
@@ -66,7 +80,7 @@ export function useEntryDraft(userId: string | undefined, draft: EntryDraft, ena
     }, 1200);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, enabled, checked, restored, draftKey]);
+  }, [userId, enabled, checked, restored, loadFailed, draftKey]);
 
   // Warn before leaving with text that isn't safe anywhere.
   useEffect(() => {
@@ -84,10 +98,14 @@ export function useEntryDraft(userId: string | undefined, draft: EntryDraft, ena
   /** Dismiss the "restored" banner after the form has been filled from it. */
   const acceptRestored = useCallback(() => setRestored(null), []);
 
+  /** Clear the load-failed banner after she acknowledges and chooses to continue typing. */
+  const dismissLoadFailed = useCallback(() => setLoadFailed(false), []);
+
   /** Delete her draft, e.g. after a real save or when she chooses to start over. */
   const clear = useCallback(async () => {
     seq.current++;
     setRestored(null);
+    setLoadFailed(false);
     setStatus("idle");
     if (!userId) return true;
     try {
@@ -98,5 +116,5 @@ export function useEntryDraft(userId: string | undefined, draft: EntryDraft, ena
     }
   }, [userId]);
 
-  return { status, restored, acceptRestored, clear };
+  return { status, restored, loadFailed, acceptRestored, dismissLoadFailed, clear };
 }

@@ -78,6 +78,10 @@ describe("unfinished entries", () => {
   it("show what the draft is doing, and only claim 'saved' via the hook's status", () => {
     expect(src).toContain("draftStatusText(entryDraft.status)");
   });
+  it("surfaces a failed draft load instead of pretending there is no draft", () => {
+    expect(src).toContain("entryDraft.loadFailed");
+    expect(src).toContain("draft-load-failed");
+  });
   it("wait for her to choose before showing old text, and let her discard it", () => {
     expect(src).toContain("Continue it");
     expect(src).toContain("Discard it");

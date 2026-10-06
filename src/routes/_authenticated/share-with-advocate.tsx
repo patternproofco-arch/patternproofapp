@@ -20,7 +20,8 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 import { PrivateSinceSharing } from "@/components/sharing/PrivateSinceSharing";
-import { SharePreview } from "@/components/sharing/SharePreview";
+import { SharePreview, type SharePreviewStatus } from "@/components/sharing/SharePreview";
+import type { ShareMergeMode } from "@/lib/sharing/merge-share-scope";
 
 export const Route = createFileRoute("/_authenticated/share-with-advocate")({
   component: ShareWithAdvocate,
@@ -66,6 +67,8 @@ function ShareWithAdvocate() {
     shared?: { incidents: number; files: number };
     heldBack?: number;
   } | null>(null);
+  const [previewStatus, setPreviewStatus] = useState<SharePreviewStatus>({ kind: "idle" });
+  const [mergeMode, setMergeMode] = useState<ShareMergeMode | null>(null);
 
   const load = useCallback(() => {
     listFn()
@@ -86,6 +89,20 @@ function ShareWithAdvocate() {
       .then(({ data }) => setCases((data ?? []) as typeof cases));
   }, [user]);
 
+  const existingLinkForEmail = (() => {
+    const want = email.trim().toLowerCase();
+    if (!want || !data) return null;
+    return (
+      (data.links ?? []).find(
+        (l) => l.status === "active" && (l.profile?.email ?? "").toLowerCase() === want,
+      ) ?? null
+    );
+  })();
+
+  useEffect(() => {
+    setMergeMode(null);
+  }, [existingLinkForEmail?.id, email]);
+
   const submit = async () => {
     if (!email.trim()) {
       toast("Add the advocate's email first.");
@@ -95,16 +112,32 @@ function ShareWithAdvocate() {
       toast("Choose at least one thing to share before sending this invite.");
       return;
     }
+    const needsItemPreview = incIncidents || incEvidence || !!caseId || !!existingLinkForEmail;
+    if (needsItemPreview && previewStatus.kind !== "ok") {
+      toast(
+        previewStatus.kind === "error"
+          ? "We couldn't verify what this would share. Fix the preview before creating a link."
+          : "Review what they'll receive before creating the link.",
+      );
+      return;
+    }
+    if (existingLinkForEmail && !mergeMode) {
+      toast("Choose Add items or Replace what's shared before creating this link.");
+      return;
+    }
     setBusy(true);
     try {
+      const verified = previewStatus.kind === "ok" ? previewStatus.preview : null;
       const { invitation, shared, excluded } = await createFn({
         data: {
           advocate_email: email.trim(),
           advocate_name: name.trim() || undefined,
           org_name: org.trim() || undefined,
           personal_note: note.trim() || undefined,
-          include_all_incidents: incIncidents,
-          include_all_evidence: incEvidence,
+          include_all_incidents: verified ? false : incIncidents,
+          include_all_evidence: verified ? false : incEvidence,
+          scope_incidents: verified?.scope_incidents,
+          scope_evidence: verified?.scope_evidence,
           include_patterns: incPatterns,
           expires_days: days,
           case_id: caseId || null,
@@ -313,14 +346,70 @@ function ShareWithAdvocate() {
               <option value={365}>1 year</option>
             </select>
           </label>
-          <SharePreview includeIncidents={incIncidents} includeEvidence={incEvidence} caseId={caseId} />
+          {existingLinkForEmail && (
+            <div
+              className="rounded-2xl p-3 text-[13px]"
+              style={{ background: "var(--input)" }}
+              data-testid="share-merge-mode"
+            >
+              <p className="font-semibold">
+                {existingLinkForEmail.profile?.full_name ?? "This advocate"} already has access.
+              </p>
+              <p className="mt-1" style={{ color: "var(--muted-foreground)" }}>
+                Choose Add items or Replace what&apos;s shared, then review the preview. Ending
+                access is a separate action from changing readiness for future invitations.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-3">
+                <label className="flex items-center gap-2 text-[13px]">
+                  <input
+                    type="radio"
+                    name="advocate-merge-mode"
+                    checked={mergeMode === "add"}
+                    onChange={() => setMergeMode("add")}
+                  />
+                  Add items
+                </label>
+                <label className="flex items-center gap-2 text-[13px]">
+                  <input
+                    type="radio"
+                    name="advocate-merge-mode"
+                    checked={mergeMode === "replace"}
+                    onChange={() => setMergeMode("replace")}
+                  />
+                  Replace what&apos;s shared
+                </label>
+              </div>
+            </div>
+          )}
+          <SharePreview
+            includeIncidents={incIncidents}
+            includeEvidence={incEvidence}
+            caseId={caseId}
+            existingLinkId={existingLinkForEmail?.id ?? null}
+            mergeMode={existingLinkForEmail ? mergeMode : null}
+            linkKind="advocate"
+            onStatusChange={setPreviewStatus}
+          />
           <div style={{ display: "flex", gap: 8 }}>
             <button
               onClick={submit}
-              disabled={busy || !(incIncidents || incEvidence || incPatterns || caseId)}
+              disabled={
+                busy ||
+                ((incIncidents || incEvidence || !!caseId || !!existingLinkForEmail) &&
+                  previewStatus.kind !== "ok") ||
+                !(incIncidents || incEvidence || incPatterns || caseId) ||
+                (!!existingLinkForEmail && !mergeMode)
+              }
               className="btn-pp"
+              data-testid="generate-advocate-link"
             >
-              {busy ? "Creating…" : "Create invite link"}
+              {busy
+                ? "Creating…"
+                : previewStatus.kind === "loading"
+                  ? "Checking preview…"
+                  : previewStatus.kind === "error"
+                    ? "Preview failed — try again"
+                    : "Create invite link"}
             </button>
             <button onClick={() => setOpen(false)} className="btn-ghost text-[13px]">
               Cancel

@@ -46,17 +46,16 @@ describe("scope is fixed when the survivor creates the invitation", () => {
     expect(f.scope_evidence.sort()).toEqual(["f1", "f2"]);
   });
 
-  it("explicit picks win over the 'all' flag and never include another account's records", async () => {
+  it("explicit picks win over the 'all' flag; owned private picks are authorized for this invite; others' records stay out", async () => {
     const f = await freezeInvitationScope(db(), CLIENT, {
       include_all_incidents: false,
       scope_incidents: ["a", "theirs", "secret"],
       include_all_evidence: false,
       scope_evidence: ["f1"],
     });
-    expect(f.scope_incidents).toEqual(["a"]);
+    expect(f.scope_incidents.sort()).toEqual(["a", "secret"]);
     expect(f.scope_evidence).toEqual(["f1"]);
     expect(f.excluded).toContainEqual({ kind: "incident", id: "theirs", reason: "not_available" });
-    expect(f.excluded).toContainEqual({ kind: "incident", id: "secret", reason: "kept_private" });
   });
 });
 
@@ -88,7 +87,7 @@ describe("records added between the invitation and its acceptance", () => {
     expect(old.scope_incidents).toContain("new1");
   });
 
-  it("an entry she deleted, or marked private, after inviting drops out", async () => {
+  it("an entry she deleted after inviting drops out; marking private no longer retracts a frozen id (revoke the invite instead)", async () => {
     const admin = db();
     const frozen = await freezeInvitationScope(admin, CLIENT, { include_all_incidents: true, include_all_evidence: true });
     admin.tables.incidents!.find((i) => i.id === "a")!.deleted_at = "2026-09-02T00:00:00Z";
@@ -101,7 +100,8 @@ describe("records added between the invitation and its acceptance", () => {
       scope_incidents: frozen.scope_incidents,
       scope_evidence: frozen.scope_evidence,
     });
-    expect(accepted.scope_incidents).toEqual([]);
+    // a deleted → out; b still owned → stays (she approved these exact ids at create)
+    expect(accepted.scope_incidents).toEqual(["b"]);
   });
 
   it("an invitation made before this rule (blanket flag, no ids) only reaches what existed when it was created", async () => {

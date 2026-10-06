@@ -27,7 +27,7 @@ export const createInvitation = createServerFn({ method: "POST" })
         date_range_end: z.string().optional().nullable(),
         include_all_incidents: z.boolean().default(true),
         include_all_evidence: z.boolean().default(true),
-        // Exact ids the survivor reviewed. When given, "include all" is ignored for that category.
+        // Exact ids the survivor reviewed (from a verified preview). When given, "include all" is ignored for that category.
         scope_incidents: z.array(z.string().uuid()).max(20000).optional(),
         scope_evidence: z.array(z.string().uuid()).max(20000).optional(),
         include_patterns: z.boolean().default(true),
@@ -39,6 +39,9 @@ export const createInvitation = createServerFn({ method: "POST" })
         include_legal_documents: z.boolean().default(false),
         expires_days: z.number().int().min(1).max(365).default(30),
         case_id: z.string().uuid().optional().nullable(),
+        /** Required when widening/replacing an existing active attorney link. */
+        existing_link_id: z.string().uuid().optional().nullable(),
+        merge_mode: z.enum(["add", "replace"]).optional().nullable(),
       })
       .parse(input),
   )
@@ -59,14 +62,45 @@ export const createInvitation = createServerFn({ method: "POST" })
     }
     // The survivor's consent is given NOW. Fix the exact records at this moment so nothing
     // added before the attorney opens the invitation is shared without her approval.
+    // Exact ids from a verified preview win over include-all for that category.
     const { freezeInvitationScope } = await import("@/lib/invitation-scope.server");
-    const frozen = await freezeInvitationScope(supabaseAdmin, context.userId, {
-      include_all_incidents: data.scope_incidents ? false : data.include_all_incidents,
-      include_all_evidence: data.scope_evidence ? false : data.include_all_evidence,
+    const hasExplicitInc = Array.isArray(data.scope_incidents);
+    const hasExplicitEv = Array.isArray(data.scope_evidence);
+    let frozen = await freezeInvitationScope(supabaseAdmin, context.userId, {
+      include_all_incidents: hasExplicitInc ? false : data.include_all_incidents,
+      include_all_evidence: hasExplicitEv ? false : data.include_all_evidence,
       scope_incidents: data.scope_incidents,
       scope_evidence: data.scope_evidence,
       case_id: scopedCaseId,
     });
+    if (data.existing_link_id) {
+      if (data.merge_mode !== "add" && data.merge_mode !== "replace") {
+        throw new Error("Choose Add items or Replace what's shared before creating this link.");
+      }
+      const { data: link, error: linkErr } = await supabaseAdmin
+        .from("attorney_client_links")
+        .select("id,scope_incidents,scope_evidence,status")
+        .eq("id", data.existing_link_id)
+        .eq("client_user_id", context.userId)
+        .maybeSingle();
+      if (linkErr || !link || link.status !== "active") {
+        throw new Error("That existing share couldn't be verified. Try again.");
+      }
+      const { mergeShareScopes } = await import("@/lib/sharing/merge-share-scope");
+      const merged = mergeShareScopes(
+        data.merge_mode,
+        {
+          incidents: (link.scope_incidents ?? []) as string[],
+          evidence: (link.scope_evidence ?? []) as string[],
+        },
+        { incidents: frozen.scope_incidents, evidence: frozen.scope_evidence },
+      );
+      frozen = {
+        scope_incidents: merged.incidents,
+        scope_evidence: merged.evidence,
+        excluded: frozen.excluded,
+      };
+    }
     const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
     const { data: row, error } = await supabaseAdmin
       .from("attorney_invitations")
@@ -274,32 +308,66 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
 
-    // Create link. "All entries" is frozen to what existed when the survivor
-    // chose to share — later uploads are never swept in automatically.
-    // The scope was fixed when the survivor created the invitation. This only narrows it.
+    // The scope was fixed when the survivor created the invitation (Add vs Replace
+    // already resolved into the frozen ids). This only narrows by ownership/deletion.
     const { scopeForAcceptance } = await import("@/lib/invitation-scope.server");
     const frozen = await scopeForAcceptance(supabaseAdmin, inv);
-    const { data: link, error: linkErr } = await supabaseAdmin
+
+    const { data: existing } = await supabaseAdmin
       .from("attorney_client_links")
-      .insert({
-        attorney_user_id: context.userId,
-        client_user_id: inv.client_user_id,
-        invitation_id: inv.id,
-        scope_incidents: frozen.scope_incidents,
-        scope_evidence: frozen.scope_evidence,
-        include_all_incidents: false,
-        include_all_evidence: false,
-        include_patterns: inv.include_patterns,
-        include_voice_notes: inv.include_voice_notes,
-        include_communications: inv.include_communications,
-        include_legal_documents: inv.include_legal_documents,
-        case_id: inv.case_id ?? null,
-        expires_at: inv.expires_at ?? null,
-        status: "active",
-      })
-      .select("id,client_user_id")
-      .single();
-    if (linkErr) throw new Error(linkErr.message);
+      .select("id")
+      .eq("attorney_user_id", context.userId)
+      .eq("client_user_id", inv.client_user_id)
+      .maybeSingle();
+
+    let link: { id: string; client_user_id: string };
+    if (existing?.id) {
+      const { data: updated, error: updErr } = await supabaseAdmin
+        .from("attorney_client_links")
+        .update({
+          status: "active",
+          revoked_at: null,
+          invitation_id: inv.id,
+          scope_incidents: frozen.scope_incidents,
+          scope_evidence: frozen.scope_evidence,
+          include_all_incidents: false,
+          include_all_evidence: false,
+          include_patterns: inv.include_patterns,
+          include_voice_notes: inv.include_voice_notes,
+          include_communications: inv.include_communications,
+          include_legal_documents: inv.include_legal_documents,
+          case_id: inv.case_id ?? null,
+          expires_at: inv.expires_at ?? null,
+        })
+        .eq("id", existing.id)
+        .select("id,client_user_id")
+        .single();
+      if (updErr) throw new Error(updErr.message);
+      link = updated;
+    } else {
+      const { data: inserted, error: linkErr } = await supabaseAdmin
+        .from("attorney_client_links")
+        .insert({
+          attorney_user_id: context.userId,
+          client_user_id: inv.client_user_id,
+          invitation_id: inv.id,
+          scope_incidents: frozen.scope_incidents,
+          scope_evidence: frozen.scope_evidence,
+          include_all_incidents: false,
+          include_all_evidence: false,
+          include_patterns: inv.include_patterns,
+          include_voice_notes: inv.include_voice_notes,
+          include_communications: inv.include_communications,
+          include_legal_documents: inv.include_legal_documents,
+          case_id: inv.case_id ?? null,
+          expires_at: inv.expires_at ?? null,
+          status: "active",
+        })
+        .select("id,client_user_id")
+        .single();
+      if (linkErr) throw new Error(linkErr.message);
+      link = inserted;
+    }
 
     await supabaseAdmin
       .from("attorney_invitations")

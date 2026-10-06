@@ -27,7 +27,7 @@ const OPTIONS: Array<{
   {
     value: "private",
     title: "Keep private",
-    body: "Only you. It won’t show up when you share with someone.",
+    body: "Only you. Share all skips it. You can still pick it for a specific invitation.",
   },
   {
     value: "ok_to_share",

@@ -3,9 +3,9 @@
  *
  * The survivor's consent happens when SHE creates the invitation, not when the
  * professional later opens it. So the scope is fixed to exact record ids at creation.
- * Acceptance can only narrow that list (an item she since deleted or marked private
- * drops out). It never looks at what exists "now", so records added between the
- * invitation and its acceptance are not shared and need a new, separate approval.
+ * Acceptance can only narrow that list (an item she since deleted drops out). It never
+ * looks at what exists "now", so records added between the invitation and its
+ * acceptance are not shared and need a new, separate approval.
  *
  * Invitations made before this rule can still carry a blanket "share all" flag and no
  * ids. For those, acceptance is limited to items that existed when the invitation was
@@ -32,6 +32,10 @@ export type FrozenInvitationScope = {
   excluded: ExcludedItem[];
 };
 
+function uniq(ids: string[]) {
+  return Array.from(new Set(ids));
+}
+
 /** At creation: turn what she chose into exact ids, as of now. */
 export async function freezeInvitationScope(
   admin: Admin,
@@ -52,13 +56,58 @@ export async function freezeInvitationScope(
     caseIncidents = (c.highlighted_incident_ids ?? []) as string[];
     caseEvidence = (c.attached_evidence_ids ?? []) as string[];
   }
-  const f = await snapshotShareScope(admin, clientUserId, {
-    include_all_incidents: input.include_all_incidents ?? false,
-    include_all_evidence: input.include_all_evidence ?? false,
-    scope_incidents: [...new Set([...(input.scope_incidents ?? []), ...caseIncidents])],
-    scope_evidence: [...new Set([...(input.scope_evidence ?? []), ...caseEvidence])],
-  });
-  return { scope_incidents: f.scope_incidents ?? [], scope_evidence: f.scope_evidence ?? [], excluded: f.excluded };
+
+  const includeAllInc = input.include_all_incidents ?? false;
+  const includeAllEv = input.include_all_evidence ?? false;
+  const pickInc = input.scope_incidents ?? [];
+  const pickEv = input.scope_evidence ?? [];
+  const hasExplicitPicks = pickInc.length > 0 || pickEv.length > 0;
+
+  // Case attachments and share-all never silently authorize private items.
+  const fromCaseOrAll = await snapshotShareScope(
+    admin,
+    clientUserId,
+    {
+      include_all_incidents: includeAllInc,
+      include_all_evidence: includeAllEv,
+      scope_incidents: includeAllInc ? [] : caseIncidents,
+      scope_evidence: includeAllEv ? [] : caseEvidence,
+    },
+    { authorizeExplicitPicks: false },
+  );
+
+  // Explicit picks on an invite authorize those owned items for THIS invitation
+  // only — including ones still marked private. "OK to share later" alone grants nobody.
+  let fromPicks = {
+    scope_incidents: [] as string[],
+    scope_evidence: [] as string[],
+    excluded: [] as ExcludedItem[],
+  };
+  if (hasExplicitPicks) {
+    fromPicks = await snapshotShareScope(
+      admin,
+      clientUserId,
+      {
+        include_all_incidents: false,
+        include_all_evidence: false,
+        scope_incidents: pickInc,
+        scope_evidence: pickEv,
+      },
+      { authorizeExplicitPicks: true },
+    );
+  }
+
+  return {
+    scope_incidents: uniq([
+      ...(fromCaseOrAll.scope_incidents ?? []),
+      ...fromPicks.scope_incidents,
+    ]),
+    scope_evidence: uniq([
+      ...(fromCaseOrAll.scope_evidence ?? []),
+      ...fromPicks.scope_evidence,
+    ]),
+    excluded: [...fromCaseOrAll.excluded, ...fromPicks.excluded],
+  };
 }
 
 /** At acceptance: the recorded ids, narrowed only. */
@@ -67,6 +116,9 @@ export async function scopeForAcceptance(
   inv: InvitationScopeInput & { client_user_id: string; created_at?: string | null },
 ): Promise<FrozenInvitationScope> {
   const legacyBlanket = inv.include_all_incidents === true || inv.include_all_evidence === true;
+  // Already-frozen invitations: keep every owned, non-deleted id she approved.
+  // Readiness is not re-checked here — she authorized those exact ids at create.
+  // Delete still drops an item. Legacy blanket flags still honour readiness + cutoff.
   const f = await snapshotShareScope(
     admin,
     inv.client_user_id,
@@ -76,9 +128,13 @@ export async function scopeForAcceptance(
       scope_incidents: inv.scope_incidents ?? [],
       scope_evidence: inv.scope_evidence ?? [],
     },
-    legacyBlanket && inv.created_at ? { createdAtOrBefore: inv.created_at } : {},
+    legacyBlanket && inv.created_at
+      ? { createdAtOrBefore: inv.created_at }
+      : legacyBlanket
+        ? {}
+        : { authorizeExplicitPicks: true },
   );
-  // A legacy invitation with a blanket flag but no timestamp cannot be bounded. Share nothing.
+  // A legacy invitation with a blanket flag but no creation time can't be bounded. Share nothing.
   if (legacyBlanket && !inv.created_at) {
     return { scope_incidents: [], scope_evidence: [], excluded: f.excluded };
   }

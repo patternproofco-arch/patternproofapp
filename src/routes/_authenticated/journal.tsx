@@ -709,6 +709,36 @@ function JournalPage() {
               className="card-pp"
               style={{ background: "var(--linen)", borderLeft: "4px solid var(--primary)" }}
             >
+              {entryDraft.loadFailed && !editingId && (
+                <div
+                  role="alert"
+                  data-testid="draft-load-failed"
+                  className="mb-3 rounded-2xl p-3 text-[13px]"
+                  style={{ background: "rgba(180,60,60,0.12)", border: "1px solid rgba(180,60,60,0.35)" }}
+                >
+                  <p className="font-semibold">We couldn&apos;t check for an unfinished entry.</p>
+                  <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                    Your earlier draft may still be on your account. We are not autosaving new typing
+                    until this is cleared, so we don&apos;t overwrite something we couldn&apos;t read.
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => window.location.reload()}
+                    >
+                      Reload to try again
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      onClick={() => entryDraft.dismissLoadFailed()}
+                    >
+                      Continue without restoring
+                    </button>
+                  </div>
+                </div>
+              )}
               {entryDraft.restored && !editingId && (
                 <div
                   role="status"
