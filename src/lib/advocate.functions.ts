@@ -37,17 +37,23 @@ export const createAdvocateInvitation = createServerFn({ method: "POST" })
         date_range_end: z.string().optional().nullable(),
         include_all_incidents: z.boolean().default(true),
         include_all_evidence: z.boolean().default(true),
-        // Exact ids the survivor reviewed. When given, "include all" is ignored for that category.
+        // Exact ids the survivor reviewed (from a verified preview). When given, "include all" is ignored for that category.
         scope_incidents: z.array(z.string().uuid()).max(20000).optional(),
         scope_evidence: z.array(z.string().uuid()).max(20000).optional(),
         include_patterns: z.boolean().default(true),
         expires_days: z.number().int().min(1).max(365).default(30),
         case_id: z.string().uuid().optional().nullable(),
+        existing_link_id: z.string().uuid().optional().nullable(),
+        merge_mode: z.enum(["add", "replace"]).optional().nullable(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    if (!data.include_all_incidents && !data.include_all_evidence && !data.include_patterns) {
+    const hasInc =
+      data.include_all_incidents || (Array.isArray(data.scope_incidents) && data.scope_incidents.length > 0);
+    const hasEv =
+      data.include_all_evidence || (Array.isArray(data.scope_evidence) && data.scope_evidence.length > 0);
+    if (!hasInc && !hasEv && !data.include_patterns && !data.case_id) {
       throw new Error("Choose at least one thing to share before sending this invite.");
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -63,14 +69,45 @@ export const createAdvocateInvitation = createServerFn({ method: "POST" })
       scopedCaseId = c.id;
     }
     // The survivor's consent is given NOW. Fix the exact records at this moment.
+    // Exact ids from a verified preview win over include-all for that category.
     const { freezeInvitationScope } = await import("@/lib/invitation-scope.server");
-    const frozen = await freezeInvitationScope(supabaseAdmin, context.userId, {
-      include_all_incidents: data.scope_incidents ? false : data.include_all_incidents,
-      include_all_evidence: data.scope_evidence ? false : data.include_all_evidence,
+    const hasExplicitInc = Array.isArray(data.scope_incidents);
+    const hasExplicitEv = Array.isArray(data.scope_evidence);
+    let frozen = await freezeInvitationScope(supabaseAdmin, context.userId, {
+      include_all_incidents: hasExplicitInc ? false : data.include_all_incidents,
+      include_all_evidence: hasExplicitEv ? false : data.include_all_evidence,
       scope_incidents: data.scope_incidents,
       scope_evidence: data.scope_evidence,
       case_id: scopedCaseId,
     });
+    if (data.existing_link_id) {
+      if (data.merge_mode !== "add" && data.merge_mode !== "replace") {
+        throw new Error("Choose Add items or Replace what's shared before creating this link.");
+      }
+      const { data: link, error: linkErr } = await supabaseAdmin
+        .from("advocate_client_links")
+        .select("id,scope_incidents,scope_evidence,status")
+        .eq("id", data.existing_link_id)
+        .eq("client_user_id", context.userId)
+        .maybeSingle();
+      if (linkErr || !link || link.status !== "active") {
+        throw new Error("That existing share couldn't be verified. Try again.");
+      }
+      const { mergeShareScopes } = await import("@/lib/sharing/merge-share-scope");
+      const merged = mergeShareScopes(
+        data.merge_mode,
+        {
+          incidents: (link.scope_incidents ?? []) as string[],
+          evidence: (link.scope_evidence ?? []) as string[],
+        },
+        { incidents: frozen.scope_incidents, evidence: frozen.scope_evidence },
+      );
+      frozen = {
+        scope_incidents: merged.incidents,
+        scope_evidence: merged.evidence,
+        excluded: frozen.excluded,
+      };
+    }
     const expires = new Date(Date.now() + data.expires_days * 86400000).toISOString();
     const { data: row, error } = await supabaseAdmin
       .from("advocate_invitations")

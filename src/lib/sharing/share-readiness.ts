@@ -57,13 +57,15 @@ export const ENTRY_SHARE_CHIP_COPY: Record<
 > = {
   kept_private: {
     label: "Kept private",
-    aria: "Kept private — only you can see this; it won’t show up when you share",
-    explainer: "Only you can see this. It won’t show up when you share with someone.",
+    aria: "Kept private — only you can see this; Share all skips it unless you pick it for an invite",
+    explainer:
+      "Only you can see this. Share all skips it. You can still pick it for a specific invitation.",
   },
   ok_to_share: {
     label: "OK to share",
     aria: "OK to share — still only you for now; you can include it if you invite someone",
-    explainer: "Still only you for now. You can include it if you invite someone.",
+    explainer:
+      "Still only you for now. Marking this does not grant anyone access until you invite someone and include it.",
   },
   shared: {
     label: "Shared",

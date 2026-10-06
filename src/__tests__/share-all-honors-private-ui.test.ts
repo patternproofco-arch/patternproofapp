@@ -14,18 +14,19 @@ const hinge = read("src/components/sharing/DraftTrustHinge.tsx");
 
 describe("share-all honours Keep private on the screens that start a share", () => {
   it("the promise the survivor is shown is still the promise", () => {
-    expect(hinge).toContain("It won’t show up when you share with someone.");
+    expect(hinge).toContain("Share all skips it");
+    expect(hinge).toContain("specific invitation");
   });
 
-  it("attorney invite counts and lists only what will be shared, and says what is left out", () => {
+  it("attorney invite counts share-all without private, and lets her authorize private picks for this invite only", () => {
     expect(attorneyInvite).toContain("isGrantSnapshotEligible(i.share_readiness)");
     expect(attorneyInvite).toContain("isGrantSnapshotEligible(e.share_readiness)");
     expect(attorneyInvite).toContain("Share all incidents (${shareableIncidents.length})");
     expect(attorneyInvite).toContain("Share all evidence (${shareableEvidence.length})");
-    expect(attorneyInvite).toContain("you kept private");
-    expect(attorneyInvite).toContain("None of your entries are marked OK to share yet");
-    expect(attorneyInvite).toContain("None of your files are marked OK to share yet");
-    expect(attorneyInvite).toContain("on Evidence first");
+    expect(attorneyInvite).toContain("authorize");
+    expect(attorneyInvite).toContain("for this invitation only");
+    expect(attorneyInvite).toContain("incidentOptions.map");
+    expect(attorneyInvite).toContain("evidenceOptions.map");
     // Nothing starts selected. A private entry must not be pre-ticked either.
     expect(attorneyInvite).not.toMatch(/setSelectedIncidents\(\s*incidents\.map/);
     expect(attorneyInvite).not.toMatch(/setSelectedEvidence\(\s*evidence\.map/);

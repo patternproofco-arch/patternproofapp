@@ -166,7 +166,7 @@ function SurvivorInvitePage() {
   const keptPrivateCount = incidentOptions.length - shareableIncidents.length;
   const keptPrivateNote =
     keptPrivateCount > 0
-      ? `${keptPrivateCount} ${keptPrivateCount === 1 ? "entry" : "entries"} you kept private ${keptPrivateCount === 1 ? "isn't" : "aren't"} included. To include ${keptPrivateCount === 1 ? "it" : "them"}, mark ${keptPrivateCount === 1 ? "it" : "them"} "OK to share later" in your journal first.`
+      ? `${keptPrivateCount} ${keptPrivateCount === 1 ? "entry" : "entries"} marked private ${keptPrivateCount === 1 ? "isn't" : "aren't"} included in "Share all". You can still select ${keptPrivateCount === 1 ? "it" : "them"} below to authorize ${keptPrivateCount === 1 ? "it" : "them"} for this invitation only.`
       : null;
 
   const shareableEvidence = evidenceOptions.filter((e) =>
@@ -175,7 +175,7 @@ function SurvivorInvitePage() {
   const keptPrivateFilesCount = evidenceOptions.length - shareableEvidence.length;
   const keptPrivateFilesNote =
     keptPrivateFilesCount > 0
-      ? `${keptPrivateFilesCount} ${keptPrivateFilesCount === 1 ? "file" : "files"} you kept private ${keptPrivateFilesCount === 1 ? "isn't" : "aren't"} included. To include ${keptPrivateFilesCount === 1 ? "it" : "them"}, mark ${keptPrivateFilesCount === 1 ? "it" : "them"} "OK to share later" on Evidence first.`
+      ? `${keptPrivateFilesCount} ${keptPrivateFilesCount === 1 ? "file" : "files"} marked private ${keptPrivateFilesCount === 1 ? "isn't" : "aren't"} included in "Share all". You can still select ${keptPrivateFilesCount === 1 ? "it" : "them"} below to authorize ${keptPrivateFilesCount === 1 ? "it" : "them"} for this invitation only.`
       : null;
 
   const submitAuth = async (e: React.FormEvent) => {
@@ -520,12 +520,12 @@ function SurvivorInvitePage() {
             {incidentMode === "specific" && (
               <SelectionList
                 empty={
-                  keptPrivateCount > 0
-                    ? "None of your entries are marked OK to share yet. Mark the ones you want to include in your journal first."
+                  incidentOptions.length === 0
+                    ? "No incidents found in your account yet."
                     : "No incidents found in your account yet."
                 }
               >
-                {shareableIncidents.map((item) => (
+                {incidentOptions.map((item) => (
                   <SelectableItem
                     key={item.id}
                     checked={selectedIncidents.includes(item.id)}
@@ -536,7 +536,9 @@ function SurvivorInvitePage() {
                           : prev.filter((id) => id !== item.id),
                       )
                     }
-                    title={item.date ? new Date(item.date).toLocaleDateString() : "Date not known"}
+                    title={`${item.date ? new Date(item.date).toLocaleDateString() : "Date not known"}${
+                      !isGrantSnapshotEligible(item.share_readiness) ? " · authorize for this invite" : ""
+                    }`}
                     subtitle={item.description || "No description added"}
                   />
                 ))}
@@ -570,13 +572,9 @@ function SurvivorInvitePage() {
             />
             {evidenceMode === "specific" && (
               <SelectionList
-                empty={
-                  keptPrivateFilesCount > 0
-                    ? "None of your files are marked OK to share yet. Mark the ones you want to include on Evidence first."
-                    : "No evidence files found in your account yet."
-                }
+                empty="No evidence files found in your account yet."
               >
-                {shareableEvidence.map((item) => (
+                {evidenceOptions.map((item) => (
                   <SelectableItem
                     key={item.id}
                     checked={selectedEvidence.includes(item.id)}
@@ -587,7 +585,9 @@ function SurvivorInvitePage() {
                           : prev.filter((id) => id !== item.id),
                       )
                     }
-                    title={item.title || item.file_type}
+                    title={`${item.title || item.file_type}${
+                      !isGrantSnapshotEligible(item.share_readiness) ? " · authorize for this invite" : ""
+                    }`}
                     subtitle={`${formatEvidenceDate(item)} · ${item.file_type}`}
                   />
                 ))}

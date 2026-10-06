@@ -35,7 +35,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 import { PrivateSinceSharing } from "@/components/sharing/PrivateSinceSharing";
-import { SharePreview } from "@/components/sharing/SharePreview";
+import { SharePreview, type SharePreviewStatus } from "@/components/sharing/SharePreview";
+import type { ShareMergeMode } from "@/lib/sharing/merge-share-scope";
 
 export const Route = createFileRoute("/_authenticated/share-with-attorney")({
   component: ShareWithAttorney,
@@ -89,6 +90,8 @@ function ShareWithAttorney() {
     }>
   >([]);
   const [caseId, setCaseId] = useState<string>(""); // "" = all cases (legacy)
+  const [previewStatus, setPreviewStatus] = useState<SharePreviewStatus>({ kind: "idle" });
+  const [mergeMode, setMergeMode] = useState<ShareMergeMode | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -119,13 +122,42 @@ function ShareWithAttorney() {
     return () => clearInterval(t);
   }, [unreadFn]);
 
+  const existingLinkForEmail = (() => {
+    const want = email.trim().toLowerCase();
+    if (!want || !data) return null;
+    return (
+      data.links.find(
+        (l) => l.status === "active" && (l.profile?.email ?? "").toLowerCase() === want,
+      ) ?? null
+    );
+  })();
+
+  // Reset merge mode when the matched existing link changes
+  useEffect(() => {
+    setMergeMode(null);
+  }, [existingLinkForEmail?.id, email]);
+
   const submit = async () => {
     if (!email.trim()) {
       toast("Add an email.");
       return;
     }
+    const needsItemPreview = incIncidents || incEvidence || !!caseId || !!existingLinkForEmail;
+    if (needsItemPreview && previewStatus.kind !== "ok") {
+      toast(
+        previewStatus.kind === "error"
+          ? "We couldn't verify what this would share. Fix the preview before creating a link."
+          : "Review what they'll receive before creating the link.",
+      );
+      return;
+    }
+    if (existingLinkForEmail && !mergeMode) {
+      toast("Choose Add items or Replace what's shared before creating this link.");
+      return;
+    }
     setBusy(true);
     try {
+      const verified = previewStatus.kind === "ok" ? previewStatus.preview : null;
       const r = await create({
         data: {
           attorney_email: email.trim(),
@@ -134,14 +166,18 @@ function ShareWithAttorney() {
           personal_note: personalNote.trim() || undefined,
           date_range_start: rangeFrom || null,
           date_range_end: rangeTo || null,
-          include_all_incidents: incIncidents,
-          include_all_evidence: incEvidence,
+          include_all_incidents: verified ? false : incIncidents,
+          include_all_evidence: verified ? false : incEvidence,
+          // Exact ids from the verified preview — same server rules as preview.
+          scope_incidents: verified?.scope_incidents,
+          scope_evidence: verified?.scope_evidence,
           include_patterns: incPatterns,
           include_voice_notes: incVoiceNotes,
           include_communications: incCommunications,
           include_legal_documents: incLegalDocuments,
           expires_days: days,
           case_id: caseId || null,
+          // Preview already applied Add/Replace into scope_*; create stores those exact ids.
         },
       });
       const url = `${window.location.origin}/accept-invite/${r.invitation.invite_token}`;
@@ -403,15 +439,72 @@ function ShareWithAttorney() {
               />
             </div>
 
-            <SharePreview includeIncidents={incIncidents} includeEvidence={incEvidence} caseId={caseId} />
+            {existingLinkForEmail && (
+              <div
+                className="rounded-2xl p-3 text-[13px]"
+                style={{ background: "var(--input)" }}
+                data-testid="share-merge-mode"
+              >
+                <p className="font-semibold">
+                  {existingLinkForEmail.profile?.full_name ?? "This attorney"} already has access.
+                </p>
+                <p className="mt-1" style={{ color: "var(--muted-foreground)" }}>
+                  Choose whether to add to what they can already see, or replace it entirely. Changing
+                  readiness for future invitations is separate from ending their existing access.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-3">
+                  <label className="flex items-center gap-2 text-[13px]">
+                    <input
+                      type="radio"
+                      name="attorney-merge-mode"
+                      checked={mergeMode === "add"}
+                      onChange={() => setMergeMode("add")}
+                    />
+                    Add items
+                  </label>
+                  <label className="flex items-center gap-2 text-[13px]">
+                    <input
+                      type="radio"
+                      name="attorney-merge-mode"
+                      checked={mergeMode === "replace"}
+                      onChange={() => setMergeMode("replace")}
+                    />
+                    Replace what&apos;s shared
+                  </label>
+                </div>
+              </div>
+            )}
+
+            <SharePreview
+              includeIncidents={incIncidents}
+              includeEvidence={incEvidence}
+              caseId={caseId}
+              existingLinkId={existingLinkForEmail?.id ?? null}
+              mergeMode={existingLinkForEmail ? mergeMode : null}
+              linkKind="attorney"
+              onStatusChange={setPreviewStatus}
+            />
 
             <div className="flex gap-2">
               <button
                 onClick={submit}
-                disabled={busy || !(incIncidents || incEvidence || incPatterns || incVoiceNotes || incCommunications || incLegalDocuments || caseId)}
+                disabled={
+                  busy ||
+                  ((incIncidents || incEvidence || !!caseId || !!existingLinkForEmail) &&
+                    previewStatus.kind !== "ok") ||
+                  !(incIncidents || incEvidence || incPatterns || incVoiceNotes || incCommunications || incLegalDocuments || caseId) ||
+                  (!!existingLinkForEmail && !mergeMode)
+                }
                 className="btn-primary"
+                data-testid="generate-attorney-link"
               >
-                {busy ? "Creating…" : "Generate Secure Access Link"}
+                {busy
+                  ? "Creating…"
+                  : previewStatus.kind === "loading"
+                    ? "Checking preview…"
+                    : previewStatus.kind === "error"
+                      ? "Preview failed — try again"
+                      : "Generate Secure Access Link"}
               </button>
               <button onClick={() => setOpen(false)} className="btn-ghost">
                 Cancel
@@ -457,7 +550,7 @@ function ShareWithAttorney() {
                     style={{ background: "var(--input)", lineHeight: 1.55 }}
                   >
                     <div className="label-eyebrow" style={{ marginBottom: 4 }}>
-                      What they can see
+                      Currently shared with {l.profile?.full_name ?? "this attorney"}
                     </div>
                     <div>
                       {l.include_all_incidents ? "All Marks" : "Selected Marks only"}
@@ -479,6 +572,11 @@ function ShareWithAttorney() {
                     <div style={{ color: "var(--muted-foreground)", marginTop: 3 }}>
                       When evidence is shared, they can open the actual files — not just titles and
                       dates.
+                    </div>
+                    <div style={{ color: "var(--muted-foreground)", marginTop: 3 }}>
+                      Marking an entry &ldquo;OK to share later&rdquo; does not grant them access.
+                      Ending access below stops what they can open going forward; it cannot retrieve
+                      copies already downloaded.
                     </div>
                     <div style={{ color: "var(--muted-foreground)", marginTop: 3 }}>
                       {l.case_label ? `Case: ${l.case_label}` : "All cases"}
