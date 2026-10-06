@@ -29,7 +29,15 @@ export const listGrantReportDrafts = createServerFn({ method: "POST" })
 export const createGrantReportDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
-    z.object({ templateId: z.string().min(1).max(80), from: day, to: day }).parse(i),
+    z
+      .object({
+        templateId: z.string().min(1).max(80),
+        from: day,
+        to: day,
+        // IANA zone the period's calendar days are read in (validated again on the server).
+        timeZone: z.string().min(1).max(64).optional(),
+      })
+      .parse(i),
   )
   .handler(async ({ data, context }): Promise<DraftView> => {
     const { createDraft } = await import("@/lib/grant-report-workspace.server");

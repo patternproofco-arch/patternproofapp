@@ -434,3 +434,180 @@ describe("before the database update is applied", () => {
     await expect(listDrafts(admin, ADMIN)).rejects.toThrow(NOT_SET_UP);
   });
 });
+
+describe("service dates and the reporting time zone", () => {
+  const LATE_JUNE_30_ET = "2026-07-01T01:30:00.000Z"; // Jun 30, 9:30 pm EDT
+
+  it("stores the period's time zone, shows it, and reads the period in it", async () => {
+    const admin = seed({
+      referral_engagements: [{ id: "r1", org_user_id: "adv-1", survivor_user_id: "s1", created_at: LATE_JUNE_30_ET }],
+    });
+    const et = await createDraft(admin, ADMIN, { ...P, timeZone: "America/New_York" });
+    expect(et.period_timezone).toBe("America/New_York");
+    expect(admin.tables.org_grant_report_drafts![0]!.period_timezone).toBe("America/New_York");
+    expect(et.rows.find((r) => r.id === "referral_events")!.count).toBe(1);
+
+    const utc = await createDraft(admin, ADMIN, P);
+    expect(utc.period_timezone).toBe("UTC");
+    expect(utc.rows.find((r) => r.id === "referral_events")!.count).toBe(0);
+    expect((await listDrafts(admin, ADMIN)).map((d) => d.period_timezone).sort()).toEqual(["America/New_York", "UTC"]);
+  });
+
+  it("refuses a time zone it can't use, and creates nothing", async () => {
+    const admin = seed();
+    await expect(createDraft(admin, ADMIN, { ...P, timeZone: "Nope/Nowhere" })).rejects.toThrow(/time zone/);
+    expect(admin.tables.org_grant_report_drafts).toHaveLength(0);
+  });
+
+  it("a draft from before time zones existed is read as UTC", async () => {
+    const admin = seed();
+    const v = await createDraft(admin, ADMIN, P);
+    delete admin.tables.org_grant_report_drafts![0]!.period_timezone;
+    expect((await getDraft(admin, ADMIN, v.id)).period_timezone).toBe("UTC");
+  });
+
+  it("re-reading and approving use the stored zone, so the approved numbers match the period", async () => {
+    const admin = seed({
+      org_follow_ups: [
+        {
+          id: "f1",
+          org_user_id: "adv-1",
+          survivor_user_id: "s1",
+          status: "done",
+          created_at: IN,
+          updated_at: IN,
+          completed_at: LATE_JUNE_30_ET,
+        },
+      ],
+    });
+    const v = await createDraft(admin, ADMIN, { ...P, timeZone: "America/New_York" });
+    const saved = await saveDraft(admin, ADMIN, {
+      id: v.id,
+      expectedVersion: v.version,
+      entries: fullEntries(),
+      smallCountReviewed: ["served_unique", "referral_events", "referral_clients", "followup_events", "followup_done", "access_started"],
+      refreshNumbers: true,
+    });
+    expect(saved.rows.find((r) => r.id === "followup_done")!.count).toBe(1);
+    const res = await approveDraft(admin, ADMIN, saved.id);
+    if (!res.ok) throw new Error(res.issues.map((i) => i.message).join("; "));
+    expect(res.view.rows.find((r) => r.id === "followup_done")!.count).toBe(1);
+  });
+
+  it("the time zone is part of the approved fingerprint", async () => {
+    const admin = seed();
+    const v = await createDraft(admin, ADMIN, { ...P, timeZone: "America/New_York" });
+    const saved = await saveDraft(admin, ADMIN, {
+      id: v.id,
+      expectedVersion: v.version,
+      entries: fullEntries(),
+      smallCountReviewed: ["served_unique", "referral_events", "referral_clients", "followup_events", "followup_done", "access_started"],
+    });
+    const res = await approveDraft(admin, ADMIN, saved.id);
+    if (!res.ok) throw new Error(res.issues.map((i) => i.message).join("; "));
+    admin.tables.org_grant_report_drafts![0]!.period_timezone = "America/Los_Angeles";
+    await expect(recordExport(admin, ADMIN, v.id)).rejects.toThrow(/no longer matches/);
+  });
+
+  it("completed follow-ups count by completion date, not by last edit", async () => {
+    const admin = seed({
+      org_follow_ups: [
+        // Finished last year, note edited this period: not in this period.
+        { id: "f1", org_user_id: "adv-1", survivor_user_id: "s1", status: "done", created_at: "2025-10-01T12:00:00Z", updated_at: IN, completed_at: "2025-12-01T12:00:00Z" },
+        // Finished this period.
+        { id: "f2", org_user_id: "adv-1", survivor_user_id: "s2", status: "done", created_at: IN, updated_at: IN, completed_at: IN },
+        // Done, but finished before completion dates were recorded.
+        { id: "f3", org_user_id: "adv-1", survivor_user_id: "s2", status: "done", created_at: IN, updated_at: IN, completed_at: null },
+      ],
+    });
+    const d = await loadDerived(admin, ORG, "2026-01-01", "2026-06-30", "UTC");
+    expect(d.values.follow_ups_completed).toBe(1);
+    expect(d.caveats.join(" ")).toMatch(/1 follow-up\(s\) are marked done but have no recorded completion date/);
+  });
+
+  it("before completed_at exists, the completed count is unknown and blocks approval instead of guessing", async () => {
+    const admin = seed();
+    const orig = admin.from;
+    admin.from = ((n: string) => {
+      const q = orig(n) as unknown as { select: (c?: string) => unknown };
+      if (n !== "org_follow_ups") return q as never;
+      const realSelect = q.select.bind(q);
+      q.select = (cols?: string) => {
+        if (cols && cols.includes("completed_at")) {
+          const fail = {
+            in: () => fail,
+            order: () => fail,
+            range: async () => ({
+              data: null,
+              error: { code: "42703", message: "column org_follow_ups.completed_at does not exist" },
+            }),
+          };
+          return fail;
+        }
+        return realSelect(cols);
+      };
+      return q as never;
+    }) as typeof admin.from;
+
+    const d = await loadDerived(admin, ORG, "2026-01-01", "2026-06-30");
+    expect(d.values.follow_ups_completed).toBeNull();
+    expect(d.values.follow_ups_created).toBe(1);
+    expect(d.caveats.join(" ")).toMatch(/can't be counted yet/);
+
+    const v = await createDraft(admin, ADMIN, P);
+    const saved = await saveDraft(admin, ADMIN, {
+      id: v.id,
+      expectedVersion: v.version,
+      entries: fullEntries(),
+      smallCountReviewed: ["served_unique", "referral_events", "referral_clients", "followup_events", "access_started"],
+    });
+    const res = await approveDraft(admin, ADMIN, saved.id);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.issues.some((i) => i.rowId === "followup_done")).toBe(true);
+  });
+
+  it("any other follow-up read failure still fails loudly", async () => {
+    const admin = seed();
+    const orig = admin.from;
+    admin.from = ((n: string) => {
+      if (n !== "org_follow_ups") return orig(n);
+      const fail = {
+        select: () => fail,
+        in: () => fail,
+        order: () => fail,
+        range: async () => ({ data: null, error: { code: "57014", message: "statement timeout" } }),
+      };
+      return fail as never;
+    }) as typeof admin.from;
+    await expect(loadDerived(admin, ORG, "2026-01-01", "2026-06-30")).rejects.toThrow(/couldn't load every follow-up/);
+  });
+});
+
+describe("approved, exported and submission confirmed stay separate", () => {
+  it("each step has its own status and timestamp, and none implies the next", async () => {
+    const admin = seed();
+    const v = await createDraft(admin, ADMIN, P);
+    const saved = await saveDraft(admin, ADMIN, {
+      id: v.id,
+      expectedVersion: v.version,
+      entries: fullEntries(),
+      smallCountReviewed: ["served_unique", "referral_events", "referral_clients", "followup_events", "followup_done", "access_started"],
+    });
+    const res = await approveDraft(admin, ADMIN, saved.id);
+    if (!res.ok) throw new Error(res.issues.map((i) => i.message).join("; "));
+    expect(res.view).toMatchObject({ status: "approved", exported_at: null, submitted_at: null, receipt: null });
+    expect(res.view.approved_at).toBeTruthy();
+
+    const exp = await recordExport(admin, ADMIN, v.id);
+    expect(exp).toMatchObject({ status: "exported", submitted_at: null, receipt: null });
+    expect(exp.approved_at).toBe(res.view.approved_at);
+    expect(exp.exported_at).toBeTruthy();
+
+    const sub = await recordReceipt(admin, ADMIN, { id: v.id, destination: "Funder portal", receivedOn: "2026-07-02" });
+    expect(sub.status).toBe("submitted");
+    expect(sub.approved_at).toBe(res.view.approved_at);
+    expect(sub.exported_at).toBe(exp.exported_at);
+    expect(sub.submitted_at).toBeTruthy();
+    expect(sub.receipt?.method).toBe("staff_recorded");
+  });
+});

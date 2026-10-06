@@ -23,6 +23,7 @@ import {
   type StaffEntry,
 } from "@/lib/grant-report-model";
 import { csvCell } from "@/lib/csv-safe";
+import { browserTimeZone, localIsoDay } from "@/lib/grant-report-period";
 
 /**
  * Grant report workspace for org owners/admins.
@@ -36,9 +37,21 @@ type Summary = Awaited<ReturnType<typeof listGrantReportDrafts>>[number];
 type SaveState = "idle" | "saving" | "saved" | "failed";
 type StaffState = StaffEntry["state"] | "";
 
-function isoDay(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
+// The user's own calendar day. toISOString() would give tomorrow's date in the evening.
+const isoDay = localIsoDay;
+
+/** Common US zones first; the user's own zone is always offered. */
+const ZONE_CHOICES = [
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Phoenix",
+  "America/Los_Angeles",
+  "America/Anchorage",
+  "Pacific/Honolulu",
+  "America/Puerto_Rico",
+  "UTC",
+];
 
 function message(e: unknown, fallback: string) {
   return e instanceof Error && e.message ? e.message : fallback;
@@ -63,6 +76,11 @@ export function GrantReport() {
   const now = new Date();
   const [from, setFrom] = useState(isoDay(new Date(now.getFullYear(), 0, 1)));
   const [to, setTo] = useState(isoDay(now));
+  const [timeZone, setTimeZone] = useState(browserTimeZone);
+  const zones = useMemo(
+    () => (ZONE_CHOICES.includes(timeZone) ? ZONE_CHOICES : [timeZone, ...ZONE_CHOICES]),
+    [timeZone],
+  );
 
   const refreshList = useCallback(async () => {
     try {
@@ -80,7 +98,7 @@ export function GrantReport() {
     setBusy(true);
     setError(null);
     try {
-      setCurrent(await create({ data: { templateId: DEFAULT_TEMPLATE.id, from, to } }));
+      setCurrent(await create({ data: { templateId: DEFAULT_TEMPLATE.id, from, to, timeZone } }));
       void refreshList();
     } catch (e) {
       setError(message(e, "We couldn't start the report. Try again in a moment."));
@@ -136,10 +154,25 @@ export function GrantReport() {
           To
           <input type="date" className="input ml-2" value={to} onChange={(e) => setTo(e.target.value)} />
         </label>
+        <label className="text-[13px]">
+          Time zone
+          <select className="input ml-2" value={timeZone} onChange={(e) => setTimeZone(e.target.value)}>
+            {zones.map((z) => (
+              <option key={z} value={z}>
+                {z.replace(/_/g, " ")}
+              </option>
+            ))}
+          </select>
+        </label>
         <button className="btn-primary" onClick={start} disabled={busy}>
           {busy ? "Working…" : "Start a report"}
         </button>
       </div>
+      <p className="no-print mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+        The period&apos;s days are read in this time zone, so something done late on the last day
+        isn&apos;t pushed into the next period. Use the zone your award&apos;s reporting period is
+        based on. It can&apos;t be changed after you start.
+      </p>
       {error && (
         <p role="alert" className="mt-3 text-[14px]">
           {error}
@@ -157,6 +190,9 @@ export function GrantReport() {
               <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-[14px]">
                 <span>
                   {d.period_from} to {d.period_to}{" "}
+                  <span style={{ color: "var(--muted-foreground)" }}>
+                    ({(d.period_timezone ?? "UTC").replace(/_/g, " ")}){" "}
+                  </span>
                   <span style={{ color: "var(--muted-foreground)" }}>
                     · {STATUS_LABEL[d.status as ReportStatus]}
                   </span>
@@ -281,6 +317,7 @@ function Editor({
             template_name: exported.template.name,
             period_from: exported.period_from,
             period_to: exported.period_to,
+            period_timezone: exported.period_timezone,
             status: exported.status,
             version: exported.version,
             approved_at: exported.approved_at,
@@ -326,6 +363,7 @@ function Editor({
     template_name: view.template.name,
     period_from: view.period_from,
     period_to: view.period_to,
+    period_timezone: view.period_timezone,
     status: view.status,
     version: view.version,
     approved_at: view.approved_at,
@@ -350,6 +388,10 @@ function Editor({
       <h2 className="mt-1 font-serif text-[22px]">
         {view.org_name ?? "Your organization"} · {view.period_from} to {view.period_to}
       </h2>
+      <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+        Days read in {view.period_timezone.replace(/_/g, " ")}. Completed follow-ups count by the date
+        they were completed, not the date they were last edited.
+      </p>
       <p className="mt-1 text-[14px]" role="status">
         <strong>{STATUS_LABEL[view.status]}.</strong>{" "}
         {view.status === "draft" && "Not final. It can't be exported until you approve it."}
@@ -591,7 +633,8 @@ function Editor({
           </p>
         )}
         <p>
-          {header.template_name} · {header.period_from} to {header.period_to} · {STATUS_LABEL[header.status]} · version{" "}
+          {header.template_name} · {header.period_from} to {header.period_to} ({header.period_timezone}) ·{" "}
+          {STATUS_LABEL[header.status]} · version{" "}
           {header.version}
           {header.content_hash ? ` · fingerprint ${header.content_hash.slice(0, 16)}` : ""}
         </p>
