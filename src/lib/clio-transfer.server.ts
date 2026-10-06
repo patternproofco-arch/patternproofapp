@@ -68,7 +68,11 @@ export type TransferDeps = {
   makeApi(token: string, matterId: string): ClioApi;
   /** Bytes of a stored evidence file, or null if it can't be read. */
   downloadEvidence(path: string): Promise<Uint8Array | null>;
-  buildZip(args: { rows: ChronologyRow[]; files: Map<string, { bytes: Uint8Array; extension: string }> }): Promise<Uint8Array>;
+  buildZip(args: {
+    rows: ChronologyRow[];
+    files: Map<string, { bytes: Uint8Array; extension: string }>;
+    packageVersion: number;
+  }): Promise<Uint8Array>;
   sha256(bytes: Uint8Array): Promise<string>;
   now(): Date;
 };
@@ -176,6 +180,11 @@ async function requireAttorney(admin: Admin, userId: string, linkId: string) {
   if (!ws.canCreatePackage) throw new Error("Only the attorney on this matter can send exhibits to Clio.");
   if (!ws.package) {
     throw new Error("Fix the exhibit numbers first, so what goes to Clio carries numbers that won't change.");
+  }
+  if (ws.package.diff.changed.length > 0) {
+    throw new Error(
+      `${ws.package.diff.changed.length} numbered item(s) changed after exhibit package v${ws.package.version}. Review them and save a new package version before sending to Clio, so numbers still match the current wording.`,
+    );
   }
   return { g, ws, packageVersion: ws.package.version };
 }
@@ -591,7 +600,7 @@ export async function runStep(
         }
         files.set(r.id, { bytes: got, extension: ext(p) ?? "bin" });
       }
-      bytes = await deps.buildZip({ rows: rows.filter((r) => keep.has(r.key)), files });
+      bytes = await deps.buildZip({ rows: rows.filter((r) => keep.has(r.key)), files, packageVersion: job.package_version });
     }
 
     const digest = await deps.sha256(bytes);

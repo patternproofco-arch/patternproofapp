@@ -78,6 +78,7 @@ describe("exhibit binder ZIP naming", () => {
       evidenceFiles: new Map([["ev-1", { bytes: photo, extension: "jpg" }]]),
       clientRef: "abcdef12-ffff-ffff-ffff-ffffffffffff",
       generatedAt: "2026-10-02T12:00:00.000Z",
+      packageVersion: 2,
     });
 
     expect(built.documentName).toBe("exhibit-binder-abcdef12-2026-10-02T12-00-00-000Z.zip");
@@ -95,9 +96,9 @@ describe("exhibit binder ZIP naming", () => {
     expect(names.some((n) => n.includes("Exhibit_3_2026-02-03_Answered_request"))).toBe(true);
 
     const readme = await zip.file("README.txt")!.async("string");
+    expect(readme).toContain("Exhibit package: v2");
     expect(readme).toMatch(/User-reviewed, not court-verified/i);
     expect(readme).toMatch(/does not determine admissibility/i);
-
     const chrono = await zip.file("factual-chronology.txt")!.async("string");
     expect(chrono).toMatch(/DRAFT FACTUAL CHRONOLOGY/);
     expect(chrono).toMatch(/See Exhibit 1/);
@@ -107,6 +108,7 @@ describe("exhibit binder ZIP naming", () => {
     expect(Array.from(jpgBytes)).toEqual([9, 8, 7, 6, 5]);
 
     const manifest = JSON.parse(await zip.file("manifest.json")!.async("string"));
+    expect(manifest.package_version).toBe(2);
     expect(manifest.exhibit_count).toBe(3);
     expect(manifest.file_hashes).toHaveLength(1);
     expect(manifest.disclaimer).toMatch(/Not court-verified/);

@@ -459,7 +459,15 @@ describe("not duplicating or overwriting", () => {
     expect(done.items.filter((i) => i.kind === "exhibit").every((i) => i.note?.match(/Already in Clio/))).toBe(true);
   });
 
-  it("an edited exhibit is sent next to the earlier copy; the earlier one is untouched", async () => {
+  it("blocks a new transfer until changed items are reviewed into a new package version", async () => {
+    const admin = await setup();
+    admin.tables.incidents!.find((i) => i.id === "a")!.description = "Edited by the survivor later.";
+    await expect(startTransfer(admin, ATTY, { linkId: LINK, includeZip: false })).rejects.toThrow(
+      /changed after exhibit package v1/,
+    );
+  });
+
+  it("an edited exhibit is sent next to the earlier copy after a new package version; the earlier one is untouched", async () => {
     const admin = await setup();
     const clio = fakeClio();
     const d = deps(clio);
@@ -469,7 +477,9 @@ describe("not duplicating or overwriting", () => {
     const originalBytes = Array.from(original.bytes);
 
     admin.tables.incidents!.find((i) => i.id === "a")!.description = "Edited by the survivor later.";
+    await createPackageVersion(admin, ATTY, CLIENT); // review + refresh markers; numbers stay
     const second = await startTransfer(admin, ATTY, { linkId: LINK, includeZip: false });
+    expect(second.packageVersion).toBe(2);
     await drain(admin, d, second.id);
     const names = clio.docs.map((x) => x.name);
     expect(names.filter((n) => n.includes("Entry a"))).toHaveLength(2);

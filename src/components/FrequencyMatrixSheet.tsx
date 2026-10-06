@@ -22,6 +22,9 @@ export interface FrequencyMatrixSheetProps {
   source?: string | null;
   importedAt?: string | null;
   truncated?: boolean;
+  /** Approved exhibit package version when the attorney has fixed numbers. */
+  packageVersion?: number | null;
+  packageBlockedReason?: string | null;
   /** Back link or other controls shown above the sheet on screen only. */
   toolbarStart?: ReactNode;
 }
@@ -40,6 +43,8 @@ export function FrequencyMatrixSheet({
   source,
   importedAt,
   truncated,
+  packageVersion,
+  packageBlockedReason,
   toolbarStart,
 }: FrequencyMatrixSheetProps) {
   const matrix = useMemo(() => buildFrequencyMatrix(messages), [messages]);
@@ -49,12 +54,17 @@ export function FrequencyMatrixSheet({
   const range = rangeLine(matrix);
 
   const copy = async () => {
+    if (packageBlockedReason) {
+      toast(packageBlockedReason);
+      return;
+    }
     const text = frequencyMatrixToText(matrix, {
       conversation,
       source,
       importedOn,
       exhibitLabel,
       generatedOn,
+      packageVersion: packageVersion ?? null,
     });
     try {
       await navigator.clipboard.writeText(text);
@@ -82,14 +92,18 @@ export function FrequencyMatrixSheet({
           <button
             type="button"
             onClick={copy}
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm"
+            disabled={!!packageBlockedReason}
+            title={packageBlockedReason ?? undefined}
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm disabled:opacity-50"
           >
             <Copy size={14} /> Copy as text
           </button>
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
+            disabled={!!packageBlockedReason}
+            title={packageBlockedReason ?? undefined}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50"
           >
             <Printer size={14} /> Print or save as PDF
           </button>
@@ -107,7 +121,13 @@ export function FrequencyMatrixSheet({
             </p>
             <p className="text-[11px] text-black/70">
               {importedOn ? `Imported ${importedOn} · ` : ""}Prepared {generatedOn}
+              {packageVersion != null
+                ? ` · Exhibit package v${packageVersion}`
+                : " · Exhibit package: none (provisional)"}
             </p>
+            {packageBlockedReason ? (
+              <p className="mt-1 text-[11px] font-semibold">{packageBlockedReason}</p>
+            ) : null}
           </div>
           {exhibitLabel.trim() ? (
             <div className="shrink-0 border border-black px-3 py-1 text-sm font-semibold">

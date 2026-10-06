@@ -90,12 +90,21 @@ function indexMarkdown(entries: BinderEntry[]): string {
   ].join("\n");
 }
 
-function readmeText(exhibitCount: number, generatedAt: string): string {
+function readmeText(
+  exhibitCount: number,
+  generatedAt: string,
+  packageVersion: number | null | undefined,
+): string {
+  const packet =
+    packageVersion != null
+      ? `Exhibit package: v${packageVersion}`
+      : "Exhibit package: none (labels may be provisional)";
   return [
     "PatternProof Exhibit Binder",
     "",
     `Generated: ${generatedAt}`,
     `Exhibits: ${exhibitCount}`,
+    packet,
     "",
     "This archive packages shared journal entries, files, and answered requests",
     "with Exhibit N labels matching the attorney portal binder on PatternProof.",
@@ -130,6 +139,8 @@ export async function buildExhibitBinderZip(args: {
   generatedAt?: string;
   /** Chronology text to include instead of the short summary form (full quotes, dates as recorded). */
   chronologyText?: string;
+  /** Approved exhibit package version these numbers come from, when known. */
+  packageVersion?: number | null;
 }): Promise<BuiltBinderZip> {
   const generatedAt = args.generatedAt ?? new Date().toISOString();
   const entries = args.entries;
@@ -137,7 +148,7 @@ export async function buildExhibitBinderZip(args: {
   const zip = new JSZip();
   const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
 
-  zip.file("README.txt", readmeText(entries.length, generatedAt));
+  zip.file("README.txt", readmeText(entries.length, generatedAt, args.packageVersion));
   zip.file("index.md", indexMarkdown(entries));
   zip.file("factual-chronology.txt", args.chronologyText ?? buildPleadingText(entries));
 
@@ -172,6 +183,7 @@ export async function buildExhibitBinderZip(args: {
         generated_at: generatedAt,
         client_ref: args.clientRef ?? null,
         exhibit_count: entries.length,
+        package_version: args.packageVersion ?? null,
         generator: "PatternProof Exhibit Binder ZIP v1",
         exhibits: entries.map((e) => ({
           exhibit: e.exhibit,

@@ -587,13 +587,24 @@ export function renderDeclarationText(
   content: DeclarationContent,
   rows: readonly ChronologyRow[],
   pkg: ExhibitPackage | null,
+  opts?: { approvedAt?: string | null },
 ): string {
   const paragraphs = buildDraftParagraphs(content, rows);
   const analysis = analyzeDraft(content, rows, pkg);
   const lines: string[] = [...DRAFT_BANNER.map((l) => l), ""];
-  if (!pkg) lines.push("Exhibit numbers in this draft are PROVISIONAL and may change. Freeze them before citing.", "");
-  else if (analysis.packageBehind)
-    lines.push(`This draft cites exhibit package v${content.packageVersion ?? "?"}; a newer package exists.`, "");
+  if (!pkg) {
+    lines.push("Exhibit numbers in this draft are PROVISIONAL and may change. Freeze them before citing.", "");
+  } else {
+    const at = opts?.approvedAt ? ` · approved ${opts.approvedAt.slice(0, 10)}` : "";
+    lines.push(`Exhibit package: v${pkg.version}${at}.`);
+    if (content.packageVersion != null && content.packageVersion !== pkg.version) {
+      lines.push(`This draft cites exhibit package v${content.packageVersion}.`);
+    }
+    if (analysis.packageBehind) {
+      lines.push(`A newer package exists; move this draft to v${pkg.version} before relying on it.`);
+    }
+    lines.push("");
+  }
   lines.push(content.title, "");
   lines.push(
     `I, ${content.declarantName?.trim() || "[declarant]"}, state:`,
@@ -619,13 +630,29 @@ export function renderChronologyRow(r: ChronologyRow, index?: number): string[] 
   return lines;
 }
 
-export function renderChronologyText(rows: readonly ChronologyRow[]): string {
+export function renderChronologyText(
+  rows: readonly ChronologyRow[],
+  opts?: { packageVersion?: number | null; approvedAt?: string | null },
+): string {
   const lines = [
     "FACTUAL CHRONOLOGY. Restates what the client recorded, in date order. For attorney review. Not verified, not a finding, and not a declaration.",
-    "",
   ];
+  if (opts?.packageVersion != null) {
+    const at = opts.approvedAt ? ` · approved ${opts.approvedAt.slice(0, 10)}` : "";
+    lines.push(`Exhibit package: v${opts.packageVersion}${at}.`);
+  } else if (opts && "packageVersion" in opts) {
+    lines.push("Exhibit package: none (numbers are provisional and may change).");
+  }
+  lines.push("");
   rows.forEach((r, i) => {
     lines.push(...renderChronologyRow(r, i + 1), "");
+    if (r.machineText) {
+      lines.push(
+        `   Software-extracted ${r.machineText.kind}${r.machineText.checked ? " (checked)" : " (not checked)"}:`,
+        `   ${r.machineText.text}`,
+        "",
+      );
+    }
   });
   return lines.join("\n");
 }

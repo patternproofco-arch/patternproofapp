@@ -27,10 +27,17 @@ import { useChronologyWorkspace } from "@/components/attorney/ChronologyWorkspac
 const STATUS_TEXT: Record<string, string> = {
   pending: "Waiting",
   uploading: "Sending…",
-  confirmed: "In Clio",
-  failed: "Not sent",
+  confirmed: "Confirmed in Clio",
+  failed: "Failed — not sent",
   skipped: "Skipped",
-  needs_review: "Check Clio",
+  needs_review: "Check Clio (partial / unclear)",
+};
+
+const JOB_STATUS_TEXT: Record<string, string> = {
+  running: "In progress (resumable)",
+  stopped: "Paused",
+  completed: "Confirmed complete",
+  completed_with_errors: "Partly completed — some items failed",
 };
 
 function msg(e: unknown, fallback: string) {
@@ -270,7 +277,10 @@ export function ClioTransferPanel({ clientId }: { clientId: string }) {
           <p>
             <strong>{job.summary}</strong>
           </p>
-          <p className="text-xs text-muted-foreground">Matter: {job.matterLabel}</p>
+          <p className="text-xs text-muted-foreground">
+            Transfer: {JOB_STATUS_TEXT[job.status] ?? job.status} · Matter: {job.matterLabel}
+            {typeof job.packageVersion === "number" ? ` · Exhibit package v${job.packageVersion}` : ""}
+          </p>
           <ul className="mt-2 space-y-1 text-xs">
             {job.items.map((i) => (
               <li key={i.id}>
@@ -320,12 +330,12 @@ export function ClioTransferPanel({ clientId }: { clientId: string }) {
                 }
               }}
             >
-              Continue
+              Resume paused transfer
             </button>
           )}
           {job.status === "running" && !busy && (
             <button className="mt-2 rounded-lg border border-border px-3 py-1.5 text-sm" onClick={() => drive(job.id)}>
-              Continue sending
+              Continue partial transfer
             </button>
           )}
           {job.status !== "running" && (
