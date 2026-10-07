@@ -11,6 +11,8 @@ export function GlobalFooter() {
   return (
     <footer className="pp-global-footer no-print">
       <nav aria-label="Footer navigation">
+        <Link to="/founding-testers">Test free</Link>
+        <Link to="/founding-testers" search={{ mode: "feedback" }}>Give feedback</Link>
         {FOOTER_LINKS.map((item) => (
           <Link key={item.to} to={item.to}>
             {item.label}

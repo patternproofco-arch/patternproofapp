@@ -43,13 +43,13 @@ function ForAttorneys() {
   }, []);
   const attorneyTiers = buildTiers(remaining).filter((t) => t.key.startsWith("attorney_"));
   const solo = attorneyTiers.find((t) => t.key === "attorney_solo");
-  const startsAt = `If a paid workspace is useful after that, plans start at ${solo?.price ?? "$297"} / month for a solo attorney seat.`;
+  const startsAt = `Standard paid workspaces are separate from cohort requests. Solo plans start at ${solo?.price ?? "$297"} / month; requesting testing does not start a subscription.`;
   return (
     <div data-persona="attorney" style={{ background: "var(--pp-ground)", color: INK, minHeight: "100vh", fontFamily: SANS }}>
       <PublicQuickExit />
       <TopBar />
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(56px,9vw,104px) 24px 40px" }}>
-        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, marginBottom: 24 }}>For attorneys</div>
+        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED, marginBottom: 24 }}>For family-law attorneys and paralegals</div>
         <p style={{ fontSize: 16, lineHeight: 1.5, color: "var(--pp-muted)", maxWidth: 560, marginBottom: 18 }}>
           PatternProof is a documentation platform your clients use to record domestic-violence and coercive-control incidents — you receive a structured, source-linked chronology instead of a folder of screenshots.
         </p>
@@ -57,15 +57,15 @@ function ForAttorneys() {
           Review an organized case timeline,<br /><em>without rebuilding it yourself.</em>
         </h1>
         <p style={{ marginTop: 28, fontSize: 16, lineHeight: 1.55, maxWidth: 560 }}>
-          Invitation-only. Request access through G. BURNS COMPANY LLC. Paying does not unlock
-          access — verification does.
+          Help shape the evidence review workflow. Try the free fictional demo, then tell us
+          what needs work or request an invitation to the founding test cohort.
         </p>
-        <a
-          href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20attorney%20access%20via%20G.%20BURNS%20COMPANY%20LLC"
+        <Link
+          to="/founding-testers" search={{ role: "attorney" }}
           style={{ display: "inline-block", marginTop: 28, background: NAVY, color: "#F4F6FB", padding: "14px 26px", fontFamily: MONO, fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none", borderRadius: "var(--pp-r-pill)" }}
         >
-          Request invitation-only access →
-        </a>
+          Request free testing →
+        </Link>
         <div
           style={{
             marginTop: 14,
@@ -77,7 +77,8 @@ function ForAttorneys() {
             letterSpacing: "0.04em",
           }}
         >
-          Invitation-only · G. BURNS COMPANY LLC · verification required
+          Attorneys and paralegals welcome. Invitation-only. Request access through
+          G. BURNS COMPANY LLC. Paying does not unlock access — verification does.
         </div>
         <div style={{ marginTop: 14 }}>
           <Link to="/demo" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: INK, textTransform: "uppercase" }}>
@@ -85,16 +86,17 @@ function ForAttorneys() {
           </Link>
         </div>
         <div style={{ marginTop: 16, fontFamily: MONO, fontSize: 11, color: MUTED, maxWidth: 560, lineHeight: 1.6 }}>{startsAt}</div>
+        <p style={{ marginTop: 16 }}><Link to="/founding-testers" search={{ mode: "feedback", role: "attorney" }}>Tell us what is confusing, missing, or not working</Link></p>
       </section>
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "0 24px 96px" }}>
-        <a
-          href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20attorney%20access%20via%20G.%20BURNS%20COMPANY%20LLC"
+        <Link
+          to="/founding-testers" search={{ role: "attorney" }}
           style={{ display: "inline-block", fontFamily: MONO, fontSize: 12, letterSpacing: "0.1em", color: INK, textDecoration: "underline", textTransform: "uppercase" }}
         >
-          Request access through G. BURNS COMPANY LLC
-        </a>
+          Join the founding test cohort
+        </Link>
         <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 11, color: MUTED, maxWidth: 640, lineHeight: 1.6 }}>
-          Access stays invitation-only. A paid workspace does not bypass verification. You choose
+          Professional access stays invitation-only and subject to review. You choose
           what client material to review after a survivor shares it with you.
         </div>
       </section>

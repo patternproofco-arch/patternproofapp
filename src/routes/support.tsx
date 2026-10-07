@@ -119,6 +119,10 @@ function SupportPage() {
             You don't need your own email app to reach us. Send this form and we'll reply to the
             address you give us — nothing lands in your sent folder.
           </p>
+          <p style={sub}>
+            Want to help shape PatternProof? <Link to="/founding-testers">Request free testing</Link> or{" "}
+            <Link to="/founding-testers" search={{ mode: "feedback" }}>send product feedback</Link>.
+          </p>
         </header>
 
         <div style={safetyNote}>

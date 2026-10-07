@@ -214,6 +214,10 @@ function DemoPage() {
     >
       <PublicQuickExit />
       <DemoHeader />
+      <nav aria-label="Demo feedback" style={{ maxWidth: 1080, margin: "16px auto", padding: "0 20px", display: "flex", flexWrap: "wrap", gap: 20 }}>
+        <Link to="/founding-testers" search={{ mode: "feedback" }}>Tell us what needs work</Link>
+        <Link to="/founding-testers">Join the founding test cohort</Link>
+      </nav>
       <DemoBanner />
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px 80px" }}>
         <TabBar tab={tab} setTab={setTab} />

@@ -8,6 +8,8 @@ export const SUPPORT_CATEGORIES = [
   "Payments & billing",
   "Evidence upload",
   "Court packet export",
+  "Founding tester request",
+  "Product feedback",
   "Other",
 ] as const;
 

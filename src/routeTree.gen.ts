@@ -24,6 +24,7 @@ import { Route as FamilyLawWorkloadRouteImport } from './routes/family-law-workl
 import { Route as ForAttorneysRouteImport } from './routes/for-attorneys'
 import { Route as ForOrganizationsRouteImport } from './routes/for-organizations'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as FoundingTestersRouteImport } from './routes/founding-testers'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as IntakeRouteImport } from './routes/intake'
 import { Route as LawyerSignupRouteImport } from './routes/lawyer-signup'
@@ -217,6 +218,11 @@ const ForOrganizationsRoute = ForOrganizationsRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FoundingTestersRoute = FoundingTestersRouteImport.update({
+  id: '/founding-testers',
+  path: '/founding-testers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HowItWorksRoute = HowItWorksRouteImport.update({
@@ -880,6 +886,7 @@ export interface FileRoutesByFullPath {
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/founding-testers': typeof FoundingTestersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/intake': typeof IntakeRoute
   '/lawyer-signup': typeof LawyerSignupRoute
@@ -1016,6 +1023,7 @@ export interface FileRoutesByTo {
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/founding-testers': typeof FoundingTestersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/intake': typeof IntakeRoute
   '/lawyer-signup': typeof LawyerSignupRoute
@@ -1152,6 +1160,7 @@ export interface FileRoutesById {
   '/for-attorneys': typeof ForAttorneysRoute
   '/for-organizations': typeof ForOrganizationsRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/founding-testers': typeof FoundingTestersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/intake': typeof IntakeRoute
   '/lawyer-signup': typeof LawyerSignupRoute
@@ -1290,6 +1299,7 @@ export interface FileRouteTypes {
     | '/for-attorneys'
     | '/for-organizations'
     | '/forgot-password'
+    | '/founding-testers'
     | '/how-it-works'
     | '/intake'
     | '/lawyer-signup'
@@ -1426,6 +1436,7 @@ export interface FileRouteTypes {
     | '/for-attorneys'
     | '/for-organizations'
     | '/forgot-password'
+    | '/founding-testers'
     | '/how-it-works'
     | '/intake'
     | '/lawyer-signup'
@@ -1561,6 +1572,7 @@ export interface FileRouteTypes {
     | '/for-attorneys'
     | '/for-organizations'
     | '/forgot-password'
+    | '/founding-testers'
     | '/how-it-works'
     | '/intake'
     | '/lawyer-signup'
@@ -1701,6 +1713,7 @@ export interface RootRouteChildren {
   ForAttorneysRoute: typeof ForAttorneysRoute
   ForOrganizationsRoute: typeof ForOrganizationsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  FoundingTestersRoute: typeof FoundingTestersRoute
   HowItWorksRoute: typeof HowItWorksRoute
   IntakeRoute: typeof IntakeRoute
   LawyerSignupRoute: typeof LawyerSignupRoute
@@ -1857,6 +1870,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/founding-testers': {
+      id: '/founding-testers'
+      path: '/founding-testers'
+      fullPath: '/founding-testers'
+      preLoaderRoute: typeof FoundingTestersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/how-it-works': {
@@ -2951,6 +2971,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForAttorneysRoute: ForAttorneysRoute,
   ForOrganizationsRoute: ForOrganizationsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  FoundingTestersRoute: FoundingTestersRoute,
   HowItWorksRoute: HowItWorksRoute,
   IntakeRoute: IntakeRoute,
   LawyerSignupRoute: LawyerSignupRoute,
@@ -3005,3 +3026,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

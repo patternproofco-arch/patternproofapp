@@ -133,6 +133,18 @@ function Index() {
         )}
       </section>
 
+      <section className="tester-card" style={{ marginTop: 32 }} aria-labelledby="founding-invite">
+        <p className="folio-kicker">Founding test cohort</p>
+        <h2 id="founding-invite">Test free. Help shape PatternProof.</h2>
+        <p>Survivors, family-law attorneys and paralegals, DV advocates and organizations: tell us what is confusing, missing, or getting in your way.</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", marginTop: 16 }}>
+          <Link to="/founding-testers" className="btn-primary">Explore free testing</Link>
+          <Link to="/founding-testers" search={{ mode: "feedback" }}>Give feedback</Link>
+        </div>
+        <p className="tester-note">Try the fictional demo now. Request an invitation for cohort testing.</p>
+        <p className="tester-note">PatternProof organizes information. It does not decide what the information proves.</p>
+      </section>
+
       {!attorneyMode && (
         <>
           <section style={{ marginTop: 56 }}>
