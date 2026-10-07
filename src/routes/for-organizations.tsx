@@ -140,7 +140,9 @@ function ForOrganizations() {
           }}
         >
           Advocates and organizations are welcome in the founding test cohort. Try the free
-          fictional demo now or request an invitation. Professional access remains subject to review.
+          fictional demo now or request an invitation. Invitation-only partner review via
+          G. BURNS COMPANY LLC. Organizations partner at no cost after verification.
+          Survivors choose what to share.
         </p>
       </section>
 

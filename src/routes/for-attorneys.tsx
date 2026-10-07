@@ -77,7 +77,8 @@ function ForAttorneys() {
             letterSpacing: "0.04em",
           }}
         >
-          Attorneys and paralegals welcome. Professional access remains subject to review.
+          Attorneys and paralegals welcome. Invitation-only. Request access through
+          G. BURNS COMPANY LLC. Paying does not unlock access — verification does.
         </div>
         <div style={{ marginTop: 14 }}>
           <Link to="/demo" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: INK, textTransform: "uppercase" }}>
