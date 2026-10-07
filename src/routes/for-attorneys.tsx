@@ -81,7 +81,7 @@ function ForAttorneys() {
           G. BURNS COMPANY LLC. Paying does not unlock access — verification does.
         </div>
         <div style={{ marginTop: 14 }}>
-          <Link to="/demo" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: INK, textTransform: "uppercase" }}>
+          <Link to="/demo/attorney" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.08em", color: INK, textTransform: "uppercase" }}>
             View the attorney demo
           </Link>
         </div>

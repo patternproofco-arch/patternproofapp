@@ -114,6 +114,9 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AttorneyTokenRouteImport } from './routes/attorney.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborator-invite.$token'
+import { Route as DemoAttorneyRouteImport } from './routes/demo_.attorney'
+import { Route as DemoOrgRouteImport } from './routes/demo_.org'
+import { Route as DemoPrepRouteImport } from './routes/demo_.prep'
 import { Route as MatterInviteTokenRouteImport } from './routes/matter-invite.$token'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
@@ -690,6 +693,21 @@ const CollaboratorInviteTokenRoute = CollaboratorInviteTokenRouteImport.update({
   path: '/collaborator-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoAttorneyRoute = DemoAttorneyRouteImport.update({
+  id: '/demo_/attorney',
+  path: '/demo/attorney',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoOrgRoute = DemoOrgRouteImport.update({
+  id: '/demo_/org',
+  path: '/demo/org',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoPrepRoute = DemoPrepRouteImport.update({
+  id: '/demo_/prep',
+  path: '/demo/prep',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MatterInviteTokenRoute = MatterInviteTokenRouteImport.update({
   id: '/matter-invite/$token',
   path: '/matter-invite/$token',
@@ -976,6 +994,9 @@ export interface FileRoutesByFullPath {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
+  '/demo/attorney': typeof DemoAttorneyRoute
+  '/demo/org': typeof DemoOrgRoute
+  '/demo/prep': typeof DemoPrepRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
@@ -1110,6 +1131,9 @@ export interface FileRoutesByTo {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
+  '/demo/attorney': typeof DemoAttorneyRoute
+  '/demo/org': typeof DemoOrgRoute
+  '/demo/prep': typeof DemoPrepRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
@@ -1250,6 +1274,9 @@ export interface FileRoutesById {
   '/attorney/$token': typeof AttorneyTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/collaborator-invite/$token': typeof CollaboratorInviteTokenRoute
+  '/demo_/attorney': typeof DemoAttorneyRoute
+  '/demo_/org': typeof DemoOrgRoute
+  '/demo_/prep': typeof DemoPrepRoute
   '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
@@ -1389,6 +1416,9 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/auth/callback'
     | '/collaborator-invite/$token'
+    | '/demo/attorney'
+    | '/demo/org'
+    | '/demo/prep'
     | '/matter-invite/$token'
     | '/review/$token'
     | '/survivor-invite/$token'
@@ -1523,6 +1553,9 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/auth/callback'
     | '/collaborator-invite/$token'
+    | '/demo/attorney'
+    | '/demo/org'
+    | '/demo/prep'
     | '/matter-invite/$token'
     | '/review/$token'
     | '/survivor-invite/$token'
@@ -1662,6 +1695,9 @@ export interface FileRouteTypes {
     | '/attorney/$token'
     | '/auth/callback'
     | '/collaborator-invite/$token'
+    | '/demo_/attorney'
+    | '/demo_/org'
+    | '/demo_/prep'
     | '/matter-invite/$token'
     | '/review/$token'
     | '/survivor-invite/$token'
@@ -1751,6 +1787,9 @@ export interface RootRouteChildren {
   AttorneyTokenRoute: typeof AttorneyTokenRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   CollaboratorInviteTokenRoute: typeof CollaboratorInviteTokenRoute
+  DemoAttorneyRoute: typeof DemoAttorneyRoute
+  DemoOrgRoute: typeof DemoOrgRoute
+  DemoPrepRoute: typeof DemoPrepRoute
   MatterInviteTokenRoute: typeof MatterInviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
@@ -2502,6 +2541,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CollaboratorInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo_/attorney': {
+      id: '/demo_/attorney'
+      path: '/demo/attorney'
+      fullPath: '/demo/attorney'
+      preLoaderRoute: typeof DemoAttorneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo_/org': {
+      id: '/demo_/org'
+      path: '/demo/org'
+      fullPath: '/demo/org'
+      preLoaderRoute: typeof DemoOrgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo_/prep': {
+      id: '/demo_/prep'
+      path: '/demo/prep'
+      fullPath: '/demo/prep'
+      preLoaderRoute: typeof DemoPrepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/matter-invite/$token': {
       id: '/matter-invite/$token'
       path: '/matter-invite/$token'
@@ -3010,6 +3070,9 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneyTokenRoute: AttorneyTokenRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   CollaboratorInviteTokenRoute: CollaboratorInviteTokenRoute,
+  DemoAttorneyRoute: DemoAttorneyRoute,
+  DemoOrgRoute: DemoOrgRoute,
+  DemoPrepRoute: DemoPrepRoute,
   MatterInviteTokenRoute: MatterInviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,

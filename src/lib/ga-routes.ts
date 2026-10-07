@@ -7,6 +7,9 @@
  */
 const PRIVATE_PREFIXES = ["/_authenticated", "/_attorney", "/_advocate"];
 const PRIVATE_FRAGMENTS = [
+  // Fictional /demo/* sub-portals (route ids "/demo_/attorney", "/demo_/org", "/demo_/prep").
+  // Not reported at all, so nothing typed in a demo practice box can reach analytics.
+  "/demo_",
   "invite",
   "$token",
   "/capture",

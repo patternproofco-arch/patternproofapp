@@ -78,6 +78,21 @@ describe("Leave a Dot only on public marketing pages", () => {
     }
   });
 
+  it("never loads on the fictional /demo/* sub-portals (practice inputs, no session replay)", () => {
+    for (const path of [
+      "/demo/attorney",
+      "/demo/org",
+      "/demo/prep",
+      "/demo/prep/",
+      "/demo/anything-added-later",
+    ]) {
+      expect(shouldLoadLeaveADot(path)).toBe(false);
+    }
+    const routes = readFileSync(new URL("../lib/leaveadot-routes.ts", import.meta.url), "utf8");
+    // No allowlist entry (an indented "…", line in the Set) may start with /demo/.
+    expect(routes).not.toMatch(/^\s*"\/demo\/[^"]*",\s*$/m);
+  });
+
   it("root uses the path-gated loader and does not inject Leave a Dot in the shell", () => {
     const root = readFileSync(new URL("../routes/__root.tsx", import.meta.url), "utf8");
     expect(root).toContain("LeaveADotLoader");

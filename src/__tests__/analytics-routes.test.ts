@@ -37,6 +37,16 @@ describe("analytics only counts the public site", () => {
     }
   });
 
+  it("never reports the fictional /demo/* sub-portals, so typed practice text can't reach analytics", () => {
+    for (const r of ["/demo_/attorney", "/demo_/org", "/demo_/prep"]) {
+      expect(isReportableRoute(r)).toBe(false);
+    }
+    expect(readFileSync(new URL("../lib/ga-routes.ts", import.meta.url), "utf8")).toContain('"/demo_"');
+    // The tracker only ever sends the route id and document title, never form values.
+    const ga = readFileSync(new URL("../lib/ga.tsx", import.meta.url), "utf8");
+    expect(ga).not.toMatch(/\.value\b|textarea|FormData/);
+  });
+
   it("the tracker uses the filter, and ad personalization signals are off", () => {
     expect(readFileSync(new URL("../lib/ga.tsx", import.meta.url), "utf8")).toMatch(/isReportableRoute\(routeId\)/);
     const root = readFileSync(new URL("../routes/__root.tsx", import.meta.url), "utf8");

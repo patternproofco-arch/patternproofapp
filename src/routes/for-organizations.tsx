@@ -189,6 +189,20 @@ function ForOrganizations() {
 
         <div style={{ marginTop: 32, display: "grid", gap: 10 }}>
           <Link
+            to="/demo/org"
+            style={{
+              fontFamily: MONO,
+              fontSize: 12,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: INK,
+              textDecoration: "underline",
+              textUnderlineOffset: 4,
+            }}
+          >
+            View the organization demo (fictional) →
+          </Link>
+          <Link
             to="/founding-testers" search={{ role: "organization" }}
             style={{
               fontFamily: MONO,

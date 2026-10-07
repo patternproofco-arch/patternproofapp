@@ -47,5 +47,9 @@ export function normalizePublicPath(pathname: string): string {
 }
 
 export function shouldLoadLeaveADot(pathname: string): boolean {
-  return LEAVE_A_DOT_PUBLIC_PATHS.has(normalizePublicPath(pathname));
+  const path = normalizePublicPath(pathname);
+  // Fictional /demo/* sub-portals (attorney, org, court-prep practice) never load session
+  // replay, even if someone later adds them to the list above.
+  if (path.startsWith("/demo/")) return false;
+  return LEAVE_A_DOT_PUBLIC_PATHS.has(path);
 }
