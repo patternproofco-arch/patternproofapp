@@ -359,6 +359,46 @@
   white-space: nowrap;
 }
 
+/* Public tester intake uses the existing brand tokens and keeps form contents
+   in memory only. Role colors supplement, never replace, readable labels. */
+.tester-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: clamp(28px, 6vw, 64px) 20px 80px;
+  color: var(--pp-ink);
+  font-family: var(--font-sans);
+}
+.tester-page h1 { font-family: var(--font-serif); font-size: clamp(2rem, 5vw, 3.5rem); }
+.tester-page p, .tester-card p { line-height: 1.65; }
+.tester-audiences { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 28px 0; }
+.tester-card { padding: 24px; background: var(--pp-card); border: 1px solid var(--rule); border-radius: 16px; }
+.tester-card h2 { margin: 0 0 12px; font-family: var(--font-serif); font-size: 1.35rem; line-height: 1.3; }
+.tester-audiences [data-persona="survivor"] { border-top: 4px solid var(--pp-accent-survivor, #6551a5); }
+.tester-audiences [data-persona="attorney"] { border-top: 4px solid var(--pp-accent-attorney); }
+.tester-audiences [data-persona="org"] { border-top: 4px solid var(--pp-accent-org); }
+.tester-tabs { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 16px; }
+.tester-tabs a { padding: 12px 16px; border: 1px solid var(--rule); border-radius: 8px; }
+.tester-tabs a[aria-current="page"] { font-weight: 700; border-color: currentColor; }
+.tester-form { display: grid; gap: 16px; }
+.tester-form label { display: grid; gap: 8px; font-weight: 600; }
+.tester-form input:not([type="checkbox"]), .tester-form select, .tester-form textarea {
+  width: 100%; min-width: 0; padding: 12px; border: 1px solid var(--rule);
+  border-radius: 8px; background: var(--pp-ground); color: var(--pp-ink); font: inherit; font-size: 16px;
+}
+.tester-form textarea { resize: vertical; }
+.tester-form .tester-consent { display: flex; align-items: flex-start; gap: 12px; font-weight: 400; }
+.tester-consent input { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; }
+.tester-note { font-size: 14px; color: var(--pp-muted); }
+.tester-form .tester-note { margin: 0; }
+.tester-form button { justify-self: start; }
+.tester-form button:disabled { opacity: .65; cursor: wait; }
+.tester-error { color: var(--pp-ink); font-weight: 600; border-left: 3px solid currentColor; padding-left: 12px; }
+.tester-disclaimer { margin: 28px 0 0; font-size: 15px; }
+@media (max-width: 700px) {
+  .tester-audiences { grid-template-columns: 1fr; }
+  .tester-card { padding: 20px; }
+}
+
 /* Retire route-local global chrome on public pages only. Signed-in portals keep
    their own toolbars (sign out, search, settings, required disclaimers). */
 .pp-global-page:not(:has(.pp-app-chrome)) > div > header:not(.pp-app-chrome),
@@ -376,18 +416,28 @@
   display: none !important;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1040px) {
   .pp-global-header {
     grid-template-columns: 1fr auto;
     gap: 12px;
-    padding: 0 16px;
+    height: auto;
+    min-height: 56px;
+    padding: 14px 16px 0;
   }
 
   .pp-global-nav {
-    display: none;
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    overflow-x: auto;
+    gap: 20px;
+    padding-bottom: 12px;
+    white-space: nowrap;
   }
 
   .pp-global-actions {
+    grid-row: 1;
+    grid-column: 2;
     gap: 10px;
   }
 

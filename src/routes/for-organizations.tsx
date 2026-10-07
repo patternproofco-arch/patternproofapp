@@ -67,7 +67,7 @@ function ForOrganizations() {
             marginBottom: 24,
           }}
         >
-          For DV organizations
+          For DV advocates and organizations
         </div>
         {/* Plain-language statement before the tagline headline, so a
             first-time visitor understands what this is within a few
@@ -110,8 +110,8 @@ function ForOrganizations() {
           PatternProof helps survivors organize their history privately, then share it with your
           team only when they choose.
         </p>
-        <a
-          href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20organization%20partner%20review%20via%20G.%20BURNS%20COMPANY%20LLC"
+        <Link
+          to="/founding-testers" search={{ role: "organization" }}
           style={{
             display: "inline-block",
             marginTop: 34,
@@ -126,8 +126,8 @@ function ForOrganizations() {
             borderRadius: "var(--pp-r-pill)",
           }}
         >
-          Request invitation-only partner review →
-        </a>
+          Request free testing →
+        </Link>
         <p
           style={{
             marginTop: 12,
@@ -139,8 +139,8 @@ function ForOrganizations() {
             lineHeight: 1.6,
           }}
         >
-          Invitation-only partner review via G. BURNS COMPANY LLC. Organizations partner at no cost
-          after verification. Survivors choose what to share.
+          Advocates and organizations are welcome in the founding test cohort. Try the free
+          fictional demo now or request an invitation. Professional access remains subject to review.
         </p>
       </section>
 
@@ -186,8 +186,8 @@ function ForOrganizations() {
         </p>
 
         <div style={{ marginTop: 32, display: "grid", gap: 10 }}>
-          <a
-            href="mailto:pattern@pattern-proof.tech?subject=Request%20invitation-only%20organization%20partner%20review%20via%20G.%20BURNS%20COMPANY%20LLC"
+          <Link
+            to="/founding-testers" search={{ role: "organization" }}
             style={{
               fontFamily: MONO,
               fontSize: 12,
@@ -198,8 +198,9 @@ function ForOrganizations() {
               textUnderlineOffset: 4,
             }}
           >
-            Request invitation-only access via G. BURNS COMPANY LLC →
-          </a>
+            Join the founding test cohort →
+          </Link>
+          <Link to="/founding-testers" search={{ mode: "feedback", role: "advocate" }}>Tell us what is confusing, missing, or not working</Link>
           <Link
             to="/org-feedback"
             style={{

@@ -7,6 +7,7 @@ import { SettingsProvider, useSettings } from "@/lib/settings-context";
 import { quickExit } from "@/lib/quick-exit";
 
 const NAV_ITEMS = [
+  { to: "/founding-testers", label: "Test free" },
   { to: "/how-it-works", label: "How it works" },
   { to: "/for-attorneys", label: "Attorneys" },
   { to: "/for-organizations", label: "Organizations" },
