@@ -205,8 +205,6 @@ function MessageThreadsPage() {
       });
       if (result.status === "parsed") {
         toast.success(`Parsed ${result.messageCount} messages.`);
-      } else if (result.status === "queued") {
-        toast("Saved.");
       } else if (result.status === "partial") {
         toast(
           result.messageCount === 0
