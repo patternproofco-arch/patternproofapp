@@ -183,11 +183,22 @@ const clio = await asRole(
   `UPDATE public.attorney_client_links SET clio_share_consent = true, clio_share_consent_at = now()`,
 );
 rls.push(["survivor JWT Clio consent -> 1 row", clio.ok && clio.n === 1]);
+// UI-style revoke but with a backdated client timestamp: must succeed and be
+// stored as server now(), not 1970.
 const rev = await asRole(
   SURVIVOR,
-  `UPDATE public.attorney_client_links SET status = 'revoked', revoked_at = now()`,
+  `UPDATE public.attorney_client_links SET status = 'revoked', revoked_at = '1970-01-01T00:00:00Z'`,
 );
-rls.push(["survivor JWT revoke -> 1 row", rev.ok && rev.n === 1]);
+rls.push(["survivor JWT revoke (backdated 1970 input) -> 1 row", rev.ok && rev.n === 1]);
+const stored = await db.query(
+  `SELECT extract(epoch FROM (clock_timestamp() - revoked_at))::float8 AS age_s
+     FROM public.attorney_client_links WHERE client_user_id = '${SURVIVOR}'`,
+);
+const ageS = stored.rows[0]?.age_s;
+rls.push([
+  `stored revoked_at overridden to server now() (age ${ageS?.toFixed?.(3)}s)`,
+  typeof ageS === "number" && ageS >= 0 && ageS < 5,
+]);
 const rearm = await asRole(
   SURVIVOR,
   `UPDATE public.attorney_client_links SET status = 'active', revoked_at = NULL`,

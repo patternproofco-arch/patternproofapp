@@ -25,9 +25,11 @@
 --     this trigger exactly as before. There is no attorney UPDATE policy on
 --     attorney_client_links, so RLS already denies attorney JWT updates.
 --
--- A client revoke also requires revoked_at <= now() + 5 minutes (no
--- far-future revoke timestamps). Trigger is recreated so it is attached even
--- if it was ever dropped; trigger name and BEFORE UPDATE timing unchanged.
+-- On an allowed client revoke the stored revoked_at is always the server's
+-- now(), overriding whatever the client sent (no backdating to e.g. 1970 or
+-- future-dating; keeps the court access timeline honest). The client must
+-- still send a non-NULL revoked_at. Trigger is recreated so it is attached
+-- even if it was ever dropped; trigger name and BEFORE UPDATE timing unchanged.
 --
 -- Idempotent (CREATE OR REPLACE + DROP TRIGGER IF EXISTS). Soft claim only:
 -- Grace applies on muy after Guardian CLEAR. Not applied by this PR alone.
@@ -67,9 +69,10 @@ BEGIN
     IF NEW.status = 'revoked'
        AND OLD.revoked_at IS NULL
        AND NEW.revoked_at IS NOT NULL
-       AND NEW.revoked_at <= now() + interval '5 minutes'
        AND (v_new - c_revoke_keys) = (v_old - c_revoke_keys)
     THEN
+      -- Server time wins: never trust a client-supplied revoke timestamp.
+      NEW.revoked_at := now();
       RETURN NEW;
     END IF;
     RAISE EXCEPTION 'Only a one-way revoke (status revoked + revoked_at set, nothing else) is allowed here'

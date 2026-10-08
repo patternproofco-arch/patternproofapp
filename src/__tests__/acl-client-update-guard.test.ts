@@ -56,6 +56,9 @@ describe("attorney_client_links client update guard (C7 allowlist)", () => {
     expect(revoke).toContain("NEW.status = 'revoked'");
     expect(revoke).toContain("OLD.revoked_at IS NULL");
     expect(revoke).toContain("NEW.revoked_at IS NOT NULL");
+    // Server time wins over any client-supplied revoke timestamp (no backdating).
+    expect(revoke).toMatch(/NEW\.revoked_at := now\(\); RETURN NEW;/);
+    expect(flat).not.toMatch(/interval '5 minutes'/);
     // Any status/revoked_at change that is not that exact revoke is rejected,
     // never falls through to "RETURN NEW" (the old C7 bug).
     expect(revoke).toMatch(/END IF; RAISE EXCEPTION '[^']+' USING ERRCODE = '42501'; END IF;/);
@@ -108,6 +111,10 @@ describe("attorney_client_links client update guard (C7 allowlist)", () => {
       expect(sqlTest).toContain(label);
     }
     expect(sqlTest).toContain("expect_allowed('one-way revoke");
+    expect(sqlTest).toContain("revoked_at = '1970-01-01T00:00:00Z'");
+    expect(sqlTest).toContain("revoked_at = now() + interval '1 year'");
+    expect(sqlTest).toContain("ok   - stored revoked_at ~ now() for backdated input");
+    expect(sqlTest).toContain("ok   - stored revoked_at ~ now() for future input");
     expect(sqlTest).toContain("expect_allowed('Clio consent on'");
     expect(sqlTest).toContain("expect_allowed('Clio consent off'");
     expect(sqlTest).toMatch(/^ROLLBACK;/m);

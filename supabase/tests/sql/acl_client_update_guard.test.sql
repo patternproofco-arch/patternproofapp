@@ -106,7 +106,6 @@ BEGIN
   PERFORM pg_temp.expect_denied('status -> paused', $q$status = 'paused'$q$);
   PERFORM pg_temp.expect_denied('status revoked without revoked_at', $q$status = 'revoked'$q$);
   PERFORM pg_temp.expect_denied('revoked_at set without status revoked', 'revoked_at = now()');
-  PERFORM pg_temp.expect_denied('revoke with far-future revoked_at', $q$status = 'revoked', revoked_at = now() + interval '30 days'$q$);
   PERFORM pg_temp.expect_denied('revoke + expires_at', $q$status = 'revoked', revoked_at = now(), expires_at = now() + interval '365 days'$q$);
   PERFORM pg_temp.expect_denied('revoke + attorney_user_id swap', $q$status = 'revoked', revoked_at = now(), attorney_user_id = gen_random_uuid()$q$);
   PERFORM pg_temp.expect_denied('revoke + scope widen', $q$status = 'revoked', revoked_at = now(), scope_incidents = ARRAY[gen_random_uuid()]$q$);
@@ -116,6 +115,23 @@ BEGIN
   v_id := pg_temp.expect_allowed('one-way revoke (status revoked + revoked_at now)', $q$status = 'revoked', revoked_at = now()$q$);
   SELECT status, revoked_at INTO r FROM public.attorney_client_links WHERE id = v_id;
   IF r.status <> 'revoked' OR r.revoked_at IS NULL THEN RAISE EXCEPTION 'FAIL - revoke not persisted'; END IF;
+  -- Client-supplied revoked_at is overridden with server now() (no backdating / future-dating).
+  -- Stored value is the server's now() (this transaction's start), so it must sit
+  -- within a few seconds before the wall clock (clock_timestamp()).
+  v_id := pg_temp.expect_allowed('revoke with backdated revoked_at (1970) is stored as now()',
+    $q$status = 'revoked', revoked_at = '1970-01-01T00:00:00Z'$q$);
+  SELECT revoked_at INTO r FROM public.attorney_client_links WHERE id = v_id;
+  IF r.revoked_at < clock_timestamp() - interval '5 seconds' OR r.revoked_at > clock_timestamp() THEN
+    RAISE EXCEPTION 'FAIL - backdated revoked_at not overridden to now(): %', r.revoked_at;
+  END IF;
+  RAISE NOTICE 'ok   - stored revoked_at ~ now() for backdated input';
+  v_id := pg_temp.expect_allowed('revoke with future revoked_at (+1 year) is stored as now()',
+    $q$status = 'revoked', revoked_at = now() + interval '1 year'$q$);
+  SELECT revoked_at INTO r FROM public.attorney_client_links WHERE id = v_id;
+  IF r.revoked_at < clock_timestamp() - interval '5 seconds' OR r.revoked_at > clock_timestamp() THEN
+    RAISE EXCEPTION 'FAIL - future revoked_at not overridden to now(): %', r.revoked_at;
+  END IF;
+  RAISE NOTICE 'ok   - stored revoked_at ~ now() for future input';
   PERFORM pg_temp.expect_allowed('revoke from paused', $q$status = 'revoked', revoked_at = now()$q$, 'paused', false);
   v_id := pg_temp.expect_allowed('Clio consent on', 'clio_share_consent = true, clio_share_consent_at = now()');
   SELECT clio_share_consent INTO r FROM public.attorney_client_links WHERE id = v_id;
