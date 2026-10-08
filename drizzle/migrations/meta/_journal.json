@@ -57,6 +57,13 @@
       "when": 1791461200341,
       "tag": "0007_revoke_anon_six_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791465751322,
+      "tag": "0009_anon_revoke_all_default_privileges",
+      "breakpoints": true
     }
   ]
 }
