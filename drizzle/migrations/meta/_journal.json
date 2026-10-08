@@ -57,6 +57,13 @@
       "when": 1791461200341,
       "tag": "0007_revoke_anon_six_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791461997616,
+      "tag": "0008_acl_client_update_guard_allowlist",
+      "breakpoints": true
     }
   ]
 }
