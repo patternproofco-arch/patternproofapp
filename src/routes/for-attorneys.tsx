@@ -4,7 +4,7 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { useEffect, useState } from "react";
 import { buildTiers } from "@/lib/pricing-tiers";
 import { getCharterAvailability } from "@/lib/payments.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { getStripeEnvironment } from "@/lib/stripe-env";
 
 const INK = "var(--pp-ink)";
 const NAVY = "var(--pp-accent-attorney)";

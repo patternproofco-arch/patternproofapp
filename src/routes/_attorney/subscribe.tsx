@@ -5,7 +5,7 @@ import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getCharterAvailability } from "@/lib/payments.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { getStripeEnvironment } from "@/lib/stripe-env";
 import { ATTORNEY_PORTAL_TIER_BULLETS } from "@/lib/pricing-tiers";
 
 export const Route = createFileRoute("/_attorney/subscribe")({

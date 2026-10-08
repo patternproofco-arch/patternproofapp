@@ -1,5 +1,6 @@
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
-import { getStripe, getStripeEnvironment } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
+import { getStripeEnvironment } from "@/lib/stripe-env";
 import { createCheckoutSession, createPayWhatYouCanCheckout } from "@/lib/payments.functions";
 
 interface Props {
