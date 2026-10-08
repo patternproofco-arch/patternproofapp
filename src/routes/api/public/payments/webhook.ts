@@ -76,6 +76,9 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, env:
     { onConflict: "stripe_subscription_id" },
   );
   await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
+  if (RESUME_STATUSES.includes(subscription.status)) {
+    await resumeAttorneyAccessIfApplicable(userId);
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription, env: StripeEnv) {
@@ -119,6 +122,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, env:
   if (userId) await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
   if (["canceled", "unpaid", "incomplete_expired"].includes(subscription.status)) {
     await pauseAttorneyAccessIfApplicable(subscription);
+  } else if (RESUME_STATUSES.includes(subscription.status)) {
+    await resumeAttorneyAccessIfApplicable(userId);
   }
 }
 
@@ -213,10 +218,21 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: St
   if (entErr) throw new Error(`entitlement write failed for session ${session.id}`);
 }
 
+/** Subscription states that mean the attorney is paying (or trialing) again. */
+const RESUME_STATUSES: string[] = ["active", "trialing"];
+
 /**
  * When an attorney's subscription ends, pause every active client link
  * and notify each affected survivor. Survivors keep their data — only
- * the attorney's shared view is suspended until they re-subscribe.
+ * the attorney's shared view is suspended.
+ *
+ * Fail loud: attorney_client_links has no updated_at column, so only `status`
+ * is written. If the pause fails we throw BEFORE notifying anyone, so a
+ * survivor is never told access is paused when it is not; the route then
+ * answers 400 and Stripe retries the event.
+ *
+ * Access comes back automatically on re-subscribe: see
+ * resumeAttorneyAccessIfApplicable().
  */
 async function pauseAttorneyAccessIfApplicable(subscription: Stripe.Subscription) {
   const attorneyUserId: string | undefined = subscription.metadata?.userId;
@@ -239,10 +255,13 @@ async function pauseAttorneyAccessIfApplicable(subscription: Stripe.Subscription
   if (!links || links.length === 0) return;
 
   const ids = links.map((link: { id: string }) => link.id);
-  await supabase
+  const { error: pauseErr } = await supabase
     .from("attorney_client_links")
-    .update({ status: "paused", updated_at: new Date().toISOString() })
+    .update({ status: "paused" })
     .in("id", ids);
+  if (pauseErr) {
+    throw new Error(`Could not pause attorney client links: ${pauseErr.message}`);
+  }
 
   const rows = links.map((link: { id: string; client_user_id: string }) => ({
     user_id: link.client_user_id,
@@ -252,6 +271,70 @@ async function pauseAttorneyAccessIfApplicable(subscription: Stripe.Subscription
     metadata: { link_id: link.id, attorney_user_id: attorneyUserId },
   }));
   if (rows.length) await supabase.from("notifications").insert(rows);
+}
+
+/**
+ * When an attorney's subscription is active (or trialing) again, restore the
+ * links that pauseAttorneyAccessIfApplicable() paused and tell each survivor.
+ *
+ * Only links with status 'paused' are touched: never 'revoked' ones (the
+ * survivor ended them), never a paused link with revoked_at set, and never a
+ * paused link whose expires_at has passed (the share ran out while paused).
+ * The update re-checks status = 'paused' so a survivor who revoked in the
+ * meantime is not overridden. Fails loud before notifying, like the pause.
+ */
+async function resumeAttorneyAccessIfApplicable(attorneyUserId: string | undefined) {
+  if (!attorneyUserId) return;
+  const supabase = getSupabase();
+
+  const { data: isAttorney } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", attorneyUserId)
+    .eq("role", "attorney")
+    .maybeSingle();
+  if (!isAttorney) return;
+
+  const { data: paused, error: readErr } = await supabase
+    .from("attorney_client_links")
+    .select("id, client_user_id, revoked_at, expires_at")
+    .eq("attorney_user_id", attorneyUserId)
+    .eq("status", "paused");
+  if (readErr) throw new Error(`Could not read paused attorney client links: ${readErr.message}`);
+
+  const now = Date.now();
+  type PausedLink = {
+    id: string;
+    client_user_id: string;
+    revoked_at: string | null;
+    expires_at: string | null;
+  };
+  const resumable = ((paused ?? []) as PausedLink[]).filter(
+    (link) =>
+      !link.revoked_at && (link.expires_at == null || new Date(link.expires_at).getTime() > now),
+  );
+  if (resumable.length === 0) return;
+
+  const { error: resumeErr } = await supabase
+    .from("attorney_client_links")
+    .update({ status: "active" })
+    .in(
+      "id",
+      resumable.map((link) => link.id),
+    )
+    .eq("status", "paused");
+  if (resumeErr) {
+    throw new Error(`Could not resume attorney client links: ${resumeErr.message}`);
+  }
+
+  const rows = resumable.map((link) => ({
+    user_id: link.client_user_id,
+    kind: "attorney_access_resumed",
+    title: "Your attorney's access is back on",
+    body: "Your attorney's subscription is active again, so their shared view of what you chose to share is back on. You can end their access at any time.",
+    metadata: { link_id: link.id, attorney_user_id: attorneyUserId },
+  }));
+  await supabase.from("notifications").insert(rows);
 }
 
 async function handleWebhook(req: Request, env: StripeEnv) {
