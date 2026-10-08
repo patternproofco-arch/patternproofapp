@@ -4,7 +4,9 @@
  *  - writes only `status: "paused"` (attorney_client_links has no updated_at);
  *  - throws before notifying anyone when the pause fails, so the route
  *    answers 400 and Stripe retries;
- *  - notifies each affected survivor only after the pause succeeded.
+ *  - notifies each affected survivor only after the pause succeeded;
+ *  - on active/trialing again, resumes ONLY 'paused' links that are not
+ *    revoked and not expired, fails before notifying, then notifies.
  */
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -64,8 +66,12 @@ const client = {
             ? `Could not find the '${unknown}' column of 'attorney_client_links' in the schema cache`
             : state.failLinkUpdate;
           if (message) {
-            const failed = Promise.resolve({ data: null, error: { message } });
-            const chain = { in: () => failed, eq: () => failed };
+            const failed = { data: null, error: { message } };
+            const chain = {
+              in: () => chain,
+              eq: () => chain,
+              then: (f: (v: typeof failed) => unknown) => Promise.resolve(failed).then(f),
+            };
             return chain;
           }
           return target.update(patch);
@@ -201,5 +207,154 @@ describe("Stripe webhook pauses attorney client links", () => {
     expect(res.status).toBe(200);
     expect(state.linkPatches).toEqual([]);
     expect(state.db.tables.notifications).toHaveLength(0);
+  });
+});
+
+describe("Stripe webhook resumes paused attorney client links (Grace: restore on re-subscribe)", () => {
+  const past = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const future = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  function seedPaused() {
+    state.db.tables.attorney_client_links = [
+      // resumable
+      {
+        id: "p-open",
+        attorney_user_id: ATTORNEY,
+        client_user_id: SURVIVOR_A,
+        status: "paused",
+        revoked_at: null,
+        expires_at: null,
+      },
+      {
+        id: "p-future",
+        attorney_user_id: ATTORNEY,
+        client_user_id: SURVIVOR_B,
+        status: "paused",
+        revoked_at: null,
+        expires_at: future,
+      },
+      // never resumed
+      {
+        id: "p-expired",
+        attorney_user_id: ATTORNEY,
+        client_user_id: "survivor-c",
+        status: "paused",
+        revoked_at: null,
+        expires_at: past,
+      },
+      {
+        id: "p-revoked-at",
+        attorney_user_id: ATTORNEY,
+        client_user_id: "survivor-d",
+        status: "paused",
+        revoked_at: past,
+        expires_at: null,
+      },
+      {
+        id: "revoked",
+        attorney_user_id: ATTORNEY,
+        client_user_id: "survivor-e",
+        status: "revoked",
+        revoked_at: past,
+        expires_at: null,
+      },
+      {
+        id: "active",
+        attorney_user_id: ATTORNEY,
+        client_user_id: "survivor-f",
+        status: "active",
+        revoked_at: null,
+        expires_at: null,
+      },
+      {
+        id: "other-attorney",
+        attorney_user_id: "attorney-2",
+        client_user_id: SURVIVOR_A,
+        status: "paused",
+        revoked_at: null,
+        expires_at: null,
+      },
+    ];
+  }
+
+  it("subscription updated to active: only unexpired, unrevoked paused links flip; survivors notified", async () => {
+    seedPaused();
+    const res = await deliver("customer.subscription.updated", "active");
+    expect(res.status).toBe(200);
+
+    expect(state.linkPatches).toEqual([{ status: "active" }]);
+    expect(statusOf("p-open")).toBe("active");
+    expect(statusOf("p-future")).toBe("active");
+    expect(statusOf("p-expired")).toBe("paused");
+    expect(statusOf("p-revoked-at")).toBe("paused");
+    expect(statusOf("revoked")).toBe("revoked");
+    expect(statusOf("active")).toBe("active");
+    expect(statusOf("other-attorney")).toBe("paused");
+
+    const notes = state.db.tables.notifications!;
+    expect(notes.map((n) => n.user_id).sort()).toEqual([SURVIVOR_A, SURVIVOR_B]);
+    for (const n of notes) expect(n.kind).toBe("attorney_access_resumed");
+  });
+
+  it("revoked links are never resumed, whatever the subscription status", async () => {
+    seedPaused();
+    for (const [type, status] of [
+      ["customer.subscription.updated", "active"],
+      ["customer.subscription.updated", "trialing"],
+      ["customer.subscription.created", "active"],
+      ["customer.subscription.created", "trialing"],
+    ] as const) {
+      await deliver(type, status);
+      expect(statusOf("revoked")).toBe("revoked");
+      expect(statusOf("p-revoked-at")).toBe("paused");
+    }
+  });
+
+  it("subscription created as trialing also resumes", async () => {
+    seedPaused();
+    const res = await deliver("customer.subscription.created", "trialing");
+    expect(res.status).toBe(200);
+    expect(statusOf("p-open")).toBe("active");
+    expect(state.db.tables.notifications).toHaveLength(2);
+  });
+
+  it("resume failure: no notifications, links stay paused, route answers 400 so Stripe retries", async () => {
+    seedPaused();
+    state.failLinkUpdate = "connection reset";
+    const res = await deliver("customer.subscription.updated", "active");
+    expect(res.status).toBe(400);
+    expect(state.db.tables.notifications).toHaveLength(0);
+    expect(statusOf("p-open")).toBe("paused");
+    expect(statusOf("p-future")).toBe("paused");
+  });
+
+  it("past_due / incomplete do not resume", async () => {
+    seedPaused();
+    for (const status of ["past_due", "incomplete"]) {
+      await deliver("customer.subscription.updated", status);
+    }
+    expect(statusOf("p-open")).toBe("paused");
+    expect(state.db.tables.notifications).toHaveLength(0);
+  });
+
+  it("non-attorney: nothing resumed, nothing sent", async () => {
+    seedPaused();
+    state.db.tables.user_roles = [];
+    await deliver("customer.subscription.updated", "active");
+    expect(statusOf("p-open")).toBe("paused");
+    expect(state.db.tables.notifications).toHaveLength(0);
+  });
+
+  it("round trip: lapse pauses, paying again restores the same links", async () => {
+    expect((await deliver("customer.subscription.deleted")).status).toBe(200);
+    expect(statusOf("link-a")).toBe("paused");
+    expect(statusOf("link-old")).toBe("revoked");
+    expect((await deliver("customer.subscription.created", "active")).status).toBe(200);
+    expect(statusOf("link-a")).toBe("active");
+    expect(statusOf("link-b")).toBe("active");
+    expect(statusOf("link-old")).toBe("revoked");
+    const kinds = state.db.tables.notifications!.map((n) => n.kind);
+    expect(kinds.filter((k) => k === "attorney_access_paused")).toHaveLength(2);
+    expect(kinds.filter((k) => k === "attorney_access_resumed")).toHaveLength(2);
   });
 });
