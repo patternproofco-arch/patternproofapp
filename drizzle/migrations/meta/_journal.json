@@ -50,6 +50,13 @@
       "when": 1790807067433,
       "tag": "0006_grant_harbor_legal_group_pilot_trial",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791461200341,
+      "tag": "0007_revoke_anon_six_tables",
+      "breakpoints": true
     }
   ]
 }
