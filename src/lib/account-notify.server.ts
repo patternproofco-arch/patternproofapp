@@ -1,36 +1,33 @@
-export async function enqueueReferralSignupNotification(input: {
-  code: string;
-  orgName: string | null;
-}): Promise<boolean> {
+import { accountNotifyFields, type AccountNotifyInput } from "@/lib/account-notify";
+import { opsNotifyEmail } from "@/lib/email/ops-inbox";
+
+/** Best-effort pager. Never throws, and never includes survivor content. */
+export async function enqueueAccountCreatedNotification(
+  input: AccountNotifyInput & { idempotencyKey: string },
+): Promise<boolean> {
   try {
     const React = (await import("react")).default;
     const { render } = await import("@react-email/render");
-    const { template } = await import("@/lib/email-templates/referral-signup-notification");
+    const { template } = await import("@/lib/email-templates/account-created-notification");
     const { sendRenderedEmail } = await import("@/lib/email/managed-send.server");
-
-    const props = {
-      orgName: input.orgName ?? undefined,
-      code: input.code,
-      signedUpAt: new Date().toISOString(),
-    };
+    const props = accountNotifyFields(input);
     const element = React.createElement(template.component, props);
     const html = await render(element);
     const text = await render(element, { plainText: true });
     const subject =
       typeof template.subject === "function" ? template.subject(props) : template.subject;
-
-    const { opsNotifyEmail } = await import("@/lib/email/ops-inbox");
     const result = await sendRenderedEmail({
       to: opsNotifyEmail(),
       from: "patternproofapp <noreply@pattern-proof.tech>",
-      subject: subject,
+      subject,
       html,
       text,
-      label: "referral-signup-notification",
-      idempotencyKey: `referral-signup-${input.code}-${crypto.randomUUID()}`,
+      label: "account-created-notification",
+      idempotencyKey: input.idempotencyKey,
     });
     return result.sent;
-  } catch {
+  } catch (error) {
+    console.error("[email] account created notification failed", error);
     return false;
   }
 }

@@ -121,7 +121,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
           `Up to ${FIRM_MATTER_CAP} active matters (10 per seat)`,
         ],
         cta: "Request a 15-minute walkthrough",
-        ctaTo: "mailto:pattern@pattern-proof.tech?subject=Firm%20walkthrough",
+        ctaTo: "mailto:graceburns@pattern-proof.tech?subject=Firm%20walkthrough",
         featured: true,
       }
     : {
@@ -143,7 +143,7 @@ export function buildTiers(remainingCharter: number | null): Tier[] {
           "$597/month locked 12 months, then $897",
         ],
         cta: "Request a 15-minute walkthrough",
-        ctaTo: "mailto:pattern@pattern-proof.tech?subject=Charter%20firm%20walkthrough",
+        ctaTo: "mailto:graceburns@pattern-proof.tech?subject=Charter%20firm%20walkthrough",
         featured: true,
       };
   return [BASE_TIERS[0], BASE_TIERS[1], firm, BASE_TIERS[2]];

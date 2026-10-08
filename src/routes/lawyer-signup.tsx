@@ -105,8 +105,8 @@ function LawyerSignup() {
             </a>
             <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
               Or request a 15-minute walkthrough at{" "}
-              <a href="mailto:pattern@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough" style={{ color: "var(--accent)" }}>
-                pattern@pattern-proof.tech
+              <a href="mailto:graceburns@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough" style={{ color: "var(--accent)" }}>
+                graceburns@pattern-proof.tech
               </a>
               . Please send no case files or client information.
             </p>

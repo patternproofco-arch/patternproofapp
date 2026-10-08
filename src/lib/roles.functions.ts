@@ -43,5 +43,12 @@ export const ensureSurvivorRole = createServerFn({ method: "POST" })
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "survivor" }, { onConflict: "user_id,role" });
     if (error) throw new Error(error.message);
+    const { enqueueAccountCreatedNotification } = await import("@/lib/account-notify.server");
+    await enqueueAccountCreatedNotification({
+      role: "survivor",
+      signedUpAt: new Date().toISOString(),
+      source: "registration",
+      idempotencyKey: `account-created-survivor-${context.userId}`,
+    }).catch(() => undefined);
     return { roles: ["survivor"], is_survivor: true, is_org_partner: false, created: true };
   });

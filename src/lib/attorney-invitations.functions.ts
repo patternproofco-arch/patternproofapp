@@ -303,10 +303,26 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       throw new Error("This invitation was sent to a different email address.");
     }
 
-    // Ensure attorney role
+    // Ensure attorney role. Page only the first time this account becomes an attorney.
+    const { data: priorAttorney } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "attorney")
+      .maybeSingle();
     await supabaseAdmin
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
+    if (!priorAttorney) {
+      const { enqueueAccountCreatedNotification } = await import("@/lib/account-notify.server");
+      await enqueueAccountCreatedNotification({
+        role: "attorney",
+        signedUpAt: new Date().toISOString(),
+        source: "attorney invitation accepted",
+        contactEmail: jwtEmail,
+        idempotencyKey: `account-created-attorney-${context.userId}`,
+      }).catch(() => undefined);
+    }
 
     // The scope was fixed when the survivor created the invitation (Add vs Replace
     // already resolved into the frozen ids). This only narrows by ownership/deletion.
