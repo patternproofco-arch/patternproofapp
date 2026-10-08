@@ -13,7 +13,8 @@ import appCss from "../styles.css?url";
 import folioLockCss from "../folio-lock.css?url";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
-import { GoogleAnalyticsRouteTracker, GA_MEASUREMENT_ID } from "@/lib/ga";
+import { GoogleAnalyticsRouteTracker } from "@/lib/ga";
+import { GA_GUARD_INLINE_SCRIPT } from "@/lib/ga-guard";
 import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
 import { GlobalHeader } from "@/components/GlobalHeader";
 import { GlobalFooter } from "@/components/GlobalFooter";
@@ -219,12 +220,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: folioLockCss,
       },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;1,500&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap",
-      },
+      // Self-hosted Newsreader / Source Sans 3 / IBM Plex Mono (public/fonts).
+      // No Google Fonts CDN requests.
+      { rel: "stylesheet", href: "/fonts/fonts.css" },
       {
         rel: "manifest",
         href: "/manifest.webmanifest",
@@ -246,19 +244,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
     scripts: [
+      // Must stay FIRST: sets the GA kill switch for private routes before any
+      // other script (and before gtag.js, which is only lazy-loaded on public
+      // marketing pages by GoogleAnalyticsRouteTracker). No gtag.js tag or
+      // config call is ever server-rendered.
+      {
+        children: GA_GUARD_INLINE_SCRIPT,
+      },
       {
         children: quickExitFallbackScript,
-      },
-      {
-        async: true,
-        src: `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`,
-      },
-      {
-        children: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-window.gtag = gtag;
-gtag('js', new Date());
-gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false });`,
       },
       {
         type: "application/ld+json",

@@ -1,26 +1,38 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { shouldLoadLeaveADot } from "@/lib/leaveadot-routes";
+import { PUBLIC_MARKETING_PATHS } from "@/lib/public-routes";
+import { readGeneratedRoutes } from "./helpers/route-tree";
 
-describe("Leave a Dot only on public marketing pages", () => {
-  it("loads on the public home and core marketing paths", () => {
+describe("Leave a Dot only on public marketing pages (shared fail-closed allowlist)", () => {
+  it("loads on the public home and core marketing/legal paths", () => {
     for (const path of [
       "/",
       "/pricing",
+      "/pricing/",
       "/how-it-works",
       "/for-attorneys",
       "/for-organizations",
       "/safety",
       "/privacy",
       "/terms",
+      "/resources",
+    ]) {
+      expect(shouldLoadLeaveADot(path)).toBe(true);
+    }
+  });
+
+  it("does not load on sign-in/sign-up forms, the demo walkthrough, or support form", () => {
+    for (const path of [
       "/signin",
       "/signup",
       "/login",
       "/demo",
-      "/resources",
       "/support",
+      "/lawyer-signup",
+      "/org-signup",
     ]) {
-      expect(shouldLoadLeaveADot(path)).toBe(true);
+      expect(shouldLoadLeaveADot(path)).toBe(false);
     }
   });
 
@@ -29,7 +41,6 @@ describe("Leave a Dot only on public marketing pages", () => {
       "/journal",
       "/evidence",
       "/dashboard",
-      "/entries",
       "/share-with-attorney",
       "/court-packet",
       "/settings",
@@ -47,6 +58,7 @@ describe("Leave a Dot only on public marketing pages", () => {
       "/clients/abc",
       "/caseload",
       "/matters/xyz",
+      "/binder/abc",
       "/advocate-cases",
       "/advocate-cases/abc",
       "/advocate-matters",
@@ -78,6 +90,14 @@ describe("Leave a Dot only on public marketing pages", () => {
     }
   });
 
+  it("loads on exactly the shared allowlist, for every route in routeTree.gen.ts", () => {
+    const { fullPaths } = readGeneratedRoutes();
+    const loading = fullPaths
+      .map((p) => p.replace(/\$[A-Za-z]+/g, "x1"))
+      .filter((p) => shouldLoadLeaveADot(p));
+    expect(new Set(loading)).toEqual(new Set(PUBLIC_MARKETING_PATHS));
+  });
+
   it("root uses the path-gated loader and does not inject Leave a Dot in the shell", () => {
     const root = readFileSync(new URL("../routes/__root.tsx", import.meta.url), "utf8");
     expect(root).toContain("LeaveADotLoader");
@@ -85,7 +105,10 @@ describe("Leave a Dot only on public marketing pages", () => {
   });
 
   it("loader still points at the Leave a Dot project script", () => {
-    const loader = readFileSync(new URL("../components/LeaveADotLoader.tsx", import.meta.url), "utf8");
+    const loader = readFileSync(
+      new URL("../components/LeaveADotLoader.tsx", import.meta.url),
+      "utf8",
+    );
     expect(loader).toContain("LEAVE_A_DOT_SCRIPT_SRC");
     expect(loader).toContain("shouldLoadLeaveADot");
     const routes = readFileSync(new URL("../lib/leaveadot-routes.ts", import.meta.url), "utf8");
