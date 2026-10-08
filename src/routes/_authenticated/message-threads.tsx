@@ -323,7 +323,7 @@ function MessageThreadsPage() {
           <TierCard
             eyebrow="Tier 3 · Fallback"
             title="Screen recording"
-            body="Only when nothing else works — for hundreds of messages you can't screenshot one by one. The video itself is your evidence; the AI transcript is a searchable index only."
+            body="Only when nothing else works — for hundreds of messages you can't screenshot one by one. The video is saved unchanged as your evidence. Nothing reads it, so the messages in it are not searchable."
             hint="Takes longer and means more time looking at the conversation."
             accent="var(--pp-urgent)"
             Icon={Video}
@@ -624,7 +624,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
           )}
         </div>
       )}
-      {(t.capture_method === "multi_screenshot" || t.capture_method === "screen_recording") && (
+      {t.capture_method === "multi_screenshot" && (
         <div
           style={{
             fontSize: 11,
@@ -635,7 +635,7 @@ function ThreadCard({ t, onDelete }: { t: ThreadRow; onDelete: () => void }) {
             marginBottom: 8,
           }}
         >
-          AI-{t.capture_method === "screen_recording" ? "generated" : "extracted"} — unverified
+          AI-extracted — unverified
         </div>
       )}
       <header className="flex items-start justify-between gap-3 mb-3">

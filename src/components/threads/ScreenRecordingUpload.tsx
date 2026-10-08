@@ -4,9 +4,8 @@ import { Upload, Loader2, Video, AlertTriangle } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { ingestRecordedThread, transcribeRecordedThread } from "@/lib/message-threads.functions";
+import { ingestRecordedThread } from "@/lib/message-threads.functions";
 import { checkUploadSize } from "@/lib/upload-limits";
-import { AiReadNotice } from "./AiReadNotice";
 
 interface Props {
   onDone: () => void;
@@ -16,17 +15,15 @@ interface Props {
 export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
   const { user } = useAuth();
   const ingest = useServerFn(ingestRecordedThread);
-  const transcribe = useServerFn(transcribeRecordedThread);
   const [file, setFile] = useState<File | null>(null);
   const [participant, setParticipant] = useState("");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
-  const [aiAccepted, setAiAccepted] = useState(false);
   const inp = useRef<HTMLInputElement | null>(null);
 
   const save = async () => {
-    if (!user || !file || !aiAccepted) return;
+    if (!user || !file) return;
     const sizeProblem = checkUploadSize(file);
     if (sizeProblem) {
       toast.error(sizeProblem);
@@ -57,7 +54,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
       }
 
       toast("Uploaded. Your video is the primary record.", { icon: "🎬" });
-      const ing = await ingest({
+      await ingest({
         data: {
           videoPath: path,
           filename: file.name,
@@ -67,13 +64,8 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
           participantHint: participant || undefined,
         },
       });
-      toast.success("Saved. Generating a searchable transcript…");
+      toast.success("Saved. The video is kept unchanged as your evidence.");
       onDone();
-      // Fire-and-forget: transcription can take a while and shouldn't block the UI.
-      // Failures are handled server-side by writing a friendly parse_error.
-      transcribe({ data: { threadId: ing.threadId } }).catch(() => {
-        /* server records failure */
-      });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed.");
     } finally {
@@ -93,7 +85,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="label-eyebrow" style={{ color: "var(--pp-urgent)" }}>
-            Tier 3 · Fallback
+            Fallback
           </div>
           <h3
             style={{
@@ -136,8 +128,9 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
           Screen recording means more time looking at the conversation. If you can, the{" "}
           <strong>screenshots</strong> option is faster and gentler. Only use this when nothing else
           works — for example, when there are hundreds of messages to scroll through. Your video
-          file is what counts as evidence. The AI transcript we generate from it is only a
-          searchable index, labeled <em>AI-generated — unverified</em>.
+          file is what counts as evidence. It is saved exactly as you upload it and{" "}
+          <strong>nothing reads it or sends it to an AI</strong>, so the messages in it will not be
+          searchable. Screenshots are the way to get searchable text.
           <label className="mt-3 flex items-center gap-2" style={{ fontSize: 13 }}>
             <input
               type="checkbox"
@@ -148,8 +141,6 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
           </label>
         </div>
       </div>
-
-      <AiReadNotice kind="recording" accepted={aiAccepted} onChange={setAiAccepted} />
 
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
@@ -183,7 +174,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
         <button
           type="button"
           onClick={() => inp.current?.click()}
-          disabled={!acknowledged || !aiAccepted}
+          disabled={!acknowledged}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -210,7 +201,7 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
         <button
           type="button"
           onClick={save}
-          disabled={busy || !file || !acknowledged || !aiAccepted}
+          disabled={busy || !file || !acknowledged}
           style={{
             display: "inline-flex",
             alignItems: "center",

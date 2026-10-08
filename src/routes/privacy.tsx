@@ -203,10 +203,11 @@ function PrivacyPage() {
             Several features rely on third-party AI providers reached through the Lovable AI
             Gateway: Google (Gemini models) and OpenAI (GPT-4o transcription). Features that use
             them include Recurline pattern grouping, the Co-Pilot assistant, evidence content-type
-            suggestions, voice/recording transcription, and reading text from the screenshots, call
-            log photos and screen recordings you add on the Message threads page. Each of those
-            screens tells you this and asks you to agree before anything is sent. The on-device
-            import (Import Messages) reads screenshots and recordings in your own browser and sends
+            suggestions, voice/recording transcription, and reading text from the screenshots and call
+            log photos you add on the Message threads page. Each of those screens tells you this
+            and asks you to agree before anything is sent. A screen recording uploaded on that page
+            is stored unchanged and is not read or sent to an AI provider. The on-device import
+            (Import Messages) reads screenshots and recordings in your own browser and sends
             nothing to an AI provider.
           </p>
           <p>
