@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -46,14 +46,16 @@ const CARDS: UploadCard[] = [
   {
     type: "pdf",
     title: "PDF Message Export",
-    blurb: "Save a chat thread as a PDF from your phone or messaging app and upload it here.",
+    blurb:
+      "Save a chat thread as a PDF and upload it here. It is kept as evidence. It is not read into a searchable timeline yet.",
     accept: "application/pdf,.pdf",
     icon: FileText,
   },
   {
     type: "csv",
     title: "CSV / Excel Message Export",
-    blurb: "Spreadsheet exports from third-party backup tools (sender, date, message columns).",
+    blurb:
+      "Spreadsheet exports from backup tools with sender, date and message columns. CSV is read into a timeline; Excel files are kept as evidence only.",
     accept:
       ".csv,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     icon: FileSpreadsheet,
@@ -68,14 +70,16 @@ const CARDS: UploadCard[] = [
   {
     type: "rsmf",
     title: "RSMF Legal Export",
-    blurb: "Relativity Short Message Format files produced by lawful forensic export tools.",
+    blurb:
+      "Files from forensic export tools. Kept as evidence. Not read into a searchable timeline yet.",
     accept: ".rsmf,.json",
     icon: FileCode2,
   },
   {
     type: "zip",
     title: "Attachments ZIP",
-    blurb: "A zipped folder of message exports plus photos, voice memos, or other attachments.",
+    blurb:
+      "A zipped folder of an export plus photos or voice memos. Kept as evidence. For a WhatsApp export, use the chat importer instead so it is read into a timeline.",
     accept: ".zip,application/zip,application/x-zip-compressed",
     icon: FileArchive,
   },
@@ -201,10 +205,12 @@ function MessageThreadsPage() {
       });
       if (result.status === "parsed") {
         toast.success(`Parsed ${result.messageCount} messages.`);
-      } else if (result.status === "queued") {
-        toast("Saved. Deeper parsing for this format is in development.");
       } else if (result.status === "partial") {
-        toast("Stored, but parsing was incomplete.");
+        toast(
+          result.messageCount === 0
+            ? "Saved as evidence. This file type isn't read into a timeline yet, so no messages were added."
+            : "Saved, but only part of it could be read.",
+        );
       } else {
         toast.error("Parsing failed — your file is safely stored.");
       }
@@ -421,6 +427,13 @@ function MessageThreadsPage() {
               body="Any of the file formats below work. All uploads are private to you; nothing is shared unless you choose to."
             />
           </div>
+          <p style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--pp-muted)" }}>
+            Have a WhatsApp export (.txt or .zip)? Use the{" "}
+            <Link to="/import-messages" className="underline">
+              chat importer
+            </Link>
+            . It reads every message into a searchable timeline and keeps your original file.
+          </p>
           <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 1fr" }}>
             <div>
               <label className="label-eyebrow" htmlFor="message-threads-who-is-this-conversation-with">Who is this conversation with?</label>

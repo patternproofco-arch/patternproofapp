@@ -7,6 +7,10 @@ import {
   shouldLoadLeaveADot,
 } from "@/lib/leaveadot-routes";
 
+// Removing the script tag does not stop code that has already run. Once the widget has loaded in
+// this page, the only way to be sure it is gone is a fresh page load.
+let loadedInThisPage = false;
+
 function removeLeaveADotFromDocument() {
   if (typeof document === "undefined") return;
   document
@@ -32,6 +36,11 @@ export function LeaveADotLoader() {
 
     if (!allowed) {
       removeLeaveADotFromDocument();
+      if (loadedInThisPage) {
+        // Moving from a public page into sign-in or the app: reload so the third-party code is gone.
+        loadedInThisPage = false;
+        window.location.reload();
+      }
       return;
     }
 
@@ -43,6 +52,7 @@ export function LeaveADotLoader() {
     script.dataset.project = LEAVE_A_DOT_PROJECT;
     script.dataset.link = LEAVE_A_DOT_LINK;
     document.body.appendChild(script);
+    loadedInThisPage = true;
   }, [allowed]);
 
   return null;

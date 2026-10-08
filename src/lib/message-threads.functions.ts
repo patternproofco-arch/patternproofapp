@@ -183,10 +183,11 @@ export const parseMessageThread = createServerFn({ method: "POST" })
       } else if (sourceType === "txt") {
         parsed = parseTxt(buf.toString("utf-8"));
       } else {
-        // PDF / Excel / RSMF / ZIP: deep parsing is queued. File is safely stored.
-        status = "queued";
+        // PDF / Excel / RSMF / ZIP are kept as the original but not read into a timeline. Nothing
+        // is queued to read them later, so say so instead of promising it will happen.
+        status = "partial";
         parseError =
-          "This export format is stored securely. Structured parsing for this file type is in active development — your conversation will be available in your timeline shortly.";
+          "Saved as evidence. PatternProof can't read this file type into a searchable timeline yet, so no messages were added. Your original is safe. For a timeline, add the conversation as a .txt or .csv export, a WhatsApp export in the chat importer, or screenshots.";
       }
     } catch (e) {
       status = "failed";

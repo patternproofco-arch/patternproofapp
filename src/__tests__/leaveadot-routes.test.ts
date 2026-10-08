@@ -13,15 +13,34 @@ describe("Leave a Dot only on public marketing pages", () => {
       "/safety",
       "/privacy",
       "/terms",
-      "/signin",
-      "/signup",
-      "/login",
       "/demo",
       "/resources",
-      "/support",
     ]) {
       expect(shouldLoadLeaveADot(path)).toBe(true);
     }
+  });
+
+  it("does not load where someone types a password, an email or a message", () => {
+    for (const path of [
+      "/signin",
+      "/signup",
+      "/login",
+      "/lawyer-signup",
+      "/org-signup",
+      "/support",
+      "/org-feedback",
+      "/partner-access",
+      "/triage",
+      "/unsubscribe",
+    ]) {
+      expect(shouldLoadLeaveADot(path)).toBe(false);
+    }
+  });
+
+  it("is removed with a fresh page load when someone leaves for a page where it must not run", () => {
+    const loader = readFileSync(new URL("../components/LeaveADotLoader.tsx", import.meta.url), "utf8");
+    expect(loader).toMatch(/loadedInThisPage/);
+    expect(loader).toMatch(/window\.location\.reload\(\)/);
   });
 
   it("does not load on authenticated survivor screens", () => {

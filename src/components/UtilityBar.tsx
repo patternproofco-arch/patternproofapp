@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Search, Sparkles, Settings as SettingsIcon, LifeBuoy, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { wipeLocalEvidence } from "@/lib/local-wipe";
 
 const ITEMS = [
   { to: "/search", label: "Search", Icon: Search },
@@ -31,6 +32,8 @@ export function UtilityBar() {
       <button
         type="button"
         onClick={() => {
+          // Signing out on purpose also clears files staged on this device for upload.
+          void wipeLocalEvidence();
           void supabase.auth.signOut();
         }}
         aria-label="Sign out"
