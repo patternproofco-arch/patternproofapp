@@ -216,7 +216,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: St
 /**
  * When an attorney's subscription ends, pause every active client link
  * and notify each affected survivor. Survivors keep their data — only
- * the attorney's shared view is suspended until they re-subscribe.
+ * the attorney's shared view is suspended.
+ *
+ * Fail loud: attorney_client_links has no updated_at column, so only `status`
+ * is written. If the pause fails we throw BEFORE notifying anyone, so a
+ * survivor is never told access is paused when it is not; the route then
+ * answers 400 and Stripe retries the event.
+ *
+ * Known gap (not handled here): nothing sets a paused link back to active
+ * when the attorney re-subscribes.
  */
 async function pauseAttorneyAccessIfApplicable(subscription: Stripe.Subscription) {
   const attorneyUserId: string | undefined = subscription.metadata?.userId;
@@ -239,10 +247,13 @@ async function pauseAttorneyAccessIfApplicable(subscription: Stripe.Subscription
   if (!links || links.length === 0) return;
 
   const ids = links.map((link: { id: string }) => link.id);
-  await supabase
+  const { error: pauseErr } = await supabase
     .from("attorney_client_links")
-    .update({ status: "paused", updated_at: new Date().toISOString() })
+    .update({ status: "paused" })
     .in("id", ids);
+  if (pauseErr) {
+    throw new Error(`Could not pause attorney client links: ${pauseErr.message}`);
+  }
 
   const rows = links.map((link: { id: string; client_user_id: string }) => ({
     user_id: link.client_user_id,
