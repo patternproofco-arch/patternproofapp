@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { markWipePending, wipeLocalEvidence } from "@/lib/local-wipe";
 
 export function quickExit(exitUrl?: string) {
   const url = exitUrl || "https://weather.com";
@@ -40,6 +41,15 @@ export function quickExit(exitUrl?: string) {
     Object.keys(window.sessionStorage).forEach((k) => {
       if (k.startsWith("pp.") || k.startsWith("pp_")) window.sessionStorage.removeItem(k);
     });
+  } catch {
+    /* ignore */
+  }
+
+  // Files staged on this device for upload go too. The page is about to be replaced, which can
+  // interrupt the removal, so the marker makes the next app start finish it.
+  try {
+    markWipePending(window.localStorage);
+    void wipeLocalEvidence();
   } catch {
     /* ignore */
   }

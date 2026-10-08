@@ -75,6 +75,10 @@ const quickExitFallbackScript = `(function () {
         }).catch(function () {});
       }
     } catch (e) {}
+    // Files staged on this device for upload: remove them, and leave a marker so the next app
+    // start finishes the job if leaving the page cuts it short.
+    try { localStorage.setItem("pp_wipe_pending", "1"); } catch (e) {}
+    try { indexedDB.deleteDatabase("pp-intake"); } catch (e) {}
     try { document.title = "Weather"; } catch (e) {}
     try { window.history.replaceState(null, "", "/"); } catch (e) {}
     window.location.replace(url);
