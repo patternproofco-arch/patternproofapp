@@ -310,9 +310,26 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
       throw new Error("This invitation was sent to a different email address.");
     }
 
+    const { data: priorAdvocate } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "advocate")
+      .maybeSingle();
     await supabaseAdmin
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "advocate" }, { onConflict: "user_id,role" });
+    if (!priorAdvocate) {
+      const { enqueueAccountCreatedNotification } = await import("@/lib/account-notify.server");
+      await enqueueAccountCreatedNotification({
+        role: "advocate",
+        signedUpAt: new Date().toISOString(),
+        source: "advocate invitation accepted",
+        contactEmail: jwtEmail,
+        orgName: data.org_name?.trim() || inv.org_name || null,
+        idempotencyKey: `account-created-advocate-${context.userId}`,
+      }).catch(() => undefined);
+    }
 
     await supabaseAdmin.from("advocate_profiles").upsert(
       {

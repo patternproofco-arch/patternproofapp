@@ -131,8 +131,8 @@ function OrgSignup() {
             </Link>
             <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
               Tell us about your organization on the request form — or email{" "}
-              <a href="mailto:pattern@pattern-proof.tech" style={{ color: "var(--accent)" }}>
-                pattern@pattern-proof.tech
+              <a href="mailto:graceburns@pattern-proof.tech?subject=Partner%20inquiry" style={{ color: "var(--accent)" }}>
+                graceburns@pattern-proof.tech
               </a>
               .
             </p>

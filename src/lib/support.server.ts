@@ -26,8 +26,9 @@ export async function enqueueSupportEmail(input: {
     const subject =
       typeof template.subject === "function" ? template.subject(props) : template.subject;
 
+    const { opsNotifyEmail } = await import("@/lib/email/ops-inbox");
     const result = await sendRenderedEmail({
-      to: template.to!,
+      to: opsNotifyEmail(),
       from: "patternproofapp <noreply@pattern-proof.tech>",
       subject: subject,
       html,

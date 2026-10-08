@@ -616,6 +616,17 @@ export const setMyOrg = createServerFn({ method: "POST" })
       ...(data.contact_role ? { notes: `Contact role: ${data.contact_role}` } : {}),
     });
 
+    const { enqueueAccountCreatedNotification } = await import("@/lib/account-notify.server");
+    await enqueueAccountCreatedNotification({
+      role: "org",
+      signedUpAt: new Date().toISOString(),
+      source: "organization provisioned",
+      contactEmail: email,
+      orgName: data.org_name,
+      referralCode: code,
+      idempotencyKey: `account-created-org-${org.id}`,
+    }).catch(() => undefined);
+
     // Record that the approval has been used. The status vocabulary is
     // constrained to pending/approved/denied by a database trigger, so the
     // marker lives in the message field; re-provisioning is already blocked by
