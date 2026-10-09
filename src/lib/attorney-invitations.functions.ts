@@ -307,6 +307,10 @@ export const acceptInvitation = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
+    await (await import("@/lib/signup-notify.server")).notifyNewSignup({
+      userId: context.userId,
+      role: "attorney",
+    });
 
     // The scope was fixed when the survivor created the invitation (Add vs Replace
     // already resolved into the frozen ids). This only narrows by ownership/deletion.

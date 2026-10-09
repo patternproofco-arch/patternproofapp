@@ -584,6 +584,10 @@ export const setMyOrg = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from("user_roles")
       .upsert({ user_id: userId, role: "advocate" }, { onConflict: "user_id,role" });
+    await (await import("@/lib/signup-notify.server")).notifyNewSignup({
+      userId,
+      role: "organization",
+    });
 
     const { error: profileError } = await supabaseAdmin.from("advocate_profiles").upsert(
       {
