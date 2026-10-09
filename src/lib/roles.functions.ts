@@ -43,5 +43,7 @@ export const ensureSurvivorRole = createServerFn({ method: "POST" })
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "survivor" }, { onConflict: "user_id,role" });
     if (error) throw new Error(error.message);
+    const { notifyNewSignup } = await import("@/lib/signup-notify.server");
+    await notifyNewSignup({ userId: context.userId, role: "survivor" });
     return { roles: ["survivor"], is_survivor: true, is_org_partner: false, created: true };
   });
