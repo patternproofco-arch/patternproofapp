@@ -162,6 +162,13 @@
       "when": 1791649365163,
       "tag": "0022_lock_reset_and_settings_lockdown",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791649391973,
+      "tag": "0023_entry_draft_purge",
+      "breakpoints": true
     }
   ]
 }
