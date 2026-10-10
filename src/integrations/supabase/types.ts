@@ -4191,6 +4191,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_webauthn_challenges: {
+        Row: {
+          challenge: string
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: string
+          user_id: string
+        }
+        Insert: {
+          challenge: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          purpose: string
+          user_id: string
+        }
+        Update: {
+          challenge?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_webauthn_credentials: {
+        Row: {
+          created_at: string
+          credential_id: string
+          id: string
+          last_used_at: string | null
+          public_key_jwk: Json
+          sign_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credential_id: string
+          id?: string
+          last_used_at?: string | null
+          public_key_jwk: Json
+          sign_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credential_id?: string
+          id?: string
+          last_used_at?: string | null
+          public_key_jwk?: Json
+          sign_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_notes: {
         Row: {
           audio_url: string
