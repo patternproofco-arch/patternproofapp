@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createHash } from "crypto";
+import { hashStoredObject } from "@/lib/stored-object-hash.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { findExistingIngest, ownsIncident } from "@/lib/evidence-ingest.helpers";
 
@@ -93,6 +93,8 @@ function classify(mime: string): PreservationStatus {
 // dHash — tight enough to avoid false positives on genuinely different photos
 // while still catching re-encoded/cropped screenshots of the same source.
 const PHASH_MATCH_MAX_DISTANCE = 10;
+/** Photos above this are hashed but not fingerprinted, to keep server memory bounded. */
+const IMAGE_FINGERPRINT_MAX_BYTES = 25 * 1024 * 1024;
 
 const HASHABLE_IMAGE_MIMES = new Set([
   "image/jpeg",
@@ -235,8 +237,10 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
           }
           linkedIncidentId = f.linked_incident_id;
         }
-        const dl = await supabase.storage.from("evidence-files").download(f.storage_key);
-        if (dl.error || !dl.data) {
+        const hashed = await hashStoredObject(supabase, "evidence-files", f.storage_key, {
+          keepBytesUpTo: HASHABLE_IMAGE_MIMES.has(f.mime) ? IMAGE_FINGERPRINT_MAX_BYTES : 0,
+        }).catch(() => null);
+        if (!hashed) {
           items.push({
             storage_key: f.storage_key,
             original_filename: f.original_filename,
@@ -249,9 +253,7 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
           });
           continue;
         }
-        const buf = Buffer.from(await dl.data.arrayBuffer());
-        const sha256 = createHash("sha256").update(buf).digest("hex");
-        const bytes = buf.byteLength;
+        const { sha256, bytes } = hashed;
         const status = classify(f.mime);
         const nowIso = new Date().toISOString();
 
@@ -297,8 +299,8 @@ export const ingestEvidenceBatch = createServerFn({ method: "POST" })
         let nearDupTitle: string | null = null;
         let nearDupDistance: number | null = null;
         let nearDupStatus: "unreviewed" | null = null;
-        if (!existing && HASHABLE_IMAGE_MIMES.has(f.mime)) {
-          perceptualHash = await computeDHash(buf);
+        if (!existing && hashed.buffer && HASHABLE_IMAGE_MIMES.has(f.mime)) {
+          perceptualHash = await computeDHash(hashed.buffer);
           if (perceptualHash) {
             const candidates = await supabase
               .from("evidence")

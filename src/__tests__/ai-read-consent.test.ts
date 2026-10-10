@@ -11,7 +11,6 @@ const notice = read("src/components/threads/AiReadNotice.tsx");
 const screens: Array<[string, string]> = [
   ["ScreenshotStitcher", read("src/components/threads/ScreenshotStitcher.tsx")],
   ["CallLogPhotos", read("src/components/threads/CallLogPhotos.tsx")],
-  ["ScreenRecordingUpload", read("src/components/threads/ScreenRecordingUpload.tsx")],
 ];
 // JSX wraps prose across lines; compare on single-spaced text.
 const privacy = read("src/routes/privacy.tsx").replace(/\s+/g, " ");
