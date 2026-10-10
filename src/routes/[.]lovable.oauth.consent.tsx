@@ -1,5 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { checkAssistantApproval, getAssistantAccess } from "@/lib/assistant-access.functions";
 import { isClientSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 
@@ -69,6 +71,14 @@ function ConsentPage() {
   const { authorization_id } = Route.useSearch();
   const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [access, setAccess] = useState<{ on: boolean; hasPassword: boolean } | null>(null);
+
+  useEffect(() => {
+    getAssistantAccess()
+      .then(setAccess)
+      .catch(() => setAccess({ on: false, hasPassword: true }));
+  }, []);
 
   const clientName = details?.client?.name ?? "an app";
   const redirectUri = details?.client?.redirect_uri;
@@ -77,6 +87,22 @@ function ConsentPage() {
   async function decide(approve: boolean) {
     setBusy(true);
     setErrorMsg(null);
+    if (approve) {
+      // Approving needs assistant access switched on in Settings AND her password again, so a
+      // stranger holding her signed-in phone can't connect an app with one tap.
+      try {
+        const ok = await checkAssistantApproval({ data: { password: password || undefined } });
+        if (!ok.ok) {
+          setBusy(false);
+          setErrorMsg(ok.message);
+          return;
+        }
+      } catch {
+        setBusy(false);
+        setErrorMsg("We couldn't check that. Try again in a moment.");
+        return;
+      }
+    }
     const oauth = getOAuthApi();
     const { data, error } = approve
       ? await oauth.approveAuthorization(authorization_id)
@@ -139,6 +165,28 @@ function ConsentPage() {
           PatternProof's permissions — the app can only see what you can see.
         </p>
 
+        {access && !access.on && (
+          <p role="alert" className="text-sm mb-3" style={{ color: "#9B2C3E" }}>
+            Assistant access is turned off, so this can't be approved yet. If you didn't start this
+            connection, choose Deny.{" "}
+            <Link to="/settings" hash="connected-apps" className="underline">
+              Open Settings
+            </Link>
+          </p>
+        )}
+
+        {access?.on && access.hasPassword && (
+          <input
+            aria-label="Account password"
+            className="input-pp mb-3 w-full"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Enter your account password to approve"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        )}
+
         {errorMsg && (
           <p role="alert" className="text-sm mb-3" style={{ color: "#9B2C3E" }}>
             {errorMsg}
@@ -146,7 +194,11 @@ function ConsentPage() {
         )}
 
         <div className="flex gap-2">
-          <button className="btn-primary flex-1" disabled={busy} onClick={() => decide(true)}>
+          <button
+            className="btn-primary flex-1"
+            disabled={busy || !access?.on || (access.hasPassword && !password)}
+            onClick={() => decide(true)}
+          >
             {busy ? "One moment…" : "Approve"}
           </button>
           <button

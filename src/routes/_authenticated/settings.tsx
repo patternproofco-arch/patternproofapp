@@ -21,6 +21,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
 import { listMyOauthConsents, revokeMyOauthConsent } from "@/lib/oauth-consents.functions";
+import {
+  acknowledgeConnections,
+  getAssistantAccess,
+  turnOffAssistantAccess,
+  turnOnAssistantAccess,
+} from "@/lib/assistant-access.functions";
 import { generateExportZip } from "@/lib/export-zip.functions";
 import {
   listMyAttorneyCaseNotes,
@@ -51,6 +57,114 @@ interface ConsentRow {
   granted_at: string;
 }
 
+function AssistantAccessSwitch({ onChanged }: { onChanged: () => void }) {
+  const [state, setState] = useState<{ on: boolean; hasPassword: boolean } | null>(null);
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = async () => {
+    try {
+      setState(await getAssistantAccess());
+    } catch {
+      setState({ on: false, hasPassword: true });
+    }
+  };
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const turnOn = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await turnOnAssistantAccess({ data: { password: password || undefined } });
+      if (!res.ok) {
+        setError(res.message);
+        return;
+      }
+      setPassword("");
+      toast("Assistant access is on. Turn it off here any time.");
+      await load();
+      onChanged();
+    } catch {
+      setError("We couldn't turn that on. Try again in a moment.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const turnOff = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await turnOffAssistantAccess();
+      toast(
+        res.failed > 0
+          ? "Assistant access is off. Some apps could not be removed. Remove them below."
+          : "Assistant access is off and every app is disconnected.",
+      );
+      await load();
+      onChanged();
+    } catch {
+      setError("We couldn't turn that off. Try again in a moment.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!state) return null;
+  return (
+    <div className="mt-4 rounded-2xl p-3" style={{ background: "var(--input)" }}>
+      <div className="text-[14px] font-semibold">
+        Assistant access: {state.on ? "On" : "Off"}
+      </div>
+      {state.on ? (
+        <>
+          <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            Apps you approve can read your incidents and evidence, and add drafts for you to
+            confirm. Items you mark no-AI are never shared. Turning this off disconnects every app
+            at once.
+          </p>
+          <button className="btn-primary mt-3" onClick={turnOff} disabled={busy}>
+            {busy ? "One moment…" : "Turn off and disconnect everything"}
+          </button>
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            Off unless you turn it on. Only turn it on if you set up the assistant yourself. If you
+            don't recognise an app, leave this off.
+          </p>
+          {state.hasPassword && (
+            <input
+              aria-label="Account password"
+              className="input-pp mt-3"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Account password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          )}
+          <button
+            className="btn-primary mt-3"
+            onClick={turnOn}
+            disabled={busy || (state.hasPassword && !password)}
+          >
+            {busy ? "One moment…" : "Turn on assistant access"}
+          </button>
+        </>
+      )}
+      {error && (
+        <p role="alert" className="mt-2 text-[12px]" style={{ color: "#9B2C3E" }}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ConnectedApps() {
   const [rows, setRows] = useState<ConsentRow[] | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -66,6 +180,8 @@ function ConnectedApps() {
 
   useEffect(() => {
     void load();
+    // Opening this screen counts as seeing the connections that exist now.
+    void acknowledgeConnections().catch(() => undefined);
   }, []);
 
   const revoke = async (id: string) => {
@@ -92,6 +208,7 @@ function ConnectedApps() {
       <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
         Outside AI assistants and apps you've allowed to act as you.
       </p>
+      <AssistantAccessSwitch onChanged={() => void load()} />
       {rows === null ? (
         <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
           Checking…

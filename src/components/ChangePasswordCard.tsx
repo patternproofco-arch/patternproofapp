@@ -1,3 +1,4 @@
+import { afterPasswordChange } from "@/lib/assistant-access.functions";
 import { useState } from "react";
 import { KeyRound } from "lucide-react";
 import { toast } from "sonner";
@@ -51,6 +52,8 @@ export function ChangePasswordCard({
       }
       const { error: updateError } = await supabase.auth.updateUser({ password: next });
       if (updateError) throw updateError;
+      // A new password also switches off assistant access and disconnects outside apps.
+      await afterPasswordChange().catch(() => undefined);
       setCurrent("");
       setNext("");
       setConfirm("");

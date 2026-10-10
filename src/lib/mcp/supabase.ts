@@ -45,3 +45,35 @@ export async function recordMcpCall(
     /* best effort */
   }
 }
+
+/**
+ * Every tool starts here. Signed in is not enough: the survivor must have turned assistant
+ * access on in Settings, and that is read fresh each call, so switching it off takes effect at
+ * once. A problem reading the switch means off.
+ */
+export async function requireAssistantAccess(ctx: ToolContext) {
+  const authError = requireAuth(ctx);
+  if (authError) return authError;
+  const userId = ctx.getUserId();
+  if (!userId) {
+    return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
+  }
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { isAssistantAccessOn } = await import("@/lib/assistant-access.server");
+  const on = await isAssistantAccessOn(
+    supabaseAdmin as unknown as import("@/lib/assistant-access.server").AccessAdmin,
+    userId,
+  );
+  if (!on) {
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: "Assistant access is turned off in PatternProof. The survivor can turn it on in Settings.",
+        },
+      ],
+      isError: true,
+    };
+  }
+  return null;
+}

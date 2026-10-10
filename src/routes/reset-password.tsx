@@ -1,3 +1,4 @@
+import { afterPasswordChange } from "@/lib/assistant-access.functions";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -134,6 +135,8 @@ function ResetPasswordPage() {
     try {
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) throw updateError;
+      // A new password also switches off assistant access and disconnects outside apps.
+      await afterPasswordChange().catch(() => undefined);
       setDone(true);
       setTimeout(() => {
         void goHome();
