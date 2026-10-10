@@ -643,6 +643,57 @@ export type Database = {
           },
         ]
       }
+      attorney_entry_reviews: {
+        Row: {
+          attorney_note: string
+          id: string
+          item_key: string
+          link_id: string
+          question_request_id: string | null
+          reviewed_marker: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attorney_note?: string
+          id?: string
+          item_key: string
+          link_id: string
+          question_request_id?: string | null
+          reviewed_marker?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attorney_note?: string
+          id?: string
+          item_key?: string
+          link_id?: string
+          question_request_id?: string | null
+          reviewed_marker?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_entry_reviews_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attorney_entry_reviews_question_request_id_fkey"
+            columns: ["question_request_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_document_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attorney_evidence_reviews: {
         Row: {
           attorney_user_id: string
