@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Upload, X, Loader2, Camera } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import { stitchScreenshotThread } from "@/lib/message-threads.functions";
 import { AiReadNotice } from "./AiReadNotice";
@@ -67,10 +68,11 @@ export function ScreenshotStitcher({ onDone, onCancel }: Props) {
         const s = shots[i]!;
         const ext = (s.file.name.match(/\.[^.]+$/)?.[0] ?? ".jpg").toLowerCase();
         const path = `${user.id}/thread-shots/${batchId}/shot-${String(i + 1).padStart(3, "0")}${ext}`;
-        const up = await supabase.storage.from("evidence-files").upload(path, s.file, {
+        const up = await uploadWithRetry(() =>
+        supabase.storage.from("evidence-files").upload(path, s.file, {
           contentType: s.file.type || undefined,
           upsert: false,
-        });
+        }));
         if (up.error) throw up.error;
         paths.push(path);
       }

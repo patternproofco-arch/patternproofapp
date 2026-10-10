@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { FileText, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import {
   addSourceDocument,
@@ -132,10 +133,11 @@ export function ChatExportImporter({ onImported }: Props) {
         throw new Error("file changed after it was read");
       }
       // Not evidence-files: that bucket only accepts images, PDFs, audio and video.
-      const up = await supabase.storage.from("message-exports").upload(path, original, {
+      const up = await uploadWithRetry(() =>
+        supabase.storage.from("message-exports").upload(path, original, {
         contentType: file.mime,
         upsert: false,
-      });
+      }));
       if (up.error) throw up.error;
       const { sourceDocumentId } = await addDoc({
         data: {
@@ -212,23 +214,35 @@ export function ChatExportImporter({ onImported }: Props) {
         mime: string;
         bytes: number;
       }> = [];
+      let notUploaded = 0;
       for (const item of extracted.items) {
         const ext =
           (item.filename.match(/\.([^.]+)$/)?.[1] ?? "bin")
             .replace(/[^a-zA-Z0-9]/g, "")
             .slice(0, 8) || "bin";
         const key = `${user.id}/chat-export-media/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const up = await supabase.storage.from("evidence-files").upload(key, item.blob, {
+        const up = await uploadWithRetry(() =>
+        supabase.storage.from("evidence-files").upload(key, item.blob, {
           contentType: item.mime,
           upsert: false,
-        });
-        if (up.error) continue;
+        }));
+        if (up.error) {
+          notUploaded += 1;
+          continue;
+        }
         toIngest.push({
           storage_key: key,
           original_filename: item.filename,
           mime: item.mime,
           bytes: item.bytes,
         });
+      }
+      if (notUploaded > 0) {
+        toast.warning(
+          `${notUploaded} photo${notUploaded === 1 ? "" : "s"} from the zip couldn't be uploaded and ${
+            notUploaded === 1 ? "was" : "were"
+          } not saved. Add ${notUploaded === 1 ? "it" : "them"} from Evidence.`,
+        );
       }
       if (toIngest.length === 0) {
         toast("We couldn't preserve those photos. Try adding them from Evidence.");
