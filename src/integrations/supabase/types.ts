@@ -1935,6 +1935,27 @@ export type Database = {
         }
         Relationships: []
       }
+      entry_drafts: {
+        Row: {
+          content: Json
+          kind: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: Json
+          kind: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          kind?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       escalation_flags: {
         Row: {
           created_at: string
