@@ -6,7 +6,7 @@ export default defineTool({
   name: "search_case",
   title: "Search the case",
   description:
-    "Search the signed-in survivor's incidents, evidence, and voice notes for a keyword or phrase. Items she marked "no AI" are left out.",
+    "Search the signed-in survivor's incidents, evidence, and voice notes for a keyword or phrase. Items she marked no-AI are left out.",
   inputSchema: {
     query: z.string().min(1).max(200).describe("Text to search for."),
   },

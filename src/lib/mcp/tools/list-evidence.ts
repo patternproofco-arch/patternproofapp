@@ -6,7 +6,7 @@ export default defineTool({
   name: "list_evidence",
   title: "List evidence",
   description:
-    "List evidence items in the signed-in survivor's private vault. Items she marked "no AI" are left out. Returns title, description, date, file type, and any linked incident.",
+    "List evidence items in the signed-in survivor's private vault. Items she marked no-AI are left out. Returns title, description, date, file type, and any linked incident.",
   inputSchema: {
     limit: z
       .number()

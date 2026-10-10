@@ -6,7 +6,7 @@ export default defineTool({
   name: "list_incidents",
   title: "List incidents",
   description:
-    "List the signed-in survivor's documented incidents, most recent first. Entries she marked "no AI" are left out. Returns date, description, location, abuse types, and severity.",
+    "List the signed-in survivor's documented incidents, most recent first. Entries she marked no-AI are left out. Returns date, description, location, abuse types, and severity.",
   inputSchema: {
     limit: z
       .number()
