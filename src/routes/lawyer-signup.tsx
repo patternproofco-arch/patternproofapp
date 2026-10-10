@@ -96,13 +96,13 @@ function LawyerSignup() {
               Opening one client share does not require a subscription. A paid seat unlocks notes and
               caseload. Paid workspaces are set up with the founder after that first share.
             </p>
-            <a
-              href="mailto:pattern@pattern-proof.tech?subject=Open%20one%20client%20share%20free"
+            <Link
+              to="/attorney-apply"
               className="btn-primary mt-4 flex w-full items-center justify-center"
               style={{ textDecoration: "none" }}
             >
-              Open one client share free
-            </a>
+              Request attorney access
+            </Link>
             <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
               Or request a 15-minute walkthrough at{" "}
               <a href="mailto:pattern@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough" style={{ color: "var(--accent)" }}>

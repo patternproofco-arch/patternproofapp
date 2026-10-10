@@ -126,6 +126,7 @@ import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/cli
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as AttorneyMattersIndexRouteImport } from './routes/_attorney/matters.index'
 import { Route as AttorneyMattersMatterIdRouteImport } from './routes/_attorney/matters.$matterId'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminOrgRequestsRouteImport } from './routes/_authenticated/admin.org-requests'
 import { Route as AuthenticatedAdminPasswordResetRouteImport } from './routes/_authenticated/admin.password-reset'
 import { Route as AuthenticatedAdminSigninsRouteImport } from './routes/_authenticated/admin.signins'
@@ -753,6 +754,11 @@ const AttorneyMattersMatterIdRoute = AttorneyMattersMatterIdRouteImport.update({
   path: '/matters/$matterId',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAdminOrgRequestsRoute =
   AuthenticatedAdminOrgRequestsRouteImport.update({
     id: '/admin/org-requests',
@@ -1000,6 +1006,7 @@ export interface FileRoutesByFullPath {
   '/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/clients/': typeof AttorneyClientsIndexRoute
   '/matters/': typeof AttorneyMattersIndexRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/agent/': typeof AuthenticatedAgentIndexRoute
   '/prep/': typeof AuthenticatedPrepIndexRoute
   '/prep/modules/$moduleId': typeof AuthenticatedPrepModulesModuleIdRoute
@@ -1133,6 +1140,7 @@ export interface FileRoutesByTo {
   '/advocate-cases': typeof AdvocateAdvocateCasesIndexRoute
   '/clients': typeof AttorneyClientsIndexRoute
   '/matters': typeof AttorneyMattersIndexRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/agent': typeof AuthenticatedAgentIndexRoute
   '/prep': typeof AuthenticatedPrepIndexRoute
   '/prep/modules/$moduleId': typeof AuthenticatedPrepModulesModuleIdRoute
@@ -1274,6 +1282,7 @@ export interface FileRoutesById {
   '/_advocate/advocate-cases/': typeof AdvocateAdvocateCasesIndexRoute
   '/_attorney/clients/': typeof AttorneyClientsIndexRoute
   '/_attorney/matters/': typeof AttorneyMattersIndexRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/agent/': typeof AuthenticatedAgentIndexRoute
   '/_authenticated/prep/': typeof AuthenticatedPrepIndexRoute
   '/_authenticated/prep/modules/$moduleId': typeof AuthenticatedPrepModulesModuleIdRoute
@@ -1413,6 +1422,7 @@ export interface FileRouteTypes {
     | '/advocate-cases/'
     | '/clients/'
     | '/matters/'
+    | '/admin/'
     | '/agent/'
     | '/prep/'
     | '/prep/modules/$moduleId'
@@ -1546,6 +1556,7 @@ export interface FileRouteTypes {
     | '/advocate-cases'
     | '/clients'
     | '/matters'
+    | '/admin'
     | '/agent'
     | '/prep'
     | '/prep/modules/$moduleId'
@@ -1686,6 +1697,7 @@ export interface FileRouteTypes {
     | '/_advocate/advocate-cases/'
     | '/_attorney/clients/'
     | '/_attorney/matters/'
+    | '/_authenticated/admin/'
     | '/_authenticated/agent/'
     | '/_authenticated/prep/'
     | '/_authenticated/prep/modules/$moduleId'
@@ -2586,6 +2598,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyMattersMatterIdRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/org-requests': {
       id: '/_authenticated/admin/org-requests'
       path: '/admin/org-requests'
@@ -2901,6 +2920,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminSigninsRoute: typeof AuthenticatedAdminSigninsRoute
   AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
   AuthenticatedFrequencyMatrixThreadIdRoute: typeof AuthenticatedFrequencyMatrixThreadIdRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -2949,6 +2969,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
   AuthenticatedFrequencyMatrixThreadIdRoute:
     AuthenticatedFrequencyMatrixThreadIdRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
