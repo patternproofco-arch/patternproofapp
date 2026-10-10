@@ -1,3 +1,4 @@
+import { isActiveShareLink as accessIsActive } from "@/lib/attorney-access.server";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -228,15 +229,17 @@ export const revokeLink = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: link } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("attorney_user_id")
+      .select("attorney_user_id,revoked_at")
       .eq("id", data.id)
       .eq("client_user_id", context.userId)
       .maybeSingle();
+    if (!link) throw new Error("Share not found.");
     const { error } = await supabaseAdmin
       .from("attorney_client_links")
       .update({ status: "revoked", revoked_at: new Date().toISOString() })
       .eq("id", data.id)
-      .eq("client_user_id", context.userId);
+      .eq("client_user_id", context.userId)
+      .is("revoked_at", null);
     if (error) throw new Error(error.message);
     // Close any packet already sitting in storage, so old download links die now.
     if (link?.attorney_user_id) {
@@ -283,6 +286,9 @@ export const acceptInvitation = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ token: z.string().min(8).max(128) }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await (
+      await import("@/lib/attorney-approval.server")
+    ).assertApprovedAttorney(supabaseAdmin, context.userId);
     const { data: inv } = await supabaseAdmin
       .from("attorney_invitations")
       .select("*")
@@ -307,7 +313,9 @@ export const acceptInvitation = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
-    await (await import("@/lib/signup-notify.server")).notifyNewSignup({
+    await (
+      await import("@/lib/signup-notify.server")
+    ).notifyNewSignup({
       userId: context.userId,
       role: "attorney",
     });
@@ -319,12 +327,15 @@ export const acceptInvitation = createServerFn({ method: "POST" })
 
     const { data: existing } = await supabaseAdmin
       .from("attorney_client_links")
-      .select("id")
+      .select("id,status,revoked_at,expires_at")
       .eq("attorney_user_id", context.userId)
       .eq("client_user_id", inv.client_user_id)
       .maybeSingle();
 
     let link: { id: string; client_user_id: string };
+    if (existing?.id && !accessIsActive(existing)) {
+      throw new Error("That previous share has ended. It cannot be reopened.");
+    }
     if (existing?.id) {
       const { data: updated, error: updErr } = await supabaseAdmin
         .from("attorney_client_links")

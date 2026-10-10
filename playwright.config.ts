@@ -5,6 +5,7 @@ import { defineConfig, devices } from "@playwright/test";
  * set E2E_BASE_URL to smoke-test a deployed build with fictional accounts only.
  */
 const baseURL = process.env["E2E_BASE_URL"] ?? "http://localhost:8080";
+const previewBuild = process.env["E2E_PREVIEW"] === "1";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -28,11 +29,13 @@ export default defineConfig({
   webServer: process.env["E2E_BASE_URL"]
     ? undefined
     : {
-        // CI installs Node only (no bun). Nitro/Cloudflare build has no
-        // dist/server/server.js, so vite preview fails — use Vite/Nitro dev.
-        command: "npm run dev -- --host 127.0.0.1 --port 8080",
+        // Wrangler previews the Cloudflare output through the local Worker runtime.
+        // CI checks the built bundle; development remains available for iteration.
+        command: previewBuild
+          ? "npm run preview -- --ip 127.0.0.1 --port 8080"
+          : "npm run dev -- --host 127.0.0.1 --port 8080",
         url: "http://localhost:8080",
-        reuseExistingServer: !process.env["CI"],
+        reuseExistingServer: !process.env["CI"] && !previewBuild,
         timeout: 120_000,
       },
 });

@@ -57,6 +57,7 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
     if (!jwtEmail || jwtEmail !== String(inv.survivor_email).toLowerCase()) {
       throw new Error("This invite was sent to a different email address.");
     }
+    await (await import("@/lib/attorney-approval.server")).assertApprovedAttorney(supabaseAdmin, inv.attorney_user_id);
     const scope = data.scope;
     const empty = !(scope.include_all_incidents || scope.include_all_evidence || scope.include_patterns || (scope.scope_incidents ?? []).length || (scope.scope_evidence ?? []).length);
     if (empty) throw new Error("Choose at least one thing to share before accepting.");

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireSupabaseAuth, requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { PROFESSIONAL_LINK_TTL_SECONDS } from "@/lib/professional-links.server";
 import { isAttorneyEntitled } from "@/lib/payments.functions";
@@ -78,7 +78,7 @@ async function assertLinkParticipant(linkId: string, userId: string) {
 /* ------------------------- role + profile ------------------------- */
 
 export const getMyRole = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAccountAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: rolesData }, { count: collabCount }, { count: grantCount }] = await Promise.all([
@@ -108,7 +108,10 @@ export const getMyRole = createServerFn({ method: "GET" })
     if (roles.includes("attorney")) role = "attorney";
     else if (roles.includes("advocate") && !roles.includes("survivor")) role = "advocate";
     else if (hasCollaborations) role = "collaborator";
-    return { role, roles, hasCollaborations, is_org_partner };
+    const { data: application } = await (supabaseAdmin as any).from("attorney_applications")
+      .select("status").eq("user_id", context.userId).maybeSingle();
+    return { role, roles, hasCollaborations, is_org_partner, attorney_approved: application?.status === "approved" };
+
   });
 
 export const upsertAttorneyProfile = createServerFn({ method: "POST" })

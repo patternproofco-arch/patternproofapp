@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
  * Persist "survivor" as a real role row rather than leaving it as an implicit
@@ -11,7 +11,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * Accounts that legitimately hold both roles keep both.
  */
 export const ensureSurvivorRole = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAccountAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: existing, error: roleError } = await supabaseAdmin
@@ -35,8 +35,24 @@ export const ensureSurvivorRole = createServerFn({ method: "POST" })
       is_org_partner = (count ?? 0) > 0;
     }
 
+    let attorney_approved = false;
+    if (roles.includes("attorney")) {
+      const { data: application, error } = await (supabaseAdmin as any)
+        .from("attorney_applications")
+        .select("status")
+        .eq("user_id", context.userId)
+        .maybeSingle();
+      if (error) throw new Error("Could not verify attorney approval.");
+      attorney_approved = application?.status === "approved";
+    }
     if (roles.length > 0) {
-      return { roles, is_survivor: roles.includes("survivor"), is_org_partner, created: false };
+      return {
+        roles,
+        is_survivor: roles.includes("survivor"),
+        is_org_partner,
+        created: false,
+        attorney_approved,
+      };
     }
 
     const { error } = await supabaseAdmin

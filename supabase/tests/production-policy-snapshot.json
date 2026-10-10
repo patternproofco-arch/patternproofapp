@@ -1,0 +1,2370 @@
+{
+  "grants": [
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "attorney_client_links",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "cases",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "consent_grants",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "incidents",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "support_requests",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "evidence",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER",
+      "table_catalog": "postgres",
+      "table_name": "user_roles",
+      "table_schema": "public",
+      "with_hierarchy": "NO"
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Attorney accepts matching invitation",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_client_links",
+      "with_check": "((auth.uid() = attorney_user_id) AND (EXISTS ( SELECT 1\n   FROM attorney_invitations inv\n  WHERE ((inv.id = attorney_client_links.invitation_id) AND (inv.client_user_id = attorney_client_links.client_user_id) AND (inv.status = 'pending'::text) AND ((inv.expires_at IS NULL) OR (inv.expires_at > now())) AND (lower(inv.attorney_email) = lower(COALESCE((auth.jwt() ->> 'email'::text), ''::text))) AND (attorney_client_links.include_all_incidents = inv.include_all_incidents) AND (attorney_client_links.include_all_evidence = inv.include_all_evidence) AND (attorney_client_links.include_patterns = inv.include_patterns) AND (attorney_client_links.scope_incidents <@ inv.scope_incidents) AND (attorney_client_links.scope_evidence <@ inv.scope_evidence) AND (NOT (attorney_client_links.case_id IS DISTINCT FROM inv.case_id))))))"
+    },
+    {
+      "cmd": "UPDATE",
+      "permissive": "PERMISSIVE",
+      "policyname": "Clients manage clio share consent",
+      "qual": "(auth.uid() = client_user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_client_links",
+      "with_check": "(auth.uid() = client_user_id)"
+    },
+    {
+      "cmd": "UPDATE",
+      "permissive": "PERMISSIVE",
+      "policyname": "Clients revoke own links",
+      "qual": "(auth.uid() = client_user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_client_links",
+      "with_check": "((auth.uid() = client_user_id) AND (status = 'revoked'::text) AND (revoked_at IS NOT NULL))"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Firm colleagues read firm client links",
+      "qual": "((status = 'active'::text) AND (revoked_at IS NULL) AND (private.my_firm_id() IS NOT NULL) AND (attorney_user_id IN ( SELECT private.firm_peer_user_ids() AS firm_peer_user_ids)))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_client_links",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Participants read links",
+      "qual": "((auth.uid() = client_user_id) OR ((auth.uid() = attorney_user_id) AND (status = 'active'::text) AND (revoked_at IS NULL)))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_client_links",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "own cases",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "cases",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Recipient reads grants issued to them",
+      "qual": "(auth.uid() = recipient_user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "consent_grants",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Survivor reads own grants",
+      "qual": "(auth.uid() = survivor_user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "consent_grants",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "permissive": "PERMISSIVE",
+      "policyname": "Survivor updates own grants",
+      "qual": "(auth.uid() = survivor_user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "consent_grants",
+      "with_check": "(auth.uid() = survivor_user_id)"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "own evidence",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "evidence",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "own incidents",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "incidents",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users can submit their own support requests",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "support_requests",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users can view their own support requests",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "support_requests",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users read own roles",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "user_roles",
+      "with_check": null
+    }
+  ],
+  "tables": [
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "attorney_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "client_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "invitation_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": "'{}'::uuid[]",
+          "name": "scope_incidents",
+          "notnull": true,
+          "type": "uuid[]"
+        },
+        {
+          "default": "'{}'::uuid[]",
+          "name": "scope_evidence",
+          "notnull": true,
+          "type": "uuid[]"
+        },
+        {
+          "default": "true",
+          "name": "include_all_incidents",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": "true",
+          "name": "include_all_evidence",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": "true",
+          "name": "include_patterns",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": "'active'::text",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "revoked_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "attorney_case_notes",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "org_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": "false",
+          "name": "deposition_prep_consent",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": null,
+          "name": "deposition_prep_consent_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "case_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": "false",
+          "name": "clio_share_consent",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": null,
+          "name": "clio_share_consent_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "false",
+          "name": "include_voice_notes",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": "false",
+          "name": "include_communications",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": "false",
+          "name": "include_legal_documents",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": null,
+          "name": "expires_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "attorney_case_notes_updated_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "attorney_client_links"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": "'user'::text",
+          "name": "actor_kind",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "actor_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "event_type",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "subject_kind",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "subject_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "meta",
+          "notnull": false,
+          "type": "jsonb"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "audit_events"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "other_party",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "relationship_type",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "'{}'::text[]",
+          "name": "case_types",
+          "notnull": true,
+          "type": "text[]"
+        },
+        {
+          "default": null,
+          "name": "jurisdiction",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "pattern_summary",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "'{}'::uuid[]",
+          "name": "highlighted_incident_ids",
+          "notnull": true,
+          "type": "uuid[]"
+        },
+        {
+          "default": "'{}'::uuid[]",
+          "name": "attached_evidence_ids",
+          "notnull": true,
+          "type": "uuid[]"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "now()",
+          "name": "updated_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "'{}'::uuid[]",
+          "name": "legal_document_ids",
+          "notnull": true,
+          "type": "uuid[]"
+        },
+        {
+          "default": null,
+          "name": "case_name",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "'{}'::uuid[]",
+          "name": "attached_thread_ids",
+          "notnull": true,
+          "type": "uuid[]"
+        }
+      ],
+      "name": "cases"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "survivor_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "recipient_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "org_name",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "request_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": "'{}'::jsonb",
+          "name": "scope",
+          "notnull": true,
+          "type": "jsonb"
+        },
+        {
+          "default": "now()",
+          "name": "effective_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "expires_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "false",
+          "name": "download_allowed",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": "'active'::text",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "revoked_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "revocation_reason",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "'{}'::jsonb",
+          "name": "receipt",
+          "notnull": true,
+          "type": "jsonb"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "now()",
+          "name": "updated_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "consent_grants"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "title",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "date",
+          "notnull": false,
+          "type": "date"
+        },
+        {
+          "default": null,
+          "name": "description",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "file_url",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "file_type",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "linked_incident_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "linked_recording_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "deleted_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "sha256",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "bytes",
+          "notnull": false,
+          "type": "bigint"
+        },
+        {
+          "default": null,
+          "name": "mime",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "original_filename",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "raw_metadata",
+          "notnull": false,
+          "type": "jsonb"
+        },
+        {
+          "default": null,
+          "name": "preservation_status",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "preserved_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "integrity_verified_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "family_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "parent_evidence_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "derivative_kind",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "import_batch_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "perceptual_hash",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "near_duplicate_of",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "near_duplicate_status",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "exif_captured_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "in_image_timestamp_text",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "in_image_timestamp_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "ingested_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "gps_lat",
+          "notnull": false,
+          "type": "double precision"
+        },
+        {
+          "default": null,
+          "name": "gps_lon",
+          "notnull": false,
+          "type": "double precision"
+        },
+        {
+          "default": "false",
+          "name": "gps_reveal_opt_in",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": null,
+          "name": "transcript",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "transcript_segments",
+          "notnull": false,
+          "type": "jsonb"
+        },
+        {
+          "default": "'pending'::text",
+          "name": "transcript_status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "transcript_verified_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "transcript_verified_by",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": "'confirmed'::text",
+          "name": "review_status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "suggested_incident_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "match_reason",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "'exact'::text",
+          "name": "date_precision",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "date_range_start",
+          "notnull": false,
+          "type": "date"
+        },
+        {
+          "default": null,
+          "name": "date_range_end",
+          "notnull": false,
+          "type": "date"
+        },
+        {
+          "default": null,
+          "name": "anchor_label",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "'none'::text",
+          "name": "exif_choice",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "voice_caption",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "voice_caption_audio_url",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "false",
+          "name": "is_sealed",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": null,
+          "name": "sealed_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "'organize'::text",
+          "name": "ai_permission",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": "'unknown'::text",
+          "name": "conversation_context",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "event_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "event_timestamp_kind",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "extracted_text",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "extraction_method",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "extraction_pages",
+          "notnull": false,
+          "type": "integer"
+        },
+        {
+          "default": "'none'::text",
+          "name": "extraction_status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "extracted_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "extraction_verified_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "extraction_verified_by",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": "'private'::text",
+          "name": "share_readiness",
+          "notnull": true,
+          "type": "text"
+        }
+      ],
+      "name": "evidence"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "date",
+          "notnull": false,
+          "type": "date"
+        },
+        {
+          "default": null,
+          "name": "time",
+          "notnull": false,
+          "type": "time without time zone"
+        },
+        {
+          "default": null,
+          "name": "location",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "description",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": "'{}'::text[]",
+          "name": "abuse_types",
+          "notnull": true,
+          "type": "text[]"
+        },
+        {
+          "default": null,
+          "name": "witnesses",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "emotional_impact",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "severity_level",
+          "notnull": false,
+          "type": "integer"
+        },
+        {
+          "default": "false",
+          "name": "has_escalation_flag",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": null,
+          "name": "deleted_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "'survivor'::text",
+          "name": "source",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "source_evidence_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "confirmed_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "confidence",
+          "notnull": false,
+          "type": "numeric"
+        },
+        {
+          "default": "'exact'::text",
+          "name": "date_precision",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "date_range_start",
+          "notnull": false,
+          "type": "date"
+        },
+        {
+          "default": null,
+          "name": "date_range_end",
+          "notnull": false,
+          "type": "date"
+        },
+        {
+          "default": null,
+          "name": "anchor_incident_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "anchor_label",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "'event'::text",
+          "name": "record_kind",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "expected_item",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "expected_due_date",
+          "notnull": false,
+          "type": "date"
+        },
+        {
+          "default": null,
+          "name": "expected_due_range_start",
+          "notnull": false,
+          "type": "date"
+        },
+        {
+          "default": null,
+          "name": "expected_due_range_end",
+          "notnull": false,
+          "type": "date"
+        },
+        {
+          "default": null,
+          "name": "actual_outcome",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "actual_outcome_date",
+          "notnull": false,
+          "type": "date"
+        },
+        {
+          "default": "'open'::text",
+          "name": "expectation_status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "source_type",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "practical_consequence",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "template_key",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "false",
+          "name": "is_draft",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": "false",
+          "name": "is_sealed",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": null,
+          "name": "sealed_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "'organize'::text",
+          "name": "ai_permission",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": "'private'::text",
+          "name": "share_readiness",
+          "notnull": true,
+          "type": "text"
+        }
+      ],
+      "name": "incidents"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "user_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "name",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "reply_email",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "category",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "message",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": "'new'::text",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "now()",
+          "name": "updated_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "ip_hash",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "reply_body",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "replied_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "replied_by",
+          "notnull": false,
+          "type": "uuid"
+        }
+      ],
+      "name": "support_requests"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "role",
+          "notnull": true,
+          "type": "app_role"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "user_roles"
+    }
+  ]
+}

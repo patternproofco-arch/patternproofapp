@@ -91,10 +91,19 @@ function LawyerSignup() {
 
         {step === "auth" ? (
           <div className="card-pp">
-            <h2 className="font-serif text-[20px]">Open one share, or sign in</h2>
+            <h2 className="font-serif text-[20px]">Attorney access</h2>
+            <Link
+              to="/attorney-apply"
+              className="btn-primary mt-4 flex w-full items-center justify-center"
+            >
+              Apply for attorney access
+            </Link>
+            <p className="mt-2 text-[13px]">
+              Bar number and jurisdiction are reviewed before client access.
+            </p>
             <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Opening one client share does not require a subscription. A paid seat unlocks notes and
-              caseload. Paid workspaces are set up with the founder after that first share.
+              Opening one client share does not require a subscription. A paid seat unlocks notes
+              and caseload. Paid workspaces are set up with the founder after that first share.
             </p>
             <a
               href="mailto:pattern@pattern-proof.tech?subject=Open%20one%20client%20share%20free"
@@ -103,9 +112,15 @@ function LawyerSignup() {
             >
               Open one client share free
             </a>
-            <p className="mt-2 text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            <p
+              className="mt-2 text-center text-[12px]"
+              style={{ color: "var(--muted-foreground)" }}
+            >
               Or request a 15-minute walkthrough at{" "}
-              <a href="mailto:pattern@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough" style={{ color: "var(--accent)" }}>
+              <a
+                href="mailto:pattern@pattern-proof.tech?subject=Request%20a%2015-minute%20walkthrough"
+                style={{ color: "var(--accent)" }}
+              >
                 pattern@pattern-proof.tech
               </a>
               . Please send no case files or client information.
@@ -117,7 +132,9 @@ function LawyerSignup() {
               Already invited?
             </div>
             <form onSubmit={auth} className="mt-4 space-y-3">
-              <input autoComplete="email" aria-label="Work email"
+              <input
+                autoComplete="email"
+                aria-label="Work email"
                 className="input-pp"
                 type="email"
                 required
@@ -125,7 +142,9 @@ function LawyerSignup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <input autoComplete={"new-password"} aria-label="Password"
+              <input
+                autoComplete={"new-password"}
+                aria-label="Password"
                 className="input-pp"
                 type="password"
                 required
@@ -143,27 +162,31 @@ function LawyerSignup() {
           <div className="card-pp">
             <h2 className="font-serif text-[20px]">Tell clients who they're working with</h2>
             <form onSubmit={saveProfile} className="mt-4 space-y-3">
-              <input aria-label="Full name"
+              <input
+                aria-label="Full name"
                 className="input-pp"
                 required
                 placeholder="Full name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
-              <input aria-label="Firm name (optional)"
+              <input
+                aria-label="Firm name (optional)"
                 className="input-pp"
                 placeholder="Firm name (optional)"
                 value={firm}
                 onChange={(e) => setFirm(e.target.value)}
               />
               <div className="grid grid-cols-2 gap-3">
-                <input aria-label="Bar #"
+                <input
+                  aria-label="Bar #"
                   className="input-pp"
                   placeholder="Bar #"
                   value={bar}
                   onChange={(e) => setBar(e.target.value)}
                 />
-                <input aria-label="Jurisdiction"
+                <input
+                  aria-label="Jurisdiction"
                   className="input-pp"
                   placeholder="Jurisdiction"
                   value={jur}
