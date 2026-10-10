@@ -92,6 +92,13 @@
       "when": 1791649083187,
       "tag": "0012_lock_down_waitlist_signups",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791649103213,
+      "tag": "0013_honour_share_expiry_has_attorney_access",
+      "breakpoints": true
     }
   ]
 }
