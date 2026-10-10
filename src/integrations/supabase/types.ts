@@ -3795,6 +3795,42 @@ export type Database = {
         }
         Relationships: []
       }
+      study_profiles: {
+        Row: {
+          children_brackets: string[]
+          created_at: string
+          hearing_date: string | null
+          hearing_types: string[]
+          learning_mode: string
+          order_status: string | null
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          children_brackets?: string[]
+          created_at?: string
+          hearing_date?: string | null
+          hearing_types?: string[]
+          learning_mode?: string
+          order_status?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          children_brackets?: string[]
+          created_at?: string
+          hearing_date?: string | null
+          hearing_types?: string[]
+          learning_mode?: string
+          order_status?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -4154,6 +4190,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_lesson_progress: {
+        Row: {
+          completed_at: string | null
+          id: string
+          module_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          module_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          module_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_referrals: {
         Row: {
