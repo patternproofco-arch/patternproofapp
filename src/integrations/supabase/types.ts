@@ -537,6 +537,47 @@ export type Database = {
           },
         ]
       }
+      attorney_declaration_drafts: {
+        Row: {
+          attorney_notes: string
+          content: Json
+          created_at: string
+          id: string
+          link_id: string
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          attorney_notes?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          link_id: string
+          updated_at?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          attorney_notes?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          link_id?: string
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_declaration_drafts_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attorney_document_requests: {
         Row: {
           attorney_user_id: string
@@ -652,6 +693,44 @@ export type Database = {
             columns: ["linked_incident_id"]
             isOneToOne: false
             referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attorney_exhibit_packages: {
+        Row: {
+          client_user_id: string
+          created_at: string
+          created_by: string | null
+          entries: Json
+          id: string
+          link_id: string
+          version: number
+        }
+        Insert: {
+          client_user_id: string
+          created_at?: string
+          created_by?: string | null
+          entries?: Json
+          id?: string
+          link_id: string
+          version: number
+        }
+        Update: {
+          client_user_id?: string
+          created_at?: string
+          created_by?: string | null
+          entries?: Json
+          id?: string
+          link_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_exhibit_packages_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
             referencedColumns: ["id"]
           },
         ]
