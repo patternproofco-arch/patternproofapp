@@ -1485,6 +1485,136 @@ export type Database = {
         }
         Relationships: []
       }
+      clio_transfer_items: {
+        Row: {
+          attempts: number
+          bytes: number | null
+          clio_document_id: string | null
+          confirmed_at: string | null
+          document_name: string
+          error_code: string | null
+          error_message: string | null
+          exhibit_number: number | null
+          id: string
+          item_key: string | null
+          job_id: string
+          kind: string
+          marker: string | null
+          note: string | null
+          orphan_clio_document_ids: string[]
+          seq: number
+          sha256: string | null
+          source: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          bytes?: number | null
+          clio_document_id?: string | null
+          confirmed_at?: string | null
+          document_name: string
+          error_code?: string | null
+          error_message?: string | null
+          exhibit_number?: number | null
+          id?: string
+          item_key?: string | null
+          job_id: string
+          kind: string
+          marker?: string | null
+          note?: string | null
+          orphan_clio_document_ids?: string[]
+          seq: number
+          sha256?: string | null
+          source: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          bytes?: number | null
+          clio_document_id?: string | null
+          confirmed_at?: string | null
+          document_name?: string
+          error_code?: string | null
+          error_message?: string | null
+          exhibit_number?: number | null
+          id?: string
+          item_key?: string | null
+          job_id?: string
+          kind?: string
+          marker?: string | null
+          note?: string | null
+          orphan_clio_document_ids?: string[]
+          seq?: number
+          sha256?: string | null
+          source?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clio_transfer_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "clio_transfer_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clio_transfer_jobs: {
+        Row: {
+          attorney_user_id: string
+          clio_matter_id: string
+          created_at: string
+          excluded: Json
+          id: string
+          include_zip: boolean
+          link_id: string
+          matter_label: string
+          package_version: number
+          status: string
+          stop_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          attorney_user_id: string
+          clio_matter_id: string
+          created_at?: string
+          excluded?: Json
+          id?: string
+          include_zip?: boolean
+          link_id: string
+          matter_label?: string
+          package_version: number
+          status?: string
+          stop_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          clio_matter_id?: string
+          created_at?: string
+          excluded?: Json
+          id?: string
+          include_zip?: boolean
+          link_id?: string
+          matter_label?: string
+          package_version?: number
+          status?: string
+          stop_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clio_transfer_jobs_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       communications: {
         Row: {
           channel: string
