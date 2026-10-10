@@ -71,6 +71,13 @@
       "when": 1791646459237,
       "tag": "0009_attorney_case_notes_updated_at",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791649053511,
+      "tag": "0010_revoke_anon_mutate_keep_public_inserts",
+      "breakpoints": true
     }
   ]
 }
