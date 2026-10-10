@@ -14,6 +14,7 @@ import { Route as AdvocateRouteImport } from './routes/_advocate'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AiTransparencyRouteImport } from './routes/ai-transparency'
+import { Route as AttorneyApplyRouteImport } from './routes/attorney-apply'
 import { Route as AttorneysRouteImport } from './routes/attorneys'
 import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as ChooseRoleRouteImport } from './routes/choose-role'
@@ -169,6 +170,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const AiTransparencyRoute = AiTransparencyRouteImport.update({
   id: '/ai-transparency',
   path: '/ai-transparency',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttorneyApplyRoute = AttorneyApplyRouteImport.update({
+  id: '/attorney-apply',
+  path: '/attorney-apply',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AttorneysRoute = AttorneysRouteImport.update({
@@ -882,6 +888,7 @@ const AttorneyBinderClientIdFrequencyThreadIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-transparency': typeof AiTransparencyRoute
+  '/attorney-apply': typeof AttorneyApplyRoute
   '/attorneys': typeof AttorneysRoute
   '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
@@ -1020,6 +1027,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-transparency': typeof AiTransparencyRoute
+  '/attorney-apply': typeof AttorneyApplyRoute
   '/attorneys': typeof AttorneysRoute
   '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
@@ -1158,6 +1166,7 @@ export interface FileRoutesById {
   '/_attorney': typeof AttorneyRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/ai-transparency': typeof AiTransparencyRoute
+  '/attorney-apply': typeof AttorneyApplyRoute
   '/attorneys': typeof AttorneysRoute
   '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
@@ -1298,6 +1307,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/ai-transparency'
+    | '/attorney-apply'
     | '/attorneys'
     | '/capture'
     | '/choose-role'
@@ -1436,6 +1446,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/ai-transparency'
+    | '/attorney-apply'
     | '/attorneys'
     | '/capture'
     | '/choose-role'
@@ -1573,6 +1584,7 @@ export interface FileRouteTypes {
     | '/_attorney'
     | '/_authenticated'
     | '/ai-transparency'
+    | '/attorney-apply'
     | '/attorneys'
     | '/capture'
     | '/choose-role'
@@ -1715,6 +1727,7 @@ export interface RootRouteChildren {
   AttorneyRoute: typeof AttorneyRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AiTransparencyRoute: typeof AiTransparencyRoute
+  AttorneyApplyRoute: typeof AttorneyApplyRoute
   AttorneysRoute: typeof AttorneysRoute
   CaptureRoute: typeof CaptureRoute
   ChooseRoleRoute: typeof ChooseRoleRoute
@@ -1812,6 +1825,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-transparency'
       fullPath: '/ai-transparency'
       preLoaderRoute: typeof AiTransparencyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/attorney-apply': {
+      id: '/attorney-apply'
+      path: '/attorney-apply'
+      fullPath: '/attorney-apply'
+      preLoaderRoute: typeof AttorneyApplyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attorneys': {
@@ -2982,6 +3002,7 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneyRoute: AttorneyRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AiTransparencyRoute: AiTransparencyRoute,
+  AttorneyApplyRoute: AttorneyApplyRoute,
   AttorneysRoute: AttorneysRoute,
   CaptureRoute: CaptureRoute,
   ChooseRoleRoute: ChooseRoleRoute,
