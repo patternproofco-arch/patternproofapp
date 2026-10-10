@@ -128,7 +128,11 @@ end $$;
 grant insert on table public.feedback_submissions to anon;
 grant insert on table public.org_access_requests to anon;
 -- waitlist_signups intentionally omitted: #108 lockdown supersedes; do not re-grant.
-grant insert on table public.marketing_leads to anon;
+do $$ begin
+  if to_regclass('public.marketing_leads') is not null then
+    execute 'grant insert on table public.marketing_leads to anon';
+  end if;
+end $$;
 
 -- Default privileges: future tables created by postgres in public should not
 -- silently hand anon DELETE/UPDATE/TRUNCATE.
