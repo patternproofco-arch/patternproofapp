@@ -25,3 +25,11 @@
 - [x] Request answers → draft entry in Drafts to review (note + transcript/photo text, survivor approves)
 - [x] Upload auto soft drafts: photo/audio/video → pending proposed_incidents for /drafts (soft claims; survivor approves)
 - [x] Drafts accept → timeline + binder consistency; survivor transcript/OCR review tray (soft claims; no share bypass)
+
+## Oct 10
+- [x] Sharing-record lockdown (no reopen/extend/widen from browser) — verified at database level
+- [x] Remaining Sept–Oct database updates applied (marketing_leads skipped)
+- [x] Founder dashboard /admin; attorney request page /attorney-apply; approve/decline + direct invite
+- [x] Published; test help request + attorney request alerts delivered to founder Gmail
+- [ ] On-screen survivor→attorney re-check — needs Grace signed in on attorney account (2-step sign-in)
+- [ ] Signup alert proof — approve the test attorney request in /admin to trigger it
