@@ -441,6 +441,54 @@ export type Database = {
         }
         Relationships: []
       }
+      attorney_applications: {
+        Row: {
+          bar_number: string | null
+          created_at: string
+          email: string
+          firm_name: string | null
+          full_name: string
+          id: string
+          invited_user_id: string | null
+          jurisdiction: string | null
+          note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string
+          status: string
+        }
+        Insert: {
+          bar_number?: string | null
+          created_at?: string
+          email: string
+          firm_name?: string | null
+          full_name: string
+          id?: string
+          invited_user_id?: string | null
+          jurisdiction?: string | null
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+        }
+        Update: {
+          bar_number?: string | null
+          created_at?: string
+          email?: string
+          firm_name?: string | null
+          full_name?: string
+          id?: string
+          invited_user_id?: string | null
+          jurisdiction?: string | null
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+        }
+        Relationships: []
+      }
       attorney_client_links: {
         Row: {
           attorney_case_notes: string | null
