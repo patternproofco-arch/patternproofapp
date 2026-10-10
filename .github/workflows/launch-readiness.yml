@@ -36,5 +36,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
 
-      - name: Run Playwright suite
+      - name: Run Playwright suite against production build
+        env:
+          E2E_PREVIEW: "1"
         run: npm run test:e2e

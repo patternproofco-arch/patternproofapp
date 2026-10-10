@@ -7,7 +7,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "preview": "vite preview",
+    "preview": "wrangler dev --config .output/server/wrangler.json --local",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
@@ -118,6 +118,10 @@
     "vitest": "^4.1.10"
   },
   "overrides": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "proxy-addr": "^2.0.8",
+    "source-map-js": "^1.2.2",
+    "shell-quote": "^1.12.0",
     "ws": "^8.21.0",
     "undici": "7.29.1",
     "js-yaml": "^5.4.2",
@@ -126,7 +130,7 @@
     "esbuild": "^0.28.2",
     "hono": "^4.13.8",
     "@hono/node-server": "^1.19.15",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "fast-uri": "^3.1.7",
     "ip-address": "^10.7.2",
     "browserslist": "^4.29.0",
@@ -135,6 +139,10 @@
     "nanoid": "^5.1.16"
   },
   "resolutions": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "proxy-addr": "^2.0.8",
+    "source-map-js": "^1.2.2",
+    "shell-quote": "^1.12.0",
     "ws": "^8.21.0",
     "undici": "7.29.1",
     "js-yaml": "^5.4.2",
@@ -143,7 +151,7 @@
     "esbuild": "^0.28.2",
     "hono": "^4.13.8",
     "@hono/node-server": "^1.19.15",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "fast-uri": "^3.1.7",
     "ip-address": "^10.7.2",
     "browserslist": "^4.29.0",
