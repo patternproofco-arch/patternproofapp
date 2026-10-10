@@ -64,6 +64,13 @@
       "when": 1791646442373,
       "tag": "0008_restrict_anon_table_privileges",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791646459237,
+      "tag": "0009_attorney_case_notes_updated_at",
+      "breakpoints": true
     }
   ]
 }
