@@ -4208,6 +4208,8 @@ export type Database = {
           pin_hash: string | null
           pin_locked_until: string | null
           pin_salt: string | null
+          reset_failed_attempts: number
+          reset_locked_until: string | null
           updated_at: string
           user_id: string
         }
@@ -4218,6 +4220,8 @@ export type Database = {
           pin_hash?: string | null
           pin_locked_until?: string | null
           pin_salt?: string | null
+          reset_failed_attempts?: number
+          reset_locked_until?: string | null
           updated_at?: string
           user_id: string
         }
@@ -4228,6 +4232,8 @@ export type Database = {
           pin_hash?: string | null
           pin_locked_until?: string | null
           pin_salt?: string | null
+          reset_failed_attempts?: number
+          reset_locked_until?: string | null
           updated_at?: string
           user_id?: string
         }
