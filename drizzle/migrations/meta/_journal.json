@@ -99,6 +99,13 @@
       "when": 1791649103213,
       "tag": "0013_honour_share_expiry_has_attorney_access",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791649116795,
+      "tag": "0014_guide_chat_support_rate_limit_columns",
+      "breakpoints": true
     }
   ]
 }
