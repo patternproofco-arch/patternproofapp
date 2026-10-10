@@ -19,3 +19,10 @@ The founder screen at /admin/operations requires the existing database admin rol
 ## Release verification
 
 Apply the tracked migrations to the attached database, publish the tested commit, compare /version.json, rerun the SQL suite, verify signup email receipt and verify the new production routes. Never call local tests or provider acceptance proof of inbox delivery or certify broader launch readiness from this limited work.
+
+## Additional verification and remaining blocker
+
+- The CI configuration mismatch was reproduced locally and corrected by passing explicit inert Supabase build variables to the host wrapper. All three new browser cases pass against that CI-style production bundle.
+- Additional SQL checks reject expired, reused and wrong-email founder invitations, browser execution of invite-claim RPCs and direct application approval.
+- A fictional signup completed email confirmation and created its survivor role in production. The authentication confirmation email reached Gmail, but the separate founder signup alert did not appear in Gmail or email_send_log. Its delivery remains unverified. Notification preparation failures now produce a safe stage-specific record in the founder email queue; lookup/render/send regression tests pass. This diagnostic change is not proof of a delivery fix.
+- The existing history scanner flags historical public Supabase/Stripe keys and plan lookup identifiers. No privileged credential was identified among the ten reported matches. The history scan remains red; the tip scan passes. No history rewrite or broad secret-scanner exception was applied.

@@ -115,6 +115,27 @@ BEGIN
  BEGIN UPDATE public.consent_grants SET status='active',revoked_at=NULL WHERE id=(SELECT id FROM launch_qa_records WHERE name='consent_grants');
  RAISE EXCEPTION 'Consent resurrected'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
 
+ -- Founder invitation expiry, mailbox binding, one-use consumption and private RPC privileges.
+ INSERT INTO public.founder_attorney_invites(email,token_hash,invited_by,expires_at)
+ VALUES ('different@example.invalid',repeat('a',64),founder_id,now()+interval '1 day');
+ BEGIN PERFORM public.claim_founder_attorney_invite(app,repeat('a',64));
+ RAISE EXCEPTION 'Invitation allowed a different email'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ INSERT INTO public.founder_attorney_invites(email,token_hash,invited_by,expires_at)
+ SELECT email,repeat('b',64),founder_id,now()-interval '1 second' FROM public.attorney_applications WHERE id=app;
+ BEGIN PERFORM public.claim_founder_attorney_invite(app,repeat('b',64));
+ RAISE EXCEPTION 'Expired invitation accepted'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ INSERT INTO public.founder_attorney_invites(email,token_hash,invited_by)
+ SELECT email,repeat('c',64),founder_id FROM public.attorney_applications WHERE id=app;
+ PERFORM public.claim_founder_attorney_invite(app,repeat('c',64));
+ BEGIN PERFORM public.claim_founder_attorney_invite(app,repeat('c',64));
+ RAISE EXCEPTION 'Invitation reused'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ EXECUTE 'SET LOCAL ROLE authenticated';
+ BEGIN PERFORM public.claim_founder_attorney_invite(app,repeat('c',64));
+ RAISE EXCEPTION 'Browser called private invitation RPC'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ BEGIN UPDATE public.attorney_applications SET status='approved' WHERE id=app;
+ RAISE EXCEPTION 'Browser directly approved itself'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ EXECUTE 'RESET ROLE';
+
  -- Anonymous access and table privileges fail closed on every core table.
  EXECUTE 'SET LOCAL ROLE anon';
  FOR r IN SELECT * FROM launch_qa_records LOOP

@@ -34,6 +34,12 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Build production bundle
+        # The host wrapper loads .env itself; isolate the entire CI build from
+        # production, rather than relying on Vite define overrides alone.
+        env:
+          VITE_SUPABASE_URL: https://example.invalid
+          VITE_SUPABASE_PROJECT_ID: ci-placeholder
+          VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-not-a-secret
         run: NODE_OPTIONS=--max-old-space-size=4096 npm run build
 
       - name: Install Playwright browsers
