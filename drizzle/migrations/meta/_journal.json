@@ -169,6 +169,13 @@
       "when": 1791649391973,
       "tag": "0023_entry_draft_purge",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791649426389,
+      "tag": "0024_deny_revoked_expired_case_access",
+      "breakpoints": true
     }
   ]
 }
