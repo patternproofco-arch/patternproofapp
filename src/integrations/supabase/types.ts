@@ -3018,6 +3018,86 @@ export type Database = {
           },
         ]
       }
+      org_grant_report_drafts: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_hash: string | null
+          content: Json
+          created_at: string
+          created_by: string | null
+          derived: Json
+          derived_at: string | null
+          export_count: number
+          exported_at: string | null
+          id: string
+          org_id: string
+          period_from: string
+          period_to: string
+          receipt: Json | null
+          status: string
+          submitted_at: string | null
+          submitted_by: string | null
+          template_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_hash?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          derived?: Json
+          derived_at?: string | null
+          export_count?: number
+          exported_at?: string | null
+          id?: string
+          org_id: string
+          period_from: string
+          period_to: string
+          receipt?: Json | null
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          template_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_hash?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          derived?: Json
+          derived_at?: string | null
+          export_count?: number
+          exported_at?: string | null
+          id?: string
+          org_id?: string
+          period_from?: string
+          period_to?: string
+          receipt?: Json | null
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          template_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_grant_report_drafts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_member_invitations: {
         Row: {
           accepted_at: string | null
