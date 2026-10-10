@@ -24,9 +24,10 @@ export function normalizeClientSupabaseConfig(
  * Prefers VITE_* (browser) then non-VITE names for SSR.
  */
 export function readClientSupabaseConfig(): ClientSupabaseConfig | null {
-  const url = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serverEnv = typeof process !== "undefined" ? process.env : undefined;
+  const url = import.meta.env.VITE_SUPABASE_URL || serverEnv?.SUPABASE_URL;
   const publishableKey =
-    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || serverEnv?.SUPABASE_PUBLISHABLE_KEY;
   return normalizeClientSupabaseConfig(url, publishableKey);
 }
 

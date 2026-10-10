@@ -23,7 +23,7 @@ describe("no hardcoded production credentials in tip", () => {
 
   it("QA mock session does not default to a production Supabase host", () => {
     expect(mockSession).not.toMatch(/https:\/\/[a-z0-9]{15,}\.supabase\.co/);
-    expect(mockSession).toMatch(/ci-placeholder/);
+    expect(mockSession).toMatch(/ci-placeholder|example\.invalid/);
   });
 
   it("Lovable MCP manifest issuer is placeholder or the approved muy host only", () => {

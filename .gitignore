@@ -57,3 +57,6 @@ playwright-report/
 gitleaks-report.json
 *-secrets.json
 credentials.json
+
+# Supabase CLI cache
+supabase/.temp/

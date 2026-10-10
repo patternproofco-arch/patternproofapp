@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 
 export interface ActivityWindow {
   label: string;
@@ -17,7 +17,7 @@ export interface SigninActivity {
 
 /** Admin-only counts of sign-ups, sign-ins, and unfinished sign-ups. No emails or content returned. */
 export const getSigninActivity = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAccountAuth])
   .handler(async ({ context }): Promise<SigninActivity> => {
     const { data: role } = await context.supabase
       .from("user_roles")

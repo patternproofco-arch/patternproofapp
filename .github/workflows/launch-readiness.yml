@@ -27,6 +27,9 @@ jobs:
       - name: Run unit tests
         run: npm test -- --reporter=dot
 
+      - name: Run database isolation and consent tests
+        run: npm run test:security:sql
+
       - name: Run TypeScript
         run: npx tsc --noEmit
 
@@ -36,5 +39,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
 
-      - name: Run Playwright suite
+      - name: Run Playwright suite against production build
+        env:
+          E2E_PREVIEW: "1"
         run: npm run test:e2e

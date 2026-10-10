@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 export type SupportInboxRow = {
@@ -17,7 +17,7 @@ export type SupportInboxRow = {
 
 /** Admin-only list of support requests, newest first. */
 export const listSupportRequests = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAccountAuth])
   .handler(async ({ context }) => {
     const { data: role } = await context.supabase
       .from("user_roles")
@@ -38,7 +38,7 @@ export const listSupportRequests = createServerFn({ method: "GET" })
 
 /** Admin-only: save a reply, mark the request answered, and email the sender. */
 export const replySupportRequest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAccountAuth])
   .inputValidator((input) =>
     z.object({ id: z.string().uuid(), reply: z.string().trim().min(1).max(5000) }).parse(input),
   )
