@@ -3,6 +3,7 @@ import { Paperclip, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { sanitizeLine, todayLocal } from "@/lib/dates";
 import { CHANNELS, type Channel, type Direction, type IncidentLite, incidentLabel } from "./types";
 
@@ -51,7 +52,8 @@ export function CommForm({ userId, incidents, onSaved }: Props) {
     if (screenshot) {
       const ext = screenshot.name.split(".").pop() ?? "bin";
       const key = `${userId}/comms/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const up = await supabase.storage.from("evidence-files").upload(key, screenshot);
+      const up = await uploadWithRetry(() =>
+        supabase.storage.from("evidence-files").upload(key, screenshot));
       if (up.error) {
         setBusy(false);
         toast(`We couldn't save "${screenshot.name}". Try again in a moment.`);

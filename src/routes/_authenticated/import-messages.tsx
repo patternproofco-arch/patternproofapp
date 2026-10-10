@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { ChatExportImporter } from "@/components/messages/ChatExportImporter";
@@ -130,11 +131,18 @@ function ImportMessagesPage() {
         setStage("Uploading your recording…");
         const vext = (video.name.match(/\.[^.]+$/)?.[0] ?? ".mp4").toLowerCase();
         const vpath = `${user.id}/message-imports/recordings/${Date.now()}${vext}`;
-        const vup = await supabase.storage.from("evidence-files").upload(vpath, video, {
+        const vup = await uploadWithRetry(() =>
+        supabase.storage.from("evidence-files").upload(vpath, video, {
           contentType: video.type || undefined,
           upsert: false,
-        });
-        if (!vup.error) videoPath = vpath;
+        }));
+        if (!vup.error) {
+          videoPath = vpath;
+        } else {
+          toast.warning(
+            "We read your recording, but couldn't save the video itself. Add the video from Evidence if you want to keep the original.",
+          );
+        }
         const el = document.createElement("video");
         el.preload = "metadata";
         videoDuration = await new Promise<number | undefined>((resolve) => {
@@ -198,10 +206,11 @@ function ImportMessagesPage() {
       const prefix = page.kind === "video_frame" ? "frame" : "shot";
       const path = `${user.id}/message-imports/${threadId}/${prefix}-${String(i + 1).padStart(3, "0")}${ext}`;
       try {
-        const up = await supabase.storage.from("evidence-files").upload(path, file, {
+        const up = await uploadWithRetry(() =>
+        supabase.storage.from("evidence-files").upload(path, file, {
           contentType: file.type || undefined,
           upsert: true,
-        });
+        }));
         if (up.error) throw up.error;
         const { sourceDocumentId } = await addDoc({
           data: {

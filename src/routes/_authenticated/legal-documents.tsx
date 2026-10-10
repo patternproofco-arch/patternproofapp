@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
 import { extractLegalDocument } from "@/lib/legal-extract.functions";
@@ -240,7 +241,8 @@ function LegalDocumentsPage() {
     // Upload first
     const ext = pending.name.split(".").pop() ?? "bin";
     const key = `${user.id}/legal/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const up = await supabase.storage.from("evidence-files").upload(key, pending);
+    const up = await uploadWithRetry(() =>
+        supabase.storage.from("evidence-files").upload(key, pending));
     if (up.error) {
       toast("We couldn't upload that. Try again in a moment.");
       setPhase("idle");
