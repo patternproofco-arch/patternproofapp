@@ -1,12 +1,12 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { supabaseForUser, requireAuth } from "../supabase";
+import { supabaseForUser, requireAuth, recordMcpCall, AI_BLOCKED } from "../supabase";
 
 export default defineTool({
   name: "search_case",
   title: "Search the case",
   description:
-    "Search the signed-in survivor's incidents, evidence, and voice notes for a keyword or phrase.",
+    "Search the signed-in survivor's incidents, evidence, and voice notes for a keyword or phrase. Items she marked "no AI" are left out.",
   inputSchema: {
     query: z.string().min(1).max(200).describe("Text to search for."),
   },
@@ -28,6 +28,7 @@ export default defineTool({
         .from("incidents")
         .select("id,date,description,location")
         .is("deleted_at", null)
+        .not("ai_permission", "in", AI_BLOCKED)
         .or(
           `description.ilike.${orValue},location.ilike.${orValue},witnesses.ilike.${orValue},emotional_impact.ilike.${orValue}`,
         )
@@ -37,6 +38,7 @@ export default defineTool({
         .from("evidence")
         .select("id,title,date,description,file_type")
         .is("deleted_at", null)
+        .not("ai_permission", "in", AI_BLOCKED)
         .or(`title.ilike.${orValue},description.ilike.${orValue}`)
         .order("date", { ascending: false })
         .limit(20),
@@ -53,6 +55,7 @@ export default defineTool({
       voice_notes: vn.data ?? [],
     };
     const total = results.incidents.length + results.evidence.length + results.voice_notes.length;
+    await recordMcpCall(ctx, "search_case", { matches: total });
     return {
       content: [{ type: "text", text: `Found ${total} matches for "${query}".` }],
       structuredContent: results,
