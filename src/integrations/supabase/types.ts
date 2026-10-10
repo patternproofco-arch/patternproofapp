@@ -3245,6 +3245,7 @@ export type Database = {
       }
       org_follow_ups: {
         Row: {
+          completed_at: string | null
           created_at: string
           created_by: string
           due_at: string | null
@@ -3260,6 +3261,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           created_by: string
           due_at?: string | null
@@ -3275,6 +3277,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           created_by?: string
           due_at?: string | null
@@ -3314,6 +3317,7 @@ export type Database = {
           id: string
           org_id: string
           period_from: string
+          period_timezone: string
           period_to: string
           receipt: Json | null
           status: string
@@ -3337,6 +3341,7 @@ export type Database = {
           id?: string
           org_id: string
           period_from: string
+          period_timezone?: string
           period_to: string
           receipt?: Json | null
           status?: string
@@ -3360,6 +3365,7 @@ export type Database = {
           id?: string
           org_id?: string
           period_from?: string
+          period_timezone?: string
           period_to?: string
           receipt?: Json | null
           status?: string
