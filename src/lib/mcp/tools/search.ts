@@ -1,6 +1,6 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { supabaseForUser, requireAuth, recordMcpCall, AI_BLOCKED } from "../supabase";
+import { supabaseForUser, requireAssistantAccess, recordMcpCall, AI_BLOCKED } from "../supabase";
 
 export default defineTool({
   name: "search_case",
@@ -12,7 +12,7 @@ export default defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ query }, ctx) => {
-    const authError = requireAuth(ctx);
+    const authError = await requireAssistantAccess(ctx);
     if (authError) return authError;
     const sb = supabaseForUser(ctx);
     // Escape SQL LIKE metacharacters first, then wrap in double quotes for

@@ -9,6 +9,7 @@ import { BottomTabBar } from "@/components/BottomTabBar";
 import { UtilityBar } from "@/components/UtilityBar";
 import { BrandMark } from "@/components/BrandMark";
 import { NotificationBanner } from "@/components/NotificationBanner";
+import { NewConnectionNotice } from "@/components/NewConnectionNotice";
 import { quickExit } from "@/lib/quick-exit";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
 import "@/styles-role-accents.css";
@@ -48,6 +49,7 @@ export function AppShell() {
       </header>
 
       <NotificationBanner />
+      <NewConnectionNotice />
 
       <FocusModeProvider>
         <main
