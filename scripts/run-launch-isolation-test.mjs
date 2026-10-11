@@ -68,10 +68,19 @@ CREATE TABLE public.attorney_survivor_invites (
  expires_at timestamptz DEFAULT now()+interval '30 days',accepted_at timestamptz,accepted_by uuid);
 GRANT SELECT ON auth.users TO service_role;
 GRANT ALL ON public.attorney_invitations,public.attorney_survivor_invites TO service_role;`);
+await db.exec(`CREATE TABLE public.subscriptions (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid NOT NULL,stripe_subscription_id text NOT NULL,
+ stripe_customer_id text NOT NULL,product_id text NOT NULL,price_id text NOT NULL,status text NOT NULL,
+ environment text NOT NULL,current_period_end timestamptz);
+CREATE TABLE public.attorney_profiles(user_id uuid PRIMARY KEY,full_name text NOT NULL,email text NOT NULL,trial_ends_at timestamptz);
+CREATE TABLE public.firms(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text NOT NULL,created_by uuid NOT NULL,seats_included integer DEFAULT 1,updated_at timestamptz DEFAULT now());
+CREATE TABLE public.notifications(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid NOT NULL,kind text NOT NULL,title text NOT NULL,body text,metadata jsonb DEFAULT '{}');
+GRANT ALL ON public.subscriptions,public.attorney_profiles,public.firms,public.notifications TO service_role;`);
 for (const file of [
   "20261011173000_fresh_attorney_grants.sql",
   "20261011174000_preserve_unfinished_entries.sql",
   "20261011175000_signup_alert_outbox.sql",
+  "20261011180000_atomic_attorney_billing.sql",
 ]) {
   await db.exec(read(`supabase/migrations/${file}`));
   await db.exec(read(`supabase/migrations/${file}`));
@@ -80,6 +89,9 @@ await db.exec(read("supabase/tests/sql/launch_isolation.test.sql"), {
   onNotice: (n) => console.log(n.message),
 });
 await db.exec(read("supabase/tests/sql/fresh_grants_and_signup_alerts.test.sql"), {
+  onNotice: (n) => console.log(n.message),
+});
+await db.exec(read("supabase/tests/sql/atomic_attorney_billing.test.sql"), {
   onNotice: (n) => console.log(n.message),
 });
 console.log(

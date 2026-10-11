@@ -1,446 +1,230 @@
-/**
- * Runs the real Stripe webhook route handler against an in-memory Supabase
- * fake to prove pauseAttorneyAccessIfApplicable():
- *  - writes only `status: "paused"` (attorney_client_links has no updated_at);
- *  - throws before notifying anyone when the pause fails, so the route
- *    answers 400 and Stripe retries;
- *  - notifies each affected survivor only after the pause succeeded;
- *  - on active/trialing again, resumes ONLY 'paused' links that are not
- *    revoked and not expired, fails before notifying, then notifies.
- */
-import { readFileSync } from "node:fs";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { makeRwAdmin, type Tables } from "./helpers/fake-rw-supabase";
-
-type Row = Record<string, unknown>;
-
-/** Real column list for attorney_client_links, from the generated DB types. */
-function linkColumns(): Set<string> {
-  const types = readFileSync("src/integrations/supabase/types.ts", "utf8");
-  const start = types.indexOf("attorney_client_links: {");
-  const row = types.slice(types.indexOf("Row: {", start), types.indexOf("Insert: {", start));
-  return new Set([...row.matchAll(/^\s+(\w+):/gm)].map((m) => m[1]).filter((c) => c !== "Row"));
-}
-const LINK_COLUMNS = linkColumns();
-
-const state: {
-  db: ReturnType<typeof makeRwAdmin>;
-  linkPatches: Row[];
-  failLinkUpdate: string | null;
-  failReadTable: string | null;
-  failSubscriptionWrite: boolean;
-  beforeLinkUpdate: (() => void) | null;
-  event: { type: string; data: { object: unknown } };
-} = {
+/** Transport tests for the real signed webhook handler. Database mutation,
+ * notification rollback, grant lifetime and duplicate/multiple-subscription
+ * behavior are exercised by atomic_attorney_billing.test.sql on PostgreSQL. */
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { makeRwAdmin } from "./helpers/fake-rw-supabase";
+const state = {
   db: makeRwAdmin({}),
-  linkPatches: [],
-  failLinkUpdate: null,
-  failReadTable: null,
-  failSubscriptionWrite: false,
-  beforeLinkUpdate: null,
-  event: { type: "", data: { object: {} } },
+  failRead: false,
+  failWrite: false,
+  rpc: vi.fn(),
+  retrieve: vi.fn(),
+  event: { created: 1700000000, type: "", data: { object: {} as unknown } },
 };
-
-function failedQuery(message: string): unknown {
-  const failed = { data: null, error: { message } };
+function failedQuery() {
+  const failure = { data: null, error: { message: "connection failed" } };
   const chain = new Proxy(
     {},
     {
       get(_target, prop) {
         if (prop === "then")
-          return (f: (v: typeof failed) => unknown) => Promise.resolve(failed).then(f);
+          return (f: (v: typeof failure) => unknown) => Promise.resolve(failure).then(f);
         return () => chain;
       },
     },
   );
   return chain;
 }
-
-/**
- * Stable client (the route caches it at module level) that delegates to the
- * current fake. Like PostgREST, an update naming a column the table does not
- * have is rejected; a test can also force the link update to fail.
- */
 const client = {
-  from(name: string) {
-    const q = state.db.from(name);
-    if (name === state.failReadTable) return failedQuery("read failed");
-    if (name === "notifications") {
-      // supabase-js accepts an array insert; the shared fake stores one row per call.
-      return {
-        insert: async (rows: Row | Row[]) => {
-          for (const r of Array.isArray(rows) ? rows : [rows]) {
-            const { error } = await state.db.from(name).insert(r);
-            if (error) return { data: null, error };
-          }
-          return { data: null, error: null };
-        },
-      };
-    }
-    if (name === "subscriptions" && state.failSubscriptionWrite) {
-      return new Proxy(q, {
-        get(target, prop, recv) {
-          if (prop === "update" || prop === "upsert") return () => failedQuery("write failed");
-          return Reflect.get(target, prop, recv);
-        },
-      });
-    }
-    if (name !== "attorney_client_links") return q;
-    return new Proxy(q, {
+  rpc: (...args: unknown[]) => state.rpc(...args),
+  from(table: string) {
+    // The webhook must never directly mutate client grants or notifications.
+    if (table !== "subscriptions" && table !== "entitlements")
+      throw new Error(`Unexpected direct write: ${table}`);
+    const query = state.db.from(table);
+    return new Proxy(query, {
       get(target, prop, recv) {
-        if (prop !== "update") return Reflect.get(target, prop, recv);
-        return (patch: Row) => {
-          state.linkPatches.push(patch);
-          const unknown = Object.keys(patch).find((k) => !LINK_COLUMNS.has(k));
-          const message = unknown
-            ? `Could not find the '${unknown}' column of 'attorney_client_links' in the schema cache`
-            : state.failLinkUpdate;
-          if (message) {
-            return failedQuery(message);
-          }
-          state.beforeLinkUpdate?.();
-          return target.update(patch);
-        };
+        if (prop === "select" && state.failRead) return () => failedQuery();
+        if ((prop === "update" || prop === "upsert") && state.failWrite) return () => failedQuery();
+        return Reflect.get(target, prop, recv);
       },
     });
   },
 };
-
 vi.mock("@supabase/supabase-js", () => ({ createClient: () => client }));
-vi.mock("@/lib/stripe.server", () => ({ verifyWebhook: async () => state.event }));
-
+vi.mock("@/lib/stripe.server", () => ({
+  verifyWebhook: async () => state.event,
+  createStripeClient: () => ({ subscriptions: { retrieve: state.retrieve } }),
+}));
 const { Route } = await import("@/routes/api/public/payments/webhook");
 type Handler = (ctx: { request: Request }) => Promise<Response>;
 const post = (Route as unknown as { options: { server: { handlers: { POST: Handler } } } }).options
   .server.handlers.POST;
-
 const ATTORNEY = "attorney-1";
-const SURVIVOR_A = "survivor-a";
-const SURVIVOR_B = "survivor-b";
-
-function seed(): Tables {
-  return {
-    user_roles: [{ user_id: ATTORNEY, role: "attorney" }],
-    subscriptions: [{ stripe_subscription_id: "sub_1", environment: "sandbox", user_id: ATTORNEY }],
-    firms: [],
-    notifications: [],
-    attorney_client_links: [
-      { id: "link-a", attorney_user_id: ATTORNEY, client_user_id: SURVIVOR_A, status: "active" },
-      { id: "link-b", attorney_user_id: ATTORNEY, client_user_id: SURVIVOR_B, status: "active" },
+const subscription = (status: string) => ({
+  id: "sub_1",
+  status,
+  metadata: { userId: ATTORNEY },
+  customer: "cus_fixture",
+  items: {
+    data: [
       {
-        id: "link-old",
-        attorney_user_id: ATTORNEY,
-        client_user_id: "survivor-c",
-        status: "revoked",
-      },
-      {
-        id: "link-other",
-        attorney_user_id: "attorney-2",
-        client_user_id: SURVIVOR_A,
-        status: "active",
+        price: {
+          id: "price_fixture",
+          lookup_key: "attorney_solo_monthly",
+          product: "prod_fixture",
+        },
       },
     ],
-  };
-}
-
-function subscription(status: string) {
-  return { id: "sub_1", status, metadata: { userId: ATTORNEY }, items: { data: [] } };
-}
-
-async function deliver(type: string, status = "canceled") {
-  state.event = { type, data: { object: subscription(status) } };
-  const req = new Request("https://example.test/api/public/payments/webhook?env=sandbox", {
-    method: "POST",
-    body: "{}",
-  });
-  return post({ request: req });
-}
-
-const statusOf = (id: string) =>
-  state.db.tables.attorney_client_links!.find((r) => r.id === id)?.status;
-
-beforeEach(() => {
-  state.db = makeRwAdmin(seed());
-  state.linkPatches = [];
-  state.failLinkUpdate = null;
-  state.failReadTable = null;
-  state.failSubscriptionWrite = false;
-  state.beforeLinkUpdate = null;
-  vi.spyOn(console, "error").mockImplementation(() => {});
-  vi.spyOn(console, "log").mockImplementation(() => {});
+  },
 });
-
-describe("Stripe webhook pauses attorney client links", () => {
-  it.each(["subscriptions", "user_roles", "attorney_client_links"])(
-    "%s read failure returns an error for a provider retry",
-    async (table) => {
-      state.failReadTable = table;
-      expect((await deliver("customer.subscription.deleted")).status).toBe(400);
-      expect(state.db.tables.notifications).toHaveLength(0);
-      expect(statusOf("link-a")).toBe("active");
-    },
-  );
-
+async function deliver(
+  type: string,
+  status = "canceled",
+  metadata = { userId: ATTORNEY },
+  env = "sandbox",
+) {
+  state.event = {
+    created: 1700000000,
+    type,
+    data: { object: { ...subscription(status), metadata } },
+  };
+  return post({
+    request: new Request(`https://example.test/api/public/payments/webhook?env=${env}`, {
+      method: "POST",
+      body: "{}",
+    }),
+  });
+}
+beforeEach(() => {
+  state.db = makeRwAdmin({
+    subscriptions: [{ stripe_subscription_id: "sub_1", environment: "sandbox", user_id: ATTORNEY }],
+  });
+  state.failRead = false;
+  state.failWrite = false;
+  state.retrieve.mockReset().mockImplementation(async () => state.event.data.object);
+  state.rpc.mockReset().mockResolvedValue({ data: 0, error: null });
+  vi.spyOn(console, "error").mockImplementation(() => {});
+});
+afterEach(() => vi.useRealTimers());
+describe("webhook transactional billing recovery", () => {
+  it("a duplicate one-time payment cannot extend the paid year", async () => {
+    state.event = {
+      created: 1700000000,
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_fictional",
+          mode: "payment",
+          payment_status: "paid",
+          amount_total: 100,
+          currency: "usd",
+          customer: "cus_fictional",
+          metadata: { tier: "court_ready_pwyc", userId: "survivor-fixture" },
+        },
+      },
+    };
+    const request = () =>
+      new Request("https://example.test/api/public/payments/webhook?env=sandbox", {
+        method: "POST",
+        body: "{}",
+      });
+    expect((await post({ request: request() })).status).toBe(200);
+    const first = {
+      ...state.db.tables.subscriptions!.find(
+        (row) => row.stripe_subscription_id === "pwyc_cs_fictional",
+      )!,
+    };
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2030-01-01"));
+    expect((await post({ request: request() })).status).toBe(200);
+    const repeated = state.db.tables.subscriptions!.find(
+      (row) => row.stripe_subscription_id === "pwyc_cs_fictional",
+    )!;
+    expect(repeated.current_period_start).toBe(new Date(1700000000 * 1000).toISOString());
+    expect(repeated.current_period_end).toBe(first.current_period_end);
+    expect(state.db.tables.entitlements![0].paid_at).toBe(first.current_period_start);
+    expect(state.rpc).not.toHaveBeenCalled();
+  });
   it.each([
     "customer.subscription.created",
     "customer.subscription.updated",
     "customer.subscription.deleted",
-  ])("%s subscription write failure stops access changes and requests retry", async (type) => {
-    state.failSubscriptionWrite = true;
-    expect((await deliver(type)).status).toBe(400);
-    expect(state.linkPatches).toEqual([]);
-    expect(state.db.tables.notifications).toHaveLength(0);
-  });
-
-  it("uses the stored owner when Stripe metadata has no userId", async () => {
-    state.event = {
-      type: "customer.subscription.deleted",
-      data: { object: { ...subscription("canceled"), metadata: {} } },
-    };
-    const response = await post({
-      request: new Request("https://example.test/api/public/payments/webhook?env=sandbox", {
-        method: "POST",
-      }),
+  ])("%s persists status before reconciling billing", async (type) => {
+    state.rpc.mockImplementation(async () => {
+      expect(state.db.tables.subscriptions![0].status).toBe("canceled");
+      return { data: 1, error: null };
     });
-    expect(response.status).toBe(200);
-    expect(statusOf("link-a")).toBe("paused");
-    expect(state.db.tables.notifications).toHaveLength(2);
+    expect((await deliver(type)).status).toBe(200);
+    expect(state.rpc).toHaveBeenCalledWith("sync_attorney_billing_access", {
+      _attorney_id: ATTORNEY,
+      _environment: "sandbox",
+    });
   });
-
-  it("does not pause or notify a link revoked between selection and update", async () => {
-    state.beforeLinkUpdate = () => {
-      const link = state.db.tables.attorney_client_links!.find((row) => row.id === "link-a")!;
-      link.status = "revoked";
-      link.revoked_at = new Date().toISOString();
-    };
-    expect((await deliver("customer.subscription.deleted")).status).toBe(200);
-    expect(statusOf("link-a")).toBe("revoked");
-    expect(state.db.tables.notifications!.map((row) => row.user_id)).toEqual([SURVIVOR_B]);
+  it.each(["customer.subscription.updated", "customer.subscription.deleted"])(
+    "%s resolves a missing metadata owner from storage",
+    async (type) => {
+      expect((await deliver(type, "canceled", {} as { userId: string })).status).toBe(200);
+      expect(state.rpc).toHaveBeenCalledWith(
+        "sync_attorney_billing_access",
+        expect.objectContaining({ _attorney_id: ATTORNEY }),
+      );
+    },
+  );
+  it.each([
+    "customer.subscription.created",
+    "customer.subscription.updated",
+    "customer.subscription.deleted",
+  ])("%s write failure requests retry without changing access", async (type) => {
+    state.failWrite = true;
+    expect((await deliver(type)).status).toBe(400);
+    expect(state.rpc).not.toHaveBeenCalled();
   });
-  it("subscription deleted: pauses only that attorney's active links, writes only status, then notifies", async () => {
-    const res = await deliver("customer.subscription.deleted");
-    expect(res.status).toBe(200);
-
-    expect(state.linkPatches).toEqual([{ status: "paused" }]);
-    for (const p of state.linkPatches) expect(p).not.toHaveProperty("updated_at");
-
-    expect(statusOf("link-a")).toBe("paused");
-    expect(statusOf("link-b")).toBe("paused");
-    expect(statusOf("link-old")).toBe("revoked");
-    expect(statusOf("link-other")).toBe("active");
-
-    const notes = state.db.tables.notifications!;
-    expect(notes.map((n) => n.user_id).sort()).toEqual([SURVIVOR_A, SURVIVOR_B]);
-    for (const n of notes) expect(n.kind).toBe("attorney_access_paused");
-  });
-
-  it("subscription updated to unpaid also pauses and notifies", async () => {
-    const res = await deliver("customer.subscription.updated", "unpaid");
-    expect(res.status).toBe(200);
-    expect(statusOf("link-a")).toBe("paused");
-    expect(state.db.tables.notifications).toHaveLength(2);
-  });
-
-  it("subscription updated but still active: no pause, no notifications", async () => {
-    const res = await deliver("customer.subscription.updated", "active");
-    expect(res.status).toBe(200);
-    expect(state.linkPatches).toEqual([]);
-    expect(state.db.tables.notifications).toHaveLength(0);
-  });
-
-  it("pause failure: no notifications, links untouched, route answers 400 so Stripe retries", async () => {
-    state.failLinkUpdate = "connection reset";
-    const res = await deliver("customer.subscription.deleted");
-    expect(res.status).toBe(400);
-    expect(state.db.tables.notifications).toHaveLength(0);
-    expect(statusOf("link-a")).toBe("active");
-    expect(statusOf("link-b")).toBe("active");
-  });
-
-  it("Stripe retry after a failed pause succeeds and notifies exactly once", async () => {
-    state.failLinkUpdate = "timeout";
+  it("lookup failure requests retry rather than acknowledging a lost cancellation", async () => {
+    state.failRead = true;
     expect((await deliver("customer.subscription.deleted")).status).toBe(400);
-    state.failLinkUpdate = null;
-    expect((await deliver("customer.subscription.deleted")).status).toBe(200);
-    expect(statusOf("link-a")).toBe("paused");
-    expect(state.db.tables.notifications).toHaveLength(2);
+    expect(state.rpc).not.toHaveBeenCalled();
   });
-
-  it("the schema-aware fake rejects updated_at, the column the old code wrote", () => {
-    expect(LINK_COLUMNS.has("status")).toBe(true);
-    expect(LINK_COLUMNS.has("updated_at")).toBe(false);
-    const src = readFileSync("src/routes/api/public/payments/webhook.ts", "utf8");
-    const fn = src.slice(src.indexOf("async function pauseAttorneyAccessIfApplicable"));
-    expect(fn).toContain('.update({ status: "paused" })');
-    expect(fn.indexOf("if (pauseErr)")).toBeLessThan(fn.indexOf('from("notifications")'));
-  });
-
-  it("non-attorney subscription: nothing paused, nothing sent", async () => {
-    state.db.tables.user_roles = [];
-    const res = await deliver("customer.subscription.deleted");
-    expect(res.status).toBe(200);
-    expect(state.linkPatches).toEqual([]);
-    expect(state.db.tables.notifications).toHaveLength(0);
-  });
-});
-
-describe("Stripe webhook resumes paused attorney client links (Grace: restore on re-subscribe)", () => {
-  const past = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const future = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-  function seedPaused() {
-    state.db.tables.attorney_client_links = [
-      // resumable
-      {
-        id: "p-open",
-        attorney_user_id: ATTORNEY,
-        client_user_id: SURVIVOR_A,
-        status: "paused",
-        revoked_at: null,
-        expires_at: null,
-      },
-      {
-        id: "p-future",
-        attorney_user_id: ATTORNEY,
-        client_user_id: SURVIVOR_B,
-        status: "paused",
-        revoked_at: null,
-        expires_at: future,
-      },
-      // never resumed
-      {
-        id: "p-expired",
-        attorney_user_id: ATTORNEY,
-        client_user_id: "survivor-c",
-        status: "paused",
-        revoked_at: null,
-        expires_at: past,
-      },
-      {
-        id: "p-revoked-at",
-        attorney_user_id: ATTORNEY,
-        client_user_id: "survivor-d",
-        status: "paused",
-        revoked_at: past,
-        expires_at: null,
-      },
-      {
-        id: "revoked",
-        attorney_user_id: ATTORNEY,
-        client_user_id: "survivor-e",
-        status: "revoked",
-        revoked_at: past,
-        expires_at: null,
-      },
-      {
-        id: "active",
-        attorney_user_id: ATTORNEY,
-        client_user_id: "survivor-f",
-        status: "active",
-        revoked_at: null,
-        expires_at: null,
-      },
-      {
-        id: "other-attorney",
-        attorney_user_id: "attorney-2",
-        client_user_id: SURVIVOR_A,
-        status: "paused",
-        revoked_at: null,
-        expires_at: null,
-      },
-    ];
-  }
-
-  it("does not resume or notify a link revoked between selection and update", async () => {
-    seedPaused();
-    state.beforeLinkUpdate = () => {
-      const link = state.db.tables.attorney_client_links!.find((row) => row.id === "p-open")!;
-      link.status = "revoked";
-      link.revoked_at = new Date().toISOString();
-    };
+  it("failed atomic access/notification transaction requests provider retry", async () => {
+    state.rpc.mockResolvedValueOnce({
+      data: null,
+      error: { message: "notification write failed" },
+    });
+    expect((await deliver("customer.subscription.updated", "active")).status).toBe(400);
     expect((await deliver("customer.subscription.updated", "active")).status).toBe(200);
-    expect(statusOf("p-open")).toBe("revoked");
-    expect(state.db.tables.notifications!.map((row) => row.user_id)).toEqual([SURVIVOR_B]);
+    expect(state.rpc).toHaveBeenCalledTimes(2);
   });
-
-  it("subscription updated to active: only unexpired, unrevoked paused links flip; survivors notified", async () => {
-    seedPaused();
-    const res = await deliver("customer.subscription.updated", "active");
-    expect(res.status).toBe(200);
-
-    expect(state.linkPatches).toEqual([{ status: "active" }]);
-    expect(statusOf("p-open")).toBe("active");
-    expect(statusOf("p-future")).toBe("active");
-    expect(statusOf("p-expired")).toBe("paused");
-    expect(statusOf("p-revoked-at")).toBe("paused");
-    expect(statusOf("revoked")).toBe("revoked");
-    expect(statusOf("active")).toBe("active");
-    expect(statusOf("other-attorney")).toBe("paused");
-
-    const notes = state.db.tables.notifications!;
-    expect(notes.map((n) => n.user_id).sort()).toEqual([SURVIVOR_A, SURVIVOR_B]);
-    for (const n of notes) expect(n.kind).toBe("attorney_access_resumed");
+  it("uses current provider state when an older canceled event arrives late", async () => {
+    state.retrieve.mockResolvedValue(subscription("active"));
+    expect((await deliver("customer.subscription.deleted", "canceled")).status).toBe(200);
+    expect(state.db.tables.subscriptions![0].status).toBe("active");
+    expect(state.retrieve).toHaveBeenCalledWith("sub_1");
   });
-
-  it("revoked links are never resumed, whatever the subscription status", async () => {
-    seedPaused();
-    for (const [type, status] of [
-      ["customer.subscription.updated", "active"],
-      ["customer.subscription.updated", "trialing"],
-      ["customer.subscription.created", "active"],
-      ["customer.subscription.created", "trialing"],
-    ] as const) {
-      await deliver(type, status);
-      expect(statusOf("revoked")).toBe("revoked");
-      expect(statusOf("p-revoked-at")).toBe("paused");
-    }
+  it("upserts an update that arrives before the creation event", async () => {
+    state.db.tables.subscriptions = [];
+    expect((await deliver("customer.subscription.updated", "active")).status).toBe(200);
+    expect(state.db.tables.subscriptions![0].status).toBe("active");
+    expect(state.rpc).toHaveBeenCalled();
   });
-
-  it("subscription created as trialing also resumes", async () => {
-    seedPaused();
-    const res = await deliver("customer.subscription.created", "trialing");
-    expect(res.status).toBe(200);
-    expect(statusOf("p-open")).toBe("active");
-    expect(state.db.tables.notifications).toHaveLength(2);
+  it("provider lookup failure requests retry without persisting a stale snapshot", async () => {
+    state.retrieve.mockRejectedValue(new Error("provider unavailable"));
+    expect((await deliver("customer.subscription.deleted")).status).toBe(400);
+    expect(state.db.tables.subscriptions![0].status).toBeUndefined();
+    expect(state.rpc).not.toHaveBeenCalled();
   });
-
-  it("resume failure: no notifications, links stay paused, route answers 400 so Stripe retries", async () => {
-    seedPaused();
-    state.failLinkUpdate = "connection reset";
-    const res = await deliver("customer.subscription.updated", "active");
-    expect(res.status).toBe(400);
-    expect(state.db.tables.notifications).toHaveLength(0);
-    expect(statusOf("p-open")).toBe("paused");
-    expect(statusOf("p-future")).toBe("paused");
+  it("does not reassign an already bound subscription to conflicting metadata", async () => {
+    expect(
+      (await deliver("customer.subscription.updated", "active", { userId: "another-account" }))
+        .status,
+    ).toBe(400);
+    expect(state.db.tables.subscriptions![0].user_id).toBe(ATTORNEY);
+    expect(state.rpc).not.toHaveBeenCalled();
   });
-
-  it("past_due / incomplete do not resume", async () => {
-    seedPaused();
-    for (const status of ["past_due", "incomplete"]) {
-      await deliver("customer.subscription.updated", status);
-    }
-    expect(statusOf("p-open")).toBe("paused");
-    expect(state.db.tables.notifications).toHaveLength(0);
+  it("passes the verified live environment to the transaction", async () => {
+    expect(
+      (await deliver("customer.subscription.created", "active", { userId: ATTORNEY }, "live"))
+        .status,
+    ).toBe(200);
+    expect(state.rpc).toHaveBeenCalledWith("sync_attorney_billing_access", {
+      _attorney_id: ATTORNEY,
+      _environment: "live",
+    });
   });
-
-  it("non-attorney: nothing resumed, nothing sent", async () => {
-    seedPaused();
-    state.db.tables.user_roles = [];
-    await deliver("customer.subscription.updated", "active");
-    expect(statusOf("p-open")).toBe("paused");
-    expect(state.db.tables.notifications).toHaveLength(0);
-  });
-
-  it("round trip: lapse pauses, paying again restores the same links", async () => {
-    expect((await deliver("customer.subscription.deleted")).status).toBe(200);
-    expect(statusOf("link-a")).toBe("paused");
-    expect(statusOf("link-old")).toBe("revoked");
-    expect((await deliver("customer.subscription.created", "active")).status).toBe(200);
-    expect(statusOf("link-a")).toBe("active");
-    expect(statusOf("link-b")).toBe("active");
-    expect(statusOf("link-old")).toBe("revoked");
-    const kinds = state.db.tables.notifications!.map((n) => n.kind);
-    expect(kinds.filter((k) => k === "attorney_access_paused")).toHaveLength(2);
-    expect(kinds.filter((k) => k === "attorney_access_resumed")).toHaveLength(2);
+  it("invalid environment cannot reconcile billing", async () => {
+    expect(
+      (await deliver("customer.subscription.deleted", "canceled", { userId: ATTORNEY }, "invalid"))
+        .status,
+    ).toBe(200);
+    expect(state.rpc).not.toHaveBeenCalled();
   });
 });

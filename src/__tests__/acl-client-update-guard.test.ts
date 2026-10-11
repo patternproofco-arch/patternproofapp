@@ -145,8 +145,8 @@ describe("user-JWT writers of attorney_client_links stay inside the guard allowl
   }
 
   it("finds the known write sites", () => {
-    // Acceptance now writes through the service-only transactional RPC.
-    expect(sites.length).toBeGreaterThanOrEqual(6);
+    // Acceptance and billing now write through service-only transactional RPCs.
+    expect(sites.length).toBeGreaterThanOrEqual(5);
   });
 
   it("only context.supabase (user JWT) writes Clio consent; everything else is service-role", () => {

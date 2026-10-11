@@ -1,3 +1,4 @@
+import { isPaidThroughSubscription } from "@/lib/subscription-state";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -48,21 +49,6 @@ function watchSubscriptionChanges(userId: string, onChange: () => void): () => v
   };
 }
 
-function computeActive(
-  row: {
-    status: string;
-    current_period_end: string | null;
-    cancel_at_period_end: boolean;
-  } | null,
-): boolean {
-  if (!row) return false;
-  const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
-  const future = end === null || end > Date.now();
-  if (["active", "trialing", "past_due"].includes(row.status) && future) return true;
-  if (row.status === "canceled" && end && end > Date.now()) return true;
-  return false;
-}
-
 export function useSubscription(): SubscriptionState {
   const fetcher = useServerFn(getMySubscription);
   const [row, setRow] =
@@ -109,10 +95,10 @@ export function useSubscription(): SubscriptionState {
 
   return {
     loading,
-    isActive: computeActive(row),
+    isActive: isPaidThroughSubscription(row),
     status: row?.status ?? null,
     priceId: row?.price_id ?? null,
-    tier: deriveTier(row?.price_id ?? null, computeActive(row)),
+    tier: deriveTier(row?.price_id ?? null, isPaidThroughSubscription(row)),
     currentPeriodEnd: row?.current_period_end ?? null,
     cancelAtPeriodEnd: row?.cancel_at_period_end ?? false,
     refetch: load,

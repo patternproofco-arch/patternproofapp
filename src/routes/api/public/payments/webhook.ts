@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
-import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
-import { firmSeatsForSubscription } from "@/lib/firm-seats";
+import { type StripeEnv, createStripeClient, verifyWebhook } from "@/lib/stripe.server";
 
 let _supabase: SupabaseClient | null = null;
 function getSupabase(): SupabaseClient {
@@ -12,26 +11,34 @@ function getSupabase(): SupabaseClient {
   return _supabase;
 }
 
-async function syncFirmSeats(
-  userId: string,
-  priceId: string | null | undefined,
-  status: string | null | undefined,
-  currentPeriodEnd: number | null | undefined,
-) {
-  const seats = firmSeatsForSubscription({ priceId, status, currentPeriodEnd });
-  const { error } = await getSupabase()
-    .from("firms")
-    .update({ seats_included: Math.max(1, seats), updated_at: new Date().toISOString() })
-    .eq("created_by", userId);
-  if (error) throw new Error(`Could not synchronize firm seats: ${error.message}`);
+async function syncAttorneyBillingAccess(userId: string | undefined, env: StripeEnv) {
+  if (!userId) return;
+  const { error } = await getSupabase().rpc("sync_attorney_billing_access", {
+    _attorney_id: userId,
+    _environment: env,
+  });
+  if (error) throw new Error(`Could not synchronize attorney billing access: ${error.message}`);
 }
 
-async function handleSubscriptionCreated(subscription: Stripe.Subscription, env: StripeEnv) {
-  const userId = subscription.metadata?.userId;
-  if (!userId) {
-    console.error("No userId in subscription metadata");
-    return;
+async function synchronizeSubscription(subscription: Stripe.Subscription, env: StripeEnv) {
+  const supabase = getSupabase();
+  const { data: existingOwner, error: ownerError } = await supabase
+    .from("subscriptions")
+    .select("user_id")
+    .eq("stripe_subscription_id", subscription.id)
+    .eq("environment", env)
+    .maybeSingle();
+  if (ownerError) throw new Error(`Could not read subscription owner: ${ownerError.message}`);
+  if (
+    existingOwner?.user_id &&
+    subscription.metadata?.userId &&
+    existingOwner.user_id !== subscription.metadata.userId
+  ) {
+    throw new Error("Subscription ownership conflict");
   }
+  const userId = existingOwner?.user_id ?? subscription.metadata?.userId;
+  // Subscriptions outside the application have no bound account.
+  if (!userId) return;
   const item = subscription.items?.data?.[0];
   const priceId =
     item?.price?.lookup_key || item?.price?.metadata?.lovable_external_id || item?.price?.id;
@@ -40,11 +47,9 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, env:
   const periodEnd = item?.current_period_end;
 
   // Charter Firm — locked rate for 12 months from first activation.
-  const isCharter =
-    priceId === "attorney_firm_charter_monthly" || subscription.metadata?.plan_tier === "charter";
+  const isCharter = priceId === "attorney_firm_charter_monthly";
   const planTier = isCharter ? "charter" : null;
   // Preserve an existing expiry rather than resetting on every webhook.
-  const supabase = getSupabase();
   let charterExpiresAt: string | null = null;
   if (isCharter) {
     const { data: existing, error: readError } = await supabase
@@ -67,6 +72,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, env:
       product_id: productId,
       price_id: priceId,
       status: subscription.status,
+      cancel_at_period_end: subscription.cancel_at_period_end || false,
       current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
       current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
       environment: env,
@@ -77,79 +83,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, env:
     { onConflict: "stripe_subscription_id" },
   );
   if (writeError) throw new Error(`Could not save subscription: ${writeError.message}`);
-  await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
-  if (RESUME_STATUSES.includes(subscription.status)) {
-    await resumeAttorneyAccessIfApplicable(userId);
-  }
-}
-
-async function handleSubscriptionUpdated(subscription: Stripe.Subscription, env: StripeEnv) {
-  const item = subscription.items?.data?.[0];
-  const priceId =
-    item?.price?.lookup_key || item?.price?.metadata?.lovable_external_id || item?.price?.id;
-  const productId = item?.price?.product;
-  const periodStart = item?.current_period_start;
-  const periodEnd = item?.current_period_end;
-  const isCharter = priceId === "attorney_firm_charter_monthly";
-  const supabase = getSupabase();
-  let userId = subscription.metadata?.userId as string | undefined;
-  if (!userId) {
-    const { data: existingSubscription, error: readError } = await supabase
-      .from("subscriptions")
-      .select("user_id")
-      .eq("stripe_subscription_id", subscription.id)
-      .eq("environment", env)
-      .maybeSingle();
-    if (readError) throw new Error(`Could not read subscription owner: ${readError.message}`);
-    userId = existingSubscription?.user_id as string | undefined;
-  }
-  const update: Record<string, unknown> = {
-    status: subscription.status,
-    product_id: productId,
-    price_id: priceId,
-    current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
-    current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
-    cancel_at_period_end: subscription.cancel_at_period_end || false,
-    updated_at: new Date().toISOString(),
-  };
-  // If the price moved off the charter price, clear the flag; otherwise leave
-  // plan_tier / charter_rate_expires_at untouched (never reset the locked window).
-  if (!isCharter && priceId) {
-    update.plan_tier = null;
-  }
-  const { error: writeError } = await supabase
-    .from("subscriptions")
-    .update(update)
-    .eq("stripe_subscription_id", subscription.id)
-    .eq("environment", env);
-  if (writeError) throw new Error(`Could not update subscription: ${writeError.message}`);
-  if (userId) await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
-  if (["canceled", "unpaid", "incomplete_expired"].includes(subscription.status)) {
-    await pauseAttorneyAccessIfApplicable(userId);
-  } else if (RESUME_STATUSES.includes(subscription.status)) {
-    await resumeAttorneyAccessIfApplicable(userId);
-  }
-}
-
-async function handleSubscriptionDeleted(subscription: Stripe.Subscription, env: StripeEnv) {
-  const supabase = getSupabase();
-  const { data: existingSubscription, error: readError } = await supabase
-    .from("subscriptions")
-    .select("user_id")
-    .eq("stripe_subscription_id", subscription.id)
-    .eq("environment", env)
-    .maybeSingle();
-  if (readError) throw new Error(`Could not read deleted subscription owner: ${readError.message}`);
-  const { error: writeError } = await supabase
-    .from("subscriptions")
-    .update({ status: "canceled", updated_at: new Date().toISOString() })
-    .eq("stripe_subscription_id", subscription.id)
-    .eq("environment", env);
-  if (writeError) throw new Error(`Could not cancel subscription: ${writeError.message}`);
-  const userId = (subscription.metadata?.userId ?? existingSubscription?.user_id) as
-    string | undefined;
-  if (userId) await syncFirmSeats(userId, null, "canceled", null);
-  await pauseAttorneyAccessIfApplicable(userId);
+  await syncAttorneyBillingAccess(userId, env);
 }
 
 /**
@@ -158,7 +92,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription, env:
  * checkout session id so `useSubscription` / `tier` resolution works the
  * same as the recurring plan.
  */
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: StripeEnv) {
+async function handleCheckoutCompleted(
+  session: Stripe.Checkout.Session,
+  env: StripeEnv,
+  eventCreated: number,
+) {
   if (session.mode !== "payment") return;
   if (session.metadata?.tier !== "court_ready_pwyc") return;
   const userId = session.metadata?.userId;
@@ -170,7 +108,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: St
     console.warn("[payments] PWYC session outside allowed range; not granting access");
     return;
   }
-  const now = new Date();
+  // A replay must not move the purchase date or extend the paid year.
+  const now = new Date(eventCreated * 1000);
   const oneYear = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
   const supabase = getSupabase();
 
@@ -229,151 +168,20 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: St
   if (entErr) throw new Error(`entitlement write failed for session ${session.id}`);
 }
 
-/** Subscription states that mean the attorney is paying (or trialing) again. */
-const RESUME_STATUSES: string[] = ["active", "trialing"];
-
-/**
- * When an attorney's subscription ends, pause every active client link
- * and notify each affected survivor. Survivors keep their data — only
- * the attorney's shared view is suspended.
- *
- * Fail loud: attorney_client_links has no updated_at column, so only `status`
- * is written. If the pause fails we throw BEFORE notifying anyone, so a
- * survivor is never told access is paused when it is not; the route then
- * answers 400 and Stripe retries the event.
- *
- * Access comes back automatically on re-subscribe: see
- * resumeAttorneyAccessIfApplicable().
- */
-async function pauseAttorneyAccessIfApplicable(attorneyUserId: string | undefined) {
-  if (!attorneyUserId) return;
-  const supabase = getSupabase();
-
-  const { data: isAttorney, error: roleError } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", attorneyUserId)
-    .eq("role", "attorney")
-    .maybeSingle();
-  if (roleError) throw new Error(`Could not read attorney role: ${roleError.message}`);
-  if (!isAttorney) return;
-
-  const { data: links, error: readError } = await supabase
-    .from("attorney_client_links")
-    .select("id, client_user_id")
-    .eq("attorney_user_id", attorneyUserId)
-    .eq("status", "active")
-    .is("revoked_at", null)
-    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
-  if (readError)
-    throw new Error(`Could not read active attorney client links: ${readError.message}`);
-  if (!links || links.length === 0) return;
-
-  const ids = links.map((link: { id: string }) => link.id);
-  const { data: paused, error: pauseErr } = await supabase
-    .from("attorney_client_links")
-    .update({ status: "paused" })
-    .in("id", ids)
-    .eq("status", "active")
-    .is("revoked_at", null)
-    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
-    .select("id, client_user_id");
-  if (pauseErr) {
-    throw new Error(`Could not pause attorney client links: ${pauseErr.message}`);
-  }
-
-  const rows = (paused ?? []).map((link: { id: string; client_user_id: string }) => ({
-    user_id: link.client_user_id,
-    kind: "attorney_access_paused",
-    title: "Your attorney's access is paused",
-    body: "Your records are safe and unchanged. Your attorney's shared view is paused until their subscription is active again.",
-    metadata: { link_id: link.id, attorney_user_id: attorneyUserId },
-  }));
-  if (rows.length) await supabase.from("notifications").insert(rows);
-}
-
-/**
- * When an attorney's subscription is active (or trialing) again, restore the
- * links that pauseAttorneyAccessIfApplicable() paused and tell each survivor.
- *
- * Only links with status 'paused' are touched: never 'revoked' ones (the
- * survivor ended them), never a paused link with revoked_at set, and never a
- * paused link whose expires_at has passed (the share ran out while paused).
- * The update re-checks status = 'paused' so a survivor who revoked in the
- * meantime is not overridden. Fails loud before notifying, like the pause.
- */
-async function resumeAttorneyAccessIfApplicable(attorneyUserId: string | undefined) {
-  if (!attorneyUserId) return;
-  const supabase = getSupabase();
-
-  const { data: isAttorney, error: roleError } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", attorneyUserId)
-    .eq("role", "attorney")
-    .maybeSingle();
-  if (roleError) throw new Error(`Could not read attorney role: ${roleError.message}`);
-  if (!isAttorney) return;
-
-  const { data: paused, error: readErr } = await supabase
-    .from("attorney_client_links")
-    .select("id, client_user_id, revoked_at, expires_at")
-    .eq("attorney_user_id", attorneyUserId)
-    .eq("status", "paused");
-  if (readErr) throw new Error(`Could not read paused attorney client links: ${readErr.message}`);
-
-  const now = Date.now();
-  type PausedLink = {
-    id: string;
-    client_user_id: string;
-    revoked_at: string | null;
-    expires_at: string | null;
-  };
-  const resumable = ((paused ?? []) as PausedLink[]).filter(
-    (link) =>
-      !link.revoked_at && (link.expires_at == null || new Date(link.expires_at).getTime() > now),
-  );
-  if (resumable.length === 0) return;
-
-  const { data: resumed, error: resumeErr } = await supabase
-    .from("attorney_client_links")
-    .update({ status: "active" })
-    .in(
-      "id",
-      resumable.map((link) => link.id),
-    )
-    .eq("status", "paused")
-    .is("revoked_at", null)
-    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
-    .select("id, client_user_id");
-  if (resumeErr) {
-    throw new Error(`Could not resume attorney client links: ${resumeErr.message}`);
-  }
-
-  const rows = (resumed ?? []).map((link: { id: string; client_user_id: string }) => ({
-    user_id: link.client_user_id,
-    kind: "attorney_access_resumed",
-    title: "Your attorney's access is back on",
-    body: "Your attorney's subscription is active again, so their shared view of what you chose to share is back on. You can end their access at any time.",
-    metadata: { link_id: link.id, attorney_user_id: attorneyUserId },
-  }));
-  if (rows.length) await supabase.from("notifications").insert(rows);
-}
-
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
   switch (event.type) {
     case "customer.subscription.created":
-      await handleSubscriptionCreated(event.data.object, env);
-      break;
     case "customer.subscription.updated":
-      await handleSubscriptionUpdated(event.data.object, env);
+    case "customer.subscription.deleted": {
+      // Stripe may deliver events out of order. Persist its current state,
+      // rather than letting an older event overwrite a newer subscription.
+      const current = await createStripeClient(env).subscriptions.retrieve(event.data.object.id);
+      await synchronizeSubscription(current, env);
       break;
-    case "customer.subscription.deleted":
-      await handleSubscriptionDeleted(event.data.object, env);
-      break;
+    }
     case "checkout.session.completed":
-      await handleCheckoutCompleted(event.data.object, env);
+      await handleCheckoutCompleted(event.data.object, env, event.created);
       break;
     default:
       console.log("Unhandled event:", event.type);
