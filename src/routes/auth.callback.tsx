@@ -1,3 +1,4 @@
+import { safeAuthReturnPath } from "@/lib/auth-return-path";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +34,14 @@ function readTokens(): {
 } {
   const out: Record<string, string> = {};
   const take = (params: URLSearchParams) => {
-    for (const k of ["access_token", "refresh_token", "error", "error_description", "type", "code"]) {
+    for (const k of [
+      "access_token",
+      "refresh_token",
+      "error",
+      "error_description",
+      "type",
+      "code",
+    ]) {
       const v = params.get(k);
       if (v && !out[k]) out[k] = v;
     }
@@ -64,7 +72,7 @@ function safeReturnPath(): string | null {
   try {
     const raw = sessionStorage.getItem(RETURN_KEY);
     sessionStorage.removeItem(RETURN_KEY);
-    if (raw && raw.startsWith("/") && !raw.startsWith("//")) return raw;
+    return safeAuthReturnPath(raw, window.location.origin);
   } catch {
     /* storage unavailable */
   }
@@ -86,6 +94,12 @@ function AuthCallback() {
 
     const finish = async () => {
       const { access_token, refresh_token, error, type, code } = readTokens();
+      // Capture before the token-bearing URL is cleared. Email links also work
+      // when confirmed in a different browser, without sessionStorage state.
+      const requestedReturn = safeAuthReturnPath(
+        new URLSearchParams(window.location.search).get("redirect"),
+        window.location.origin,
+      );
 
       if (type === "recovery" || urlLooksLikeRecovery()) {
         forwardToResetPassword();
@@ -109,7 +123,7 @@ function AuthCallback() {
 
         await ensureRole().catch(() => undefined);
 
-        const saved = safeReturnPath();
+        const saved = safeReturnPath() ?? requestedReturn;
         if (saved) {
           go(saved);
           return;
@@ -140,7 +154,7 @@ function AuthCallback() {
 
         await ensureRole().catch(() => undefined);
 
-        const saved = safeReturnPath();
+        const saved = safeReturnPath() ?? requestedReturn;
         if (saved) {
           go(saved);
           return;

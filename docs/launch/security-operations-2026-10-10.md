@@ -29,7 +29,7 @@ Apply the tracked migrations to the attached database, publish the tested commit
 
 ## October 11 review update
 
-The branch was updated with current main (`8f1e80a3`), retaining its migration
+The branch was updated with current main (`2a80d082`), retaining its migration
 history. The branch's Drizzle migrations now follow main as
 `0010_acl_client_update_guard_allowlist` and `0011_launch_consent_and_attorney_gate`;
 the existing Supabase migration filenames are retained. Both lockfiles were
@@ -46,7 +46,7 @@ accounts do not produce founder alerts. A `sent` receipt means provider acceptan
 not verified inbox delivery. Retry requires a subsequent authenticated role check;
 there is no background email worker in this change.
 
-Validation: 1,119 unit tests pass, including failure retry after role persistence,
+Validation: 1,127 unit tests pass, including failure retry after role persistence,
 successful/suppressed receipt handling, and safe lookup/render/write failures.
 PostgreSQL 17/PGlite isolation tests, TypeScript, the production build, SEO (85),
 and npm dependency audit (zero vulnerabilities) pass. SQL also verifies receipt
@@ -66,3 +66,26 @@ Production already has a mailbox-based `attorney_applications` table with an
 `attorney_access_applications` table; legacy intake records and their statuses
 remain untouched and confer no approval. The SQL regression fixture includes the
 observed legacy schema and proves its apparent approval cannot grant access.
+
+Signup confirmation links now return through `/auth/callback`, which awaits role
+setup and the notification attempt before following a validated local return path.
+The original homepage redirect could skip that step entirely. Return paths are
+carried in the email URL so confirmation in another browser also works; external,
+protocol-relative and backslash-based destinations are rejected. Release must
+verify that the production Auth redirect allowlist accepts this callback URL.
+Browser fixtures intercept signup requests; they send no real confirmation mail.
+
+The full built-bundle browser suite passed 33 cases across desktop Chromium,
+Android Chromium emulation and iPhone WebKit emulation before adding the two
+confirmation cases. Twelve real-account portal checks remain credential-gated.
+Local WebKit needed libraries extracted in scratch space and a cached launcher
+adjustment to retain their library path; no host packages or repository browser
+runtime files were changed. CI installs host dependencies normally.
+
+Final confirmation-flow check: 1,127 unit tests, TypeScript and the production
+build pass. All six new confirmation browser cases pass across the three browser
+projects. The full run passed 38 cases, skipped 12 credential-gated cases, and
+failed the iPhone homepage console check because Google Fonts and Google Tag
+Manager returned HTTP 503; a focused retry reproduced those external failures.
+The preceding full run passed all 33 then-existing browser cases. No console
+errors were filtered and no scanner exceptions were added to obtain a pass.

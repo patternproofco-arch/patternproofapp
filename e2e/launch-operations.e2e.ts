@@ -94,3 +94,63 @@ test("founder can review applications and see support, signup and mail activity"
   await page.getByRole("tab", { name: "Email activity", exact: true }).click();
   await expect(page.getByText("Fictional provider outage")).toBeVisible();
 });
+
+test("signup email confirmation returns through the role setup callback", async ({ page }) => {
+  // Stub fetch before app startup: WebKit preflights the inert .invalid host
+  // before Playwright route interception. No signup request leaves the browser.
+  await page.addInitScript(() => {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (input, init) => {
+      const url = new URL(
+        typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
+        window.location.href,
+      );
+      if (url.pathname === "/auth/v1/signup") {
+        (window as Window & { signupConfirmationUrl?: string | null }).signupConfirmationUrl =
+          url.searchParams.get("redirect_to");
+        return new Response(
+          JSON.stringify({
+            id: "00000000-0000-4000-8000-000000000010",
+            email: "signup-fixture@example.invalid",
+            identities: [{ provider: "email" }],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return originalFetch(input, init);
+    };
+  });
+  await page.goto("/signup?redirect=%2Fpricing");
+  await page.getByLabel("Email", { exact: true }).fill("signup-fixture@example.invalid");
+  await page.getByLabel("Password", { exact: true }).fill("Fictional-fixture-password");
+  await page.getByRole("checkbox", { name: /agree to the Terms/ }).check();
+  await page.getByRole("button", { name: "Create my account", exact: true }).click();
+  const confirmationUrl = () =>
+    page.evaluate(
+      () =>
+        (window as Window & { signupConfirmationUrl?: string | null }).signupConfirmationUrl ??
+        null,
+    );
+  await expect.poll(confirmationUrl).not.toBeNull();
+  const callback = new URL((await confirmationUrl())!);
+  expect(callback.pathname).toBe("/auth/callback");
+  expect(callback.searchParams.get("redirect")).toBe("/pricing");
+});
+
+test("confirmed callback runs role setup before following the local return path", async ({
+  page,
+}) => {
+  let roleChecks = 0;
+  await mockLoggedIn(page, {
+    persona: "survivor",
+    serverFnHandlers: {
+      ensureSurvivorRole: () => {
+        roleChecks++;
+        return { roles: ["survivor"], is_survivor: true, is_org_partner: false, created: true };
+      },
+    },
+  });
+  await page.goto("/auth/callback?redirect=%2Fpricing");
+  await expect(page).toHaveURL(/\/pricing$/);
+  expect(roleChecks).toBeGreaterThan(0);
+});
