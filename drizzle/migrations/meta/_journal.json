@@ -113,6 +113,20 @@
       "when": 1791741600000,
       "tag": "0015_atomic_attorney_billing",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791744000000,
+      "tag": "0016_cps_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791744600000,
+      "tag": "0017_cps_access",
+      "breakpoints": true
     }
   ]
 }

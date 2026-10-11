@@ -28,6 +28,8 @@ describe("reconciled custom migration history", () => {
       ["0013_preserve_unfinished_entries", "20261011174000_preserve_unfinished_entries"],
       ["0014_signup_alert_outbox", "20261011175000_signup_alert_outbox"],
       ["0015_atomic_attorney_billing", "20261011180000_atomic_attorney_billing"],
+      ["0016_cps_role", "20261011190000_cps_role"],
+      ["0017_cps_access", "20261011190100_cps_access"],
     ]) {
       expect(readFileSync(`drizzle/migrations/${drizzle}.sql`, "utf8")).toBe(
         readFileSync(`supabase/migrations/${supabase}.sql`, "utf8"),

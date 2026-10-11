@@ -1,6 +1,6 @@
 # CPS Worker Portal: spec and three-way review (v1, draft)
 
-Status: DRAFT for founder review. No code, migration or database change exists yet.
+Status: DRAFT for founder review. Migrations and the access layer are written on this branch but NOT applied to any database. Routes, email, worker viewer and screens are not built yet.
 
 ## Decisions already made
 - Verified CPS worker **accounts** (new `cps_worker` role), not link-only.
@@ -133,3 +133,8 @@ Likely relevant (VERIFY each):
 3. **Notice to survivors.** Terms and Privacy should say, in plain words, what PatternProof staff will never read, and the narrow circumstances in which staff could be obligated to report.
 4. **Records that mention children.** Decide whether CPS shares may include items naming minors and how the survivor is warned.
 Best way to get this done: one engagement with a lawyer experienced in both DV technology and child welfare (NNEDV's Safety Net project and your state DV coalition can refer), producing (a) a written staff procedure, (b) approved notice wording, (c) a state-by-state table of reporting duties. Do this before any CPS invitations go live.
+
+## Build status (this branch)
+Done: migrations `20261011190000_cps_role` and `20261011190100_cps_access` (mirrored in `drizzle/migrations/0016`, `0017`); `cps-verification.ts` (tier rules, lookalike check, invite cap, 90-day clamp); `cps-access.server.ts` (approval and link checks, exact-scope builder that excludes unconfirmed AI entries and attorney-privileged files, append-only view log helper); `cps-invite-policy.server.ts` (survivor opt-out switch, fail-closed); tests for each.
+Not done: `/cps-apply` and the review screen, domain-list seeding job, invitation email and `/cps-invite/$token`, worker viewer with watermark, survivor access-log and revoke screens, settings switch UI, attorney notice, rate-limit enforcement on invite creation, mailbox re-verification job.
+Not verified: SQL has not been run against Postgres; the full test suite, typecheck and lint have not been run (dependencies cannot be installed in the build sandbox). New tests were run under a small stand-in runner only. Run `bun run test`, typecheck and the SQL on a Supabase branch before merging.

@@ -47,7 +47,7 @@ export type ConnectedApp = {
   granted_at: string;
 };
 
-async function readMeta(admin: AccessAdmin, userId: string): Promise<Meta | null> {
+export async function readMeta(admin: AccessAdmin, userId: string): Promise<Meta | null> {
   const { data, error } = await admin.auth.admin.getUserById(userId);
   if (error || !data?.user) return null;
   return { ...(data.user.app_metadata ?? {}) };
@@ -63,7 +63,7 @@ export async function isAssistantAccessOn(admin: AccessAdmin, userId: string): P
   }
 }
 
-async function writeMeta(admin: AccessAdmin, userId: string, patch: Meta) {
+export async function writeMeta(admin: AccessAdmin, userId: string, patch: Meta) {
   const meta = await readMeta(admin, userId);
   if (!meta) throw new Error("We couldn't check your account. Try again in a moment.");
   const { error } = await admin.auth.admin.updateUserById(userId, {
