@@ -1,3 +1,4 @@
+import { authConfirmationUrl } from "@/lib/auth-return-path";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
@@ -83,10 +84,7 @@ export function AuthPage({
           email,
           password,
           options: {
-            emailRedirectTo:
-              redirectTo && redirectTo.startsWith("/")
-                ? window.location.origin + redirectTo
-                : window.location.origin,
+            emailRedirectTo: authConfirmationUrl(window.location.origin, redirectTo),
           },
         });
         if (error) throw error;
@@ -272,8 +270,15 @@ export function AuthPage({
               aria-describedby={authError ? "auth-error-msg" : undefined}
               className="input-pp"
             />
-            <label className="flex items-center gap-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-              <input type="checkbox" checked={showPassword} onChange={(e) => setShowPassword(e.target.checked)} />
+            <label
+              className="flex items-center gap-2 text-[12px]"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              <input
+                type="checkbox"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+              />
               Show what I'm typing
             </label>
             {authError && (

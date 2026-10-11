@@ -456,14 +456,9 @@ export const removeFirmMember = createServerFn({ method: "POST" })
 
 async function assertOwnerLink(clientId: string, ownerId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: link } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id,attorney_user_id,client_user_id,status")
-    .eq("attorney_user_id", ownerId)
-    .eq("client_user_id", clientId)
-    .maybeSingle();
-  if (!link || link.status !== "active") throw new Error("No active case");
-  return link;
+  const { assertLink } = await import("@/lib/attorney-access.server");
+  const link = await assertLink(supabaseAdmin, ownerId, clientId);
+  return { ...link, attorney_user_id: ownerId, client_user_id: clientId };
 }
 
 export const listFirmColleagues = createServerFn({ method: "POST" })

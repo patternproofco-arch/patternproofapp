@@ -15,7 +15,10 @@ vi.mock("@tanstack/react-start", () => ({
     return builder;
   },
 }));
-vi.mock("@/integrations/supabase/auth-middleware", () => ({ requireSupabaseAuth: {} }));
+vi.mock("@/integrations/supabase/auth-middleware", () => ({
+  requireAccountAuth: {},
+  requireSupabaseAuth: {},
+}));
 vi.mock("@/integrations/supabase/client.server", () => ({
   get supabaseAdmin() {
     return state.admin;

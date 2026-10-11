@@ -13,13 +13,18 @@ export const peekSurvivorInvite = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!inv) return { status: "not-found" as const };
     if (inv.status !== "pending") return { status: inv.status as "accepted" | "revoked" };
-    if (inv.expires_at && new Date(inv.expires_at) < new Date()) return { status: "expired" as const };
+    if (inv.expires_at && new Date(inv.expires_at) < new Date())
+      return { status: "expired" as const };
     await supabaseAdmin
       .from("attorney_survivor_invites")
       .update({ opened_at: new Date().toISOString() })
       .eq("id", inv.id)
       .is("opened_at", null);
-    const { data: prof } = await supabaseAdmin.from("attorney_profiles").select("full_name,firm_name").eq("user_id", inv.attorney_user_id).maybeSingle();
+    const { data: prof } = await supabaseAdmin
+      .from("attorney_profiles")
+      .select("full_name,firm_name")
+      .eq("user_id", inv.attorney_user_id)
+      .maybeSingle();
     return {
       status: "ok" as const,
       invite: {
@@ -36,20 +41,26 @@ export const peekSurvivorInvite = createServerFn({ method: "POST" })
 export const acceptSurvivorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      token: z.string().min(8).max(128),
-      scope: z.object({
-        include_all_incidents: z.boolean().default(false),
-        include_all_evidence: z.boolean().default(false),
-        include_patterns: z.boolean().default(false),
-        scope_incidents: z.array(z.string().uuid()).max(2000).optional().default([]),
-        scope_evidence: z.array(z.string().uuid()).max(2000).optional().default([]),
-      }),
-    }).parse(input),
+    z
+      .object({
+        token: z.string().min(8).max(128),
+        scope: z.object({
+          include_all_incidents: z.boolean().default(false),
+          include_all_evidence: z.boolean().default(false),
+          include_patterns: z.boolean().default(false),
+          scope_incidents: z.array(z.string().uuid()).max(2000).optional().default([]),
+          scope_evidence: z.array(z.string().uuid()).max(2000).optional().default([]),
+        }),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: inv } = await supabaseAdmin.from("attorney_survivor_invites").select("*").eq("invite_token", data.token).maybeSingle();
+    const { data: inv } = await supabaseAdmin
+      .from("attorney_survivor_invites")
+      .select("*")
+      .eq("invite_token", data.token)
+      .maybeSingle();
     if (!inv) throw new Error("Invite not found");
     if (inv.status !== "pending") throw new Error("Invite no longer valid");
     if (inv.expires_at && new Date(inv.expires_at) < new Date()) throw new Error("Invite expired");
@@ -57,42 +68,30 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
     if (!jwtEmail || jwtEmail !== String(inv.survivor_email).toLowerCase()) {
       throw new Error("This invite was sent to a different email address.");
     }
+    await (
+      await import("@/lib/attorney-approval.server")
+    ).assertApprovedAttorney(supabaseAdmin, inv.attorney_user_id);
     const scope = data.scope;
-    const empty = !(scope.include_all_incidents || scope.include_all_evidence || scope.include_patterns || (scope.scope_incidents ?? []).length || (scope.scope_evidence ?? []).length);
+    const empty = !(
+      scope.include_all_incidents ||
+      scope.include_all_evidence ||
+      scope.include_patterns ||
+      (scope.scope_incidents ?? []).length ||
+      (scope.scope_evidence ?? []).length
+    );
     if (empty) throw new Error("Choose at least one thing to share before accepting.");
 
     // "All entries" is frozen to the ids that exist right now. Anything the
     // survivor documents after this moment stays private until they say so.
     const { snapshotShareScope } = await import("@/lib/grant-snapshot.server");
     const frozen = await snapshotShareScope(supabaseAdmin, context.userId, scope);
-    const linkPayload = {
-      attorney_user_id: inv.attorney_user_id,
-      client_user_id: context.userId,
-      include_all_incidents: false,
-      include_all_evidence: false,
-      include_patterns: scope.include_patterns,
-      scope_incidents: frozen.scope_incidents,
-      scope_evidence: frozen.scope_evidence,
-      status: "active",
-    };
-    const { error: linkErr } = await supabaseAdmin.from("attorney_client_links").insert(linkPayload);
-    if (linkErr && !String(linkErr.message).toLowerCase().includes("duplicate")) throw new Error(linkErr.message);
-    if (linkErr) {
-      const { error: updateErr } = await supabaseAdmin.from("attorney_client_links").update({
-        include_all_incidents: linkPayload.include_all_incidents,
-        include_all_evidence: linkPayload.include_all_evidence,
-        include_patterns: linkPayload.include_patterns,
-        scope_incidents: linkPayload.scope_incidents,
-        scope_evidence: linkPayload.scope_evidence,
-        status: "active",
-      }).eq("attorney_user_id", inv.attorney_user_id).eq("client_user_id", context.userId);
-      if (updateErr) throw new Error(updateErr.message);
-    }
-    await supabaseAdmin.from("attorney_survivor_invites").update({
-      status: "accepted",
-      accepted_at: new Date().toISOString(),
-      accepted_by: context.userId,
-    }).eq("id", inv.id);
+    const { acceptAttorneyShare } = await import("@/lib/attorney-share.server");
+    await acceptAttorneyShare(supabaseAdmin, {
+      invitationId: inv.id,
+      actorId: context.userId,
+      direction: "survivor",
+      scope: { ...frozen, include_patterns: scope.include_patterns },
+    });
     // Say exactly what the recipient got and what was left out, so a selected item is
     // never missing without the survivor knowing.
     return {

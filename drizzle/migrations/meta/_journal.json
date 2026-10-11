@@ -71,6 +71,48 @@
       "when": 1791646459237,
       "tag": "0009_attorney_case_notes_updated_at",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791738000000,
+      "tag": "0010_acl_client_update_guard_allowlist",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791738001000,
+      "tag": "0011_launch_consent_and_attorney_gate",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791739800000,
+      "tag": "0012_fresh_attorney_grants",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791739801000,
+      "tag": "0013_preserve_unfinished_entries",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791741000000,
+      "tag": "0014_signup_alert_outbox",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1791741600000,
+      "tag": "0015_atomic_attorney_billing",
+      "breakpoints": true
     }
   ]
 }
