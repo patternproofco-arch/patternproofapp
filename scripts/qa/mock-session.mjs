@@ -20,12 +20,32 @@
 // dependency) and scripts/qa/shot.mjs for a runnable example.
 
 import { toCrossJSONAsync } from "seroval";
+import { readFileSync, readdirSync } from "node:fs";
+import { loadEnv } from "vite";
+
+const localBuildEnv =
+  process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_EVENT_NAME === "pull_request"
+    ? { VITE_SUPABASE_URL: "https://example.invalid" }
+    : loadEnv("development", process.cwd(), "VITE_");
+const compiledHandlers = new Map();
+try {
+  const dir = new URL("../../.output/server/_ssr/", import.meta.url);
+  for (const file of readdirSync(dir).filter((f) => /^server-.*\.mjs$/.test(f))) {
+    const source = readFileSync(new URL(file, dir), "utf8");
+    for (const match of source.matchAll(/"([a-f0-9]{64})":\s*\{\s*functionName: "([^"]+)"/g)) {
+      compiledHandlers.set(match[1], match[2].replace(/_createServerFn_handler$/, ""));
+    }
+  }
+} catch {
+  /* Dev server descriptors are decoded below. */
+}
 
 // Prefer deployment env. Never fall back to a real production project ref (#59).
 const PROJECT_REF = (
   process.env.VITE_SUPABASE_URL ||
   process.env.VITE_SUPABASE_PROJECT_ID ||
-  "ci-placeholder"
+  localBuildEnv.VITE_SUPABASE_URL ||
+  "https://example.invalid"
 )
   .replace(/^https?:\/\//, "")
   .split(".")[0];
@@ -143,6 +163,7 @@ function gatekeeperHandlers(persona) {
     getMyRole: () => ({
       role: persona === "attorney" ? "attorney" : "survivor",
       roles: persona === "attorney" ? ["attorney"] : [],
+      attorney_approved: persona === "attorney",
       hasCollaborations: false,
       is_org_partner: false,
     }),
@@ -221,7 +242,7 @@ export async function mockServerFunctions(page, { persona = "survivor", handlers
   await page.route("**/_serverFn/**", async (route) => {
     const url = new URL(route.request().url());
     const seg = decodeURIComponent(url.pathname.split("/").pop() || "");
-    let exportName = null;
+    let exportName = compiledHandlers.get(seg) || null;
     try {
       const json = JSON.parse(Buffer.from(seg, "base64url").toString("utf8"));
       exportName = (json.export || "").replace(/_createServerFn_handler$/, "");

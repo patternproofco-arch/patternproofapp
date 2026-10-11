@@ -1,0 +1,11 @@
+# Reviewed historical public identifiers only. See docs/security/history-scan-disposition.md.
+b0fe38c7cbf427078325e0f34db09850a230b81c:src/lib/attorney-offer.ts:generic-api-key:9
+b0fe38c7cbf427078325e0f34db09850a230b81c:src/lib/attorney-offer.ts:generic-api-key:18
+b0fe38c7cbf427078325e0f34db09850a230b81c:src/lib/attorney-offer.ts:generic-api-key:27
+b0fe38c7cbf427078325e0f34db09850a230b81c:src/lib/attorney-offer.ts:generic-api-key:36
+a3d6d997c5f08120011fb13cf2db883020ed8fd3:vite.config.ts:jwt:62
+a7a4c8bec92b17c44145e2076f4e1e8549933edb:.env.production:generic-api-key:1
+94ff1913456636fa8ab69b14b891612b0a3a27b1:.env:generic-api-key:4
+65b592ef24f24bd41ed43004a614b22c58ac565e:.env:generic-api-key:4
+746c381363bfd3497c65945d90ef9e0055fcf560:.env.production:generic-api-key:1
+5ed1fd69e4041cf56aed8f9639fab886d9a18788:.env.development:generic-api-key:1

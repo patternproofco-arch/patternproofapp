@@ -43,10 +43,7 @@ export function getStripeErrorMessage(error: unknown): string {
   return "Stripe request failed";
 }
 
-export async function verifyWebhook(
-  req: Request,
-  env: StripeEnv,
-): Promise<{ type: string; data: { object: any } }> {
+export async function verifyWebhook(req: Request, env: StripeEnv): Promise<Stripe.Event> {
   const signature = req.headers.get("stripe-signature");
   const body = await req.text();
   const secret =
@@ -87,5 +84,14 @@ export async function verifyWebhook(
     return sigBuf.length === expectedBuf.length && timingSafeEqual(sigBuf, expectedBuf);
   });
   if (!matches) throw new Error("Invalid webhook signature");
-  return JSON.parse(body);
+  const event = JSON.parse(body) as Stripe.Event;
+  if (
+    !Number.isSafeInteger(event.created) ||
+    event.created <= 0 ||
+    typeof event.type !== "string" ||
+    !event.data?.object
+  ) {
+    throw new Error("Invalid webhook event");
+  }
+  return event;
 }

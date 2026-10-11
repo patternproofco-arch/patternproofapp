@@ -17,8 +17,6 @@ type Db = any;
 
 export const DRAFT_KIND = "journal_entry";
 export const MAX_FIELD = 20_000;
-/** An unfinished entry nobody comes back to isn't kept forever. */
-export const DRAFT_MAX_AGE_DAYS = 30;
 
 export type EntryDraft = {
   description: string;
@@ -87,7 +85,7 @@ export function parseDraft(raw: unknown): EntryDraft | null {
 export type DraftLoad = { draft: EntryDraft; savedAt: string } | null;
 
 /** Her saved draft, if she has one. A failed read throws; it is never read as "no draft". */
-export async function loadDraft(db: Db, userId: string, now = new Date()): Promise<DraftLoad> {
+export async function loadDraft(db: Db, userId: string): Promise<DraftLoad> {
   const { data, error } = await db
     .from("entry_drafts")
     .select("content,updated_at")
@@ -96,18 +94,17 @@ export async function loadDraft(db: Db, userId: string, now = new Date()): Promi
     .maybeSingle();
   if (error) throw new Error("Couldn't check for an unfinished entry.");
   if (!data) return null;
-  const age = now.getTime() - Date.parse(String(data.updated_at));
-  if (Number.isFinite(age) && age > DRAFT_MAX_AGE_DAYS * 86_400_000) {
-    // Too old to restore. Remove it; if that fails the database purge job still will.
-    await removeDraft(db, userId).catch(() => undefined);
-    return null;
-  }
   const draft = parseDraft(data.content);
   return draft ? { draft, savedAt: String(data.updated_at) } : null;
 }
 
 /** Stores the draft. Resolves only once the database confirmed it. */
-export async function saveDraft(db: Db, userId: string, draft: EntryDraft, now = new Date()): Promise<void> {
+export async function saveDraft(
+  db: Db,
+  userId: string,
+  draft: EntryDraft,
+  now = new Date(),
+): Promise<void> {
   if (draftIsEmpty(draft)) return removeDraft(db, userId);
   const { error } = await db.from("entry_drafts").upsert(
     {
@@ -122,7 +119,11 @@ export async function saveDraft(db: Db, userId: string, draft: EntryDraft, now =
 }
 
 export async function removeDraft(db: Db, userId: string): Promise<void> {
-  const { error } = await db.from("entry_drafts").delete().eq("user_id", userId).eq("kind", DRAFT_KIND);
+  const { error } = await db
+    .from("entry_drafts")
+    .delete()
+    .eq("user_id", userId)
+    .eq("kind", DRAFT_KIND);
   if (error) throw new Error("Couldn't remove the draft.");
 }
 

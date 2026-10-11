@@ -408,43 +408,8 @@ export const findClientCrossReferences = createServerFn({ method: "POST" })
 
     // Reuse the same access rules as the rest of the attorney portal:
     // owning attorney OR active collaborator OR firm case-grant.
-    const { data: owner } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select(
-        "id,created_at,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id",
-      )
-      .eq("attorney_user_id", userId)
-      .eq("client_user_id", data.clientId)
-      .maybeSingle();
-    let link = owner && owner.status === "active" ? owner : null;
-    if (!link) {
-      const { data: collab } = await supabaseAdmin
-        .from("case_collaborators")
-        .select("link_id")
-        .eq("collaborator_user_id", userId)
-        .eq("status", "active");
-      const { data: grants } = await supabaseAdmin
-        .from("case_grants")
-        .select("client_link_id")
-        .eq("attorney_user_id", userId)
-        .is("revoked_at", null);
-      const ids = [
-        ...(collab ?? []).map((r) => r.link_id),
-        ...(grants ?? []).map((r) => r.client_link_id),
-      ];
-      if (!ids.length) throw new Error("No active access");
-      const { data: l } = await supabaseAdmin
-        .from("attorney_client_links")
-        .select(
-          "id,created_at,status,include_all_incidents,include_all_evidence,scope_incidents,scope_evidence,case_id",
-        )
-        .in("id", ids)
-        .eq("client_user_id", data.clientId)
-        .eq("status", "active")
-        .maybeSingle();
-      if (!l) throw new Error("No active access");
-      link = l;
-    }
+    const { assertCaseAccess } = await import("@/lib/attorney-access.server");
+    const { link } = await assertCaseAccess(supabaseAdmin, userId, data.clientId);
 
     // Case scope: if this link is bound to a specific case, restrict to its
     // highlighted incidents + attached evidence.

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { getEmailSiteOrigin } from "@/lib/email/site-origin.server";
 import { passwordRecoveryRedirectTo } from "@/lib/password-recovery-redirect";
@@ -21,7 +21,7 @@ async function requireAdmin(userId: string) {
  * /forgot-password. Never generates or emails a temporary password.
  */
 export const adminSendPasswordReset = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAccountAuth])
   .inputValidator((input) => z.object({ email: z.string().email().max(255) }).parse(input))
   .handler(async ({ data, context }) => {
     const supabaseAdmin = await requireAdmin(context.userId);
