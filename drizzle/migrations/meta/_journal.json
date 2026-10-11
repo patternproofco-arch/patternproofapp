@@ -61,15 +61,29 @@
     {
       "idx": 8,
       "version": "7",
-      "when": 1791461997616,
-      "tag": "0008_acl_client_update_guard_allowlist",
+      "when": 1791646442373,
+      "tag": "0008_restrict_anon_table_privileges",
       "breakpoints": true
     },
     {
       "idx": 9,
       "version": "7",
-      "when": 1791645043496,
-      "tag": "0009_launch_consent_and_attorney_gate",
+      "when": 1791646459237,
+      "tag": "0009_attorney_case_notes_updated_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791646459238,
+      "tag": "0010_acl_client_update_guard_allowlist",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791646459239,
+      "tag": "0011_launch_consent_and_attorney_gate",
       "breakpoints": true
     }
   ]

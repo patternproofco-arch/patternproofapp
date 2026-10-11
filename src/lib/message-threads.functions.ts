@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertSupabaseStorageUrl } from "./safe-fetch.server";
 import { createHash } from "crypto";
+import { hashStoredObject } from "./stored-object-hash.server";
 
 type SourceType = "pdf" | "csv" | "excel" | "txt" | "rsmf" | "zip";
 type CaptureMethod = "multi_screenshot" | "backup_export" | "screen_recording" | "call_log_photos";
@@ -510,9 +511,10 @@ export const stitchScreenshotThread = createServerFn({ method: "POST" })
   });
 
 // -----------------------------------------------------------------------------
-// Tier 3 — Screen recording. The video file itself is the primary evidence
-// artifact (hashed and stored). Transcription runs best-effort and is stored
-// on the thread summary explicitly labeled AI-generated — unverified.
+// Screen recording. The video file itself is the primary evidence artifact
+// (hashed and stored unchanged). Nothing reads or transcribes it: a recording of a
+// text thread has no speech to transcribe, and sending the video to a third party
+// to guess at it would put the survivor's screen in front of an AI for no benefit.
 // -----------------------------------------------------------------------------
 
 export const ingestRecordedThread = createServerFn({ method: "POST" })
@@ -532,22 +534,14 @@ export const ingestRecordedThread = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    // hash the video for audit
-    let sha: string | null = null;
-    try {
-      const { data: signed } = await supabase.storage
-        .from("evidence-files")
-        .createSignedUrl(data.videoPath, 600);
-      if (signed?.signedUrl) {
-        const r = await fetch(signed.signedUrl);
-        const buf = Buffer.from(await r.arrayBuffer());
-        if (buf.length <= 200 * 1024 * 1024) {
-          sha = createHash("sha256").update(buf).digest("hex");
-        }
-      }
-    } catch {
-      /* ignore */
-    }
+    if (!data.videoPath.startsWith(`${userId}/`)) throw new Error("Storage key not owned by caller");
+
+    // Hash the video as a stream: it can be hundreds of MB, far more than a worker can hold.
+    // If it can't be read, the recording is still saved, but the record says it wasn't hashed.
+    const hashed = await hashStoredObject(supabase, "evidence-files", data.videoPath).catch(
+      () => null,
+    );
+    const sha: string | null = hashed?.sha256 ?? null;
 
     const { data: inserted, error: insErr } = await supabase
       .from("message_threads")
@@ -556,9 +550,9 @@ export const ingestRecordedThread = createServerFn({ method: "POST" })
         source_type: "zip", // reuse existing enum-ish column; not used for parsing
         source_filename: data.filename,
         file_url: data.videoPath,
-        parse_status: "queued",
+        parse_status: "partial",
         parse_error:
-          "This is a screen recording — the video itself is your primary evidence. A searchable AI transcript is being generated separately and is labeled unverified until you review it.",
+          "This is a screen recording. The video is saved unchanged and is your evidence. The messages in it were not read or turned into text. For searchable messages, use screenshots or the on-device import.",
         capture_method: "screen_recording" as CaptureMethod,
         captured_at: data.capturedAt ?? new Date().toISOString(),
         capture_notes: data.captureNotes ?? null,
@@ -582,122 +576,12 @@ export const ingestRecordedThread = createServerFn({ method: "POST" })
         captured_at: data.capturedAt ?? new Date().toISOString(),
         artifact_count: 1,
         sha256_list: sha ? [sha] : [],
+        sha256_recorded: Boolean(sha),
         video_duration_sec: data.durationSec ?? null,
       },
     });
 
     return { ok: true as const, threadId: inserted.id };
-  });
-
-// -----------------------------------------------------------------------------
-// Tier 3 transcription. We deliberately do NOT create a linked evidence row —
-// the recording lives under message_threads (its own surface with capture
-// method, participant hint, primary_artifact_urls). Fabricating an evidence
-// row just to reuse transcribeEvidence would leak the video into the Evidence
-// tabs, require SHA/EXIF plumbing, and couple two features that render very
-// differently. Instead we call the same Lovable AI transcription endpoint
-// directly and store the transcript on the thread's `summary` field, which
-// is already labeled "AI-generated — unverified" by the message-thread UI.
-// -----------------------------------------------------------------------------
-
-export const transcribeRecordedThread = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ threadId: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const key = process.env.LOVABLE_API_KEY;
-
-    const rowRes = await supabase
-      .from("message_threads")
-      .select("id, file_url, source_filename, capture_method")
-      .eq("id", data.threadId)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (rowRes.error || !rowRes.data) throw new Error("Thread not found");
-    const row = rowRes.data as {
-      id: string;
-      file_url: string;
-      source_filename: string | null;
-      capture_method: string | null;
-    };
-    if (row.capture_method !== "screen_recording") {
-      throw new Error("Only screen recordings are transcribed here.");
-    }
-
-    await supabase
-      .from("message_threads")
-      .update({ parse_status: "pending" })
-      .eq("id", row.id)
-      .eq("user_id", userId);
-
-    const failFriendly = async (msg: string) => {
-      await supabase
-        .from("message_threads")
-        .update({
-          parse_status: "failed",
-          parse_error: msg,
-        })
-        .eq("id", row.id)
-        .eq("user_id", userId);
-    };
-
-    if (!key) {
-      await failFriendly(
-        "Couldn't generate a transcript automatically. The video is still saved as your evidence.",
-      );
-      return { ok: false as const, reason: "no_key" as const };
-    }
-
-    try {
-      const dl = await supabase.storage.from("evidence-files").download(row.file_url);
-      if (dl.error || !dl.data) {
-        await failFriendly(
-          "Couldn't generate a transcript automatically. The video is still saved as your evidence.",
-        );
-        return { ok: false as const, reason: "download_failed" as const };
-      }
-      const form = new FormData();
-      form.append("file", dl.data, row.source_filename ?? "recording.mp4");
-      form.append("model", "openai/gpt-4o-transcribe");
-      form.append("response_format", "verbose_json");
-
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${key}` },
-        body: form,
-      });
-      if (!res.ok) {
-        await failFriendly(
-          "Couldn't generate a transcript automatically. The video is still saved as your evidence.",
-        );
-        return { ok: false as const, reason: "api_failed" as const, status: res.status };
-      }
-      const json = (await res.json()) as { text?: string; segments?: Array<{ text?: string }> };
-      const text = (json.text ?? (json.segments ?? []).map((s) => s.text ?? "").join(" ")).trim();
-      if (!text) {
-        await failFriendly(
-          "Couldn't generate a transcript automatically. The video is still saved as your evidence.",
-        );
-        return { ok: false as const, reason: "empty" as const };
-      }
-
-      await supabase
-        .from("message_threads")
-        .update({
-          summary: text,
-          parse_status: "parsed",
-          parse_error: null,
-        })
-        .eq("id", row.id)
-        .eq("user_id", userId);
-
-      return { ok: true as const, length: text.length };
-    } catch {
-      await failFriendly(
-        "Couldn't generate a transcript automatically. The video is still saved as your evidence.",
-      );
-      return { ok: false as const, reason: "exception" as const };
-    }
   });
 
 // -----------------------------------------------------------------------------

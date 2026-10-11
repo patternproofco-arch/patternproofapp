@@ -38,7 +38,7 @@ export const ensureSurvivorRole = createServerFn({ method: "POST" })
     let attorney_approved = false;
     if (roles.includes("attorney")) {
       const { data: application, error } = await (supabaseAdmin as any)
-        .from("attorney_applications")
+        .from("attorney_access_applications")
         .select("status")
         .eq("user_id", context.userId)
         .maybeSingle();
@@ -46,6 +46,13 @@ export const ensureSurvivorRole = createServerFn({ method: "POST" })
       attorney_approved = application?.status === "approved";
     }
     if (roles.length > 0) {
+      // Role creation can succeed before an email failure. Retry on later
+      // authenticated checks; durable receipts prevent repeated alerts.
+      const { notifyNewSignup } = await import("@/lib/signup-notify.server");
+      for (const role of roles) {
+        if (role === "survivor" || role === "attorney" || role === "advocate")
+          await notifyNewSignup({ userId: context.userId, role });
+      }
       return {
         roles,
         is_survivor: roles.includes("survivor"),

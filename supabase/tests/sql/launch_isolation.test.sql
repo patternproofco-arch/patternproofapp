@@ -14,7 +14,7 @@ INSERT INTO public.user_roles(id,user_id,role) SELECT r.id,u.id,'survivor' FROM 
 INSERT INTO public.support_requests(id,user_id,reply_email,category,message) SELECT r.id,u.id,'qa@example.invalid','Other','Fictional launch QA support ticket' FROM launch_qa_records r,launch_qa_users u WHERE r.name='support_requests' AND u.label='owner';
 INSERT INTO public.attorney_client_links(id,client_user_id,attorney_user_id,expires_at) SELECT r.id,u.id,a.id,now()+interval '1 day' FROM launch_qa_records r,launch_qa_users u,launch_qa_users a WHERE r.name='attorney_client_links' AND u.label='owner' AND a.label='attorney';
 INSERT INTO public.consent_grants(id,survivor_user_id,recipient_user_id) SELECT r.id,u.id,a.id FROM launch_qa_records r,launch_qa_users u,launch_qa_users a WHERE r.name='consent_grants' AND u.label='owner' AND a.label='attorney';
-INSERT INTO public.attorney_applications(user_id,email,full_name,bar_number,jurisdiction) SELECT id,'launch-qa-'||id||'@example.invalid','Fictional QA attorney','QA-000','QA jurisdiction' FROM launch_qa_users WHERE label='attorney';
+INSERT INTO public.attorney_access_applications(user_id,email,full_name,bar_number,jurisdiction) SELECT id,'launch-qa-'||id||'@example.invalid','Fictional QA attorney','QA-000','QA jurisdiction' FROM launch_qa_users WHERE label='attorney';
 INSERT INTO public.user_roles(user_id,role) SELECT id,'admin' FROM launch_qa_users WHERE label='founder';
 
 DO $$
@@ -25,7 +25,7 @@ BEGIN
  SELECT id INTO c FROM launch_qa_users WHERE label='attorney';
  SELECT id INTO founder_id FROM launch_qa_users WHERE label='founder';
  SELECT id INTO protected_row FROM launch_qa_records WHERE name='attorney_client_links';
- SELECT id INTO app FROM public.attorney_applications WHERE user_id=c;
+ SELECT id INTO app FROM public.attorney_access_applications WHERE user_id=c;
  PERFORM set_config('request.jwt.claim.sub', b::text, true);
  PERFORM set_config('request.jwt.claims', jsonb_build_object('sub',b,'role','authenticated')::text, true);
  EXECUTE 'SET LOCAL ROLE authenticated';
@@ -121,18 +121,18 @@ BEGIN
  BEGIN PERFORM public.claim_founder_attorney_invite(app,repeat('a',64));
  RAISE EXCEPTION 'Invitation allowed a different email'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
  INSERT INTO public.founder_attorney_invites(email,token_hash,invited_by,expires_at)
- SELECT email,repeat('b',64),founder_id,now()-interval '1 second' FROM public.attorney_applications WHERE id=app;
+ SELECT email,repeat('b',64),founder_id,now()-interval '1 second' FROM public.attorney_access_applications WHERE id=app;
  BEGIN PERFORM public.claim_founder_attorney_invite(app,repeat('b',64));
  RAISE EXCEPTION 'Expired invitation accepted'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
  INSERT INTO public.founder_attorney_invites(email,token_hash,invited_by)
- SELECT email,repeat('c',64),founder_id FROM public.attorney_applications WHERE id=app;
+ SELECT email,repeat('c',64),founder_id FROM public.attorney_access_applications WHERE id=app;
  PERFORM public.claim_founder_attorney_invite(app,repeat('c',64));
  BEGIN PERFORM public.claim_founder_attorney_invite(app,repeat('c',64));
  RAISE EXCEPTION 'Invitation reused'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
  EXECUTE 'SET LOCAL ROLE authenticated';
  BEGIN PERFORM public.claim_founder_attorney_invite(app,repeat('c',64));
  RAISE EXCEPTION 'Browser called private invitation RPC'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
- BEGIN UPDATE public.attorney_applications SET status='approved' WHERE id=app;
+ BEGIN UPDATE public.attorney_access_applications SET status='approved' WHERE id=app;
  RAISE EXCEPTION 'Browser directly approved itself'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
  EXECUTE 'RESET ROLE';
 

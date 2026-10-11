@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
  */
 
 const MIGRATION = "supabase/migrations/20261008120000_acl_client_update_guard_allowlist.sql";
-const DRIZZLE = "drizzle/migrations/0008_acl_client_update_guard_allowlist.sql";
+const DRIZZLE = "drizzle/migrations/0010_acl_client_update_guard_allowlist.sql";
 const SQL_TEST = "supabase/tests/sql/acl_client_update_guard.test.sql";
 
 const sql = readFileSync(MIGRATION, "utf8");
@@ -84,12 +84,14 @@ describe("attorney_client_links client update guard (C7 allowlist)", () => {
     );
   });
 
-  it("is captured identically in the tracked drizzle migration 0008 + journal", () => {
+  it("is captured identically in the tracked drizzle migration 0010 + journal", () => {
     expect(readFileSync(DRIZZLE, "utf8")).toBe(sql);
     const journal = JSON.parse(readFileSync("drizzle/migrations/meta/_journal.json", "utf8"));
     const tags = journal.entries.map((e: { tag: string }) => e.tag);
-    expect(tags).toContain("0008_acl_client_update_guard_allowlist");
-    expect(tags.indexOf("0008_acl_client_update_guard_allowlist")).toBeLessThan(tags.indexOf("0009_launch_consent_and_attorney_gate"));
+    expect(tags).toContain("0010_acl_client_update_guard_allowlist");
+    expect(tags.indexOf("0010_acl_client_update_guard_allowlist")).toBeLessThan(
+      tags.indexOf("0011_launch_consent_and_attorney_gate"),
+    );
   });
 
   it("the behavioural SQL test denies a survivor change to every non-allowlisted column", () => {

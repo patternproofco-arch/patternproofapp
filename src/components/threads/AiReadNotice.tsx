@@ -2,19 +2,16 @@ import { Link } from "@tanstack/react-router";
 import { ShieldAlert } from "lucide-react";
 
 /**
- * Plain-language consent shown BEFORE anything is uploaded on the three
- * "Message threads" screens that read a survivor's media with a third-party AI
+ * Plain-language consent shown BEFORE anything is uploaded on the "Message threads" screens that read a survivor's media with a third-party AI
  * service. The on-device import page (/import-messages) never sends anything
  * to an AI, so it is offered here as the private alternative.
  */
-type Kind = "screenshots" | "call log photos" | "recording";
+type Kind = "screenshots" | "call log photos";
 
 const WHAT: Record<Kind, string> = {
   screenshots: "The screenshots you add are sent to an AI service, which reads the text in them.",
   "call log photos":
     "The call log photos you add are sent to an AI service, which reads the call rows in them.",
-  recording:
-    "The audio from your recording is sent to an AI transcription service, which writes out what was said.",
 };
 
 interface Props {

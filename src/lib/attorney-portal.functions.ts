@@ -108,10 +108,18 @@ export const getMyRole = createServerFn({ method: "GET" })
     if (roles.includes("attorney")) role = "attorney";
     else if (roles.includes("advocate") && !roles.includes("survivor")) role = "advocate";
     else if (hasCollaborations) role = "collaborator";
-    const { data: application } = await (supabaseAdmin as any).from("attorney_applications")
-      .select("status").eq("user_id", context.userId).maybeSingle();
-    return { role, roles, hasCollaborations, is_org_partner, attorney_approved: application?.status === "approved" };
-
+    const { data: application } = await (supabaseAdmin as any)
+      .from("attorney_access_applications")
+      .select("status")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    return {
+      role,
+      roles,
+      hasCollaborations,
+      is_org_partner,
+      attorney_approved: application?.status === "approved",
+    };
   });
 
 export const upsertAttorneyProfile = createServerFn({ method: "POST" })
@@ -208,7 +216,6 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
 
     return { ok: true, trial_ends_at: profile?.trial_ends_at ?? null };
   });
-
 
 export const getAttorneyProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -566,7 +573,11 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
             : Promise.resolve({ data: null as { created_at: string } | null });
 
         // Latest pattern analysis (for severity-indicator review counting).
-        const patternQ = (await access.patternsVisibleToProfessional(supabaseAdmin, l, l.client_user_id))
+        const patternQ = (await access.patternsVisibleToProfessional(
+          supabaseAdmin,
+          l,
+          l.client_user_id,
+        ))
           ? supabaseAdmin
               .from("pattern_analyses")
               .select("analysis,reviewed_status,created_at")
@@ -855,7 +866,8 @@ export const getClientCase = createServerFn({ method: "POST" })
             .maybeSingle(),
     ]);
 
-    const { evidenceForProfessional, incidentForProfessional } = await import("@/lib/professional-view");
+    const { evidenceForProfessional, incidentForProfessional } =
+      await import("@/lib/professional-view");
     const incidents = (incQ.data ?? []).map((i) => incidentForProfessional(i));
     // The attorney should be able to see the exact terms they hold access
     // under, not just the data itself.
@@ -1623,9 +1635,8 @@ export const getClientThreadMatrixData = createServerFn({ method: "POST" })
       throw new Error("Thread not shared for this case");
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { MATRIX_THREAD_COLUMNS, readThreadMatrixRows } = await import(
-      "@/lib/frequency-matrix.server"
-    );
+    const { MATRIX_THREAD_COLUMNS, readThreadMatrixRows } =
+      await import("@/lib/frequency-matrix.server");
     const { data: thread } = await supabaseAdmin
       .from("message_threads")
       .select(MATRIX_THREAD_COLUMNS)
@@ -1653,9 +1664,8 @@ export const getClientThreadMatrixData = createServerFn({ method: "POST" })
         (e: unknown) => console.error("[audit] thread counts view log failed", e),
       );
     const t = thread as import("@/lib/frequency-matrix.server").MatrixThread;
-    const { incompleteExportNote, matrixSourcesFromThread } = await import(
-      "@/lib/frequency-matrix.server"
-    );
+    const { incompleteExportNote, matrixSourcesFromThread } =
+      await import("@/lib/frequency-matrix.server");
     return {
       thread: t,
       messages,

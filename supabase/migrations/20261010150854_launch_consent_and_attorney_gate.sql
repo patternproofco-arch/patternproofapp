@@ -1,5 +1,5 @@
 -- Server-owned consent mutations and founder attorney approval. No data is grandfathered.
-CREATE TABLE IF NOT EXISTS public.attorney_applications (
+CREATE TABLE IF NOT EXISTS public.attorney_access_applications (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
  user_id uuid NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
  email text NOT NULL, full_name text NOT NULL, firm_name text,
@@ -8,12 +8,12 @@ CREATE TABLE IF NOT EXISTS public.attorney_applications (
  reviewed_by uuid REFERENCES auth.users(id), reviewed_at timestamptz,
  created_at timestamptz NOT NULL DEFAULT now()
 );
-ALTER TABLE public.attorney_applications ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.attorney_applications FROM anon, authenticated;
-GRANT SELECT ON public.attorney_applications TO authenticated;
-GRANT ALL ON public.attorney_applications TO service_role;
-DROP POLICY IF EXISTS "Applicant reads own review" ON public.attorney_applications;
-CREATE POLICY "Applicant reads own review" ON public.attorney_applications FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
+ALTER TABLE public.attorney_access_applications ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.attorney_access_applications FROM anon, authenticated;
+GRANT SELECT ON public.attorney_access_applications TO authenticated;
+GRANT ALL ON public.attorney_access_applications TO service_role;
+DROP POLICY IF EXISTS "Applicant reads own review" ON public.attorney_access_applications;
+CREATE POLICY "Applicant reads own review" ON public.attorney_access_applications FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
 
 CREATE TABLE IF NOT EXISTS public.founder_attorney_invites (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), email text NOT NULL,
@@ -27,7 +27,7 @@ GRANT ALL ON public.founder_attorney_invites TO service_role;
 
 CREATE OR REPLACE FUNCTION private.attorney_is_approved(_id uuid)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
- SELECT EXISTS (SELECT 1 FROM public.attorney_applications WHERE user_id = _id AND status = 'approved');
+ SELECT EXISTS (SELECT 1 FROM public.attorney_access_applications WHERE user_id = _id AND status = 'approved');
 $$;
 REVOKE ALL ON FUNCTION private.attorney_is_approved(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION private.attorney_is_approved(uuid) TO authenticated, service_role;
@@ -133,7 +133,7 @@ BEGIN
  IF _status NOT IN ('approved','rejected') OR NOT EXISTS (
  SELECT 1 FROM public.user_roles WHERE user_id = _reviewer AND role = 'admin') THEN
  RAISE EXCEPTION 'Not authorized' USING ERRCODE = '42501'; END IF;
- UPDATE public.attorney_applications SET status = _status, reviewed_by = _reviewer, reviewed_at = now()
+ UPDATE public.attorney_access_applications SET status = _status, reviewed_by = _reviewer, reviewed_at = now()
  WHERE id = _id RETURNING user_id INTO _uid;
  IF _uid IS NULL THEN RAISE EXCEPTION 'Application not found'; END IF;
  IF _status = 'approved' THEN
@@ -143,7 +143,7 @@ BEGIN
  UPDATE public.attorney_client_links SET status='revoked',revoked_at=now()
  WHERE attorney_user_id=_uid AND revoked_at IS NULL;
  END IF;
- PERFORM public.record_audit_event(_uid, 'attorney_reviewed', 'attorney_applications', _id,
+ PERFORM public.record_audit_event(_uid, 'attorney_reviewed', 'attorney_access_applications', _id,
  'admin', _reviewer, jsonb_build_object('status', _status));
 END;
 $$;
@@ -153,9 +153,9 @@ GRANT EXECUTE ON FUNCTION public.review_attorney_application(uuid,uuid,text) TO 
 -- A direct vetted invitation is one-use, expiring and bound to the verified account email.
 CREATE OR REPLACE FUNCTION public.claim_founder_attorney_invite(_application uuid, _hash text)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE _inv public.founder_attorney_invites; _app public.attorney_applications;
+DECLARE _inv public.founder_attorney_invites; _app public.attorney_access_applications;
 BEGIN
- SELECT * INTO _app FROM public.attorney_applications WHERE id = _application FOR UPDATE;
+ SELECT * INTO _app FROM public.attorney_access_applications WHERE id = _application FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Application not found'; END IF;
  SELECT * INTO _inv FROM public.founder_attorney_invites WHERE token_hash = _hash FOR UPDATE;
  IF NOT FOUND OR _inv.used_at IS NOT NULL OR _inv.expires_at <= now() OR lower(_inv.email) <> lower(_app.email)
@@ -204,3 +204,28 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
 $$;
 REVOKE ALL ON FUNCTION public.founder_recent_signups() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.founder_recent_signups() TO service_role;
+
+-- Durable signup alert receipts. Only server code can record delivery outcomes.
+-- Existing roles are excluded from the rollout so a login cannot send historical
+-- account metadata to the founder. Repeat application must not exclude new,
+-- failed alerts, hence the bootstrap is only run when the table is first created.
+DO $$
+BEGIN
+ IF to_regclass('public.signup_alert_receipts') IS NULL THEN
+  CREATE TABLE public.signup_alert_receipts (
+   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+   role text NOT NULL CHECK (role IN ('survivor','attorney','advocate')),
+   status text NOT NULL CHECK (status IN ('sent','suppressed','skipped')),
+   created_at timestamptz NOT NULL DEFAULT now(),
+   PRIMARY KEY (user_id,role)
+  );
+  INSERT INTO public.signup_alert_receipts(user_id,role,status)
+   SELECT user_id,role::text,'skipped' FROM public.user_roles
+   WHERE role::text IN ('survivor','attorney','advocate')
+   ON CONFLICT (user_id,role) DO NOTHING;
+ END IF;
+END
+$$;
+ALTER TABLE public.signup_alert_receipts ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.signup_alert_receipts FROM PUBLIC, anon, authenticated;
+GRANT SELECT,INSERT,UPDATE,DELETE ON public.signup_alert_receipts TO service_role;

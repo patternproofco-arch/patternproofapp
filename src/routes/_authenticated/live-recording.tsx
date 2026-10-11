@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Mic, Square } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import { useSettings } from "@/lib/settings-context";
 import { useRecording, type PendingRecording } from "@/lib/recording-context";
@@ -137,9 +138,10 @@ function LiveRecording() {
   const save = async () => {
     if (!user || !item) return;
     const path = `${user.id}/${crypto.randomUUID()}.webm`;
-    const up = await supabase.storage
+    const up = await uploadWithRetry(() =>
+        supabase.storage
       .from("conversation-recordings")
-      .upload(path, item.blob, { contentType: "audio/webm" });
+      .upload(path, item.blob, { contentType: "audio/webm" }));
     if (up.error) {
       toast("We couldn't save that. Try again in a moment.");
       return;

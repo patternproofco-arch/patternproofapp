@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { makeIntakeDeps } from "@/lib/evidence-intake-deps";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { IncidentCard, type IncidentLite } from "@/components/IncidentCard";
@@ -207,20 +209,7 @@ function JournalPage() {
   // stored name and can't create a second record.
   const [resumeKeys, setResumeKeys] = useState<Record<string, string>>({});
 
-  const intakeDeps: IntakeDeps = {
-    upload: async (key, blob) => {
-      const { error } = await supabase.storage.from("evidence-files").upload(key, blob);
-      return { error: error ? { message: error.message, statusCode: String((error as { statusCode?: string }).statusCode ?? "") } : null };
-    },
-    remove: async (keys) => {
-      const { error } = await supabase.storage.from("evidence-files").remove(keys);
-      if (error) throw error;
-    },
-    ingest: async (file) =>
-      (await ingestFn({ data: { files: [file] } })) as unknown as Awaited<ReturnType<IntakeDeps["ingest"]>>,
-    sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
-    newKey: (userId, name) => `${userId}/${crypto.randomUUID()}-${name}`,
-  };
+  const intakeDeps: IntakeDeps = makeIntakeDeps((file) => ingestFn({ data: { files: [file] } }));
 
   /** Attach files to a saved entry. Returns the files that did NOT save, with why. */
   const uploadAttachments = async (
@@ -508,7 +497,8 @@ function JournalPage() {
     setAiBusy(true);
     const ext = f.name.split(".").pop() ?? "bin";
     const key = `${user.id}/journal-ai/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const up = await supabase.storage.from("evidence-files").upload(key, f);
+    const up = await uploadWithRetry(() =>
+        supabase.storage.from("evidence-files").upload(key, f));
     if (up.error) {
       setAiBusy(false);
       toast("We couldn't read that image. Try another.");

@@ -1,7 +1,7 @@
 /** Approval is database-owned; JWT/user metadata never authorizes attorneys. */
 export async function assertApprovedAttorney(db: any, userId: string) {
   const { data, error } = await db
-    .from("attorney_applications")
+    .from("attorney_access_applications")
     .select("status")
     .eq("user_id", userId)
     .maybeSingle();

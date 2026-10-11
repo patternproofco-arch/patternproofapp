@@ -10,7 +10,7 @@ describe("database-owned attorney approval", () => {
   it.each(["pending_review", "rejected", undefined])("denies %s", async (status) => {
     const db = fakeAdmin({
       user_roles: [{ user_id: "a", role: "attorney" }],
-      attorney_applications: status ? [{ user_id: "a", status }] : [],
+      attorney_access_applications: status ? [{ user_id: "a", status }] : [],
     });
     await expect(assertApprovedAttorneyAccount(db, "a")).rejects.toThrow(
       "Attorney approval required",
@@ -19,12 +19,12 @@ describe("database-owned attorney approval", () => {
   it("accepts a reviewed account", async () => {
     const db = fakeAdmin({
       user_roles: [{ user_id: "a", role: "attorney" }],
-      attorney_applications: [{ user_id: "a", status: "approved" }],
+      attorney_access_applications: [{ user_id: "a", status: "approved" }],
     });
     await expect(assertApprovedAttorneyAccount(db, "a")).resolves.toBeUndefined();
   });
   it("cannot use another applicant’s approval", async () => {
-    const db = fakeAdmin({ attorney_applications: [{ user_id: "b", status: "approved" }] });
+    const db = fakeAdmin({ attorney_access_applications: [{ user_id: "b", status: "approved" }] });
     await expect(assertApprovedAttorney(db, "a")).rejects.toThrow("Attorney approval required");
   });
   it("keeps survivor-only access available", async () => {
