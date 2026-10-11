@@ -29,7 +29,8 @@ export async function notifyNewSignup(input: {
 
     stage = "load_account";
     const { data, error } = await supabaseAdmin.auth.admin.getUserById(input.userId);
-    if (error || !data?.user?.email) throw new Error("Account lookup failed");
+    if (error || !data?.user?.email || !data.user.email_confirmed_at)
+      throw new Error("Account lookup failed");
     const props = {
       email: input.role === "survivor" ? undefined : data.user.email,
       role: input.role,

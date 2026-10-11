@@ -38,7 +38,11 @@ BEGIN
  IF actor_email IS NULL OR actor_email <> lower(inv->>CASE WHEN _direction='attorney' THEN 'attorney_email' ELSE 'survivor_email' END) THEN
   RAISE EXCEPTION 'A matching confirmed account is required' USING ERRCODE='42501';
  END IF;
- IF NOT private.attorney_is_approved(attorney_id) THEN
+ -- Hold approval through acceptance. A concurrent rejection waits, then
+ -- revokes this grant too; it cannot race a newly inserted share.
+ PERFORM 1 FROM public.attorney_access_applications
+  WHERE user_id=attorney_id AND status='approved' FOR SHARE;
+ IF NOT FOUND THEN
   RAISE EXCEPTION 'Attorney approval required' USING ERRCODE='42501';
  END IF;
  -- Serialize two invitations for the same pair, including the first insert.

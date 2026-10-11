@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   render: vi.fn(),
   rpc: vi.fn(),
   update: vi.fn(),
+  complete: vi.fn(),
 }));
 vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
@@ -15,7 +16,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       insert: mocks.insert,
       update: (patch: unknown) => {
         mocks.update(patch);
-        return { eq: () => ({ eq: async () => ({ error: null }) }) };
+        return { eq: () => ({ eq: mocks.complete }) };
       },
     }),
   },
@@ -28,12 +29,19 @@ describe("founder signup alert", () => {
     vi.clearAllMocks();
     mocks.rpc.mockResolvedValue({ data: true, error: null });
     mocks.getUserById.mockResolvedValue({
-      data: { user: { email: "qa@example.invalid", created_at: "2026-10-10" } },
+      data: {
+        user: {
+          email: "qa@example.invalid",
+          email_confirmed_at: "2026-10-11",
+          created_at: "2026-10-10",
+        },
+      },
       error: null,
     });
     mocks.render.mockResolvedValue("rendered");
     mocks.send.mockResolvedValue({ sent: true });
     mocks.insert.mockResolvedValue({ error: null });
+    mocks.complete.mockResolvedValue({ error: null });
   });
   it("sends operational metadata with a stable per-account role key", async () => {
     expect(await notifyNewSignup({ userId: "qa-user", role: "survivor" })).toBe(true);
@@ -68,6 +76,32 @@ describe("founder signup alert", () => {
     expect(mocks.send).not.toHaveBeenCalled();
     expect(mocks.insert).toHaveBeenCalledWith(
       expect.objectContaining({ error_message: "Signup notification failed during load_account." }),
+    );
+  });
+  it("does not send an alert for an unconfirmed account", async () => {
+    mocks.getUserById.mockResolvedValue({
+      data: { user: { email: "qa@example.invalid", email_confirmed_at: null } },
+      error: null,
+    });
+    expect(await notifyNewSignup({ userId: "qa-user", role: "survivor" })).toBe(false);
+    expect(mocks.send).not.toHaveBeenCalled();
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+  it("records claim and completion failures without treating the alert as delivered", async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "offline" } });
+    expect(await notifyNewSignup({ userId: "qa-user", role: "survivor" })).toBe(false);
+    expect(mocks.send).not.toHaveBeenCalled();
+    expect(mocks.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error_message: "Signup notification failed during claim_alert.",
+      }),
+    );
+    mocks.complete.mockResolvedValue({ error: { message: "offline" } });
+    expect(await notifyNewSignup({ userId: "qa-user", role: "survivor" })).toBe(false);
+    expect(mocks.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error_message: "Signup notification failed during complete_alert.",
+      }),
     );
   });
   it("does not submit an alert already delivered or currently leased", async () => {

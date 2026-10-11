@@ -15,6 +15,8 @@ INSERT INTO public.support_requests(id,user_id,reply_email,category,message) SEL
 INSERT INTO public.attorney_client_links(id,client_user_id,attorney_user_id,expires_at) SELECT r.id,u.id,a.id,now()+interval '1 day' FROM launch_qa_records r,launch_qa_users u,launch_qa_users a WHERE r.name='attorney_client_links' AND u.label='owner' AND a.label='attorney';
 INSERT INTO public.consent_grants(id,survivor_user_id,recipient_user_id) SELECT r.id,u.id,a.id FROM launch_qa_records r,launch_qa_users u,launch_qa_users a WHERE r.name='consent_grants' AND u.label='owner' AND a.label='attorney';
 INSERT INTO public.attorney_access_applications(user_id,email,full_name,bar_number,jurisdiction) SELECT id,'launch-qa-'||id||'@example.invalid','Fictional QA attorney','QA-000','QA jurisdiction' FROM launch_qa_users WHERE label='attorney';
+-- Legacy intake approval is not account approval.
+INSERT INTO public.attorney_applications(email,full_name,status,invited_user_id) SELECT 'launch-qa-'||id||'@example.invalid','Fictional legacy QA attorney','approved',id FROM launch_qa_users WHERE label='attorney';
 INSERT INTO public.user_roles(user_id,role) SELECT id,'admin' FROM launch_qa_users WHERE label='founder';
 
 DO $$

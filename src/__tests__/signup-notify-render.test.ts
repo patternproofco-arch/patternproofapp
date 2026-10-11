@@ -9,7 +9,11 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       admin: {
         getUserById: async () => ({
           data: {
-            user: { email: "fictional@example.invalid", created_at: "2026-10-11T00:00:00Z" },
+            user: {
+              email: "fictional@example.invalid",
+              email_confirmed_at: "2026-10-11",
+              created_at: "2026-10-11T00:00:00Z",
+            },
           },
           error: null,
         }),

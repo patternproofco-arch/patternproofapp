@@ -29,7 +29,9 @@ export const listSupportRequests = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("support_requests")
-      .select("id,name,reply_email,category,message,created_at,user_id,status,reply_body,replied_at")
+      .select(
+        "id,name,reply_email,category,message,created_at,user_id,status,reply_body,replied_at",
+      )
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error("We couldn't load support messages.");

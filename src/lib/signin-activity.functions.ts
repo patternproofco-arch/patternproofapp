@@ -27,7 +27,11 @@ export const getSigninActivity = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!role) throw new Error("Not authorized.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const users: { created_at: string; email_confirmed_at?: string | null; last_sign_in_at?: string | null }[] = [];
+    const users: {
+      created_at: string;
+      email_confirmed_at?: string | null;
+      last_sign_in_at?: string | null;
+    }[] = [];
     for (let page = 1; page <= 20; page++) {
       const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
       if (error) throw new Error("We couldn't load activity.");
