@@ -1,6 +1,6 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { supabaseForUser, requireAuth, recordMcpCall, AI_BLOCKED } from "../supabase";
+import { supabaseForUser, requireAssistantAccess, recordMcpCall, AI_BLOCKED } from "../supabase";
 
 export default defineTool({
   name: "list_incidents",
@@ -22,7 +22,7 @@ export default defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ limit, since }, ctx) => {
-    const authError = requireAuth(ctx);
+    const authError = await requireAssistantAccess(ctx);
     if (authError) return authError;
     const sb = supabaseForUser(ctx);
     let q = sb
