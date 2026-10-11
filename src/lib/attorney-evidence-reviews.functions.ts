@@ -14,27 +14,32 @@ const REVIEW_STATUSES = [
 
 async function assertActiveLink(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id,status")
-    .eq("attorney_user_id", attorneyId)
-    .eq("client_user_id", clientId)
-    .maybeSingle();
-  if (!data || data.status !== "active") throw new Error("No active access");
+  const { assertLink } = await import("@/lib/attorney-access.server");
+  return assertLink(supabaseAdmin, attorneyId, clientId);
 }
 
 export const listEvidenceReviews = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertActiveLink(context.userId, data.clientId);
+    const link = await assertActiveLink(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (!link.scope_evidence?.length) return { reviews: [] };
     const { data: rows } = await supabaseAdmin
       .from("attorney_evidence_reviews")
       .select("evidence_id,status,exhibit_label,notes,linked_incident_id,updated_at")
       .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId);
-    return { reviews: rows ?? [] };
+      .eq("client_user_id", data.clientId)
+      .in("evidence_id", link.scope_evidence);
+    return {
+      reviews: (rows ?? []).map((row) => ({
+        ...row,
+        linked_incident_id:
+          row.linked_incident_id && link.scope_incidents?.includes(row.linked_incident_id)
+            ? row.linked_incident_id
+            : null,
+      })),
+    };
   });
 
 export const upsertEvidenceReview = createServerFn({ method: "POST" })
@@ -52,7 +57,14 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertActiveLink(context.userId, data.clientId);
+    const link = await assertActiveLink(context.userId, data.clientId);
+    const { idInScope } = await import("@/lib/attorney-access.server");
+    if (
+      !idInScope(link, "evidence", data.evidenceId) ||
+      (data.linked_incident_id && !idInScope(link, "incident", data.linked_incident_id))
+    ) {
+      throw new Error("That record is not in the current share.");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     type Payload = {
       attorney_user_id: string;

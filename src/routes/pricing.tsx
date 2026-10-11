@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { BrandMark, MARK_COLORWAYS } from "@/components/BrandMark";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getCharterAvailability } from "@/lib/payments.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { getStripeEnvironment } from "@/lib/stripe-env";
 import { buildTiers, FIRM_SEAT_MAX, type Tier } from "@/lib/pricing-tiers";
 import { ThreadGroup } from "@/components/ThreadConnector";
 

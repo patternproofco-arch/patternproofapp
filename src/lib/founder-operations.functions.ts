@@ -46,7 +46,7 @@ export const getMyAttorneyApplication = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await (supabaseAdmin as any)
-      .from("attorney_applications")
+      .from("attorney_access_applications")
       .select("id,status,full_name,firm_name,bar_number,jurisdiction,created_at,reviewed_at")
       .eq("user_id", context.userId)
       .maybeSingle();
@@ -82,14 +82,14 @@ export const applyAsAttorney = createServerFn({ method: "POST" })
     const { invite_token, ...fields } = data;
     // An immutable owner-unique request cannot overwrite its review or flood the inbox.
     const { data: inserted, error } = await db
-      .from("attorney_applications")
+      .from("attorney_access_applications")
       .insert({ ...fields, user_id: context.userId, email })
       .select("id")
       .single();
     let id: string;
     if (error?.code === "23505") {
       const { data: existing, error: lookupError } = await db
-        .from("attorney_applications")
+        .from("attorney_access_applications")
         .select("id")
         .eq("user_id", context.userId)
         .single();
@@ -123,9 +123,9 @@ export const getFounderOperations = createServerFn({ method: "GET" })
   .middleware([requireAccountAuth])
   .handler(async ({ context }) => {
     const db = await founder(context.userId);
-    const [apps, tickets, roles, sends] = await Promise.all([
+    const [apps, tickets, roles, sends, alerts] = await Promise.all([
       (db as any)
-        .from("attorney_applications")
+        .from("attorney_access_applications")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(100),
@@ -140,8 +140,14 @@ export const getFounderOperations = createServerFn({ method: "GET" })
         .select("id,template_name,status,error_message,created_at")
         .order("created_at", { ascending: false })
         .limit(50),
+      (db as any)
+        .from("signup_alert_outbox")
+        .select("user_id,role,created_at,attempts,next_attempt_at")
+        .is("completed_at", null)
+        .order("created_at", { ascending: true })
+        .limit(50),
     ]);
-    if ([apps, tickets, roles, sends].some((r) => r.error))
+    if ([apps, tickets, roles, sends, alerts].some((r) => r.error))
       throw new Error("Could not load operations.");
     return {
       applications: apps.data as AttorneyApplication[],
@@ -153,7 +159,35 @@ export const getFounderOperations = createServerFn({ method: "GET" })
         roles: string[];
       }>,
       emailActivity: sends.data ?? [],
+      pendingAlerts: (alerts.data ?? []) as Array<{
+        user_id: string;
+        role: string;
+        created_at: string;
+        attempts: number;
+        next_attempt_at: string;
+      }>,
     };
+  });
+
+export const retrySignupAlerts = createServerFn({ method: "POST" })
+  .middleware([requireAccountAuth])
+  .handler(async ({ context }) => {
+    const db = await founder(context.userId);
+    const { data, error } = await (db as any)
+      .from("signup_alert_outbox")
+      .select("user_id,role")
+      .is("completed_at", null)
+      .lte("next_attempt_at", new Date().toISOString())
+      .order("created_at", { ascending: true })
+      .limit(25);
+    if (error) throw new Error("Could not load pending signup alerts.");
+    const { notifyNewSignup } = await import("@/lib/signup-notify.server");
+    let submitted = 0;
+    for (const row of data ?? []) {
+      if (await notifyNewSignup({ userId: row.user_id, role: row.role, retryOnly: true }))
+        submitted++;
+    }
+    return { attempted: data?.length ?? 0, submitted };
   });
 
 export const reviewAttorney = createServerFn({ method: "POST" })

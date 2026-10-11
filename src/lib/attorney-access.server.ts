@@ -178,8 +178,15 @@ export async function assertLink(
     .select(LINK_COLUMNS)
     .eq("attorney_user_id", attorneyId)
     .eq("client_user_id", clientId)
+    .eq("status", "active")
+    .is("revoked_at", null)
     .maybeSingle();
-  if (!data || data.status !== "active" || isRevoked(data.revoked_at) || isExpired(data.expires_at)) {
+  if (
+    !data ||
+    data.status !== "active" ||
+    isRevoked(data.revoked_at) ||
+    isExpired(data.expires_at)
+  ) {
     throw new Error("No active access");
   }
   await applyCaseScope(admin, data, clientId);
@@ -194,7 +201,11 @@ export async function assertLink(
  */
 export async function patternsVisibleToProfessional(
   admin: Admin,
-  link: { include_patterns?: boolean | null; include_all_incidents: boolean; scope_incidents: string[] | null },
+  link: {
+    include_patterns?: boolean | null;
+    include_all_incidents: boolean;
+    scope_incidents: string[] | null;
+  },
   clientUserId: string,
 ): Promise<boolean> {
   if (link.include_patterns === false || link.include_patterns == null) return false;
@@ -228,8 +239,15 @@ export async function assertCaseAccess(
     .select(LINK_COLUMNS)
     .eq("attorney_user_id", userId)
     .eq("client_user_id", clientId)
+    .eq("status", "active")
+    .is("revoked_at", null)
     .maybeSingle();
-  if (owner && owner.status === "active" && !isRevoked(owner.revoked_at) && !isExpired(owner.expires_at)) {
+  if (
+    owner &&
+    owner.status === "active" &&
+    !isRevoked(owner.revoked_at) &&
+    !isExpired(owner.expires_at)
+  ) {
     await applyCaseScope(admin, owner, clientId);
     return { link: owner as AttorneyLink, role: "owner" };
   }
@@ -248,7 +266,10 @@ export async function assertCaseAccess(
 
   const collabs = (collabRows ?? []) as Array<{ role: string; link_id: string }>;
   const grants = (grantRows ?? []) as Array<{ client_link_id: string }>;
-  const candidateLinkIds = [...collabs.map((r) => r.link_id), ...grants.map((r) => r.client_link_id)];
+  const candidateLinkIds = [
+    ...collabs.map((r) => r.link_id),
+    ...grants.map((r) => r.client_link_id),
+  ];
   if (!candidateLinkIds.length) throw new Error("No active access");
 
   const { data: link } = await admin
@@ -259,17 +280,19 @@ export async function assertCaseAccess(
     .eq("status", "active")
     .is("revoked_at", null)
     .maybeSingle();
-  if (!link || isRevoked(link.revoked_at) || isExpired(link.expires_at)) throw new Error("No active access");
+  if (!link || isRevoked(link.revoked_at) || isExpired(link.expires_at))
+    throw new Error("No active access");
   await applyCaseScope(admin, link, clientId);
   const collabRole = collabs.find((c) => c.link_id === link.id)?.role as
-    | "paralegal"
-    | "associate"
-    | "attorney"
-    | undefined;
+    "paralegal" | "associate" | "attorney" | undefined;
   if (!collabRole && grants.some((g) => g.client_link_id === link.id)) {
     await assertSameFirm(admin, userId, link.attorney_user_id);
   }
-  return { link: link as AttorneyLink, role: "collaborator", ...(collabRole ? { collabRole } : {}) };
+  return {
+    link: link as AttorneyLink,
+    role: "collaborator",
+    ...(collabRole ? { collabRole } : {}),
+  };
 }
 
 /** Admin-client time-entry mutations must recheck the author's CURRENT case grant. */
@@ -313,7 +336,8 @@ export async function assertLinkParticipant(
     .select("id,attorney_user_id,client_user_id,status,expires_at,revoked_at")
     .eq("id", linkId)
     .maybeSingle();
-  if (!link || link.status !== "active" || isRevoked(link.revoked_at)) throw new Error("No active link");
+  if (!link || link.status !== "active" || isRevoked(link.revoked_at))
+    throw new Error("No active link");
   if (link.client_user_id === userId) return { link, role: "survivor" };
   // Expiry only gates the attorney side — the survivor can always reach her own
   // thread even after a window she set has lapsed. Revocation (revoked_at set)

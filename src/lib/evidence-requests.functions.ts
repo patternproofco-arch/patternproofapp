@@ -138,7 +138,15 @@ async function queueRequestDraft(
           .select("id,title,date,transcript,extracted_text")
           .eq("user_id", userId)
           .in("id", ids)
-      : { data: [] as { id: string; title: string; date: string | null; transcript: string | null; extracted_text: string | null }[] };
+      : {
+          data: [] as {
+            id: string;
+            title: string;
+            date: string | null;
+            transcript: string | null;
+            extracted_text: string | null;
+          }[],
+        };
     const parts: string[] = [];
     if (note) parts.push(note);
     for (const f of files ?? []) {
@@ -146,7 +154,11 @@ async function queueRequestDraft(
       if (text) parts.push(`From "${f.title}":\n${text}`);
     }
     const description = (parts.join("\n\n") || `Answer to request: ${title}`).slice(0, 4000);
-    const firstDate = (files ?? []).map((f) => f.date).filter(Boolean).sort()[0] ?? null;
+    const firstDate =
+      (files ?? [])
+        .map((f) => f.date)
+        .filter(Boolean)
+        .sort()[0] ?? null;
     await admin.from("proposed_incidents").insert({
       user_id: userId,
       batch_id: crypto.randomUUID(),
@@ -275,13 +287,8 @@ export const declineEvidenceRequest = createServerFn({ method: "POST" })
 
 async function activeLinkFor(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: link } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id,status")
-    .eq("attorney_user_id", attorneyId)
-    .eq("client_user_id", clientId)
-    .maybeSingle();
-  if (!link || link.status !== "active") throw new Error("Sharing with this client isn't active.");
+  const { assertLink } = await import("@/lib/attorney-access.server");
+  const link = await assertLink(supabaseAdmin, attorneyId, clientId);
   return { admin: supabaseAdmin, link };
 }
 

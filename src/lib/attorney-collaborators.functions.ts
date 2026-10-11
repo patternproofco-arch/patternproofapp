@@ -14,13 +14,8 @@ const COLLABORATOR_SEAT_MAX = 5;
 
 async function assertOwnerLink(userId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: link } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id,status")
-    .eq("attorney_user_id", userId)
-    .eq("client_user_id", clientId)
-    .maybeSingle();
-  if (!link || link.status !== "active") throw new Error("No active client link");
+  const { assertLink } = await import("@/lib/attorney-access.server");
+  const link = await assertLink(supabaseAdmin, userId, clientId);
   return link;
 }
 

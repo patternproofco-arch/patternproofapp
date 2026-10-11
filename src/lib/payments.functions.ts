@@ -559,6 +559,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
           .eq("attorney_user_id", context.userId)
           .eq("client_user_id", data.clientId)
           .eq("status", "active")
+          .is("revoked_at", null)
           .maybeSingle(),
         supabaseAdmin
           .from("attorney_incident_notes")

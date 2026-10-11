@@ -1,4 +1,4 @@
-import { isActiveShareLink as accessIsActive } from "@/lib/attorney-access.server";
+import { isActiveShareLink } from "@/lib/attorney-access.server";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -80,11 +80,11 @@ export const createInvitation = createServerFn({ method: "POST" })
       }
       const { data: link, error: linkErr } = await supabaseAdmin
         .from("attorney_client_links")
-        .select("id,scope_incidents,scope_evidence,status")
+        .select("id,scope_incidents,scope_evidence,status,revoked_at,expires_at")
         .eq("id", data.existing_link_id)
         .eq("client_user_id", context.userId)
         .maybeSingle();
-      if (linkErr || !link || link.status !== "active") {
+      if (linkErr || !link || !isActiveShareLink(link)) {
         throw new Error("That existing share couldn't be verified. Try again.");
       }
       const { mergeShareScopes } = await import("@/lib/sharing/merge-share-scope");
@@ -146,7 +146,7 @@ export const listMyInvitations = createServerFn({ method: "GET" })
     const { data: links } = await supabaseAdmin
       .from("attorney_client_links")
       .select(
-        "id,attorney_user_id,invitation_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,deposition_prep_consent,deposition_prep_consent_at,clio_share_consent,clio_share_consent_at,case_id",
+        "id,attorney_user_id,invitation_id,created_at,status,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,deposition_prep_consent,deposition_prep_consent_at,clio_share_consent,clio_share_consent_at,case_id,expires_at,revoked_at",
       )
       .eq("client_user_id", context.userId)
       .order("created_at", { ascending: false });
@@ -185,6 +185,11 @@ export const listMyInvitations = createServerFn({ method: "GET" })
     };
     const linksOut = (links ?? []).map((l) => ({
       ...l,
+      status: l.revoked_at
+        ? "revoked"
+        : l.expires_at && Date.parse(l.expires_at) <= Date.now()
+          ? "expired"
+          : l.status,
       profile: profMap.get(l.attorney_user_id) ?? null,
       case_label: labelFor(l.case_id),
       // Surface the terms this access was granted under, so the survivor can
@@ -196,7 +201,7 @@ export const listMyInvitations = createServerFn({ method: "GET" })
         return {
           date_range_start: inv?.date_range_start ?? null,
           date_range_end: inv?.date_range_end ?? null,
-          expires_at: inv?.expires_at ?? null,
+          expires_at: l.expires_at ?? inv?.expires_at ?? null,
           granted_at: l.created_at,
         };
       })(),
@@ -325,73 +330,15 @@ export const acceptInvitation = createServerFn({ method: "POST" })
     const { scopeForAcceptance } = await import("@/lib/invitation-scope.server");
     const frozen = await scopeForAcceptance(supabaseAdmin, inv);
 
-    const { data: existing } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("id,status,revoked_at,expires_at")
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", inv.client_user_id)
-      .maybeSingle();
-
-    let link: { id: string; client_user_id: string };
-    if (existing?.id && !accessIsActive(existing)) {
-      throw new Error("That previous share has ended. It cannot be reopened.");
-    }
-    if (existing?.id) {
-      const { data: updated, error: updErr } = await supabaseAdmin
-        .from("attorney_client_links")
-        .update({
-          status: "active",
-          revoked_at: null,
-          invitation_id: inv.id,
-          scope_incidents: frozen.scope_incidents,
-          scope_evidence: frozen.scope_evidence,
-          include_all_incidents: false,
-          include_all_evidence: false,
-          include_patterns: inv.include_patterns,
-          include_voice_notes: inv.include_voice_notes,
-          include_communications: inv.include_communications,
-          include_legal_documents: inv.include_legal_documents,
-          case_id: inv.case_id ?? null,
-          expires_at: inv.expires_at ?? null,
-        })
-        .eq("id", existing.id)
-        .select("id,client_user_id")
-        .single();
-      if (updErr) throw new Error(updErr.message);
-      link = updated;
-    } else {
-      const { data: inserted, error: linkErr } = await supabaseAdmin
-        .from("attorney_client_links")
-        .insert({
-          attorney_user_id: context.userId,
-          client_user_id: inv.client_user_id,
-          invitation_id: inv.id,
-          scope_incidents: frozen.scope_incidents,
-          scope_evidence: frozen.scope_evidence,
-          include_all_incidents: false,
-          include_all_evidence: false,
-          include_patterns: inv.include_patterns,
-          include_voice_notes: inv.include_voice_notes,
-          include_communications: inv.include_communications,
-          include_legal_documents: inv.include_legal_documents,
-          case_id: inv.case_id ?? null,
-          expires_at: inv.expires_at ?? null,
-          status: "active",
-        })
-        .select("id,client_user_id")
-        .single();
-      if (linkErr) throw new Error(linkErr.message);
-      link = inserted;
-    }
-
-    await supabaseAdmin
-      .from("attorney_invitations")
-      .update({
-        status: "accepted",
-        accepted_at: new Date().toISOString(),
-        accepted_by: context.userId,
-      })
-      .eq("id", inv.id);
+    // Claim the invitation and mutate the grant in one transaction. An ended
+    // grant keeps its identity; fresh survivor consent creates a new row.
+    const { acceptAttorneyShare } = await import("@/lib/attorney-share.server");
+    const link = await acceptAttorneyShare(supabaseAdmin, {
+      invitationId: inv.id,
+      actorId: context.userId,
+      direction: "attorney",
+      scope: frozen,
+    });
 
     return { ok: true, link };
   });

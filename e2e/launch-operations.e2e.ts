@@ -3,6 +3,10 @@ import { expect, test } from "@playwright/test";
 // @ts-expect-error JavaScript QA helper has no declaration file.
 import { mockLoggedIn } from "../scripts/qa/mock-session.mjs";
 
+// Service-worker fetches bypass Playwright route fixtures. These are UI fixture
+// tests; the service worker has its own privacy tests.
+test.use({ serviceWorkers: "block" });
+
 test("public attorney intake explains review and exposes account creation", async ({ page }) => {
   await page.goto("/attorney-apply");
   await expect(page.getByRole("heading", { name: "Apply for attorney access" })).toBeVisible();
@@ -40,6 +44,7 @@ test("founder can review applications and see support, signup and mail activity"
         attorney_approved: true,
       }),
       getFounderOperations: () => ({
+        pendingAlerts: [{ user_id: "qa-signup", role: "survivor", attempts: 1 }],
         applications: [
           {
             id: "qa-app",
@@ -81,6 +86,7 @@ test("founder can review applications and see support, signup and mail activity"
           },
         ],
       }),
+      retrySignupAlerts: () => ({ attempted: 1, submitted: 1 }),
     },
   });
   await page.goto("/admin/operations");
@@ -93,4 +99,6 @@ test("founder can review applications and see support, signup and mail activity"
   await expect(page.getByText("survivor", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Email activity", exact: true }).click();
   await expect(page.getByText("Fictional provider outage")).toBeVisible();
+  await page.getByRole("button", { name: "Retry pending signup alerts" }).click();
+  await expect(page.getByRole("status")).toContainText("Submitted 1 of 1 eligible signup alerts");
 });

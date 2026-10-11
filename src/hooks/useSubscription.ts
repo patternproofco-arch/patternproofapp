@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getMySubscription } from "@/lib/payments.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { getStripeEnvironment } from "@/lib/stripe-env";
 import { supabase } from "@/integrations/supabase/client";
 
 export type SubscriptionState = {

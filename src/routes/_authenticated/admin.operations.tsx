@@ -5,6 +5,7 @@ import {
   getFounderOperations,
   reviewAttorney,
   inviteVettedAttorney,
+  retrySignupAlerts,
 } from "@/lib/founder-operations.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,8 @@ function OperationsPage() {
   const get = useServerFn(getFounderOperations);
   const review = useServerFn(reviewAttorney);
   const invite = useServerFn(inviteVettedAttorney);
+  const retryAlerts = useServerFn(retrySignupAlerts);
+  const [alertResult, setAlertResult] = useState("");
   const [data, setData] = useState<Operations | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -242,6 +245,28 @@ function OperationsPage() {
             <TabsContent value="email">
               <h2 className="my-4 font-serif text-xl">Recent email activity</h2>
               <p>Provider acceptance does not establish inbox delivery.</p>
+              <p>{data.pendingAlerts?.length ?? 0} signup alerts await submission.</p>
+              <Button
+                disabled={busy || !data.pendingAlerts?.length}
+                onClick={async () => {
+                  setBusy(true);
+                  setAlertResult("");
+                  try {
+                    const result = await retryAlerts();
+                    setAlertResult(
+                      `Submitted ${result.submitted} of ${result.attempted} eligible signup alerts. Failed attempts stay queued.`,
+                    );
+                    await load();
+                  } catch {
+                    setError("Could not retry signup alerts.");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Retry pending signup alerts
+              </Button>
+              {alertResult && <p role="status">{alertResult}</p>}
               <Table>
                 <TableHeader>
                   <TableRow>

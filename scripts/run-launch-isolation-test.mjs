@@ -20,6 +20,10 @@ for (const t of snapshot.tables) {
   );
   columns.push("PRIMARY KEY (id)");
   if (t.name === "user_roles") columns.push("UNIQUE (user_id,role)");
+  if (t.name === "attorney_client_links")
+    columns.push(
+      "CONSTRAINT attorney_client_links_attorney_user_id_client_user_id_key UNIQUE (attorney_user_id,client_user_id)",
+    );
   await db.exec(
     `CREATE TABLE public.${quote(t.name)} (${columns.join(",")}); ALTER TABLE public.${quote(t.name)} ENABLE ROW LEVEL SECURITY;`,
   );
@@ -40,9 +44,42 @@ await db.exec(
   `CREATE FUNCTION public.record_audit_event(p_user_id uuid,p_event_type text,p_subject_kind text DEFAULT NULL,p_subject_id uuid DEFAULT NULL,p_actor_kind text DEFAULT 'user',p_actor_id uuid DEFAULT NULL,p_meta jsonb DEFAULT NULL) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$ DECLARE new_id uuid; BEGIN IF auth.uid() IS NOT NULL AND auth.uid() <> p_user_id THEN RAISE EXCEPTION 'Not authorized' USING ERRCODE='42501'; END IF; INSERT INTO public.audit_events(user_id,event_type,subject_kind,subject_id,actor_kind,actor_id,meta) VALUES(p_user_id,p_event_type,p_subject_kind,p_subject_id,p_actor_kind,p_actor_id,p_meta) RETURNING id INTO new_id; RETURN new_id; END $$;`,
 );
 await db.exec(read("supabase/migrations/20261008120000_acl_client_update_guard_allowlist.sql"));
+// The published database already has an unrelated public attorney intake table.
+// The approval migration must coexist with it, without adopting its decisions.
+await db.exec(`CREATE TABLE public.attorney_applications (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),email text NOT NULL,
+ full_name text NOT NULL,source text NOT NULL DEFAULT 'public-intake',
+ status text NOT NULL DEFAULT 'pending',invited_user_id uuid);`);
 await db.exec(read("supabase/migrations/20261010150854_launch_consent_and_attorney_gate.sql"));
 await db.exec(read("supabase/migrations/20261010150854_launch_consent_and_attorney_gate.sql"));
+// Invitation tables are outside the original isolation catalog. Reproduce the
+// acceptance columns; no production records are copied into this fixture.
+await db.exec(`CREATE TABLE public.attorney_invitations (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),client_user_id uuid NOT NULL,
+ attorney_email text NOT NULL,status text DEFAULT 'pending',created_at timestamptz DEFAULT now(),
+ expires_at timestamptz,accepted_at timestamptz,accepted_by uuid,
+ scope_incidents uuid[] DEFAULT '{}',scope_evidence uuid[] DEFAULT '{}',
+ include_all_incidents boolean DEFAULT false,include_all_evidence boolean DEFAULT false,
+ include_patterns boolean DEFAULT false,include_voice_notes boolean DEFAULT false,
+ include_communications boolean DEFAULT false,include_legal_documents boolean DEFAULT false,case_id uuid);
+CREATE TABLE public.attorney_survivor_invites (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),attorney_user_id uuid NOT NULL,
+ survivor_email text NOT NULL,status text DEFAULT 'pending',created_at timestamptz DEFAULT now(),
+ expires_at timestamptz DEFAULT now()+interval '30 days',accepted_at timestamptz,accepted_by uuid);
+GRANT SELECT ON auth.users TO service_role;
+GRANT ALL ON public.attorney_invitations,public.attorney_survivor_invites TO service_role;`);
+for (const file of [
+  "20261011173000_fresh_attorney_grants.sql",
+  "20261011174000_preserve_unfinished_entries.sql",
+  "20261011175000_signup_alert_outbox.sql",
+]) {
+  await db.exec(read(`supabase/migrations/${file}`));
+  await db.exec(read(`supabase/migrations/${file}`));
+}
 await db.exec(read("supabase/tests/sql/launch_isolation.test.sql"), {
+  onNotice: (n) => console.log(n.message),
+});
+await db.exec(read("supabase/tests/sql/fresh_grants_and_signup_alerts.test.sql"), {
   onNotice: (n) => console.log(n.message),
 });
 console.log(

@@ -47,18 +47,19 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, env:
   const supabase = getSupabase();
   let charterExpiresAt: string | null = null;
   if (isCharter) {
-    const { data: existing } = await supabase
+    const { data: existing, error: readError } = await supabase
       .from("subscriptions")
       .select("charter_rate_expires_at")
       .eq("stripe_subscription_id", subscription.id)
       .maybeSingle();
+    if (readError) throw new Error(`Could not read charter subscription: ${readError.message}`);
     const existingExpiry = (existing as { charter_rate_expires_at: string | null } | null)
       ?.charter_rate_expires_at;
     charterExpiresAt =
       existingExpiry ?? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
   }
 
-  await supabase.from("subscriptions").upsert(
+  const { error: writeError } = await supabase.from("subscriptions").upsert(
     {
       user_id: userId,
       stripe_subscription_id: subscription.id,
@@ -75,7 +76,11 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, env:
     },
     { onConflict: "stripe_subscription_id" },
   );
+  if (writeError) throw new Error(`Could not save subscription: ${writeError.message}`);
   await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
+  if (RESUME_STATUSES.includes(subscription.status)) {
+    await resumeAttorneyAccessIfApplicable(userId);
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription, env: StripeEnv) {
@@ -89,12 +94,13 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, env:
   const supabase = getSupabase();
   let userId = subscription.metadata?.userId as string | undefined;
   if (!userId) {
-    const { data: existingSubscription } = await supabase
+    const { data: existingSubscription, error: readError } = await supabase
       .from("subscriptions")
       .select("user_id")
       .eq("stripe_subscription_id", subscription.id)
       .eq("environment", env)
       .maybeSingle();
+    if (readError) throw new Error(`Could not read subscription owner: ${readError.message}`);
     userId = existingSubscription?.user_id as string | undefined;
   }
   const update: Record<string, unknown> = {
@@ -111,34 +117,39 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, env:
   if (!isCharter && priceId) {
     update.plan_tier = null;
   }
-  await supabase
+  const { error: writeError } = await supabase
     .from("subscriptions")
     .update(update)
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+  if (writeError) throw new Error(`Could not update subscription: ${writeError.message}`);
   if (userId) await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
   if (["canceled", "unpaid", "incomplete_expired"].includes(subscription.status)) {
-    await pauseAttorneyAccessIfApplicable(subscription);
+    await pauseAttorneyAccessIfApplicable(userId);
+  } else if (RESUME_STATUSES.includes(subscription.status)) {
+    await resumeAttorneyAccessIfApplicable(userId);
   }
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription, env: StripeEnv) {
   const supabase = getSupabase();
-  const { data: existingSubscription } = await supabase
+  const { data: existingSubscription, error: readError } = await supabase
     .from("subscriptions")
     .select("user_id")
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env)
     .maybeSingle();
-  await supabase
+  if (readError) throw new Error(`Could not read deleted subscription owner: ${readError.message}`);
+  const { error: writeError } = await supabase
     .from("subscriptions")
     .update({ status: "canceled", updated_at: new Date().toISOString() })
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+  if (writeError) throw new Error(`Could not cancel subscription: ${writeError.message}`);
   const userId = (subscription.metadata?.userId ?? existingSubscription?.user_id) as
     string | undefined;
   if (userId) await syncFirmSeats(userId, null, "canceled", null);
-  await pauseAttorneyAccessIfApplicable(subscription);
+  await pauseAttorneyAccessIfApplicable(userId);
 }
 
 /**
@@ -191,7 +202,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: St
     );
   }
 
-  await supabase.from("subscriptions").upsert(
+  const { error: subscriptionError } = await supabase.from("subscriptions").upsert(
     {
       user_id: userId,
       stripe_subscription_id: `pwyc_${session.id}`,
@@ -207,48 +218,143 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: St
     },
     { onConflict: "stripe_subscription_id" },
   );
+  if (subscriptionError) {
+    throw new Error(
+      `Could not save Professional Review subscription: ${subscriptionError.message}`,
+    );
+  }
 
   // Signal failure only after the rest of the record is persisted, so Stripe
   // retries the event and the entitlement eventually lands.
   if (entErr) throw new Error(`entitlement write failed for session ${session.id}`);
 }
 
+/** Subscription states that mean the attorney is paying (or trialing) again. */
+const RESUME_STATUSES: string[] = ["active", "trialing"];
+
 /**
  * When an attorney's subscription ends, pause every active client link
  * and notify each affected survivor. Survivors keep their data — only
- * the attorney's shared view is suspended until they re-subscribe.
+ * the attorney's shared view is suspended.
+ *
+ * Fail loud: attorney_client_links has no updated_at column, so only `status`
+ * is written. If the pause fails we throw BEFORE notifying anyone, so a
+ * survivor is never told access is paused when it is not; the route then
+ * answers 400 and Stripe retries the event.
+ *
+ * Access comes back automatically on re-subscribe: see
+ * resumeAttorneyAccessIfApplicable().
  */
-async function pauseAttorneyAccessIfApplicable(subscription: Stripe.Subscription) {
-  const attorneyUserId: string | undefined = subscription.metadata?.userId;
+async function pauseAttorneyAccessIfApplicable(attorneyUserId: string | undefined) {
   if (!attorneyUserId) return;
   const supabase = getSupabase();
 
-  const { data: isAttorney } = await supabase
+  const { data: isAttorney, error: roleError } = await supabase
     .from("user_roles")
     .select("role")
     .eq("user_id", attorneyUserId)
     .eq("role", "attorney")
     .maybeSingle();
+  if (roleError) throw new Error(`Could not read attorney role: ${roleError.message}`);
   if (!isAttorney) return;
 
-  const { data: links } = await supabase
+  const { data: links, error: readError } = await supabase
     .from("attorney_client_links")
     .select("id, client_user_id")
     .eq("attorney_user_id", attorneyUserId)
-    .eq("status", "active");
+    .eq("status", "active")
+    .is("revoked_at", null)
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
+  if (readError)
+    throw new Error(`Could not read active attorney client links: ${readError.message}`);
   if (!links || links.length === 0) return;
 
   const ids = links.map((link: { id: string }) => link.id);
-  await supabase
+  const { data: paused, error: pauseErr } = await supabase
     .from("attorney_client_links")
-    .update({ status: "paused", updated_at: new Date().toISOString() })
-    .in("id", ids);
+    .update({ status: "paused" })
+    .in("id", ids)
+    .eq("status", "active")
+    .is("revoked_at", null)
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+    .select("id, client_user_id");
+  if (pauseErr) {
+    throw new Error(`Could not pause attorney client links: ${pauseErr.message}`);
+  }
 
-  const rows = links.map((link: { id: string; client_user_id: string }) => ({
+  const rows = (paused ?? []).map((link: { id: string; client_user_id: string }) => ({
     user_id: link.client_user_id,
     kind: "attorney_access_paused",
     title: "Your attorney's access is paused",
     body: "Your records are safe and unchanged. Your attorney's shared view is paused until their subscription is active again.",
+    metadata: { link_id: link.id, attorney_user_id: attorneyUserId },
+  }));
+  if (rows.length) await supabase.from("notifications").insert(rows);
+}
+
+/**
+ * When an attorney's subscription is active (or trialing) again, restore the
+ * links that pauseAttorneyAccessIfApplicable() paused and tell each survivor.
+ *
+ * Only links with status 'paused' are touched: never 'revoked' ones (the
+ * survivor ended them), never a paused link with revoked_at set, and never a
+ * paused link whose expires_at has passed (the share ran out while paused).
+ * The update re-checks status = 'paused' so a survivor who revoked in the
+ * meantime is not overridden. Fails loud before notifying, like the pause.
+ */
+async function resumeAttorneyAccessIfApplicable(attorneyUserId: string | undefined) {
+  if (!attorneyUserId) return;
+  const supabase = getSupabase();
+
+  const { data: isAttorney, error: roleError } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", attorneyUserId)
+    .eq("role", "attorney")
+    .maybeSingle();
+  if (roleError) throw new Error(`Could not read attorney role: ${roleError.message}`);
+  if (!isAttorney) return;
+
+  const { data: paused, error: readErr } = await supabase
+    .from("attorney_client_links")
+    .select("id, client_user_id, revoked_at, expires_at")
+    .eq("attorney_user_id", attorneyUserId)
+    .eq("status", "paused");
+  if (readErr) throw new Error(`Could not read paused attorney client links: ${readErr.message}`);
+
+  const now = Date.now();
+  type PausedLink = {
+    id: string;
+    client_user_id: string;
+    revoked_at: string | null;
+    expires_at: string | null;
+  };
+  const resumable = ((paused ?? []) as PausedLink[]).filter(
+    (link) =>
+      !link.revoked_at && (link.expires_at == null || new Date(link.expires_at).getTime() > now),
+  );
+  if (resumable.length === 0) return;
+
+  const { data: resumed, error: resumeErr } = await supabase
+    .from("attorney_client_links")
+    .update({ status: "active" })
+    .in(
+      "id",
+      resumable.map((link) => link.id),
+    )
+    .eq("status", "paused")
+    .is("revoked_at", null)
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+    .select("id, client_user_id");
+  if (resumeErr) {
+    throw new Error(`Could not resume attorney client links: ${resumeErr.message}`);
+  }
+
+  const rows = (resumed ?? []).map((link: { id: string; client_user_id: string }) => ({
+    user_id: link.client_user_id,
+    kind: "attorney_access_resumed",
+    title: "Your attorney's access is back on",
+    body: "Your attorney's subscription is active again, so their shared view of what you chose to share is back on. You can end their access at any time.",
     metadata: { link_id: link.id, attorney_user_id: attorneyUserId },
   }));
   if (rows.length) await supabase.from("notifications").insert(rows);

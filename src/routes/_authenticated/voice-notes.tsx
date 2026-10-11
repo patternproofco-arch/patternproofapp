@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, Square, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
 import { transcribeVoiceNote } from "@/lib/transcribe-voice-note.functions";
@@ -116,9 +117,10 @@ function VoiceNotesPage() {
     }
     setBusy(true);
     const key = `${user.id}/${Date.now()}.webm`;
-    const up = await supabase.storage
+    const up = await uploadWithRetry(() =>
+        supabase.storage
       .from("voice-notes")
-      .upload(key, pendingBlob, { contentType: "audio/webm" });
+      .upload(key, pendingBlob, { contentType: "audio/webm" }));
     if (up.error) {
       setBusy(false);
       toast("We couldn't save that recording. Try again in a moment.");

@@ -38,7 +38,7 @@ export const ensureSurvivorRole = createServerFn({ method: "POST" })
     let attorney_approved = false;
     if (roles.includes("attorney")) {
       const { data: application, error } = await (supabaseAdmin as any)
-        .from("attorney_applications")
+        .from("attorney_access_applications")
         .select("status")
         .eq("user_id", context.userId)
         .maybeSingle();
@@ -46,6 +46,12 @@ export const ensureSurvivorRole = createServerFn({ method: "POST" })
       attorney_approved = application?.status === "approved";
     }
     if (roles.length > 0) {
+      // Retry only alerts already queued by a role INSERT. Never notify about
+      // historical accounts merely because they signed in again.
+      const { notifyNewSignup } = await import("@/lib/signup-notify.server");
+      for (const role of roles.filter((r) => r !== "admin")) {
+        await notifyNewSignup({ userId: context.userId, role, retryOnly: true });
+      }
       return {
         roles,
         is_survivor: roles.includes("survivor"),
