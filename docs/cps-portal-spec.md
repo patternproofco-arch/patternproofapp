@@ -76,3 +76,60 @@ What they need: no harm to the case, no waiver or privilege surprises, a clear p
 4. Invite creation, email template, survivor acceptance route (`/cps-invite/$token`).
 5. Worker viewer with watermark, access log, survivor log and revoke.
 6. Settings switch, attorney notice, limits.
+
+---
+
+# Addendum (research): verification, social workers, opt-out switch, legal duties
+
+Research notes only. Nothing here is legal advice; items marked VERIFY need confirmation by counsel or a primary source.
+
+## A. Which email domains do CPS workers actually use?
+No public ranked list exists. What the agency sites show:
+- Many state agencies use their own .gov or the state's .gov (azdcs.gov, utah.gov, ny.gov, illinois.gov).
+- County-run states (child welfare administered by counties) use county domains, which can be .gov, .us or .org.
+- Privatized states use nonprofit contractors with .org or .com addresses.
+- Only verified U.S. government organizations can register a .gov (get.gov / CISA). It is a strong signal of "government", not of "child welfare".
+- CISA publishes the full .gov registry daily (`cisagov/dotgov-data`, `current-full.csv`, CC0). It lists each domain with organization name, type (State, County, City, Tribal...), and state.
+
+Build the allow-list from that file rather than from guesses: filter by type and organization-name keywords (children, family, social services, human services, DCFS, DCS, DSS, child protection), then have a human review the result once. Re-run weekly and diff. (I could not download the file from this sandbox: the proxy blocks raw.githubusercontent.com. A build step can fetch it in CI.)
+
+## B. Social workers
+Three different people share the title:
+1. **Agency caseworkers (CPS/child welfare).** Many hold no social work license, so a license check cannot be the gate. The agency email is the gate.
+2. **Licensed independent or clinical social workers** (private practice, school, medical, court). State boards publish license lookups; ASWB links to about two dozen state lookup pages; no single national API exists, and third-party aggregators cover only a handful of states. License lookup is semi-manual.
+3. **Guardians ad litem and court social workers.** Not CPS. Often use court or non-government email. Manual review.
+Add `professional_type` to the application so the survivor sees what kind of professional is asking, and so scope can differ by type.
+
+## C. Instant approval: what is safe to automate
+Do not let Claude be the approver. It cannot verify identity, application text can carry prompt injection, and one false approval gives an impersonator an official-looking invite to send to a survivor. Use deterministic checks to decide, and use Claude only to summarize and flag.
+
+**Tier 1, seconds, no human.** All must pass:
+- one-time link sent to the work email and clicked (proves control of that mailbox);
+- domain is on the curated child-welfare allow-list;
+- not a lookalike (edit-distance and punycode checks against the allow-list), not on the deny-list;
+- per-IP and per-domain rate limits.
+Result: approved with "new account" limits (for example 3 invites a day for 14 days). The survivor is told "verified government email at <agency>", never "verified CPS" (any employee of that agency passes).
+
+**Tier 2, minutes to hours, AI-assisted, human taps approve.** Other .gov/.us/county/tribal domains, and licensed social workers. The system gathers evidence (CISA registry entry, state license board link, the agency's public staff page) and Claude writes a short summary with flags. Claude has no approve permission; the founder or a trained reviewer does.
+
+**Tier 3, manual.** Non-government email (nonprofit contractors, GALs, court staff): agency letter or call-back to the number published on the agency's own site, never the number the applicant gives.
+
+Also: re-verify the email every 90 days; auto-suspend on a bounce; a survivor "report this request" button feeds an instant worker suspension.
+
+## D. Item 3: survivor-side "never accept CPS invitations"
+Recommended design, reusing the assistant-access pattern (`assistant-access.server.ts`):
+- Stored server-side (auth app metadata or a service-role-only table), read fresh on every invite, failed read means "blocked".
+- Three states: **Ask me** (default), **Block all**, and per-invite decline. Default is "Ask me" so a survivor who wants help is not silently cut off; the setting is offered during onboarding and in Safety settings.
+- When blocked, the invite email is **not sent** and the worker gets the same response as for any other email. No signal that an account exists or that she blocked.
+- Turning the block **off** needs her password or a very recent sign-in, same as turning on outside assistants, so someone with brief access to her phone cannot weaken it.
+- Declining an invite is never reported to the worker.
+- Edge: a person with no account yet receives the invite (no setting exists). The invite page offers "never contact me" for that address.
+- Tests mirror the assistant-access tests: blocked means no email and no row visible to the worker; failed read means blocked; turning off requires fresh sign-in.
+
+## E. Item 4: legal duties to confirm with counsel
+Likely relevant (VERIFY each):
+1. **Federal CSAM reporting, 18 U.S.C. 2258A.** Providers must report apparent child sexual abuse material to NCMEC's CyberTipline once they have actual knowledge; the statute does not require monitoring. Survivors upload photos and video, so PatternProof should have a written procedure for the rare case staff learn of such material (support ticket, abuse report, legal process). Counsel should confirm whether PatternProof is a "provider" and what the preservation duties are.
+2. **State mandatory reporting.** As of 2015, 18 states and Puerto Rico had universal reporting (any person must report suspected child abuse); other states list professions. VERIFY the current list and whether a software company's staff count in any state. DV advocates are generally confidential with an exception for child-abuse reports (WSCADV guidance), which also affects the existing advocate portal.
+3. **Notice to survivors.** Terms and Privacy should say, in plain words, what PatternProof staff will never read, and the narrow circumstances in which staff could be obligated to report.
+4. **Records that mention children.** Decide whether CPS shares may include items naming minors and how the survivor is warned.
+Best way to get this done: one engagement with a lawyer experienced in both DV technology and child welfare (NNEDV's Safety Net project and your state DV coalition can refer), producing (a) a written staff procedure, (b) approved notice wording, (c) a state-by-state table of reporting duties. Do this before any CPS invitations go live.
