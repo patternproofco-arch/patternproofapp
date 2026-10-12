@@ -75,9 +75,10 @@ describe("Soft CLEAR share readiness (fail-closed)", () => {
     expect(isShareEligible(null)).toBe(false);
   });
 
-  it("grant snapshots grandfather NULL; private/undecided stay out", () => {
-    expect(isGrantSnapshotEligible(null)).toBe(true);
-    expect(isGrantSnapshotEligible(undefined)).toBe(true);
+  it("grant snapshots fail closed: NULL, private and undecided stay out", () => {
+    expect(isGrantSnapshotEligible(null)).toBe(false);
+    expect(isGrantSnapshotEligible(undefined)).toBe(false);
+    expect(isGrantSnapshotEligible("")).toBe(false);
     expect(isGrantSnapshotEligible("ok_to_share")).toBe(true);
     expect(isGrantSnapshotEligible("private")).toBe(false);
     expect(isGrantSnapshotEligible("undecided")).toBe(false);
@@ -99,9 +100,9 @@ describe("Soft CLEAR share readiness (fail-closed)", () => {
     expect(migration).toContain("ok_to_share");
   });
 
-  it("grant snapshots grandfather NULL / column-missing; private/undecided out", () => {
+  it("grant snapshots: only ok_to_share; NULL / private / undecided out", () => {
     expect(grantSnap).toContain("share_readiness");
-    expect(grantSnap).toContain("grandfather");
+    expect(grantSnap).not.toContain("grandfather");
     expect(grantSnap).toContain("ok_to_share");
     expect(grantSnap).toContain("ownedIds");
   });

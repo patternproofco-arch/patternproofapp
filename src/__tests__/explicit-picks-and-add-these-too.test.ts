@@ -120,22 +120,52 @@ function admin(tables: Tables) {
     rpcCalls.push({ name, args });
     if (name !== "accept_attorney_share") return { data: null, error: null };
     const inv = tables.attorney_survivor_invites!.find((r) => r.id === args._invitation_id)!;
-    const link = {
-      id: `link-${rpcCalls.length}`,
-      attorney_user_id: inv.attorney_user_id,
-      client_user_id: args._actor_id,
-      status: "active",
-      revoked_at: null,
-      expires_at: null,
-      case_id: null,
-      created_at: new Date().toISOString(),
+    // Mirrors accept_attorney_share (20261011173000): a revoked/expired grant is never
+    // re-armed; a current grant is updated in place with the scope REPLACED.
+    const links = tables.attorney_client_links!;
+    const deadline = inv.expires_at ?? null;
+    let link = links.find(
+      (l) =>
+        l.attorney_user_id === inv.attorney_user_id &&
+        l.client_user_id === args._actor_id &&
+        l.status !== "revoked" &&
+        l.revoked_at == null,
+    ) as Record<string, unknown> | undefined;
+    if (link && link.expires_at && new Date(link.expires_at as string) <= new Date()) {
+      link.status = "revoked";
+      link.revoked_at = link.expires_at;
+      link = undefined;
+    }
+    const replacement = {
       include_all_incidents: false,
       include_all_evidence: false,
       include_patterns: args._scope.include_patterns,
+      include_voice_notes: false,
+      include_communications: false,
+      include_legal_documents: false,
+      case_id: null,
       scope_incidents: args._scope.scope_incidents,
       scope_evidence: args._scope.scope_evidence,
+      expires_at: deadline,
     };
-    tables.attorney_client_links!.push(link);
+    if (link) {
+      Object.assign(link, replacement);
+    } else {
+      link = {
+        id: `66666666-6666-4666-8666-${String(rpcCalls.length).padStart(12, "0")}`,
+        attorney_user_id: inv.attorney_user_id,
+        client_user_id: args._actor_id,
+        status: "active",
+        revoked_at: null,
+        created_at: new Date().toISOString(),
+        ...replacement,
+      };
+      links.push(link);
+      rpcCalls.push({
+        name: "record_audit_event",
+        args: { p_event_type: "share_grant_created", p_subject_id: link.id },
+      });
+    }
     inv.status = "accepted";
     return { data: [{ id: link.id, client_user_id: link.client_user_id }], error: null };
   };
@@ -405,5 +435,182 @@ describe("(b) Add these too never adds Keep private or Still deciding", () => {
     expect(res).toMatchObject({ added_incidents: 0, added_evidence: 0, held_back_incidents: 6 });
     expect(JSON.stringify([link.scope_incidents, link.scope_evidence])).toBe(before);
     expect(state.admin.rpcCalls.some((c: any) => c.name === "record_audit_event")).toBe(false);
+  });
+});
+
+describe("NULL share_readiness is NOT OK to share (fail closed)", () => {
+  const NULL_INC = incId(50);
+  const NULL_EV = evId(50);
+  beforeEach(() => {
+    tables.incidents!.push(row(NULL_INC, null));
+    tables.evidence!.push(row(NULL_EV, null));
+  });
+
+  it("Share all (preview and accept) leaves NULL-readiness items out", async () => {
+    const scope = { ...none, include_all_incidents: true, include_all_evidence: true };
+    const preview = await previewSurvivorInviteScope({ data: { token: TOKEN, scope } });
+    const res = await acceptSurvivorInvite({ data: { token: TOKEN, scope } });
+    expect(preview.shared).toEqual({ incidents: 2, files: 1 });
+    expect(res.shared).toEqual(preview.shared);
+    const call = state.admin.rpcCalls.find((c: any) => c.name === "accept_attorney_share");
+    expect(call.args._scope.scope_incidents).not.toContain(NULL_INC);
+    expect(call.args._scope.scope_evidence).not.toContain(NULL_EV);
+  });
+
+  it("Add these too never adds a NULL-readiness item; it is held back", async () => {
+    tables.attorney_client_links!.push({
+      id: "55555555-5555-4555-8555-555555555555",
+      attorney_user_id: ATTY,
+      client_user_id: SURV,
+      status: "active",
+      revoked_at: null,
+      expires_at: null,
+      created_at: "2026-09-02T00:00:00Z",
+      include_all_incidents: false,
+      include_all_evidence: false,
+      scope_incidents: [],
+      scope_evidence: [],
+    });
+    const link = tables.attorney_client_links!.at(-1)!;
+    const gap = await unsharedSinceGrant(state.admin, SURV, link as any);
+    expect(gap.incidents).not.toContain(NULL_INC);
+    expect(gap.heldBack.incidents).toContain(NULL_INC);
+    expect(gap.heldBack.evidence).toContain(NULL_EV);
+    await shareNewItemsWithGrant({ data: { kind: "attorney", link_id: link.id as string } });
+    expect(link.scope_incidents).not.toContain(NULL_INC);
+    expect(link.scope_evidence).not.toContain(NULL_EV);
+  });
+
+  it("her own explicit pick follows the explicit-pick rule: authorized on the attorney accept", async () => {
+    // Same rule as a Keep-private item: she chose it herself, for this invite only.
+    const res = await acceptSurvivorInvite({
+      data: { token: TOKEN, scope: { ...none, scope_incidents: [NULL_INC] } },
+    });
+    expect(res.shared.incidents).toBe(1);
+  });
+
+  it("…and not authorized on the advocate accept (no per-item choice there)", async () => {
+    await expect(
+      acceptAdvocateSurvivorInvite({
+        data: {
+          token: TOKEN,
+          acknowledgements: { who: true, scope: true, revoke: true },
+          scope: { ...none, scope_incidents: [NULL_INC] },
+        },
+      }),
+    ).rejects.toThrow(/Nothing was shared yet/);
+  });
+
+  it("an invite-prefilled NULL-readiness id is never authorized", async () => {
+    const r = await resolveInviteAcceptScope(state.admin, SURV, {
+      survivorChoice: none,
+      invitePrefill: { scope_incidents: [NULL_INC] },
+      authorizeSurvivorPicks: true,
+    });
+    expect(r.scope_incidents).toEqual([]);
+  });
+});
+
+describe("re-accept replaces scope; revoked grants are never re-armed; receipt + audit", () => {
+  const OLD_IDS = Array.from({ length: 10 }, (_, i) => incId(100 + i));
+  beforeEach(() => {
+    for (const i of OLD_IDS) tables.incidents!.push(row(i, "ok_to_share"));
+  });
+
+  const events = (name: string) =>
+    state.admin.rpcCalls.filter(
+      (c: any) => c.name === "record_audit_event" && c.args.p_event_type === name,
+    );
+
+  it("a revoked link with 10 ids re-accepted with a 2-item pick ends with only the 2 new ids", async () => {
+    const OLD = "77777777-7777-4777-8777-777777777777";
+    tables.attorney_client_links!.push({
+      id: OLD,
+      attorney_user_id: ATTY,
+      client_user_id: SURV,
+      status: "revoked",
+      revoked_at: "2026-10-01T00:00:00Z",
+      expires_at: "2026-10-05T00:00:00Z",
+      include_all_incidents: false,
+      include_all_evidence: false,
+      include_patterns: true,
+      include_voice_notes: true,
+      scope_incidents: [...OLD_IDS],
+      scope_evidence: [evId(3)],
+    });
+    const picks = [incId(1), incId(6)];
+    const res = await acceptSurvivorInvite({
+      data: { token: TOKEN, scope: { ...none, scope_incidents: picks } },
+    });
+    expect(res.shared).toEqual({ incidents: 2, files: 0 });
+
+    const current = tables.attorney_client_links!.filter((l) => l.revoked_at == null);
+    expect(current).toHaveLength(1);
+    const link = current[0]!;
+    expect(link.id).not.toBe(OLD); // never re-armed in place
+    expect([...(link.scope_incidents as string[])].sort()).toEqual([...picks].sort());
+    expect(link.scope_evidence).toEqual([]);
+    expect(link.include_patterns).toBe(false);
+    expect(link.include_voice_notes).toBe(false);
+    expect(link.revoked_at).toBeNull();
+    expect(new Date(link.expires_at as string).getTime()).toBeGreaterThan(Date.now());
+    // The tombstone is untouched.
+    const old = tables.attorney_client_links!.find((l) => l.id === OLD)!;
+    expect(old.status).toBe("revoked");
+    expect(old.scope_incidents).toHaveLength(10);
+
+    const receipts = events("share_consent_receipt");
+    expect(receipts).toHaveLength(1);
+    expect(receipts[0].args).toMatchObject({
+      p_user_id: SURV,
+      p_subject_id: link.id,
+      p_actor_kind: "survivor",
+      p_actor_id: SURV,
+    });
+    expect([...receipts[0].args.p_meta.scope_incidents].sort()).toEqual([...picks].sort());
+    expect(receipts[0].args.p_meta.replaced_previous_scope).toBe(false);
+    expect(events("share_grant_created")).toHaveLength(1);
+  });
+
+  it("an active link with 10 ids re-accepted with 2 picks: same row, scope and include_* REPLACED (not merged)", async () => {
+    const CUR = "88888888-8888-4888-8888-888888888888";
+    tables.attorney_client_links!.push({
+      id: CUR,
+      attorney_user_id: ATTY,
+      client_user_id: SURV,
+      status: "active",
+      revoked_at: null,
+      expires_at: new Date(Date.now() + 3_600_000).toISOString(),
+      include_all_incidents: false,
+      include_all_evidence: false,
+      include_patterns: true,
+      include_voice_notes: true,
+      scope_incidents: [...OLD_IDS],
+      scope_evidence: [evId(3)],
+    });
+    const picks = [incId(2), incId(7)];
+    await acceptSurvivorInvite({
+      data: { token: TOKEN, scope: { ...none, scope_incidents: picks } },
+    });
+    const link = tables.attorney_client_links!.find((l) => l.id === CUR)!;
+    expect([...(link.scope_incidents as string[])].sort()).toEqual([...picks].sort());
+    expect(link.scope_evidence).toEqual([]);
+    expect(link.include_patterns).toBe(false);
+    expect(link.include_voice_notes).toBe(false);
+    expect(link.revoked_at).toBeNull();
+    expect(link.expires_at).toBe(tables.attorney_survivor_invites![0]!.expires_at);
+
+    const replaced = events("share_grant_scope_replaced");
+    expect(replaced).toHaveLength(1);
+    expect(replaced[0].args.p_meta).toMatchObject({
+      previous: { incidents: 10, files: 1 },
+      next: { incidents: 2, files: 0 },
+    });
+    const receipts = events("share_consent_receipt");
+    expect(receipts).toHaveLength(1);
+    expect(receipts[0].args.p_meta).toMatchObject({
+      replaced_previous_scope: true,
+      previous_link_id: CUR,
+    });
   });
 });

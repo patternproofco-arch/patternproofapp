@@ -60,10 +60,9 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
  * Journal entries and files both have a real control ("Keep private" /
  * "OK to share later" / "Still deciding") on the Journal and Evidence screens.
  * A kept-private item "won't show up when you share with someone". So only
- * ok_to_share is in; private and undecided stay out (fail-closed). NULL or a
- * missing readiness value is grandfathered in (rows from before the column
- * existed). Only a MISSING readiness column (migration not applied yet) falls
- * back to every owned item; any other query error stops the share.
+ * ok_to_share is in; private, undecided and NULL stay out (fail-closed). Only a
+ * MISSING readiness column (migration not applied yet) falls back to every owned
+ * item; any other query error stops the share.
  */
 async function shareableIds(
   admin: Admin,
@@ -218,7 +217,7 @@ export async function snapshotShareScope<T extends ShareScope>(
  * "add these too" choice, never to share anything automatically.
  *
  * "Add these too" is a broad action, so it follows the same rule as "Share all":
- * only items marked OK to share (NULL readiness grandfathered, pre-migration) are
+ * only items explicitly marked OK to share (NULL is not OK, fail closed) are
  * offered in `incidents` / `evidence`. Items she marked Keep private or Still
  * deciding are reported separately in `heldBack` and are never added in bulk; to
  * share one she has to pick it herself, for that one person.

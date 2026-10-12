@@ -94,6 +94,9 @@ await db.exec(read("supabase/tests/sql/fresh_grants_and_signup_alerts.test.sql")
 await db.exec(read("supabase/tests/sql/atomic_attorney_billing.test.sql"), {
   onNotice: (n) => console.log(n.message),
 });
+await db.exec(read("supabase/tests/sql/reaccept_replaces_scope.test.sql"), {
+  onNotice: (n) => console.log(n.message),
+});
 console.log(
   "PASS: SQL isolation suite (Postgres 17 via PGlite; live policy snapshot, synthetic data only).",
 );

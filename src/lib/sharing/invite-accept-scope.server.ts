@@ -10,8 +10,8 @@
  *    a prefilled id that she kept private (or is still deciding about) stays out.
  *
  * Rules:
- *  - "Share all" (include_all_*) takes only items marked OK to share (NULL readiness is
- *    grandfathered, pre-migration). It ignores every per-item id for that kind, so a
+ *  - "Share all" (include_all_*) takes only items explicitly marked OK to share (NULL is
+ *    not OK, fail closed). It ignores every per-item id for that kind, so a
  *    private id can never ride along with "Share all".
  *  - Her own per-item picks authorize those owned, non-deleted items for this invite only,
  *    even if marked Keep private, but only where the screen offers that

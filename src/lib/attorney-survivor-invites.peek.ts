@@ -132,8 +132,11 @@ export const acceptSurvivorInvite = createServerFn({ method: "POST" })
     const { acceptAttorneyShare } = await import("@/lib/attorney-share.server");
     await acceptAttorneyShare(supabaseAdmin, {
       invitationId: inv.id,
+      // Survivor id comes only from her own signed-in session, never from input.
       actorId: context.userId,
       direction: "survivor",
+      attorneyUserId: inv.attorney_user_id,
+      survivorUserId: context.userId,
       scope: {
         scope_incidents: resolved.scope_incidents,
         scope_evidence: resolved.scope_evidence,
