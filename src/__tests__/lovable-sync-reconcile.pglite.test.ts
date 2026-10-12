@@ -20,6 +20,7 @@ const notices: string[] = [];
 
 const BASE = `
 CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN BYPASSRLS;
+CREATE ROLE supabase_auth_admin NOLOGIN;
 CREATE SCHEMA auth; CREATE SCHEMA private; CREATE SCHEMA cron;
 GRANT USAGE ON SCHEMA public, auth, private TO anon, authenticated, service_role;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$
@@ -107,6 +108,11 @@ beforeAll(async () => {
   await db.exec(BASE);
   // Lovable's original 0027 (the guard live on the published database today).
   await db.exec(readFileSync("src/__tests__/fixtures/lovable-0027-original.sql", "utf8"));
+  // A custom access-token hook that supabase_auth_admin reaches only through PUBLIC.
+  await db.exec(`CREATE FUNCTION public.custom_access_token_hook(event jsonb) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$ BEGIN RETURN event; END $$;
+    REVOKE EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb) FROM anon, authenticated, service_role;
+    GRANT EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb) TO PUBLIC;`);
   // Reconcile twice: it must be idempotent.
   for (let i = 0; i < 2; i++)
     await db.exec(RECONCILE, {
@@ -235,6 +241,41 @@ describe("Lovable sync reconcile end state (PGlite)", () => {
     ).toBe(true);
   });
 
+  it("auth hook reachable only via PUBLIC keeps supabase_auth_admin EXECUTE; anon loses it", async () => {
+    const hook = "public.custom_access_token_hook(jsonb)";
+    expect(await priv(`has_function_privilege('supabase_auth_admin','${hook}','EXECUTE')`)).toBe(
+      true,
+    );
+    expect(await priv(`has_function_privilege('anon','${hook}','EXECUTE')`)).toBe(false);
+    // authenticated also had it through PUBLIC, so it keeps it explicitly.
+    expect(await priv(`has_function_privilege('authenticated','${hook}','EXECUTE')`)).toBe(true);
+    const pub = await db.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM aclexplode((SELECT proacl FROM pg_proc WHERE oid='${hook}'::regprocedure)) a WHERE a.grantee=0`,
+    );
+    expect(pub.rows[0].n).toBe(0);
+  });
+
+  it("undo snapshot: pre-revoke ACLs kept (first run wins), server-only table", async () => {
+    const r = await db.query<{ fn: string; had_public: boolean }>(
+      `SELECT fn, had_public FROM public._reconcile_secdef_acl_snapshot ORDER BY fn`,
+    );
+    const byFn = Object.fromEntries(r.rows.map((x) => [x.fn, x.had_public]));
+    expect(byFn["public.custom_access_token_hook(jsonb)"]).toBe(true);
+    expect(byFn["public.has_role(uuid, text)"]).toBe(true);
+    expect(
+      await priv(
+        `(SELECT relrowsecurity FROM pg_class WHERE oid='public._reconcile_secdef_acl_snapshot'::regclass)`,
+      ),
+    ).toBe(true);
+    for (const role of ["anon", "authenticated"])
+      for (const p of ["SELECT", "INSERT", "UPDATE", "DELETE"])
+        expect(
+          await priv(
+            `has_table_privilege('${role}','public._reconcile_secdef_acl_snapshot','${p}')`,
+          ),
+        ).toBe(false);
+  });
+
   it("has_attorney_access keeps #207's approval check", async () => {
     const r = await db.query<{ src: string }>(
       `SELECT prosrc AS src FROM pg_proc WHERE proname='has_attorney_access'`,
@@ -294,5 +335,27 @@ describe("Lovable sync reconcile end state (PGlite)", () => {
     expect(read.qual).toContain("evidence-files");
     const upd = r.rows.find((p) => p.policyname === "users update own message-exports")!;
     expect(upd.with_check).toBe(upd.qual);
+  });
+});
+
+describe("SECTION 3 undo (runs last; changes the state)", () => {
+  it("re-grants PUBLIC EXECUTE exactly where the snapshot says it was", async () => {
+    await db.exec(
+      readFileSync(
+        "supabase/rollbacks/20261011200000_lovable_sync_reconcile.undo-secdef-execute.sql",
+        "utf8",
+      ),
+      { onNotice: () => undefined } as never,
+    );
+    expect(
+      await priv(
+        `has_function_privilege('anon','public.custom_access_token_hook(jsonb)','EXECUTE')`,
+      ),
+    ).toBe(true);
+    const stillClosed = await db.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM public._reconcile_secdef_acl_snapshot s
+        WHERE NOT s.had_public AND has_function_privilege('anon', s.fn::regprocedure, 'EXECUTE')`,
+    );
+    expect(stillClosed.rows[0].n).toBe(0);
   });
 });

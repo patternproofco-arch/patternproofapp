@@ -18,8 +18,11 @@
 --    feedback_submissions (public /org-feedback form). Default privileges for
 --    postgres (and, best effort, supabase_admin) no longer hand anon anything.
 -- 6. SECURITY DEFINER functions in public: EXECUTE revoked from anon and PUBLIC.
---    Roles that already had EXECUTE through PUBLIC (authenticated, service_role)
---    get it explicitly, so signed-in behaviour is unchanged. Keep-list for anon:
+--    Roles that already had EXECUTE (directly or through PUBLIC) among
+--    authenticated, service_role, supabase_auth_admin, supabase_storage_admin and
+--    authenticator get it explicitly first, so sign-in hooks and signed-in
+--    behaviour are unchanged. The pre-revoke ACLs are kept in
+--    public._reconcile_secdef_acl_snapshot for the documented undo. Keep-list for anon:
 --    empty (no anon-reachable RPC; the only anon RLS policy uses auth.uid()).
 --    New functions no longer default to EXECUTE for anon or PUBLIC.
 -- 7. The 30-day entry draft purge cron job is removed outright.
@@ -92,6 +95,9 @@ FOR EACH ROW EXECUTE FUNCTION public.attorney_client_links_client_update_guard()
 /* 2. attorney_client_links browser writes ---------------------------------- */
 DROP POLICY IF EXISTS "Clients manage clio share consent" ON public.attorney_client_links;
 DROP POLICY IF EXISTS "Clients revoke own links" ON public.attorney_client_links;
+-- Safe to drop: no browser (user-JWT) INSERT into attorney_client_links exists. Live
+-- 025d554 / 8a0333cb insert with supabaseAdmin in acceptInvitation and acceptSurvivorInvite;
+-- this branch accepts only through accept_attorney_share (service role).
 DROP POLICY IF EXISTS "Attorney accepts matching invitation" ON public.attorney_client_links;
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON public.attorney_client_links FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON public.attorney_client_links FROM anon;
@@ -153,24 +159,52 @@ END
 $do$;
 
 /* 6. SECURITY DEFINER functions in public: no anon / PUBLIC EXECUTE --------- */
+-- Undo record for SECTION 3 of the muy paste: the ACL of every public SECURITY
+-- DEFINER function as it was the first time this ran (re-runs never overwrite it).
+-- Server-only: RLS on, no policies, no anon/authenticated/PUBLIC access.
+CREATE TABLE IF NOT EXISTS public._reconcile_secdef_acl_snapshot (
+  fn text PRIMARY KEY,
+  proacl text,
+  had_public boolean NOT NULL,
+  captured_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public._reconcile_secdef_acl_snapshot ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public._reconcile_secdef_acl_snapshot FROM PUBLIC, anon, authenticated;
+GRANT ALL ON public._reconcile_secdef_acl_snapshot TO service_role;
+COMMENT ON TABLE public._reconcile_secdef_acl_snapshot IS
+  'Lovable sync reconcile: pre-revoke EXECUTE ACLs of public SECURITY DEFINER functions, used only by the documented undo.';
+
 DO $do$
 DECLARE
   r record;
+  g text;
   -- SECURITY DEFINER functions anon must still call. Empty: the app makes no
   -- RPC before sign-in and the only anon policy (feedback_submissions INSERT)
   -- uses auth.uid() alone. Add a name here only with evidence.
   keep constant text[] := ARRAY[]::text[];
+  -- Roles that keep EXECUTE they already had (directly or through PUBLIC), so
+  -- auth hooks (supabase_auth_admin), storage and PostgREST keep working.
+  keep_roles constant text[] := ARRAY['authenticated', 'service_role', 'supabase_auth_admin',
+    'supabase_storage_admin', 'authenticator'];
 BEGIN
   FOR r IN
-    SELECT p.oid::regprocedure AS sig, p.proname
+    SELECT p.oid, p.proname, p.proacl, p.proowner,
+           format('%I.%I(%s)', n.nspname, p.proname, oidvectortypes(p.proargtypes)) AS sig
     FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
     WHERE n.nspname = 'public' AND p.prosecdef AND p.prokind = 'f'
       AND NOT (p.proname = ANY (keep))
   LOOP
-    IF has_function_privilege('authenticated', r.sig, 'EXECUTE') THEN
-      EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated', r.sig);
-    END IF;
-    EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role', r.sig);
+    INSERT INTO public._reconcile_secdef_acl_snapshot (fn, proacl, had_public)
+    VALUES (r.sig, r.proacl::text,
+      EXISTS (SELECT 1 FROM aclexplode(coalesce(r.proacl, acldefault('f', r.proowner))) a
+              WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE'))
+    ON CONFLICT (fn) DO NOTHING;
+    FOREACH g IN ARRAY keep_roles LOOP
+      IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = g)
+         AND (g = 'service_role' OR has_function_privilege(g, r.oid, 'EXECUTE')) THEN
+        EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO %I', r.sig, g);
+      END IF;
+    END LOOP;
     EXECUTE format('REVOKE EXECUTE ON FUNCTION %s FROM PUBLIC, anon', r.sig);
   END LOOP;
 END

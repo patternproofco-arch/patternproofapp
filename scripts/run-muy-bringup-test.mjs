@@ -3,6 +3,7 @@
 // Section 1 instead of the individual #207 files, then every #207 SQL suite runs.
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync } from "node:fs";
+import { section1, SECTION0, SECTION2, SECTION3 } from "./muy-paste.mjs";
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const snapshot = JSON.parse(read("supabase/tests/production-policy-snapshot.json"));
 const db = new PGlite();
@@ -80,26 +81,63 @@ CREATE TABLE public.notifications(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 GRANT ALL ON public.subscriptions,public.attorney_profiles,public.firms,public.notifications TO service_role;`);
 // Section 1 of the muy bring-up paste: #207's migrations, the kept Lovable ones and
 // the final reconcile, in order, in one transaction. Applied twice to prove re-runs are safe.
-const BRINGUP_FILES = [
-  "20261008120000_acl_client_update_guard_allowlist",
-  "20261010150854_launch_consent_and_attorney_gate",
-  "20261011173000_fresh_attorney_grants",
-  "20261011174000_preserve_unfinished_entries",
-  "20261011175000_signup_alert_outbox",
-  "20261011180000_atomic_attorney_billing",
-  "20261011190000_lock_client_link_updates",
-  "20261011191000_attorney_applications",
-  "20261011200000_lovable_sync_reconcile",
-];
-const BRINGUP =
-  "BEGIN;\n" +
-  BRINGUP_FILES.map((f) => read(`supabase/migrations/${f}.sql`)).join("\n") +
-  "\nCOMMIT;\n";
+// Sections 0-3 come from scripts/muy-paste.mjs, the same builder that writes the paste.
+const BRINGUP = section1();
 await db.exec(`CREATE SCHEMA IF NOT EXISTS cron; CREATE TABLE IF NOT EXISTS cron.job (jobid bigserial PRIMARY KEY, jobname text, schedule text, command text, active boolean);
 CREATE OR REPLACE FUNCTION cron.unschedule(_id bigint) RETURNS boolean LANGUAGE sql AS $$ DELETE FROM cron.job WHERE jobid=_id RETURNING true $$;
 INSERT INTO cron.job(jobname,active) VALUES ('purge-old-entry-drafts', false);`);
+// A custom access-token hook that GoTrue (supabase_auth_admin) can reach only through
+// PUBLIC, like a hook created in the dashboard. Section 1 must not cut sign-in off.
+await db.exec(`DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='supabase_auth_admin') THEN CREATE ROLE supabase_auth_admin NOLOGIN; END IF;
+END $$;
+CREATE FUNCTION public.custom_access_token_hook(event jsonb) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$ BEGIN RETURN event; END $$;
+REVOKE EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb) FROM anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb) TO PUBLIC;`);
+const one = async (sql) => (await db.query(sql)).rows[0];
+const assert = (ok, msg) => {
+  if (!ok) throw new Error("FAIL: " + msg);
+  console.log("ok - " + msg);
+};
+const hookAcl = `SELECT p.proacl::text AS acl FROM pg_proc p WHERE p.oid='public.custom_access_token_hook(jsonb)'::regprocedure`;
+assert(
+  !(await one(hookAcl)).acl.includes("supabase_auth_admin="),
+  "before: supabase_auth_admin reaches the hook only through PUBLIC",
+);
+await db.exec(read(SECTION0)); // SECTION 0 is read-only and must run on the pre-bring-up state
 await db.exec(BRINGUP, { onNotice: (n) => void n });
 await db.exec(BRINGUP, { onNotice: (n) => void n });
+await db.exec(read(SECTION2)); // SECTION 2 must run cleanly after the bring-up
+const can = (role) =>
+  one(
+    `SELECT has_function_privilege('${role}','public.custom_access_token_hook(jsonb)','EXECUTE') AS ok`,
+  ).then((r) => r.ok);
+assert(
+  await can("supabase_auth_admin"),
+  "after section 1: supabase_auth_admin still has EXECUTE on the hook",
+);
+assert(!(await can("anon")), "after section 1: anon has no EXECUTE on the hook");
+assert(
+  !(await one(hookAcl)).acl.match(/(^|[{,])=X/),
+  "after section 1: no PUBLIC EXECUTE on the hook",
+);
+const snap = await one(
+  `SELECT had_public FROM public._reconcile_secdef_acl_snapshot WHERE fn='public.custom_access_token_hook(jsonb)'`,
+);
+assert(
+  snap?.had_public === true,
+  "snapshot recorded the hook's pre-revoke PUBLIC EXECUTE (kept on re-run)",
+);
+const snapAcl = await one(
+  `SELECT c.relrowsecurity AS rls, has_table_privilege('anon',c.oid,'SELECT') AS anon_sel,
+          has_table_privilege('authenticated',c.oid,'SELECT') AS auth_sel,
+          has_table_privilege('authenticated',c.oid,'INSERT') AS auth_ins
+     FROM pg_class c WHERE c.oid='public._reconcile_secdef_acl_snapshot'::regclass`,
+);
+assert(
+  snapAcl.rls && !snapAcl.anon_sel && !snapAcl.auth_sel && !snapAcl.auth_ins,
+  "snapshot table: RLS on, no anon/authenticated access",
+);
 await db.exec(read("supabase/tests/sql/launch_isolation.test.sql"), {
   onNotice: (n) => console.log(n.message),
 });
@@ -109,6 +147,21 @@ await db.exec(read("supabase/tests/sql/fresh_grants_and_signup_alerts.test.sql")
 await db.exec(read("supabase/tests/sql/atomic_attorney_billing.test.sql"), {
   onNotice: (n) => console.log(n.message),
 });
+// SECTION 3 (the undo) after the isolation suites: re-grants PUBLIC exactly where it was.
+await db.exec(read(SECTION3), { onNotice: (n) => void n });
+await db.exec(read(SECTION3), { onNotice: (n) => void n });
+assert(
+  !!(await one(hookAcl)).acl.match(/(^|[{,])=X/),
+  "section 3 undo: hook has PUBLIC EXECUTE again",
+);
+const notPublicBefore = await one(
+  `SELECT count(*)::int AS n FROM public._reconcile_secdef_acl_snapshot s
+    WHERE NOT s.had_public AND has_function_privilege('anon', s.fn::regprocedure, 'EXECUTE')`,
+);
+assert(
+  notPublicBefore.n === 0,
+  "section 3 undo: functions without PUBLIC before stay closed to anon",
+);
 console.log(
   "PASS: muy bring-up (Section 1 applied twice) + SQL isolation suite (PGlite; live policy snapshot, synthetic data only).",
 );
