@@ -48,8 +48,12 @@ export const listPrivateSinceSharing = createServerFn({ method: "POST" })
     const out: Array<{
       kind: LinkKind;
       link_id: string;
+      /** OK to share and not in this grant yet: what "Add these too" would add. */
       new_incidents: number;
       new_evidence: number;
+      /** Kept private or still deciding: never added in bulk. */
+      held_back_incidents: number;
+      held_back_evidence: number;
     }> = [];
 
     for (const kind of ["attorney", "advocate"] as LinkKind[]) {
@@ -68,19 +72,25 @@ export const listPrivateSinceSharing = createServerFn({ method: "POST" })
         // the professional's portal actually shows.
         await freezeLegacyBlanketScope(supabaseAdmin, TABLE[kind], l, context.userId);
         const gap = await unsharedSinceGrant(supabaseAdmin, context.userId, l);
-        if (!gap.incidents.length && !gap.evidence.length) continue;
+        const held = gap.heldBack.incidents.length + gap.heldBack.evidence.length;
+        if (!gap.incidents.length && !gap.evidence.length && !held) continue;
         out.push({
           kind,
           link_id: l.id,
           new_incidents: gap.incidents.length,
           new_evidence: gap.evidence.length,
+          held_back_incidents: gap.heldBack.incidents.length,
+          held_back_evidence: gap.heldBack.evidence.length,
         });
       }
     }
     return { grants: out };
   });
 
-/** Explicitly add everything documented since sharing to one existing grant. */
+/**
+ * Explicitly add what she has documented since sharing AND marked OK to share to one
+ * existing grant. Items kept private or still deciding are never added here.
+ */
 export const shareNewItemsWithGrant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -116,7 +126,20 @@ export const shareNewItemsWithGrant = createServerFn({ method: "POST" })
     // is genuinely not yet shared.
     await freezeLegacyBlanketScope(supabaseAdmin, table, link, context.userId);
 
+    // Only OK-to-share items: Keep private and Still deciding stay out of bulk adds.
     const gap = await unsharedSinceGrant(supabaseAdmin, context.userId, link);
+    const addInc = data.include_incidents ? gap.incidents.length : 0;
+    const addEv = data.include_evidence ? gap.evidence.length : 0;
+    if (!addInc && !addEv) {
+      // Nothing marked OK to share is missing. Change nothing, and say so.
+      return {
+        ok: true,
+        added_incidents: 0,
+        added_evidence: 0,
+        held_back_incidents: gap.heldBack.incidents.length,
+        held_back_evidence: gap.heldBack.evidence.length,
+      };
+    }
     const nextIncidents = data.include_incidents
       ? Array.from(new Set([...(link.scope_incidents ?? []), ...gap.incidents]))
       : (link.scope_incidents ?? []);
@@ -144,14 +167,16 @@ export const shareNewItemsWithGrant = createServerFn({ method: "POST" })
       p_actor_kind: "survivor",
       p_actor_id: context.userId,
       p_meta: {
-        added_incidents: data.include_incidents ? gap.incidents.length : 0,
-        added_evidence: data.include_evidence ? gap.evidence.length : 0,
+        added_incidents: addInc,
+        added_evidence: addEv,
       },
     });
 
     return {
       ok: true,
-      added_incidents: data.include_incidents ? gap.incidents.length : 0,
-      added_evidence: data.include_evidence ? gap.evidence.length : 0,
+      added_incidents: addInc,
+      added_evidence: addEv,
+      held_back_incidents: gap.heldBack.incidents.length,
+      held_back_evidence: gap.heldBack.evidence.length,
     };
   });

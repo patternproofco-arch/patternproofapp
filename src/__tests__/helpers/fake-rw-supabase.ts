@@ -34,8 +34,10 @@ export function makeRwAdmin(tables: Tables, limits: Limits = {}) {
     constructor(private name: string) {
       tables[name] ??= [];
     }
-    select(cols?: string) {
+    private wantCount = false;
+    select(cols?: string, opts?: { count?: string; head?: boolean }) {
       selects.push({ table: this.name, cols });
+      if (opts?.count) this.wantCount = true;
       return this;
     }
     order(col: string, o?: { ascending?: boolean }) {
@@ -144,7 +146,12 @@ export function makeRwAdmin(tables: Tables, limits: Limits = {}) {
         if (this.lim !== null) rows = rows.slice(0, this.lim);
         rows = rows.slice(0, maxRows);
       }
-      if (this.mode === "list") return { data: rows, error: null };
+      if (this.mode === "list") {
+        // select(cols, { count: "exact" }) also reports how many rows matched.
+        return this.wantCount
+          ? ({ data: rows, error: null, count: rows.length } as Result)
+          : { data: rows, error: null };
+      }
       return { data: rows[0] ?? null, error: null };
     }
     then<A = Result, B = never>(

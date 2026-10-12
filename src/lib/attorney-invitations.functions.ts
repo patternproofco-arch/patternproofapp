@@ -337,6 +337,11 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       invitationId: inv.id,
       actorId: context.userId,
       direction: "attorney",
+      attorneyUserId: context.userId,
+      // Her consent was fixed when SHE created this invitation (freezeInvitationScope);
+      // the attorney's accept can only narrow it, and the SQL checks the scope is a
+      // subset of what she approved.
+      survivorUserId: inv.client_user_id,
       scope: frozen,
     });
 

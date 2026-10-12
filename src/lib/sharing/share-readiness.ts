@@ -19,12 +19,13 @@ export function isShareEligible(value: unknown): boolean {
 }
 
 /**
- * Grant-snapshot eligibility (server).
- * NULL/missing is grandfathered (pre-migration) so live tip is not emptied
- * before Grace applies the column. Explicit private/undecided stay out.
+ * Grant-snapshot eligibility for broad actions ("Share all", "Add these too").
+ * Fail closed: ONLY an explicit "ok_to_share" is eligible. NULL / empty / unknown
+ * is NOT OK to share (the column is NOT NULL DEFAULT 'private'; a NULL can only
+ * come from bad or legacy data, and must never widen a share). Private and
+ * undecided stay out too.
  */
 export function isGrantSnapshotEligible(value: unknown): boolean {
-  if (value == null || value === "") return true;
   return value === "ok_to_share";
 }
 

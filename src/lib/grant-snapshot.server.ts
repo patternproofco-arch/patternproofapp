@@ -60,10 +60,10 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
  * Journal entries and files both have a real control ("Keep private" /
  * "OK to share later" / "Still deciding") on the Journal and Evidence screens.
  * A kept-private item "won't show up when you share with someone". So only
- * ok_to_share is in; private and undecided stay out (fail-closed). NULL or a
- * missing readiness value is grandfathered in (rows from before the column
- * existed). Only a MISSING readiness column (migration not applied yet) falls
- * back to every owned item; any other query error stops the share.
+ * ok_to_share is in; private, undecided and NULL stay out (fail-closed).
+ * If the readiness column is MISSING (migration not applied), nothing can be checked,
+ * so nothing is shared: this throws SHARING_UNAVAILABLE. It never falls back to
+ * every owned item. Any other query error also stops the share.
  */
 async function shareableIds(
   admin: Admin,
@@ -71,9 +71,8 @@ async function shareableIds(
   clientUserId: string,
   createdAtOrBefore?: string,
 ) {
-  // Only a missing readiness column (migration not applied yet) may fall back to
-  // every owned item. Any other failure must stop the share: falling back to
-  // "everything" on a transient error would sweep in entries kept private.
+  // Fail closed on every failure, a missing readiness column included: falling back
+  // to "everything" would sweep in entries she kept private.
   let columnMissing = false;
   let rows: Array<{ id: string; share_readiness?: string | null }>;
   try {
@@ -103,12 +102,22 @@ async function shareableIds(
       { what: table === "incidents" ? "incident" : "file" },
     );
   } catch (e) {
-    if (columnMissing) return ownedIds(admin, table, clientUserId);
+    if (columnMissing) throw new SharingUnavailableError();
     throw e;
   }
   return rows
     .filter((r) => isGrantSnapshotEligible(r.share_readiness))
     .map((r) => r.id);
+}
+
+/** Shown to the survivor verbatim. Thrown before anything is written. */
+export const SHARING_UNAVAILABLE = "Sharing is temporarily unavailable — nothing was shared";
+
+export class SharingUnavailableError extends Error {
+  constructor() {
+    super(SHARING_UNAVAILABLE);
+    this.name = "SharingUnavailableError";
+  }
 }
 
 function uniq(ids: Array<string | null | undefined>) {
@@ -214,23 +223,43 @@ export async function snapshotShareScope<T extends ShareScope>(
 
 /**
  * Items the survivor has documented since this grant was made, which the
- * professional therefore cannot see. Counts only — used to offer the survivor
- * an explicit "add these too" choice, never to share anything automatically.
+ * professional therefore cannot see. Used to offer the survivor an explicit
+ * "add these too" choice, never to share anything automatically.
+ *
+ * "Add these too" is a broad action, so it follows the same rule as "Share all":
+ * only items explicitly marked OK to share (NULL is not OK, fail closed) are
+ * offered in `incidents` / `evidence`. Items she marked Keep private or Still
+ * deciding are reported separately in `heldBack` and are never added in bulk; to
+ * share one she has to pick it herself, for that one person.
  */
 export async function unsharedSinceGrant(
   admin: Admin,
   clientUserId: string,
   link: ShareScope,
-): Promise<{ incidents: string[]; evidence: string[] }> {
+): Promise<{
+  incidents: string[];
+  evidence: string[];
+  heldBack: { incidents: string[]; evidence: string[] };
+}> {
   const shownIncidents = new Set(link.scope_incidents ?? []);
   const shownEvidence = new Set(link.scope_evidence ?? []);
-  const [allIncidents, allEvidence] = await Promise.all([
+  const [allIncidents, allEvidence, okIncidents, okEvidence] = await Promise.all([
     ownedIds(admin, "incidents", clientUserId),
     ownedIds(admin, "evidence", clientUserId),
+    shareableIds(admin, "incidents", clientUserId),
+    shareableIds(admin, "evidence", clientUserId),
   ]);
+  const okInc = new Set(okIncidents);
+  const okEv = new Set(okEvidence);
+  const gapInc = allIncidents.filter((id) => !shownIncidents.has(id));
+  const gapEv = allEvidence.filter((id) => !shownEvidence.has(id));
   return {
-    incidents: allIncidents.filter((id) => !shownIncidents.has(id)),
-    evidence: allEvidence.filter((id) => !shownEvidence.has(id)),
+    incidents: gapInc.filter((id) => okInc.has(id)),
+    evidence: gapEv.filter((id) => okEv.has(id)),
+    heldBack: {
+      incidents: gapInc.filter((id) => !okInc.has(id)),
+      evidence: gapEv.filter((id) => !okEv.has(id)),
+    },
   };
 }
 

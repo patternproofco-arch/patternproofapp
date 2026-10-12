@@ -11,6 +11,7 @@ import {
   peekAdvocateSurvivorInvite,
   acceptAdvocateSurvivorInvite,
   declineAdvocateSurvivorInvite,
+  previewAdvocateSurvivorInviteScope,
 } from "@/lib/advocate-survivor-invites.functions";
 
 export const Route = createFileRoute("/advocate-survivor-invite/$token")({
@@ -36,6 +37,7 @@ function AdvocateSurvivorInvitePage() {
   const navigate = useNavigate();
   const peek = useServerFn(peekAdvocateSurvivorInvite);
   const accept = useServerFn(acceptAdvocateSurvivorInvite);
+  const previewScope = useServerFn(previewAdvocateSurvivorInviteScope);
   const decline = useServerFn(declineAdvocateSurvivorInvite);
 
   const [peeked, setPeeked] = useState<Peek | null>(null);
@@ -55,6 +57,37 @@ function AdvocateSurvivorInvitePage() {
   const [shareIncidents, setShareIncidents] = useState(false);
   const [shareEvidence, setShareEvidence] = useState(false);
   const [sharePatterns, setSharePatterns] = useState(false);
+  // What accepting would really share, from the same server function the accept uses.
+  const [preview, setPreview] = useState<{ incidents: number; files: number } | null>(null);
+
+  useEffect(() => {
+    if (!user || step !== "consent" || (!shareIncidents && !shareEvidence)) {
+      setPreview(null);
+      return;
+    }
+    let cancelled = false;
+    previewScope({
+      data: {
+        token,
+        scope: {
+          include_all_incidents: shareIncidents,
+          include_all_evidence: shareEvidence,
+          include_patterns: sharePatterns,
+          scope_incidents: [],
+          scope_evidence: [],
+        },
+      },
+    })
+      .then((r) => {
+        if (!cancelled) setPreview(r.shared);
+      })
+      .catch(() => {
+        if (!cancelled) setPreview(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, step, token, shareIncidents, shareEvidence, sharePatterns, previewScope]);
 
   useEffect(() => {
     if (user && peeked?.status === "ok" && step === "auth") setStep("consent");
@@ -445,6 +478,12 @@ function AdvocateSurvivorInvitePage() {
                   Journal entries you kept private are not included, even if you share incidents.
                   To include one, mark it &quot;OK to share later&quot; in your journal first.
                 </p>
+                {preview && (
+                  <p data-testid="invite-share-preview" style={{ fontSize: 12.5, margin: 0 }}>
+                    They will see {preview.incidents} {preview.incidents === 1 ? "entry" : "entries"} and{" "}
+                    {preview.files} {preview.files === 1 ? "file" : "files"}.
+                  </p>
+                )}
               </div>
 
               <button

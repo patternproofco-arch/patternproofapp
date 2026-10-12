@@ -96,7 +96,9 @@ describe("sharing never reaches forward in time", () => {
       scope_incidents: ["inc-1"],
       scope_evidence: ["ev-1"],
     });
-    expect(gap.incidents.sort()).toEqual(["inc-2", "inc-private"].sort());
+    // "Add these too" offers only OK-to-share; the kept-private entry is held back.
+    expect(gap.incidents.sort()).toEqual(["inc-2"]);
+    expect(gap.heldBack.incidents).toEqual(["inc-private"]);
     expect(gap.evidence).toEqual([]);
   });
 
@@ -112,7 +114,7 @@ describe("sharing never reaches forward in time", () => {
     expect(frozen.scope_incidents).not.toContain("inc-private");
   });
 
-  it("grandfathers NULL share_readiness into new share-all snapshots (pre-migration)", async () => {
+  it("treats NULL share_readiness as NOT OK to share in share-all snapshots (fail closed)", async () => {
     const db = fakeAdmin({
       incidents: [
         { id: "inc-null", user_id: SURV, deleted_at: null, created_at: "2026-01-01T00:00:00Z" },
@@ -148,10 +150,11 @@ describe("sharing never reaches forward in time", () => {
       scope_incidents: [],
       scope_evidence: [],
     });
-    expect(frozen.scope_incidents?.sort()).toEqual(["inc-null", "inc-ok"].sort());
+    expect(frozen.scope_incidents).toEqual(["inc-ok"]);
+    expect(frozen.scope_incidents).not.toContain("inc-null");
     expect(frozen.scope_incidents).not.toContain("inc-private");
     expect(frozen.scope_incidents).not.toContain("inc-undecided");
-    expect(frozen.scope_evidence).toEqual(["ev-null"]);
+    expect(frozen.scope_evidence).toEqual([]);
   });
 
   it("does not invent share from readiness on explicit picks — private stays out", async () => {

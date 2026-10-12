@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import {
   acceptInviteSchema,
+  acceptScopeSchema,
   assertInviteUsable,
   assertScopeChosen,
   buildGrantPayload,
@@ -344,6 +345,56 @@ export const declineAdvocateSurvivorInvite = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const ADVOCATE_HINT =
+  "To include a private entry, mark it \u201cOK to share later\u201d in your journal first.";
+
+/**
+ * What accepting an advocate invite shares. Preview and accept both call this.
+ * The advocate screen has no per-item "authorize for this invite" choice (its copy says
+ * kept-private entries are not included), so per-item ids never authorize a private
+ * item here, and anything pre-filled on the invite row never does either.
+ */
+async function resolveAdvocateAcceptScope(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+  survivorId: string,
+  inv: Record<string, unknown>,
+  scope: z.infer<typeof acceptScopeSchema>,
+) {
+  const { resolveInviteAcceptScope, prefillFromInviteRow } = await import(
+    "@/lib/sharing/invite-accept-scope.server"
+  );
+  return resolveInviteAcceptScope(admin, survivorId, {
+    survivorChoice: scope,
+    invitePrefill: prefillFromInviteRow(inv),
+    authorizeSurvivorPicks: false,
+  });
+}
+
+/** What accepting would share right now. Writes nothing. */
+export const previewAdvocateSurvivorInviteScope = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ token: z.string().min(8).max(128), scope: acceptScopeSchema }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { email } = await verifiedAccountEmail(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: found } = await supabaseAdmin
+      .from("advocate_survivor_invites")
+      .select("*")
+      .eq("invite_token", data.token)
+      .maybeSingle();
+    const inv = found as (InviteRow & Record<string, unknown>) | null;
+    assertInviteUsable(inv, email);
+    const r = await resolveAdvocateAcceptScope(supabaseAdmin, context.userId, inv, data.scope);
+    return {
+      shared: { incidents: r.scope_incidents.length, files: r.scope_evidence.length },
+      include_patterns: r.include_patterns,
+      excluded: r.excluded,
+    };
+  });
+
 export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => acceptInviteSchema.parse(input))
@@ -406,29 +457,56 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
 
     // Freeze "all entries" into explicit ids before the grant is written, so
     // nothing the survivor documents later is shared without them choosing it.
-    const { snapshotShareScope } = await import("@/lib/grant-snapshot.server");
-    const frozenScope = await snapshotShareScope(supabaseAdmin, context.userId, scope);
+    // Same helper as the preview, so what she was shown is what is written.
+    const frozenScope = await resolveAdvocateAcceptScope(supabaseAdmin, context.userId, inv, scope);
+    // Refuse before writing the link or marking the invite accepted, so she can retry.
+    const { assertAcceptWouldShare } = await import("@/lib/sharing/invite-accept-scope.server");
+    assertAcceptWouldShare(scope, frozenScope, ADVOCATE_HINT);
     const linkPayload = buildGrantPayload(inv, context.userId, {
       ...scope,
       include_all_incidents: false,
       include_all_evidence: false,
-      scope_incidents: frozenScope.scope_incidents ?? [],
-      scope_evidence: frozenScope.scope_evidence ?? [],
+      scope_incidents: frozenScope.scope_incidents,
+      scope_evidence: frozenScope.scope_evidence,
     });
 
-    const { data: existing } = await supabaseAdmin
+    // One row per advocate/survivor pair. A re-accept overwrites that row ENTIRELY with
+    // this consent: scope ids and include_* replaced (never merged), expires_at reset to
+    // this invite, revoked_at cleared deliberately (she is consenting again now), and
+    // nothing inherited from the old relationship (case, invitation, org-admin visibility).
+    const { data: existing, error: existingErr } = await supabaseAdmin
       .from("advocate_client_links")
-      .select("id")
+      .select("id,status,revoked_at,expires_at,scope_incidents,scope_evidence")
       .eq("advocate_user_id", inv.advocate_user_id)
       .eq("client_user_id", context.userId)
       .maybeSingle();
+    if (existingErr) throw new Error("We couldn't check the existing share. Nothing was changed. Try again.");
+    // Copy the previous state now, before the row is overwritten.
+    const previous = existing
+      ? {
+          id: existing.id as string,
+          status: (existing.status as string | null) ?? null,
+          revoked_at: (existing.revoked_at as string | null) ?? null,
+          expires_at: (existing.expires_at as string | null) ?? null,
+          incidents: ((existing.scope_incidents as string[] | null) ?? []).length,
+          files: ((existing.scope_evidence as string[] | null) ?? []).length,
+        }
+      : null;
 
-    let linkId = existing?.id ?? null;
+    let linkId = previous?.id ?? null;
     if (linkId) {
       const { error: updateErr } = await supabaseAdmin
         .from("advocate_client_links")
-        .update(linkPayload)
-        .eq("id", linkId);
+        .update({
+          ...linkPayload,
+          revoked_at: null,
+          case_id: null,
+          invitation_id: null,
+          org_admin_visibility: false,
+          org_visibility_updated_at: null,
+        })
+        .eq("id", linkId)
+        .eq("client_user_id", context.userId);
       if (updateErr) throw new Error(updateErr.message);
     } else {
       const { data: link, error: linkErr } = await supabaseAdmin
@@ -464,6 +542,23 @@ export const acceptAdvocateSurvivorInvite = createServerFn({ method: "POST" })
         invite_id: inv.id,
         advocate_user_id: inv.advocate_user_id,
       },
+    });
+    const { recordShareConsent } = await import("@/lib/sharing/consent-receipt.server");
+    await recordShareConsent(supabaseAdmin, {
+      table: "advocate_client_links",
+      linkId: linkId as string,
+      survivorUserId: context.userId,
+      actorKind: "survivor",
+      actorId: context.userId,
+      invitationId: inv.id,
+      direction: "survivor",
+      scope: {
+        scope_incidents: frozenScope.scope_incidents,
+        scope_evidence: frozenScope.scope_evidence,
+        include_patterns: scope.include_patterns === true,
+      },
+      expiresAt: linkPayload.expires_at,
+      replaced: previous,
     });
 
     return {
