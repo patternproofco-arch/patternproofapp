@@ -72,12 +72,23 @@ export const requireAccountAuth = createMiddleware({ type: "function" }).server(
   },
 );
 
-/** All ordinary server functions deny unreviewed attorney accounts. */
+/**
+ * All ordinary server functions deny unreviewed attorney accounts, and deny
+ * accounts that turned on two-step sign-in but haven't entered the code this
+ * session (JWT aal1 + a verified factor). Accounts without two-step pass at aal1.
+ */
 export const requireSupabaseAuth = createMiddleware({ type: "function" })
   .middleware([requireAccountAuth])
   .server(async ({ context, next }) => {
     const { supabaseAdmin } = await import("./client.server");
     const { assertApprovedAttorneyAccount } = await import("@/lib/attorney-approval.server");
     await assertApprovedAttorneyAccount(supabaseAdmin, context.userId);
+    // Enrolled accounts (verified authenticator) must have finished the code step.
+    const { assertAssuranceForEnrolledAccount } = await import("@/lib/mfa-assurance.server");
+    await assertAssuranceForEnrolledAccount(
+      supabaseAdmin as unknown as Parameters<typeof assertAssuranceForEnrolledAccount>[0],
+      context.userId,
+      context.claims as { aal?: unknown },
+    );
     return next();
   });
