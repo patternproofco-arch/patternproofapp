@@ -56,7 +56,9 @@ const ORDER = `-- WHAT TO DO, IN THIS ORDER (plain words, for Grace). Guardian h
 --   5) Merge PR #214 and Publish main soon after. Until then attorneys are denied (fine
 --      while there is only fictional data). Publishing main BEFORE section 1 breaks every
 --      attorney invite accept.
---   6) Approve the pilot attorneys in the admin screen (/admin/operations).
+--   6) Approve the FICTIONAL pilot attorneys in the admin screen (/admin/operations).
+--      Do NOT approve any REAL attorney until Builder reports on the attorney_profiles
+--      self-approval check (and that fix is applied on muy if needed).
 --   7) Verifier does the full pass after publishing.
 --   SECTION 3 is an undo. Use it ONLY if sign-in or a server flow breaks right after
 --   section 1. It is commented out below on purpose; the same SQL is in the separate file
