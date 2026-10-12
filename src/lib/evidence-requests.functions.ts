@@ -1,5 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { isRevoked, isExpired } from "@/lib/attorney-access.server";
+import type { RequestOutcome } from "@/lib/request-response";
+import { respondToRequest } from "@/lib/request-response.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
@@ -18,6 +21,7 @@ export type SurvivorRequest = {
   kind: string;
   due_at: string | null;
   status: string;
+  response_outcome?: RequestOutcome | null;
   created_at: string;
   response_note: string | null;
   response_evidence_ids: string[];
@@ -33,6 +37,7 @@ export type ProfessionalRequest = {
   kind: string;
   due_at: string | null;
   status: string;
+  response_outcome?: RequestOutcome | null;
   created_at: string;
   submitted_at: string | null;
   declined_at: string | null;
@@ -50,7 +55,7 @@ export const listMyEvidenceRequests = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("attorney_document_requests")
       .select(
-        "id,title,details,kind,due_at,status,created_at,response_note,response_evidence_ids,submitted_at,declined_at,attorney_user_id,link_id",
+        "id,title,details,kind,due_at,status,response_outcome,created_at,response_note,response_evidence_ids,submitted_at,declined_at,attorney_user_id,link_id",
       )
       .eq("client_user_id", context.userId)
       .order("created_at", { ascending: false })
@@ -59,14 +64,30 @@ export const listMyEvidenceRequests = createServerFn({ method: "GET" })
     const rows = data ?? [];
     // Hide requests whose sharing link is no longer active.
     const linkIds = [...new Set(rows.map((r) => r.link_id))];
-    const { data: links } = linkIds.length
+    const { data: links, error: linkError } = linkIds.length
       ? await supabaseAdmin
           .from("attorney_client_links")
-          .select("id,status")
+          .select("id,status,expires_at,revoked_at")
           .in("id", linkIds)
           .eq("client_user_id", context.userId)
-      : { data: [] as Array<{ id: string; status: string }> };
-    const live = new Set((links ?? []).filter((l) => l.status === "active").map((l) => l.id));
+      : {
+          data: [] as Array<{
+            id: string;
+            status: string;
+            expires_at: string | null;
+            revoked_at: string | null;
+          }>,
+          error: null,
+        };
+    if (linkError)
+      throw new Error("We couldn't check the sharing status of your requests. Try again.");
+    const live = new Set(
+      (links ?? [])
+        .filter(
+          (l) => l.status === "active" && !isRevoked(l.revoked_at) && !isExpired(l.expires_at),
+        )
+        .map((l) => l.id),
+    );
     const proIds = [...new Set(rows.map((r) => r.attorney_user_id))];
     const { data: pros } = proIds.length
       ? await supabaseAdmin
@@ -85,6 +106,7 @@ export const listMyEvidenceRequests = createServerFn({ method: "GET" })
           kind: r.kind,
           due_at: r.due_at,
           status: r.status,
+          response_outcome: r.response_outcome as RequestOutcome | null,
           created_at: r.created_at,
           response_note: r.response_note,
           response_evidence_ids: r.response_evidence_ids ?? [],
@@ -138,7 +160,15 @@ async function queueRequestDraft(
           .select("id,title,date,transcript,extracted_text")
           .eq("user_id", userId)
           .in("id", ids)
-      : { data: [] as { id: string; title: string; date: string | null; transcript: string | null; extracted_text: string | null }[] };
+      : {
+          data: [] as {
+            id: string;
+            title: string;
+            date: string | null;
+            transcript: string | null;
+            extracted_text: string | null;
+          }[],
+        };
     const parts: string[] = [];
     if (note) parts.push(note);
     for (const f of files ?? []) {
@@ -146,7 +176,11 @@ async function queueRequestDraft(
       if (text) parts.push(`From "${f.title}":\n${text}`);
     }
     const description = (parts.join("\n\n") || `Answer to request: ${title}`).slice(0, 4000);
-    const firstDate = (files ?? []).map((f) => f.date).filter(Boolean).sort()[0] ?? null;
+    const firstDate =
+      (files ?? [])
+        .map((f) => f.date)
+        .filter(Boolean)
+        .sort()[0] ?? null;
     await admin.from("proposed_incidents").insert({
       user_id: userId,
       batch_id: crypto.randomUUID(),
@@ -175,12 +209,15 @@ async function queueRequestDraft(
 async function ownEvidenceIds(userId: string, ids: string[]): Promise<string[]> {
   if (!ids.length) return [];
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from("evidence")
     .select("id")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .in("id", ids);
+  if (error || (data ?? []).length !== new Set(ids).size) {
+    throw new Error("A selected file could not be checked. Nothing was saved or sent.");
+  }
   return (data ?? []).map((r) => r.id);
 }
 
@@ -188,9 +225,9 @@ export const saveEvidenceRequestDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => ResponseInput.parse(i))
   .handler(async ({ data, context }) => {
-    const { admin } = await loadOwnOpenRequest(context.userId, data.id);
+    await loadOwnOpenRequest(context.userId, data.id);
     const ids = await ownEvidenceIds(context.userId, data.evidence_ids);
-    const { error } = await admin
+    const { data: updated, error } = await context.supabase
       .from("attorney_document_requests")
       .update({
         response_note: data.note || null,
@@ -198,8 +235,11 @@ export const saveEvidenceRequestDraft = createServerFn({ method: "POST" })
         draft_saved_at: new Date().toISOString(),
       })
       .eq("id", data.id)
-      .eq("client_user_id", context.userId);
-    if (error) throw new Error("We couldn't save that. Try again in a moment.");
+      .eq("client_user_id", context.userId)
+      .eq("status", "open")
+      .select("id")
+      .maybeSingle();
+    if (error || !updated) throw new Error("We couldn't save that. Try again in a moment.");
     return { ok: true };
   });
 
@@ -208,66 +248,39 @@ export const submitEvidenceRequest = createServerFn({ method: "POST" })
   .inputValidator((i) => ResponseInput.parse(i))
   .handler(async ({ data, context }) => {
     const { admin, req } = await loadOwnOpenRequest(context.userId, data.id);
-    const ids = await ownEvidenceIds(context.userId, data.evidence_ids);
-    if (!ids.length && !data.note) throw new Error("Add a note or pick a file before sending.");
-
-    const { data: link } = await admin
-      .from("attorney_client_links")
-      .select("id,status,scope_evidence")
-      .eq("id", req.link_id)
-      .eq("client_user_id", context.userId)
-      .maybeSingle();
-    if (!link || link.status !== "active") {
-      throw new Error("Sharing with this professional has ended, so nothing was sent.");
-    }
-    if (ids.length) {
-      const merged = [...new Set([...(link.scope_evidence ?? []), ...ids])];
-      const { error: scopeErr } = await admin
-        .from("attorney_client_links")
-        .update({ scope_evidence: merged })
-        .eq("id", link.id);
-      if (scopeErr) throw new Error("We couldn't send that. Try again in a moment.");
-    }
-    const now = new Date().toISOString();
-    const { error } = await admin
-      .from("attorney_document_requests")
-      .update({
-        status: "submitted",
-        response_note: data.note || null,
-        response_evidence_ids: ids,
-        submitted_at: now,
-        completed_at: now,
-      })
-      .eq("id", data.id);
-    if (error) throw new Error("We couldn't send that. Try again in a moment.");
+    const ids = [...new Set(data.evidence_ids)];
+    const response = await respondToRequest(context.supabase, { ...data, action: "submit" });
     await queueRequestDraft(
       admin,
       context.userId,
       req.title ?? "Requested item",
       data.note,
       ids,
-      link.id,
+      req.link_id,
     );
-    return { ok: true, shared: ids.length };
+    return { ok: true, shared: response.shared };
   });
 
 export const declineEvidenceRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    const { admin } = await loadOwnOpenRequest(context.userId, data.id);
-    const now = new Date().toISOString();
-    const { error } = await admin
-      .from("attorney_document_requests")
-      .update({
-        status: "declined",
-        declined_at: now,
-        completed_at: now,
-        response_note: null,
-        response_evidence_ids: [],
+    await respondToRequest(context.supabase, { id: data.id, action: "decline" });
+    return { ok: true };
+  });
+
+export const respondWithoutEvidence = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        action: z.enum(["unavailable", "help_requested"]),
       })
-      .eq("id", data.id);
-    if (error) throw new Error("We couldn't update that. Try again in a moment.");
+      .parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    await respondToRequest(context.supabase, data);
     return { ok: true };
   });
 
@@ -277,11 +290,12 @@ async function activeLinkFor(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: link } = await supabaseAdmin
     .from("attorney_client_links")
-    .select("id,status")
+    .select("id,status,expires_at,revoked_at")
     .eq("attorney_user_id", attorneyId)
     .eq("client_user_id", clientId)
     .maybeSingle();
-  if (!link || link.status !== "active") throw new Error("Sharing with this client isn't active.");
+  if (!link || link.status !== "active" || isRevoked(link.revoked_at) || isExpired(link.expires_at))
+    throw new Error("Sharing with this client isn't active.");
   return { admin: supabaseAdmin, link };
 }
 
@@ -318,14 +332,15 @@ export const listClientEvidenceRequests = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ clientId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }): Promise<{ items: ProfessionalRequest[] }> => {
     const { admin, link } = await activeLinkFor(context.userId, data.clientId);
-    const { data: rows } = await admin
+    const { data: rows, error } = await admin
       .from("attorney_document_requests")
       .select(
-        "id,title,details,kind,due_at,status,created_at,submitted_at,declined_at,response_note,response_evidence_ids",
+        "id,title,details,kind,due_at,status,response_outcome,created_at,submitted_at,declined_at,response_note,response_evidence_ids",
       )
       .eq("link_id", link.id)
       .eq("attorney_user_id", context.userId)
       .order("created_at", { ascending: false });
+    if (error) throw new Error("We couldn't load these requests. Try again.");
     return {
       items: (rows ?? []).map((r) => {
         const submitted = r.status === "submitted";
@@ -336,6 +351,7 @@ export const listClientEvidenceRequests = createServerFn({ method: "POST" })
           kind: r.kind,
           due_at: r.due_at,
           status: r.status,
+          response_outcome: r.response_outcome as RequestOutcome | null,
           created_at: r.created_at,
           submitted_at: r.submitted_at,
           declined_at: r.declined_at,

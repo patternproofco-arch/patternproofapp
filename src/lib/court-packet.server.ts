@@ -1,4 +1,10 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { describeStoredDate } from "@/lib/incident-date";
+import { selectInChunksPaged } from "@/lib/in-chunks.server";
+
+function fmtConfirmed(d: string): string {
+  return describeStoredDate({ date: d, date_precision: "exact" });
+}
 
 /**
  * Court-packet PDF builder, extracted so the real build runs in tests.
@@ -17,34 +23,6 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
  *  - Returns { base64, filename } — client downloads.
  */
 
-function fmtConfirmed(d: string): string {
-  return new Date(d + "T00:00:00").toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-function fmtApprox(
-  range_start: string | null,
-  range_end: string | null,
-  anchor_label: string | null,
-): string {
-  const s = range_start
-    ? new Date(range_start + "T00:00:00").toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-      })
-    : "";
-  const e = range_end
-    ? new Date(range_end + "T00:00:00").toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-      })
-    : "";
-  const window = s && e && s !== e ? `${s} – ${e}` : s || e || "date approximate";
-  const anchor = anchor_label ? `, anchored to: ${anchor_label}` : "";
-  return `~ ${window}${anchor}`;
-}
 function dateLine(row: {
   date: string | null;
   date_precision: string | null;
@@ -52,12 +30,11 @@ function dateLine(row: {
   date_range_end: string | null;
   anchor_label: string | null;
 }): string {
-  const p = row.date_precision;
-  if (p === "exact" && row.date) return fmtConfirmed(row.date);
-  if (p === "approximate")
-    return fmtApprox(row.date_range_start, row.date_range_end, row.anchor_label);
-  if (row.date) return fmtConfirmed(row.date);
-  return "Date unknown";
+  const label =
+    row.date_precision === "approximate"
+      ? `Around ${row.date_range_start ?? row.date ?? "an uncertain date"}${row.date_range_end ? ` to ${row.date_range_end}` : ""}`
+      : describeStoredDate(row);
+  return row.anchor_label ? `${label}, anchored to: ${row.anchor_label}` : label;
 }
 
 /** Wrap `text` to `maxWidth` at the given font/size in points. */
@@ -113,47 +90,44 @@ export async function buildCasePacket(
   const lgIds: string[] = caseRow.legal_document_ids ?? [];
   const thIds: string[] = caseRow.attached_thread_ids ?? [];
 
-  const [incR, evR, lgR, thR, tmR] = await Promise.all([
-    incIds.length
-      ? db
-          .from("incidents")
-          .select(
-            "id,date,date_precision,date_range_start,date_range_end,anchor_label,location,description,abuse_types",
-          )
-          .eq("user_id", userId)
-          .in("id", incIds)
-          .is("deleted_at", null)
-      : Promise.resolve({ data: [] as unknown[] }),
-    evIds.length
-      ? db
-          .from("evidence")
-          .select("id,title,date,file_type,description")
-          .eq("user_id", userId)
-          .in("id", evIds)
-          .is("deleted_at", null)
-      : Promise.resolve({ data: [] as unknown[] }),
-    lgIds.length
-      ? db
-          .from("legal_documents")
-          .select("id,title,document_type,effective_date,incident_date,case_number,key_terms")
-          .eq("user_id", userId)
-          .in("id", lgIds)
-      : Promise.resolve({ data: [] as unknown[] }),
-    thIds.length
-      ? db
-          .from("message_threads")
-          .select("id,conversation_participant,source_filename,message_count")
-          .eq("user_id", userId)
-          .in("id", thIds)
-      : Promise.resolve({ data: [] as unknown[] }),
-    thIds.length
-      ? db
+  // Page every selection and propagate every failed read. An incomplete
+  // database response must never become a seemingly successful hearing packet.
+  const selected = (table: string, cols: string, ids: string[], deleted = false) =>
+    selectInChunksPaged<Record<string, unknown>>(
+      ids,
+      (chunk, from, to) => {
+        let q = db.from(table).select(cols).eq("user_id", userId).in("id", chunk);
+        if (deleted) q = q.is("deleted_at", null);
+        return q.order("id", { ascending: true }).range(from, to);
+      },
+      { what: table },
+    );
+  const [incidentRows, evidenceRows, legalRows, threadRows, messageRows] = await Promise.all([
+    selected(
+      "incidents",
+      "id,date,date_precision,date_range_start,date_range_end,anchor_label,location,description,abuse_types,source,confirmed_at",
+      incIds,
+      true,
+    ),
+    selected("evidence", "id,title,date,file_type,description,review_status", evIds, true),
+    selected(
+      "legal_documents",
+      "id,title,document_type,effective_date,incident_date,case_number,key_terms",
+      lgIds,
+    ),
+    selected("message_threads", "id,conversation_participant,source_filename,message_count", thIds),
+    selectInChunksPaged<Record<string, unknown>>(
+      thIds,
+      (chunk, from, to) =>
+        db
           .from("thread_messages")
-          .select("thread_id,position,sender,sent_on,sent_at_time,body")
+          .select("id,thread_id,position,sender,sent_on,sent_at_time,body")
           .eq("user_id", userId)
-          .in("thread_id", thIds)
-          .order("position", { ascending: true })
-      : Promise.resolve({ data: [] as unknown[] }),
+          .in("thread_id", chunk)
+          .order("id", { ascending: true })
+          .range(from, to),
+      { what: "conversation messages" },
+    ),
   ]);
 
   interface Inc {
@@ -198,13 +172,15 @@ export async function buildCasePacket(
     body: string | null;
   }
 
-  const incidents = ((incR.data as Inc[] | null) ?? []).sort((a, b) =>
-    (a.date ?? "0") < (b.date ?? "0") ? -1 : 1,
+  const incidents = (
+    incidentRows.filter((r) => r.source !== "ai_extracted" || r.confirmed_at) as unknown as Inc[]
+  ).sort((a, b) => ((a.date ?? "0") < (b.date ?? "0") ? -1 : 1));
+  const evidence = evidenceRows.filter((r) => r.review_status !== "suggested") as unknown as Ev[];
+  const legal = legalRows as unknown as Lg[];
+  const threads = threadRows as unknown as Th[];
+  const threadMessages = (messageRows as unknown as Tm[]).sort(
+    (a, b) => (a.position ?? 0) - (b.position ?? 0),
   );
-  const evidence = (evR.data as Ev[] | null) ?? [];
-  const legal = (lgR.data as Lg[] | null) ?? [];
-  const threads = (thR.data as Th[] | null) ?? [];
-  const threadMessages = (tmR.data as Tm[] | null) ?? [];
 
   type Exhibit =
     | { kind: "incident"; row: Inc }
@@ -280,6 +256,13 @@ export async function buildCasePacket(
     `Prepared: ${new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}`,
     serif,
     12,
+    MUTE,
+  );
+  gap(8);
+  writePara(
+    "Exported selection only. This packet has not been filed, served, or admitted by this export. Check local requirements and review context and redactions before use.",
+    serif,
+    10,
     MUTE,
   );
   gap(18);

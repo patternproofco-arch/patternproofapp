@@ -1,30 +1,12 @@
+import { fetchReviewedAi, isAiProcessingPolicyReviewed } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertSupabaseStorageUrl } from "./safe-fetch.server";
 
-const SYSTEM_PROMPT = `You are an extraction assistant for a domestic-abuse documentation app. The user uploaded a screenshot (often a text message, email, or photo) and wants you to draft an incident record they can review and edit. Return JSON only, no preamble, no markdown.
-
-Schema (use null when unsure):
-{
-  "date": "YYYY-MM-DD or null",
-  "time": "HH:MM (24h) or null",
-  "location": "string or null",
-  "description": "string — a calm, factual first-person description of what appears to have happened. 1-4 sentences. Use the user's voice, not legal jargon.",
-  "abuse_types": ["physical"|"emotional"|"financial"|"coercive"|"custody"|"surveillance"|"location_tracking"|"account_control"|"smart_home"|"impersonation"|"digital_intimidation"|"other"],
-  "witnesses": "string or null",
-  "emotional_impact": "string or null"
-}
-
-Category guidance (use only what's clearly shown):
-- surveillance: hidden cameras, listening devices, spyware, or monitoring apps on phones/computers/accounts.
-- location_tracking: AirTags, Tiles, GPS trackers, Find My / Life360 / shared-account tracking of where the person goes.
-- account_control: forced password changes, account lockouts, forced login sharing, control over email/bank/social accounts.
-- smart_home: remote control of thermostats, locks, lights, cameras, or voice assistants (Alexa/Ring/Nest) used to watch or unsettle.
-- impersonation: fake profiles, deepfakes, edited photos/videos, someone pretending to be the person online or in messages.
-- digital_intimidation: relentless texting/calling/DMs, monitoring online status, harassment across multiple platforms or through new accounts after being blocked.
-
-Be conservative. If you only see a single text message, the abuse_types should reflect what is actually shown (often "emotional" or "coercive"). Never invent facts.`;
+const SYSTEM_PROMPT = `Extract only what is visible in this uploaded source for the user to review. Return JSON, using null when uncertain:
+{"date":"YYYY-MM-DD or null","time":"HH:MM or null","location":"string or null","description":"A source-attributed summary of visible text; keep exact quotations in quotation marks and summaries separate.","abuse_types":[],"witnesses":null,"emotional_impact":null}
+Do not write as if you are the survivor. Do not label abuse, diagnose, infer intent, emotion or credibility, or predict admissibility. Do not invent missing context, dates or speakers. Say when text is unreadable or dates conflict. The output is an unconfirmed software suggestion, not the user's account.`;
 
 export const extractIncidentFromImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -33,10 +15,13 @@ export const extractIncidentFromImage = createServerFn({ method: "POST" })
       .object({
         signedUrl: z.string().url().max(2000),
         mimeType: z.string().min(1).max(120),
+        ai_consent: z.literal(true),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
+    if (!isAiProcessingPolicyReviewed())
+      return { ok: false as const, reason: "processing-disabled" };
     const key = process.env.LOVABLE_API_KEY;
     if (!key) return { ok: false as const, reason: "missing-key" };
 
@@ -56,7 +41,7 @@ export const extractIncidentFromImage = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "fetch-failed" };
     }
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({
@@ -85,7 +70,23 @@ export const extractIncidentFromImage = createServerFn({ method: "POST" })
       .trim();
     try {
       const parsed = JSON.parse(cleaned);
-      return { ok: true as const, extracted: parsed };
+      const extracted = z
+        .object({
+          date: z.string().nullable().optional(),
+          time: z.string().nullable().optional(),
+          location: z.string().nullable().optional(),
+          description: z.string().max(4000),
+        })
+        .parse(parsed);
+      return {
+        ok: true as const,
+        extracted: {
+          ...extracted,
+          abuse_types: [] as string[],
+          witnesses: "",
+          emotional_impact: "",
+        },
+      };
     } catch {
       return { ok: false as const, reason: "parse-failed" };
     }

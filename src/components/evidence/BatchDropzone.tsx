@@ -21,12 +21,6 @@ import {
   type PreservationReceipt,
   type PreservationReceiptItem,
 } from "@/lib/evidence-ingest.functions";
-import { enrichEvidence } from "@/lib/evidence-enrichment.functions";
-import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
-import { extractEvidenceDocument } from "@/lib/document-extract.functions";
-import { isReadableDocument } from "@/lib/readable-documents";
-import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
-import { ensureMediaUploadDrafts } from "@/lib/upload-draft.functions";
 import { UPLOAD_LIMITS, checkUploadSize, humanSize } from "@/lib/upload-limits";
 import { readExif, stripExif, type ExifSummary } from "@/lib/exif";
 import { FileIntakeRow, type ExifChoice } from "./FileIntakeRow";
@@ -52,6 +46,7 @@ type FileState = {
   file: File;
   phase: UploadPhase;
   storageKey?: string;
+  uploaded?: boolean;
   message?: string;
   exif?: ExifSummary | null;
   exifChoice?: ExifChoice | null;
@@ -162,11 +157,6 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const ingest = useServerFn(ingestEvidenceBatch);
   const confirmNear = useServerFn(confirmNearDuplicate);
   const rejectNear = useServerFn(rejectNearDuplicate);
-  const enrich = useServerFn(enrichEvidence);
-  const transcribe = useServerFn(transcribeEvidence);
-  const extractDoc = useServerFn(extractEvidenceDocument);
-  const proposeTimeline = useServerFn(proposeTimelineFromEvidence);
-  const ensureDrafts = useServerFn(ensureMediaUploadDrafts);
   const openBatch = useServerFn(openIntakeBatch);
   const updateBatch = useServerFn(updateIntakeBatch);
   const [files, setFiles] = useState<FileState[]>([]);
@@ -176,7 +166,6 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [nearResolved, setNearResolved] = useState<Record<string, "confirmed" | "rejected">>({});
-  const [suggestionCount, setSuggestionCount] = useState<number | null>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const [dating, setDating] = useState<DateCertaintyValue>(EMPTY_DATE_CERTAINTY);
   const [offline, setOffline] = useState(false);
@@ -343,51 +332,63 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
 
     let intakeBatchId: string | null = null;
     try {
-      intakeBatchId = (await openBatch({ data: {} })).batchId;
-    } catch {
-      /* resume tracking is a convenience, not a gate */
-    }
-
-    for (let i = 0; i < updates.length; i++) {
-      const item = updates[i];
-      if (item.phase !== "queued") continue;
-      updates[i] = { ...item, phase: "uploading" };
-      setFiles([...updates]);
-
-      // Honour the metadata decision before a single byte leaves the device.
-      const choice: ExifChoice = item.exifChoice ?? (item.exif?.hasMetadata ? "kept" : "none");
-      const outgoing = choice === "stripped" ? await stripExif(item.file) : item.file;
-
-      const ext = outgoing.name.split(".").pop() ?? "bin";
-      const safeExt = ext.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) || "bin";
-      const key = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
-      const up = await supabase.storage
-        .from("evidence-files")
-        .upload(key, outgoing, { upsert: false, contentType: outgoing.type || undefined });
-      if (up.error) {
-        updates[i] = { ...item, phase: "error", message: "Upload failed." };
-        setFiles([...updates]);
-        continue;
+      try {
+        intakeBatchId = (await openBatch({ data: {} })).batchId;
+      } catch {
+        /* resume tracking is a convenience, not a gate */
       }
-      updates[i] = { ...item, phase: "preserving", storageKey: key };
-      setFiles([...updates]);
-      if (item.queuedId) await removeQueued(item.queuedId).catch(() => undefined);
-      toIngest.push({
-        storage_key: key,
-        original_filename: item.file.name,
-        mime: guessUploadMime(outgoing),
-        bytes: outgoing.size,
-        exif_choice: choice,
-        ...dateFields,
-      });
-    }
 
-    if (toIngest.length === 0) {
-      setBusy(false);
-      return;
-    }
+      for (let i = 0; i < updates.length; i++) {
+        const item = updates[i];
+        if (item.phase !== "queued") continue;
+        updates[i] = { ...item, phase: "uploading" };
+        setFiles([...updates]);
 
-    try {
+        // Honour the metadata decision before a single byte leaves the device.
+        const choice: ExifChoice = item.exifChoice ?? (item.exif?.hasMetadata ? "kept" : "none");
+        const outgoing = choice === "stripped" ? await stripExif(item.file) : item.file;
+
+        const ext = outgoing.name.split(".").pop() ?? "bin";
+        const safeExt = ext.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) || "bin";
+        const key =
+          item.storageKey ??
+          `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
+        updates[i] = { ...item, storageKey: key, phase: "uploading" };
+        setFiles([...updates]);
+        const up = item.uploaded
+          ? { error: null }
+          : await supabase.storage
+              .from("evidence-files")
+              .upload(key, outgoing, { upsert: false, contentType: outgoing.type || undefined });
+        const duplicate =
+          up.error && String((up.error as { statusCode?: string }).statusCode) === "409";
+        if (up.error && !duplicate) {
+          updates[i] = {
+            ...item,
+            storageKey: key,
+            phase: "error",
+            message: "Upload not confirmed. Retry this file.",
+          };
+          setFiles([...updates]);
+          continue;
+        }
+        updates[i] = { ...item, phase: "preserving", storageKey: key, uploaded: true };
+        setFiles([...updates]);
+        toIngest.push({
+          storage_key: key,
+          original_filename: item.file.name,
+          mime: guessUploadMime(outgoing),
+          bytes: outgoing.size,
+          exif_choice: choice,
+          ...dateFields,
+        });
+      }
+
+      if (toIngest.length === 0) {
+        setBusy(false);
+        return;
+      }
+
       const result = await ingest({ data: { files: toIngest, intake_batch_id: intakeBatchId } });
       if (intakeBatchId) {
         await updateBatch({ data: { batchId: intakeBatchId, status: "complete" } }).catch(
@@ -395,13 +396,25 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         );
       }
       setReceipt(result);
+      // Only remove an offline copy after preservation is confirmed.
+      for (const item of updates) {
+        if (
+          item.queuedId &&
+          result.items.some((r) => r.storage_key === item.storageKey && r.status !== "failed")
+        ) {
+          await removeQueued(item.queuedId).catch(() => undefined);
+        }
+      }
       // Mark each file as done/error using receipt items.
       const byKey = new Map(result.items.map((it) => [it.storage_key, it]));
       setFiles((prev) =>
         prev.map((f) => {
           if (!f.storageKey) return f;
           const r = byKey.get(f.storageKey);
-          if (!r) return f;
+          if (!r)
+            return f.phase === "preserving"
+              ? { ...f, phase: "error", message: "Save not confirmed. Retry this file." }
+              : f;
           return {
             ...f,
             phase: r.status === "failed" ? "error" : "done",
@@ -410,116 +423,18 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         }),
       );
       const ok = result.items.filter((i) => i.status !== "failed").length;
-      toast(
-        `Preserved ${ok} of ${result.items.length} file${result.items.length === 1 ? "" : "s"}.`,
-      );
+      toast(`Preserved ${ok} of ${toIngest.length} file${toIngest.length === 1 ? "" : "s"}.`);
       onDone?.();
 
-      // Background enrichment: EXIF/GPS, A/V transcription, and document/photo
-      // text extraction. Failures leave the preserved file untouched.
-      //
-      // Soft drafts must NOT wait on photo OCR: isReadableDocument includes
-      // images, extractDoc returns needs_ocr → AI read-aloud with no timeout.
-      // That gate left /drafts empty after a successful preserve toast (live
-      // soft-check). Soft drafts only need the evidence row; OCR text is
-      // optional. A/V still transcribes before AI propose so the model can
-      // use a ready transcript when one exists.
-      const preserved = result.items.filter((it) => it.evidence_id);
-      let suggested = 0;
-      await Promise.all(
-        preserved.map(async (it) => {
-          try {
-            const r = await enrich({ data: { evidence_id: it.evidence_id! } });
-            if (r.ok && "suggested_incident_id" in r && r.suggested_incident_id) {
-              suggested += 1;
-            }
-          } catch {
-            /* leave preserved but un-enriched */
-          }
-          const mime = it.mime ?? "";
-          if (mime.startsWith("audio/") || mime.startsWith("video/")) {
-            try {
-              await transcribe({ data: { evidence_id: it.evidence_id! } });
-            } catch {
-              /* transcript_status stays 'failed' server-side */
-            }
-          }
-        }),
-      );
-      setSuggestionCount(suggested);
-
-      // AI propose first (may insert pending rows); soft fallback for any
-      // photo/audio/video not already waiting in /drafts. Soft claims only.
-      // Do this before document/photo OCR so a hung read-aloud cannot
-      // swallow soft drafts after a successful preserve.
-      const evidenceIds = preserved
-        .map((it) => it.evidence_id)
-        .filter((id): id is string => Boolean(id));
-      if (evidenceIds.length > 0) {
-        let aiCount = 0;
-        try {
-          const proposed = await proposeTimeline({
-            data: {
-              evidence_ids: evidenceIds,
-              include_threads: false,
-              include_voice_notes: false,
-              max_items: Math.min(evidenceIds.length, 40),
-            },
-          });
-          if (proposed.ok && proposed.proposed_timeline?.length) {
-            aiCount = proposed.proposed_timeline.length;
-          }
-        } catch {
-          // Preservation succeeded. Soft drafts below still run.
-        }
-        let softQueued = 0;
-        let softReason: string | undefined;
-        try {
-          const soft = await ensureDrafts({ data: { evidence_ids: evidenceIds } });
-          if (soft.ok) {
-            softQueued = soft.queued;
-            softReason = soft.reason;
-          }
-        } catch {
-          softReason = "thrown";
-        }
-        const total = aiCount + softQueued;
-        if (total > 0) {
-          toast(
-            `${total} draft${total === 1 ? " is" : "s are"} ready in Drafts to review. Nothing becomes a journal entry until accepted.`,
-          );
-        } else if (
-          softReason === "insert_failed" ||
-          softReason === "thrown" ||
-          softReason === "evidence_lookup_failed"
-        ) {
-          // Soft CLEAR honesty — preserve already succeeded; drafts are convenience.
-          toast("Couldn’t refresh your drafts", {
-            description:
-              "Your notes are still here. Try again in a moment — nothing was deleted.",
-          });
-        }
-        // already_pending / not_media / empty: stay quiet — nothing wrong for the survivor.
-      }
-
-      // Photo/PDF/Word text extraction after drafts are queued — never a gate.
-      await Promise.all(
-        preserved.map(async (it) => {
-          const mime = it.mime ?? "";
-          if (mime.startsWith("audio/") || mime.startsWith("video/")) return;
-          if (!isReadableDocument(mime, it.original_filename)) return;
-          try {
-            await extractDoc({ data: { evidence_id: it.evidence_id! } });
-          } catch {
-            /* extraction_status stays 'failed' server-side */
-          }
-        }),
-      );
+      // Uploading is separate from outside processing. Leave the preserved
+      // uploads available for manual review; AI runs only from review controls.
     } catch (err) {
       toast(err instanceof Error ? err.message : "We couldn't finish preserving these files.");
       setFiles((prev) =>
         prev.map((f) =>
-          f.phase === "preserving" ? { ...f, phase: "error", message: "Preservation failed." } : f,
+          f.phase === "preserving" || f.phase === "uploading"
+            ? { ...f, phase: "error", message: "Save not confirmed. Retry this file." }
+            : f,
         ),
       );
     } finally {
@@ -535,8 +450,9 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           Drop everything in. It doesn't need to be organized.
         </h2>
         <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          Each file is preserved with a SHA-256 fingerprint so you can prove later that the copy we
-          hold matches what you first added. You can add titles, dates, and details afterward.
+          Each upload is preserved with a fingerprint for later integrity checks. This does not
+          establish that it is the original message or recording. Add details later; saving does not
+          send files to an AI provider.
         </p>
       </div>
 
@@ -597,8 +513,8 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
           Images, PDFs, audio, video, documents — mix them freely. Up to {MAX_FILES} at once,{" "}
           {humanSize(UPLOAD_LIMITS.document)} per photo or document and{" "}
-          {humanSize(UPLOAD_LIMITS.video)} per video. Text in PDFs, Word files, photos and
-          screenshots is read out for you to check before it is used anywhere.
+          {humanSize(UPLOAD_LIMITS.video)} per video. Saving is enough. Reading text or asking AI
+          for suggestions is a separate, optional review action.
         </div>
         <input
           ref={inputRef}
@@ -696,6 +612,22 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            {files.some((f) => f.phase === "error") && (
+              <button
+                type="button"
+                className="btn-ghost"
+                disabled={busy}
+                onClick={() =>
+                  setFiles((prev) =>
+                    prev.map((f) =>
+                      f.phase === "error" ? { ...f, phase: "queued", message: undefined } : f,
+                    ),
+                  )
+                }
+              >
+                Retry files that didn't save
+              </button>
+            )}
             <button
               type="button"
               onClick={preserveAll}
@@ -810,28 +742,6 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
             Do not delete your original source (phone photo, screenshot, email) based only on this
             import. Keep your originals until you are sure the import is complete.
           </p>
-          {suggestionCount !== null && suggestionCount > 0 && (
-            <div
-              className="mt-3 flex flex-wrap items-center gap-3 rounded-lg p-3 text-[13px]"
-              style={{
-                background: "rgba(106,146,214,0.14)",
-                color: "var(--pp-approximate)",
-              }}
-            >
-              <div className="flex-1">
-                {suggestionCount === 1
-                  ? "1 file looks like it might belong to an incident you've already written down."
-                  : `${suggestionCount} files look like they might belong to incidents you've already written down.`}{" "}
-                Until you review {suggestionCount === 1 ? "it" : "them"},{" "}
-                {suggestionCount === 1 ? "that file stays" : "those files stay"} out of your court
-                packet exports and out of anything an attorney can see. Everything is still safely
-                preserved.
-              </div>
-              <Link to="/evidence-review" className="btn-ghost text-[12px]">
-                Review suggestions
-              </Link>
-            </div>
-          )}
         </div>
       )}
     </div>

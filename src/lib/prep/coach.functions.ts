@@ -1,3 +1,4 @@
+import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 /**
  * Court-prep practice coach — zero-persistence (spec Tier 3 / R-02 / R-03).
  *
@@ -124,7 +125,7 @@ export const courtPrepCoachFeedback = createServerFn({ method: "POST" })
     const mod = STUDY_MODULES.find((m) => m.id === data.module_id);
     const userContent = `Module: ${mod?.title ?? data.module_id}\nPractice prompt: ${mod?.practicePrompt ?? ""}\n\nSurvivor practice (ephemeral, do not ask to save):\n${data.practice_text}`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({

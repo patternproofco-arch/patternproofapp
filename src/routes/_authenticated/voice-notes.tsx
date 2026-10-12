@@ -1,3 +1,4 @@
+import { confirmOptionalAiProcessing } from "@/lib/optional-ai-consent";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, Square, Trash2 } from "lucide-react";
@@ -164,9 +165,10 @@ function VoiceNotesPage() {
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const transcribe = async (n: Note) => {
+    if (!confirmOptionalAiProcessing()) return;
     setTranscribingId(n.id);
     try {
-      const r = await transcribeFn({ data: { voiceNoteId: n.id } });
+      const r = await transcribeFn({ data: { voiceNoteId: n.id, ai_consent: true } });
       if (r.ok) toast("Transcript ready.");
       else if (r.reason === "too-long" || r.reason === "too-large")
         toast("This recording is too long to transcribe automatically.");
@@ -218,8 +220,11 @@ function VoiceNotesPage() {
           <audio controls src={pendingUrl} className="w-full" />
           <div className="grid gap-3 md:grid-cols-2">
             <div>
-              <label className="label-eyebrow" htmlFor="voice-notes-title">Title</label>
-              <input id="voice-notes-title"
+              <label className="label-eyebrow" htmlFor="voice-notes-title">
+                Title
+              </label>
+              <input
+                id="voice-notes-title"
                 className="input-pp mt-1"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -227,8 +232,11 @@ function VoiceNotesPage() {
               />
             </div>
             <div>
-              <label className="label-eyebrow" htmlFor="voice-notes-date">Date</label>
-              <input id="voice-notes-date"
+              <label className="label-eyebrow" htmlFor="voice-notes-date">
+                Date
+              </label>
+              <input
+                id="voice-notes-date"
                 type="date"
                 className="input-pp mt-1"
                 value={date}

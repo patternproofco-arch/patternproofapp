@@ -1,3 +1,4 @@
+import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -11,7 +12,11 @@ export const transcribeRecording = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        audioBase64: z.string().min(1).max(Math.ceil((MAX_BYTES * 4) / 3) + 8),
+        audioBase64: z
+          .string()
+          .min(1)
+          .max(Math.ceil((MAX_BYTES * 4) / 3) + 8),
+        ai_consent: z.literal(true),
         mime: z.string().regex(/^audio\/[a-z0-9.+-]+(;.*)?$/i),
       })
       .parse(input),
@@ -29,7 +34,7 @@ export const transcribeRecording = createServerFn({ method: "POST" })
     form.append("model", "google/gemini-3.5-transcribe");
     form.append("file", new File([bytes], `recording.${ext}`, { type: baseMime }));
     form.append("response_format", "json");
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}` },
       body: form,

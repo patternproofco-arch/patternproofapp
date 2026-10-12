@@ -1,3 +1,4 @@
+import { confirmOptionalAiProcessing } from "@/lib/optional-ai-consent";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -7,7 +8,6 @@ import { useAuth } from "@/lib/auth-context";
 import { useSettings } from "@/lib/settings-context";
 import { useRecording, type PendingRecording } from "@/lib/recording-context";
 import { useServerFn } from "@tanstack/react-start";
-import { checkAccidental } from "@/lib/accidental-check.functions";
 import { transcribeRecording } from "@/lib/transcribe-recording.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
 
@@ -41,17 +41,13 @@ function LiveRecording() {
   } = useRecording();
   const runTranscribe = useServerFn(transcribeRecording);
   const [transcribing, setTranscribing] = useState(false);
-  const runCheck = useServerFn(checkAccidental);
   const [warned, setWarned] = useState(false);
   const [item, setItem] = useState<PendingRecording | null>(null);
   const [title, setTitle] = useState("");
   const [state, setState] = useState(settings.state);
   const [transcript, setTranscript] = useState("");
   const [list, setList] = useState<Rec[]>([]);
-  const [accidental, setAccidental] = useState<{ accidental: boolean; confidence: string } | null>(
-    null,
-  );
-  const checkedRef = useRef(false);
+  const transcriptionTarget = useRef<PendingRecording | null>(null);
   const autoStarted = useRef(false);
 
   const load = async () => {
@@ -95,39 +91,34 @@ function LiveRecording() {
       if (p) {
         setItem(p);
         setTranscript(p.transcript);
-        if (!p.transcript && p.blob.size > 0) {
-          setTranscribing(true);
-          void (async () => {
-            try {
-              const buf = new Uint8Array(await p.blob.arrayBuffer());
-              let bin = "";
-              for (let i = 0; i < buf.length; i += 0x8000) {
-                bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
-              }
-              const r = await runTranscribe({
-                data: { audioBase64: btoa(bin), mime: p.blob.type || "audio/webm" },
-              });
-              if (r.text) setTranscript((t) => t || r.text);
-              else if (r.error) toast(r.error);
-            } catch {
-              toast("We couldn't transcribe this recording. You can still save it.");
-            } finally {
-              setTranscribing(false);
-            }
-          })();
-        }
       }
     }
-  }, [pending, item, consumePending, runTranscribe]);
+  }, [pending, item, consumePending]);
 
-  // Run accidental check once per item
-  useEffect(() => {
-    if (!item || checkedRef.current) return;
-    checkedRef.current = true;
-    runCheck({ data: { transcript: item.transcript, durationSec: item.durationSec } })
-      .then((r) => setAccidental(r))
-      .catch(() => setAccidental(null));
-  }, [item, runCheck]);
+  const transcribePending = async () => {
+    if (!item || transcribing || !confirmOptionalAiProcessing()) return;
+    const target = item;
+    transcriptionTarget.current = target;
+    setTranscribing(true);
+    try {
+      const buf = new Uint8Array(await target.blob.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < buf.length; i += 0x8000) {
+        bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+      }
+      const r = await runTranscribe({
+        data: { audioBase64: btoa(bin), mime: target.blob.type || "audio/webm", ai_consent: true },
+      });
+      if (transcriptionTarget.current !== target) return;
+      if (r.text) setTranscript((t) => t || r.text);
+      else if (r.error) toast(r.error);
+    } catch {
+      if (transcriptionTarget.current === target)
+        toast("We couldn't transcribe this recording. You can still save it.");
+    } finally {
+      setTranscribing(false);
+    }
+  };
 
   const beginLocal = async () => {
     const ok = await start();
@@ -163,8 +154,7 @@ function LiveRecording() {
     setItem(null);
     setTitle("");
     setTranscript("");
-    setAccidental(null);
-    checkedRef.current = false;
+    transcriptionTarget.current = null;
     load();
   };
 
@@ -172,8 +162,7 @@ function LiveRecording() {
     setItem(null);
     setTitle("");
     setTranscript("");
-    setAccidental(null);
-    checkedRef.current = false;
+    transcriptionTarget.current = null;
     discardPending();
   };
 
@@ -235,8 +224,14 @@ function LiveRecording() {
             </button>
             <p className="mt-4 text-[14px]">Recording… {fmt(elapsed)} of 1:00</p>
             {nearLimit && (
-              <p role="status" aria-live="polite" className="mt-2 text-[14px]" style={{ color: "var(--oxblood)" }}>
-                This recording will stop in {remaining} seconds. You can start a new one right after.
+              <p
+                role="status"
+                aria-live="polite"
+                className="mt-2 text-[14px]"
+                style={{ color: "var(--oxblood)" }}
+              >
+                This recording will stop in {remaining} seconds. You can start a new one right
+                after.
               </p>
             )}
           </>
@@ -253,56 +248,40 @@ function LiveRecording() {
                 Writing out the transcript…
               </p>
             )}
-            {accidental?.accidental && accidental.confidence === "high" && (
-              <div
-                className="rounded-2xl px-4 py-3"
-                style={{
-                  background: "rgba(242,232,216,0.95)",
-                  color: "var(--pp-ink)",
-                  boxShadow: "var(--pp-shadow-sm)",
-                }}
-              >
-                <p className="text-[13px]">
-                  This looks like it may have been accidental. Discard it?
-                </p>
-                <div className="mt-2 flex gap-2">
-                  <button
-                    onClick={discard}
-                    className="rounded-2xl px-3 py-1.5 text-[12px] font-semibold"
-                    style={{ background: "var(--pp-ink)", color: "var(--pp-paper)" }}
-                  >
-                    Discard
-                  </button>
-                  <button
-                    onClick={() => setAccidental(null)}
-                    className="rounded-2xl px-3 py-1.5 text-[12px] font-semibold"
-                    style={{ background: "transparent", color: "var(--pp-ink)" }}
-                  >
-                    Keep it
-                  </button>
-                </div>
-              </div>
-            )}
             <audio src={URL.createObjectURL(item.blob)} controls className="w-full" />
-            <input aria-label="Title (optional)"
+            <input
+              aria-label="Title (optional)"
               className="input-pp"
               placeholder="Title (optional)"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            <input aria-label="State where recorded"
+            <input
+              aria-label="State where recorded"
               className="input-pp"
               placeholder="State where recorded"
               value={state}
               onChange={(e) => setState(e.target.value)}
             />
-            {transcript && (
-              <textarea
-                className="input-pp"
-                value={transcript}
-                onChange={(e) => setTranscript(e.target.value)}
-              />
-            )}
+            <p className="text-[13px]">
+              Saving does not send this recording for AI processing. You can add your own note or
+              optionally ask for a transcript.
+            </p>
+            <button
+              type="button"
+              className="btn-ghost"
+              disabled={transcribing}
+              onClick={transcribePending}
+            >
+              {transcribing ? "Transcribing…" : "Ask AI for a transcript"}
+            </button>
+            <textarea
+              aria-label="Recording note or unverified transcript"
+              placeholder="Add your own note (optional)"
+              className="input-pp"
+              value={transcript}
+              onChange={(e) => setTranscript(e.target.value)}
+            />
             <div className="flex gap-2">
               <button onClick={save} className="btn-primary">
                 Save Recording

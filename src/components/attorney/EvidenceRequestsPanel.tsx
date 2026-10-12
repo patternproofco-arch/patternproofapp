@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { requestOutcomeLabel } from "@/lib/request-response";
 import {
   createEvidenceRequest,
   listClientEvidenceRequests,
@@ -74,7 +75,8 @@ export function EvidenceRequestsPanel({ clientId }: EvidenceRequestsPanelProps) 
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        <textarea aria-label="Details (optional)"
+        <textarea
+          aria-label="Details (optional)"
           className="att-input"
           rows={2}
           placeholder="Details (optional)"
@@ -82,13 +84,22 @@ export function EvidenceRequestsPanel({ clientId }: EvidenceRequestsPanelProps) 
           onChange={(e) => setDetails(e.target.value)}
         />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <select className="att-input" value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}>
+          <select
+            className="att-input"
+            value={kind}
+            onChange={(e) => setKind(e.target.value as typeof kind)}
+          >
             <option value="document">Document</option>
             <option value="photo">Photo</option>
             <option value="recording">Recording</option>
             <option value="note">Written note</option>
           </select>
-          <input className="att-input" type="date" value={due} onChange={(e) => setDue(e.target.value)} />
+          <input
+            className="att-input"
+            type="date"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
+          />
           <button className="att-btn-primary" onClick={send} disabled={busy}>
             {busy ? "Sending…" : "Send request"}
           </button>
@@ -97,10 +108,15 @@ export function EvidenceRequestsPanel({ clientId }: EvidenceRequestsPanelProps) 
       {items.length > 0 && (
         <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "grid", gap: 8 }}>
           {items.map((r) => (
-            <li key={r.id} style={{ padding: "10px 12px", background: "var(--att-surface-2)", borderRadius: 16 }}>
+            <li
+              key={r.id}
+              style={{ padding: "10px 12px", background: "var(--att-surface-2)", borderRadius: 16 }}
+            >
               <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                 <strong style={{ fontSize: 14 }}>{r.title}</strong>
-                <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>{STATUS[r.status] ?? r.status}</span>
+                <span style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+                  {requestOutcomeLabel(r.response_outcome) ?? STATUS[r.status] ?? r.status}
+                </span>
               </div>
               {r.status === "submitted" && (
                 <p style={{ fontSize: 13, marginTop: 4 }}>

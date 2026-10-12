@@ -1,3 +1,4 @@
+import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -302,7 +303,7 @@ async function extractBubblesFromImage(
     const buf = Buffer.from(await r.arrayBuffer());
     if (buf.length > 8 * 1024 * 1024) return [];
     const dataUri = `data:${mimeType};base64,${buf.toString("base64")}`;
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({
@@ -534,7 +535,8 @@ export const ingestRecordedThread = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    if (!data.videoPath.startsWith(`${userId}/`)) throw new Error("Storage key not owned by caller");
+    if (!data.videoPath.startsWith(`${userId}/`))
+      throw new Error("Storage key not owned by caller");
 
     // Hash the video as a stream: it can be hundreds of MB, far more than a worker can hold.
     // If it can't be read, the recording is still saved, but the record says it wasn't hashed.
@@ -616,7 +618,7 @@ async function extractCallsFromImage(
     const buf = Buffer.from(await r.arrayBuffer());
     if (buf.length > 8 * 1024 * 1024) return [];
     const dataUri = `data:${mimeType};base64,${buf.toString("base64")}`;
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({

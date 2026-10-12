@@ -1,3 +1,4 @@
+import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -205,7 +206,6 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
 
     return { ok: true, trial_ends_at: profile?.trial_ends_at ?? null };
   });
-
 
 export const getAttorneyProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -563,7 +563,11 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
             : Promise.resolve({ data: null as { created_at: string } | null });
 
         // Latest pattern analysis (for severity-indicator review counting).
-        const patternQ = (await access.patternsVisibleToProfessional(supabaseAdmin, l, l.client_user_id))
+        const patternQ = (await access.patternsVisibleToProfessional(
+          supabaseAdmin,
+          l,
+          l.client_user_id,
+        ))
           ? supabaseAdmin
               .from("pattern_analyses")
               .select("analysis,reviewed_status,created_at")
@@ -852,7 +856,8 @@ export const getClientCase = createServerFn({ method: "POST" })
             .maybeSingle(),
     ]);
 
-    const { evidenceForProfessional, incidentForProfessional } = await import("@/lib/professional-view");
+    const { evidenceForProfessional, incidentForProfessional } =
+      await import("@/lib/professional-view");
     const incidents = (incQ.data ?? []).map((i) => incidentForProfessional(i));
     // The attorney should be able to see the exact terms they hold access
     // under, not just the data itself.
@@ -1194,7 +1199,7 @@ EVIDENCE (${(evidence ?? []).length}): ${(evidence ?? []).map((e) => `${e.date} 
 EXISTING PATTERN ANALYSIS: ${pattern?.analysis ? JSON.stringify(pattern.analysis).slice(0, 2000) : "none"}
 `;
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const resp = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
@@ -1620,9 +1625,8 @@ export const getClientThreadMatrixData = createServerFn({ method: "POST" })
       throw new Error("Thread not shared for this case");
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { MATRIX_THREAD_COLUMNS, readThreadMatrixRows } = await import(
-      "@/lib/frequency-matrix.server"
-    );
+    const { MATRIX_THREAD_COLUMNS, readThreadMatrixRows } =
+      await import("@/lib/frequency-matrix.server");
     const { data: thread } = await supabaseAdmin
       .from("message_threads")
       .select(MATRIX_THREAD_COLUMNS)
@@ -1650,9 +1654,8 @@ export const getClientThreadMatrixData = createServerFn({ method: "POST" })
         (e: unknown) => console.error("[audit] thread counts view log failed", e),
       );
     const t = thread as import("@/lib/frequency-matrix.server").MatrixThread;
-    const { incompleteExportNote, matrixSourcesFromThread } = await import(
-      "@/lib/frequency-matrix.server"
-    );
+    const { incompleteExportNote, matrixSourcesFromThread } =
+      await import("@/lib/frequency-matrix.server");
     return {
       thread: t,
       messages,

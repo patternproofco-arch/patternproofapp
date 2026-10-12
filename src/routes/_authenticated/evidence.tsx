@@ -1,3 +1,4 @@
+import { confirmOptionalAiProcessing } from "@/lib/optional-ai-consent";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -22,12 +23,7 @@ import { extractIncidentFromImage } from "@/lib/extract-incident.functions";
 import { ingestEvidenceBatch } from "@/lib/evidence-ingest.functions";
 import { uploadAndPreserve, type IntakeDeps } from "@/lib/evidence-intake";
 import { transcribeEvidence } from "@/lib/transcribe-evidence.functions";
-import { proposeTimelineFromEvidence } from "@/lib/propose-timeline.functions";
-import { ensureMediaUploadDrafts } from "@/lib/upload-draft.functions";
-import {
-  extractEvidenceDocument,
-  verifyExtractedText,
-} from "@/lib/document-extract.functions";
+import { extractEvidenceDocument, verifyExtractedText } from "@/lib/document-extract.functions";
 import { isReadableDocument } from "@/lib/readable-documents";
 
 import { FocusRegion } from "@/components/survivor/focus-mode";
@@ -113,7 +109,6 @@ type ExtractedDraft = {
 // Files whose words we can read out and show back for review — shared with the
 // batch uploader so both paths handle exactly the same formats.
 
-
 function KindIcon({ kind, size = 22 }: { kind: string; size?: number }) {
   const c = { color: "var(--foreground)" };
   if (kind === "image") return <ImageIcon size={size} style={c} />;
@@ -132,7 +127,10 @@ function EvidencePage() {
       const { error } = await supabase.storage.from("evidence-files").upload(key, blob);
       return {
         error: error
-          ? { message: error.message, statusCode: String((error as { statusCode?: string }).statusCode ?? "") }
+          ? {
+              message: error.message,
+              statusCode: String((error as { statusCode?: string }).statusCode ?? ""),
+            }
           : null,
       };
     },
@@ -141,13 +139,13 @@ function EvidencePage() {
       if (error) throw error;
     },
     ingest: async (file) =>
-      (await ingestFn({ data: { files: [file] } })) as unknown as Awaited<ReturnType<IntakeDeps["ingest"]>>,
+      (await ingestFn({ data: { files: [file] } })) as unknown as Awaited<
+        ReturnType<IntakeDeps["ingest"]>
+      >,
     sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
     newKey: (userId, name) => `${userId}/${crypto.randomUUID()}-${name}`,
   };
   const transcribeFn = useServerFn(transcribeEvidence);
-  const proposeTimelineFn = useServerFn(proposeTimelineFromEvidence);
-  const ensureDraftsFn = useServerFn(ensureMediaUploadDrafts);
   const extractDocFn = useServerFn(extractEvidenceDocument);
   const verifyTextFn = useServerFn(verifyExtractedText);
 
@@ -174,8 +172,7 @@ function EvidencePage() {
   const [tab, setTab] = useState<EvidenceTab>("documentation");
   const [trustHingeOpen, setTrustHingeOpen] = useState(false);
   const [trustEditId, setTrustEditId] = useState<string | null>(null);
-  const [pendingShareReadiness, setPendingShareReadiness] =
-    useState<ShareReadiness>("private");
+  const [pendingShareReadiness, setPendingShareReadiness] = useState<ShareReadiness>("private");
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -261,9 +258,7 @@ function EvidencePage() {
     const intake = await uploadAndPreserve(intakeDeps, {
       userId: user.id,
       file: { name: pending.name, type: pending.type, size: pending.size, blob: pending },
-      dating: date
-        ? { date, date_precision: "exact" }
-        : { date: null, date_precision: "unknown" },
+      dating: date ? { date, date_precision: "exact" } : { date: null, date_precision: "unknown" },
       resumeKey: resumeKey ?? undefined,
     });
     if (!intake.ok) {
@@ -302,13 +297,10 @@ function EvidencePage() {
         `Exact duplicate of "${receiptItem.duplicate_of_title ?? "an earlier file"}" — preserved and grouped.`,
       );
     } else {
-      toast("Saved. Your record is safe.");
+      toast("Saved. You have not shared this item. Add details now, or return later.");
     }
 
     // Reset form + reload
-    const wasImageOrPdf = pending.type.startsWith("image/") || pending.type === "application/pdf";
-    const wasAudioOrVideo = pending.type.startsWith("audio/") || pending.type.startsWith("video/");
-    const fileMime = pending.type;
     setPending(null);
     setTitle("");
     setDate("");
@@ -317,127 +309,13 @@ function EvidencePage() {
     if (inputRef.current) inputRef.current.value = "";
     await load();
 
-    // Audio and video follow the same automatic transcription path as the
-    // batch uploader. The original remains the primary record; the transcript
-    // is a searchable, reviewable derivative used by timeline proposals.
-    if (wasAudioOrVideo) {
-      toast("Saved. Generating a searchable transcript…");
-      void transcribeFn({ data: { evidence_id: newRow.id } })
-        .then(async () => {
-          const proposal = await proposeTimelineFn({
-            data: {
-              evidence_ids: [newRow.id],
-              include_threads: false,
-              include_voice_notes: false,
-              max_items: 1,
-            },
-          });
-          // Soft fallback: always queue a /drafts entry if AI did not.
-          let queuedSoft = false;
-          try {
-            const soft = await ensureDraftsFn({ data: { evidence_ids: [newRow.id] } });
-            queuedSoft = Boolean(soft.ok && soft.queued > 0);
-          } catch {
-            /* draft is a convenience */
-          }
-          toast(
-            proposal.ok && proposal.proposed_timeline?.length
-              ? "Transcript ready. A timeline draft is ready for your review."
-              : queuedSoft
-                ? "Transcript ready. A draft is waiting in Drafts to review."
-                : "Transcript ready. You can organize it from your timeline.",
-          );
-          await load();
-        })
-        .catch(async () => {
-          // Even without a transcript, queue a soft draft so the upload is
-          // visible in Drafts to review for the survivor to complete.
-          try {
-            await ensureDraftsFn({ data: { evidence_ids: [newRow.id] } });
-          } catch {
-            /* ignore */
-          }
-          toast("The file is safe, but transcription failed. You can retry below.");
-          return load();
-        });
-    }
-
-    // PDFs, Word files and plain-text files: read the words out of the file so
-    // they can be searched and reviewed. A scan with no text layer is read back
-    // by machine and clearly marked as unverified until confirmed.
-    if (isReadableDocument(fileMime, pending?.name ?? null)) {
-      toast("Saved. Reading the text out of this document…");
-      void extractDocFn({ data: { evidence_id: newRow.id } })
-        .then(async (r) => {
-          let note = r.ok
-            ? "Text ready to review below."
-            : r.status === "unsupported"
-              ? "Saved. This format's text can't be read automatically yet."
-              : "Saved. We couldn't read the text this time — you can retry below.";
-          if (r.ok) {
-            // Same review-only path the media files take: the words we read can
-            // suggest a timeline draft, and nothing is added until she accepts.
-            try {
-              const proposal = await proposeTimelineFn({
-                data: {
-                  evidence_ids: [newRow.id],
-                  include_threads: false,
-                  include_voice_notes: false,
-                  max_items: 1,
-                },
-              });
-              if (proposal.ok && proposal.proposed_timeline?.length) {
-                note = "Text ready to review, and a timeline draft is waiting for you.";
-              }
-            } catch {
-              /* the text is saved; drafts can be retried from the timeline */
-            }
-          }
-          toast(note);
-          await load();
-        })
-        .catch(() => {
-          toast("The file is safe, but reading its text failed. You can retry below.");
-          return load();
-        });
-    }
-
-    // Photos: queue a soft draft into Drafts to review (same tray as AI /
-    // request-answer drafts). No event date is invented; survivor approves.
-    const wasPhoto = fileMime.startsWith("image/");
-    if (wasPhoto && !newRow.linked_incident_id) {
-      void ensureDraftsFn({ data: { evidence_ids: [newRow.id] } })
-        .then((soft) => {
-          if (soft.ok && soft.queued > 0) {
-            toast("A draft is waiting in Drafts to review.");
-          } else if (
-            soft.reason === "insert_failed" ||
-            soft.reason === "thrown" ||
-            soft.reason === "evidence_lookup_failed"
-          ) {
-            toast("Couldn’t refresh your drafts", {
-              description:
-                "Your notes are still here. Try again in a moment — nothing was deleted.",
-            });
-          }
-        })
-        .catch(() => {
-          toast("Couldn’t refresh your drafts", {
-            description:
-              "Your notes are still here. Try again in a moment — nothing was deleted.",
-          });
-        });
-    }
-
-    // Auto-run AI extraction for images / PDFs that aren't linked yet
-    if (wasImageOrPdf && !newRow.linked_incident_id) {
-      void runReview(newRow, fileMime);
-    }
-
+    // Saving never sends the upload to an external AI provider. Processing
+    // remains an explicit action from the saved file's review controls.
   };
 
   const runReview = useCallback(
     async (row: EvidenceRow, mime?: string) => {
+      if (!confirmOptionalAiProcessing()) return;
       setReviewFor(row);
       setDraft(null);
       setReviewError(null);
@@ -462,7 +340,7 @@ function EvidencePage() {
           return;
         }
         const res = await extractFn({
-          data: { signedUrl: signed.data.signedUrl, mimeType: guessedMime },
+          data: { signedUrl: signed.data.signedUrl, mimeType: guessedMime, ai_consent: true },
         });
         if (!res.ok) {
           setReviewError(
@@ -537,7 +415,9 @@ function EvidencePage() {
     setSavingIncident(false);
     if (link.error) {
       // The entry exists; only the link to the file failed. Don't claim it is linked.
-      toast("The entry was saved, but we couldn't link it to this file. It is in your entries; try linking it again.");
+      toast(
+        "The entry was saved, but we couldn't link it to this file. It is in your entries; try linking it again.",
+      );
       closeReview();
       load();
       return;
@@ -595,7 +475,7 @@ function EvidencePage() {
         className="mt-5 flex items-start gap-3 p-4"
         style={{
           background: "var(--pp-card)",
-          
+
           color: "var(--foreground)",
           textDecoration: "none",
         }}
@@ -630,7 +510,7 @@ function EvidencePage() {
         className="mt-3 flex items-start gap-3 p-4"
         style={{
           background: "var(--pp-card)",
-          
+
           color: "var(--foreground)",
           textDecoration: "none",
         }}
@@ -654,8 +534,8 @@ function EvidencePage() {
           </div>
           <div style={{ fontSize: 13, color: "var(--pp-muted)", marginTop: 2, lineHeight: 1.5 }}>
             For hundreds of messages: a CSV or TXT backup is read into individual messages you can
-            review. Excel, RSMF and ZIP backups are kept safely as you sent them, but their
-            contents aren't read yet. Screen recordings and call logs work too.
+            review. Excel, RSMF and ZIP backups are kept safely as you sent them, but their contents
+            aren't read yet. Screen recordings and call logs work too.
           </div>
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-accent)" }}>Open →</span>
@@ -668,7 +548,11 @@ function EvidencePage() {
         <form onSubmit={submit} className="card-pp mt-6 space-y-4">
           <label
             className="block cursor-pointer p-8 text-center"
-            style={{ border: "1px solid var(--rule)", borderRadius: 3, background: "var(--paper-deep)" }}
+            style={{
+              border: "1px solid var(--rule)",
+              borderRadius: 3,
+              background: "var(--paper-deep)",
+            }}
           >
             <Upload
               size={26}
@@ -707,8 +591,11 @@ function EvidencePage() {
           {pending && (
             <div className="grid gap-3 md:grid-cols-2">
               <div>
-                <label className="label-eyebrow" htmlFor="evidence-title">Title</label>
-                <input id="evidence-title"
+                <label className="label-eyebrow" htmlFor="evidence-title">
+                  Title
+                </label>
+                <input
+                  id="evidence-title"
                   className="input-pp mt-1"
                   required
                   value={title}
@@ -716,7 +603,9 @@ function EvidencePage() {
                 />
               </div>
               <div>
-                <label htmlFor="evidence-date" className="label-eyebrow">Date (optional)</label>
+                <label htmlFor="evidence-date" className="label-eyebrow">
+                  Date (optional)
+                </label>
                 <input
                   id="evidence-date"
                   type="date"
@@ -725,13 +614,16 @@ function EvidencePage() {
                   onChange={(e) => setDate(e.target.value)}
                 />
                 <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                  When it happened or what it shows. Leave blank if you&apos;re not sure. The time you
-                  uploaded it is recorded separately and is never used as this date.
+                  When it happened or what it shows. Leave blank if you&apos;re not sure. The time
+                  you uploaded it is recorded separately and is never used as this date.
                 </p>
               </div>
               <div className="md:col-span-2">
-                <label className="label-eyebrow" htmlFor="evidence-description">Description</label>
-                <textarea id="evidence-description"
+                <label className="label-eyebrow" htmlFor="evidence-description">
+                  Description
+                </label>
+                <textarea
+                  id="evidence-description"
                   className="input-pp mt-1"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -739,8 +631,11 @@ function EvidencePage() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="label-eyebrow" htmlFor="evidence-link-to-incident-optional">Link to incident (optional)</label>
-                <select id="evidence-link-to-incident-optional"
+                <label className="label-eyebrow" htmlFor="evidence-link-to-incident-optional">
+                  Link to incident (optional)
+                </label>
+                <select
+                  id="evidence-link-to-incident-optional"
                   className="input-pp mt-1"
                   value={linkedId}
                   onChange={(e) => setLinkedId(e.target.value)}
@@ -879,11 +774,7 @@ function EvidencePage() {
                             <audio controls src={url} className="mt-3 w-full" />
                           )}
                           {it.file_type === "video" && url && (
-                            <video
-                              controls
-                              src={url}
-                              className="mt-3 max-h-48 w-full"
-                            />
+                            <video controls src={url} className="mt-3 max-h-48 w-full" />
                           )}
                           {it.description && (
                             <p className="mt-2 text-[13px]" style={{ color: "var(--foreground)" }}>
@@ -973,7 +864,10 @@ function EvidencePage() {
                               it.transcript_status !== "ready" && (
                                 <button
                                   onClick={() => {
-                                    void transcribeFn({ data: { evidence_id: it.id } })
+                                    if (!confirmOptionalAiProcessing()) return;
+                                    void transcribeFn({
+                                      data: { evidence_id: it.id, ai_consent: true },
+                                    })
                                       .then(() => {
                                         toast("Transcript ready.");
                                         return load();
@@ -987,14 +881,17 @@ function EvidencePage() {
                                   }}
                                   className="btn-ghost inline-flex items-center gap-1 text-[12px]"
                                 >
-                                  <Sparkles size={13} /> Retry transcript
+                                  <Sparkles size={13} /> Create transcript
                                 </button>
                               )}
                             {isReadableDocument(it.mime, it.title) &&
                               it.extraction_status !== "ready" && (
                                 <button
                                   onClick={() => {
-                                    void extractDocFn({ data: { evidence_id: it.id } })
+                                    if (!confirmOptionalAiProcessing()) return;
+                                    void extractDocFn({
+                                      data: { evidence_id: it.id, ai_consent: true },
+                                    })
                                       .then(() => {
                                         toast("Text ready to review.");
                                         return load();
@@ -1088,10 +985,7 @@ function EvidencePage() {
             )}
 
             {!reviewBusy && reviewError && (
-              <div
-                className="my-4 p-4 text-[13px]"
-                style={{ color: "var(--pp-ink)" }}
-              >
+              <div className="my-4 p-4 text-[13px]" style={{ color: "var(--pp-ink)" }}>
                 {reviewError}
               </div>
             )}

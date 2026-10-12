@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      incident_revisions: {
+        Row: { id: string; incident_id: string; user_id: string; changed_at: string; changed_by: string | null; prior_record: Json }
+        Insert: { id?: string; incident_id: string; user_id: string; changed_at?: string; changed_by?: string | null; prior_record: Json }
+        Update: { prior_record?: Json }
+        Relationships: []
+      }
       advocate_client_links: {
         Row: {
           advocate_user_id: string
@@ -551,6 +557,7 @@ export type Database = {
           kind: string
           link_id: string
           response_evidence_ids: string[]
+          response_outcome: string | null
           response_note: string | null
           status: string
           submitted_at: string | null
@@ -569,6 +576,7 @@ export type Database = {
           kind?: string
           link_id: string
           response_evidence_ids?: string[]
+          response_outcome?: string | null
           response_note?: string | null
           status?: string
           submitted_at?: string | null
@@ -587,6 +595,7 @@ export type Database = {
           kind?: string
           link_id?: string
           response_evidence_ids?: string[]
+          response_outcome?: string | null
           response_note?: string | null
           status?: string
           submitted_at?: string | null
@@ -3979,6 +3988,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      respond_to_evidence_request: {
+        Args: { p_request_id: string; p_action: string; p_note?: string; p_evidence_ids?: string[] }
+        Returns: Json
+      }
       accept_firm_member_invitation: {
         Args: { p_email: string; p_token_hash: string; p_user_id: string }
         Returns: string
