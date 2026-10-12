@@ -17,6 +17,9 @@ type Row = {
   link_id: string;
   new_incidents: number;
   new_evidence: number;
+  /** Marked Keep private and not in this share (incl. left out when an old share-all was frozen). */
+  kept_private_incidents?: number;
+  kept_private_evidence?: number;
 };
 
 /**
@@ -47,7 +50,7 @@ export function PrivateSinceSharing({ kind }: PrivateSinceSharingProps) {
   return (
     <div className="card-pp mt-6" style={{ padding: 16, borderLeft: "3px solid var(--safe)" }}>
       <div className="flex items-center gap-2" style={{ fontSize: 13.5, fontWeight: 700 }}>
-        <Lock size={14} /> Kept private — not in this share
+        <Lock size={14} /> Not in this share
       </div>
       <p style={{ fontSize: 12.5, lineHeight: 1.6, color: "var(--muted-foreground)", marginTop: 6 }}>
         Anything you've added since you set up this access stays in your own space. It is not
@@ -62,6 +65,16 @@ export function PrivateSinceSharing({ kind }: PrivateSinceSharingProps) {
             <span style={{ fontSize: 12.5 }}>
               {r.new_incidents} {r.new_incidents === 1 ? "entry" : "entries"} and {r.new_evidence}{" "}
               {r.new_evidence === 1 ? "file" : "files"} are private to you.
+              {(r.kept_private_incidents ?? 0) + (r.kept_private_evidence ?? 0) > 0 && (
+                <>
+                  {" "}
+                  {r.kept_private_incidents ?? 0}{" "}
+                  {(r.kept_private_incidents ?? 0) === 1 ? "entry" : "entries"} and{" "}
+                  {r.kept_private_evidence ?? 0}{" "}
+                  {(r.kept_private_evidence ?? 0) === 1 ? "file" : "files"} you marked Keep private
+                  are not in this share.
+                </>
+              )}
             </span>
             <button
               className="btn-ghost text-[12px]"

@@ -84,8 +84,9 @@ describe("sharing never reaches forward in time", () => {
     >[2];
     await freezeLegacyBlanketScope(db, "attorney_client_links", link, SURV);
 
-    // inc-2 was documented after the grant, so it stays private.
-    expect(link.scope_incidents?.sort()).toEqual(["inc-1", "inc-private"]);
+    // inc-2 was documented after the grant, so it stays private. inc-private existed
+    // then, but she has since marked it Keep private: her latest decision wins.
+    expect(link.scope_incidents?.sort()).toEqual(["inc-1"]);
     expect(link.include_all_incidents).toBe(false);
     expect(tables["attorney_client_links"]![0]!["include_all_incidents"]).toBe(false);
   });

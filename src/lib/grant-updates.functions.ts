@@ -41,7 +41,7 @@ export const listPrivateSinceSharing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { unsharedSinceGrant, freezeLegacyBlanketScope } = await import(
+    const { unsharedSinceGrant, freezeLegacyBlanketScope, keptPrivateNotInGrant } = await import(
       "@/lib/grant-snapshot.server"
     );
 
@@ -50,6 +50,9 @@ export const listPrivateSinceSharing = createServerFn({ method: "POST" })
       link_id: string;
       new_incidents: number;
       new_evidence: number;
+      /** Marked Keep private and not in this grant (incl. left out by a legacy freeze). */
+      kept_private_incidents: number;
+      kept_private_evidence: number;
     }> = [];
 
     for (const kind of ["attorney", "advocate"] as LinkKind[]) {
@@ -68,12 +71,15 @@ export const listPrivateSinceSharing = createServerFn({ method: "POST" })
         // the professional's portal actually shows.
         await freezeLegacyBlanketScope(supabaseAdmin, TABLE[kind], l, context.userId);
         const gap = await unsharedSinceGrant(supabaseAdmin, context.userId, l);
+        const kept = await keptPrivateNotInGrant(supabaseAdmin, context.userId, l);
         if (!gap.incidents.length && !gap.evidence.length) continue;
         out.push({
           kind,
           link_id: l.id,
           new_incidents: gap.incidents.length,
           new_evidence: gap.evidence.length,
+          kept_private_incidents: kept.incidents.length,
+          kept_private_evidence: kept.evidence.length,
         });
       }
     }
