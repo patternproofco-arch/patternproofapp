@@ -1,10 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { markWipePending } from "@/lib/local-wipe";
-import {
-  clearAppStorage,
-  clearAppStorageAsync,
-  readSupabaseAccessToken,
-} from "@/lib/app-storage";
+import { markWipePending, wipeLocalEvidence } from "@/lib/local-wipe";
+import { clearAppStorage, clearAppStorageAsync, readSupabaseAccessToken } from "@/lib/app-storage";
 
 export const DEFAULT_EXIT_URL = "https://weather.com";
 
@@ -41,12 +37,18 @@ export function quickExit(exitUrl?: string) {
 
   clearAppStorage();
 
+  try {
+    void clearAppStorageAsync().catch(() => undefined);
+  } catch {
+    /* ignore */
+  }
+
   // Files staged on this device for upload go too (#203). The page is about to be replaced, which
   // can interrupt the removal, so the marker (kept by clearAppStorage) makes the next app start
-  // finish it. clearAppStorageAsync runs that same wipe plus Cache Storage / service worker.
+  // finish it.
   try {
     markWipePending(window.localStorage);
-    void clearAppStorageAsync().catch(() => undefined);
+    void wipeLocalEvidence();
   } catch {
     /* ignore */
   }

@@ -19,7 +19,7 @@ import {
   SESSION_QUIET_TAB_KEY,
   SESSION_SAFETY_COPY_KEY,
 } from "@/lib/prep/constants";
-import { LOCAL_DATABASES, PENDING_WIPE_KEY, wipeLocalEvidence } from "@/lib/local-wipe";
+import { LOCAL_DATABASES, PENDING_WIPE_KEY } from "@/lib/local-wipe";
 
 /** Preferred prefix for new keys. */
 export const APP_STORAGE_PREFIX = "pp.";
@@ -179,8 +179,9 @@ export function clearAppStorage(): number {
 export async function clearAppStorageAsync(): Promise<void> {
   if (typeof window === "undefined") return;
   const tasks: Promise<unknown>[] = [];
-  // Staged evidence (pp-intake): #203's wipe, which sets the pending marker and clears it once done.
-  tasks.push(wipeLocalEvidence().catch(() => false));
+  // Staged evidence (pp-intake) is NOT deleted here: callers run #203's wipeLocalEvidence(), which
+  // sets the pending marker and clears it once the database is confirmed gone. This removes any
+  // other app-owned database the browser lists.
   try {
     if (typeof indexedDB !== "undefined") {
       const names = new Set<string>();

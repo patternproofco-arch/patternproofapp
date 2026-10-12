@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
+import { PENDING_WIPE_KEY } from "@/lib/local-wipe";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ signOut: vi.fn(async () => ({ error: null })) }));
-vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: { signOut: mocks.signOut } } }));
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: { auth: { signOut: mocks.signOut } },
+}));
 
 import {
   APP_CACHE_PREFIX,
@@ -45,7 +48,8 @@ function allKnownSession(): string[] {
 }
 
 function seed() {
-  for (const k of allKnownLocal()) localStorage.setItem(k, JSON.stringify({ access_token: "t", v: 1 }));
+  for (const k of allKnownLocal())
+    localStorage.setItem(k, JSON.stringify({ access_token: "t", v: 1 }));
   for (const k of allKnownSession()) sessionStorage.setItem(k, "1");
   localStorage.setItem("unrelated-third-party", "keep");
   sessionStorage.setItem("unrelated-third-party", "keep");
@@ -111,7 +115,11 @@ describe("Quick Exit / sign-out leave nothing of ours on the device", () => {
     } catch {
       /* jsdom: navigation not implemented */
     }
-    expect(appKeysLeft()).toEqual([]);
+    // Only #203's pending-wipe marker may remain (value "1", no identifier); it is removed once the
+    // pp-intake database is confirmed gone, or at the next app start.
+    expect(appKeysLeft().filter((k) => k !== PENDING_WIPE_KEY)).toEqual([]);
+    const marker = localStorage.getItem(PENDING_WIPE_KEY);
+    expect(marker === null || marker === "1").toBe(true);
     // Prefix discipline: not a blanket clear of keys that aren't ours.
     expect(localStorage.getItem("unrelated-third-party")).toBe("keep");
     expect(document.cookie).not.toMatch(/_ga/);
@@ -172,7 +180,11 @@ function walk(dir: string, out: string[] = []): string[] {
     if (statSync(p).isDirectory()) {
       if (name === "__tests__" || name === "node_modules") continue;
       walk(p, out);
-    } else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name) && name !== "routeTree.gen.ts") {
+    } else if (
+      /\.(ts|tsx)$/.test(name) &&
+      !/\.test\.tsx?$/.test(name) &&
+      name !== "routeTree.gen.ts"
+    ) {
       out.push(p);
     }
   }
@@ -183,10 +195,12 @@ const SRC_FILES = walk(join(ROOT, "src"));
 /** First argument of every storage write / draggable key in the app source. */
 function storageKeyArgs(): Array<{ file: string; arg: string }> {
   const found: Array<{ file: string; arg: string }> = [];
-  const re = /(?:localStorage|sessionStorage)\.setItem\(\s*([^,]+?)\s*,|useDraggable\(\s*([^,]+?)\s*,/g;
+  const re =
+    /(?:localStorage|sessionStorage)\.setItem\(\s*([^,]+?)\s*,|useDraggable\(\s*([^,]+?)\s*,/g;
   for (const file of SRC_FILES) {
     const src = readFileSync(file, "utf8");
-    for (const m of src.matchAll(re)) found.push({ file: file.slice(ROOT.length), arg: (m[1] ?? m[2])!.trim() });
+    for (const m of src.matchAll(re))
+      found.push({ file: file.slice(ROOT.length), arg: (m[1] ?? m[2])!.trim() });
   }
   return found;
 }
@@ -218,11 +232,13 @@ describe("storage key inventory", () => {
       /(?:[A-Za-z]*Key|[A-Z_]*_KEY)\s*=\s*(?:\([^)]*\)\s*=>\s*)?`(?:pp[._-]|patternproof|sb-|\$\{[A-Z_]*KEY\}|\$\{APP_STORAGE_PREFIX\})[^`]*\$\{[^}]*(?:user|uid|\bid\b|Id\b)[^}]*\}[^`]*`/g,
     ];
     // Self-check: the scan flags the shape the old build used.
-    const oldShape = "export const accountSettingsKey = (userId: string) => `${SETTINGS_KEY}:${userId}`;";
+    const oldShape =
+      "export const accountSettingsKey = (userId: string) => `${SETTINGS_KEY}:${userId}`;";
     expect(patterns.some((re) => new RegExp(re.source).test(oldShape))).toBe(true);
     for (const file of SRC_FILES) {
       const src = readFileSync(file, "utf8");
-      for (const re of patterns) for (const m of src.matchAll(re)) idInKey.push(`${file.slice(ROOT.length)}: ${m[0]}`);
+      for (const re of patterns)
+        for (const m of src.matchAll(re)) idInKey.push(`${file.slice(ROOT.length)}: ${m[0]}`);
     }
     expect(idInKey).toEqual([]);
     // Static values: none look like an id or carry a ':<id>' suffix.
@@ -234,7 +250,9 @@ describe("storage key inventory", () => {
   });
 
   it("every sign-out goes through the wiping helper", () => {
-    const offenders = SRC_FILES.filter((f) => /supabase\.auth\.signOut\(/.test(readFileSync(f, "utf8")))
+    const offenders = SRC_FILES.filter((f) =>
+      /supabase\.auth\.signOut\(/.test(readFileSync(f, "utf8")),
+    )
       .map((f) => f.slice(ROOT.length))
       .filter((f) => f !== "src/lib/sign-out.ts" && f !== "src/lib/quick-exit.ts");
     expect(offenders).toEqual([]);
@@ -250,6 +268,8 @@ describe("storage key inventory", () => {
 
   it("Quick Exit revocation scope is global (deliberate; documented tradeoff)", () => {
     expect(read("src/lib/quick-exit.ts")).toMatch(/signOut\(\{ scope: "global" \}\)/);
-    expect(read("src/lib/quick-exit.ts")).toMatch(/Do not change to 'local' without a Guardian decision/);
+    expect(read("src/lib/quick-exit.ts")).toMatch(
+      /Do not change to 'local' without a Guardian decision/,
+    );
   });
 });

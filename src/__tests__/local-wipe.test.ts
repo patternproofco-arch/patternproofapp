@@ -33,7 +33,9 @@ function fakeIdb(outcome: "success" | "error" | "blocked" | "throw" | "hang") {
       deleted.push(name);
       if (outcome !== "hang") {
         queueMicrotask(() => {
-          const cb = req[outcome === "success" ? "onsuccess" : outcome === "error" ? "onerror" : "onblocked"] as (() => void) | undefined;
+          const cb = req[
+            outcome === "success" ? "onsuccess" : outcome === "error" ? "onerror" : "onblocked"
+          ] as (() => void) | undefined;
           cb?.();
         });
       }
@@ -86,9 +88,13 @@ describe("where it runs (source contract)", () => {
     expect(read("lib/quick-exit.ts")).toMatch(/markWipePending/);
     expect(read("routes/__root.tsx")).toMatch(/indexedDB\.deleteDatabase\("pp-intake"\)/);
     expect(read("routes/__root.tsx")).toMatch(/pp_wipe_pending/);
-    expect(read("components/UtilityBar.tsx")).toMatch(/wipeLocalEvidence\(\)/);
+    // Manual sign-out goes through the one sign-out path, which runs the wipe (attorney portal too).
+    expect(read("components/UtilityBar.tsx")).toMatch(/signOutAndClearDevice\(\)/);
+    expect(read("lib/sign-out.ts")).toMatch(/wipeLocalEvidence\(\)/);
     expect(read("lib/auth-context.tsx")).toMatch(/finishPendingWipe\(\)/);
-    expect(read("lib/auth-context.tsx")).toMatch(/lastUserId\.current && nextId\) void wipeLocalEvidence\(\)/);
+    expect(read("lib/auth-context.tsx")).toMatch(
+      /lastUserId\.current && nextId\) void wipeLocalEvidence\(\)/,
+    );
   });
 
   it("an expired session alone does not throw away files waiting to upload", () => {

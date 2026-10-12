@@ -2,13 +2,13 @@ import { expect, test, type Browser, type BrowserContext, type Page } from "@pla
 import { mockSignedInSurvivor, waitForAppShell } from "./fixtures/mock-survivor";
 
 /**
- * Phones 320–430px: the page must never be wider than the screen, and Quick Exit must be fully on
+ * Phones 320–430px (widths 320/360/375/390/412/414): the page must never be wider than the screen, and Quick Exit must be fully on
  * screen with a >=44px target. Public pages run as-is. Signed-in survivor pages run with a MOCKED
  * session (e2e/fixtures/mock-survivor.ts): layout only, no backend, NOT a real signed-in test.
  *
  * Runs once per engine: desktop-chromium (Chromium, isMobile) and mobile-ios (WebKit).
  */
-const WIDTHS = [320, 375, 390, 412] as const;
+const WIDTHS = [320, 360, 375, 390, 412, 414] as const;
 const PUBLIC = [
   "/",
   "/demo",
@@ -24,7 +24,10 @@ const PUBLIC = [
 const SIGNED_IN = ["/dashboard", "/journal", "/timeline"];
 
 test.beforeEach(({ browserName }, info) => {
-  test.skip(info.project.name === "mobile-android" || browserName === "firefox", "chromium + webkit only");
+  test.skip(
+    info.project.name === "mobile-android" || browserName === "firefox",
+    "chromium + webkit only",
+  );
 });
 
 async function phone(browser: Browser, width: number, height = 800): Promise<BrowserContext> {
@@ -77,7 +80,10 @@ for (const width of WIDTHS) {
     const page = await ctx.newPage();
     for (const path of PUBLIC) {
       await page.goto(path, { waitUntil: "domcontentloaded" });
-      await page.locator("[data-quick-exit]").first().waitFor({ state: "visible", timeout: 45_000 });
+      await page
+        .locator("[data-quick-exit]")
+        .first()
+        .waitFor({ state: "visible", timeout: 45_000 });
       await page.waitForTimeout(300);
       assertFits(await measure(page, "[data-quick-exit]"), width, `${path}@${width}`);
       // Still on screen after scrolling (sticky public header).
@@ -103,10 +109,14 @@ for (const width of WIDTHS) {
   }
 }
 
-test("a remembered Exit position from a wider screen is pulled back on screen", async ({ browser }) => {
+test("a remembered Exit position from a wider screen is pulled back on screen", async ({
+  browser,
+}) => {
   const ctx = await phone(browser, 320);
   await mockSignedInSurvivor(ctx);
-  await ctx.addInitScript(() => localStorage.setItem("pp.exit.pos", JSON.stringify({ left: 900, top: 2000 })));
+  await ctx.addInitScript(() =>
+    localStorage.setItem("pp.exit.pos", JSON.stringify({ left: 900, top: 2000 })),
+  );
   const page = await ctx.newPage();
   await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page);
@@ -115,13 +125,18 @@ test("a remembered Exit position from a wider screen is pulled back on screen", 
   await ctx.close();
 });
 
-test("entry form: Save privately stays visible above the tab bar at 390x450", async ({ browser }) => {
+test("entry form: Save privately stays visible above the tab bar at 390x450", async ({
+  browser,
+}) => {
   const ctx = await phone(browser, 390, 450);
   await mockSignedInSurvivor(ctx);
   const page = await ctx.newPage();
   await page.goto("/journal", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page);
-  await page.getByRole("button", { name: /add an entry/i }).first().click();
+  await page
+    .getByRole("button", { name: /add an entry/i })
+    .first()
+    .click();
   const what = page.locator("#entry-what");
   await what.waitFor({ state: "visible" });
   await what.scrollIntoViewIfNeeded();
@@ -129,7 +144,9 @@ test("entry form: Save privately stays visible above the tab bar at 390x450", as
   await what.pressSequentially("He was waiting outside again.");
   await page.waitForTimeout(400);
 
-  const save = page.getByTestId("journal-save-bar").getByRole("button", { name: /save privately/i });
+  const save = page
+    .getByTestId("journal-save-bar")
+    .getByRole("button", { name: /save privately/i });
   const box = await save.boundingBox();
   const bar = await page.locator(".pp-bottom-tab-bar").boundingBox();
   expect(box, "save button rendered").not.toBeNull();
@@ -162,10 +179,15 @@ test("entry form: Save privately stays visible above the tab bar at 390x450", as
   await ctx.close();
 });
 
-test("Quick Exit in a real browser wipes app storage, IndexedDB and caches", async ({ browser, baseURL }) => {
+test("Quick Exit in a real browser wipes app storage, IndexedDB and caches", async ({
+  browser,
+  baseURL,
+}) => {
   const ctx = await phone(browser, 390);
   // The exit destination is answered locally; nothing leaves the machine.
-  await ctx.route(/weather\.com/, (r) => r.fulfill({ contentType: "text/html", body: "<title>Weather</title>ok" }));
+  await ctx.route(/weather\.com/, (r) =>
+    r.fulfill({ contentType: "text/html", body: "<title>Weather</title>ok" }),
+  );
   const page = await ctx.newPage();
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(
@@ -174,36 +196,79 @@ test("Quick Exit in a real browser wipes app storage, IndexedDB and caches", asy
     { timeout: 45_000 },
   );
   await page.evaluate(async () => {
-    const local = ["pp_settings_v1", "pp.settings.account.v2", "pp.exit.pos", "pp.mic.pos", "pp_record_warned",
-      "pp.attorney.lastOpened", "pp_settings_v1:3f1c2a9e-1111-4222-8333-444455556666",
-      "sb-muyfixture-auth-token", "sb-muyfixture-auth-token-code-verifier"];
-    const session = ["pp_oauth_return", "pp_return_to", "pp_password_recovery", "pp_unlock_token_v2",
-      "pp.team_invite", "pp.att.security_dismissed", "pp.prep.county", "pp.prep.court_branch",
-      "pp.prep.intake_draft", "pp.prep.quiet_tab", "pp.prep.safety_copy",
-      "patternproof-team-invite", "att-security-dismissed"];
+    const local = [
+      "pp_settings_v1",
+      "pp.settings.account.v2",
+      "pp.exit.pos",
+      "pp.mic.pos",
+      "pp_record_warned",
+      "pp.attorney.lastOpened",
+      "pp_settings_v1:3f1c2a9e-1111-4222-8333-444455556666",
+      "sb-muyfixture-auth-token",
+      "sb-muyfixture-auth-token-code-verifier",
+    ];
+    const session = [
+      "pp_oauth_return",
+      "pp_return_to",
+      "pp_password_recovery",
+      "pp_unlock_token_v2",
+      "pp.team_invite",
+      "pp.att.security_dismissed",
+      "pp.prep.county",
+      "pp.prep.court_branch",
+      "pp.prep.intake_draft",
+      "pp.prep.quiet_tab",
+      "pp.prep.safety_copy",
+      "patternproof-team-invite",
+      "att-security-dismissed",
+    ];
     for (const k of local) localStorage.setItem(k, "x");
     for (const k of session) sessionStorage.setItem(k, "x");
     await new Promise<void>((res, rej) => {
       const req = indexedDB.open("pp-intake", 1);
       req.onupgradeneeded = () => req.result.createObjectStore("queued-files", { keyPath: "id" });
-      req.onsuccess = () => { req.result.close(); res(); };
+      req.onsuccess = () => {
+        req.result.close();
+        res();
+      };
       req.onerror = () => rej(req.error);
     });
-    if ("caches" in window) await (await caches.open("patternproof-v7-prep-no-store")).put("/e2e-probe", new Response("x"));
+    if ("caches" in window)
+      await (
+        await caches.open("patternproof-v7-prep-no-store")
+      ).put("/e2e-probe", new Response("x"));
   });
 
-  await page.getByRole("button", { name: /(quick exit|exit safely)/i }).first().click();
+  await page
+    .getByRole("button", { name: /(quick exit|exit safely)/i })
+    .first()
+    .click();
   await page.waitForURL(/weather\.com/, { timeout: 30_000 });
 
-  // Back on our origin, in a fresh tab of the same browser profile.
+  // Synchronous part: nothing of ours left in localStorage the moment she is on the exit page
+  // (checked from a static file on our origin, so no app code runs).
   const check = await ctx.newPage();
   await check.goto(`${baseURL}/version.json`);
-  await check.waitForTimeout(1500); // async wipe (IDB / caches) settles
+  const lsRightAfter = await check.evaluate(() =>
+    Object.keys(localStorage).filter(
+      (k) => /^(pp[._-]|patternproof|att-|sb-|supabase\.auth\.)/.test(k) && k !== "pp_wipe_pending",
+    ),
+  );
+  expect(lsRightAfter).toEqual([]);
+  // Async part (IndexedDB / Cache Storage) is not guaranteed to finish before navigation; the
+  // pending marker makes the next app open finish it. Open the app once, then check everything.
+  await check.goto(`${baseURL}/`, { waitUntil: "domcontentloaded" });
+  await check.waitForTimeout(2500);
   const left = await check.evaluate(async () => {
     const owned = (k: string) => /^(pp[._-]|patternproof|att-|sb-|supabase\.auth\.)/.test(k);
-    const ls = Object.keys(localStorage).filter(owned);
-    const dbs = indexedDB.databases ? (await indexedDB.databases()).map((d) => d.name).filter((n) => n && owned(n)) : ["(databases() unsupported)"];
-    const cs = "caches" in window ? (await caches.keys()).filter((n) => n.startsWith("patternproof-")) : [];
+    // #203's pending-wipe marker ("1", no identifier) may outlive the page; it is cleared once the
+    // pp-intake database is confirmed gone (dbs below must be empty either way).
+    const ls = Object.keys(localStorage).filter((k) => owned(k) && k !== "pp_wipe_pending");
+    const dbs = indexedDB.databases
+      ? (await indexedDB.databases()).map((d) => d.name).filter((n) => n && owned(n))
+      : ["(databases() unsupported)"];
+    const cs =
+      "caches" in window ? (await caches.keys()).filter((n) => n.startsWith("patternproof-")) : [];
     return { ls, dbs, cs };
   });
   expect(left.ls).toEqual([]);
