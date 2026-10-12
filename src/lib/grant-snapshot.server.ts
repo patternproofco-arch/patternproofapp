@@ -60,9 +60,10 @@ async function ownedIds(admin: Admin, table: "incidents" | "evidence", clientUse
  * Journal entries and files both have a real control ("Keep private" /
  * "OK to share later" / "Still deciding") on the Journal and Evidence screens.
  * A kept-private item "won't show up when you share with someone". So only
- * ok_to_share is in; private, undecided and NULL stay out (fail-closed). Only a
- * MISSING readiness column (migration not applied yet) falls back to every owned
- * item; any other query error stops the share.
+ * ok_to_share is in; private, undecided and NULL stay out (fail-closed).
+ * If the readiness column is MISSING (migration not applied), nothing can be checked,
+ * so nothing is shared: this throws SHARING_UNAVAILABLE. It never falls back to
+ * every owned item. Any other query error also stops the share.
  */
 async function shareableIds(
   admin: Admin,
@@ -70,9 +71,8 @@ async function shareableIds(
   clientUserId: string,
   createdAtOrBefore?: string,
 ) {
-  // Only a missing readiness column (migration not applied yet) may fall back to
-  // every owned item. Any other failure must stop the share: falling back to
-  // "everything" on a transient error would sweep in entries kept private.
+  // Fail closed on every failure, a missing readiness column included: falling back
+  // to "everything" would sweep in entries she kept private.
   let columnMissing = false;
   let rows: Array<{ id: string; share_readiness?: string | null }>;
   try {
@@ -102,12 +102,22 @@ async function shareableIds(
       { what: table === "incidents" ? "incident" : "file" },
     );
   } catch (e) {
-    if (columnMissing) return ownedIds(admin, table, clientUserId);
+    if (columnMissing) throw new SharingUnavailableError();
     throw e;
   }
   return rows
     .filter((r) => isGrantSnapshotEligible(r.share_readiness))
     .map((r) => r.id);
+}
+
+/** Shown to the survivor verbatim. Thrown before anything is written. */
+export const SHARING_UNAVAILABLE = "Sharing is temporarily unavailable — nothing was shared";
+
+export class SharingUnavailableError extends Error {
+  constructor() {
+    super(SHARING_UNAVAILABLE);
+    this.name = "SharingUnavailableError";
+  }
 }
 
 function uniq(ids: Array<string | null | undefined>) {

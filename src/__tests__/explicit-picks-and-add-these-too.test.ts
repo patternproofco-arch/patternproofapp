@@ -722,3 +722,93 @@ describe("consent receipt + audit on FIRST accept and RE-accept (attorney and ad
     });
   });
 });
+
+describe("share_readiness COLUMN missing: share nothing, clear error, no writes", () => {
+  const MSG = "Sharing is temporarily unavailable — nothing was shared";
+  beforeEach(() => {
+    // Simulate a database where the readiness migration has not been applied.
+    const realFrom = state.admin.from.bind(state.admin);
+    state.admin.from = (name: string) => {
+      const q = realFrom(name);
+      const realSelect = q.select.bind(q);
+      q.select = (cols?: string, opts?: unknown) => {
+        if ((name === "incidents" || name === "evidence") && cols?.includes("share_readiness")) {
+          (q as any).failure = `column ${name}.share_readiness does not exist`;
+        }
+        return realSelect(cols, opts);
+      };
+      return q;
+    };
+  });
+  const noWrites = () => {
+    expect(state.admin.rpcCalls.some((c: any) => c.name === "accept_attorney_share")).toBe(false);
+    expect(state.admin.rpcCalls.some((c: any) => c.name === "record_audit_event")).toBe(false);
+    expect(tables.attorney_client_links).toHaveLength(0);
+    expect(tables.advocate_client_links).toHaveLength(0);
+    expect(tables.attorney_survivor_invites![0]!.status).toBe("pending");
+    expect(tables.advocate_survivor_invites![0]!.status).toBe("pending");
+  };
+
+  it("attorney Share all: refused with the clear error, nothing written", async () => {
+    await expect(
+      acceptSurvivorInvite({
+        data: {
+          token: TOKEN,
+          scope: { ...none, include_all_incidents: true, include_all_evidence: true },
+        },
+      }),
+    ).rejects.toThrow(MSG);
+    noWrites();
+  });
+
+  it("attorney explicit picks: same rule, refused, nothing written", async () => {
+    await expect(
+      acceptSurvivorInvite({
+        data: { token: TOKEN, scope: { ...none, scope_incidents: [incId(1), incId(6)] } },
+      }),
+    ).rejects.toThrow(MSG);
+    noWrites();
+  });
+
+  it("preview refuses too (never shows a count it couldn't check)", async () => {
+    await expect(
+      previewSurvivorInviteScope({
+        data: { token: TOKEN, scope: { ...none, include_all_incidents: true } },
+      }),
+    ).rejects.toThrow(MSG);
+  });
+
+  it("advocate Share all: refused, no link, invite still pending", async () => {
+    await expect(
+      acceptAdvocateSurvivorInvite({
+        data: {
+          token: TOKEN,
+          acknowledgements: { who: true, scope: true, revoke: true },
+          scope: { ...none, include_all_incidents: true },
+        },
+      }),
+    ).rejects.toThrow(MSG);
+    noWrites();
+  });
+
+  it("Add these too: refused, the grant is unchanged", async () => {
+    tables.attorney_client_links!.push({
+      id: "abababab-abab-4bab-8bab-abababababab",
+      attorney_user_id: ATTY,
+      client_user_id: SURV,
+      status: "active",
+      revoked_at: null,
+      expires_at: null,
+      created_at: "2026-09-02T00:00:00Z",
+      include_all_incidents: false,
+      include_all_evidence: false,
+      scope_incidents: [incId(6)],
+      scope_evidence: [],
+    });
+    const link = tables.attorney_client_links!.at(-1)!;
+    await expect(
+      shareNewItemsWithGrant({ data: { kind: "attorney", link_id: link.id as string } }),
+    ).rejects.toThrow(MSG);
+    expect(link.scope_incidents).toEqual([incId(6)]);
+  });
+});
