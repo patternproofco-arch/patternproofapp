@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 const sql = readFileSync("supabase/migrations/20261011190100_cps_access.sql", "utf8");
 const TABLES = [
   "cps_allowed_domains",
+  "cps_denied_senders",
   "cps_access_applications",
   "cps_invitations",
   "cps_client_links",
@@ -21,7 +22,7 @@ describe("cps migration contract", () => {
     expect(sql).toMatch(/GRANT SELECT ON public\.cps_client_links TO authenticated/);
     expect(sql).toMatch(/GRANT SELECT ON public\.cps_access_log TO authenticated/);
     expect(sql).toMatch(/GRANT SELECT ON public\.cps_access_applications TO authenticated/);
-    expect(sql).not.toMatch(/GRANT[^;]*ON public\.cps_(invitations|allowed_domains)[^;]*authenticated/);
+    expect(sql).not.toMatch(/GRANT[^;]*ON public\.cps_(invitations|allowed_domains|denied_senders)[^;]*authenticated/);
     expect(sql).toContain("client_user_id = (SELECT auth.uid())");
   });
   it("uses a restrictive policy requiring approval, an active link and an unexpired grant", () => {
@@ -46,6 +47,11 @@ describe("cps migration contract", () => {
     expect(sql).toContain("a revoked cps link cannot be restored");
     expect(sql).toContain("cannot be extended");
     expect(sql).toContain("BEFORE UPDATE ON public.cps_access_log");
+  });
+  it("keeps the email lookup server-only", () => {
+    expect(sql).toContain("REVOKE ALL ON FUNCTION public.cps_user_id_by_email(text) FROM PUBLIC, anon, authenticated;");
+    expect(sql).toContain("GRANT EXECUTE ON FUNCTION public.cps_user_id_by_email(text) TO service_role;");
+    expect(sql).not.toMatch(/GRANT EXECUTE ON FUNCTION public\.cps_user_id_by_email[^;]*authenticated/);
   });
   it("never uses the new enum value in the migration that adds it", () => {
     const role = readFileSync("supabase/migrations/20261011190000_cps_role.sql", "utf8");

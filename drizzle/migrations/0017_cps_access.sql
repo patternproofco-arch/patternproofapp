@@ -15,6 +15,16 @@ ALTER TABLE public.cps_allowed_domains ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.cps_allowed_domains FROM PUBLIC, anon, authenticated;
 GRANT ALL ON public.cps_allowed_domains TO service_role;
 
+-- Addresses and domains the founder has blocked (impersonators, people removed).
+CREATE TABLE IF NOT EXISTS public.cps_denied_senders (
+ value text PRIMARY KEY CHECK (value = lower(value) AND length(value) <= 255),
+ reason text,
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.cps_denied_senders ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.cps_denied_senders FROM PUBLIC, anon, authenticated;
+GRANT ALL ON public.cps_denied_senders TO service_role;
+
 CREATE TABLE IF NOT EXISTS public.cps_access_applications (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
  user_id uuid NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -165,3 +175,12 @@ REVOKE ALL ON FUNCTION private.cps_log_append_only() FROM PUBLIC, anon, authenti
 DROP TRIGGER IF EXISTS cps_log_append_only ON public.cps_access_log;
 CREATE TRIGGER cps_log_append_only BEFORE UPDATE ON public.cps_access_log
  FOR EACH ROW EXECUTE FUNCTION private.cps_log_append_only();
+
+-- Does this address already have an account? Server-only, used to honor a survivor's block
+-- before any invitation email is sent. Never reachable from the browser.
+CREATE OR REPLACE FUNCTION public.cps_user_id_by_email(_email text)
+RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
+ SELECT id FROM auth.users WHERE lower(email) = lower(_email) LIMIT 1;
+$$;
+REVOKE ALL ON FUNCTION public.cps_user_id_by_email(text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.cps_user_id_by_email(text) TO service_role;

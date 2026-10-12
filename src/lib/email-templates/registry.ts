@@ -17,11 +17,13 @@ import { template as referralSignupNotificationTemplate } from "./referral-signu
 import { template as teamInvitationTemplate } from "./team-invitation.config";
 import { template as orgAccessDecisionTemplate } from "./org-access-decision";
 import { template as attorneySurvivorInvitationTemplate } from "./attorney-survivor-invitation";
+import { template as cpsInvitationTemplate } from "./cps-invitation";
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   "attorney-invitation": attorneyInvitationTemplate,
   "advocate-survivor-invitation": advocateSurvivorInvitationTemplate,
   "attorney-survivor-invitation": attorneySurvivorInvitationTemplate,
+  "cps-invitation": cpsInvitationTemplate,
   "support-request": supportRequestTemplate,
   "support-reply": supportReplyTemplate,
   "referral-signup-notification": referralSignupNotificationTemplate,

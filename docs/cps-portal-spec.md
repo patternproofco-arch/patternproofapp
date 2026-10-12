@@ -135,6 +135,23 @@ Likely relevant (VERIFY each):
 Best way to get this done: one engagement with a lawyer experienced in both DV technology and child welfare (NNEDV's Safety Net project and your state DV coalition can refer), producing (a) a written staff procedure, (b) approved notice wording, (c) a state-by-state table of reporting duties. Do this before any CPS invitations go live.
 
 ## Build status (this branch)
-Done: migrations `20261011190000_cps_role` and `20261011190100_cps_access` (mirrored in `drizzle/migrations/0016`, `0017`); `cps-verification.ts` (tier rules, lookalike check, invite cap, 90-day clamp); `cps-access.server.ts` (approval and link checks, exact-scope builder that excludes unconfirmed AI entries and attorney-privileged files, append-only view log helper); `cps-invite-policy.server.ts` (survivor opt-out switch, fail-closed); tests for each.
-Not done: `/cps-apply` and the review screen, domain-list seeding job, invitation email and `/cps-invite/$token`, worker viewer with watermark, survivor access-log and revoke screens, settings switch UI, attorney notice, rate-limit enforcement on invite creation, mailbox re-verification job.
-Not verified: SQL has not been run against Postgres; the full test suite, typecheck and lint have not been run (dependencies cannot be installed in the build sandbox). New tests were run under a small stand-in runner only. Run `bun run test`, typecheck and the SQL on a Supabase branch before merging.
+Done and tested (under a stand-in runner; see below):
+- Migrations `20261011190000_cps_role` and `20261011190100_cps_access`, mirrored in `drizzle/migrations/0016`, `0017`.
+- `cps-verification.ts` tier rules, lookalike check, invite caps, 90-day clamp.
+- `cps-access.server.ts` approval and link checks, exact-scope builder (leaves out unconfirmed AI entries, attorney-privileged files, private or undecided items, deleted items, anything not hers), batch view log.
+- `cps-applications.server.ts` apply, instant tier-1 decision, founder approve/reject/suspend. The work mailbox is proven by the account's own confirmed email (sign up with the work address and click the link).
+- `cps-invites.server.ts` create (daily cap per worker, 3-a-day cap per recipient, identical reply whether or not the address exists or blocks, timing padded), peek, accept (password re-check, exact picks, 30-day default, 90 max), decline (never reported), revoke.
+- `cps-invite-policy.server.ts` survivor opt-out switch.
+- `cps-viewer.server.ts` worker case list and read-only case view; items re-checked on every open; every view logged first.
+- Discreet email `cps-invitation` (subject "A secure message is waiting"; no agency, child or sender wording).
+- Server functions `cps.functions.ts`; screens `/cps-apply`, `/cps-portal`, `/cps-review` (founder), `/cps-invite/$token`; survivor card in Settings (block switch, grants, who opened what, end access).
+- `routeTree.gen.ts` edited by hand for the four routes (regenerate with the normal build).
+
+Still open:
+- Domain list seeding job from the CISA registry (the allow-list table is empty until you seed it, so nothing auto-approves yet; everyone goes to review).
+- Notice to her linked attorney; mailbox re-check job at 90 days; AI-written reviewer summary (reviewers currently see plain facts only).
+- File previews for shared evidence (the viewer shows titles and dates only).
+- Worker-side role routing: a `cps_worker` account is not recognized by the main app's role switcher; workers use /cps-portal directly.
+- Counsel review of wording and reporting duties (see addendum E).
+
+Not verified: the SQL has not been run against Postgres; the full test suite, typecheck and lint have not been run because dependencies cannot be installed in the build sandbox. New tests were run under a small stand-in runner only. Run `bun run test`, typecheck and the SQL on a Supabase branch before merging.

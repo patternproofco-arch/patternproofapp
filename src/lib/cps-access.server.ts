@@ -96,8 +96,8 @@ export type ScopeResult = {
 
 /**
  * Turn her picks into a grant scope. Only records that are hers, not deleted, and safe to share
- * get in. Left out: AI-written entries she has not confirmed, evidence her attorney marked
- * privileged, anything not hers. A failed read shares nothing.
+ * get in, and only if she marked them OK to share. Left out: AI-written entries she has not
+ * confirmed, evidence her attorney marked privileged, anything private, undecided or not hers. A failed read shares nothing.
  */
 export async function buildCpsScope(admin: Admin, clientUserId: string, picks: Picks): Promise<ScopeResult> {
   const excluded: ScopeResult["excluded"] = [];
@@ -109,12 +109,13 @@ export async function buildCpsScope(admin: Admin, clientUserId: string, picks: P
     source: string | null;
     confirmed_at: string | null;
     deleted_at: string | null;
+    share_readiness: string | null;
   }>(
     incidentIds,
     (chunk) =>
       admin
         .from("incidents")
-        .select("id,source,confirmed_at,deleted_at")
+        .select("id,source,confirmed_at,deleted_at,share_readiness")
         .eq("user_id", clientUserId)
         .in("id", chunk),
     { what: "entry" },
@@ -126,15 +127,23 @@ export async function buildCpsScope(admin: Admin, clientUserId: string, picks: P
     if (!r || r.deleted_at) excluded.push({ kind: "incident", id, reason: "not available" });
     else if (r.source === "ai_extracted" && !r.confirmed_at)
       excluded.push({ kind: "incident", id, reason: "written by AI and not yet confirmed by you" });
+    else if (r.share_readiness !== "ok_to_share")
+      excluded.push({ kind: "incident", id, reason: "marked private or still deciding" });
     else incidents.push(id);
   }
 
-  const evidenceRows = await selectInChunks<{ id: string }>(
+  const evidenceRows = await selectInChunks<{ id: string; share_readiness: string | null; deleted_at: string | null }>(
     evidenceIds,
-    (chunk) => admin.from("evidence").select("id").eq("user_id", clientUserId).in("id", chunk),
+    (chunk) =>
+      admin
+        .from("evidence")
+        .select("id,share_readiness,deleted_at")
+        .eq("user_id", clientUserId)
+        .in("id", chunk),
     { what: "file" },
   );
-  const owned = new Set(evidenceRows.map((r) => r.id));
+  const owned = new Set(evidenceRows.filter((r) => !r.deleted_at).map((r) => r.id));
+  const notReady = new Set(evidenceRows.filter((r) => r.share_readiness !== "ok_to_share").map((r) => r.id));
   const reviewRows = await selectInChunks<{ evidence_id: string; status: string }>(
     evidenceIds,
     (chunk) =>
@@ -150,6 +159,7 @@ export async function buildCpsScope(admin: Admin, clientUserId: string, picks: P
   for (const id of evidenceIds) {
     if (!owned.has(id)) excluded.push({ kind: "evidence", id, reason: "not available" });
     else if (privileged.has(id)) excluded.push({ kind: "evidence", id, reason: "marked privileged by your attorney" });
+    else if (notReady.has(id)) excluded.push({ kind: "evidence", id, reason: "marked private or still deciding" });
     else evidence.push(id);
   }
   return { scope: { incidents, evidence }, excluded };
@@ -169,5 +179,24 @@ export async function logCpsView(
     item_kind: itemKind,
     item_id: itemId,
   });
+  if (error) throw new Error("Could not record this view, so it was not shown");
+}
+
+/** Record several views in one write. If it fails, none of them are shown. */
+export async function logCpsViews(
+  admin: Admin,
+  link: Pick<CpsLink, "id" | "worker_user_id" | "client_user_id">,
+  items: Array<{ kind: "incident" | "evidence" | "packet"; id: string | null }>,
+): Promise<void> {
+  if (!items.length) return;
+  const { error } = await admin.from("cps_access_log").insert(
+    items.map((i) => ({
+      link_id: link.id,
+      worker_user_id: link.worker_user_id,
+      client_user_id: link.client_user_id,
+      item_kind: i.kind,
+      item_id: i.id,
+    })),
+  );
   if (error) throw new Error("Could not record this view, so it was not shown");
 }

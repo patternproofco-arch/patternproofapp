@@ -27,6 +27,7 @@ import {
   turnOffAssistantAccess,
   turnOnAssistantAccess,
 } from "@/lib/assistant-access.functions";
+import { ChildProtectionSharing } from "@/components/settings/ChildProtectionSharing";
 import { generateExportZip } from "@/lib/export-zip.functions";
 import {
   listMyAttorneyCaseNotes,
@@ -522,6 +523,7 @@ function SettingsPage() {
       </div>
 
       <ConnectedApps />
+      <ChildProtectionSharing />
 
       <NotesFromAttorney />
 

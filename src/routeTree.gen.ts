@@ -15,6 +15,9 @@ import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AiTransparencyRouteImport } from './routes/ai-transparency'
 import { Route as AttorneyApplyRouteImport } from './routes/attorney-apply'
+import { Route as CpsPortalRouteImport } from './routes/cps-portal'
+import { Route as CpsReviewRouteImport } from './routes/cps-review'
+import { Route as CpsApplyRouteImport } from './routes/cps-apply'
 import { Route as AttorneysRouteImport } from './routes/attorneys'
 import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as ChooseRoleRouteImport } from './routes/choose-role'
@@ -118,6 +121,7 @@ import { Route as CollaboratorInviteTokenRouteImport } from './routes/collaborat
 import { Route as MatterInviteTokenRouteImport } from './routes/matter-invite.$token'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as SurvivorInviteTokenRouteImport } from './routes/survivor-invite.$token'
+import { Route as CpsInviteTokenRouteImport } from './routes/cps-invite.$token'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AdvocateAdvocateCasesIndexRouteImport } from './routes/_advocate/advocate-cases.index'
@@ -175,6 +179,21 @@ const AiTransparencyRoute = AiTransparencyRouteImport.update({
 const AttorneyApplyRoute = AttorneyApplyRouteImport.update({
   id: '/attorney-apply',
   path: '/attorney-apply',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CpsPortalRoute = CpsPortalRouteImport.update({
+  id: '/cps-portal',
+  path: '/cps-portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CpsReviewRoute = CpsReviewRouteImport.update({
+  id: '/cps-review',
+  path: '/cps-review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CpsApplyRoute = CpsApplyRouteImport.update({
+  id: '/cps-apply',
+  path: '/cps-apply',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AttorneysRoute = AttorneysRouteImport.update({
@@ -712,6 +731,11 @@ const SurvivorInviteTokenRoute = SurvivorInviteTokenRouteImport.update({
   path: '/survivor-invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CpsInviteTokenRoute = CpsInviteTokenRouteImport.update({
+  id: '/cps-invite/$token',
+  path: '/cps-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -890,6 +914,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-transparency': typeof AiTransparencyRoute
   '/attorney-apply': typeof AttorneyApplyRoute
+  '/cps-portal': typeof CpsPortalRoute
+  '/cps-review': typeof CpsReviewRoute
+  '/cps-apply': typeof CpsApplyRoute
   '/attorneys': typeof AttorneysRoute
   '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
@@ -993,6 +1020,7 @@ export interface FileRoutesByFullPath {
   '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/cps-invite/$token': typeof CpsInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
@@ -1029,6 +1057,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-transparency': typeof AiTransparencyRoute
   '/attorney-apply': typeof AttorneyApplyRoute
+  '/cps-portal': typeof CpsPortalRoute
+  '/cps-review': typeof CpsReviewRoute
+  '/cps-apply': typeof CpsApplyRoute
   '/attorneys': typeof AttorneysRoute
   '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
@@ -1129,6 +1160,7 @@ export interface FileRoutesByTo {
   '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/cps-invite/$token': typeof CpsInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
@@ -1168,6 +1200,9 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/ai-transparency': typeof AiTransparencyRoute
   '/attorney-apply': typeof AttorneyApplyRoute
+  '/cps-portal': typeof CpsPortalRoute
+  '/cps-review': typeof CpsReviewRoute
+  '/cps-apply': typeof CpsApplyRoute
   '/attorneys': typeof AttorneysRoute
   '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
@@ -1271,6 +1306,7 @@ export interface FileRoutesById {
   '/matter-invite/$token': typeof MatterInviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/survivor-invite/$token': typeof SurvivorInviteTokenRoute
+  '/cps-invite/$token': typeof CpsInviteTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_advocate/advocate-cases/$clientId': typeof AdvocateAdvocateCasesClientIdRoute
@@ -1309,6 +1345,9 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-transparency'
     | '/attorney-apply'
+    | '/cps-portal'
+    | '/cps-review'
+    | '/cps-apply'
     | '/attorneys'
     | '/capture'
     | '/choose-role'
@@ -1412,6 +1451,7 @@ export interface FileRouteTypes {
     | '/matter-invite/$token'
     | '/review/$token'
     | '/survivor-invite/$token'
+    | '/cps-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
@@ -1448,6 +1488,9 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-transparency'
     | '/attorney-apply'
+    | '/cps-portal'
+    | '/cps-review'
+    | '/cps-apply'
     | '/attorneys'
     | '/capture'
     | '/choose-role'
@@ -1548,6 +1591,7 @@ export interface FileRouteTypes {
     | '/matter-invite/$token'
     | '/review/$token'
     | '/survivor-invite/$token'
+    | '/cps-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/advocate-cases/$clientId'
@@ -1586,6 +1630,9 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/ai-transparency'
     | '/attorney-apply'
+    | '/cps-portal'
+    | '/cps-review'
+    | '/cps-apply'
     | '/attorneys'
     | '/capture'
     | '/choose-role'
@@ -1689,6 +1736,7 @@ export interface FileRouteTypes {
     | '/matter-invite/$token'
     | '/review/$token'
     | '/survivor-invite/$token'
+    | '/cps-invite/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_advocate/advocate-cases/$clientId'
@@ -1729,6 +1777,9 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AiTransparencyRoute: typeof AiTransparencyRoute
   AttorneyApplyRoute: typeof AttorneyApplyRoute
+  CpsPortalRoute: typeof CpsPortalRoute
+  CpsReviewRoute: typeof CpsReviewRoute
+  CpsApplyRoute: typeof CpsApplyRoute
   AttorneysRoute: typeof AttorneysRoute
   CaptureRoute: typeof CaptureRoute
   ChooseRoleRoute: typeof ChooseRoleRoute
@@ -1780,6 +1831,7 @@ export interface RootRouteChildren {
   MatterInviteTokenRoute: typeof MatterInviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
   SurvivorInviteTokenRoute: typeof SurvivorInviteTokenRoute
+  CpsInviteTokenRoute: typeof CpsInviteTokenRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   IntegrationsClioCallbackRoute: typeof IntegrationsClioCallbackRoute
@@ -1833,6 +1885,27 @@ declare module '@tanstack/react-router' {
       path: '/attorney-apply'
       fullPath: '/attorney-apply'
       preLoaderRoute: typeof AttorneyApplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cps-portal': {
+      id: '/cps-portal'
+      path: '/cps-portal'
+      fullPath: '/cps-portal'
+      preLoaderRoute: typeof CpsPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cps-review': {
+      id: '/cps-review'
+      path: '/cps-review'
+      fullPath: '/cps-review'
+      preLoaderRoute: typeof CpsReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cps-apply': {
+      id: '/cps-apply'
+      path: '/cps-apply'
+      fullPath: '/cps-apply'
+      preLoaderRoute: typeof CpsApplyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attorneys': {
@@ -2556,6 +2629,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SurvivorInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cps-invite/$token': {
+      id: '/cps-invite/$token'
+      path: '/cps-invite/$token'
+      fullPath: '/cps-invite/$token'
+      preLoaderRoute: typeof CpsInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
       path: '/.lovable/oauth/consent'
@@ -3004,6 +3084,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AiTransparencyRoute: AiTransparencyRoute,
   AttorneyApplyRoute: AttorneyApplyRoute,
+  CpsPortalRoute: CpsPortalRoute,
+  CpsReviewRoute: CpsReviewRoute,
+  CpsApplyRoute: CpsApplyRoute,
   AttorneysRoute: AttorneysRoute,
   CaptureRoute: CaptureRoute,
   ChooseRoleRoute: ChooseRoleRoute,
@@ -3056,6 +3139,7 @@ const rootRouteChildren: RootRouteChildren = {
   MatterInviteTokenRoute: MatterInviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
   SurvivorInviteTokenRoute: SurvivorInviteTokenRoute,
+  CpsInviteTokenRoute: CpsInviteTokenRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   IntegrationsClioCallbackRoute: IntegrationsClioCallbackRoute,

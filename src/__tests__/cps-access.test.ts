@@ -107,16 +107,20 @@ describe("cps scope", () => {
 describe("building a scope from her picks", () => {
   const t = (): Tables => ({
     incidents: [
-      { id: "ok", user_id: S, source: "survivor", confirmed_at: past, deleted_at: null },
-      { id: "ai-unconfirmed", user_id: S, source: "ai_extracted", confirmed_at: null, deleted_at: null },
-      { id: "ai-confirmed", user_id: S, source: "ai_extracted", confirmed_at: past, deleted_at: null },
-      { id: "gone", user_id: S, source: "survivor", confirmed_at: past, deleted_at: past },
-      { id: "theirs", user_id: S2, source: "survivor", confirmed_at: past, deleted_at: null },
+      { id: "ok", user_id: S, source: "survivor", confirmed_at: past, deleted_at: null, share_readiness: "ok_to_share" },
+      { id: "ai-unconfirmed", user_id: S, source: "ai_extracted", confirmed_at: null, deleted_at: null, share_readiness: "ok_to_share" },
+      { id: "ai-confirmed", user_id: S, source: "ai_extracted", confirmed_at: past, deleted_at: null, share_readiness: "ok_to_share" },
+      { id: "gone", user_id: S, source: "survivor", confirmed_at: past, deleted_at: past, share_readiness: "ok_to_share" },
+      { id: "theirs", user_id: S2, source: "survivor", confirmed_at: past, deleted_at: null, share_readiness: "ok_to_share" },
+      { id: "private", user_id: S, source: "survivor", confirmed_at: past, deleted_at: null, share_readiness: "private" },
+      { id: "legacy-null", user_id: S, source: "survivor", confirmed_at: past, deleted_at: null, share_readiness: null },
     ],
     evidence: [
-      { id: "ev-ok", user_id: S },
-      { id: "ev-priv", user_id: S },
-      { id: "ev-other", user_id: S2 },
+      { id: "ev-ok", user_id: S, share_readiness: "ok_to_share", deleted_at: null },
+      { id: "ev-priv", user_id: S, share_readiness: "ok_to_share", deleted_at: null },
+      { id: "ev-other", user_id: S2, share_readiness: "ok_to_share", deleted_at: null },
+      { id: "ev-private", user_id: S, share_readiness: "private", deleted_at: null },
+      { id: "ev-deleted", user_id: S, share_readiness: "ok_to_share", deleted_at: past },
     ],
     attorney_evidence_reviews: [
       { client_user_id: S, evidence_id: "ev-priv", status: "privileged" },
@@ -125,16 +129,18 @@ describe("building a scope from her picks", () => {
   });
   it("keeps safe items and says why the rest were left out", async () => {
     const r = await buildCpsScope(fakeAdmin(t()), S, {
-      incidents: ["ok", "ai-unconfirmed", "ai-confirmed", "gone", "theirs", "missing"],
-      evidence: ["ev-ok", "ev-priv", "ev-other", "ev-missing"],
+      incidents: ["ok", "ai-unconfirmed", "ai-confirmed", "gone", "theirs", "missing", "private", "legacy-null"],
+      evidence: ["ev-ok", "ev-priv", "ev-other", "ev-missing", "ev-private", "ev-deleted"],
     });
     expect(r.scope.incidents.sort()).toEqual(["ai-confirmed", "ok"]);
     expect(r.scope.evidence).toEqual(["ev-ok"]);
     const why = Object.fromEntries(r.excluded.map((e) => [e.id, e.reason]));
     expect(why["ai-unconfirmed"]).toMatch(/not yet confirmed/);
     expect(why["ev-priv"]).toMatch(/privileged/);
+    expect(why["private"]).toMatch(/private or still deciding/);
+    expect(why["legacy-null"]).toMatch(/private or still deciding/);
     expect(Object.keys(why).sort()).toEqual(
-      ["ai-unconfirmed", "ev-missing", "ev-other", "ev-priv", "gone", "missing", "theirs"].sort(),
+      ["ai-unconfirmed", "ev-deleted", "ev-missing", "ev-other", "ev-priv", "ev-private", "gone", "legacy-null", "missing", "private", "theirs"].sort(),
     );
   });
   it("shares nothing when given nothing", async () => {
