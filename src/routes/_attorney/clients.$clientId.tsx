@@ -1,7 +1,13 @@
 import { FocusRegion } from "@/components/survivor/focus-mode";
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { formatEvidenceDate } from "@/lib/dates";
+import {
+  formatDateLocal,
+  formatEvidenceDate,
+  formatIncidentDate,
+  formatMonthKey,
+  parseDateLocal,
+} from "@/lib/dates";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -582,7 +588,7 @@ async function generateWordDoc(args: {
       const label =
         key === "Undated"
           ? "Undated"
-          : new Date(key + "-01").toLocaleDateString("en-US", { year: "numeric", month: "long" });
+          : formatMonthKey(key);
       children.push(h3(`${label} — ${list.length} incident(s)`));
       for (const inc of list) {
         const head = `${inc.date ?? "—"}${inc.time ? " · " + inc.time : ""} · Severity ${inc.severity_level ?? "—"}`;
@@ -1595,7 +1601,7 @@ function Overview({ data }: { data: CaseData }) {
             {recent.map((i) => (
               <li key={i.id} style={{ borderLeft: "3px solid var(--att-navy)", paddingLeft: 12 }}>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>
-                  {i.date ? new Date(i.date).toLocaleDateString() : "Date not documented"}
+                  {formatIncidentDate(i)}
                   {i.severity_level ? ` · severity ${i.severity_level}` : ""}
                 </div>
                 <div style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 2 }}>
@@ -1703,10 +1709,7 @@ function TimelineTab({
         Object.entries(byMonth).map(([month, items]) => (
           <section key={month} style={{ marginBottom: 24 }}>
             <div className="att-eyebrow" style={{ marginBottom: 8 }}>
-              {new Date(month + "-01").toLocaleDateString("en-US", {
-                month: "long",
-                year: "numeric",
-              })}{" "}
+              {formatMonthKey(month)}{" "}
               · {items.length} incident{items.length === 1 ? "" : "s"}
             </div>
             <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
@@ -1733,7 +1736,7 @@ function TimelineTab({
                     >
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>
-                          {i.date ? new Date(i.date).toLocaleDateString() : "Date not documented"}
+                          {formatIncidentDate(i)}
                           {i.severity_level ? ` · severity ${i.severity_level}` : ""}
                         </div>
                         {i.abuse_types?.length ? (
@@ -3310,7 +3313,7 @@ function DashboardKpiRow({ data, reviews }: { data: CaseData; reviews: ReviewLit
 function ConsentGrantPanel({ data }: { data: CaseData }) {
   const c = data.consent;
   if (!c) return null;
-  const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString() : null);
+  const fmt = (d: string | null) => (d ? parseDateLocal(d).toLocaleDateString() : null);
   const expired = c.expires_at ? new Date(c.expires_at) < new Date() : false;
   const row = (label: string, value: string) => (
     <div style={{ display: "flex", gap: 8, fontSize: 12.5, lineHeight: 1.6 }}>
@@ -3527,7 +3530,7 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
   const caseId = `PP-${clientId.slice(0, 4).toUpperCase()}`;
   const c = data.case;
   const sortedInc = [...data.incidents].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
-  const first = sortedInc[0]?.date;
+  const first = sortedInc.find((i) => i.date)?.date;
   const last = sortedInc[sortedInc.length - 1]?.date;
   const highSev = sortedInc.filter((i) => (i.severity_level ?? 0) >= 4);
   const policeMentions = sortedInc.filter((i) =>
@@ -3562,8 +3565,8 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
           {first && last ? (
             <>
               {" "}
-              spanning <strong>{new Date(first).toLocaleDateString()}</strong> to{" "}
-              <strong>{new Date(last).toLocaleDateString()}</strong>
+              spanning <strong>{formatDateLocal(first, { year: "numeric", month: "numeric", day: "numeric" })}</strong> to{" "}
+              <strong>{formatDateLocal(last, { year: "numeric", month: "numeric", day: "numeric" })}</strong>
             </>
           ) : null}
           , with{" "}
@@ -3604,17 +3607,17 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
         <ul style={{ fontSize: 13, paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
           {first && (
             <li>
-              First documented incident: <strong>{new Date(first).toLocaleDateString()}</strong>
+              First documented incident: <strong>{formatDateLocal(first, { year: "numeric", month: "numeric", day: "numeric" })}</strong>
             </li>
           )}
           {last && (
             <li>
-              Most recent incident: <strong>{new Date(last).toLocaleDateString()}</strong>
+              Most recent incident: <strong>{formatDateLocal(last, { year: "numeric", month: "numeric", day: "numeric" })}</strong>
             </li>
           )}
           {highSev.slice(0, 4).map((i) => (
             <li key={i.id}>
-              {i.date ? new Date(i.date).toLocaleDateString() : "Date not documented"} — severity{" "}
+              {formatIncidentDate(i)} — severity{" "}
               {i.severity_level}: {(i.description ?? "").slice(0, 80)}
             </li>
           ))}
