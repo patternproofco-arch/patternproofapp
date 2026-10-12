@@ -10,6 +10,14 @@ const { upload, ingest, toast, openBatch, updateBatch } = vi.hoisted(() => ({
   openBatch: vi.fn(),
   updateBatch: vi.fn(),
 }));
+vi.mock("@/lib/upload-retry", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/upload-retry")>();
+  return {
+    ...actual,
+    uploadWithRetry: (attempt: () => Promise<import("@/lib/upload-retry").UploadOutcome>) =>
+      actual.uploadWithRetry(attempt, { sleep: async () => {} }),
+  };
+});
 vi.mock("@tanstack/react-start", () => ({ useServerFn: (fn: unknown) => fn }));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
@@ -112,14 +120,15 @@ describe("preservation is separate from outside processing", () => {
     },
   );
   it("lets an interrupted upload retry the same storage key", async () => {
-    upload.mockResolvedValueOnce({ error: { statusCode: "503" } });
+    upload.mockResolvedValue({ error: { message: "Fictional interruption", statusCode: "503" } });
     await choose("audio/wav", "clip.wav");
     await click("Preserve 1 file");
     expect(ingest).not.toHaveBeenCalled();
     expect(host.textContent).not.toContain("Preservation receipt");
+    upload.mockResolvedValue({ error: null });
     await click("Retry files");
     await click("Preserve 1 file");
-    expect(upload.mock.calls[1][0]).toBe(upload.mock.calls[0][0]);
+    expect(upload.mock.calls[3][0]).toBe(upload.mock.calls[0][0]);
     expect(ingest).toHaveBeenCalledTimes(1);
     expect(externalFetch).not.toHaveBeenCalled();
   });

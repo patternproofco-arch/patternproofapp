@@ -288,14 +288,8 @@ export const respondWithoutEvidence = createServerFn({ method: "POST" })
 
 async function activeLinkFor(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: link } = await supabaseAdmin
-    .from("attorney_client_links")
-    .select("id,status,expires_at,revoked_at")
-    .eq("attorney_user_id", attorneyId)
-    .eq("client_user_id", clientId)
-    .maybeSingle();
-  if (!link || link.status !== "active" || isRevoked(link.revoked_at) || isExpired(link.expires_at))
-    throw new Error("Sharing with this client isn't active.");
+  const { assertLink } = await import("@/lib/attorney-access.server");
+  const link = await assertLink(supabaseAdmin, attorneyId, clientId);
   return { admin: supabaseAdmin, link };
 }
 

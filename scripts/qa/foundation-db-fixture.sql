@@ -27,6 +27,7 @@ GRANT SELECT, UPDATE ON public.evidence TO authenticated;
 CREATE TABLE public.attorney_client_links (
   id uuid PRIMARY KEY, client_user_id uuid, attorney_user_id uuid,
   status text, expires_at timestamptz, revoked_at timestamptz,
+  clio_share_consent boolean DEFAULT false, clio_share_consent_at timestamptz,
   scope_evidence uuid[] DEFAULT '{}', scope_incidents uuid[] DEFAULT '{}',
   include_all_incidents boolean DEFAULT false, include_all_evidence boolean DEFAULT false, case_id uuid
 );

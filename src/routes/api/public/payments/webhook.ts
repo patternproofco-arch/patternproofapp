@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
-import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
-import { firmSeatsForSubscription } from "@/lib/firm-seats";
+import { type StripeEnv, createStripeClient, verifyWebhook } from "@/lib/stripe.server";
 
 let _supabase: SupabaseClient | null = null;
 function getSupabase(): SupabaseClient {
@@ -12,26 +11,34 @@ function getSupabase(): SupabaseClient {
   return _supabase;
 }
 
-async function syncFirmSeats(
-  userId: string,
-  priceId: string | null | undefined,
-  status: string | null | undefined,
-  currentPeriodEnd: number | null | undefined,
-) {
-  const seats = firmSeatsForSubscription({ priceId, status, currentPeriodEnd });
-  const { error } = await getSupabase()
-    .from("firms")
-    .update({ seats_included: Math.max(1, seats), updated_at: new Date().toISOString() })
-    .eq("created_by", userId);
-  if (error) throw new Error(`Could not synchronize firm seats: ${error.message}`);
+async function syncAttorneyBillingAccess(userId: string | undefined, env: StripeEnv) {
+  if (!userId) return;
+  const { error } = await getSupabase().rpc("sync_attorney_billing_access", {
+    _attorney_id: userId,
+    _environment: env,
+  });
+  if (error) throw new Error(`Could not synchronize attorney billing access: ${error.message}`);
 }
 
-async function handleSubscriptionCreated(subscription: Stripe.Subscription, env: StripeEnv) {
-  const userId = subscription.metadata?.userId;
-  if (!userId) {
-    console.error("No userId in subscription metadata");
-    return;
+async function synchronizeSubscription(subscription: Stripe.Subscription, env: StripeEnv) {
+  const supabase = getSupabase();
+  const { data: existingOwner, error: ownerError } = await supabase
+    .from("subscriptions")
+    .select("user_id")
+    .eq("stripe_subscription_id", subscription.id)
+    .eq("environment", env)
+    .maybeSingle();
+  if (ownerError) throw new Error(`Could not read subscription owner: ${ownerError.message}`);
+  if (
+    existingOwner?.user_id &&
+    subscription.metadata?.userId &&
+    existingOwner.user_id !== subscription.metadata.userId
+  ) {
+    throw new Error("Subscription ownership conflict");
   }
+  const userId = existingOwner?.user_id ?? subscription.metadata?.userId;
+  // Subscriptions outside the application have no bound account.
+  if (!userId) return;
   const item = subscription.items?.data?.[0];
   const priceId =
     item?.price?.lookup_key || item?.price?.metadata?.lovable_external_id || item?.price?.id;
@@ -40,25 +47,24 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, env:
   const periodEnd = item?.current_period_end;
 
   // Charter Firm — locked rate for 12 months from first activation.
-  const isCharter =
-    priceId === "attorney_firm_charter_monthly" || subscription.metadata?.plan_tier === "charter";
+  const isCharter = priceId === "attorney_firm_charter_monthly";
   const planTier = isCharter ? "charter" : null;
   // Preserve an existing expiry rather than resetting on every webhook.
-  const supabase = getSupabase();
   let charterExpiresAt: string | null = null;
   if (isCharter) {
-    const { data: existing } = await supabase
+    const { data: existing, error: readError } = await supabase
       .from("subscriptions")
       .select("charter_rate_expires_at")
       .eq("stripe_subscription_id", subscription.id)
       .maybeSingle();
+    if (readError) throw new Error(`Could not read charter subscription: ${readError.message}`);
     const existingExpiry = (existing as { charter_rate_expires_at: string | null } | null)
       ?.charter_rate_expires_at;
     charterExpiresAt =
       existingExpiry ?? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
   }
 
-  await supabase.from("subscriptions").upsert(
+  const { error: writeError } = await supabase.from("subscriptions").upsert(
     {
       user_id: userId,
       stripe_subscription_id: subscription.id,
@@ -66,6 +72,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, env:
       product_id: productId,
       price_id: priceId,
       status: subscription.status,
+      cancel_at_period_end: subscription.cancel_at_period_end || false,
       current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
       current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
       environment: env,
@@ -75,70 +82,8 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, env:
     },
     { onConflict: "stripe_subscription_id" },
   );
-  await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
-}
-
-async function handleSubscriptionUpdated(subscription: Stripe.Subscription, env: StripeEnv) {
-  const item = subscription.items?.data?.[0];
-  const priceId =
-    item?.price?.lookup_key || item?.price?.metadata?.lovable_external_id || item?.price?.id;
-  const productId = item?.price?.product;
-  const periodStart = item?.current_period_start;
-  const periodEnd = item?.current_period_end;
-  const isCharter = priceId === "attorney_firm_charter_monthly";
-  const supabase = getSupabase();
-  let userId = subscription.metadata?.userId as string | undefined;
-  if (!userId) {
-    const { data: existingSubscription } = await supabase
-      .from("subscriptions")
-      .select("user_id")
-      .eq("stripe_subscription_id", subscription.id)
-      .eq("environment", env)
-      .maybeSingle();
-    userId = existingSubscription?.user_id as string | undefined;
-  }
-  const update: Record<string, unknown> = {
-    status: subscription.status,
-    product_id: productId,
-    price_id: priceId,
-    current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
-    current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
-    cancel_at_period_end: subscription.cancel_at_period_end || false,
-    updated_at: new Date().toISOString(),
-  };
-  // If the price moved off the charter price, clear the flag; otherwise leave
-  // plan_tier / charter_rate_expires_at untouched (never reset the locked window).
-  if (!isCharter && priceId) {
-    update.plan_tier = null;
-  }
-  await supabase
-    .from("subscriptions")
-    .update(update)
-    .eq("stripe_subscription_id", subscription.id)
-    .eq("environment", env);
-  if (userId) await syncFirmSeats(userId, priceId, subscription.status, periodEnd);
-  if (["canceled", "unpaid", "incomplete_expired"].includes(subscription.status)) {
-    await pauseAttorneyAccessIfApplicable(subscription);
-  }
-}
-
-async function handleSubscriptionDeleted(subscription: Stripe.Subscription, env: StripeEnv) {
-  const supabase = getSupabase();
-  const { data: existingSubscription } = await supabase
-    .from("subscriptions")
-    .select("user_id")
-    .eq("stripe_subscription_id", subscription.id)
-    .eq("environment", env)
-    .maybeSingle();
-  await supabase
-    .from("subscriptions")
-    .update({ status: "canceled", updated_at: new Date().toISOString() })
-    .eq("stripe_subscription_id", subscription.id)
-    .eq("environment", env);
-  const userId = (subscription.metadata?.userId ?? existingSubscription?.user_id) as
-    string | undefined;
-  if (userId) await syncFirmSeats(userId, null, "canceled", null);
-  await pauseAttorneyAccessIfApplicable(subscription);
+  if (writeError) throw new Error(`Could not save subscription: ${writeError.message}`);
+  await syncAttorneyBillingAccess(userId, env);
 }
 
 /**
@@ -147,7 +92,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription, env:
  * checkout session id so `useSubscription` / `tier` resolution works the
  * same as the recurring plan.
  */
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: StripeEnv) {
+async function handleCheckoutCompleted(
+  session: Stripe.Checkout.Session,
+  env: StripeEnv,
+  eventCreated: number,
+) {
   if (session.mode !== "payment") return;
   if (session.metadata?.tier !== "court_ready_pwyc") return;
   const userId = session.metadata?.userId;
@@ -159,7 +108,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: St
     console.warn("[payments] PWYC session outside allowed range; not granting access");
     return;
   }
-  const now = new Date();
+  // A replay must not move the purchase date or extend the paid year.
+  const now = new Date(eventCreated * 1000);
   const oneYear = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
   const supabase = getSupabase();
 
@@ -191,7 +141,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: St
     );
   }
 
-  await supabase.from("subscriptions").upsert(
+  const { error: subscriptionError } = await supabase.from("subscriptions").upsert(
     {
       user_id: userId,
       stripe_subscription_id: `pwyc_${session.id}`,
@@ -207,67 +157,31 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: St
     },
     { onConflict: "stripe_subscription_id" },
   );
+  if (subscriptionError) {
+    throw new Error(
+      `Could not save Professional Review subscription: ${subscriptionError.message}`,
+    );
+  }
 
   // Signal failure only after the rest of the record is persisted, so Stripe
   // retries the event and the entitlement eventually lands.
   if (entErr) throw new Error(`entitlement write failed for session ${session.id}`);
 }
 
-/**
- * When an attorney's subscription ends, pause every active client link
- * and notify each affected survivor. Survivors keep their data — only
- * the attorney's shared view is suspended until they re-subscribe.
- */
-async function pauseAttorneyAccessIfApplicable(subscription: Stripe.Subscription) {
-  const attorneyUserId: string | undefined = subscription.metadata?.userId;
-  if (!attorneyUserId) return;
-  const supabase = getSupabase();
-
-  const { data: isAttorney } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", attorneyUserId)
-    .eq("role", "attorney")
-    .maybeSingle();
-  if (!isAttorney) return;
-
-  const { data: links } = await supabase
-    .from("attorney_client_links")
-    .select("id, client_user_id")
-    .eq("attorney_user_id", attorneyUserId)
-    .eq("status", "active");
-  if (!links || links.length === 0) return;
-
-  const ids = links.map((link: { id: string }) => link.id);
-  await supabase
-    .from("attorney_client_links")
-    .update({ status: "paused", updated_at: new Date().toISOString() })
-    .in("id", ids);
-
-  const rows = links.map((link: { id: string; client_user_id: string }) => ({
-    user_id: link.client_user_id,
-    kind: "attorney_access_paused",
-    title: "Your attorney's access is paused",
-    body: "Your records are safe and unchanged. Your attorney's shared view is paused until their subscription is active again.",
-    metadata: { link_id: link.id, attorney_user_id: attorneyUserId },
-  }));
-  if (rows.length) await supabase.from("notifications").insert(rows);
-}
-
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
   switch (event.type) {
     case "customer.subscription.created":
-      await handleSubscriptionCreated(event.data.object, env);
-      break;
     case "customer.subscription.updated":
-      await handleSubscriptionUpdated(event.data.object, env);
+    case "customer.subscription.deleted": {
+      // Stripe may deliver events out of order. Persist its current state,
+      // rather than letting an older event overwrite a newer subscription.
+      const current = await createStripeClient(env).subscriptions.retrieve(event.data.object.id);
+      await synchronizeSubscription(current, env);
       break;
-    case "customer.subscription.deleted":
-      await handleSubscriptionDeleted(event.data.object, env);
-      break;
+    }
     case "checkout.session.completed":
-      await handleCheckoutCompleted(event.data.object, env);
+      await handleCheckoutCompleted(event.data.object, env, event.created);
       break;
     default:
       console.log("Unhandled event:", event.type);

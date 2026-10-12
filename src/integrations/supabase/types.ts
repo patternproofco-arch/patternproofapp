@@ -20,6 +20,27 @@ export type Database = {
         Update: { prior_record?: Json }
         Relationships: []
       }
+      _reconcile_secdef_acl_snapshot: {
+        Row: {
+          captured_at: string
+          fn: string
+          had_public: boolean
+          proacl: string | null
+        }
+        Insert: {
+          captured_at?: string
+          fn: string
+          had_public: boolean
+          proacl?: string | null
+        }
+        Update: {
+          captured_at?: string
+          fn?: string
+          had_public?: boolean
+          proacl?: string | null
+        }
+        Relationships: []
+      }
       advocate_client_links: {
         Row: {
           advocate_user_id: string
@@ -447,6 +468,96 @@ export type Database = {
         }
         Relationships: []
       }
+      attorney_access_applications: {
+        Row: {
+          bar_number: string
+          created_at: string
+          email: string
+          firm_name: string | null
+          full_name: string
+          id: string
+          jurisdiction: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          bar_number: string
+          created_at?: string
+          email: string
+          firm_name?: string | null
+          full_name: string
+          id?: string
+          jurisdiction: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          bar_number?: string
+          created_at?: string
+          email?: string
+          firm_name?: string | null
+          full_name?: string
+          id?: string
+          jurisdiction?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      attorney_applications: {
+        Row: {
+          bar_number: string | null
+          created_at: string
+          email: string
+          firm_name: string | null
+          full_name: string
+          id: string
+          invited_user_id: string | null
+          jurisdiction: string | null
+          note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string
+          status: string
+        }
+        Insert: {
+          bar_number?: string | null
+          created_at?: string
+          email: string
+          firm_name?: string | null
+          full_name: string
+          id?: string
+          invited_user_id?: string | null
+          jurisdiction?: string | null
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+        }
+        Update: {
+          bar_number?: string | null
+          created_at?: string
+          email?: string
+          firm_name?: string | null
+          full_name?: string
+          id?: string
+          invited_user_id?: string | null
+          jurisdiction?: string | null
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+        }
+        Relationships: []
+      }
       attorney_client_links: {
         Row: {
           attorney_case_notes: string | null
@@ -543,6 +654,47 @@ export type Database = {
           },
         ]
       }
+      attorney_declaration_drafts: {
+        Row: {
+          attorney_notes: string
+          content: Json
+          created_at: string
+          id: string
+          link_id: string
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          attorney_notes?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          link_id: string
+          updated_at?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          attorney_notes?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          link_id?: string
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_declaration_drafts_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attorney_document_requests: {
         Row: {
           attorney_user_id: string
@@ -611,6 +763,57 @@ export type Database = {
           },
         ]
       }
+      attorney_entry_reviews: {
+        Row: {
+          attorney_note: string
+          id: string
+          item_key: string
+          link_id: string
+          question_request_id: string | null
+          reviewed_marker: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attorney_note?: string
+          id?: string
+          item_key: string
+          link_id: string
+          question_request_id?: string | null
+          reviewed_marker?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attorney_note?: string
+          id?: string
+          item_key?: string
+          link_id?: string
+          question_request_id?: string | null
+          reviewed_marker?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_entry_reviews_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attorney_entry_reviews_question_request_id_fkey"
+            columns: ["question_request_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_document_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attorney_evidence_reviews: {
         Row: {
           attorney_user_id: string
@@ -661,6 +864,44 @@ export type Database = {
             columns: ["linked_incident_id"]
             isOneToOne: false
             referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attorney_exhibit_packages: {
+        Row: {
+          client_user_id: string
+          created_at: string
+          created_by: string | null
+          entries: Json
+          id: string
+          link_id: string
+          version: number
+        }
+        Insert: {
+          client_user_id: string
+          created_at?: string
+          created_by?: string | null
+          entries?: Json
+          id?: string
+          link_id: string
+          version: number
+        }
+        Update: {
+          client_user_id?: string
+          created_at?: string
+          created_by?: string | null
+          entries?: Json
+          id?: string
+          link_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attorney_exhibit_packages_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
             referencedColumns: ["id"]
           },
         ]
@@ -1415,6 +1656,136 @@ export type Database = {
         }
         Relationships: []
       }
+      clio_transfer_items: {
+        Row: {
+          attempts: number
+          bytes: number | null
+          clio_document_id: string | null
+          confirmed_at: string | null
+          document_name: string
+          error_code: string | null
+          error_message: string | null
+          exhibit_number: number | null
+          id: string
+          item_key: string | null
+          job_id: string
+          kind: string
+          marker: string | null
+          note: string | null
+          orphan_clio_document_ids: string[]
+          seq: number
+          sha256: string | null
+          source: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          bytes?: number | null
+          clio_document_id?: string | null
+          confirmed_at?: string | null
+          document_name: string
+          error_code?: string | null
+          error_message?: string | null
+          exhibit_number?: number | null
+          id?: string
+          item_key?: string | null
+          job_id: string
+          kind: string
+          marker?: string | null
+          note?: string | null
+          orphan_clio_document_ids?: string[]
+          seq: number
+          sha256?: string | null
+          source: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          bytes?: number | null
+          clio_document_id?: string | null
+          confirmed_at?: string | null
+          document_name?: string
+          error_code?: string | null
+          error_message?: string | null
+          exhibit_number?: number | null
+          id?: string
+          item_key?: string | null
+          job_id?: string
+          kind?: string
+          marker?: string | null
+          note?: string | null
+          orphan_clio_document_ids?: string[]
+          seq?: number
+          sha256?: string | null
+          source?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clio_transfer_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "clio_transfer_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clio_transfer_jobs: {
+        Row: {
+          attorney_user_id: string
+          clio_matter_id: string
+          created_at: string
+          excluded: Json
+          id: string
+          include_zip: boolean
+          link_id: string
+          matter_label: string
+          package_version: number
+          status: string
+          stop_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          attorney_user_id: string
+          clio_matter_id: string
+          created_at?: string
+          excluded?: Json
+          id?: string
+          include_zip?: boolean
+          link_id: string
+          matter_label?: string
+          package_version: number
+          status?: string
+          stop_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attorney_user_id?: string
+          clio_matter_id?: string
+          created_at?: string
+          excluded?: Json
+          id?: string
+          include_zip?: boolean
+          link_id?: string
+          matter_label?: string
+          package_version?: number
+          status?: string
+          stop_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clio_transfer_jobs_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       communications: {
         Row: {
           channel: string
@@ -1730,6 +2101,27 @@ export type Database = {
           id?: string
           paid_at?: string | null
           stripe_checkout_session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      entry_drafts: {
+        Row: {
+          content: Json
+          kind: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: Json
+          kind: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          kind?: string
           updated_at?: string
           user_id?: string
         }
@@ -2280,6 +2672,36 @@ export type Database = {
           seats_included?: number
           seats_purchased?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      founder_attorney_invites: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          token_hash?: string
+          used_at?: string | null
         }
         Relationships: []
       }
@@ -2973,6 +3395,7 @@ export type Database = {
       }
       org_follow_ups: {
         Row: {
+          completed_at: string | null
           created_at: string
           created_by: string
           due_at: string | null
@@ -2988,6 +3411,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           created_by: string
           due_at?: string | null
@@ -3003,6 +3427,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           created_by?: string
           due_at?: string | null
@@ -3023,6 +3448,89 @@ export type Database = {
             columns: ["grant_id"]
             isOneToOne: false
             referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_grant_report_drafts: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_hash: string | null
+          content: Json
+          created_at: string
+          created_by: string | null
+          derived: Json
+          derived_at: string | null
+          export_count: number
+          exported_at: string | null
+          id: string
+          org_id: string
+          period_from: string
+          period_timezone: string
+          period_to: string
+          receipt: Json | null
+          status: string
+          submitted_at: string | null
+          submitted_by: string | null
+          template_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_hash?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          derived?: Json
+          derived_at?: string | null
+          export_count?: number
+          exported_at?: string | null
+          id?: string
+          org_id: string
+          period_from: string
+          period_timezone?: string
+          period_to: string
+          receipt?: Json | null
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          template_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_hash?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          derived?: Json
+          derived_at?: string | null
+          export_count?: number
+          exported_at?: string | null
+          id?: string
+          org_id?: string
+          period_from?: string
+          period_timezone?: string
+          period_to?: string
+          receipt?: Json | null
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          template_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_grant_report_drafts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "dv_organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -3443,6 +3951,72 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_alert_outbox: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          next_attempt_at: string
+          outcome: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          next_attempt_at?: string
+          outcome?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          next_attempt_at?: string
+          outcome?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_profiles: {
+        Row: {
+          children_brackets: string[]
+          created_at: string
+          hearing_date: string | null
+          hearing_types: string[]
+          learning_mode: string
+          order_status: string | null
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          children_brackets?: string[]
+          created_at?: string
+          hearing_date?: string | null
+          hearing_types?: string[]
+          learning_mode?: string
+          order_status?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          children_brackets?: string[]
+          created_at?: string
+          hearing_date?: string | null
+          hearing_types?: string[]
+          learning_mode?: string
+          order_status?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -3803,6 +4377,33 @@ export type Database = {
           },
         ]
       }
+      user_lesson_progress: {
+        Row: {
+          completed_at: string | null
+          id: string
+          module_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          module_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          module_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_referrals: {
         Row: {
           created_at: string
@@ -3856,6 +4457,8 @@ export type Database = {
           pin_hash: string | null
           pin_locked_until: string | null
           pin_salt: string | null
+          reset_failed_attempts: number
+          reset_locked_until: string | null
           updated_at: string
           user_id: string
         }
@@ -3866,6 +4469,8 @@ export type Database = {
           pin_hash?: string | null
           pin_locked_until?: string | null
           pin_salt?: string | null
+          reset_failed_attempts?: number
+          reset_locked_until?: string | null
           updated_at?: string
           user_id: string
         }
@@ -3876,6 +4481,8 @@ export type Database = {
           pin_hash?: string | null
           pin_locked_until?: string | null
           pin_salt?: string | null
+          reset_failed_attempts?: number
+          reset_locked_until?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -3907,6 +4514,63 @@ export type Database = {
           privacy_version?: string
           terms_accepted_at?: string
           terms_version?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_webauthn_challenges: {
+        Row: {
+          challenge: string
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: string
+          user_id: string
+        }
+        Insert: {
+          challenge: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          purpose: string
+          user_id: string
+        }
+        Update: {
+          challenge?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_webauthn_credentials: {
+        Row: {
+          created_at: string
+          credential_id: string
+          id: string
+          last_used_at: string | null
+          public_key_jwk: Json
+          sign_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credential_id: string
+          id?: string
+          last_used_at?: string | null
+          public_key_jwk: Json
+          sign_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credential_id?: string
+          id?: string
+          last_used_at?: string | null
+          public_key_jwk?: Json
+          sign_count?: number
           user_id?: string
         }
         Relationships: []
@@ -3992,6 +4656,18 @@ export type Database = {
         Args: { p_request_id: string; p_action: string; p_note?: string; p_evidence_ids?: string[] }
         Returns: Json
       }
+      accept_attorney_share: {
+        Args: {
+          _actor_id: string
+          _direction: string
+          _invitation_id: string
+          _scope: Json
+        }
+        Returns: {
+          client_user_id: string
+          id: string
+        }[]
+      }
       accept_firm_member_invitation: {
         Args: { p_email: string; p_token_hash: string; p_user_id: string }
         Returns: string
@@ -4015,6 +4691,30 @@ export type Database = {
         Args: { _consent_id: string; p_user_id: string }
         Returns: boolean
       }
+      attorney_billing_state: {
+        Args: { _attorney_id: string; _environment?: string }
+        Returns: {
+          entitled: boolean
+          firm_seats: number
+        }[]
+      }
+      claim_founder_attorney_invite: {
+        Args: { _application: string; _hash: string }
+        Returns: undefined
+      }
+      claim_signup_alert: {
+        Args: { _enqueue?: boolean; _role: string; _user_id: string }
+        Returns: boolean
+      }
+      founder_recent_signups: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          roles: string[]
+          user_id: string
+        }[]
+      }
       is_firm_owner: { Args: { _firm_id: string }; Returns: boolean }
       is_org_owner: { Args: { _org_id: string }; Returns: boolean }
       record_audit_event: {
@@ -4028,6 +4728,19 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      review_attorney_application: {
+        Args: { _id: string; _reviewer: string; _status: string }
+        Returns: undefined
+      }
+      revoke_my_consent_grant: { Args: { _grant_id: string }; Returns: boolean }
+      set_my_clio_share_consent: {
+        Args: { _consent: boolean; _link_id: string }
+        Returns: boolean
+      }
+      sync_attorney_billing_access: {
+        Args: { _attorney_id: string; _environment: string }
+        Returns: number
       }
     }
     Enums: {

@@ -1,6 +1,6 @@
 import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireSupabaseAuth, requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { PROFESSIONAL_LINK_TTL_SECONDS } from "@/lib/professional-links.server";
 import { isAttorneyEntitled } from "@/lib/payments.functions";
@@ -79,7 +79,7 @@ async function assertLinkParticipant(linkId: string, userId: string) {
 /* ------------------------- role + profile ------------------------- */
 
 export const getMyRole = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAccountAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: rolesData }, { count: collabCount }, { count: grantCount }] = await Promise.all([
@@ -109,7 +109,18 @@ export const getMyRole = createServerFn({ method: "GET" })
     if (roles.includes("attorney")) role = "attorney";
     else if (roles.includes("advocate") && !roles.includes("survivor")) role = "advocate";
     else if (hasCollaborations) role = "collaborator";
-    return { role, roles, hasCollaborations, is_org_partner };
+    const { data: application } = await (supabaseAdmin as any)
+      .from("attorney_access_applications")
+      .select("status")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    return {
+      role,
+      roles,
+      hasCollaborations,
+      is_org_partner,
+      attorney_approved: application?.status === "approved",
+    };
   });
 
 export const upsertAttorneyProfile = createServerFn({ method: "POST" })
@@ -1354,13 +1365,7 @@ export const createDocRequest = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: link } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("id,status")
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .maybeSingle();
-    if (!link || link.status !== "active") throw new Error("No active link");
+    const link = await assertLink(context.userId, data.clientId);
     const { error } = await supabaseAdmin.from("attorney_document_requests").insert({
       link_id: link.id,
       attorney_user_id: context.userId,
@@ -1380,28 +1385,14 @@ export const listAttorneyNotes = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: link } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("id")
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .eq("status", "active")
-      .maybeSingle();
-    if (!link)
-      return {
-        notes: [] as Array<{
-          incident_id: string;
-          note: string | null;
-          flagged: boolean;
-          reviewed: boolean;
-        }>,
-        link_id: null,
-      };
+    const link = await assertLink(context.userId, data.clientId);
+    if (!link.scope_incidents?.length) return { notes: [], link_id: link.id };
     const { data: notes } = await supabaseAdmin
       .from("attorney_incident_notes")
       .select("incident_id,note,flagged,reviewed")
       .eq("link_id", link.id)
-      .eq("attorney_user_id", context.userId);
+      .eq("attorney_user_id", context.userId)
+      .in("incident_id", link.scope_incidents);
     return { notes: notes ?? [], link_id: link.id };
   });
 
@@ -1421,14 +1412,10 @@ export const upsertAttorneyNote = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: link } = await supabaseAdmin
-      .from("attorney_client_links")
-      .select("id")
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .eq("status", "active")
-      .maybeSingle();
-    if (!link) throw new Error("No active access");
+    const link = await assertLink(context.userId, data.clientId);
+    if (!link.scope_incidents?.includes(data.incidentId)) {
+      throw new Error("That entry is not in the current share.");
+    }
     type NoteUpsert = {
       link_id: string;
       attorney_user_id: string;

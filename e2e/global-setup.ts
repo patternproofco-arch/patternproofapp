@@ -5,7 +5,7 @@ import { request } from "@playwright/test";
  * which reads as a flaky timeout rather than a real failure.
  */
 export default async function globalSetup() {
-  const baseURL = process.env["E2E_BASE_URL"] ?? "http://localhost:8080";
+  const baseURL = process.env["E2E_BASE_URL"] ?? "http://127.0.0.1:8080";
   const ctx = await request.newContext({ baseURL });
   const routes = [
     "/",

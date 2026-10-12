@@ -4,7 +4,9 @@ set -euo pipefail
 db_name="$1"
 run_sql() { docker exec -i "$db_name" psql -U postgres -v ON_ERROR_STOP=1; }
 run_sql <<'SQL'
+SELECT set_config('request.jwt.claim.sub', '', false);
 UPDATE public.attorney_client_links SET status = 'active', revoked_at = null, expires_at = null, scope_evidence = '{}', scope_incidents = '{}';
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 SQL
 # Hold the first response's link lock while the second response starts.
 run_sql <<'SQL' >/tmp/patternproof-response-first.log 2>&1 &
@@ -38,7 +40,9 @@ SQL
 # A correction waiting behind a new grant must see the committed grant.
 run_sql <<'SQL' >/tmp/patternproof-grant-first.log 2>&1 &
 BEGIN;
+SELECT set_config('request.jwt.claim.sub', '', false);
 UPDATE public.attorney_client_links SET scope_incidents = ARRAY['10000000-0000-4000-8000-000000000001']::uuid[];
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 SELECT pg_sleep(2);
 COMMIT;
 SQL

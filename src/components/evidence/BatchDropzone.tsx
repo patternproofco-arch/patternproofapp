@@ -13,6 +13,7 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import {
   ingestEvidenceBatch,
@@ -357,9 +358,11 @@ export function BatchDropzone({ onDone }: { onDone?: () => void }) {
         setFiles([...updates]);
         const up = item.uploaded
           ? { error: null }
-          : await supabase.storage
-              .from("evidence-files")
-              .upload(key, outgoing, { upsert: false, contentType: outgoing.type || undefined });
+          : await uploadWithRetry(() =>
+              supabase.storage
+                .from("evidence-files")
+                .upload(key, outgoing, { upsert: false, contentType: outgoing.type || undefined }),
+            );
         const duplicate =
           up.error && String((up.error as { statusCode?: string }).statusCode) === "409";
         if (up.error && !duplicate) {

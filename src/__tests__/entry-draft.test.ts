@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   DRAFT_KIND,
-  DRAFT_MAX_AGE_DAYS,
   draftIsEmpty,
   draftStatusText,
   loadDraft,
@@ -109,7 +108,11 @@ describe("failures are said out loud", () => {
   it("a failed read is an error, not 'no draft'", async () => {
     const admin = db();
     admin.from = (() => ({
-      select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: { message: "down" } }) }) }) }),
+      select: () => ({
+        eq: () => ({
+          eq: () => ({ maybeSingle: async () => ({ data: null, error: { message: "down" } }) }),
+        }),
+      }),
     })) as never;
     await expect(loadDraft(admin, A)).rejects.toThrow(/Couldn't check/);
   });
@@ -124,7 +127,12 @@ describe("failures are said out loud", () => {
 
 describe("what comes back is sanitized", () => {
   it("ignores unexpected fields and non-text values, and caps length", () => {
-    const p = parseDraft({ description: "x".repeat(50000), location: 5, evil: "<script>", abuse_types: ["a", 3, "b"] });
+    const p = parseDraft({
+      description: "x".repeat(50000),
+      location: 5,
+      evil: "<script>",
+      abuse_types: ["a", 3, "b"],
+    });
     expect(p?.description.length).toBe(20000);
     expect(p?.location).toBe("");
     expect(p?.abuse_types).toEqual(["a", "b"]);
@@ -147,22 +155,13 @@ describe("sensitive text is not kept in the browser", () => {
   });
 });
 
-
-describe("old drafts are not kept", () => {
-  it("a draft untouched for 30+ days is not restored and is removed", async () => {
+describe("unfinished entries remain until the survivor saves or discards them", () => {
+  it("restores an old draft without deleting the only unfinished record", async () => {
     const admin = makeRwAdmin({ entry_drafts: [] });
-    const t0 = new Date("2026-09-01T10:00:00Z");
-    await saveDraft(admin, A, draft(), t0);
-    const day = 86_400_000;
-    expect((await loadDraft(admin, A, new Date(t0.getTime() + (DRAFT_MAX_AGE_DAYS - 1) * day)))?.draft.description).toMatch(/keys/);
-    expect(await loadDraft(admin, A, new Date(t0.getTime() + (DRAFT_MAX_AGE_DAYS + 1) * day))).toBeNull();
-    expect(admin.tables.entry_drafts).toHaveLength(0);
-  });
-
-  it("the database purge job is in the migration and can't fail the migration", () => {
-    const sql = readFileSync(new URL("../../supabase/migrations/20261004260000_entry_draft_purge.sql", import.meta.url), "utf8");
-    expect(sql).toMatch(/purge-old-entry-drafts/);
-    expect(sql).toMatch(/interval '30 days'/);
-    expect(sql).toMatch(/EXCEPTION WHEN OTHERS/);
+    await saveDraft(admin, A, draft(), new Date("2025-01-01T10:00:00Z"));
+    expect((await loadDraft(admin, A))?.draft.description).toMatch(/keys/);
+    expect(admin.tables.entry_drafts).toHaveLength(1);
+    await removeDraft(admin, A);
+    expect(await loadDraft(admin, A)).toBeNull();
   });
 });

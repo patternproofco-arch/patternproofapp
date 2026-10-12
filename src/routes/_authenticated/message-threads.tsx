@@ -20,6 +20,7 @@ import {
   Phone,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import { parseMessageThread } from "@/lib/message-threads.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -169,11 +170,12 @@ function MessageThreadsPage() {
     try {
       const ext = (file.name.match(/\.[^.]+$/)?.[0] ?? "").toLowerCase() || ".bin";
       const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-      const up = await supabase.storage.from("message-exports").upload(path, file, {
+      const up = await uploadWithRetry(() =>
+        supabase.storage.from("message-exports").upload(path, file, {
         cacheControl: "3600",
         upsert: false,
         contentType: file.type || undefined,
-      });
+      }));
       if (up.error) throw up.error;
       const { data: signed, error: signErr } = await supabase.storage
         .from("message-exports")

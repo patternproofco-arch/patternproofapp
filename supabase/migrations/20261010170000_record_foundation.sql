@@ -116,6 +116,75 @@ $$;
 REVOKE ALL ON FUNCTION public.respond_to_evidence_request(uuid, text, text, uuid[]) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.respond_to_evidence_request(uuid, text, text, uuid[]) TO authenticated;
 
+-- Integrate with the existing direct-client sharing allowlist.
+CREATE OR REPLACE FUNCTION public.attorney_client_links_client_update_guard()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
+  v_uid uuid := auth.uid();
+  v_old jsonb;
+  v_new jsonb;
+  -- Columns a survivor may change for a Clio consent toggle.
+  c_consent_keys constant text[] := ARRAY['clio_share_consent', 'clio_share_consent_at', 'updated_at'];
+  -- Columns a survivor may change for a one-way revoke.
+  c_revoke_keys constant text[] := ARRAY['status', 'revoked_at', 'updated_at'];
+BEGIN
+  -- service_role / server-side (no JWT subject), or not the survivor on this
+  -- row: unchanged behaviour (RLS decides; attorneys have no UPDATE policy).
+  IF v_uid IS NULL OR v_uid IS DISTINCT FROM OLD.client_user_id THEN
+    RETURN NEW;
+  END IF;
+
+  v_old := to_jsonb(OLD);
+  v_new := to_jsonb(NEW);
+
+  -- Only the validated response RPC's database definer role may extend
+  -- scope_evidence. Direct JWT clients cannot impersonate that role. All
+  -- other columns stay frozen and the ordinary client allowlist stays intact.
+  IF current_user NOT IN ('authenticated', 'anon')
+    AND current_user = pg_catalog.pg_get_userbyid((SELECT proowner FROM pg_catalog.pg_proc
+      WHERE oid = 'public.respond_to_evidence_request(uuid,text,text,uuid[])'::regprocedure))
+    AND (v_new - 'scope_evidence') = (v_old - 'scope_evidence')
+    AND coalesce(NEW.scope_evidence, '{}') @> coalesce(OLD.scope_evidence, '{}') THEN
+    RETURN NEW;
+  END IF;
+
+
+  -- No-op update.
+  IF v_new = v_old THEN
+    RETURN NEW;
+  END IF;
+
+  -- (ii) One-way revoke, nothing else.
+  IF NEW.status IS DISTINCT FROM OLD.status
+     OR NEW.revoked_at IS DISTINCT FROM OLD.revoked_at THEN
+    IF NEW.status = 'revoked'
+       AND OLD.revoked_at IS NULL
+       AND NEW.revoked_at IS NOT NULL
+       AND (v_new - c_revoke_keys) = (v_old - c_revoke_keys)
+    THEN
+      -- Server time wins: never trust a client-supplied revoke timestamp.
+      NEW.revoked_at := now();
+      RETURN NEW;
+    END IF;
+    RAISE EXCEPTION 'Only a one-way revoke (status revoked + revoked_at set, nothing else) is allowed here'
+      USING ERRCODE = '42501';
+  END IF;
+
+  -- (i) Clio consent fields only.
+  IF (v_new - c_consent_keys) = (v_old - c_consent_keys) THEN
+    RETURN NEW;
+  END IF;
+
+  RAISE EXCEPTION 'Only the Clio sharing consent fields can be changed here'
+    USING ERRCODE = '42501';
+END;
+$$;
+
+
 CREATE TABLE public.incident_revisions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   incident_id uuid NOT NULL REFERENCES public.incidents(id) ON DELETE CASCADE,

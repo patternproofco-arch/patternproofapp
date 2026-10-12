@@ -19,7 +19,7 @@
       {
         "name": "list_incidents",
         "title": "List incidents",
-        "description": "List the signed-in survivor's documented incidents, most recent first. Returns date, description, location, abuse types, and severity.",
+        "description": "List the signed-in survivor's documented incidents, most recent first. Entries she marked no-AI are left out. Returns date, description, location, abuse types, and severity.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -46,7 +46,7 @@
       {
         "name": "create_incident",
         "title": "Log an incident",
-        "description": "Document a new incident in the signed-in survivor's private journal. Use this to help the user log what happened.",
+        "description": "Add a DRAFT incident to the signed-in survivor's private journal, from what she tells you. It is saved as AI-extracted and unconfirmed: she must review and confirm it in PatternProof before it counts as her record. Do not invent details, dates or times she did not give you.",
         "annotations": {
           "readOnlyHint": false,
           "destructiveHint": false,
@@ -59,26 +59,32 @@
           "properties": {
             "date": {
               "type": "string",
-              "description": "Date the incident occurred (YYYY-MM-DD)."
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "Date the incident occurred (YYYY-MM-DD). Only a date she gave you."
             },
             "description": {
               "type": "string",
               "minLength": 1,
-              "description": "What happened, in the survivor's words."
+              "maxLength": 5000,
+              "description": "What happened, in the survivor's own words."
             },
             "time": {
               "description": "Approximate time (HH:MM, 24h).",
-              "type": "string"
+              "type": "string",
+              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
             },
             "location": {
               "description": "Where it happened.",
-              "type": "string"
+              "type": "string",
+              "maxLength": 300
             },
             "abuse_types": {
               "description": "Types of abuse (e.g. emotional, financial, coercive control).",
+              "maxItems": 10,
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "maxLength": 60
               }
             },
             "severity_level": {
@@ -89,11 +95,13 @@
             },
             "witnesses": {
               "description": "Anyone who saw or heard it.",
-              "type": "string"
+              "type": "string",
+              "maxLength": 500
             },
             "emotional_impact": {
               "description": "How it affected the survivor.",
-              "type": "string"
+              "type": "string",
+              "maxLength": 2000
             }
           },
           "required": [
@@ -106,7 +114,7 @@
       {
         "name": "list_evidence",
         "title": "List evidence",
-        "description": "List evidence items in the signed-in survivor's private vault. Returns title, description, date, file type, and any linked incident.",
+        "description": "List evidence items in the signed-in survivor's private vault. Items she marked no-AI are left out. Returns title, description, date, file type, and any linked incident.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -135,7 +143,7 @@
       {
         "name": "search_case",
         "title": "Search the case",
-        "description": "Search the signed-in survivor's incidents, evidence, and voice notes for a keyword or phrase.",
+        "description": "Search the signed-in survivor's incidents, evidence, and voice notes for a keyword or phrase. Items she marked no-AI are left out.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,

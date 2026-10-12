@@ -2,10 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { freezeInvitationScope, scopeForAcceptance } from "@/lib/invitation-scope.server";
 import { snapshotShareScope } from "@/lib/grant-snapshot.server";
-import {
-  mergeShareScopes,
-  selectionFingerprint,
-} from "@/lib/sharing/merge-share-scope";
+import { mergeShareScopes, selectionFingerprint } from "@/lib/sharing/merge-share-scope";
 import { makeRwAdmin } from "./helpers/fake-rw-supabase";
 
 const CLIENT = "client-1";
@@ -171,7 +168,7 @@ describe("preview + create UI contracts", () => {
 
   it("attorney and advocate create require verified preview and pass exact ids", () => {
     for (const src of [attorney, advocate]) {
-      expect(src).toContain("previewStatus.kind !== \"ok\"");
+      expect(src).toContain('previewStatus.kind !== "ok"');
       expect(src).toContain("scope_incidents: verified?.scope_incidents");
       expect(src).toContain("scope_evidence: verified?.scope_evidence");
       expect(src).toContain("Add items");
@@ -186,10 +183,10 @@ describe("preview + create UI contracts", () => {
     expect(advocateCreate).toContain('merge_mode: z.enum(["add", "replace"])');
   });
 
-  it("attorney accept upserts an existing link instead of always inserting", () => {
-    expect(attorneyCreate).toContain("const { data: existing }");
-    expect(attorneyCreate).toContain('.update({');
-    expect(attorneyCreate).toContain("revoked_at: null");
+  it("both invitation directions use the transactional acceptance boundary", () => {
+    const survivorAccept = readFileSync("src/lib/attorney-survivor-invites.peek.ts", "utf8");
+    expect(attorneyCreate).toContain("acceptAttorneyShare(supabaseAdmin");
+    expect(survivorAccept).toContain("acceptAttorneyShare(supabaseAdmin");
   });
 });
 

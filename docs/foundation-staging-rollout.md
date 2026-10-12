@@ -22,25 +22,29 @@ The scripts `foundation-db-fixture.sql`, `foundation-db-checks.sql`, `shared-cor
 
 Use two survivor accounts and a professional recipient, all designated fictional QA accounts. Use their real staging authentication and storage paths, without the browser mock-session harness.
 
-| Action | Required result |
-| --- | --- |
-| Save an undated note and image/audio/PDF | Visible after reload; date remains unknown; no automatic vendor processing |
-| Interrupt upload or preservation, then retry | Clear unconfirmed state; no additional stored record on retry |
-| Correct a private note | Prior account appears in owner-only history; the other survivor and professional cannot read it |
-| Share an exact selection, then add a private upload | Recipient sees only the deliberate selection |
-| Correct an item under an active share or pending invitation | Substantive rewrite rejected; separate private correction remains possible |
-| End access, then correct | Recipient loses access; private correction succeeds and retains earlier words |
-| Save a request draft with a file selected | Professional cannot read draft text or selected file |
-| Ask for help or report unavailable | Distinct outcome; no draft text/file disclosure |
-| Submit two requests concurrently | Both deliberate file selections retained; no lost update |
-| Submit after expiry/revocation or with another account's file | Rejected; no new disclosure or partial response |
-| Export with unconfirmed suggestions and a long conversation | Suggestions excluded; confirmed context complete; export is not labelled filed, served or admitted |
+| Action                                                        | Required result                                                                                    |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Save an undated note and image/audio/PDF                      | Visible after reload; date remains unknown; no automatic vendor processing                         |
+| Interrupt upload or preservation, then retry                  | Clear unconfirmed state; no additional stored record on retry                                      |
+| Correct a private note                                        | Prior account appears in owner-only history; the other survivor and professional cannot read it    |
+| Share an exact selection, then add a private upload           | Recipient sees only the deliberate selection                                                       |
+| Correct an item under an active share or pending invitation   | Substantive rewrite rejected; separate private correction remains possible                         |
+| End access, then correct                                      | Recipient loses access; private correction succeeds and retains earlier words                      |
+| Save a request draft with a file selected                     | Professional cannot read draft text or selected file                                               |
+| Ask for help or report unavailable                            | Distinct outcome; no draft text/file disclosure                                                    |
+| Submit two requests concurrently                              | Both deliberate file selections retained; no lost update                                           |
+| Submit after expiry/revocation or with another account's file | Rejected; no new disclosure or partial response                                                    |
+| Export with unconfirmed suggestions and a long conversation   | Suggestions excluded; confirmed context complete; export is not labelled filed, served or admitted |
 
 Record date, build identifier, migration versions, account aliases, expected/actual result, and redacted diagnostics. Keep QA artifacts free of credentials and real records.
 
 ## Physical-phone checks
 
 Run the same core flows on a physical iPhone/Safari and Android/Chrome. Check camera/file pickers, keyboard overlap, interrupted upload recovery, microphone permissions, recording without remote speech recognition, quick exit, screen-reader labels/navigation, and corrections/revoked sharing. Browser viewport emulation does not satisfy this check. Record device/OS/browser and assistive-technology versions.
+
+## Lovable publishing workflow
+
+The user publishes through Lovable after GitHub `main` is updated. Push the merged and tested code to `main`, let Lovable synchronize it, and apply the two foundation migrations to the connected database before Publish. Matching Drizzle migrations are tracked as `0018_record_foundation` and `0019_shared_record_corrections`; use the project’s active migration runner, not both runners against the same database. Verify permissions with the read-only script. No separate staging project or remote migration credential has been identified in this session. Main synchronization is not evidence of a successful database migration.
 
 ## Deployment
 

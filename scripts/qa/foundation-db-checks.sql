@@ -64,7 +64,9 @@ DROP TRIGGER fail_submission ON public.attorney_document_requests;
 DROP FUNCTION public.fail_submission();
 
 -- Lifecycle checks on an open request.
+SELECT set_config('request.jwt.claim.sub', '', false);
 UPDATE public.attorney_client_links SET expires_at = now() - interval '1 second';
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 DO $$ BEGIN
   BEGIN
     PERFORM public.respond_to_evidence_request('40000000-0000-4000-8000-000000000002', 'submit', 'note');
@@ -73,7 +75,9 @@ DO $$ BEGIN
     IF SQLERRM = 'EXPIRED_LINK_WAS_ACCEPTED' THEN RAISE; END IF;
   END;
 END $$;
+SELECT set_config('request.jwt.claim.sub', '', false);
 UPDATE public.attorney_client_links SET expires_at = null, revoked_at = now();
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 DO $$ BEGIN
   BEGIN
     PERFORM public.respond_to_evidence_request('40000000-0000-4000-8000-000000000002', 'help_requested');
@@ -82,7 +86,9 @@ DO $$ BEGIN
     IF SQLERRM = 'REVOKED_LINK_WAS_ACCEPTED' THEN RAISE; END IF;
   END;
 END $$;
+SELECT set_config('request.jwt.claim.sub', '', false);
 UPDATE public.attorney_client_links SET revoked_at = null;
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 
 UPDATE public.attorney_document_requests SET response_note = 'Private unfinished answer', response_evidence_ids = ARRAY['30000000-0000-4000-8000-000000000004']::uuid[]
  WHERE id = '40000000-0000-4000-8000-000000000003';
@@ -118,3 +124,17 @@ DO $$ BEGIN
 END $$;
 RESET ROLE;
 SELECT 'Foundation transaction, ownership, history, and RLS checks passed' AS result;
+-- The response definer can extend scope, but direct clients remain blocked
+-- even if a legacy deployment grants broader column permissions.
+GRANT UPDATE(scope_evidence) ON public.attorney_client_links TO authenticated;
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
+SET ROLE authenticated;
+DO $$ BEGIN
+  BEGIN
+    UPDATE public.attorney_client_links SET scope_evidence = '{}';
+    RAISE EXCEPTION 'DIRECT_SCOPE_REWRITE_WAS_ACCEPTED';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+END $$;
+RESET ROLE;
+REVOKE UPDATE(scope_evidence) ON public.attorney_client_links FROM authenticated;

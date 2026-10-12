@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Upload, Loader2, Video, AlertTriangle } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import { ingestRecordedThread } from "@/lib/message-threads.functions";
 import { checkUploadSize } from "@/lib/upload-limits";
@@ -33,10 +34,11 @@ export function ScreenRecordingUpload({ onDone, onCancel }: Props) {
     try {
       const ext = (file.name.match(/\.[^.]+$/)?.[0] ?? ".mp4").toLowerCase();
       const path = `${user.id}/thread-recordings/${Date.now()}${ext}`;
-      const up = await supabase.storage.from("evidence-files").upload(path, file, {
+      const up = await uploadWithRetry(() =>
+        supabase.storage.from("evidence-files").upload(path, file, {
         contentType: file.type || undefined,
         upsert: false,
-      });
+      }));
       if (up.error) throw up.error;
 
       // Best-effort duration via HTMLVideoElement

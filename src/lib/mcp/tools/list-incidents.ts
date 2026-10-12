@@ -1,12 +1,12 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { supabaseForUser, requireAuth } from "../supabase";
+import { supabaseForUser, requireAssistantAccess, recordMcpCall, AI_BLOCKED } from "../supabase";
 
 export default defineTool({
   name: "list_incidents",
   title: "List incidents",
   description:
-    "List the signed-in survivor's documented incidents, most recent first. Returns date, description, location, abuse types, and severity.",
+    "List the signed-in survivor's documented incidents, most recent first. Entries she marked no-AI are left out. Returns date, description, location, abuse types, and severity.",
   inputSchema: {
     limit: z
       .number()
@@ -22,7 +22,7 @@ export default defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ limit, since }, ctx) => {
-    const authError = requireAuth(ctx);
+    const authError = await requireAssistantAccess(ctx);
     if (authError) return authError;
     const sb = supabaseForUser(ctx);
     let q = sb
@@ -31,11 +31,13 @@ export default defineTool({
         "id,date,time,location,description,abuse_types,severity_level,witnesses,emotional_impact,has_escalation_flag",
       )
       .is("deleted_at", null)
+      .not("ai_permission", "in", AI_BLOCKED)
       .order("date", { ascending: false })
       .limit(limit ?? 25);
     if (since) q = q.gte("date", since);
     const { data, error } = await q;
-    if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+    if (error) return { content: [{ type: "text", text: "Could not read incidents." }], isError: true };
+    await recordMcpCall(ctx, "list_incidents", { returned: data?.length ?? 0 });
     return {
       content: [{ type: "text", text: `Found ${data?.length ?? 0} incidents.` }],
       structuredContent: { incidents: data ?? [] },

@@ -2,7 +2,9 @@
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 -- A recipient can see the incident: rewriting it must fail and leave both
 -- the current account and revision history unchanged.
+SELECT set_config('request.jwt.claim.sub', '', false);
 UPDATE public.attorney_client_links SET scope_incidents = ARRAY['10000000-0000-4000-8000-000000000001']::uuid[];
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 DO $$ BEGIN
   BEGIN
     UPDATE public.incidents SET description = 'Unapproved expansion';
@@ -15,7 +17,9 @@ DO $$ BEGIN
   IF (SELECT count(*) FROM public.incident_revisions) <> 1 THEN
     RAISE EXCEPTION 'Failed correction changed the history'; END IF;
 END $$;
+SELECT set_config('request.jwt.claim.sub', '', false);
 UPDATE public.attorney_client_links SET status = 'revoked', revoked_at = now();
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 UPDATE public.incidents SET description = 'Deliberate private correction';
 DO $$ BEGIN IF (SELECT count(*) FROM public.incident_revisions) <> 2 THEN
   RAISE EXCEPTION 'Private correction was not preserved'; END IF; END $$;
@@ -63,7 +67,9 @@ DO $$ BEGIN
   BEGIN UPDATE public.evidence SET file_url = 'replacement.wav' WHERE id = '30000000-0000-4000-8000-000000000004'; RAISE EXCEPTION 'SOURCE_REPLACEMENT_WAS_ACCEPTED';
   EXCEPTION WHEN raise_exception THEN IF SQLERRM NOT LIKE 'The preserved upload cannot be replaced.%' THEN RAISE; END IF; END;
 END $$;
+SELECT set_config('request.jwt.claim.sub', '', false);
 UPDATE public.attorney_client_links SET status = 'active', revoked_at = null;
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 DO $$ BEGIN
   BEGIN UPDATE public.evidence SET description = 'Rewritten shared file' WHERE id = '30000000-0000-4000-8000-000000000001'; RAISE EXCEPTION 'SHARED_SOURCE_EDIT_WAS_ACCEPTED';
   EXCEPTION WHEN raise_exception THEN IF SQLERRM NOT LIKE 'This file is shared.%' THEN RAISE; END IF; END;

@@ -11,6 +11,7 @@ for attempt in $(seq 1 30); do
 done
 docker exec "$db_name" pg_isready -U postgres >/dev/null
 docker exec -i "$db_name" psql -U postgres -v ON_ERROR_STOP=1 < scripts/qa/foundation-db-fixture.sql
+docker exec -i "$db_name" psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261008120000_acl_client_update_guard_allowlist.sql
 docker exec -i "$db_name" psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261010170000_record_foundation.sql
 docker exec -i "$db_name" psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261010171000_shared_record_corrections.sql
 docker exec -i "$db_name" psql -U postgres -v ON_ERROR_STOP=1 < scripts/qa/foundation-staging-verify.sql

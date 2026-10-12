@@ -60,3 +60,11 @@ These are references for professional/policy review, not a claim of independentl
 - Playwright with fictional sessions: all three dashboard actions navigated successfully on desktop Chromium and an emulated Android viewport (six checks). The tests exposed and verified the fix for a focus control that previously shifted links between pointer-down and pointer-up.
 - TypeScript checking and the production build passed. Targeted lint errors were corrected; existing hook/type and Fast Refresh warnings remain.
 - No production records were accessed or migrated. Actual-phone and assistive-technology checks and the policy decisions above remain release requirements.
+
+## Integration with current main
+
+The foundation work was merged with GitHub main through `eada998`, preserving its consent, attorney approval, upload-retry and draft-preservation changes. The request RPC is integrated with the existing direct-client sharing guard: its validated database definer may add evidence IDs without allowing JWT clients to rewrite scopes or recipient metadata. Both Supabase and Drizzle migration paths are included; apply through the active runner once. Local database checks include the existing guard, a direct-client scope rejection, and concurrent submissions/corrections. Remote migrations and physical-device checks remain unperformed.
+
+The user's publication workflow is GitHub `main` → Lovable synchronization → database migrations → Lovable Publish. See [the rollout instructions](foundation-staging-rollout.md).
+
+Combined-main validation: 124 test files / 1,207 tests passed; six dashboard browser checks passed; TypeScript and production build passed; the existing launch-isolation SQL suite and the foundation database checks passed. These are local checks with fictional data, not remote deployment certification.

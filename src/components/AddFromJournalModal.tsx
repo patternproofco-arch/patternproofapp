@@ -3,6 +3,7 @@ import { Sparkles, Upload, X, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadWithRetry } from "@/lib/upload-retry";
 import { useAuth } from "@/lib/auth-context";
 import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
 import { ocrJournalImage, splitJournalIntoIncidents } from "@/lib/extract-journal-page.functions";
@@ -72,7 +73,8 @@ export function AddFromJournalModal({
     try {
       const ext = f.name.split(".").pop() ?? "bin";
       const key = `${user.id}/journal-page/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const up = await supabase.storage.from("evidence-files").upload(key, f);
+      const up = await uploadWithRetry(() =>
+        supabase.storage.from("evidence-files").upload(key, f));
       if (up.error) {
         toast("We couldn't read that image. Try another.");
         return;
