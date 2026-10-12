@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { usePinLock } from "@/lib/pin-lock";
+import { signOutAndClearDevice } from "@/lib/sign-out";
 
 const MUTED = { color: "var(--muted-foreground)" } as const;
 
@@ -54,7 +54,7 @@ export function ForgotPinPanel({
         <p style={MUTED}>
           To reset your PIN, sign out and sign in again with Google. Then come back here within a few minutes.
         </p>
-        <button type="button" className="btn-primary w-full" onClick={() => void supabase.auth.signOut()}>
+        <button type="button" className="btn-primary w-full" onClick={() => void signOutAndClearDevice()}>
           Sign out
         </button>
         {onCancel && (

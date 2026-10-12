@@ -114,11 +114,11 @@ export function IncidentCard({
             </span>
             {incident.location && (
               <span
-                className="flex shrink-0 items-center gap-1 text-[12px]"
+                className="flex min-w-0 max-w-full items-center gap-1 text-[12px]"
                 style={{ color: "var(--pp-muted)" }}
               >
-                <MapPin size={12} />
-                {incident.location}
+                <MapPin size={12} className="shrink-0" />
+                <span className="min-w-0 [overflow-wrap:anywhere]">{incident.location}</span>
               </span>
             )}
           </div>

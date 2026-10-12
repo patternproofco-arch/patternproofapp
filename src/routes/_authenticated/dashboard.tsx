@@ -127,7 +127,9 @@ function Dashboard() {
   ];
 
   return (
-    <div style={{ display: "grid", gap: 28 }}>
+    // minmax(0, 1fr): a grid track otherwise grows to its widest child's min-content (e.g. a
+    // truncated activity label), which pushed /dashboard to ~790px on phones and Quick Exit off-screen.
+    <div className="min-w-0" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 28 }}>
       <FocusRegion id="hero">
         <div className="label-eyebrow">Home</div>
         <h1 className="mt-2 max-w-[640px] font-serif text-[34px] leading-tight">
@@ -238,7 +240,7 @@ function Dashboard() {
             }}
           />
         ) : (
-          <section style={{ display: "grid", gap: 10 }}>
+          <section style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 10 }}>
             <div
               style={{
                 display: "flex",

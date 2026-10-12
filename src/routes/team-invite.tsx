@@ -7,6 +7,7 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { useAuth } from "@/lib/auth-context";
 import { acceptFirmMemberInvitation } from "@/lib/firm-grants.functions";
 import { acceptOrgMemberInvitation } from "@/lib/org-portal.functions";
+import { SESSION_KEYS } from "@/lib/app-storage";
 
 export const Route = createFileRoute("/team-invite")({
   head: () => ({
@@ -30,13 +31,13 @@ function readInvite(): StoredInvite | null {
       ? { kind: "org" as const, token: params.get("org")! }
       : null;
   if (fromHash) {
-    sessionStorage.setItem("patternproof-team-invite", JSON.stringify(fromHash));
+    sessionStorage.setItem(SESSION_KEYS.teamInvite, JSON.stringify(fromHash));
     window.history.replaceState(null, "", "/team-invite");
     return fromHash;
   }
   try {
     return JSON.parse(
-      sessionStorage.getItem("patternproof-team-invite") || "null",
+      sessionStorage.getItem(SESSION_KEYS.teamInvite) || "null",
     ) as StoredInvite | null;
   } catch {
     return null;
@@ -63,7 +64,7 @@ function TeamInvitePage() {
     action
       .then(() => {
         if (cancelled) return;
-        sessionStorage.removeItem("patternproof-team-invite");
+        sessionStorage.removeItem(SESSION_KEYS.teamInvite);
         setStatus("Invitation accepted.");
         navigate({ to: invite.kind === "firm" ? "/clients" : "/org-portal", replace: true });
       })

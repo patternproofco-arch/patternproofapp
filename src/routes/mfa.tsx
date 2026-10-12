@@ -6,6 +6,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { getMyRole } from "@/lib/attorney-portal.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { sessionNeedsMfa, verifiedTotpFactorId } from "@/lib/mfa";
+import { signOutAndClearDevice } from "@/lib/sign-out";
 
 export const Route = createFileRoute("/mfa")({
   ssr: false,
@@ -88,7 +89,7 @@ function MfaChallengePage() {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await signOutAndClearDevice();
     navigate({ to: "/signin", replace: true });
   };
 

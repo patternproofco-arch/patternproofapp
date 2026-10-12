@@ -5,6 +5,7 @@ import { useRecording } from "@/lib/recording-context";
 import { useSettings } from "@/lib/settings-context";
 import { toast } from "sonner";
 import { useDraggable } from "@/hooks/use-draggable";
+import { LOCAL_KEYS } from "@/lib/app-storage";
 
 const fmt = (s: number) =>
   `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
@@ -22,7 +23,7 @@ export function FloatingRecordButton() {
     style: dragStyle,
     dragHandlers,
     wasDragged,
-  } = useDraggable("pp.mic.pos", { right: 24, bottom: 24 });
+  } = useDraggable(LOCAL_KEYS.micPos, { right: 24, bottom: 24 });
 
   // Hide on routes where button shouldn't render
   const hideOnRoutes =

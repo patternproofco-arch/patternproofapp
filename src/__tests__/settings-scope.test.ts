@@ -1,23 +1,36 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  ACCOUNT_SETTINGS_KEY,
   DEVICE_FIELDS,
   SETTINGS_KEY,
-  accountSettingsKey,
   hydrateScopedSettings,
+  ownerTag,
   splitSettings,
+  writeAccountSettings,
   type SettingsStorage,
 } from "@/lib/settings-scope";
+
+/** Account settings now live in one non-identifying key; the owner is a tag in the value. */
+const accountOf = (store: Record<string, string>) =>
+  (JSON.parse(store[ACCOUNT_SETTINGS_KEY] ?? "null") as { owner: string; settings: Record<string, unknown> } | null);
 
 const read = (p: string) => readFileSync(new URL(`../../${p}`, import.meta.url), "utf8");
 
 function memoryStorage(seed: Record<string, string> = {}): SettingsStorage & { store: Record<string, string> } {
-  const store = { ...seed };
+  const store: Record<string, string> = { ...seed };
   return {
     store,
     getItem: (key) => (key in store ? store[key] : null),
     setItem: (key, value) => {
       store[key] = value;
+    },
+    removeItem: (key) => {
+      delete store[key];
+    },
+    key: (i) => Object.keys(store)[i] ?? null,
+    get length() {
+      return Object.keys(store).length;
     },
   };
 }
@@ -54,16 +67,48 @@ describe("settings on a shared device", () => {
     });
   });
 
-  it("the account record is keyed by the account, never shared", () => {
-    expect(accountSettingsKey("user-a")).not.toBe(accountSettingsKey("user-b"));
-    expect(accountSettingsKey("user-a")).not.toBe(SETTINGS_KEY);
+  it("the account record is tagged by the account in its VALUE; the key name never carries an id", () => {
+    expect(ACCOUNT_SETTINGS_KEY).not.toBe(SETTINGS_KEY);
+    expect(ACCOUNT_SETTINGS_KEY).not.toMatch(/user|[0-9a-f]{8}-/i);
+    const storage = memoryStorage();
+    writeAccountSettings(storage, "user-a", { city: "Newark" });
+    expect(Object.keys(storage.store)).toEqual([ACCOUNT_SETTINGS_KEY]);
+    expect(storage.store[ACCOUNT_SETTINGS_KEY]).not.toContain("user-a");
+    expect(accountOf(storage.store)?.owner).toBe(ownerTag("user-a"));
+    expect(ownerTag("user-a")).not.toBe(ownerTag("user-b"));
+  });
+
+  it("a different account on the same device never sees the previous account's choices", () => {
+    const storage = memoryStorage();
+    writeAccountSettings(storage, "user-a", { city: "Newark", sessionTimeoutSec: 300 });
+    const b = hydrateScopedSettings(storage, "user-b");
+    expect(b.account).toEqual({});
+    const a = hydrateScopedSettings(storage, "user-a");
+    expect(a.account).toMatchObject({ city: "Newark" });
+  });
+
+  it("old per-user keys (`pp_settings_v1:<userId>`) are migrated for the current user and all removed", () => {
+    const storage = memoryStorage({
+      [`${SETTINGS_KEY}:user-a`]: JSON.stringify({ city: "Camden", sessionTimeoutSec: 90 }),
+      [`${SETTINGS_KEY}:user-b`]: JSON.stringify({ city: "Trenton" }),
+    });
+    const result = hydrateScopedSettings(storage, "user-a");
+    expect(result.account).toMatchObject({ city: "Camden", sessionTimeoutSec: 90 });
+    expect(Object.keys(storage.store).filter((k) => k.startsWith(`${SETTINGS_KEY}:`))).toEqual([]);
+    expect(JSON.stringify(Object.keys(storage.store))).not.toMatch(/user-a|user-b/);
+  });
+
+  it("old per-user keys are removed even while signed out (no adoption, no id left in key names)", () => {
+    const storage = memoryStorage({ [`${SETTINGS_KEY}:user-a`]: JSON.stringify({ city: "Camden" }) });
+    hydrateScopedSettings(storage, null);
+    expect(Object.keys(storage.store)).toEqual([]);
   });
 
   it("the provider hydrates through the scoped helper and still writes device + account records", () => {
     const src = read("src/lib/settings-context.tsx");
     expect(src).toMatch(/hydrateScopedSettings/);
     expect(src).toMatch(/splitSettings/);
-    expect(src).toMatch(/accountKey\(userId\)/);
+    expect(src).toMatch(/writeAccountSettings\(localStorage, userId, account\)/);
     expect(src).toMatch(/write\(KEY, device\)/);
   });
 
@@ -131,7 +176,7 @@ describe("hydrateScopedSettings — preserve pre-split choices", () => {
       exitUrl: "https://weather.com",
       iconStyle: "Sun",
     });
-    expect(JSON.parse(storage.store[accountSettingsKey(userId)])).toMatchObject({
+    expect(accountOf(storage.store)?.settings).toMatchObject({
       city: "Camden",
       state: "NJ",
       sessionTimeoutSec: 300,
@@ -142,12 +187,12 @@ describe("hydrateScopedSettings — preserve pre-split choices", () => {
     const userId = "survivor-1";
     const storage = memoryStorage({
       [SETTINGS_KEY]: combined,
-      [accountSettingsKey(userId)]: JSON.stringify({ city: "Trenton", state: "NJ", sessionTimeoutSec: 90 }),
     });
+    writeAccountSettings(storage, userId, { city: "Trenton", state: "NJ", sessionTimeoutSec: 90 });
     const result = hydrateScopedSettings(storage, userId);
     expect(result.migrated).toBe(false);
     expect(result.account).toMatchObject({ city: "Trenton", sessionTimeoutSec: 90 });
-    expect(JSON.parse(storage.store[accountSettingsKey(userId)])).toMatchObject({ city: "Trenton" });
+    expect(accountOf(storage.store)?.settings).toMatchObject({ city: "Trenton" });
     // Shared record still cleaned to device-only.
     expect(Object.keys(JSON.parse(storage.store[SETTINGS_KEY])).sort()).toEqual([...DEVICE_FIELDS].sort());
   });

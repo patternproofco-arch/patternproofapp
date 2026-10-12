@@ -3,13 +3,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/integrations/supabase/client";
 import { getMyAdvocateRole } from "@/lib/advocate.functions";
 import { AccessDisclaimerBar } from "@/components/AccessDisclaimer";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
 import "@/styles-role-accents.css";
+import { signOutAndClearDevice } from "@/lib/sign-out";
 
 export const Route = createFileRoute("/_advocate")({
   head: () => ({
@@ -110,7 +110,7 @@ function AdvocateLayout() {
           </span>
           <button
             onClick={async () => {
-              await supabase.auth.signOut();
+              await signOutAndClearDevice();
               navigate({ to: "/signin" });
             }}
             className="btn-ghost inline-flex items-center gap-1 text-[12px]"

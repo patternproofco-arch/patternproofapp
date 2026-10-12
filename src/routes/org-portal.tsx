@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Copy, LogOut, Power } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/BrandMark";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { OrgTeamSettings } from "@/components/team/OrgTeamSettings";
@@ -17,6 +16,7 @@ import {
   NO_ORG_MEMBERSHIP_MESSAGE,
   type OrgPartnerStats,
 } from "@/lib/org-portal.functions";
+import { signOutAndClearDevice } from "@/lib/sign-out";
 
 export const Route = createFileRoute("/org-portal")({
   head: () => ({
@@ -285,7 +285,7 @@ function Shell({ children, orgName }: { children: React.ReactNode; orgName?: str
           )}
           <button
             onClick={async () => {
-              await supabase.auth.signOut();
+              await signOutAndClearDevice();
               navigate({ to: "/signin" });
             }}
             style={{ ...btnStyle, fontSize: 12 }}

@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
 import { totpStatus, sessionNeedsMfa } from "@/lib/mfa";
 import { formatAuthError, formatSignupNoSession } from "@/lib/auth-errors";
+import { signOutAndClearDevice } from "@/lib/sign-out";
+import { SESSION_KEYS } from "@/lib/app-storage";
 
 type Mode = "login" | "signup";
 
@@ -27,7 +29,7 @@ async function postAuthPath(
     // (enroll would open /trust under the attorney shell).
     const totp = await totpStatus();
     if (totp === "unknown") {
-      await supabase.auth.signOut();
+      await signOutAndClearDevice();
       return "/signin";
     }
     if (totp === "unenrolled") return "/trust";
@@ -128,7 +130,7 @@ export function AuthPage({
     try {
       if (redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")) {
         try {
-          sessionStorage.setItem("pp_oauth_return", redirectTo);
+          sessionStorage.setItem(SESSION_KEYS.oauthReturn, redirectTo);
         } catch {
           /* storage unavailable — the callback falls back to the role home */
         }

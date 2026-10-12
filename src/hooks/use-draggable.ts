@@ -1,6 +1,14 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 
+/** The part of the page the person can actually see (visual viewport when available). */
+function visibleViewport(): { width: number; height: number } {
+  const vv = window.visualViewport;
+  const width = Math.min(window.innerWidth, vv?.width ?? window.innerWidth);
+  const height = Math.min(window.innerHeight, vv?.height ?? window.innerHeight);
+  return { width, height };
+}
+
 /**
  * Make any fixed-positioned element draggable around the viewport.
  * Persists position to localStorage under `storageKey`.
@@ -25,6 +33,31 @@ export function useDraggable(
   const moved = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
   const start = useRef({ x: 0, y: 0 });
+  // Keep a remembered position on screen. A spot saved on a wider screen (tablet, rotated phone)
+  // must not park a safety control off the edge of a 320px phone.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const clamp = () => {
+      const el = ref.current;
+      if (!el) return;
+      setPos((p) => {
+        if (!p) return p;
+        const rect = el.getBoundingClientRect();
+        const { width: vw, height: vh } = visibleViewport();
+        const left = Math.max(4, Math.min(vw - rect.width - 4, p.left));
+        const top = Math.max(4, Math.min(vh - rect.height - 4, p.top));
+        return left === p.left && top === p.top ? p : { left, top };
+      });
+    };
+    clamp();
+    window.addEventListener("resize", clamp);
+    window.visualViewport?.addEventListener("resize", clamp);
+    return () => {
+      window.removeEventListener("resize", clamp);
+      window.visualViewport?.removeEventListener("resize", clamp);
+    };
+  }, []);
+
   /** Below this many px of travel we treat the gesture as a tap, not a drag —
    *  otherwise a shaky finger swallows the click on a safety-critical button. */
   const DRAG_THRESHOLD = 6;
@@ -36,8 +69,9 @@ export function useDraggable(
       const rect = el.getBoundingClientRect();
       const w = rect.width;
       const h = rect.height;
-      const left = Math.max(4, Math.min(window.innerWidth - w - 4, cx - offset.current.x));
-      const top = Math.max(4, Math.min(window.innerHeight - h - 4, cy - offset.current.y));
+      const { width: vw, height: vh } = visibleViewport();
+      const left = Math.max(4, Math.min(vw - w - 4, cx - offset.current.x));
+      const top = Math.max(4, Math.min(vh - h - 4, cy - offset.current.y));
       const dist = Math.hypot(cx - start.current.x, cy - start.current.y);
       if (dist < DRAG_THRESHOLD && !moved.current) return;
       moved.current = true;

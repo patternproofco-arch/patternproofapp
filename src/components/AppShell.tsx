@@ -12,10 +12,12 @@ import { NotificationBanner } from "@/components/NotificationBanner";
 import { NewConnectionNotice } from "@/components/NewConnectionNotice";
 import { quickExit } from "@/lib/quick-exit";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
+import { useViewportInsets } from "@/hooks/use-viewport-insets";
 import "@/styles-role-accents.css";
 
 export function AppShell() {
   const { settings } = useSettings();
+  useViewportInsets();
 
   useEffect(() => {
     let last = 0;

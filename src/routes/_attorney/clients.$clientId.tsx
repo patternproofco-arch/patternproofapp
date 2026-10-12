@@ -98,6 +98,7 @@ import {
   WidthType,
   PageBreak,
 } from "docx";
+import { LOCAL_KEYS } from "@/lib/app-storage";
 
 export const Route = createFileRoute("/_attorney/clients/$clientId")({
   component: ClientCaseView,
@@ -130,7 +131,7 @@ function ClientCaseView() {
   useEffect(() => {
     if (!clientId || typeof window === "undefined") return;
     try {
-      const key = "pp.attorney.lastOpened";
+      const key = LOCAL_KEYS.attorneyLastOpened;
       const prev = JSON.parse(localStorage.getItem(key) || "{}") as Record<string, string>;
       prev[clientId] = new Date().toISOString();
       localStorage.setItem(key, JSON.stringify(prev));
