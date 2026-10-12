@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
+import { DemoPortalSwitcher } from "@/components/demo/DemoPortalSwitcher";
 
 export const Route = createFileRoute("/demo")({
   head: () => ({
@@ -218,6 +219,7 @@ function DemoPage() {
         <Link to="/founding-testers" search={{ mode: "feedback" }}>Tell us what needs work</Link>
         <Link to="/founding-testers">Join the founding test cohort</Link>
       </nav>
+      <DemoPortalSwitcher current="survivor" />
       <DemoBanner />
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px 80px" }}>
         <TabBar tab={tab} setTab={setTab} />

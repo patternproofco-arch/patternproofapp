@@ -19,5 +19,9 @@ export function normalizePublicPath(pathname: string): string {
 }
 
 export function shouldLoadLeaveADot(pathname: string): boolean {
-  return isPublicMarketingPath(pathname);
+  const path = normalizePublicPath(pathname);
+  // Fictional /demo/* sub-portals (attorney, org, court-prep practice) never load session
+  // replay, even if someone later adds them to the shared allowlist.
+  if (path === "/demo" || path.startsWith("/demo/")) return false;
+  return isPublicMarketingPath(path);
 }

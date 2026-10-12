@@ -38,7 +38,22 @@ function copyAsk(item: string) {
   );
 }
 
-export function AttorneyWorkQueue({ cards }: { cards: WorkQueueCardModel[] }) {
+/**
+ * `linkMode="demo"` is for the fictional /demo/attorney portal: no router links are
+ * rendered, so a signed-out visitor can never be sent into the real attorney portal
+ * (which requires sign-in, MFA, and a subscription). Clicks call `onOpenDemoClient`.
+ */
+export type WorkQueueLinkMode = "live" | "demo";
+
+export function AttorneyWorkQueue({
+  cards,
+  linkMode = "live",
+  onOpenDemoClient,
+}: {
+  cards: WorkQueueCardModel[];
+  linkMode?: WorkQueueLinkMode;
+  onOpenDemoClient?: (clientId: string, view: "binder" | "client") => void;
+}) {
   if (!cards.length) return null;
   return (
     <div style={{ marginBottom: 24 }} data-testid="attorney-work-queue">
@@ -84,7 +99,26 @@ export function AttorneyWorkQueue({ cards }: { cards: WorkQueueCardModel[] }) {
                 ) : null}
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {c.clientId ? (
+                {c.clientId && linkMode === "demo" ? (
+                  <>
+                    <button
+                      type="button"
+                      className="att-btn-secondary"
+                      style={{ fontSize: 12 }}
+                      onClick={() => onOpenDemoClient?.(c.clientId as string, "binder")}
+                    >
+                      Open binder
+                    </button>
+                    <button
+                      type="button"
+                      className="att-btn-secondary"
+                      style={{ fontSize: 12 }}
+                      onClick={() => onOpenDemoClient?.(c.clientId as string, "client")}
+                    >
+                      Open
+                    </button>
+                  </>
+                ) : c.clientId ? (
                   <>
                     <Link
                       to="/binder/$clientId"

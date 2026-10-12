@@ -90,6 +90,21 @@ describe("Leave a Dot only on public marketing pages (shared fail-closed allowli
     }
   });
 
+  it("never loads on the fictional /demo/* sub-portals (practice inputs, no session replay)", () => {
+    for (const path of [
+      "/demo/attorney",
+      "/demo/org",
+      "/demo/prep",
+      "/demo/prep/",
+      "/demo/anything-added-later",
+    ]) {
+      expect(shouldLoadLeaveADot(path)).toBe(false);
+    }
+    const routes = readFileSync(new URL("../lib/leaveadot-routes.ts", import.meta.url), "utf8");
+    // No allowlist entry (an indented "…", line in the Set) may start with /demo/.
+    expect(routes).not.toMatch(/^\s*"\/demo\/[^"]*",\s*$/m);
+  });
+
   it("loads on exactly the shared allowlist, for every route in routeTree.gen.ts", () => {
     const { fullPaths } = readGeneratedRoutes();
     const loading = fullPaths

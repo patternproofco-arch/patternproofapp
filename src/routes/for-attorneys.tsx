@@ -132,7 +132,7 @@ function ForAttorneys() {
         </div>
         <div style={{ marginTop: 14 }}>
           <Link
-            to="/demo"
+            to="/demo/attorney"
             style={{
               fontFamily: MONO,
               fontSize: 12,

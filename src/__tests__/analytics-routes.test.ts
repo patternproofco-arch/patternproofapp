@@ -102,6 +102,23 @@ describe("analytics only counts the public site (allowlist, fail closed)", () =>
     expect(isReportablePath("/dashboard?from=/")).toBe(false);
   });
 
+  it("never reports the fictional /demo/* sub-portals, so typed practice text can't reach analytics", () => {
+    for (const r of ["/demo", "/demo_/attorney", "/demo_/org", "/demo_/prep"]) {
+      expect(isReportableRoute(r)).toBe(false);
+    }
+    for (const p of ["/demo", "/demo/attorney", "/demo/org", "/demo/prep", "/demo/prep/?x=1"]) {
+      expect(isReportablePath(p)).toBe(false);
+    }
+    // The allowlist itself holds no demo page, and the guard stands even if one is added later.
+    expect(GA_REPORTABLE_PATHS.some((p) => p.startsWith("/demo"))).toBe(false);
+    expect(readFileSync(new URL("../lib/ga-routes.ts", import.meta.url), "utf8")).toMatch(
+      /if \(isDemoRoute\(routeId\)\) return false;/,
+    );
+    // The tracker only ever sends the route id and document title, never form values.
+    const ga = readFileSync(new URL("../lib/ga.tsx", import.meta.url), "utf8");
+    expect(ga).not.toMatch(/\.value\b|textarea|FormData/);
+  });
+
   it("the tracker uses the filter; no user id, query string or form values are sent; signals are off", () => {
     const ga = readFileSync(new URL("../lib/ga.tsx", import.meta.url), "utf8");
     expect(ga).toMatch(/isReportableRoute\(routeId\)/);
