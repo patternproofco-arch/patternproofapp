@@ -8,19 +8,6 @@ import * as access from "@/lib/attorney-access.server";
 /* ------------------------- shared helpers ------------------------- */
 
 /**
- * True only when the account's auth email is CONFIRMED and on the internal
- * fictional test domain. Reads auth.users through the admin client; a value
- * typed into any form is never consulted.
- */
-async function hasVerifiedTestDomainEmail(userId: string): Promise<boolean> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
-  const email = data?.user?.email?.trim().toLowerCase();
-  if (error || !email || !data?.user?.email_confirmed_at) return false;
-  return email.endsWith("@patternproof.test");
-}
-
-/**
  * Entitlement was previously enforced only in the UI (getAttorneyEntitlement
  * driving a paywall screen) and on the two ZIP-export endpoints. Every other
  * case-data server function trusted the client to have already checked —
@@ -144,17 +131,27 @@ export const upsertAttorneyProfile = createServerFn({ method: "POST" })
         firm_name: z.string().trim().max(200).optional().nullable(),
         bar_number: z.string().trim().max(60).optional().nullable(),
         jurisdiction: z.string().trim().max(120).optional().nullable(),
-        email: z.string().email().max(255),
+        // Accepted for older clients and ignored: the profile email is always the
+        // confirmed account email.
+        email: z.string().max(255).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await assertAttorney(context.userId);
+    const { requireConfirmedAuthEmail } = await import("@/lib/verified-email.server");
+    const email = await requireConfirmedAuthEmail(supabaseAdmin, context.userId);
     // firm_name is profile text only. Joining a firm requires a verified invitation.
-    const { error } = await supabaseAdmin
-      .from("attorney_profiles")
-      .upsert({ user_id: context.userId, ...data, updated_at: new Date().toISOString() });
+    const { error } = await supabaseAdmin.from("attorney_profiles").upsert({
+      user_id: context.userId,
+      full_name: data.full_name,
+      firm_name: data.firm_name ?? null,
+      bar_number: data.bar_number ?? null,
+      jurisdiction: data.jurisdiction ?? null,
+      email,
+      updated_at: new Date().toISOString(),
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -165,7 +162,8 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
     z
       .object({
         full_name: z.string().trim().min(1).max(120),
-        email: z.string().email().max(255),
+        // Accepted for older clients and ignored (see below).
+        email: z.string().max(255).optional(),
         firm_name: z.string().trim().max(200).optional().nullable(),
         bar_number: z.string().trim().max(60).optional().nullable(),
         jurisdiction: z.string().trim().max(120).optional().nullable(),
@@ -177,11 +175,14 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await assertAttorney(context.userId);
+    // The profile email is the CONFIRMED account email from auth, never the form value.
+    const { requireConfirmedAuthEmail } = await import("@/lib/verified-email.server");
+    const verifiedEmail = await requireConfirmedAuthEmail(supabaseAdmin, context.userId);
     // firm_name is profile text only. Joining a firm requires a verified invitation.
     const { error } = await supabaseAdmin.from("attorney_profiles").upsert({
       user_id: context.userId,
       full_name: data.full_name,
-      email: data.email,
+      email: verifiedEmail,
       firm_name: data.firm_name ?? null,
       bar_number: data.bar_number ?? null,
       jurisdiction: data.jurisdiction ?? null,
@@ -205,7 +206,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!profile?.trial_ends_at) {
-      const comped = await hasVerifiedTestDomainEmail(context.userId);
+      const comped = verifiedEmail.endsWith("@patternproof.test");
       let eligible = comped;
       if (!comped) {
         const { count } = await supabaseAdmin

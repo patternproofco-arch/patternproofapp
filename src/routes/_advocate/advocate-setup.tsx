@@ -30,7 +30,7 @@ function AdvocateSetupPage() {
         if (cancelled) return;
         setFullName(r.profile?.full_name ?? "");
         setOrgName(r.profile?.org_name ?? "");
-        setEmail(r.profile?.email ?? user?.email ?? "");
+        setEmail(user?.email ?? r.profile?.email ?? "");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -52,7 +52,6 @@ function AdvocateSetupPage() {
         data: {
           full_name: fullName.trim(),
           org_name: orgName.trim() || null,
-          email: email.trim(),
           confidentiality_accepted: true,
         },
       });
@@ -95,11 +94,11 @@ function AdvocateSetupPage() {
         <input aria-label="Work email"
           className="input-pp"
           type="email"
-          required
-          maxLength={255}
+          readOnly
+          aria-readonly="true"
           placeholder="Work email"
+          title="Your confirmed sign-in email. Survivors see this address."
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
         />
 
         <label

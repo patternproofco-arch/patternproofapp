@@ -154,17 +154,30 @@ export const listMyInvitations = createServerFn({ method: "GET" })
     const { data: profiles } = attorneyIds.length
       ? await supabaseAdmin
           .from("attorney_profiles")
-          .select("user_id,full_name,firm_name,email")
+          .select("user_id,full_name,firm_name")
           .in("user_id", attorneyIds)
       : {
           data: [] as Array<{
             user_id: string;
             full_name: string;
             firm_name: string | null;
-            email: string;
           }>,
         };
-    const profMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+    // The survivor matches and sees the attorney's CONFIRMED account email, never
+    // the profile copy.
+    const { confirmedAuthEmails } = await import("@/lib/verified-email.server");
+    const verified = await confirmedAuthEmails(supabaseAdmin, attorneyIds);
+    const profMap = new Map(
+      (profiles ?? []).map((p) => [
+        p.user_id,
+        {
+          user_id: p.user_id,
+          full_name: p.full_name,
+          firm_name: p.firm_name,
+          verified_email: verified.get(p.user_id) ?? null,
+        },
+      ]),
+    );
     // Enrich with case labels so the UI can show "shared: <case name>" per link
     // and per pending invitation. Missing case_id means "all cases" (legacy).
     const caseIds = Array.from(

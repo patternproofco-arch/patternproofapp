@@ -46,7 +46,7 @@ function OnboardingPage() {
         }
         if (p) {
           setFullName(p.full_name ?? "");
-          setEmail(p.email ?? user?.email ?? "");
+          setEmail(user?.email ?? p.email ?? "");
           setFirmName(p.firm_name ?? "");
           setBarNumber(p.bar_number ?? "");
           setJurisdiction(p.jurisdiction ?? "");
@@ -71,7 +71,6 @@ function OnboardingPage() {
       const res = await complete({
         data: {
           full_name: fullName.trim(),
-          email: email.trim(),
           firm_name: firmName.trim() || null,
           bar_number: barNumber.trim() || null,
           jurisdiction: jurisdiction.trim() || null,
@@ -120,15 +119,9 @@ function OnboardingPage() {
               maxLength={120}
             />
           </Field>
-          <Field label="Email *">
-            <input
-              className="att-input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              maxLength={255}
-            />
+          <Field label="Email (your sign-in email)">
+            {/* Read-only: clients see your confirmed sign-in email. Change it in account settings. */}
+            <input className="att-input" type="email" value={email} readOnly aria-readonly="true" />
           </Field>
           <Field label="Firm / organization">
             <input

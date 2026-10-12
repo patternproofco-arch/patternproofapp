@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Local-only. PGlite (in-process Postgres), synthetic data, never a remote DB.
-// 1) Builds attorney_profiles exactly as the migrations do (table, trial/onboarding columns,
+// 1) Builds attorney_profiles (and advocate_profiles) exactly as the migrations do (table, trial/onboarding columns,
 //    "Attorneys manage own profile" ALL policy, authenticated grants, firm_id guard).
 // 2) Runs supabase/tests/sql/attorney_trial_lock.test.sql WITHOUT the new migration: it must FAIL.
 // 3) Applies 20261011210000_lock_attorney_trial_fields.sql twice, then the test must PASS.
@@ -16,7 +16,7 @@ CREATE SCHEMA auth; GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_r
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$
   SELECT coalesce(nullif(current_setting('request.jwt.claim.sub', true), ''),
     (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'))::uuid $$;
-CREATE TABLE auth.users(id uuid PRIMARY KEY, email text);
+CREATE TABLE auth.users(id uuid PRIMARY KEY, email text, email_confirmed_at timestamptz);
 CREATE FUNCTION public.touch_updated_at() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN NEW.updated_at = now(); RETURN NEW; END $$;
 CREATE TABLE public.firm_members(firm_id uuid, user_id uuid);
 -- 20260526165258: table, grants, RLS, owner ALL policy, touch trigger
@@ -37,10 +37,18 @@ ALTER TABLE public.attorney_profiles
   ADD COLUMN role text, ADD COLUMN firm_id uuid,
   ADD COLUMN trial_started_at timestamptz, ADD COLUMN trial_ends_at timestamptz,
   ADD COLUMN trial_comped boolean NOT NULL DEFAULT false;
-INSERT INTO auth.users(id,email) VALUES
- ('11111111-1111-4111-8111-111111111111','a@patternproof.test'),
- ('22222222-2222-4222-8222-222222222222','b@patternproof.test'),
- ('33333333-3333-4333-8333-333333333333','c@patternproof.test');
+INSERT INTO auth.users(id,email,email_confirmed_at) VALUES
+ ('11111111-1111-4111-8111-111111111111','a@patternproof.test',now()),
+ ('22222222-2222-4222-8222-222222222222','b@patternproof.test',now()),
+ ('33333333-3333-4333-8333-333333333333','c@patternproof.test',now()),
+ ('44444444-4444-4444-8444-444444444444','d@patternproof.test',NULL);
+-- 20260730060637: advocate_profiles (server-written only; authenticated has SELECT)
+CREATE TABLE public.advocate_profiles (user_id uuid PRIMARY KEY, full_name text NOT NULL, org_name text,
+  email text NOT NULL, onboarded boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT ON public.advocate_profiles TO authenticated;
+INSERT INTO public.advocate_profiles(user_id, full_name, email) VALUES
+ ('11111111-1111-4111-8111-111111111111','A','a@patternproof.test');
 INSERT INTO public.attorney_profiles(user_id, full_name, email) VALUES
  ('11111111-1111-4111-8111-111111111111','A','a@patternproof.test');`);
   await db.exec(read("supabase/migrations/20260827160000_attorney_profiles_firm_id_guard.sql"));

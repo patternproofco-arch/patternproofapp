@@ -93,7 +93,7 @@ vi.mock("@/lib/attorney-access.server", async (importOriginal) => ({
   assertAttorney: async () => undefined,
 }));
 
-import { completeAttorneyOnboarding } from "@/lib/attorney-portal.functions";
+import { completeAttorneyOnboarding, upsertAttorneyProfile } from "@/lib/attorney-portal.functions";
 
 const form = (email: string) => ({
   data: {
@@ -127,16 +127,32 @@ describe("attorney onboarding comp uses the verified auth email", () => {
     expect(h.state.rpcs).toHaveLength(0);
   });
 
-  it("does NOT comp an unconfirmed @patternproof.test auth email", async () => {
+  it("refuses onboarding (no profile, no trial) for an unconfirmed auth email", async () => {
     h.state.authUser = { email: "seed-attorney-a@patternproof.test", email_confirmed_at: null };
-    await completeAttorneyOnboarding(form("seed-attorney-a@patternproof.test"));
+    await expect(
+      completeAttorneyOnboarding(form("seed-attorney-a@patternproof.test")),
+    ).rejects.toThrow(/Confirm your account email/);
+    expect(h.state.upserts).toHaveLength(0);
     expect(trialWrites()).toHaveLength(0);
   });
 
-  it("does NOT comp when the auth lookup fails", async () => {
+  it("refuses onboarding when the auth lookup fails", async () => {
     h.state.authUser = null;
-    await completeAttorneyOnboarding(form("seed-attorney-a@patternproof.test"));
+    await expect(
+      completeAttorneyOnboarding(form("seed-attorney-a@patternproof.test")),
+    ).rejects.toThrow(/Confirm your account email/);
+    expect(h.state.upserts).toHaveLength(0);
     expect(trialWrites()).toHaveLength(0);
+  });
+
+  it("writes the confirmed auth email to the profile, never the typed one", async () => {
+    h.state.authUser = {
+      email: "Real-Person@Example.invalid",
+      email_confirmed_at: "2026-10-11T00:00:00Z",
+    };
+    await completeAttorneyOnboarding(form("someone-else@example.invalid"));
+    expect(h.state.upserts).toHaveLength(1);
+    expect(h.state.upserts[0].email).toBe("real-person@example.invalid");
   });
 
   it("comps a confirmed @patternproof.test auth email even if the form says otherwise, server-side, once, with an audit event", async () => {
@@ -196,5 +212,41 @@ describe("attorney onboarding comp uses the verified auth email", () => {
     h.state.updateRows = []; // conditional update matched nothing
     await completeAttorneyOnboarding(form("seed-attorney-a@patternproof.test"));
     expect(h.state.rpcs).toHaveLength(0);
+  });
+});
+
+describe("attorney profile edit uses the verified auth email", () => {
+  it("ignores the form email and writes the confirmed auth email", async () => {
+    h.state.authUser = {
+      email: "seed-attorney-a@patternproof.test",
+      email_confirmed_at: "2026-10-11T00:00:00Z",
+    };
+    await upsertAttorneyProfile({
+      data: { full_name: "Fictional Attorney", email: "spoofed@example.invalid" },
+    });
+    expect(h.state.upserts).toHaveLength(1);
+    expect(h.state.upserts[0]).toMatchObject({
+      user_id: "attorney-1",
+      email: "seed-attorney-a@patternproof.test",
+    });
+    expect(JSON.stringify(h.state.upserts[0])).not.toContain("spoofed");
+    expect(h.state.upserts[0]).not.toHaveProperty("trial_ends_at");
+  });
+
+  it("works without any email in the payload (form no longer sends one)", async () => {
+    h.state.authUser = {
+      email: "seed-attorney-a@patternproof.test",
+      email_confirmed_at: "2026-10-11T00:00:00Z",
+    };
+    await upsertAttorneyProfile({ data: { full_name: "Fictional Attorney" } });
+    expect(h.state.upserts[0].email).toBe("seed-attorney-a@patternproof.test");
+  });
+
+  it("refuses when the account email is unconfirmed", async () => {
+    h.state.authUser = { email: "seed-attorney-a@patternproof.test", email_confirmed_at: null };
+    await expect(upsertAttorneyProfile({ data: { full_name: "X" } })).rejects.toThrow(
+      /Confirm your account email/,
+    );
+    expect(h.state.upserts).toHaveLength(0);
   });
 });

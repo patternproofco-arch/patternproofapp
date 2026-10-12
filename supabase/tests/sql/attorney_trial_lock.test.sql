@@ -1,6 +1,7 @@
 -- Behavioural test for 20261011210000_lock_attorney_trial_fields.sql.
 -- Run by scripts/run-attorney-trial-lock-sql-test.mjs (PGlite, synthetic data only).
--- Fixture: attorney A (11..) owns a row with no trial; attorney B (22..) has none yet.
+-- Fixture: attorney A (11..) owns a row with no trial; attorney B (22..) has none yet;
+-- D (44..) has an unconfirmed account email. Advocate profile for A exists.
 DO $t$
 DECLARE a constant uuid := '11111111-1111-4111-8111-111111111111';
         b constant uuid := '22222222-2222-4222-8222-222222222222';
@@ -13,12 +14,13 @@ BEGIN
   -- allowed profile edits
   UPDATE public.attorney_profiles
      SET full_name='A Edited', firm_name='Fictional Firm', bar_number='TEST-1', jurisdiction='Testland',
-         email='a-edited@patternproof.test', updated_at=now()
+         updated_at=now()
    WHERE user_id=a;
   IF NOT FOUND THEN RAISE EXCEPTION 'FAIL: allowed profile edit matched no row'; END IF;
 
   -- each frozen field is rejected
   FOR r IN SELECT * FROM (VALUES
+      ('email',           $$UPDATE public.attorney_profiles SET email = 'spoofed@example.invalid' WHERE user_id = '11111111-1111-4111-8111-111111111111'$$),
       ('trial_ends_at',   $$UPDATE public.attorney_profiles SET trial_ends_at = now() + interval '10 years' WHERE user_id = '11111111-1111-4111-8111-111111111111'$$),
       ('trial_started_at',$$UPDATE public.attorney_profiles SET trial_started_at = now() WHERE user_id = '11111111-1111-4111-8111-111111111111'$$),
       ('trial_comped',    $$UPDATE public.attorney_profiles SET trial_comped = true WHERE user_id = '11111111-1111-4111-8111-111111111111'$$),
@@ -40,7 +42,17 @@ BEGIN
   -- ---------- as attorney B: insert own row with a future trial ----------
   PERFORM set_config('request.jwt.claim.sub', b::text, true);
   INSERT INTO public.attorney_profiles(user_id, full_name, email, trial_started_at, trial_ends_at, trial_comped, onboarded, role, confidentiality_accepted_at)
-  VALUES (b, 'B', 'b@patternproof.test', now(), now() + interval '10 years', true, true, 'firm', now());
+  VALUES (b, 'B', 'spoofed@example.invalid', now(), now() + interval '10 years', true, true, 'firm', now());
+
+  -- ---------- as D (unconfirmed account email): insert is refused ----------
+  PERFORM set_config('request.jwt.claim.sub', '44444444-4444-4444-8444-444444444444', true);
+  denied := false;
+  BEGIN
+    INSERT INTO public.attorney_profiles(user_id, full_name, email)
+    VALUES ('44444444-4444-4444-8444-444444444444', 'D', 'd-typed@example.invalid');
+  EXCEPTION WHEN not_null_violation THEN denied := true;
+  END;
+  IF NOT denied THEN RAISE EXCEPTION 'FAIL: unconfirmed account inserted a profile with a typed email'; END IF;
 
   RESET ROLE;
   PERFORM set_config('request.jwt.claim.sub', '', true);
@@ -51,9 +63,12 @@ BEGIN
     RAISE EXCEPTION 'FAIL: user insert kept trial/onboarding fields: %', row_to_json(r);
   END IF;
   IF r.full_name <> 'B' THEN RAISE EXCEPTION 'FAIL: user insert lost profile fields'; END IF;
+  IF r.email <> 'b@patternproof.test' THEN
+    RAISE EXCEPTION 'FAIL: user insert kept a typed email instead of the confirmed auth email: %', r.email;
+  END IF;
 
   SELECT * INTO r FROM public.attorney_profiles WHERE user_id = a;
-  IF r.full_name <> 'A Edited' OR r.trial_ends_at IS NOT NULL OR r.trial_comped OR r.onboarded THEN
+  IF r.full_name <> 'A Edited' OR r.email <> 'a@patternproof.test' OR r.trial_ends_at IS NOT NULL OR r.trial_comped OR r.onboarded THEN
     RAISE EXCEPTION 'FAIL: attorney A row wrong after user edits: %', row_to_json(r);
   END IF;
 
@@ -85,6 +100,21 @@ BEGIN
   RESET ROLE;
   PERFORM set_config('request.jwt.claim.sub', '', true);
 
-  RAISE NOTICE 'PASS: attorney trial fields are locked for users; profile edits and server role still work';
+  -- ---------- profile emails follow the CONFIRMED auth email ----------
+  -- An unconfirmed change (no email_confirmed_at) does not sync.
+  UPDATE auth.users SET email = 'pending@patternproof.test', email_confirmed_at = NULL WHERE id = a;
+  IF (SELECT email FROM public.attorney_profiles WHERE user_id = a) <> 'a@patternproof.test' THEN
+    RAISE EXCEPTION 'FAIL: unconfirmed auth email synced into attorney profile';
+  END IF;
+  -- Confirmation syncs both attorney and advocate copies (lower-cased).
+  UPDATE auth.users SET email = 'A-New@PatternProof.test', email_confirmed_at = now() WHERE id = a;
+  IF (SELECT email FROM public.attorney_profiles WHERE user_id = a) <> 'a-new@patternproof.test' THEN
+    RAISE EXCEPTION 'FAIL: confirmed auth email not synced into attorney profile';
+  END IF;
+  IF (SELECT email FROM public.advocate_profiles WHERE user_id = a) <> 'a-new@patternproof.test' THEN
+    RAISE EXCEPTION 'FAIL: confirmed auth email not synced into advocate profile';
+  END IF;
+
+  RAISE NOTICE 'PASS: attorney trial and email fields are locked for users; profile edits, server role and auth email sync work';
 END
 $t$;
