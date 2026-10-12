@@ -17,7 +17,10 @@ interface Props {
   signedUpAt?: string;
 }
 
-// Operational metadata only — never incident, evidence, journal or case content.
+// Guardian rule: survivor alerts carry ROLE + TIME ONLY (never email or id).
+// Professional alerts (attorney, advocate, organization) may also show the
+// professional's own login email so ops can verify them. Never incident,
+// evidence, journal or case content, and never anything about a survivor.
 const Email = ({ email, role, signedUpAt }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
@@ -53,8 +56,8 @@ export const template = {
   displayName: "New user signup notification",
   to: "patternproofco@gmail.com",
   previewData: {
-    email: "jordan@example.com",
-    role: "survivor",
+    email: "professional@example.com",
+    role: "attorney",
     signedUpAt: new Date().toISOString(),
   },
 } satisfies TemplateEntry;
