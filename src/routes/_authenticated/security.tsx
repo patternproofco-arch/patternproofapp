@@ -13,13 +13,13 @@ function SecurityPage() {
         Sign-in security
       </h1>
       <p className="mt-2 max-w-xl text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-        An authenticator app is the extra lock on this account. PatternProof never sends codes by
-        text message.{" "}
+        Optional. Two-step sign-in adds a second check when you sign in. PatternProof never sends
+        codes by text message.{" "}
         <Link to="/settings" style={{ color: "var(--accent)", textDecoration: "underline" }}>
           Back to settings
         </Link>
       </p>
-      <TwoFactorCard />
+      <TwoFactorCard variant="survivor" />
     </div>
   );
 }

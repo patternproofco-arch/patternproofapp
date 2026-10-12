@@ -145,6 +145,14 @@ function MfaChallengePage() {
               {busy ? "One moment…" : "Continue"}
             </button>
           </form>
+          <p className="mt-4 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            Lost your phone? Use your second authenticator app or the setup key you kept. If you
+            have neither,{" "}
+            <a href="/support" style={{ color: "var(--accent)", textDecoration: "underline" }}>
+              contact support
+            </a>
+            . We check it's really you before removing two-step sign-in.
+          </p>
           <button
             type="button"
             onClick={() => void signOut()}
