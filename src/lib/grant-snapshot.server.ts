@@ -111,6 +111,16 @@ async function shareableIds(
     .map((r) => r.id);
 }
 
+/** Shown to the survivor verbatim. Thrown before anything is written. */
+export const SHARING_UNAVAILABLE = "Sharing is temporarily unavailable — nothing was shared";
+
+export class SharingUnavailableError extends Error {
+  constructor() {
+    super(SHARING_UNAVAILABLE);
+    this.name = "SharingUnavailableError";
+  }
+}
+
 function uniq(ids: Array<string | null | undefined>) {
   return Array.from(new Set(ids.filter((id): id is string => typeof id === "string" && !!id)));
 }
@@ -247,8 +257,9 @@ export async function unsharedSinceGrant(
  * has not withdrawn them). A NULL / unknown readiness is not OK to share, so it is
  * left out too (fail closed). Ids the grant already listed explicitly are kept:
  * they were her own per-item choice, not swept in by "share all".
- * If the readiness column does not exist yet (migration not applied), nobody can
- * have marked anything Keep private, so nothing is filtered.
+ * If the readiness column does not exist (migration not applied), this freezes
+ * NOTHING and throws SHARING_UNAVAILABLE, so no caller can go on reading the old
+ * blanket scope. It never keeps everything.
  *
  * Returns what was left out so the survivor can be shown it ("Not in this share").
  */
@@ -300,21 +311,11 @@ export async function freezeLegacyBlanketScope(
         { what: t === "incidents" ? "incident" : "file" },
       );
     } catch (e) {
-      if (!columnMissing) throw e;
-      // No readiness column yet: nothing can be Keep private. Old behaviour.
-      const plain = await selectAllPages<{ id: string }>(
-        (from, to) =>
-          admin
-            .from(t)
-            .select("id")
-            .eq("user_id", clientUserId)
-            .is("deleted_at", null)
-            .lte("created_at", cutoff)
-            .order("id", { ascending: true })
-            .range(from, to),
-        { what: t === "incidents" ? "incident" : "file" },
-      );
-      return { keep: plain.map((r) => r.id), leftOut: [] as string[] };
+      // Fail closed: without the readiness column we can't tell Keep private apart, so
+      // freeze nothing and refuse. The grant stays as it is in the database, and this
+      // read stops here instead of seeing the blanket scope.
+      if (columnMissing) throw new SharingUnavailableError();
+      throw e;
     }
     return {
       keep: rows.filter((r) => keptByLegacyFreeze(r.share_readiness)).map((r) => r.id),

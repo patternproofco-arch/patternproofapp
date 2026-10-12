@@ -139,3 +139,51 @@ describe("listPrivateSinceSharing reports kept-private counts", () => {
     expect(g.kept_private_evidence).toBe(1);
   });
 });
+
+describe("readiness COLUMN missing: freeze nothing, refuse with the clear error", () => {
+  const MSG = "Sharing is temporarily unavailable — nothing was shared";
+  function columnMissing(db: ReturnType<typeof fakeAdmin>) {
+    const realFrom = db.from.bind(db);
+    db.from = ((name: string) => {
+      const q = realFrom(name) as unknown as Record<string, unknown>;
+      const realSelect = (q.select as (...a: unknown[]) => unknown).bind(q);
+      q.select = (cols?: string, ...rest: unknown[]) => {
+        if ((name === "incidents" || name === "evidence") && cols?.includes("share_readiness")) {
+          q.failure = `column ${name}.share_readiness does not exist`;
+        }
+        return realSelect(cols, ...rest);
+      };
+      return q;
+    }) as typeof db.from;
+    return db;
+  }
+
+  it("throws, persists nothing, writes no audit (never keeps everything)", async () => {
+    const tables = world();
+    const db = columnMissing(fakeAdmin(tables));
+    const link = { ...tables.attorney_client_links![0]! } as Parameters<
+      typeof freezeLegacyBlanketScope
+    >[2];
+    await expect(freezeLegacyBlanketScope(db, "attorney_client_links", link, SURV)).rejects.toThrow(
+      MSG,
+    );
+    const row = tables.attorney_client_links![0]!;
+    expect(row.include_all_incidents).toBe(true); // untouched in the database
+    expect(row.scope_incidents).toEqual(["inc-picked-private"]);
+    expect(db.audits).toHaveLength(0);
+  });
+
+  it("the attorney read gate stops instead of reading the blanket scope", async () => {
+    const tables = world();
+    Object.assign(tables.attorney_client_links![0]!, {
+      attorney_user_id: "atty-1",
+      status: "active",
+      revoked_at: null,
+      expires_at: null,
+      case_id: null,
+    });
+    const db = columnMissing(fakeAdmin(tables));
+    const { assertLink } = await import("@/lib/attorney-access.server");
+    await expect(assertLink(db, "atty-1", SURV)).rejects.toThrow(MSG);
+  });
+});
