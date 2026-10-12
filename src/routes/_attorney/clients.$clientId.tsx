@@ -1,7 +1,7 @@
 import { FocusRegion } from "@/components/survivor/focus-mode";
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { formatEvidenceDate } from "@/lib/dates";
+import { formatEvidenceDate, formatIncidentDate, formatCalendarMonth } from "@/lib/dates";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -340,7 +340,7 @@ function ClientCaseView() {
         {tab === "Messages" && <MessagesTab linkId={data.link_id} />}
         {tab === "Time" && <TimeTab clientId={clientId} />}
         {tab === "Deposition" && <DepoTab depo={depo} loading={depoLoading} onRun={runDepo} />}
-        {tab === "Export" && <ExportTab data={data} caseId={caseId} />}
+        {tab === "Export" && <ExportTab data={data} clientId={clientId} caseRef={caseId} />}
       </FocusRegion>
     </div>
   );
@@ -491,7 +491,7 @@ function dataTable(headers: string[], rows: string[][]) {
   });
 }
 
-async function generateWordDoc(args: {
+export async function generateWordDoc(args: {
   data: CaseData;
   caseId: string;
   include: {
@@ -573,7 +573,9 @@ async function generateWordDoc(args: {
     children.push(p(`${data.incidents.length} incidents documented.`));
     const byMonth: Record<string, typeof data.incidents> = {};
     for (const inc of data.incidents) {
-      const key = (inc.date ?? "").slice(0, 7) || "Undated";
+      const key = ["unknown", "before_anchor", "after_anchor", "relative"].includes(inc.date_precision ?? "")
+        ? "Undated"
+        : (inc.date ?? inc.date_range_start ?? inc.date_range_end ?? "").slice(0, 7) || "Undated";
       (byMonth[key] = byMonth[key] || []).push(inc);
     }
     const months = Object.keys(byMonth).sort().reverse();
@@ -582,10 +584,10 @@ async function generateWordDoc(args: {
       const label =
         key === "Undated"
           ? "Undated"
-          : new Date(key + "-01").toLocaleDateString("en-US", { year: "numeric", month: "long" });
+          : formatCalendarMonth(key);
       children.push(h3(`${label} — ${list.length} incident(s)`));
       for (const inc of list) {
-        const head = `${inc.date ?? "—"}${inc.time ? " · " + inc.time : ""} · Severity ${inc.severity_level ?? "—"}`;
+        const head = `${formatIncidentDate(inc)}${inc.time ? " · " + inc.time : ""} · Severity ${inc.severity_level ?? "—"}`;
         children.push(p(head, { bold: true }));
         if (inc.abuse_types && inc.abuse_types.length > 0)
           children.push(p(`Types: ${inc.abuse_types.join(", ")}`, { italic: true }));
@@ -667,13 +669,13 @@ async function generateWordDoc(args: {
   // 6. Evidence
   if (include.evidence) {
     children.push(h2("6. Evidence Index"));
-    children.push(p(`${data.evidence.length} authenticated file(s) on record.`));
+    children.push(p(`${data.evidence.length} shared file(s) on record; not independently authenticated.`));
     children.push(
       dataTable(
         ["Title", "Date", "Type", "Linked to incident"],
         data.evidence.map((e: any) => [
           e.title ?? "—",
-          e.date ?? "—",
+          formatEvidenceDate(e),
           e.file_type ?? "—",
           e.linked_incident_id ? "Yes" : "No",
         ]),
@@ -1738,7 +1740,7 @@ function TimelineTab({
                         </div>
                         {i.abuse_types?.length ? (
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
-                            {i.abuse_types.map((t) => (
+                            {i.abuse_types.map((t: string) => (
                               <span key={t} className={`att-tag att-tag-${t}`}>
                                 {typeLabel(t)}
                               </span>
@@ -3038,7 +3040,7 @@ function DepoComplex({
 
 /* ---------------- Export ---------------- */
 
-function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
+export function ExportTab({ data, clientId, caseRef }: { data: CaseData; clientId: string; caseRef: string }) {
   const [include, setInclude] = useState({
     overview: true,
     timeline: true,
@@ -3047,15 +3049,14 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
     gaps: true,
     evidence: true,
   });
-  // "zip" was previously mislabelled "PDF" in the UI while actually producing a
-  // ZIP bundle, and "print" produced the same ZIP rather than printing.
-  const [format, setFormat] = useState<"zip" | "print" | "word">("zip");
+  const [format, setFormat] = useState<"zip" | "word">("zip");
   const [certify, setCertify] = useState(false);
   const [attorneyNotes, setAttorneyNotes] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [pkgDownloading, setPkgDownloading] = useState(false);
   const packetFn = useServerFn(generateAttorneyCourtPacket);
   const pkgFn = useServerFn(generateCaseManagementPackage);
+  const refreshWordCase = useServerFn(getClientCase);
 
   const toggle = (k: keyof typeof include) => setInclude((s) => ({ ...s, [k]: !s[k] }));
 
@@ -3063,30 +3064,29 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
     if (format === "word") {
       setDownloading(true);
       try {
-        await generateWordDoc({ data, caseId, include, certify, attorneyNotes });
+        // Recheck current access and data rather than exporting a stale browser snapshot.
+        const current = await refreshWordCase({ data: { clientId } });
+        await generateWordDoc({ data: current, caseId: caseRef, include, certify, attorneyNotes: false });
         toast("Word document downloaded.");
       } catch (e) {
         console.error("Word export failed", e);
-        toast("Couldn't generate Word document — try Print / Save as PDF instead.");
+        toast("Couldn't generate Word document. No document was prepared; please retry.");
       } finally {
         setDownloading(false);
       }
       return;
     }
-    if (format === "print") {
-      // Browser print dialog — the attorney chooses "Save as PDF" there.
-      window.print();
-      return;
-    }
     setDownloading(true);
     try {
-      const r = await packetFn({ data: { clientId: caseId, includeAttorneyNotes: attorneyNotes } });
+      const r = await packetFn({ data: { clientId, includeAttorneyNotes: attorneyNotes } });
       if (!r.ok) {
         toast("Couldn't generate packet: " + r.reason);
         return;
       }
       window.open(r.url, "_blank");
       toast("Packet ready. Includes cover, TOC, timeline, evidence index, and exhibit list.");
+    } catch {
+      toast("Couldn't prepare a complete packet. Nothing was downloaded; please retry.");
     } finally {
       setDownloading(false);
     }
@@ -3095,13 +3095,15 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
   const generatePackage = async () => {
     setPkgDownloading(true);
     try {
-      const r = await pkgFn({ data: { clientId: caseId } });
+      const r = await pkgFn({ data: { clientId } });
       if (!r.ok) {
         toast("Couldn't prepare the import package: " + r.reason);
         return;
       }
       window.open(r.url, "_blank");
       toast(`Import package ready — ${r.counts.documents} documents, ${r.counts.tasks} tasks.`);
+    } catch {
+      toast("Couldn't prepare a complete import package. Nothing was downloaded; please retry.");
     } finally {
       setPkgDownloading(false);
     }
@@ -3122,6 +3124,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
       <input
         type="checkbox"
         checked={include[k]}
+        disabled={format !== "word"}
         onChange={() => toggle(k)}
         style={{ marginTop: 3 }}
       />
@@ -3136,6 +3139,13 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
     <div style={{ display: "grid", gap: 16, gridTemplateColumns: "minmax(0,2fr) minmax(0,1fr)" }}>
       <div className="att-card">
         <SectionTitle icon={<Printer size={16} />}>Professional-review export</SectionTitle>
+        <p style={{ fontSize: 12, marginBottom: 12, color: "var(--att-text-2)" }}>
+          Section selections and certification apply to Word only. ZIP includes the full authorized,
+          eligible packet. For PDF, open the exhibit binder and print after all records load.
+        </p>
+        <Link to="/binder/$clientId" params={{ clientId }} className="att-btn-secondary">
+          Open exhibit binder for PDF
+        </Link>
         <div style={{ display: "grid", gap: 8 }}>
           <Item
             k="overview"
@@ -3161,14 +3171,14 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
           <Item
             k="evidence"
             label="Evidence index"
-            note={`${data.evidence.length} authenticated files (titles + metadata).`}
+            note={`${data.evidence.length} shared files (titles + metadata), not independently authenticated.`}
           />
         </div>
 
         <div style={{ marginTop: 18 }}>
           <div className="att-eyebrow">Format</div>
           <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-            {(["zip", "print", "word"] as const).map((f) => (
+            {(["zip", "word"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFormat(f)}
@@ -3177,9 +3187,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
               >
                 {f === "zip"
                   ? "Files (.zip)"
-                  : f === "print"
-                    ? "Print / Save as PDF"
-                    : "Word (.docx)"}
+                  : "Word (.docx)"}
               </button>
             ))}
           </div>
@@ -3188,9 +3196,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
           >
             {format === "zip"
               ? "A ZIP archive containing Markdown, CSV and JSON files plus the evidence index — not a single PDF."
-              : format === "print"
-                ? "Opens your browser's print dialog; choose \u201cSave as PDF\u201d to get a single document."
-                : "A single .docx document you can edit before filing."}
+              : "A single .docx document you can edit before filing."}
           </div>
         </div>
 
@@ -3207,6 +3213,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
           <input
             type="checkbox"
             checked={certify}
+            disabled={format !== "word"}
             onChange={(e) => setCertify(e.target.checked)}
             style={{ marginTop: 3 }}
           />
@@ -3226,12 +3233,13 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
           <input
             type="checkbox"
             checked={attorneyNotes}
+            disabled={format !== "zip"}
             onChange={(e) => setAttorneyNotes(e.target.checked)}
             style={{ marginTop: 3 }}
           />
           <span>
-            Include private attorney notes (07_attorney_notes.md). Survivor never sees these. Strip
-            before filing.
+            Include private attorney notes in ZIP only. These are not shared back with the
+            survivor; review and remove them before disclosure.
           </span>
         </label>
 
@@ -3246,16 +3254,14 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
             ? "Preparing packet…"
             : format === "zip"
               ? "Generate professional-review packet (.zip)"
-              : format === "print"
-                ? "Open print dialog"
-                : "Generate professional-review packet (.docx)"}
+              : "Generate professional-review packet (.docx)"}
         </button>
       </div>
       <div className="att-card" style={{ background: "var(--att-surface-2)" }}>
         <div className="att-eyebrow">Provenance & integrity</div>
         <p style={{ fontSize: 13, color: "var(--att-text-2)", marginTop: 8, lineHeight: 1.6 }}>
-          Every generated report carries case ID <span className="att-mono">{caseId}</span>, the
-          generating attorney's identity, and the export timestamp. All access is logged.
+          Display reference: <span className="att-mono">{caseRef}</span>. Export contents must be
+          reviewed before disclosure. A file-generation timestamp is not proof of an audit event.
         </p>
         <div className="att-divider" />
         <div
@@ -3267,7 +3273,7 @@ function ExportTab({ data, caseId }: { data: CaseData; caseId: string }) {
             color: "var(--att-slate)",
           }}
         >
-          <Clock size={11} /> Export logged · {new Date().toLocaleString()}
+          <Clock size={11} /> Export audit status is not verified on this screen.
         </div>
         <div className="att-divider" />
         <div className="att-eyebrow" style={{ marginTop: 4 }}>

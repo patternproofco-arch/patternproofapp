@@ -6,22 +6,38 @@
  * helpers when displaying or comparing a YYYY-MM-DD string from the DB.
  */
 
-/** Parse a YYYY-MM-DD string as a local-time Date (midnight in user's TZ). */
-export function parseDateLocal(dateStr: string): Date {
+import { describeReviewDate, isCalendarDay, type ReviewDateFields } from "@/lib/review-date-certainty";
+
+/** Parse a calendar day locally; timestamps retain their intentional timezone semantics. */
+export function parseDateLocal(dateStr: string | null | undefined): Date {
+  if (typeof dateStr !== "string" || !dateStr.trim()) return new Date(NaN);
   // Accept either "YYYY-MM-DD" or full ISO; for ISO we trust the timestamp.
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    if (!isCalendarDay(dateStr)) return new Date(NaN);
     const [y, m, d] = dateStr.split("-").map(Number);
-    return new Date(y, m - 1, d);
+    const local = new Date(0);
+    local.setFullYear(y, m - 1, d);
+    local.setHours(0, 0, 0, 0);
+    return local;
   }
   return new Date(dateStr);
 }
 
 /** Format a YYYY-MM-DD string in the user's locale, timezone-safe. */
 export function formatDateLocal(
-  dateStr: string,
+  dateStr: string | null | undefined,
   options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" },
+  fallback = "Date not documented",
+  locale?: string,
 ): string {
-  return parseDateLocal(dateStr).toLocaleDateString(undefined, options);
+  const date = parseDateLocal(dateStr);
+  return Number.isNaN(date.getTime()) ? fallback : date.toLocaleDateString(locale, options);
+}
+
+/** A YYYY-MM heading is a calendar month, not UTC midnight on its first day. */
+export function formatCalendarMonth(month: string | null | undefined): string {
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) return "Date not documented";
+  return formatDateLocal(`${month}-01`, { month: "long", year: "numeric" }, "Date not documented", "en-US");
 }
 
 /** Today's date in local time as YYYY-MM-DD. */
@@ -41,46 +57,11 @@ export function sanitizeLine(value: string): string {
  * field on approximate/range/anchor records is a sort-order helper, not a
  * factual claim.
  */
-export interface IncidentDateFields {
-  date?: string | null;
-  date_precision?: string | null;
-  date_range_start?: string | null;
-  date_range_end?: string | null;
-  anchor_label?: string | null;
-  anchor_incident?: { date?: string | null; description?: string | null } | null;
-}
+export interface IncidentDateFields extends ReviewDateFields {}
 
 export function formatIncidentDate(i: IncidentDateFields): string {
-  const p = i.date_precision ?? "exact";
-  if (p === "unknown") return "Date not documented";
-  if (p === "approximate_month") {
-    const src = i.date_range_start || i.date;
-    if (!src) return "Approximate date";
-    const d = parseDateLocal(src);
-    return `${d.toLocaleDateString(undefined, { month: "long", year: "numeric" })} (approximate)`;
-  }
-  if (p === "range") {
-    const s = i.date_range_start;
-    const e = i.date_range_end;
-    if (s && e) {
-      return `Between ${formatDateLocal(s, { month: "short", day: "numeric", year: "numeric" })} and ${formatDateLocal(e, { month: "short", day: "numeric", year: "numeric" })}`;
-    }
-    if (s) return `On or after ${formatDateLocal(s)}`;
-    if (e) return `On or before ${formatDateLocal(e)}`;
-    return "Date range";
-  }
-  if (p === "before_anchor" || p === "after_anchor") {
-    const word = p === "before_anchor" ? "Before" : "After";
-    if (i.anchor_label) return `${word} ${i.anchor_label}`;
-    if (i.anchor_incident?.description) {
-      const short = i.anchor_incident.description.slice(0, 60);
-      return `${word} ${short}${i.anchor_incident.description.length > 60 ? "…" : ""}`;
-    }
-    return `${word} another event`;
-  }
-  // exact (default)
-  if (!i.date) return "Date not documented";
-  return formatDateLocal(i.date, { month: "short", day: "numeric", year: "numeric" });
+  const info = describeReviewDate(i);
+  return info.certainty === "unknown" ? "Date not documented" : info.text;
 }
 
 /**

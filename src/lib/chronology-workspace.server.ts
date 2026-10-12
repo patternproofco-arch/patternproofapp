@@ -15,6 +15,7 @@
 
 import { assertCaseAccess, type AttorneyLink } from "@/lib/attorney-access.server";
 import { selectAllPages, selectInChunks } from "@/lib/in-chunks.server";
+import { incidentEligible, evidenceEligible } from "@/lib/professional-record-eligibility";
 import {
   analyzeDraft,
   buildChronology,
@@ -79,7 +80,7 @@ export async function loadSharedItems(admin: Admin, link: AttorneyLink, clientId
             .select(EVIDENCE_COLUMNS)
             .eq("user_id", clientId)
             .is("deleted_at", null)
-            .neq("review_status", "suggested")
+            .or("review_status.is.null,review_status.neq.suggested")
             .order("id", { ascending: true })
             .range(a, b),
         { what: "shared file" },
@@ -93,22 +94,26 @@ export async function loadSharedItems(admin: Admin, link: AttorneyLink, clientId
             .eq("user_id", clientId)
             .in("id", chunk)
             .is("deleted_at", null)
-            .neq("review_status", "suggested"),
+            .or("review_status.is.null,review_status.neq.suggested"),
         { what: "shared file" },
       );
-  const { data: requests, error } = await admin
-    .from("attorney_document_requests")
-    .select("id,title,status,submitted_at,response_note")
-    .eq("link_id", link.id)
-    .eq("client_user_id", clientId)
-    .eq("status", "submitted");
-  if (error) throw new Error("We couldn't load the answered requests. Nothing was left out silently, so please try again.");
+  const requests = await selectAllPages<Row>(
+    (from, to) => admin
+      .from("attorney_document_requests")
+      .select("id,title,status,submitted_at,response_note")
+      .eq("link_id", link.id)
+      .eq("client_user_id", clientId)
+      .eq("status", "submitted")
+      .order("id", { ascending: true })
+      .range(from, to),
+    { what: "answered request" },
+  );
 
   return {
     // Same rules as the case file, applied again here so a mistake in a query can't widen them:
     // unconfirmed machine-drafted entries and unconfirmed suggested files are never shown.
-    incidents: incidents.filter((i) => !(i.source === "ai_extracted" && !i.confirmed_at)),
-    evidence: evidence.filter((e) => e.review_status !== "suggested"),
+    incidents: incidents.filter(incidentEligible),
+    evidence: evidence.filter(evidenceEligible),
     requests: (requests ?? []) as Row[],
   };
 }

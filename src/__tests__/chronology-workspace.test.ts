@@ -108,13 +108,16 @@ describe("who can open the workspace, and what is in it", () => {
           inc("b", { deleted_at: "2026-03-10T00:00:00Z" }),
           inc("c", { source: "ai_extracted", confirmed_at: null }),
           inc("d", { source: "ai_extracted", confirmed_at: "2026-03-09T00:00:00Z" }),
+          inc("manual-draft", { source: "manual", is_draft: true }),
+          inc("blank-confirmation", { source: "ai_extracted", confirmed_at: " " }),
+          inc("legacy-manual", { source: null, is_draft: null }),
         ],
         evidence: [ev("f", { review_status: "suggested" }), ev("g")],
       },
-      { scope_incidents: ["a", "b", "c", "d"], scope_evidence: ["f", "g"] },
+      { scope_incidents: ["a", "b", "c", "d", "manual-draft", "blank-confirmation", "legacy-manual"], scope_evidence: ["f", "g"] },
     );
     const w = await getWorkspace(admin, ATTY, CLIENT);
-    expect(keys(w.rows)).toEqual(["evidence:g", "incident:a", "incident:d"]);
+    expect(keys(w.rows)).toEqual(["evidence:g", "incident:a", "incident:d", "incident:legacy-manual"]);
   });
 
   it("never returns storage paths or other columns the chronology doesn't use", async () => {
@@ -167,13 +170,41 @@ describe("who can open the workspace, and what is in it", () => {
             select: () => ({
               eq: () => ({
                 in: () => ({
-                  is: () => ({ neq: async () => ({ data: null, error: { message: "boom" } }) }),
+                  is: () => ({ or: async () => ({ data: null, error: { message: "boom" } }) }),
                 }),
               }),
             }),
           } as never)
         : orig(n)) as typeof admin.from;
     await expect(getWorkspace(admin, ATTY, CLIENT)).rejects.toThrow(/couldn't load every shared file/);
+  });
+
+  it("loads every answered request beyond the API row cap", async () => {
+    const requests = Array.from({ length: 1200 }, (_, i) => ({
+      id: `r${String(i).padStart(4, "0")}`, link_id: LINK, client_user_id: CLIENT,
+      status: "submitted", title: `Request ${i}`, submitted_at: "2026-02-01T12:00:00Z",
+      response_note: `Answer ${i}`,
+    }));
+    const w = await getWorkspace(seed({ incidents: [], evidence: [], attorney_document_requests: requests }, {
+      scope_incidents: [], scope_evidence: [],
+    }), ATTY, CLIENT);
+    expect(w.rows).toHaveLength(1200);
+  });
+
+  it("fails the workspace if a later answered-request page fails", async () => {
+    const admin = seed();
+    const orig = admin.from;
+    admin.from = ((name: string) => {
+      if (name !== "attorney_document_requests") return orig(name);
+      const builder: any = {
+        select: () => builder, eq: () => builder, order: () => builder,
+        range: async (from: number) => from === 0
+          ? { data: Array.from({ length: 1000 }, (_, i) => ({ id: `r${i}` })), error: null }
+          : { data: null, error: { message: "later page unavailable" } },
+      };
+      return builder;
+    }) as typeof admin.from;
+    await expect(getWorkspace(admin, ATTY, CLIENT)).rejects.toThrow(/couldn't load every answered request/);
   });
 });
 
