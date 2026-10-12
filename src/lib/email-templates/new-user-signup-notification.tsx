@@ -12,14 +12,16 @@ import {
 import type { TemplateEntry } from "./registry";
 
 interface Props {
+  email?: string;
   role?: string;
   signedUpAt?: string;
 }
 
-// Guardian rule: ops alerts carry ONLY the account's role and a timestamp.
-// Never a name, email, user id, or any incident, evidence, journal or case content —
-// for survivors and professionals alike. Look accounts up in /admin/operations.
-const Email = ({ role, signedUpAt }: Props) => (
+// Guardian rule: survivor alerts carry ROLE + TIME ONLY (never email or id).
+// Professional alerts (attorney, advocate, organization) may also show the
+// professional's own login email so ops can verify them. Never incident,
+// evidence, journal or case content, and never anything about a survivor.
+const Email = ({ email, role, signedUpAt }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>{`New ${role ?? "account"} signup`}</Preview>
@@ -28,6 +30,11 @@ const Email = ({ role, signedUpAt }: Props) => (
         <Text style={eyebrow}>PATTERNPROOF · NEW ACCOUNT</Text>
         <Heading style={h1}>Someone just joined</Heading>
         <Section style={meta}>
+          {email && (
+            <Text style={row}>
+              <strong>Account email:</strong> {email}
+            </Text>
+          )}
           <Text style={row}>
             <strong>Role:</strong> {role ?? "Unknown"}
           </Text>
@@ -36,8 +43,7 @@ const Email = ({ role, signedUpAt }: Props) => (
           </Text>
         </Section>
         <Text style={body}>
-          This alert carries only the role and time. It never includes who the person is or anything
-          they have written or uploaded.
+          This alert never includes anything the person has written or uploaded.
         </Text>
       </Container>
     </Body>
@@ -50,7 +56,8 @@ export const template = {
   displayName: "New user signup notification",
   to: "patternproofco@gmail.com",
   previewData: {
-    role: "survivor",
+    email: "professional@example.com",
+    role: "attorney",
     signedUpAt: new Date().toISOString(),
   },
 } satisfies TemplateEntry;

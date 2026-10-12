@@ -2,6 +2,13 @@
  * Founder alert when an account gains a role for the first time.
  * Durably deduped per user+role; failed attempts can retry after five minutes. Never throws.
  */
+/** Roles whose own login email may appear in the ops alert. Everything else: role + time only. */
+export const PROFESSIONAL_ALERT_ROLES: ReadonlySet<string> = new Set([
+  "attorney",
+  "advocate",
+  "organization",
+]);
+
 export async function notifyNewSignup(input: {
   userId: string;
   role: string;
@@ -31,9 +38,9 @@ export async function notifyNewSignup(input: {
     const { data, error } = await supabaseAdmin.auth.admin.getUserById(input.userId);
     if (error || !data?.user?.email || !data.user.email_confirmed_at)
       throw new Error("Account lookup failed");
-    // Role and timestamp only. The account lookup gates on a confirmed email but the
-    // address itself never enters the alert, whatever the role.
     const props = {
+      // Allowlist, not denylist: survivors and any unrecognised role get role + time only.
+      email: PROFESSIONAL_ALERT_ROLES.has(input.role) ? data.user.email : undefined,
       role: input.role,
       signedUpAt: data?.user?.created_at ?? new Date().toISOString(),
     };
