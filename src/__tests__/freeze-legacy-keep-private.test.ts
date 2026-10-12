@@ -154,7 +154,7 @@ describe("readiness COLUMN missing: freeze nothing, refuse with the clear error"
         return realSelect(cols, ...rest);
       };
       return q;
-    }) as typeof db.from;
+    }) as unknown as typeof db.from;
     return db;
   }
 
