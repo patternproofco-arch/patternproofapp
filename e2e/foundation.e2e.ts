@@ -6,7 +6,11 @@ import { readFileSync } from "node:fs";
 const projectLine = readFileSync(new URL("../.env", import.meta.url), "utf8")
   .split("\n")
   .find((line) => line.startsWith("VITE_SUPABASE_PROJECT_ID="));
-if (projectLine)
+// In CI (E2E_PREVIEW) the production bundle is built against placeholder
+// Supabase values, and the mock session derives its storage key from that same
+// build. Overriding the ref from .env there makes the key mismatch and every
+// signed-in test redirects to /signin, so only apply it for local runs.
+if (projectLine && !process.env.E2E_PREVIEW && !process.env.CI)
   process.env.VITE_SUPABASE_PROJECT_ID = projectLine
     .split("=")
     .slice(1)
