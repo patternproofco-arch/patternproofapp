@@ -30,6 +30,7 @@ import {
   verifyExtractedText,
 } from "@/lib/document-extract.functions";
 import { isReadableDocument } from "@/lib/readable-documents";
+import { formatEvidenceDate, type IncidentDateFields } from "@/lib/dates";
 
 import { FocusRegion } from "@/components/survivor/focus-mode";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -51,10 +52,10 @@ export const Route = createFileRoute("/_authenticated/evidence")({
   component: EvidencePage,
 });
 
-interface EvidenceRow {
+interface EvidenceRow extends IncidentDateFields {
   id: string;
   title: string;
-  date: string;
+  date: string | null;
   description: string | null;
   file_url: string;
   file_type: string;
@@ -163,10 +164,9 @@ function EvidencePage() {
 
   const load = useCallback(async () => {
     if (!user) return;
-    const evidenceSelectWith =
-      "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status,mime,extracted_text,extraction_status,extraction_method,extraction_pages,extraction_verified_at,share_readiness";
     const evidenceSelectPlain =
-      "id,title,date,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status,mime,extracted_text,extraction_status,extraction_method,extraction_pages,extraction_verified_at";
+      "id,title,date,date_precision,date_range_start,date_range_end,anchor_label,description,file_url,file_type,linked_incident_id,preservation_status,integrity_verified_at,exif_captured_at,sha256,review_status,transcript,transcript_status,mime,extracted_text,extraction_status,extraction_method,extraction_pages,extraction_verified_at";
+    const evidenceSelectWith = `${evidenceSelectPlain},share_readiness`;
     const loadEvidence = async () => {
       const withReadiness = await supabase
         .from("evidence")
@@ -827,7 +827,7 @@ function EvidencePage() {
                             />
                           </div>
                           <div className="mono-meta mono-meta--muted mt-2">
-                            {new Date(it.date).toLocaleDateString()} · {it.file_type} ·{" "}
+                            {formatEvidenceDate(it)} · {it.file_type} ·{" "}
                             {it.transcript_status === "ready"
                               ? "transcript ready"
                               : it.extraction_status === "ready"

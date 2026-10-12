@@ -7,6 +7,7 @@
 import JSZip from "jszip";
 import { createHash } from "crypto";
 import type { BinderEntry } from "@/lib/binder";
+import { binderDateInfo, formatBinderDate } from "@/lib/binder";
 import { buildPleadingText } from "@/lib/pleading";
 
 export type BinderZipFile = {
@@ -46,7 +47,9 @@ export function exhibitFilePrefix(exhibit: string): string {
 }
 
 export function binderEntryFileStem(entry: BinderEntry): string {
-  const date = entry.date ?? "undated";
+  const date = binderDateInfo(entry).certainty === "exact" && entry.date
+    ? entry.date
+    : safeTitle(formatBinderDate(entry));
   return `${exhibitFilePrefix(entry.exhibit)}_${date}_${safeTitle(entry.title)}`;
 }
 
@@ -55,7 +58,7 @@ function entryMarkdown(entry: BinderEntry): string {
     `# ${entry.exhibit}`,
     "",
     `**Kind:** ${entry.label}`,
-    `**Date:** ${entry.date ?? "Date not given"}`,
+    `**Date:** ${formatBinderDate(entry)}`,
     `**Title:** ${entry.title}`,
     "",
   ];
@@ -75,7 +78,7 @@ function entryMarkdown(entry: BinderEntry): string {
 function indexMarkdown(entries: BinderEntry[]): string {
   const rows = entries.map(
     (e) =>
-      `| ${e.exhibit} | ${e.date ?? "—"} | ${e.label} | ${e.title.replace(/\|/g, "\\|")} |`,
+      `| ${e.exhibit} | ${formatBinderDate(e).replace(/\|/g, "\\|")} | ${e.label} | ${e.title.replace(/\|/g, "\\|")} |`,
   );
   return [
     "# Exhibit binder index",
@@ -190,6 +193,18 @@ export async function buildExhibitBinderZip(args: {
           kind: e.kind,
           id: e.id,
           date: e.date,
+          date_precision: e.date_precision ?? (binderDateInfo(e).certainty === "exact" ? "exact" : "unknown"),
+          date_certainty: binderDateInfo(e).certainty,
+          date_display: formatBinderDate(e),
+          date_range_start: e.date_range_start ?? null,
+          date_range_end: e.date_range_end ?? null,
+          anchor_label: e.anchor_label ?? null,
+          anchor_incident: e.anchor_incident ?? null,
+          date_provenance: e.dateProvenance ?? null,
+          sort_date: e.sortDate ?? binderDateInfo(e).sortDate,
+          binary_included: e.kind === "evidence"
+            ? !!evidenceFiles.get(e.id)?.bytes?.byteLength
+            : null,
           title: e.title,
           folder: binderEntryFileStem(e),
         })),

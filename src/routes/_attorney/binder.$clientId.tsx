@@ -5,6 +5,7 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { getClientCase } from "@/lib/attorney-portal.functions";
 import { listClientEvidenceRequests } from "@/lib/evidence-requests.functions";
 import { buildBinderEntries } from "@/lib/binder";
+import { binderOutputBlockReason } from "@/lib/binder-output-readiness";
 import { CourtTimeline } from "@/components/CourtTimeline";
 import { BinderExhibits } from "@/components/BinderExhibits";
 import { PleadingIndex } from "@/components/PleadingIndex";
@@ -70,6 +71,10 @@ function BinderPage() {
     ? new Map((wsQ.data?.rows ?? []).map((r) => [r.key, r.exhibit.label] as [string, string]))
     : undefined;
   const entries = buildBinderEntries(incidents, evidence, reqQ.data?.items ?? [], exhibitLabels);
+  const outputBlockReason = binderOutputBlockReason(
+    [caseQ, reqQ, wsQ],
+    fixedPackage?.diff.changed.length ?? 0,
+  );
 
   if (incidents.length === 0 && evidence.length === 0) {
     return (
@@ -89,7 +94,7 @@ function BinderPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl p-6 print:p-0">
+    <div className={`mx-auto max-w-3xl p-6 print:p-0${outputBlockReason ? " binder-output-blocked" : ""}`}>
       <div className="mb-6 flex items-center justify-between print:hidden">
         <Link
           to="/clients/$clientId"
@@ -99,18 +104,24 @@ function BinderPage() {
           <ArrowLeft size={14} /> Back to client
         </Link>
         <button
-          onClick={() => window.print()}
-          disabled={!!fixedPackage && fixedPackage.diff.changed.length > 0}
-          title={
-            fixedPackage && fixedPackage.diff.changed.length > 0
-              ? "Review changed items and save a new package version before printing an updated binder."
-              : undefined
-          }
+          onClick={() => { if (!outputBlockReason) window.print(); }}
+          disabled={!!outputBlockReason}
+          title={outputBlockReason ?? undefined}
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50"
         >
           <Printer size={14} /> Download as PDF
         </button>
       </div>
+      {outputBlockReason && (
+        <div role="alert" className="binder-output-warning mb-6 rounded-lg border border-border p-4">
+          <p>{outputBlockReason}</p>
+          <button
+            type="button"
+            className="mt-2 underline print:hidden"
+            onClick={() => { void caseQ.refetch(); void reqQ.refetch(); void wsQ.refetch(); }}
+          >Reload binder records</button>
+        </div>
+      )}
       <header className="mb-6 border-b border-border pb-4">
         <h1 className="font-display text-2xl">Draft Case Summary for Professional Review</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -120,7 +131,9 @@ function BinderPage() {
         <p className="mt-1 text-xs text-muted-foreground">
           {fixedPackage
             ? `Exhibit numbers are fixed (package v${fixedPackage.version}${fixedPackage.createdAt ? ` · approved ${fixedPackage.createdAt.slice(0, 10)}` : ""}). Items shared since then show as "Not yet numbered".`
-            : "Exhibit numbers are provisional (date order) and can change if items are added. Fix them below before citing them."}
+            : outputBlockReason
+              ? "Exhibit numbers are provisional. Reload the chronology before fixing numbers or citing this binder."
+              : "Exhibit numbers are provisional (date order) and can change if items are added. Fix them below before citing them."}
         </p>
         {fixedPackage && fixedPackage.diff.changed.length > 0 && (
           <p className="mt-2 text-xs" role="status">
@@ -139,7 +152,7 @@ function BinderPage() {
         <h2 className="mb-3 font-display text-lg">Court timeline</h2>
         <CourtTimeline entries={entries} />
       </section>
-      <PleadingIndex entries={entries} />
+      <PleadingIndex entries={entries} outputBlockReason={outputBlockReason} />
       <ChronologyWorkspace clientId={clientId} />
       <BinderFrequencyMatrixLinks clientId={clientId} />
       <ClioTransferPanel clientId={clientId} />

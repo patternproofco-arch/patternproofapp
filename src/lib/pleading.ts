@@ -1,12 +1,5 @@
 /* Pure helper: turns binder entries into neutral, numbered declaration paragraphs. */
-import type { BinderEntry } from "@/lib/binder";
-
-function formatDate(d: string | null): string {
-  if (!d) return "an undated occasion";
-  const parsed = new Date(`${d.slice(0, 10)}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) return d;
-  return parsed.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-}
+import { binderDateInfo, type BinderEntry } from "@/lib/binder";
 
 function clip(text: string | null, max = 280): string {
   if (!text) return "";
@@ -15,11 +8,16 @@ function clip(text: string | null, max = 280): string {
 }
 
 export function pleadingParagraph(e: BinderEntry, n: number): string {
-  const when = formatDate(e.date);
+  const when = binderDateInfo(e).lead;
   const summary = clip(e.body);
   const noun =
     e.kind === "evidence" ? "a file titled" : e.kind === "request" ? "an answered request titled" : "an entry titled";
-  const lead = `${n}. On ${when}, the client documented ${noun} "${e.title}".`;
+  // A file's event date must not be asserted to be its upload/creation date.
+  const lead = e.kind === "evidence"
+    ? `${n}. The client provided ${noun} "${e.title}". Recorded event timing: ${binderDateInfo(e).text}.`
+    : e.kind === "request"
+      ? `${n}. ${when}, the client submitted ${noun} "${e.title}" (request submission date, not an event date).`
+      : `${n}. ${when}, the client's entry titled "${e.title}" records the following.`;
   const detail = summary ? ` The client's record reads: "${summary}"` : "";
   return `${lead}${detail} See ${e.exhibit}.`;
 }

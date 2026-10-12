@@ -707,7 +707,7 @@ export const getClientCase = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Long id lists are read in batches and fail loudly: a selected item is returned or an
     // error is shown, never silently dropped (see in-chunks.server.ts).
-    const { selectInChunks, byDateAscNullsLast } = await import("@/lib/in-chunks.server");
+    const { selectInChunks, selectAllPages, byDateAscNullsLast } = await import("@/lib/in-chunks.server");
     // Provenance: record that this professional opened the case file.
     await supabaseAdmin
       .rpc("record_audit_event", {
@@ -730,13 +730,17 @@ export const getClientCase = createServerFn({ method: "POST" })
 
     const [incQ, evQ, patQ, escQ, voiceQ, comsQ, legalQ, caseQ] = await Promise.all([
       link.include_all_incidents
-        ? supabaseAdmin
-            .from("incidents")
-            .select("*")
-            .eq("user_id", data.clientId)
-            .is("deleted_at", null)
-            .or("source.neq.ai_extracted,confirmed_at.not.is.null")
-            .order("date", { ascending: true })
+        ? selectAllPages<AnyJson>(
+            (a, b) => supabaseAdmin
+              .from("incidents")
+              .select("*")
+              .eq("user_id", data.clientId)
+              .is("deleted_at", null)
+              .or("source.is.null,source.neq.ai_extracted,confirmed_at.not.is.null")
+              .order("id", { ascending: true })
+              .range(a, b),
+            { what: "shared incident" },
+          ).then((rows) => ({ data: rows.sort(byDateAscNullsLast) }))
         : scopedIncidentIds.length
           ? selectInChunks(
               scopedIncidentIds,
@@ -747,19 +751,23 @@ export const getClientCase = createServerFn({ method: "POST" })
                   .eq("user_id", data.clientId)
                   .in("id", chunk)
                   .is("deleted_at", null)
-                  .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+                  .or("source.is.null,source.neq.ai_extracted,confirmed_at.not.is.null")
                   .order("date", { ascending: true }),
               { sort: byDateAscNullsLast, what: "shared incident" },
             ).then((rows) => ({ data: rows }))
           : Promise.resolve({ data: [] }),
       link.include_all_evidence
-        ? supabaseAdmin
-            .from("evidence")
-            .select("*")
-            .eq("user_id", data.clientId)
-            .is("deleted_at", null)
-            .neq("review_status", "suggested")
-            .order("date", { ascending: true })
+        ? selectAllPages<AnyJson>(
+            (a, b) => supabaseAdmin
+              .from("evidence")
+              .select("*")
+              .eq("user_id", data.clientId)
+              .is("deleted_at", null)
+              .or("review_status.is.null,review_status.neq.suggested")
+              .order("id", { ascending: true })
+              .range(a, b),
+            { what: "shared file" },
+          ).then((rows) => ({ data: rows.sort(byDateAscNullsLast) }))
         : scopedEvidenceIds.length
           ? selectInChunks(
               scopedEvidenceIds,
@@ -770,7 +778,7 @@ export const getClientCase = createServerFn({ method: "POST" })
                   .eq("user_id", data.clientId)
                   .in("id", chunk)
                   .is("deleted_at", null)
-                  .neq("review_status", "suggested")
+                  .or("review_status.is.null,review_status.neq.suggested")
                   .order("date", { ascending: true }),
               { sort: byDateAscNullsLast, what: "shared file" },
             ).then((rows) => ({ data: rows }))
@@ -857,18 +865,25 @@ export const getClientCase = createServerFn({ method: "POST" })
             .eq("id", link.case_id!)
             .eq("user_id", data.clientId)
             .maybeSingle()
-        : supabaseAdmin
-            .from("cases")
-            .select("*")
-            .eq("user_id", data.clientId)
-            .order("updated_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
+        : Promise.resolve({ data: null }),
     ]);
 
+    for (const result of [incQ, evQ, patQ, escQ, voiceQ, comsQ, legalQ, caseQ]) {
+      if ("error" in result && result.error) {
+        throw new Error("We couldn't load the complete shared case. Nothing was left out silently; please retry.");
+      }
+    }
+    const { incidentEligible, evidenceEligible } =
+      await import("@/lib/professional-record-eligibility");
     const { evidenceForProfessional, incidentForProfessional } =
       await import("@/lib/professional-view");
-    const incidents = (incQ.data ?? []).map((i) => incidentForProfessional(i));
+    const incidents = (incQ.data ?? []).filter(incidentEligible).map((i) => incidentForProfessional(i));
+    const eligibleIncidentIds = new Set(incidents.map((i) => i.id));
+    for (const incident of incidents) {
+      if (incident.anchor_incident_id && !eligibleIncidentIds.has(incident.anchor_incident_id)) {
+        incident.anchor_incident_id = null;
+      }
+    }
     // The attorney should be able to see the exact terms they hold access
     // under, not just the data itself.
     const { data: grantInv } = link.id
@@ -899,8 +914,26 @@ export const getClientCase = createServerFn({ method: "POST" })
     }
     // Quarantined GPS fields must never reach the attorney UI — the survivor
     // opts in per-item in their own view, and even then it's not shared.
-    const evidence = (evQ.data ?? []).map((e) => evidenceForProfessional(e));
-    const flags = escQ.data ?? [];
+    const eligibleEvidence = (evQ.data ?? []).filter(evidenceEligible);
+    const eligibleEvidenceIds = new Set(eligibleEvidence.map((e) => e.id));
+    for (const incident of incidents) {
+      if (incident.source_evidence_id && !eligibleEvidenceIds.has(incident.source_evidence_id)) {
+        incident.source_evidence_id = null;
+      }
+    }
+    const evidence = eligibleEvidence.map((e) => {
+      const clean = evidenceForProfessional(e);
+      if (!eligibleIncidentIds.has(clean.linked_incident_id)) clean.linked_incident_id = null;
+      if (clean.suggested_incident_id && !eligibleIncidentIds.has(clean.suggested_incident_id)) {
+        clean.suggested_incident_id = null;
+      }
+      for (const key of ["parent_evidence_id", "near_duplicate_of"]) {
+        if (clean[key] && !eligibleEvidenceIds.has(clean[key])) clean[key] = null;
+      }
+      if (clean.linked_recording_id) clean.linked_recording_id = null;
+      return clean;
+    });
+    const flags = (escQ.data ?? []).filter((flag) => eligibleIncidentIds.has(flag.incident_id));
     const rawPattern = (patQ.data ?? null) as {
       analysis: AnyJson;
       created_at: string;
@@ -915,7 +948,7 @@ export const getClientCase = createServerFn({ method: "POST" })
     // one case) could surface narrative and severity claims drawn from a
     // case the survivor never shared with this attorney.
     const { buildPatternExport } = await import("@/lib/pattern-export");
-    const patternScope = isCaseScoped ? scopedIncidentIds : null;
+    const patternScope = incidents.map((i) => i.id);
     const gatedPattern = rawPattern
       ? buildPatternExport(rawPattern.analysis, rawPattern.reviewed_status, patternScope)
       : null;
@@ -1061,7 +1094,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       evidence,
       flags,
       voice_notes: voiceQ.data ?? [],
-      communications: comsQ.data ?? [],
+      communications: (comsQ.data ?? []).filter((message) => eligibleIncidentIds.has(message.linked_incident_id)),
       legal_documents: legalQ.data ?? [],
       pattern_analysis: pattern,
       pattern_analysis_present: !!pattern,

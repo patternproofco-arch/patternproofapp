@@ -22,6 +22,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatDateLocal } from "@/lib/dates";
 import { listMyClients } from "@/lib/attorney-portal.functions";
 import { listClioMatterLinks, unlinkClioMatter } from "@/lib/clio-matter-links.functions";
 import {
@@ -54,12 +55,12 @@ const DENSITY: Record<string, { label: string }> = {
   high: { label: "High" },
 };
 
-const DATE_FMT = new Intl.DateTimeFormat("en-US", {
+const DATE_OPTIONS: Intl.DateTimeFormatOptions = {
   year: "numeric",
   month: "short",
   day: "2-digit",
-});
-const fmtDate = (v: string | null | undefined) => (v ? DATE_FMT.format(new Date(v)) : "—");
+};
+const fmtDate = (v: string | null | undefined) => formatDateLocal(v, DATE_OPTIONS, "—", "en-US");
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
   pending: { bg: "#FFFFFF", fg: "var(--att-text-2)", label: "Pending" },

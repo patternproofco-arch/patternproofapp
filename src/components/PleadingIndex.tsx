@@ -2,18 +2,21 @@ import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { BinderEntry } from "@/lib/binder";
+import { formatBinderDate } from "@/lib/binder";
 import { buildPleadingText, pleadingParagraph } from "@/lib/pleading";
 
 interface PleadingIndexProps {
   entries: BinderEntry[];
+  outputBlockReason?: string | null;
 }
 
 /** Numbered, neutral chronology an attorney can paste into a declaration draft. */
-export function PleadingIndex({ entries }: PleadingIndexProps) {
+export function PleadingIndex({ entries, outputBlockReason }: PleadingIndexProps) {
   const [copied, setCopied] = useState(false);
   if (entries.length === 0) return null;
 
   const copy = async () => {
+    if (outputBlockReason) return;
     try {
       await navigator.clipboard.writeText(buildPleadingText(entries));
       setCopied(true);
@@ -30,7 +33,9 @@ export function PleadingIndex({ entries }: PleadingIndexProps) {
         <h2 className="font-display text-lg">Factual chronology (declaration format)</h2>
         <button
           onClick={copy}
-          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm print:hidden"
+          disabled={!!outputBlockReason}
+          title={outputBlockReason ?? undefined}
+          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm disabled:opacity-50 print:hidden"
         >
           {copied ? <Check size={14} /> : <Copy size={14} />}
           {copied ? "Copied" : "Copy for declaration"}
@@ -53,7 +58,7 @@ export function PleadingIndex({ entries }: PleadingIndexProps) {
           {entries.map((e, i) => (
             <tr key={`${e.kind}-${e.id}`} className="break-inside-avoid border-b border-border/50 align-top">
               <td className="py-2 pr-2">{i + 1}</td>
-              <td className="whitespace-nowrap py-2 pr-2">{e.date ?? "Not given"}</td>
+              <td className="py-2 pr-2">{formatBinderDate(e)}</td>
               <td className="py-2 pr-2">{pleadingParagraph(e, i + 1).replace(/^\d+\.\s/, "")}</td>
               <td className="whitespace-nowrap py-2">{e.exhibit}</td>
             </tr>

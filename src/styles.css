@@ -2002,3 +2002,15 @@ textarea.input-pp {
     page-break-after: avoid;
   }
 }
+@media print {
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+  /* Browser-menu printing must not make an incomplete binder look authoritative. */
+  .binder-output-blocked > * {
+    display: none !important;
+  }
+  .binder-output-blocked > .binder-output-warning {
+    display: block !important;
+  }
+}

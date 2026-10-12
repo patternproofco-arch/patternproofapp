@@ -8,6 +8,18 @@ import JSZip from "jszip";
 import { createHash } from "crypto";
 import { z } from "zod";
 import { PROFESSIONAL_LINK_TTL_SECONDS } from "@/lib/professional-links.server";
+import {
+  loadProfessionalExportRecords,
+  loadProfessionalExportExtras,
+  readExportRows,
+  readExportIds,
+  readExportOne,
+  downloadProfessionalFile,
+  professionalEvidenceFilename,
+  assertProfessionalExportStillCurrent,
+  professionalDateColumns,
+} from "@/lib/professional-export.server";
+import { formatIncidentDate, formatEvidenceDate } from "@/lib/dates";
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 type PortalResult = { url: string } | { error: string };
@@ -365,9 +377,11 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const ent = await isAttorneyEntitled(context.userId, data.clientId);
-    if (!ent.entitled) return { ok: false as const, reason: "paywall" as const };
+    if (!ent.entitled)
+      return { ok: false as const, reason: "paywall" as const };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
 
     // Authorization: an active, unexpired, unrevoked link must exist for this pair.
     // Billing entitlement alone does NOT authorize data access. assertLink also
@@ -375,24 +389,15 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     const access = await import("@/lib/attorney-access.server");
     let link: Awaited<ReturnType<typeof access.assertLink>>;
     try {
-      link = await access.assertLink(supabaseAdmin, context.userId, data.clientId);
+      link = await access.assertLink(
+        supabaseAdmin,
+        context.userId,
+        data.clientId,
+      );
     } catch {
       return { ok: false as const, reason: "no-active-link" as const };
     }
 
-    const scopeIncidents = (link.scope_incidents as string[] | null) ?? [];
-    const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];
-    const includeAllIncidents = link.include_all_incidents === true;
-    const includeAllEvidence = link.include_all_evidence === true;
-    const includePatterns = await access.patternsVisibleToProfessional(
-      supabaseAdmin,
-      link,
-      data.clientId,
-    );
-    const includeComms = link.include_communications === true;
-    const flagIncidentIds = scopeIncidents.length
-      ? scopeIncidents
-      : ["00000000-0000-0000-0000-000000000000"];
     await supabaseAdmin
       .rpc("record_audit_event", {
         p_user_id: data.clientId,
@@ -406,112 +411,58 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
         (e: unknown) => console.error("[audit] export log failed", e),
       );
 
-    const incidentsQuery = includeAllIncidents
-      ? supabaseAdmin
-          .from("incidents")
-          .select("*")
-          .eq("user_id", data.clientId)
-          .is("deleted_at", null)
-          .order("date")
-      : supabaseAdmin
-          .from("incidents")
-          .select("*")
-          .eq("user_id", data.clientId)
-          .in(
-            "id",
-            scopeIncidents.length ? scopeIncidents : ["00000000-0000-0000-0000-000000000000"],
+    const records = await loadProfessionalExportRecords(
+      supabaseAdmin,
+      link,
+      data.clientId,
+    );
+    const { incidents, evidence, latestCase } = records;
+    const storageById = new Map(records.storageEvidence.map(row => [row.id, row]));
+    const eligibleIncidentIds = incidents.map((i) => String(i.id));
+    const incidentSet = new Set(eligibleIncidentIds);
+    const [rawComms, rawFlags, extras] = await Promise.all([
+      link.include_communications === true
+        ? readExportIds(
+            eligibleIncidentIds,
+            (chunk) =>
+              supabaseAdmin
+                .from("communications")
+                .select("*")
+                .eq("user_id", data.clientId)
+                .in("linked_incident_id", chunk),
+            "shared communications",
           )
-          .is("deleted_at", null)
-          .order("date");
-    const evidenceQuery = includeAllEvidence
-      ? supabaseAdmin
-          .from("evidence")
-          .select("*")
-          .eq("user_id", data.clientId)
-          .is("deleted_at", null)
-          .order("date")
-      : supabaseAdmin
-          .from("evidence")
-          .select("*")
-          .eq("user_id", data.clientId)
-          .in("id", scopeEvidence.length ? scopeEvidence : ["00000000-0000-0000-0000-000000000000"])
-          .is("deleted_at", null)
-          .order("date");
-
-    const [incRes, evRes, commsRes, paRes, casesRes, flagsRes] = await Promise.all([
-      incidentsQuery,
-      evidenceQuery,
-      // Only messages tied to a shared entry, and only with communications consent.
-      includeComms && scopeIncidents.length
-        ? supabaseAdmin
-            .from("communications")
+        : Promise.resolve([]),
+      readExportIds(
+        eligibleIncidentIds,
+        (chunk) =>
+          supabaseAdmin
+            .from("escalation_flags")
             .select("*")
             .eq("user_id", data.clientId)
-            .in("linked_incident_id", scopeIncidents)
-            .order("date")
-        : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
-      includePatterns
-        ? supabaseAdmin
-            .from("pattern_analyses")
-            .select("analysis,reviewed_status,created_at")
-            .eq("user_id", data.clientId)
-            .order("created_at", { ascending: false })
-            .limit(1)
-        : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
-      supabaseAdmin
-        .from("cases")
-        .select("*")
-        .eq("user_id", data.clientId)
-        .order("updated_at", { ascending: false })
-        .limit(1),
-      // Flags only for shared entries — otherwise they reveal unshared ones.
-      supabaseAdmin
-        .from("escalation_flags")
-        .select("*")
-        .eq("user_id", data.clientId)
-        .in("incident_id", flagIncidentIds)
-        .order("created_at"),
+            .in("incident_id", chunk),
+        "shared escalation flags",
+      ),
+      loadProfessionalExportExtras(
+        supabaseAdmin,
+        link,
+        data.clientId,
+        context.userId,
+        records,
+      ),
     ]);
-    const incidents = incRes.data ?? [];
-    // Quarantined GPS fields must never leave the survivor's own account —
-    // export-zip.functions.ts (the survivor's own export) already strips
-    // these; this attorney-facing packet previously did not, so EXIF GPS
-    // coordinates for every evidence item (not just ones the survivor opted
-    // to reveal) landed unfiltered in evidence.csv.
-    const evidence = (evRes.data ?? []).map((e) => {
-      const clone = { ...(e as Record<string, unknown>) };
-      delete clone.gps_lat;
-      delete clone.gps_lon;
-      delete clone.gps_reveal_opt_in;
-      return clone;
-    });
-    const comms = commsRes.data ?? [];
-    const latestAnalysis = paRes.data?.[0];
-    const latestCase = casesRes.data?.[0];
-    const flags = flagsRes.data ?? [];
-
-    // Attorney-side enrichments (reviews + doc requests). Scoped to this attorney+client.
-    const [reviewsRes, docReqRes] = await Promise.all([
-      supabaseAdmin
-        .from("attorney_evidence_reviews")
-        .select("evidence_id,status,exhibit_label,notes,linked_incident_id")
-        .eq("attorney_user_id", context.userId)
-        .eq("client_user_id", data.clientId),
-      supabaseAdmin
-        .from("attorney_document_requests")
-        .select("title,details,status,created_at,completed_at")
-        .eq("attorney_user_id", context.userId)
-        .eq("client_user_id", data.clientId)
-        .order("created_at"),
-    ]);
-    const reviews = (reviewsRes.data ?? []) as Array<{
-      evidence_id: string;
-      status: string;
-      exhibit_label: string | null;
-      notes: string | null;
-      linked_incident_id: string | null;
-    }>;
-    const docRequests = (docReqRes.data ?? []) as unknown as Array<Record<string, unknown>>;
+    const comms = rawComms.filter(
+      (row) =>
+        row.user_id === data.clientId &&
+        incidentSet.has(row.linked_incident_id),
+    );
+    const flags = rawFlags.filter(
+      (row) =>
+        row.user_id === data.clientId && incidentSet.has(row.incident_id),
+    );
+    // Global analyses do not carry reliable per-record/case provenance. Withhold,
+    // rather than imply that vault-wide conclusions concern only this snapshot.
+    const { reviews, docRequests } = extras;
     const reviewByEv = new Map(reviews.map((r) => [r.evidence_id, r]));
 
     // Attorney private notes — case-level + per-incident — only loaded if the toggle is on.
@@ -523,80 +474,79 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       reviewed: boolean;
     }> = [];
     if (data.includeAttorneyNotes) {
-      const [caseLinkRes, incNotesRes] = await Promise.all([
-        supabaseAdmin
-          .from("attorney_client_links")
-          .select("attorney_case_notes")
-          .eq("attorney_user_id", context.userId)
-          .eq("client_user_id", data.clientId)
-          .eq("status", "active")
-          .is("revoked_at", null)
-          .maybeSingle(),
-        supabaseAdmin
-          .from("attorney_incident_notes")
-          .select("incident_id,note,flagged,reviewed")
-          .eq("attorney_user_id", context.userId)
-          .eq("client_user_id", data.clientId),
+      const [caseLink, incNotes] = await Promise.all([
+        readExportOne(
+          supabaseAdmin
+            .from("attorney_client_links")
+            .select("attorney_case_notes")
+            .eq("id", link.id)
+            .eq("attorney_user_id", context.userId)
+            .eq("client_user_id", data.clientId)
+            .eq("status", "active")
+            .is("revoked_at", null),
+          "attorney case notes",
+        ),
+        readExportIds(
+          eligibleIncidentIds,
+          (chunk) =>
+            supabaseAdmin
+              .from("attorney_incident_notes")
+              .select("incident_id,note,flagged,reviewed")
+              .eq("attorney_user_id", context.userId)
+              .eq("client_user_id", data.clientId)
+              .eq("link_id", link.id)
+              .in("incident_id", chunk),
+          "attorney incident notes",
+        ),
       ]);
-      caseNote =
-        (caseLinkRes.data as { attorney_case_notes: string | null } | null)?.attorney_case_notes ??
-        "";
-      incidentNotes = (incNotesRes.data ?? []) as typeof incidentNotes;
+      if (!caseLink)
+        throw new Error("The authorized link is no longer available.");
+      caseNote = caseLink.attorney_case_notes ?? "";
+      incidentNotes = incNotes.filter((row) =>
+        incidentSet.has(row.incident_id),
+      ) as typeof incidentNotes;
     }
 
     const zip = new JSZip();
     const exportedAt = new Date().toISOString();
-    const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
+    const fileHashes: Array<{ path: string; sha256: string; bytes: number }> =
+      [];
 
-    zip.file("incidents.csv", toCsv(incidents as Array<Record<string, unknown>>));
-    zip.file("evidence.csv", toCsv(evidence as Array<Record<string, unknown>>));
-    zip.file("communications.csv", toCsv(comms as Array<Record<string, unknown>>));
-    zip.file("escalation_flags.csv", toCsv(flags as Array<Record<string, unknown>>));
-    // Pattern analysis JSON — survivor-review gated. Anything the survivor
-    // marked "rejected" (or left "unsure") is stripped before it can reach the
-    // packet; if nothing survives the gate the file is omitted entirely.
-    const { buildPatternExport } = await import("@/lib/pattern-export");
-    const gatedAnalysis = latestAnalysis
-      ? buildPatternExport(
-          (latestAnalysis as any).analysis,
-          (latestAnalysis as any).reviewed_status,
-        )
-      : null;
-    if (latestAnalysis && gatedAnalysis && Object.keys(gatedAnalysis.redactedAnalysis).length > 0) {
-      zip.file(
-        "pattern_analysis.json",
-        JSON.stringify(
-          {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            generated: (latestAnalysis as any).created_at,
-            analysis: gatedAnalysis.redactedAnalysis,
-            excluded_rejected_claims: gatedAnalysis.rejectedCount,
-            withheld_unsure_claims: gatedAnalysis.unsureCount,
-          },
-          null,
-          2,
-        ),
-      );
-    }
+    zip.file(
+      "incidents.csv",
+      toCsv(incidents.map(row => ({ ...row, ...professionalDateColumns(row, "incident") }))),
+    );
+    zip.file("evidence.csv", toCsv(evidence.map(row => ({ ...row, ...professionalDateColumns(row, "evidence") }))));
+    zip.file(
+      "communications.csv",
+      toCsv(comms as Array<Record<string, unknown>>),
+    );
+    zip.file(
+      "escalation_flags.csv",
+      toCsv(flags as Array<Record<string, unknown>>),
+    );
+    // Vault-wide pattern JSON intentionally omitted (no scoped provenance).
     if (latestCase) zip.file("case.json", JSON.stringify(latestCase, null, 2));
 
     const evFolder = zip.folder("evidence");
     await Promise.all(
       evidence.map(async (e: any) => {
-        if (!evFolder) return;
-        if (/^https?:\/\//i.test(e.file_url)) return;
-        const { data: blob } = await supabaseAdmin.storage
-          .from("evidence-files")
-          .download(e.file_url);
-        if (!blob) return;
-        const buf = await blob.arrayBuffer();
-        const ext = String(e.file_url).split(".").pop() || "bin";
-        const safe = `${e.date}_${String(e.id).slice(0, 8)}_${String(e.title)
-          .replace(/[^a-zA-Z0-9-_]+/g, "_")
-          .slice(0, 60)}.${ext}`;
+        if (!evFolder) throw new Error("Could not create evidence folder.");
+        const storageRecord = storageById.get(e.id);
+        if (!storageRecord) throw new Error("A shared evidence storage record is unavailable.");
+        const buf = await downloadProfessionalFile(
+          supabaseAdmin,
+          storageRecord,
+          data.clientId,
+        );
+        const safe = professionalEvidenceFilename(e);
         evFolder.file(safe, buf);
         const h = sha256(buf);
-        fileHashes.push({ path: `evidence/${safe}`, sha256: h, bytes: buf.byteLength });
+        fileHashes.push({
+          path: `evidence/${safe}`,
+          sha256: h,
+          bytes: buf.byteLength,
+        });
       }),
     );
 
@@ -639,44 +589,51 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       `6. Exhibit list — 06_exhibit_list.md`,
       `7. Legal correspondence — legal/doc_requests.csv`,
     ];
-    if (data.includeAttorneyNotes) toc.push(`8. Attorney notes — 07_attorney_notes.md`);
-    toc.push(``, `Raw data: incidents.csv, evidence.csv, communications.csv, escalation_flags.csv`);
-    toc.push(`Manifest: manifest.json (SHA-256 hashes for every evidence file)`);
+    if (data.includeAttorneyNotes)
+      toc.push(`8. Attorney notes — 07_attorney_notes.md`);
+    toc.push(
+      ``,
+      `Raw data: incidents.csv, evidence.csv, communications.csv, escalation_flags.csv`,
+    );
+    toc.push(
+      `Manifest: manifest.json (SHA-256 hashes for every evidence file)`,
+    );
     zip.file("01_table_of_contents.md", toc.join("\n"));
 
     // 02_pattern_summary.md
     const patternLines: string[] = [`# Pattern Summary`, ``];
-    if (latestAnalysis && gatedAnalysis) {
-      const gated = gatedAnalysis;
-      patternLines.push(`_Generated: ${(latestAnalysis as any).created_at}_`, ``);
-      if (gated.lines.length) patternLines.push(...gated.lines);
-      else
-        patternLines.push(
-          `_No AI-suggested pattern content has been confirmed by the survivor for inclusion._`,
-          ``,
-        );
-    } else {
-      patternLines.push(`_No pattern analysis on file._`);
-    }
+    patternLines.push(
+      `_Vault-wide pattern analysis withheld: this package cannot verify record-level provenance for the authorized, confirmed snapshot._`,
+    );
     zip.file("02_pattern_summary.md", patternLines.join("\n"));
 
     // 03_timeline.md grouped by month
     const byMonth = new Map<string, any[]>();
     (incidents as any[]).forEach((i) => {
-      const m = String(i.date ?? "").slice(0, 7) || "undated";
+      const precision = i.date_precision ?? "exact";
+      const m = ["exact", "approximate", "approximate_month"].includes(precision)
+        ? String(i.date ?? "").slice(0, 7) || "undated" : "date uncertain";
       if (!byMonth.has(m)) byMonth.set(m, []);
       byMonth.get(m)!.push(i);
     });
     const months = Array.from(byMonth.keys()).sort();
-    const tl: string[] = [`# Incident Timeline`, ``, `${incidents.length} incidents on file.`, ``];
+    const tl: string[] = [
+      `# Incident Timeline`,
+      ``,
+      `${incidents.length} incidents on file.`,
+      ``,
+    ];
     months.forEach((m) => {
       tl.push(`## ${m}`, ``);
       byMonth.get(m)!.forEach((i: any) => {
-        const types = Array.isArray(i.abuse_types) ? i.abuse_types.join(", ") : "";
+        const types = Array.isArray(i.abuse_types)
+          ? i.abuse_types.join(", ")
+          : "";
         tl.push(
-          `- **${i.date}${i.time ? " " + i.time : ""}** — ${i.location ?? ""}${types ? ` _(${types})_` : ""}`,
+          `- **${formatIncidentDate(i)}${i.time ? " " + i.time : ""}** — ${i.location ?? ""}${types ? ` _(${types})_` : ""}`,
         );
-        if (i.description) tl.push(`  - ${String(i.description).replace(/\n+/g, " ")}`);
+        if (i.description)
+          tl.push(`  - ${String(i.description).replace(/\n+/g, " ")}`);
         if (i.witnesses) tl.push(`  - _Witnesses:_ ${i.witnesses}`);
       });
       tl.push(``);
@@ -684,7 +641,12 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     zip.file("03_timeline.md", tl.join("\n"));
 
     // 04_escalation.md
-    const esc: string[] = [`# Escalation Flags`, ``, `${flags.length} flags raised.`, ``];
+    const esc: string[] = [
+      `# Escalation Flags`,
+      ``,
+      `${flags.length} flags raised.`,
+      ``,
+    ];
     (flags as any[]).forEach((f) => {
       esc.push(
         `- **${f.created_at?.slice(0, 10) ?? ""}** — ${f.severity ?? "flag"}: ${f.summary ?? f.description ?? ""}`,
@@ -697,7 +659,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       const r = reviewByEv.get(e.id);
       return {
         exhibit_label: r?.exhibit_label ?? "",
-        date: e.date ?? "",
+        ...professionalDateColumns(e, "evidence"),
         title: e.title ?? "",
         file_type: e.file_type ?? "",
         review_status: r?.status ?? "unreviewed",
@@ -711,20 +673,27 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     // 06_exhibit_list.md (only items the attorney marked with an exhibit label or candidate status)
     const exhibits = (evidence as any[])
       .map((e) => ({ e, r: reviewByEv.get(e.id) }))
-      .filter(({ r }) => r && (r.exhibit_label || r.status === "exhibit_candidate"))
+      .filter(
+        ({ r }) => r && (r.exhibit_label || r.status === "exhibit_candidate"),
+      )
       .sort((a, b) =>
-        String(a.r?.exhibit_label ?? "").localeCompare(String(b.r?.exhibit_label ?? "")),
+        String(a.r?.exhibit_label ?? "").localeCompare(
+          String(b.r?.exhibit_label ?? ""),
+        ),
       );
     const exLines: string[] = [`# Exhibit List`, ``];
     if (exhibits.length === 0) {
       exLines.push(`_No exhibits tagged yet._`);
     } else {
       exhibits.forEach(({ e, r }) => {
-        exLines.push(`### ${r?.exhibit_label || "Candidate"} — ${e.title ?? ""}`);
-        exLines.push(`- **Date:** ${e.date ?? "—"}`);
+        exLines.push(
+          `### ${r?.exhibit_label || "Candidate"} — ${e.title ?? ""}`,
+        );
+        exLines.push(`- **Date:** ${formatEvidenceDate(e)}`);
         exLines.push(`- **Type:** ${e.file_type ?? "—"}`);
         if (e.description) exLines.push(`- **Description:** ${e.description}`);
-        if (r?.linked_incident_id) exLines.push(`- **Tied to incident:** ${r.linked_incident_id}`);
+        if (r?.linked_incident_id)
+          exLines.push(`- **Tied to incident:** ${r.linked_incident_id}`);
         exLines.push(``);
       });
     }
@@ -735,12 +704,17 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     legalFolder?.file("doc_requests.csv", toCsv(docRequests));
 
     // time_summary.csv — attorney-logged time entries (billable + total)
-    const { data: timeRows } = await supabaseAdmin
-      .from("time_entries")
-      .select("entry_date,minutes,billable,description,attorney_user_id,created_at")
-      .eq("case_link_id", link.id)
-      .order("entry_date", { ascending: true });
-    const timeEntries = (timeRows ?? []) as Array<{
+    const timeRows = await readExportRows(
+      () =>
+        supabaseAdmin
+          .from("time_entries")
+          .select(
+            "entry_date,minutes,billable,description,attorney_user_id,created_at",
+          )
+          .eq("case_link_id", link.id),
+      "time entries",
+    );
+    const timeEntries = timeRows as Array<{
       entry_date: string;
       minutes: number;
       billable: boolean;
@@ -752,15 +726,17 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
     const billableMinutes = timeEntries
       .filter((r) => r.billable)
       .reduce((s, r) => s + (r.minutes ?? 0), 0);
-    const summaryRows: Array<Record<string, unknown>> = timeEntries.map((r) => ({
-      entry_date: r.entry_date,
-      minutes: r.minutes,
-      hours: (r.minutes / 60).toFixed(2),
-      billable: r.billable ? "yes" : "no",
-      description: r.description,
-      attorney_user_id: r.attorney_user_id,
-      logged_at: r.created_at,
-    }));
+    const summaryRows: Array<Record<string, unknown>> = timeEntries.map(
+      (r) => ({
+        entry_date: r.entry_date,
+        minutes: r.minutes,
+        hours: (r.minutes / 60).toFixed(2),
+        billable: r.billable ? "yes" : "no",
+        description: r.description,
+        attorney_user_id: r.attorney_user_id,
+        logged_at: r.created_at,
+      }),
+    );
     summaryRows.push({
       entry_date: "TOTAL",
       minutes: totalMinutes,
@@ -793,12 +769,16 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       } else {
         flaggedIncidentNotes.forEach((n) => {
           const inc = (incidents as any[]).find((i) => i.id === n.incident_id);
-          const date = inc?.date ?? "—";
-          notesLines.push(`### ${date} — incident ${String(n.incident_id).slice(0, 8)}`);
+          const date = inc ? formatIncidentDate(inc) : "Date not documented";
+          notesLines.push(
+            `### ${date} — incident ${String(n.incident_id).slice(0, 8)}`,
+          );
           if (n.flagged) notesLines.push(`- **Flagged for follow-up**`);
           if (n.reviewed) notesLines.push(`- **Reviewed**`);
           if (inc?.description)
-            notesLines.push(`- _Summary:_ ${String(inc.description).slice(0, 220)}`);
+            notesLines.push(
+              `- _Summary:_ ${String(inc.description).slice(0, 220)}`,
+            );
           if (n.note) notesLines.push(`- **Note:** ${n.note}`);
           notesLines.push(``);
         });
@@ -811,7 +791,9 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       } else {
         evidenceNotes.forEach((r) => {
           const ev = (evidence as any[]).find((e) => e.id === r.evidence_id);
-          notesLines.push(`### ${r.exhibit_label || ev?.title || r.evidence_id.slice(0, 8)}`);
+          notesLines.push(
+            `### ${r.exhibit_label || ev?.title || r.evidence_id.slice(0, 8)}`,
+          );
           notesLines.push(`- **Status:** ${r.status}`);
           notesLines.push(`- **Note:** ${r.notes}`);
           notesLines.push(``);
@@ -844,18 +826,35 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
       ),
     );
 
-    const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+    const zipBuf = await zip.generateAsync({
+      type: "uint8array",
+      compression: "DEFLATE",
+    });
     const ts = exportedAt.replace(/[:.]/g, "-");
     const objectPath = `${context.userId}/professional-review-packet-${data.clientId}-${ts}.zip`;
-    const up = await supabaseAdmin.storage.from("exports").upload(objectPath, zipBuf, {
-      contentType: "application/zip",
-      upsert: false,
-    });
-    if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
+    await assertProfessionalExportStillCurrent(
+      supabaseAdmin,
+      context.userId,
+      data.clientId,
+      link,
+      records,
+    );
+    const up = await supabaseAdmin.storage
+      .from("exports")
+      .upload(objectPath, zipBuf, {
+        contentType: "application/zip",
+        upsert: false,
+      });
+    if (up.error)
+      return {
+        ok: false as const,
+        reason: `upload-failed: ${up.error.message}`,
+      };
     const signed = await supabaseAdmin.storage
       .from("exports")
       .createSignedUrl(objectPath, PROFESSIONAL_LINK_TTL_SECONDS);
-    if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
+    if (signed.error || !signed.data?.signedUrl)
+      return { ok: false as const, reason: "sign-failed" as const };
     return {
       ok: true as const,
       url: signed.data.signedUrl,
@@ -868,22 +867,29 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
 
 export const generateCaseManagementPackage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
+  .inputValidator((input) =>
+    z.object({ clientId: z.string().uuid() }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const ent = await isAttorneyEntitled(context.userId, data.clientId);
-    if (!ent.entitled) return { ok: false as const, reason: "paywall" as const };
+    if (!ent.entitled)
+      return { ok: false as const, reason: "paywall" as const };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
 
     const access = await import("@/lib/attorney-access.server");
     let link: Awaited<ReturnType<typeof access.assertLink>>;
     try {
-      link = await access.assertLink(supabaseAdmin, context.userId, data.clientId);
+      link = await access.assertLink(
+        supabaseAdmin,
+        context.userId,
+        data.clientId,
+      );
     } catch {
       return { ok: false as const, reason: "no-active-link" as const };
     }
 
-    const includeAllIncidents = link.include_all_incidents === true;
     await supabaseAdmin
       .rpc("record_audit_event", {
         p_user_id: data.clientId,
@@ -896,87 +902,30 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
         () => undefined,
         (e: unknown) => console.error("[audit] export log failed", e),
       );
-    const includeAllEvidence = link.include_all_evidence === true;
-    const scopeIncidents = (link.scope_incidents as string[] | null) ?? [];
-    const scopeEvidence = (link.scope_evidence as string[] | null) ?? [];
-
-    const incidentsQuery = includeAllIncidents
-      ? supabaseAdmin
-          .from("incidents")
-          .select("*")
-          .eq("user_id", data.clientId)
-          .is("deleted_at", null)
-          .order("date")
-      : supabaseAdmin
-          .from("incidents")
-          .select("*")
-          .eq("user_id", data.clientId)
-          .in(
-            "id",
-            scopeIncidents.length ? scopeIncidents : ["00000000-0000-0000-0000-000000000000"],
-          )
-          .is("deleted_at", null)
-          .order("date");
-    const evidenceQuery = includeAllEvidence
-      ? supabaseAdmin
-          .from("evidence")
-          .select("*")
-          .eq("user_id", data.clientId)
-          .is("deleted_at", null)
-          .order("date")
-      : supabaseAdmin
-          .from("evidence")
-          .select("*")
-          .eq("user_id", data.clientId)
-          .in("id", scopeEvidence.length ? scopeEvidence : ["00000000-0000-0000-0000-000000000000"])
-          .is("deleted_at", null)
-          .order("date");
-
-    const [incRes, evRes, casesRes, reviewsRes, docReqRes, attorneyProfileRes] = await Promise.all([
-      incidentsQuery,
-      evidenceQuery,
-      supabaseAdmin
-        .from("cases")
-        .select("*")
-        .eq("user_id", data.clientId)
-        .order("updated_at", { ascending: false })
-        .limit(1),
-      supabaseAdmin
-        .from("attorney_evidence_reviews")
-        .select("evidence_id,status,exhibit_label,notes,linked_incident_id")
-        .eq("attorney_user_id", context.userId)
-        .eq("client_user_id", data.clientId),
-      supabaseAdmin
-        .from("attorney_document_requests")
-        .select("title,details,status,created_at,completed_at")
-        .eq("attorney_user_id", context.userId)
-        .eq("client_user_id", data.clientId)
-        .order("created_at"),
-      supabaseAdmin
-        .from("attorney_profiles")
-        .select("full_name,firm_name,email,bar_number,jurisdiction")
-        .eq("user_id", context.userId)
-        .maybeSingle(),
+    const records = await loadProfessionalExportRecords(
+      supabaseAdmin,
+      link,
+      data.clientId,
+    );
+    const { incidents, evidence, latestCase } = records;
+    const storageById = new Map(records.storageEvidence.map(row => [row.id, row]));
+    const [extras, attorney] = await Promise.all([
+      loadProfessionalExportExtras(
+        supabaseAdmin,
+        link,
+        data.clientId,
+        context.userId,
+        records,
+      ),
+      readExportOne(
+        supabaseAdmin
+          .from("attorney_profiles")
+          .select("full_name,firm_name,email,bar_number,jurisdiction")
+          .eq("user_id", context.userId),
+        "attorney profile",
+      ),
     ]);
-
-    const incidents = (incRes.data ?? []) as Array<Record<string, unknown>>;
-    const evidence = (evRes.data ?? []) as Array<Record<string, unknown>>;
-    const latestCase = casesRes.data?.[0] as Record<string, unknown> | undefined;
-    const reviews = (reviewsRes.data ?? []) as Array<{
-      evidence_id: string;
-      status: string;
-      exhibit_label: string | null;
-      notes: string | null;
-      linked_incident_id: string | null;
-    }>;
-    const docRequests = (docReqRes.data ?? []) as Array<Record<string, unknown>>;
-    const attorney = attorneyProfileRes.data as {
-      full_name?: string;
-      firm_name?: string;
-      email?: string;
-      bar_number?: string;
-      jurisdiction?: string;
-    } | null;
+    const { reviews, docRequests } = extras;
     const reviewByEv = new Map(reviews.map((r) => [r.evidence_id, r]));
 
     const exportedAt = new Date().toISOString();
@@ -1063,10 +1012,12 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
 
     // events.csv — each incident as a matter note
     const events = incidents.map((i) => {
-      const types = Array.isArray(i.abuse_types) ? (i.abuse_types as string[]).join(", ") : "";
+      const types = Array.isArray(i.abuse_types)
+        ? (i.abuse_types as string[]).join(", ")
+        : "";
       return {
         matter_reference: caseShort,
-        date: (i.date as string) ?? "",
+        ...professionalDateColumns(i, "incident"),
         time: (i.time as string) ?? "",
         category: types || "Incident",
         location: (i.location as string) ?? "",
@@ -1082,39 +1033,40 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
 
     // documents.csv — document index
     const docFolder = zip.folder("documents");
-    const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
+    const fileHashes: Array<{ path: string; sha256: string; bytes: number }> =
+      [];
     const docRows: Array<Record<string, unknown>> = [];
 
     await Promise.all(
       evidence.map(async (e) => {
         const r = reviewByEv.get(e.id as string);
         const exhibit = r?.exhibit_label ?? "";
-        const baseName = `${(e.date as string) ?? "undated"}_${String(e.id).slice(0, 8)}_${String(
-          e.title ?? "evidence",
-        )
-          .replace(/[^a-zA-Z0-9-_]+/g, "_")
-          .slice(0, 60)}`;
-        let storedPath = "";
-        if (docFolder && !/^https?:\/\//i.test(String(e.file_url))) {
-          const { data: blob } = await supabaseAdmin.storage
-            .from("evidence-files")
-            .download(String(e.file_url));
-          if (blob) {
-            const buf = await blob.arrayBuffer();
-            const ext = String(e.file_url).split(".").pop() || "bin";
-            storedPath = `documents/${baseName}.${ext}`;
-            docFolder.file(`${baseName}.${ext}`, buf);
-            fileHashes.push({ path: storedPath, sha256: sha256(buf), bytes: buf.byteLength });
-          }
-        }
+        if (!docFolder) throw new Error("Could not create document folder.");
+        const name = professionalEvidenceFilename(e);
+        const storageRecord = storageById.get(e.id);
+        if (!storageRecord) throw new Error("A shared evidence storage record is unavailable.");
+        const buf = await downloadProfessionalFile(
+          supabaseAdmin,
+          storageRecord,
+          data.clientId,
+        );
+        const storedPath = `documents/${name}`;
+        docFolder.file(name, buf);
+        fileHashes.push({
+          path: storedPath,
+          sha256: sha256(buf),
+          bytes: buf.byteLength,
+        });
         docRows.push({
           matter_reference: caseShort,
-          document_name: exhibit ? `${exhibit} — ${e.title ?? ""}` : ((e.title as string) ?? ""),
-          date: (e.date as string) ?? "",
+          document_name: exhibit
+            ? `${exhibit} — ${e.title ?? ""}`
+            : ((e.title as string) ?? ""),
+          ...professionalDateColumns(e, "evidence"),
           category: r?.status ?? "evidence",
           file_path: storedPath,
           description: (e.description as string) ?? "",
-          source_url: /^https?:\/\//i.test(String(e.file_url)) ? String(e.file_url) : "",
+          source_url: "",
           attorney_notes: r?.notes ?? "",
         });
       }),
@@ -1157,18 +1109,35 @@ export const generateCaseManagementPackage = createServerFn({ method: "POST" })
       ),
     );
 
-    const zipBuf = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+    const zipBuf = await zip.generateAsync({
+      type: "uint8array",
+      compression: "DEFLATE",
+    });
     const ts = exportedAt.replace(/[:.]/g, "-");
     const objectPath = `${context.userId}/case-package-${data.clientId}-${ts}.zip`;
-    const up = await supabaseAdmin.storage.from("exports").upload(objectPath, zipBuf, {
-      contentType: "application/zip",
-      upsert: false,
-    });
-    if (up.error) return { ok: false as const, reason: `upload-failed: ${up.error.message}` };
+    await assertProfessionalExportStillCurrent(
+      supabaseAdmin,
+      context.userId,
+      data.clientId,
+      link,
+      records,
+    );
+    const up = await supabaseAdmin.storage
+      .from("exports")
+      .upload(objectPath, zipBuf, {
+        contentType: "application/zip",
+        upsert: false,
+      });
+    if (up.error)
+      return {
+        ok: false as const,
+        reason: `upload-failed: ${up.error.message}`,
+      };
     const signed = await supabaseAdmin.storage
       .from("exports")
       .createSignedUrl(objectPath, PROFESSIONAL_LINK_TTL_SECONDS);
-    if (!signed.data?.signedUrl) return { ok: false as const, reason: "sign-failed" as const };
+    if (signed.error || !signed.data?.signedUrl)
+      return { ok: false as const, reason: "sign-failed" as const };
     return {
       ok: true as const,
       url: signed.data.signedUrl,

@@ -1,4 +1,4 @@
-import type { BinderEntry } from "@/lib/binder";
+import { formatBinderDate, type BinderEntry } from "@/lib/binder";
 
 /**
  * The full exhibit pages of a binder. Shared by the attorney's binder and the
@@ -23,7 +23,7 @@ function BinderRow({ entry }: { entry: BinderEntry }) {
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {entry.exhibit} · {entry.label}
         </span>
-        <span className="text-xs text-muted-foreground">{entry.date ?? "Date not given"}</span>
+        <span className="text-xs text-muted-foreground">{formatBinderDate(entry)}</span>
       </div>
       <h3 className="mt-1 font-medium">{entry.title}</h3>
       {entry.body && <p className="mt-2 whitespace-pre-wrap text-sm">{entry.body}</p>}
