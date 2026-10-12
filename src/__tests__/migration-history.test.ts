@@ -28,6 +28,10 @@ describe("reconciled custom migration history", () => {
       ["0013_preserve_unfinished_entries", "20261011174000_preserve_unfinished_entries"],
       ["0014_signup_alert_outbox", "20261011175000_signup_alert_outbox"],
       ["0015_atomic_attorney_billing", "20261011180000_atomic_attorney_billing"],
+      [
+        "0016_attorney_annotation_grant_boundaries",
+        "20261012020454_attorney_annotation_grant_boundaries",
+      ],
     ]) {
       expect(readFileSync(`drizzle/migrations/${drizzle}.sql`, "utf8")).toBe(
         readFileSync(`supabase/migrations/${supabase}.sql`, "utf8"),
