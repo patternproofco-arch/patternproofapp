@@ -50,9 +50,11 @@ export const createAdvocateInvitation = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const hasInc =
-      data.include_all_incidents || (Array.isArray(data.scope_incidents) && data.scope_incidents.length > 0);
+      data.include_all_incidents ||
+      (Array.isArray(data.scope_incidents) && data.scope_incidents.length > 0);
     const hasEv =
-      data.include_all_evidence || (Array.isArray(data.scope_evidence) && data.scope_evidence.length > 0);
+      data.include_all_evidence ||
+      (Array.isArray(data.scope_evidence) && data.scope_evidence.length > 0);
     if (!hasInc && !hasEv && !data.include_patterns && !data.case_id) {
       throw new Error("Choose at least one thing to share before sending this invite.");
     }
@@ -158,17 +160,30 @@ export const listMyAdvocateAccess = createServerFn({ method: "GET" })
     const { data: profiles } = advocateIds.length
       ? await supabaseAdmin
           .from("advocate_profiles")
-          .select("user_id,full_name,org_name,email")
+          .select("user_id,full_name,org_name")
           .in("user_id", advocateIds)
       : {
           data: [] as Array<{
             user_id: string;
             full_name: string;
             org_name: string | null;
-            email: string;
           }>,
         };
-    const profMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+    // The survivor matches and sees the advocate's CONFIRMED account email, never
+    // the profile copy.
+    const { confirmedAuthEmails } = await import("@/lib/verified-email.server");
+    const verified = await confirmedAuthEmails(supabaseAdmin, advocateIds);
+    const profMap = new Map(
+      (profiles ?? []).map((p) => [
+        p.user_id,
+        {
+          user_id: p.user_id,
+          full_name: p.full_name,
+          org_name: p.org_name,
+          verified_email: verified.get(p.user_id) ?? null,
+        },
+      ]),
+    );
 
     const caseIds = Array.from(
       new Set([
@@ -313,7 +328,9 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "advocate" }, { onConflict: "user_id,role" });
-    await (await import("@/lib/signup-notify.server")).notifyNewSignup({
+    await (
+      await import("@/lib/signup-notify.server")
+    ).notifyNewSignup({
       userId: context.userId,
       role: "advocate",
     });
@@ -566,7 +583,8 @@ export const getAdvocateCase = createServerFn({ method: "POST" })
 
     // GPS stays quarantined — it never leaves the survivor's own view. File
     // locations are stripped too: the advocate view is metadata-only.
-    const { evidenceForProfessional, incidentForProfessional } = await import("@/lib/professional-view");
+    const { evidenceForProfessional, incidentForProfessional } =
+      await import("@/lib/professional-view");
     const evidence = (evQ.data ?? []).map((e) => ({
       ...evidenceForProfessional(e),
       gps_lat: null,
@@ -659,7 +677,9 @@ export const completeAdvocateOnboarding = createServerFn({ method: "POST" })
       .object({
         full_name: z.string().trim().min(1).max(120),
         org_name: z.string().trim().max(200).optional().nullable(),
-        email: z.string().email().max(255),
+        // Accepted for older clients and ignored: the profile email is always the
+        // confirmed account email.
+        email: z.string().max(255).optional(),
         confidentiality_accepted: z.literal(true),
       })
       .parse(input),
@@ -673,13 +693,15 @@ export const completeAdvocateOnboarding = createServerFn({ method: "POST" })
       .eq("role", "advocate")
       .maybeSingle();
     if (!role) throw new Error("This area is for advocates.");
+    const { requireConfirmedAuthEmail } = await import("@/lib/verified-email.server");
+    const email = await requireConfirmedAuthEmail(supabaseAdmin, context.userId);
 
     const { error } = await supabaseAdmin.from("advocate_profiles").upsert(
       {
         user_id: context.userId,
         full_name: data.full_name,
         org_name: data.org_name?.trim() || null,
-        email: data.email.trim().toLowerCase(),
+        email,
         onboarded: true,
         updated_at: new Date().toISOString(),
       },

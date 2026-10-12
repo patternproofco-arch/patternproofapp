@@ -65,7 +65,6 @@ function LawyerSignup() {
           firm_name: firm || null,
           bar_number: bar || null,
           jurisdiction: jur || null,
-          email: user.email ?? email,
         },
       });
       toast("Saved. One last step to open the portal.");

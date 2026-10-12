@@ -128,7 +128,7 @@ function ShareWithAttorney() {
     if (!want || !data) return null;
     return (
       data.links.find(
-        (l) => l.status === "active" && (l.profile?.email ?? "").toLowerCase() === want,
+        (l) => l.status === "active" && (l.profile?.verified_email ?? "").toLowerCase() === want,
       ) ?? null
     );
   })();
@@ -549,7 +549,7 @@ function ShareWithAttorney() {
                   </div>
                   <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
                     {l.profile?.firm_name && `${l.profile.firm_name} · `}
-                    {l.profile?.email}
+                    {l.profile?.verified_email}
                   </div>
                   <div className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
                     linked {new Date(l.created_at).toLocaleDateString()}

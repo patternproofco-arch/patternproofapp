@@ -131,17 +131,27 @@ export const upsertAttorneyProfile = createServerFn({ method: "POST" })
         firm_name: z.string().trim().max(200).optional().nullable(),
         bar_number: z.string().trim().max(60).optional().nullable(),
         jurisdiction: z.string().trim().max(120).optional().nullable(),
-        email: z.string().email().max(255),
+        // Accepted for older clients and ignored: the profile email is always the
+        // confirmed account email.
+        email: z.string().max(255).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await assertAttorney(context.userId);
+    const { requireConfirmedAuthEmail } = await import("@/lib/verified-email.server");
+    const email = await requireConfirmedAuthEmail(supabaseAdmin, context.userId);
     // firm_name is profile text only. Joining a firm requires a verified invitation.
-    const { error } = await supabaseAdmin
-      .from("attorney_profiles")
-      .upsert({ user_id: context.userId, ...data, updated_at: new Date().toISOString() });
+    const { error } = await supabaseAdmin.from("attorney_profiles").upsert({
+      user_id: context.userId,
+      full_name: data.full_name,
+      firm_name: data.firm_name ?? null,
+      bar_number: data.bar_number ?? null,
+      jurisdiction: data.jurisdiction ?? null,
+      email,
+      updated_at: new Date().toISOString(),
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -152,7 +162,8 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
     z
       .object({
         full_name: z.string().trim().min(1).max(120),
-        email: z.string().email().max(255),
+        // Accepted for older clients and ignored (see below).
+        email: z.string().max(255).optional(),
         firm_name: z.string().trim().max(200).optional().nullable(),
         bar_number: z.string().trim().max(60).optional().nullable(),
         jurisdiction: z.string().trim().max(120).optional().nullable(),
@@ -164,11 +175,14 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await assertAttorney(context.userId);
+    // The profile email is the CONFIRMED account email from auth, never the form value.
+    const { requireConfirmedAuthEmail } = await import("@/lib/verified-email.server");
+    const verifiedEmail = await requireConfirmedAuthEmail(supabaseAdmin, context.userId);
     // firm_name is profile text only. Joining a firm requires a verified invitation.
     const { error } = await supabaseAdmin.from("attorney_profiles").upsert({
       user_id: context.userId,
       full_name: data.full_name,
-      email: data.email,
+      email: verifiedEmail,
       firm_name: data.firm_name ?? null,
       bar_number: data.bar_number ?? null,
       jurisdiction: data.jurisdiction ?? null,
@@ -181,7 +195,10 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
 
     // Founding-nine trial: the first nine attorneys who finish setup get 90
     // days of full portal access. Internal test accounts are comped and don't
-    // take one of the nine spots.
+    // take one of the nine spots. The comp decision uses the VERIFIED account
+    // email from auth (confirmed address only), never the email typed into the
+    // form. Trial fields are written only here, with the server role; the
+    // database refuses them from a user session (20261011210000).
     const { data: profile } = await supabaseAdmin
       .from("attorney_profiles")
       .select("trial_ends_at")
@@ -189,7 +206,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!profile?.trial_ends_at) {
-      const comped = data.email.trim().toLowerCase().endsWith("@patternproof.test");
+      const comped = verifiedEmail.endsWith("@patternproof.test");
       let eligible = comped;
       if (!comped) {
         const { count } = await supabaseAdmin
@@ -202,15 +219,29 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
       if (eligible) {
         const now = new Date();
         const ends = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-        await supabaseAdmin
+        const { data: started, error: trialError } = await supabaseAdmin
           .from("attorney_profiles")
           .update({
             trial_started_at: now.toISOString(),
             trial_ends_at: ends.toISOString(),
             trial_comped: comped,
           })
-          .eq("user_id", context.userId);
-        return { ok: true, trial_ends_at: ends.toISOString() };
+          .eq("user_id", context.userId)
+          .is("trial_ends_at", null)
+          .select("user_id");
+        if (trialError) throw new Error("Could not start your trial. Try again in a moment.");
+        if (started && started.length > 0) {
+          await (supabaseAdmin as any).rpc("record_audit_event", {
+            p_user_id: context.userId,
+            p_event_type: "attorney_trial_started",
+            p_subject_kind: "attorney_profiles",
+            p_subject_id: context.userId,
+            p_actor_kind: "system",
+            p_actor_id: null,
+            p_meta: { source: "onboarding", comped, trial_ends_at: ends.toISOString() },
+          });
+          return { ok: true, trial_ends_at: ends.toISOString() };
+        }
       }
     }
 

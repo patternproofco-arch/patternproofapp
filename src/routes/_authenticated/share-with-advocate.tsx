@@ -95,7 +95,7 @@ function ShareWithAdvocate() {
     if (!want || !data) return null;
     return (
       (data.links ?? []).find(
-        (l) => l.status === "active" && (l.profile?.email ?? "").toLowerCase() === want,
+        (l) => l.status === "active" && (l.profile?.verified_email ?? "").toLowerCase() === want,
       ) ?? null
     );
   })();
