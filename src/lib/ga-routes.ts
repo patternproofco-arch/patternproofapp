@@ -1,31 +1,40 @@
 /**
  * Which pages may be counted by analytics.
  *
- * Only the public site (home, pricing, how it works, the legal pages). Nothing a signed-in person
- * does, and nothing reached through a private invitation or review link, is reported, not even the
- * name of the page: that someone opened the court-packet or sharing screen is theirs to keep.
+ * ALLOWLIST (fail closed): only the public marketing and legal pages listed
+ * in public-routes.ts. Nothing a signed-in person does, and nothing reached
+ * through a private invitation, review, prep, org, demo, or recovery link, is
+ * reported — not even the name of the page. Any route that is not on the
+ * allowlist, including routes added in the future, is non-reportable.
  */
-const PRIVATE_PREFIXES = ["/_authenticated", "/_attorney", "/_advocate"];
-const PRIVATE_FRAGMENTS = [
-  // Fictional /demo/* sub-portals (route ids "/demo_/attorney", "/demo_/org", "/demo_/prep").
-  // Not reported at all, so nothing typed in a demo practice box can reach analytics.
-  "/demo_",
-  "invite",
-  "$token",
-  "/capture",
-  "/intake",
-  "/prep",
-  "/mfa",
-  "/reset-password",
-  "/forgot-password",
-  "/review",
-  "/org-portal",
-  "/connect",
-  "/auth",
-];
+import { isPublicMarketingPath, stripToPathname } from "@/lib/public-routes";
 
-export function isReportableRoute(routeId: string): boolean {
-  if (PRIVATE_PREFIXES.some((p) => routeId.startsWith(p))) return false;
-  if (PRIVATE_FRAGMENTS.some((f) => routeId.includes(f))) return false;
-  return true;
+/**
+ * Fictional /demo/* sub-portals (route ids "/demo_/attorney", "/demo_/org", "/demo_/prep"; paths
+ * "/demo/attorney" …) are never reportable, even if someone later adds one to the allowlist, so
+ * nothing typed in a demo practice box can reach analytics. Defense in depth on top of the allowlist.
+ */
+export function isDemoRoute(routeIdOrPath: string): boolean {
+  const p = stripToPathname(routeIdOrPath);
+  return p === "/demo" || p.startsWith("/demo/") || p.startsWith("/demo_");
 }
+
+export { PUBLIC_MARKETING_PATHS as GA_REPORTABLE_PATHS } from "@/lib/public-routes";
+
+/** Route id (e.g. "/pricing", "/_authenticated/journal") → reportable? */
+export function isReportableRoute(routeId: string): boolean {
+  if (typeof routeId !== "string" || routeId.length === 0) return false;
+  // Route ids never carry a query string; refuse anything that looks odd
+  // rather than normalising it into a match.
+  if (/[?#]/.test(routeId)) return false;
+  if (isDemoRoute(routeId)) return false;
+  return isPublicMarketingPath(routeId);
+}
+
+/** Browser pathname (may include a query string) → reportable? */
+export function isReportablePath(pathname: string): boolean {
+  if (isDemoRoute(pathname)) return false;
+  return isPublicMarketingPath(pathname);
+}
+
+export { stripToPathname };

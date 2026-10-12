@@ -1,3 +1,4 @@
+import { pickPaidSubscription } from "@/lib/subscription-state";
 import { toSafeCsv } from "@/lib/csv-safe";
 import { assertSafeReturnUrl } from "@/lib/return-url";
 import { createServerFn } from "@tanstack/react-start";
@@ -211,23 +212,24 @@ export const getMySubscription = createServerFn({ method: "POST" })
   .inputValidator((data: { environment: StripeEnv }) => data)
   .handler(async ({ data, context }): Promise<{ subscription: SubRow }> => {
     const { supabase, userId } = context;
-    const { data: row } = await supabase
+    const { data: rows, error: readError } = await supabase
       .from("subscriptions")
       .select("status, price_id, current_period_end, cancel_at_period_end")
       .eq("user_id", userId)
       .eq("environment", data.environment)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (row) return { subscription: row as SubRow };
+      .order("created_at", { ascending: false });
+    if (readError) throw new Error("Could not verify subscriptions.");
+    const paid = pickPaidSubscription((rows ?? []) as NonNullable<SubRow>[]);
+    if (paid) return { subscription: paid };
 
-    // No Stripe subscription — surface an active founding-nine trial so the
+    // Without a paid plan, surface an active founding-nine trial so the
     // portal opens for them the same way a paid plan does.
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("attorney_profiles")
       .select("trial_ends_at")
       .eq("user_id", userId)
       .maybeSingle();
+    if (profileError) throw new Error("Could not verify the founding trial.");
     if (profile?.trial_ends_at && new Date(profile.trial_ends_at).getTime() > Date.now()) {
       return {
         subscription: {
@@ -238,7 +240,7 @@ export const getMySubscription = createServerFn({ method: "POST" })
         } as SubRow,
       };
     }
-    return { subscription: null };
+    return { subscription: (rows?.[0] as SubRow) ?? null };
   });
 
 /**
@@ -319,44 +321,13 @@ export async function isAttorneyEntitled(
   clientId: string,
 ): Promise<{ entitled: boolean; reason: "free" | "subscribed" | "paywall" }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: sub } = await supabaseAdmin
-    .from("subscriptions")
-    .select("status,current_period_end,price_id")
-    .eq("user_id", attorneyId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (sub) {
-    const end = sub.current_period_end
-      ? new Date(sub.current_period_end as string).getTime()
-      : null;
-    const future = end === null || end > Date.now();
-    const status = sub.status as string;
-    const priceId = sub.price_id as string | null;
-    const attorneyPlans = new Set([
-      "attorney_solo_monthly",
-      "attorney_firm_monthly",
-      "attorney_firm_charter_monthly",
-      "attorney_enterprise_monthly",
-      // legacy price id used during The Pilot rollout
-      "attorney_portal_monthly_297",
-    ]);
-    const active =
-      (["active", "trialing", "past_due"].includes(status) && future) ||
-      (status === "canceled" && end !== null && end > Date.now());
-    if (active && priceId && attorneyPlans.has(priceId)) {
-      return { entitled: true, reason: "subscribed" };
-    }
-  }
-  // Founding-nine 90-day trial lives on the attorney profile, not Stripe.
-  const { data: profile } = await supabaseAdmin
-    .from("attorney_profiles")
-    .select("trial_ends_at")
-    .eq("user_id", attorneyId)
-    .maybeSingle();
-  if (profile?.trial_ends_at && new Date(profile.trial_ends_at).getTime() > Date.now()) {
-    return { entitled: true, reason: "subscribed" };
-  }
+  // The database evaluates every eligible subscription and founding trial,
+  // using the same paid-through and environment rules as webhook recovery.
+  const { data: billing, error } = await (supabaseAdmin as any).rpc("attorney_billing_state", {
+    _attorney_id: attorneyId,
+  });
+  if (error) throw new Error("Could not verify attorney billing entitlement.");
+  if (billing?.[0]?.entitled) return { entitled: true, reason: "subscribed" };
   void clientId;
   return { entitled: false, reason: "paywall" };
 }
@@ -559,6 +530,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
           .eq("attorney_user_id", context.userId)
           .eq("client_user_id", data.clientId)
           .eq("status", "active")
+          .is("revoked_at", null)
           .maybeSingle(),
         supabaseAdmin
           .from("attorney_incident_notes")

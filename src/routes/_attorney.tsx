@@ -23,10 +23,7 @@ import attorneyCss from "@/styles/attorney.css?url";
 import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
-import {
-  attorneyPathExemptFromRequiredMfa,
-  attorneyPathWithoutPortalChrome,
-} from "@/lib/mfa";
+import { attorneyPathExemptFromRequiredMfa, attorneyPathWithoutPortalChrome } from "@/lib/mfa";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -76,6 +73,10 @@ function AttorneyLayout() {
         if (cancelled) return;
         if (r.role !== "attorney" && r.role !== "collaborator") {
           navigate({ to: "/lawyer-signup", replace: true });
+          return;
+        }
+        if (r.role === "attorney" && !r.attorney_approved) {
+          navigate({ to: "/attorney-apply", replace: true });
           return;
         }
         setUserRole(r.role);
@@ -202,7 +203,13 @@ function AttorneyLayout() {
         className="att-root"
         data-persona="attorney"
         data-mfa-shell="minimal"
-        style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 24 }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+          padding: 24,
+        }}
       >
         <div style={{ width: "100%", maxWidth: 560 }}>
           <Outlet />
@@ -213,7 +220,9 @@ function AttorneyLayout() {
 
   return (
     <div className="att-root att-cockpit att-shell" data-persona="attorney">
-      <a href="#main-content" className="skip-link">Skip to main content</a>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <AttorneySidebar />
       <div style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <AttorneyTopBar firmName={firmName} />
@@ -240,8 +249,8 @@ function AttorneyLayout() {
           <span>Matter opens, downloads & exports recorded</span>
           <span>·</span>
           <span>
-            PatternProof organises the client's own records. It does not draw legal conclusions
-            and is not legal advice.
+            PatternProof organises the client's own records. It does not draw legal conclusions and
+            is not legal advice.
           </span>
           <span>·</span>
           <a href="/privacy" style={{ color: "inherit", textDecoration: "underline" }}>

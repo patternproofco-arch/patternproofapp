@@ -1,6 +1,63 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
-import { normalizeClientSupabaseConfig } from "@/integrations/supabase/client-config";
+import { runInNewContext } from "node:vm";
+import { transformSync } from "esbuild";
+import {
+  normalizeClientSupabaseConfig,
+  readClientSupabaseConfig,
+} from "@/integrations/supabase/client-config";
+
+describe("reading Supabase config without Node globals", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  function readBrowserConfig(url: string, key: string) {
+    // Vitest rewrites import.meta.env to Node's process.env. Compile the real
+    // module with browser build-time values, then run with no Node globals.
+    const { code } = transformSync(
+      readFileSync("src/integrations/supabase/client-config.ts", "utf8"),
+      {
+        loader: "ts",
+        format: "iife",
+        globalName: "ClientConfig",
+        define: {
+          "import.meta.env": JSON.stringify({
+            VITE_SUPABASE_URL: url,
+            VITE_SUPABASE_PUBLISHABLE_KEY: key,
+          }),
+        },
+      },
+    );
+    return runInNewContext(`${code}\nClientConfig.readClientSupabaseConfig()`);
+  }
+
+  it.each([
+    ["", ""],
+    ["https://example.supabase.co", ""],
+    ["", "anon-key"],
+  ])("returns null for incomplete browser config (%s, %s)", (url, key) => {
+    expect(readBrowserConfig(url, key)).toBeNull();
+  });
+
+  it("uses publishable build-time values in the browser", () => {
+    expect(readBrowserConfig(" https://example.supabase.co ", " anon-key ")).toEqual({
+      url: "https://example.supabase.co",
+      publishableKey: "anon-key",
+    });
+  });
+
+  it("retains the server environment fallback during SSR", () => {
+    vi.stubEnv("VITE_SUPABASE_URL", "");
+    vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "");
+    vi.stubEnv("SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("SUPABASE_PUBLISHABLE_KEY", "server-anon-key");
+    expect(readClientSupabaseConfig()).toEqual({
+      url: "https://example.supabase.co",
+      publishableKey: "server-anon-key",
+    });
+  });
+});
 
 describe("normalizeClientSupabaseConfig (empty fail-closed)", () => {
   it("accepts trimmed non-empty URL and publishable key", () => {

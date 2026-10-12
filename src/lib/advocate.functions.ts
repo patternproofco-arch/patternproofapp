@@ -313,6 +313,10 @@ export const acceptAdvocateInvitation = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from("user_roles")
       .upsert({ user_id: context.userId, role: "advocate" }, { onConflict: "user_id,role" });
+    await (await import("@/lib/signup-notify.server")).notifyNewSignup({
+      userId: context.userId,
+      role: "advocate",
+    });
 
     await supabaseAdmin.from("advocate_profiles").upsert(
       {

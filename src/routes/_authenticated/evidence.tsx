@@ -15,6 +15,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { makeIntakeDeps } from "@/lib/evidence-intake-deps";
 import { useAuth } from "@/lib/auth-context";
 import { CognitiveClose } from "@/components/CognitiveClose";
 import { useServerFn } from "@tanstack/react-start";
@@ -127,24 +128,7 @@ function EvidencePage() {
   const extractFn = useServerFn(extractIncidentFromImage);
   const ingestFn = useServerFn(ingestEvidenceBatch);
   const [resumeKey, setResumeKey] = useState<string | null>(null);
-  const intakeDeps: IntakeDeps = {
-    upload: async (key, blob) => {
-      const { error } = await supabase.storage.from("evidence-files").upload(key, blob);
-      return {
-        error: error
-          ? { message: error.message, statusCode: String((error as { statusCode?: string }).statusCode ?? "") }
-          : null,
-      };
-    },
-    remove: async (keys) => {
-      const { error } = await supabase.storage.from("evidence-files").remove(keys);
-      if (error) throw error;
-    },
-    ingest: async (file) =>
-      (await ingestFn({ data: { files: [file] } })) as unknown as Awaited<ReturnType<IntakeDeps["ingest"]>>,
-    sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
-    newKey: (userId, name) => `${userId}/${crypto.randomUUID()}-${name}`,
-  };
+  const intakeDeps: IntakeDeps = makeIntakeDeps((file) => ingestFn({ data: { files: [file] } }));
   const transcribeFn = useServerFn(transcribeEvidence);
   const proposeTimelineFn = useServerFn(proposeTimelineFromEvidence);
   const ensureDraftsFn = useServerFn(ensureMediaUploadDrafts);

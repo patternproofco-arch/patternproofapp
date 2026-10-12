@@ -11,14 +11,10 @@ export const setClioShareConsent = createServerFn({ method: "POST" })
     z.object({ link_id: z.string().uuid(), consent: z.boolean() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("attorney_client_links")
-      .update({
-        clio_share_consent: data.consent,
-        clio_share_consent_at: data.consent ? new Date().toISOString() : null,
-      })
-      .eq("id", data.link_id)
-      .eq("client_user_id", context.userId);
+    const { error } = await (context.supabase as any).rpc("set_my_clio_share_consent", {
+      _link_id: data.link_id,
+      _consent: data.consent,
+    });
     if (error) throw new Error("We couldn't update that setting. Try again in a moment.");
     return { ok: true as const };
   });

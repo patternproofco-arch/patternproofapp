@@ -68,3 +68,28 @@ test("demo prep practice shows the practice-only notice and is not saved", async
   await page.getByRole("button", { name: /^Practice/ }).click();
   await expect(page.locator("textarea")).toHaveValue("");
 });
+
+// Guardian: no tracking on /demo*. Every third-party tracker request is aborted (never a real hit).
+const TRACKERS =
+  /googletagmanager\.com|google-analytics\.com|analytics\.google\.com|leaveadot\.com|js\.stripe\.com/;
+for (const path of DEMO_PATHS) {
+  test(`demo portal ${path}: no tracker request, no gtag.js tag, GA kill switch set`, async ({
+    page,
+  }) => {
+    const attempted: string[] = [];
+    await page.route(TRACKERS, (route) => {
+      attempted.push(route.request().url());
+      return route.abort();
+    });
+    await page.goto(path, { waitUntil: "domcontentloaded" });
+    await waitForHydration(page);
+    await page.waitForLoadState("networkidle").catch(() => undefined);
+    await expect(page.locator('script[src*="googletagmanager.com"]')).toHaveCount(0);
+    await expect(page.locator('script[src*="leaveadot.com"]')).toHaveCount(0);
+    const killSwitch = await page.evaluate(
+      () => (window as unknown as Record<string, unknown>)["ga-disable-G-PXNVVNXEV5"] === true,
+    );
+    expect(killSwitch).toBe(true);
+    expect(attempted).toEqual([]);
+  });
+}

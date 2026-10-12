@@ -55,7 +55,7 @@ export const template = {
   component: Email,
   subject: (data: Record<string, any>) => `Support request — ${data.category ?? "Other"}`,
   displayName: "Support request",
-  to: "pattern@pattern-proof.tech",
+  to: "patternproofco@gmail.com",
   previewData: {
     requestId: "00000000-0000-0000-0000-000000000000",
     name: "Jordan",

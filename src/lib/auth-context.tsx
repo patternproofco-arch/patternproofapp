@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { isClientSupabaseConfigured, supabase } from "@/integrations/supabase/client";
+import { finishPendingWipe, wipeLocalEvidence } from "@/lib/local-wipe";
 
 interface AuthCtx {
   user: User | null;
@@ -81,10 +82,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return undefined;
     }
 
+    // Finish a device wipe that Quick Exit started but the page change cut short.
+    void finishPendingWipe();
+
     try {
       const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
         const nextId = s?.user?.id ?? null;
-        if (lastUserId.current !== undefined && lastUserId.current !== nextId) queryClient?.clear();
+        if (lastUserId.current !== undefined && lastUserId.current !== nextId) {
+          queryClient?.clear();
+          // A different person is now signed in: files staged for the previous account go.
+          if (lastUserId.current && nextId) void wipeLocalEvidence();
+        }
         lastUserId.current = nextId;
         setSession(s);
         setLoading(false);

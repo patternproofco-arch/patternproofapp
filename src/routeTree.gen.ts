@@ -14,6 +14,7 @@ import { Route as AdvocateRouteImport } from './routes/_advocate'
 import { Route as AttorneyRouteImport } from './routes/_attorney'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AiTransparencyRouteImport } from './routes/ai-transparency'
+import { Route as AttorneyApplyRouteImport } from './routes/attorney-apply'
 import { Route as AttorneysRouteImport } from './routes/attorneys'
 import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as ChooseRoleRouteImport } from './routes/choose-role'
@@ -129,6 +130,7 @@ import { Route as AttorneyClientsIndexRouteImport } from './routes/_attorney/cli
 import { Route as AttorneyClientsClientIdRouteImport } from './routes/_attorney/clients.$clientId'
 import { Route as AttorneyMattersIndexRouteImport } from './routes/_attorney/matters.index'
 import { Route as AttorneyMattersMatterIdRouteImport } from './routes/_attorney/matters.$matterId'
+import { Route as AuthenticatedAdminOperationsRouteImport } from './routes/_authenticated/admin.operations'
 import { Route as AuthenticatedAdminOrgRequestsRouteImport } from './routes/_authenticated/admin.org-requests'
 import { Route as AuthenticatedAdminPasswordResetRouteImport } from './routes/_authenticated/admin.password-reset'
 import { Route as AuthenticatedAdminSigninsRouteImport } from './routes/_authenticated/admin.signins'
@@ -171,6 +173,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const AiTransparencyRoute = AiTransparencyRouteImport.update({
   id: '/ai-transparency',
   path: '/ai-transparency',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttorneyApplyRoute = AttorneyApplyRouteImport.update({
+  id: '/attorney-apply',
+  path: '/attorney-apply',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AttorneysRoute = AttorneysRouteImport.update({
@@ -771,6 +778,12 @@ const AttorneyMattersMatterIdRoute = AttorneyMattersMatterIdRouteImport.update({
   path: '/matters/$matterId',
   getParentRoute: () => AttorneyRoute,
 } as any)
+const AuthenticatedAdminOperationsRoute =
+  AuthenticatedAdminOperationsRouteImport.update({
+    id: '/admin/operations',
+    path: '/admin/operations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminOrgRequestsRoute =
   AuthenticatedAdminOrgRequestsRouteImport.update({
     id: '/admin/org-requests',
@@ -894,6 +907,7 @@ const AttorneyBinderClientIdFrequencyThreadIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-transparency': typeof AiTransparencyRoute
+  '/attorney-apply': typeof AttorneyApplyRoute
   '/attorneys': typeof AttorneysRoute
   '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
@@ -1006,6 +1020,7 @@ export interface FileRoutesByFullPath {
   '/binder/$clientId': typeof AttorneyBinderClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/matters/$matterId': typeof AttorneyMattersMatterIdRoute
+  '/admin/operations': typeof AuthenticatedAdminOperationsRoute
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
   '/admin/signins': typeof AuthenticatedAdminSigninsRoute
@@ -1034,6 +1049,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-transparency': typeof AiTransparencyRoute
+  '/attorney-apply': typeof AttorneyApplyRoute
   '/attorneys': typeof AttorneysRoute
   '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
@@ -1143,6 +1159,7 @@ export interface FileRoutesByTo {
   '/binder/$clientId': typeof AttorneyBinderClientIdRoute
   '/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/matters/$matterId': typeof AttorneyMattersMatterIdRoute
+  '/admin/operations': typeof AuthenticatedAdminOperationsRoute
   '/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
   '/admin/signins': typeof AuthenticatedAdminSigninsRoute
@@ -1174,6 +1191,7 @@ export interface FileRoutesById {
   '/_attorney': typeof AttorneyRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/ai-transparency': typeof AiTransparencyRoute
+  '/attorney-apply': typeof AttorneyApplyRoute
   '/attorneys': typeof AttorneysRoute
   '/capture': typeof CaptureRoute
   '/choose-role': typeof ChooseRoleRoute
@@ -1286,6 +1304,7 @@ export interface FileRoutesById {
   '/_attorney/binder/$clientId': typeof AttorneyBinderClientIdRoute
   '/_attorney/clients/$clientId': typeof AttorneyClientsClientIdRoute
   '/_attorney/matters/$matterId': typeof AttorneyMattersMatterIdRoute
+  '/_authenticated/admin/operations': typeof AuthenticatedAdminOperationsRoute
   '/_authenticated/admin/org-requests': typeof AuthenticatedAdminOrgRequestsRoute
   '/_authenticated/admin/password-reset': typeof AuthenticatedAdminPasswordResetRoute
   '/_authenticated/admin/signins': typeof AuthenticatedAdminSigninsRoute
@@ -1316,6 +1335,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/ai-transparency'
+    | '/attorney-apply'
     | '/attorneys'
     | '/capture'
     | '/choose-role'
@@ -1428,6 +1448,7 @@ export interface FileRouteTypes {
     | '/binder/$clientId'
     | '/clients/$clientId'
     | '/matters/$matterId'
+    | '/admin/operations'
     | '/admin/org-requests'
     | '/admin/password-reset'
     | '/admin/signins'
@@ -1456,6 +1477,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/ai-transparency'
+    | '/attorney-apply'
     | '/attorneys'
     | '/capture'
     | '/choose-role'
@@ -1565,6 +1587,7 @@ export interface FileRouteTypes {
     | '/binder/$clientId'
     | '/clients/$clientId'
     | '/matters/$matterId'
+    | '/admin/operations'
     | '/admin/org-requests'
     | '/admin/password-reset'
     | '/admin/signins'
@@ -1595,6 +1618,7 @@ export interface FileRouteTypes {
     | '/_attorney'
     | '/_authenticated'
     | '/ai-transparency'
+    | '/attorney-apply'
     | '/attorneys'
     | '/capture'
     | '/choose-role'
@@ -1707,6 +1731,7 @@ export interface FileRouteTypes {
     | '/_attorney/binder/$clientId'
     | '/_attorney/clients/$clientId'
     | '/_attorney/matters/$matterId'
+    | '/_authenticated/admin/operations'
     | '/_authenticated/admin/org-requests'
     | '/_authenticated/admin/password-reset'
     | '/_authenticated/admin/signins'
@@ -1739,6 +1764,7 @@ export interface RootRouteChildren {
   AttorneyRoute: typeof AttorneyRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AiTransparencyRoute: typeof AiTransparencyRoute
+  AttorneyApplyRoute: typeof AttorneyApplyRoute
   AttorneysRoute: typeof AttorneysRoute
   CaptureRoute: typeof CaptureRoute
   ChooseRoleRoute: typeof ChooseRoleRoute
@@ -1839,6 +1865,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-transparency'
       fullPath: '/ai-transparency'
       preLoaderRoute: typeof AiTransparencyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/attorney-apply': {
+      id: '/attorney-apply'
+      path: '/attorney-apply'
+      fullPath: '/attorney-apply'
+      preLoaderRoute: typeof AttorneyApplyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attorneys': {
@@ -2646,6 +2679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttorneyMattersMatterIdRouteImport
       parentRoute: typeof AttorneyRoute
     }
+    '/_authenticated/admin/operations': {
+      id: '/_authenticated/admin/operations'
+      path: '/admin/operations'
+      fullPath: '/admin/operations'
+      preLoaderRoute: typeof AuthenticatedAdminOperationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/org-requests': {
       id: '/_authenticated/admin/org-requests'
       path: '/admin/org-requests'
@@ -2956,6 +2996,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedShareWithAttorneyRoute: typeof AuthenticatedShareWithAttorneyRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedVoiceNotesRoute: typeof AuthenticatedVoiceNotesRoute
+  AuthenticatedAdminOperationsRoute: typeof AuthenticatedAdminOperationsRoute
   AuthenticatedAdminOrgRequestsRoute: typeof AuthenticatedAdminOrgRequestsRoute
   AuthenticatedAdminPasswordResetRoute: typeof AuthenticatedAdminPasswordResetRoute
   AuthenticatedAdminSigninsRoute: typeof AuthenticatedAdminSigninsRoute
@@ -3003,6 +3044,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedShareWithAttorneyRoute: AuthenticatedShareWithAttorneyRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedVoiceNotesRoute: AuthenticatedVoiceNotesRoute,
+  AuthenticatedAdminOperationsRoute: AuthenticatedAdminOperationsRoute,
   AuthenticatedAdminOrgRequestsRoute: AuthenticatedAdminOrgRequestsRoute,
   AuthenticatedAdminPasswordResetRoute: AuthenticatedAdminPasswordResetRoute,
   AuthenticatedAdminSigninsRoute: AuthenticatedAdminSigninsRoute,
@@ -3021,6 +3063,7 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneyRoute: AttorneyRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AiTransparencyRoute: AiTransparencyRoute,
+  AttorneyApplyRoute: AttorneyApplyRoute,
   AttorneysRoute: AttorneysRoute,
   CaptureRoute: CaptureRoute,
   ChooseRoleRoute: ChooseRoleRoute,
