@@ -927,7 +927,7 @@ export const getClientCase = createServerFn({ method: "POST" })
       if (clean.suggested_incident_id && !eligibleIncidentIds.has(clean.suggested_incident_id)) {
         clean.suggested_incident_id = null;
       }
-      for (const key of ["parent_evidence_id", "near_duplicate_of"]) {
+      for (const key of ["parent_evidence_id", "near_duplicate_of"] as const) {
         if (clean[key] && !eligibleEvidenceIds.has(clean[key])) clean[key] = null;
       }
       if (clean.linked_recording_id) clean.linked_recording_id = null;

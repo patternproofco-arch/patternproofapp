@@ -281,9 +281,12 @@ export async function loadProfessionalExportExtras(
     reviews: reviews
       .filter((row) => allowedEvidence.has(row.evidence_id))
       .map((row) => ({
-        ...row,
+        evidence_id: String(row.evidence_id),
+        status: row.status as string | null,
+        exhibit_label: row.exhibit_label as string | null,
+        notes: row.notes as string | null,
         linked_incident_id: allowedIncidents.has(row.linked_incident_id)
-          ? row.linked_incident_id
+          ? String(row.linked_incident_id)
           : null,
       })),
   };
