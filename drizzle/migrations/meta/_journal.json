@@ -120,6 +120,13 @@
       "when": 1791818592164,
       "tag": "0016_muy_paste_section1_bringup",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791819152093,
+      "tag": "0017_attorney_trial_lock_paste2_section1",
+      "breakpoints": true
     }
   ]
 }
